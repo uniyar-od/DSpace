@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -54,6 +55,10 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
         this.applicationService = applicationService;
     }
 
+	public Map<String, ItemMetadataImportFillerConfiguration> getConfigurations() {
+		return configurations;
+	}
+	
     public void setConfigurations(
             Map<String, ItemMetadataImportFillerConfiguration> configurations)
     {
