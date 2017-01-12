@@ -9,8 +9,11 @@ package org.dspace.app.webui.discovery;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.DSpaceObject;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
@@ -33,6 +37,7 @@ import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryCollapsingConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters.SORT;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
@@ -103,7 +108,7 @@ public class DiscoverUtility
         DiscoveryConfiguration discoveryConfiguration = SearchUtils
                 .getDiscoveryConfigurationByName(configurationName);
 
-        List<String> userFilters = setupBasicQuery(context,
+        List<String> userFilters = setupBasicQuery(context, configurationName,
                 discoveryConfiguration, request, queryArgs);
 
         setPagination(request, queryArgs, discoveryConfiguration);
@@ -182,7 +187,7 @@ public class DiscoverUtility
         DiscoveryConfiguration discoveryConfiguration = SearchUtils
                 .getDiscoveryConfiguration(scope);
 
-        List<String> userFilters = setupBasicQuery(context,
+        List<String> userFilters = setupBasicQuery(context, null,
                 discoveryConfiguration, request, queryArgs);
 
         setPagination(request, queryArgs, discoveryConfiguration);
@@ -214,7 +219,7 @@ public class DiscoverUtility
         DiscoverQuery queryArgs = new DiscoverQuery();
         DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration();
         
-        setupBasicQuery(context, discoveryConfiguration, request, queryArgs);
+        setupBasicQuery(context, null, discoveryConfiguration, request, queryArgs);
         String autoIndex = request.getParameter("auto_idx");
         String autoQuery = request.getParameter("auto_query");
         String sort = request.getParameter("auto_sort");
@@ -283,7 +288,7 @@ public class DiscoverUtility
      * @return the list of user filer (as filter query)
      */
     private static List<String> setupBasicQuery(Context context,
-            DiscoveryConfiguration discoveryConfiguration,
+            String configName, DiscoveryConfiguration discoveryConfiguration,
             HttpServletRequest request, DiscoverQuery queryArgs)
     {
         // Get the query
@@ -331,6 +336,10 @@ public class DiscoverUtility
 					queryArgs.addFilterQueries(tagging + f);
 				}
 			}
+			
+			if (isAResourceTypeCategory(configName)) {
+				queryArgs.addFilterQueries(tagging + "resourcetype_group:"+configName);
+			}
 		}
 		
         List<String[]> filters = getFilters(request, null);
@@ -363,7 +372,51 @@ public class DiscoverUtility
 
     }
 
-    /**
+    private static boolean isAResourceTypeCategory(String id) {
+    	Set<String> categories = new HashSet<String>();
+    	Properties props = ConfigurationManager.getProperties("cris");
+    	boolean discoveryAllCrisDO = false;
+    	Set<String> explicitMappingCrisDO = new HashSet<String>();
+    	for (Object prop : props.keySet()) {
+    		String key = (String) prop;
+    		if (!key.startsWith("facet.type.")){
+    			continue;
+    		}
+    		String[] entity = key.substring("facet.type.".length()).split("\\.",2);
+    		if (entity.length == 1) {
+    			String value = props.getProperty(key);
+    			if (StringUtils.equals("@label@", value)) {
+    				categories.add(entity[0]);
+    			}
+    			else {
+    				categories.add(value.split("###",2)[1]);
+    			}
+    		}
+    		else {
+    			String value = props.getProperty(key);
+    			if (StringUtils.equals("@label@", value)) {
+    				if (StringUtils.equals(entity[1], "default")) {
+    					discoveryAllCrisDO = true;
+    				}
+    				else {
+    					categories.add(entity[1]);
+    					explicitMappingCrisDO.add(entity[1]);
+    				}
+    			}
+    			else {
+    				categories.add(value.split("###",2)[1]);
+    			}
+    		}
+    	}
+    	
+    	if (categories.contains(id) || (discoveryAllCrisDO && StringUtils.startsWith(id, "cris") && !explicitMappingCrisDO.contains(id))) 
+    	{
+    		return true;
+    	}
+    	return false;
+	}
+
+	/**
      * Escape colon-space sequence in a user-entered query, based on the
      * underlying search service. This is intended to let end users paste in a
      * title containing colon-space without requiring them to escape the colon.
@@ -492,6 +545,7 @@ public class DiscoverUtility
         	globalConfiguration = SearchUtils.getGlobalConfiguration();
         	DiscoverySearchFilterFacet facet = new DiscoverySearchFilterFacet();
         	facet.setIndexFieldName(globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName());
+        	facet.setSortOrder(globalConfiguration.getCollapsingConfiguration().isAlphaSort()?SORT.VALUE:SORT.COUNT);
         	facets.add(facet);
         }
         facets.addAll(currentFacets);

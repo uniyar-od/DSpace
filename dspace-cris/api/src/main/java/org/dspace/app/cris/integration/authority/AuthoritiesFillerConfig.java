@@ -12,7 +12,7 @@ import java.util.Map;
 public class AuthoritiesFillerConfig {
 	private Map<String, ImportAuthorityFiller> fillers;
 
-	ImportAuthorityFiller getFiller(String authorityType) {
+	public ImportAuthorityFiller getFiller(String authorityType) {
 		ImportAuthorityFiller filler = null;
 		if (fillers != null) {
 			filler = fillers.get(authorityType);

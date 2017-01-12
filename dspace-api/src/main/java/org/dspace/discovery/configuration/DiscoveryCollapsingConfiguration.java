@@ -15,6 +15,16 @@ public class DiscoveryCollapsingConfiguration {
 
 	private int groupLimit;
 	
+	private boolean alphaSort = false;
+	
+	public void setAlphaSort(boolean alphaSort) {
+		this.alphaSort = alphaSort;
+	}
+	
+	public boolean isAlphaSort() {
+		return alphaSort;
+	}
+	
     public String getGroupIndexFieldName() {
 		return groupIndexFieldName;
 	}

@@ -260,12 +260,11 @@ public class CrisSearchService extends SolrServiceImpl
                 toProjectionFields, sortFields, hitHighlightingFields);
 
         // add the special crisXX.this metadata
-            indexProperty(doc, dso.getUuid(), schema + ".this", dso.getName(),
-                    ResearcherPageUtils.getPersistentIdentifier(dso),
-                    toIgnoreFields, searchFilters, toProjectionFields,
-                    sortFields, sortFieldsAdded, hitHighlightingFields,
-                    moreLikeThisFields);
-
+        indexProperty(doc, dso.getUuid(), schema + ".this", dso.getName(),
+                ResearcherPageUtils.getPersistentIdentifier(dso),
+                toIgnoreFields, searchFilters, toProjectionFields,
+                sortFields, sortFieldsAdded, hitHighlightingFields,
+                moreLikeThisFields);
 
         commonsIndexerAnagrafica(dso, doc, schema, sortFieldsAdded,
                 hitHighlightingFields, uuid, toIgnoreFields, searchFilters,
@@ -867,6 +866,18 @@ public class CrisSearchService extends SolrServiceImpl
             if (crisConfiguration != null)
             {
                 discoveryConfigurations.add(crisConfiguration);
+            }
+            
+            List<String> listExtraConfiguration = SearchUtils.getConfigurationService().getExtraConfigurationMapping().get(confName);
+			if (listExtraConfiguration != null) {
+            	for (String eConf : listExtraConfiguration) {
+            		DiscoveryConfiguration extraCrisConfiguration = SearchUtils
+                            .getDiscoveryConfigurationByName(eConf);
+                    if (extraCrisConfiguration != null)
+                    {
+                        discoveryConfigurations.add(extraCrisConfiguration);
+                    }
+            	}
             }
             for (DiscoveryConfiguration discoveryConfiguration : discoveryConfigurations)
             {

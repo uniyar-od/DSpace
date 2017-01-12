@@ -117,18 +117,18 @@ public final class CrisItemWrapper implements MethodInterceptor, ItemWrapperInte
 				for (Metadatum dcval : Metadatums) {
 					String value = dcval.value;					
 					if (StringUtils.isNotBlank(value)) {
-						 String valueWithoutWhitespace = StringUtils.deleteWhitespace(value);
+						 String valueWithoutWhitespace = StringUtils.deleteWhitespace(value.toLowerCase());
 				    	 String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
 				    			 CrisConstants.CFG_MODULE, "facet.type."
-										+ valueWithoutWhitespace.toLowerCase());
+										+ valueWithoutWhitespace);
 				    	 if(StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
-				    		 return value.toLowerCase();
+				    		 return valueWithoutWhitespace;
 				    	 }
 					}
 				}
 			}
 		}
-        return Constants.typeText[Constants.ITEM].toLowerCase();
+        return StringUtils.deleteWhitespace(Constants.typeText[Constants.ITEM].toLowerCase());
 	}
 
 	private Metadatum[] addCrisEnhancedMetadata(Item item, Metadatum[] basic,

@@ -141,6 +141,30 @@ public class DCInputSet
 	    }
     	return false;
     }
+    
+    /**
+     * Does the current input set define the named field?
+     * Scan through every field in every page of the input set
+     *
+     * @return true if the current set has the named field
+     */
+    public boolean isFieldWithSchemaPresent(String fieldName)
+    {
+    	for (int i = 0; i < inputPages.length; i++)
+	    {
+    		DCInput[] pageInputs = inputPages[i];
+    		for (int row = 0; row < pageInputs.length; row++)
+    		{
+    			String fullName = pageInputs[row].getSchema() + "." + pageInputs[row].getElement() + "." + 
+				              	  pageInputs[row].getQualifier();
+    			if (fullName.equals(fieldName))
+    			{
+    				return true;
+    			}
+    		}
+	    }
+    	return false;
+    }    
 	
     private static boolean doField(DCInput dcf, boolean addTitleAlternative, 
 		    					   boolean addPublishedBefore)

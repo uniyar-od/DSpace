@@ -17,10 +17,18 @@ import java.util.Map;
  * @author Kevin Van de Velde (kevin at atmire dot com)
  */
 public class DiscoveryConfigurationService {
-
+	private Map<String, List<String>> extraConfigurationMapping = new HashMap<String, List<String>>();
     private Map<String, DiscoveryConfiguration> map;
     private Map<Integer, List<String>> toIgnoreMetadataFields = new HashMap<>();
 
+    public void setExtraConfigurationMapping(Map<String, List<String>> extraConfigurationMapping) {
+		this.extraConfigurationMapping = extraConfigurationMapping;
+	}
+    
+    public Map<String, List<String>> getExtraConfigurationMapping() {
+		return extraConfigurationMapping;
+	}
+    
     public Map<String, DiscoveryConfiguration> getMap() {
         return map;
     }
