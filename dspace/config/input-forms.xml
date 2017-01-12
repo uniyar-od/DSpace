@@ -24,6 +24,16 @@
    <name-map collection-handle="123456789/5" form-name="datasets" />
    <name-map collection-handle="123456789/6" form-name="others" />
  -->
+   <name-map collection-handle="11366/366" form-name="conference_materials" />
+   <name-map collection-handle="11366/367" form-name="conference_materials" />
+   <name-map collection-handle="11366/368" form-name="conference_materials" />
+   <name-map collection-handle="11366/234" form-name="conference_materials" />  
+   <name-map collection-handle="11366/443" form-name="conference_materials" />
+   <name-map collection-handle="11366/540" form-name="dris" />
+   <name-map collection-handle="11366/541" form-name="institutional_membership" />
+   <name-map collection-handle="11366/542" form-name="personal_membership" />
+   <name-map collection-handle="11366/544" form-name="personal_membership" />
+   <name-map collection-handle="11366/539" form-name="affiliate_membership" />
  </form-map>
 
 
@@ -1233,20 +1243,1419 @@ it, please enter the types and the actual numbers or codes.</hint>
      </page>
    </form>
 
-   <form name="one">
-     <page number="1">
+   <form name="institutional_membership">
+     <page number="1" heading="instmembership.primary">
        <field>
-		 <dc-schema>dc</dc-schema>
-         <dc-element>contributor</dc-element>
-         <dc-qualifier>author</dc-qualifier>
-         <repeatable>true</repeatable>
-         <label>One: Authors</label>
-         <input-type>name</input-type>
-         <hint>Enter the names of the authors of this item.</hint>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>name</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Organisation / Institute</label>
+         <input-type>onebox</input-type>
+         <hint>
+         &lt;div class="well well-md"&gt;
+		 &lt;b&gt;Information about the Organisation / institution that is applying for the membership&lt;/b&gt;
+		 &lt;/div&gt;
+         &lt;br /&gt;
+                  
+         Enter the name of the organisation / institution that apply for the membership</hint>
+         <required>You need to enter the name of the organization / institution that apply for the membership</required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>membershipstartdate</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Start date</label>
+         <input-type>date</input-type>
+         <hint>Enter the first day of membership for the current level</hint>
+		 <required>You need to enter the first day of membership</required>
+		 <visibility>workflow</visibility>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>membershipenddate</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>End date</label>
+         <input-type>date</input-type>
+         <hint>Enter the last day of membership for the current level</hint>
+		 <required>You need to enter the last day of membership</required>
+		 <visibility>workflow</visibility>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>acronym</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Acronym</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>parent</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Parent organisation</label>
+         <input-type>onebox</input-type>
+         <hint>If you are applying for membership for a sub-unit / department of a larger organisation please enter the here the name of the parent organisation</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>type</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Type of organisation</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>address</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Visiting address</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>pobox</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>P.O. Box</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Postal code</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>city</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>City</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>state</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>State / Region</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>country</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Country</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the first letter of the country the system will present a suggestion list</hint>
+         <required>This field is required. Enter the first letter of the country the system will present a suggestion list. You need to pick one of the suggested value</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+      
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>fullname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Principal contact (full name)</label>
+         <input-type>onebox</input-type>
+         <hint>
+         &lt;div class="well well-md"&gt;
+		 &lt;b&gt;Information about the Principal Contact for the membership&lt;/b&gt;
+		 &lt;/div&gt;
+         &lt;br /&gt;
+         Please enter the name using the format Lastname, Firstname. Try to lookup your record in our database or the ORCID registry if possible
+         </hint>
+         <required>This field is required</required>
+       </field>
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>title</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Academic title(s)</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>function</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Function</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>department</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Department / Institution</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>address</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Visiting address</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Postal code</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>city</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>City</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>telephone</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Telephone</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>mobile</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Mobile</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>fax</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Fax</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>email</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Email</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Personal URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+      </page>
+      <page number="2" heading="instmembership.extramember">
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>fullname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Member name</label>
+         <input-type>onebox</input-type>
+         <hint>This field is required if you want to add an extra member</hint>
+         <required></required>
+       </field>
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>title</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Academic title(s)</label>
+         <input-type>onebox</input-type>
+         <hint>&lt;span class="alert alert-info"&gt;NOTE: if you have selected a person already present in the system it is not necessary to fill the following information.&lt;/span&gt;</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>function</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Function</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>department</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Department / Institution</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>address</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Visiting address</label>
+         <input-type>onebox</input-type>
+         <hint>This field is required if you want to add an extra member</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Postal code</label>
+         <input-type>onebox</input-type>
+         <hint>This field is required if you want to add an extra member</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>city</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>City</label>
+         <input-type>onebox</input-type>
+         <hint>This field is required if you want to add an extra member</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>telephone</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Telephone</label>
+         <input-type>onebox</input-type>
+         <hint>This field is required if you want to add an extra member</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>mobile</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Mobile</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>fax</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Fax</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>email</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Email</label>
+         <input-type>onebox</input-type>
+         <hint>This field is required if you want to add an extra member</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>extramember</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Personal URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
          <required></required>
        </field>
       </page>
     </form>
+
+<form name="affiliate_membership">
+     <page number="1" heading="affmembership.organisation">
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>name</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Organisation / Institute</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the name of the organisation / institution that apply for the membership</hint>
+         <required>You need to enter the name of the organization / institution that apply for the membership</required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>membershipstartdate</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Start date</label>
+         <input-type>date</input-type>
+         <hint>Enter the first day of membership for the current level</hint>
+		 <required>You need to enter the first day of membership</required>
+		 <visibility>workflow</visibility>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>membershipenddate</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>End date</label>
+         <input-type>date</input-type>
+         <hint>Enter the last day of membership for the current level</hint>
+		 <required>You need to enter the last day of membership</required>
+		 <visibility>workflow</visibility>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>acronym</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Acronym</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>parent</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Parent organisation</label>
+         <input-type>onebox</input-type>
+         <hint>If you are applying for membership for a sub-unit / department of a larger organisation please enter the here the name of the parent organisation</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>address</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Visiting address</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>pobox</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>P.O. Box</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>pobox</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>P.O. Box</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Postal code</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>City</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>state</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>State / Region</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>country</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Country</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>organisation</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+      </page>
+      <page number="2" heading="affmembership.contact">
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>fullname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Principal contact (full name)</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>title</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Academic title(s)</label>
+         <input-type>onebox</input-type>
+         <hint>&lt;span class="alert alert-info"&gt;NOTE: if you have selected a person already present in the system it is not necessary to fill the following information.&lt;/span&gt;</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>function</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Function</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>department</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Department / Institution</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>address</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Visiting address</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Postal code</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>city</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>City</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>telephone</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Telephone</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>mobile</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Mobile</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>fax</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Fax</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>email</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Email</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Personal URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+      </page>
+    </form>
+
+
+<form name="personal_membership">
+     <page number="1" heading="persmembership.primary">
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>fullname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Full name</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       
+		<field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>membershipstartdate</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Start date</label>
+         <input-type>date</input-type>
+         <hint>Enter the first day of membership for the current level</hint>
+		 <required>You need to enter the first day of membership</required>
+		 <visibility>workflow</visibility>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>membershipenddate</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>End date</label>
+         <input-type>date</input-type>
+         <hint>Enter the last day of membership for the current level</hint>
+		 <required>You need to enter the last day of membership</required>
+		 <visibility>workflow</visibility>
+       </field>
+       
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>title</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Academic title(s)</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>function</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Function</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>department</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Department / Institution</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>orgacronym</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Acronym</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>orgtype</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Type of organisation</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>orgparent</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Parent organisation</label>
+         <input-type>onebox</input-type>
+         <hint>If you work for a sub-unit / department of a larger organisation please enter the here the name of the parent organisation</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>address</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Visiting address</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>postalcode</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Postal code</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>city</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>City</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>country</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Country</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>telephone</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Telephone</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>mobile</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Mobile</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>fax</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Fax</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>email</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Email</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This field is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>member</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Personal URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+      </page>
+    </form>
+
+	<form name="dris">
+     <page number="1" heading="dris.primary">
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>orgname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Organisation / Institute</label>
+         <input-type>onebox</input-type>
+         <hint>Provider of the CRIS (Official operator of the system - not: provider of software)</hint>
+         <required>You need to enter the name of the organization / institution that run the CRIS</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>orgacronym</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Acronym</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>orgparent</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Parent organisation</label>
+         <input-type>onebox</input-type>
+         <hint>If you are describing a CRIS operator by a sub-unit / department of a larger organisation please enter the here the name of the parent organisation</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>orgtype</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Type of Organisation</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>orgcountry</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Country</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>orgurl</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>contactname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Contact person</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the Lastname, Firstname of the official point of contact.</hint>
+         <required>Enter the Lastname, Firstname of the official point of contact.</required>
+       </field>
+        <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>contactdepartment</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Department / Institution</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>contactemail</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Email</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+      </page>
+      <page number="2" heading="dris.details"> 
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>name</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Name of the CRIS </label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>This information is required</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>acronym</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Acronym of the CRIS </label>
+         <input-type>onebox</input-type>
+         <hint>if any / other than the name</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>description</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Description of the CRIS</label>
+         <input-type>textarea</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>url</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>URL of the CRIS</label>
+         <input-type>onebox</input-type>
+         <hint>or of CRIS information page</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>status</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Status</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>You must select the project status</required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>date</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Date of (planned) Establishment</label>
+         <input-type>date</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>scope</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Scope of the CRIS</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required>You must select the CRIS scope</required>
+       </field> 
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>software</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Software used</label>
+         <input-type>onebox</input-type>
+         <hint>Keep empty in case of inhouse software, otherwise use the autocomplete to lookup in the general purpose solutions (commercial or opensource) or to provide the inclusion of a new software</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>compatibility</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>CERIF Compatibility of your CRIS</label>
+         <input-type value-pairs-name="dris_compatibility">dropdown</input-type>
+         <hint>&lt;ul&gt;
+    &lt;li&gt;&lt;b&gt;CERIF:&lt;/b&gt; CERIF as storage model so CERIF interface for query and reporting&lt;/li&gt;
+    &lt;li&gt;&lt;b&gt;CERIF wrapped:&lt;/b&gt; Non-CERIF storage model but CERIF interface (query and reporting)&lt;/li&gt;
+    &lt;li&gt;&lt;b&gt;Non-CERIF:&lt;/)b&gt; storage model non-CERIF; no CERIF interface for query and reporting&lt;/li&gt;
+    &lt;/ul&gt; </hint>
+         <required></required>
+       </field>   
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>cerifversion</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>CERIF version</label>
+         <input-type value-pairs-name="dris_cerifversion">dropdown</input-type>
+         <hint>In case of CERIF compatibility: specify the version</hint>
+         <required></required>
+       </field>   
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>coverage</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Coverage of the CRIS</label>
+         <input-type value-pairs-name="dris_coverage">list</input-type>
+         <hint>what is registered in your CRIS? (Check all boxes that apply)</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>internallink</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Is there an interface/link of the CRIS with
+other systems in the institution/organisation?</label>
+         <input-type value-pairs-name="dris_internallink">list</input-type>
+         <hint>Check all boxes that apply</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>externallink</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Is there an interface/link of the CRIS with
+EXTERNAL systems outside the institution/organisation?</label>
+         <input-type value-pairs-name="dris_externallink">list</input-type>
+         <hint>Check all boxes that apply</hint>
+         <required></required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>noresearchers</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>No of Researchers in your institution</label>
+         <input-type>onebox</input-type>
+         <hint>As in the previous year. Format: 10000 (so WITHOUT "." or ",")</hint>
+         <required></required>
+       </field>        
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>nousers</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>No of registered users for CRIS (if registration is necessary)</label>
+         <input-type>onebox</input-type>
+         <hint>As in the previous year. Format: 10000 (so WITHOUT "." or ",")</hint>
+         <required></required>
+       </field>     
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>norequests</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>No of database requests for CRIS</label>
+         <input-type>onebox</input-type>
+         <hint>As in the previous year. Format: 10000 (so WITHOUT "." or ",")</hint>
+         <required></required>
+       </field>
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>datasupply</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>CRIS data supply</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>datavalidation</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>CRIS data validation</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>                 
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>datareport</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>CRIS data output generation</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>                 
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>ictsupport</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>ICT support of the CRIS</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>publication</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Where is the publication metadata primarily registered?</label>
+         <input-type value-pairs-name="dris_publication">dropdown</input-type>
+         <hint></hint>
+         <required></required>
+       </field>                                                                      
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repository</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Is there a link between the CRIS and the Repository?</label>
+         <input-type value-pairs-name="dris_repositorylink">dropdown</input-type>
+         <hint></hint>
+         <required></required>
+       </field>                                        
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repositorylink</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>If (dynamically) linked: Direction of link when it comes to METADATA</label>
+         <input-type value-pairs-name="dris_metadatalink">dropdown</input-type>
+         <hint></hint>
+         <required></required>
+       </field>                                        
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repositoryfulltext</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>If (dynamically) linked: Direction of link when it comes to FULL TEXT</label>
+         <input-type value-pairs-name="dris_repositoryfullltextlink">dropdown</input-type>
+         <hint></hint>
+         <required></required>
+       </field>                                        
+      </page>
+      <page number="3" heading="dris.repository">
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>reporgname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Organisation / Institute</label>
+         <input-type>onebox</input-type>
+         <hint>
+         &lt;div class="well well-md"&gt;
+		 &lt;b&gt;Additional information on your Publication Repository&lt;/b&gt;
+		 &lt;p&gt;
+		 This part deals with information on the publication repository of your institution (provided you have one).
+		 &lt;/p&gt;
+		 &lt;p&gt;
+			The survey has been composed by the euroCRIS Task Group on CRIS and Institutional Repositories (CRIS-IR). 
+			The information will not be published in the Directory of Research Information Systems, but the data are 
+			of importance for the work of the CRIS-IR Task Group. So you are kindly invited to fill in this second part 
+			of the questionnaire. Thank you for supporting our work.
+		 &lt;/p&gt;
+		 &lt;/div&gt;
+         &lt;br /&gt;
+         
+         Provider of the Repository (Official operator of the system - not: provider of software) - &lt;b&gt;Keep empty if the same than CRIS&lt;/b&gt;</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>reporgacronym</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Acronym</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>reporgurl</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>URL</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repcontactname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Contact person</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the Lastname, Firstname of the official point of contact for the Repository Registration (This information is needed for internal purposes only. Please register here the person best suited to contact about the DRIS registration).</hint>
+         <required></required>
+       </field>
+        <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repcontactdepartment</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Department / Institution</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repcontactemail</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Email</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repname</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Name of the Repository</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repurl</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>URL of the Repository</label>
+         <input-type>onebox</input-type>
+         <hint>or of Repository information page</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repscope</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Scope of the Repository</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repinstscope</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>In case of INSTITUTIONAL Repository. Is there a mandatory policy?</label>
+         <input-type value-pairs-name="dris_repinstscope">dropdown</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repoa</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Is the Repository Open Access?</label>
+         <input-type value-pairs-name="dris_repoa">dropdown</input-type>
+         <hint></hint>
+         <required></required>
+       </field>  
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repsoftware</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Software used</label>
+         <input-type>onebox</input-type>
+         <hint>Keep empty in case of inhouse software, otherwise use the autocomplete to lookup in the general purpose solutions (commercial or opensource) or to provide the inclusion of a new software</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repcoverage</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Coverage of the Repository</label>
+         <input-type value-pairs-name="dris_repcoverage">list</input-type>
+         <hint>what is deposited in your Repository? (Check all boxes that apply)</hint>
+         <required></required>
+       </field>
+      <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repmedia</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Media Types supported</label>
+         <input-type value-pairs-name="dris_repmedia">list</input-type>
+         <hint>Check all boxes that apply</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repmetadata</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Metadata Standards </label>
+         <input-type value-pairs-name="dris_repmetadata">list</input-type>
+         <hint>What kind of metadata standards are used for the repository? (Check all boxes that apply)</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repdatasupply</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Repository document and data supply</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repdatavalidation</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Repository document and data validation</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>                 
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repictsupport</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>ICT support of the Repository</label>
+         <input-type>onebox</input-type>
+         <hint>Who (internal unit, outsourcing) is responsible for?</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repnousers</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>No of registered users for Repository (if registration is necessary)</label>
+         <input-type>onebox</input-type>
+         <hint>As in the previous year. Format: 10000 (so WITHOUT "." or ",")</hint>
+         <required></required>
+       </field>     
+	   <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>repnorequests</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>No of database requests for Repository</label>
+         <input-type>onebox</input-type>
+         <hint>As in the previous year. Format: 10000 (so WITHOUT "." or ",")</hint>
+         <required></required>
+       </field>
+       
+      </page>
+     </form>
  </form-definitions>
 
 
@@ -1264,6 +2673,350 @@ it, please enter the types and the actual numbers or codes.</hint>
  <!-- stores the associated stored-values in the database.                  -->
 
  <form-value-pairs>
+   <value-pairs value-pairs-name="dris_compatibility" dc-term="dris">
+     <pair>
+       <displayed-value>Unknown</displayed-value>
+       <stored-value>unknown</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Native CERIF</displayed-value>
+       <stored-value>native-CERIF</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF Wrapped</displayed-value>
+       <stored-value>CERIF-wrapped</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Non CERIF</displayed-value>
+       <stored-value>non-cerif</stored-value>
+     </pair>
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_cerifversion" dc-term="dris">
+     <pair>
+       <displayed-value>Unknown</displayed-value>
+       <stored-value>unknown</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF 1.6</displayed-value>
+       <stored-value>CERIF-1.6</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF 1.5</displayed-value>
+       <stored-value>CERIF-1.5</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF 1.4</displayed-value>
+       <stored-value>CERIF-1.4</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF 1.3</displayed-value>
+       <stored-value>CERIF-1.3</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF 2008</displayed-value>
+       <stored-value>CERIF-2008</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF 2006</displayed-value>
+       <stored-value>CERIF-2006</stored-value>
+     </pair>                   
+     <pair>
+       <displayed-value>CERIF 2004</displayed-value>
+       <stored-value>CERIF-2004</stored-value>
+     </pair>                     
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_coverage" dc-term="dris">
+     <pair>
+       <displayed-value>Projects</displayed-value>
+       <stored-value>projects</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Persons (researchers)</displayed-value>
+       <stored-value>persons</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Organisations (Institutes, Departments...)</displayed-value>
+       <stored-value>organisations</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Publications</displayed-value>
+       <stored-value>publications</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Products (resulting from research: e.g. software, video, audio)</displayed-value>
+       <stored-value>products</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Awards / Prizes (local, national, international)</displayed-value>
+       <stored-value>awards</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Patents</displayed-value>
+       <stored-value>patents</stored-value>
+     </pair>                   
+     <pair>
+       <displayed-value>Events (e.g. conferences, seminars...)</displayed-value>
+       <stored-value>events</stored-value>
+     </pair>
+	 <pair>
+       <displayed-value>Facilities (e.g. large laser laboratory)</displayed-value>
+       <stored-value>facilities</stored-value>
+     </pair>
+	 <pair>
+       <displayed-value>Equipment (e.g. x-ray spectrometer)</displayed-value>
+       <stored-value>equipments</stored-value>
+     </pair>     
+	 <pair>
+       <displayed-value>Services (as outcome of research or linked to research)</displayed-value>
+       <stored-value>services</stored-value>
+     </pair>
+	 <pair>
+       <displayed-value>Person CV</displayed-value>
+       <stored-value>person CV</stored-value>
+     </pair>               
+	 <pair>
+       <displayed-value>Person skills</displayed-value>
+       <stored-value>person skills</stored-value>
+     </pair>
+ 	 <pair>
+       <displayed-value>Project workflow control/monitoring</displayed-value>
+       <stored-value>project workflow</stored-value>
+     </pair>    
+     <pair>
+       <displayed-value>Ph.D. workflow control/monitoring</displayed-value>
+       <stored-value>PhD workflow</stored-value>
+     </pair>    
+     <pair>
+       <displayed-value>Funding</displayed-value>
+       <stored-value>funding</stored-value>
+     </pair>    
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_internallink" dc-term="dris">
+     <pair>
+       <displayed-value>Institutional Repository</displayed-value>
+       <stored-value>Institutional Repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>HRM-System</displayed-value>
+       <stored-value>HRM-System</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Financial System</displayed-value>
+       <stored-value>Financial System</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Library System</displayed-value>
+       <stored-value>Library System</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Project Management System</displayed-value>
+       <stored-value>Project Management System</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>SIS (Student Information System)</displayed-value>
+       <stored-value>SIS (Student Information System)</stored-value>
+     </pair>
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_externallink" dc-term="dris">
+     <pair>
+       <displayed-value>CRIS of other Institutions</displayed-value>
+       <stored-value>CRIS of other Institutions</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>National CRIS</displayed-value>
+       <stored-value>National CRIS</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>International CRIS</displayed-value>
+       <stored-value>International CRIS</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>National Repository</displayed-value>
+       <stored-value>National Repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>International Repository</displayed-value>
+       <stored-value>International Repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Abstract Databases (Scopus, WoS...)</displayed-value>
+       <stored-value>Abstract Databases</stored-value>
+     </pair>
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_publication" dc-term="dris">
+     <pair>
+       <displayed-value>Select a value</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CRIS</displayed-value>
+       <stored-value>CRIS</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Repository</displayed-value>
+       <stored-value>repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Both</displayed-value>
+       <stored-value>both</stored-value>
+     </pair>
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_repositorylink" dc-term="dris">
+	 <pair>
+       <displayed-value>Unknown</displayed-value>
+       <stored-value>unknown</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Not linked</displayed-value>
+       <stored-value>Not linked</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CRIS and Repository dynamically linked (e.g. by web service)</displayed-value>
+       <stored-value>dynamically linked</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CRIS and Repository integrated into one system </displayed-value>
+       <stored-value>integrated</stored-value>
+     </pair>
+   </value-pairs>     
+   <value-pairs value-pairs-name="dris_metadatalink" dc-term="dris">
+     <pair>
+       <displayed-value>Unknown</displayed-value>
+       <stored-value>unknown</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>N/A</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CRIS offers Metadata to the Repository</displayed-value>
+       <stored-value>CRIS offers Metadata to the Repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Repository offers Metadata to CRIS</displayed-value>
+       <stored-value>Repository offers Metadata to CRIS</stored-value>
+     </pair>
+   </value-pairs>     
+   <value-pairs value-pairs-name="dris_repositoryfullltextlink" dc-term="dris">
+     <pair>
+       <displayed-value>Unknown</displayed-value>
+       <stored-value>unknown</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>N/A</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Full text primarily stored in CRIS and copied to Repository</displayed-value>
+       <stored-value>Full text primarily stored in CRIS and copied to Repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Full text stored in CRIS and URL supplied to Repository</displayed-value>
+       <stored-value>Full text stored in CRIS and URL supplied to Repository</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Full text primarily stored in Repository and copied to CRIS</displayed-value>
+       <stored-value>Full text primarily stored in Repository and copied to CRIS</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Full text stored in Repository and URL supplied to CRIS</displayed-value>
+       <stored-value>Full text stored in Repository and URL supplied to CRIS</stored-value>
+     </pair>
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_repinstscope" dc-term="dris">
+     <pair>
+       <displayed-value>N/A</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Yes</displayed-value>
+       <stored-value>yes</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>No</displayed-value>
+       <stored-value>no</stored-value>
+     </pair>
+   </value-pairs>
+   <value-pairs value-pairs-name="dris_repoa" dc-term="dris">
+     <pair>
+       <displayed-value>Select a value</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Yes</displayed-value>
+       <stored-value>yes</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>No</displayed-value>
+       <stored-value>no</stored-value>
+     </pair>
+   </value-pairs>   
+   <value-pairs value-pairs-name="dris_repcoverage" dc-term="dris">
+     <pair>
+       <displayed-value>Thesis and Dissertations</displayed-value>
+       <stored-value>Thesis and Dissertations</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Research Publications</displayed-value>
+       <stored-value>Research Publications</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Technical Reports, Working Papers</displayed-value>
+       <stored-value>Technical Reports, Working Papers</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Grey Literature</displayed-value>
+       <stored-value>Grey Literature</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Educational Material (courses, lecture notes)</displayed-value>
+       <stored-value>Educational Material (courses, lecture notes)</stored-value>
+     </pair>
+   </value-pairs>      
+   <value-pairs value-pairs-name="dris_repmedia" dc-term="dris">
+     <pair>
+       <displayed-value>Text</displayed-value>
+       <stored-value>text</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Images</displayed-value>
+       <stored-value>images</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Audio</displayed-value>
+       <stored-value>audio</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Video</displayed-value>
+       <stored-value>video</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Hyperlinked Multimedia</displayed-value>
+       <stored-value>hyperlinked multimedia</stored-value>
+     </pair>
+   </value-pairs>  
+   <value-pairs value-pairs-name="dris_repmetadata" dc-term="dris">
+     <pair>
+       <displayed-value>DC</displayed-value>
+       <stored-value>dc</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>MODS</displayed-value>
+       <stored-value>mods</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>METS</displayed-value>
+       <stored-value>mets</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>MARC</displayed-value>
+       <stored-value>marc</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>CERIF</displayed-value>
+       <stored-value>CERIF</stored-value>
+     </pair>
+   </value-pairs>     
    <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
      <pair>
        <displayed-value>DOI</displayed-value>

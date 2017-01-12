@@ -42,8 +42,16 @@
 					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
 					<property name="mandatory" value="true" />
 					<property name="preHtml" value="&lt;small&gt;" />
-					<property name="postHtml" value="&lt;/small&gt;" />
+					<property name="postHtml" value="&lt;/small&gt;&lt;br/&gt;" />
 					<property name="field" value="dc.type" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="mandatory" value="true"/>
+					<property name="preHtml" value="&lt;small&gt;" />
+					<property name="postHtml" value="&lt;/small&gt;" />
+					<property name="field" value="dc.date.issued" />
+					<property name="decorator" value="date" />
 				</bean>
 			</list>
 		</property>

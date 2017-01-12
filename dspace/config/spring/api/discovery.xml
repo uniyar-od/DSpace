@@ -90,6 +90,35 @@
 	<bean
 		id="org.dspace.discovery.configuration.DiscoveryConfigurationService"
 		class="org.dspace.discovery.configuration.DiscoveryConfigurationService">
+		<property name="extraConfigurationMapping">
+			<map>
+				<entry key="crisrp">
+					<list>
+						<value>researcherprofiles</value>
+					</list>
+				</entry>
+				<entry key="crisou">
+					<list>
+						<value>orgunits</value>
+					</list>
+				</entry>
+				<entry key="crispj">
+					<list>
+						<value>projects</value>
+					</list>
+				</entry>
+				<entry key="crisdris">
+					<list>
+						<value>dris</value>
+					</list>
+				</entry>
+				<entry key="crissemantic">
+					<list>
+						<value>semantic</value>
+					</list>
+				</entry>
+			</map>
+		</property>
 		<property name="map">
 			<map>
 				<!--The map containing all the settings, the key is used to refer to 
@@ -100,14 +129,12 @@
 				<entry key="global" value-ref="globalConfiguration" />
 				<!--Use site to override the default configuration for the home page & default discovery page-->
                 <entry key="site" value-ref="homepageConfiguration" />
-				<entry key="publications" value-ref="itemConfiguration" />
+				<entry key="researchoutputs" value-ref="itemConfiguration" />
 				<entry key="researcherprofiles" value-ref="crisRPConfiguration" />
-				<entry key="fundings" value-ref="crisPJConfiguration" />
+				<entry key="projects" value-ref="crisPJConfiguration" />
 				<entry key="orgunits" value-ref="crisOUConfiguration" />
-				<entry key="theses" value-ref="thesisConfiguration" />
-				<entry key="patents" value-ref="patentsConfiguration" />
-				<entry key="conferencematerials" value-ref="conferencePaperConfiguration" />
-				<entry key="datasets" value-ref="datasetConfiguration" />
+				<entry key="semantic" value-ref="semanticConfiguration" />
+				<entry key="dris" value-ref="drisConfiguration" />
 				<!--Use site to override the default configuration for the home page 
 					& default discovery page -->
 				<!--<entry key="site" value-ref="defaultConfiguration" /> -->
@@ -171,6 +198,7 @@
 			<bean class="org.dspace.discovery.configuration.DiscoveryCollapsingConfiguration">
 				<property name="groupIndexFieldName" value="resourcetype" />
 				<property name="groupLimit" value="10" />
+				<property name="alphaSort" value="true" />
 			</bean>
 		</property>		
 		<property name="hitHighlightingConfiguration">
@@ -530,7 +558,7 @@
 		<property name="defaultFilterQueries">
 			<list>
 				<!--Only find items, communities and collections -->
-				<value>search.resourcetype:2 OR search.resourcetype:[9 TO 11] OR resourcetype_filter:journal</value>
+				<value>search.resourcetype:2</value>
 				<value>-disabled:true</value>
 			</list>
 		</property>
@@ -643,6 +671,7 @@
 				<ref bean="searchFilterTitle" />
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterJournalTitle" />
+				<ref bean="searchFilterConferenceName" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
 				<ref bean="searchFilterType" />
@@ -667,7 +696,6 @@
 			queries done by discovery for this configuration -->
 		<property name="defaultFilterQueries">
 			<list>
-				<value>resourcetype_authority:publications</value>
 			</list>
 		</property>
 		<!--The configuration for the recent submissions -->
@@ -1054,6 +1082,96 @@
 		</property>
 	</bean>
 	
+	<bean id="semanticConfiguration"
+		class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+		scope="prototype">
+		<property name="globalConfigurationEnabled" value="true" />
+		<property name="id" value="semanticConfiguration" />
+		
+		<!--Which sidebar facets are to be displayed -->
+		<property name="sidebarFacets" ref="facetsSemanticConfiguration"/>
+		<!--The search filters which can be used on the discovery search page -->
+		<property name="searchFilters">
+			<list>
+				<ref bean="searchFilterObjectName" />
+				<ref bean="searchFilterSchema" />
+			</list>
+		</property>
+		<!--The sort filters for the discovery search -->
+		<property name="searchSortConfiguration">
+			<bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+				<!--<property name="defaultSort" ref="sortDateIssued"/> -->
+				<!--DefaultSortOrder can either be desc or asc (desc is default) -->
+				<property name="defaultSortOrder" value="desc" />
+				<property name="sortFields">
+					<list>
+						<ref bean="sortDOName" />
+					</list>
+				</property>
+			</bean>
+		</property>
+		<!--Any default filter queries, these filter queries will be used for all 
+			queries done by discovery for this configuration -->
+		<property name="defaultFilterQueries">
+			<list>
+				<!--Only find items, communities and collections -->
+			</list>
+		</property>
+		<!--The configuration for the recent submissions -->
+		<!-- <property name="recentSubmissionConfiguration" />
+		<property name="hitHighlightingConfiguration" />
+		<property name="moreLikeThisConfiguration" /> -->
+	</bean>
+
+	<bean id="drisConfiguration"
+		class="org.dspace.discovery.configuration.DiscoveryConfiguration"
+		scope="prototype">
+		<property name="globalConfigurationEnabled" value="true" />
+		<property name="id" value="drisConfiguration" />
+		
+		<!--Which sidebar facets are to be displayed -->
+		<property name="sidebarFacets" ref="facetsDRISConfiguration"/>
+		<!--The search filters which can be used on the discovery search page -->
+		<property name="searchFilters">
+			<list>
+				<ref bean="searchFilterObjectName" />
+				<ref bean="searchFilterDRISOrganisation" />
+				<ref bean="searchFilterDRISSoftware" />
+				<ref bean="searchFilterDRISCoverage" />
+				<ref bean="searchFilterObjectDate" />
+				<ref bean="searchFilterDRISCountry" />
+				<ref bean="searchFilterDRISStatus" />
+				<ref bean="searchFilterDRISCerifCompatibility" />
+				<ref bean="searchFilterDRISCerifVersion" />
+			</list>
+		</property>
+		<!--The sort filters for the discovery search -->
+		<property name="searchSortConfiguration">
+			<bean class="org.dspace.discovery.configuration.DiscoverySortConfiguration">
+				<!--<property name="defaultSort" ref="sortDateIssued"/> -->
+				<!--DefaultSortOrder can either be desc or asc (desc is default) -->
+				<property name="defaultSortOrder" value="desc" />
+				<property name="sortFields">
+					<list>
+						<ref bean="sortDOName" />
+						<ref bean="sortDRISOrganisation" />
+						<ref bean="sortDRISDate" />
+					</list>
+				</property>
+			</bean>
+		</property>
+		<!--Any default filter queries, these filter queries will be used for all 
+			queries done by discovery for this configuration -->
+		<property name="defaultFilterQueries">
+			<list>
+			</list>
+		</property>
+		<!--The configuration for the recent submissions -->
+		<!-- <property name="recentSubmissionConfiguration" />
+		<property name="hitHighlightingConfiguration" />
+		<property name="moreLikeThisConfiguration" /> -->
+	</bean>
+	
 	<bean id="datasetConfiguration"
 		class="org.dspace.discovery.configuration.DiscoveryConfiguration"
 		scope="prototype">
@@ -1178,8 +1296,10 @@
 			<list>
 				<ref bean="searchFilterObjectName" />
 				<ref bean="searchFilterRPDept" />
-				<ref bean="searchFilterRPWorkgroup" />
-				<ref bean="searchFilterRPInterests" />				
+				<ref bean="searchFilterRPIdentifiers" />
+				<ref bean="searchFilterRPInterests" />
+				<ref bean="searchFilterRPMembershipType" />
+				<ref bean="searchFilterRPCountry" />				
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -1353,7 +1473,10 @@
 		<property name="searchFilters">
 			<list>
 				<ref bean="searchFilterObjectName" />
-				<ref bean="searchFilterStartDate" />
+				<ref bean="searchFilterOUDescription" />
+				<ref bean="searchFilterOUCountry" />
+				<ref bean="searchFilterEurocrisScope" />
+				<ref bean="searchFilterOUType" />
 			</list>
 		</property>
 		<!--The sort filters for the discovery search -->
@@ -1451,6 +1574,7 @@
 				<value>crisrp.fullName</value>
 				<value>crisproject.title</value>
 				<value>crisou.name</value>
+				<value>crisdo.name</value>
 			</list>
 		</property>
 	</bean>
@@ -1477,13 +1601,13 @@
 		<property name="indexFieldName" value="objectou" />
 		<property name="metadataFields">
 			<list>
-				<value>crisitem.author.affiliation</value>
-				<value>crisrp.affiliation</value>
+				<value>crisitem.author.dept</value>
+				<value>crisrp.dept</value>
 				<value>crisproject.funders</value>
 				<value>crisproject.workgroups</value>
 				<value>crisproject.investigator.dept</value>
 				<value>crisproject.coinvestigators.dept</value>
-				<value>crisou.affiliates</value>
+				<value>crisou.parentorgunit</value>
 				<value>crisou.this</value>
 			</list>
 		</property>
@@ -1533,13 +1657,15 @@
 	</bean>
 
 	<bean id="searchFilterJournalTitle"
-		class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
 		<property name="indexFieldName" value="journaltitle" />
 		<property name="metadataFields">
 			<list>
 				<value>dc.relation.ispartof</value>
 			</list>
 		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
 	</bean>
 	
 	<bean id="searchFilterPublication"
@@ -1553,14 +1679,16 @@
 	</bean>
 	
 	<bean id="searchFilterConferenceName"
-		class="org.dspace.discovery.configuration.DiscoverySearchFilter">
-		<property name="indexFieldName" value="title" />
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="conferencename" />
 		<property name="metadataFields">
 			<list>
 				<value>dc.relation.conference</value>
 				<value>crisevents.eventsname</value>
 			</list>
 		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
 	</bean>
 	
 	<bean id="searchFilterSubject"
@@ -1575,18 +1703,146 @@
 		<property name="sortOrder" value="COUNT" />
 	</bean>
 
-	<bean id="searchFilterIssued"
+	<bean id="searchFilterObjectDate"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-		<property name="indexFieldName" value="dateIssued" />
+		<property name="indexFieldName" value="objectDate" />
 		<property name="metadataFields">
 			<list>
 				<value>dc.date.issued</value>
+				<value>crisevents.startdate</value>
+				<value>crispj.startdate</value>
+				<value>crisdris.drisstartdate</value>
 			</list>
 		</property>
 		<property name="type" value="date" />
 		<property name="sortOrder" value="VALUE" />
 	</bean>
 
+	<bean id="searchFilterIssued"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="dateIssued" />
+		<property name="metadataFields">
+			<list>
+				<value>dc.date.issued</value>
+				<value>crisevents.startdate</value>
+				<value>crispj.startdate</value>
+				<value>crisdris.drisstartdate</value>
+			</list>
+		</property>
+		<property name="type" value="date" />
+		<property name="sortOrder" value="VALUE" />
+	</bean>
+
+	<bean id="searchFilterSchema"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="semanticschema" />
+		<property name="metadataFields">
+			<list>
+				<value>crisclasscerif.pointerscheme</value>
+				<value>crisschemecerif.this</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+				
+	<bean id="searchFilterDRISCerifVersion"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="drisversion" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.driscerifVersion</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterDRISCerifCompatibility"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="driscompatibility" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.driscerifCompatibility</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterDRISCountry"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="driscountry" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.driscountry</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterDRISCoverage"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="driscoverage" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.driscoverage</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterDRISStatus"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="drisstatus" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.drisstatus</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+	
+	<bean id="searchFilterDRISSoftware"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="drissoftware" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.drissoftware</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+	
+	<bean id="searchFilterDRISRepSoftware"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="drisrepsoftware" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.drisrepsoftware</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterDRISOrganisation"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="drisorganisation" />
+		<property name="metadataFields">
+			<list>
+				<value>crisdris.drisproviderOrgUnit</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+				
+				
 	<bean id="searchFilterProject"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
 		<property name="indexFieldName" value="project" />
@@ -1611,24 +1867,99 @@
 		<property name="sortOrder" value="COUNT" />
 	</bean>
 
-	<bean id="searchFilterRPDept"
-		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-		<property name="indexFieldName" value="dept" />
+	<bean id="searchFilterOUDescription"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilter">
+		<property name="indexFieldName" value="orgunitdescription" />
 		<property name="metadataFields">
 			<list>
-				<value>crisrp.affiliation</value>
+				<value>crisou.description</value>
+			</list>
+		</property>
+	</bean>
+
+	<bean id="searchFilterOUCountry"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="orgunitcountry" />
+		<property name="metadataFields">
+			<list>
+				<value>crisou.countrylink</value>
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
 		<property name="sortOrder" value="COUNT" />
 	</bean>
 
-	<bean id="searchFilterRPWorkgroup"
+	<bean id="searchFilterEurocrisScope"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-		<property name="indexFieldName" value="workgroup" />
+		<property name="indexFieldName" value="eurocrisscope" />
 		<property name="metadataFields">
 			<list>
-				<value>crisrp.workgroup</value>
+				<value>crisou.eurocrisScope</value>
+				<value>crisrp.eurocrisScope</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+	
+	<bean id="searchFilterOUType"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="orgunittype" />
+		<property name="metadataFields">
+			<list>
+				<value>crisou.orgunitclass</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+	
+	<bean id="searchFilterRPDept"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="dept" />
+		<property name="metadataFields">
+			<list>
+				<value>crisrp.dept</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterRPIdentifiers"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="rpidentifiers" />
+		<property name="metadataFields">
+			<list>
+				<value>crisrp.scopusid</value>
+				<value>crisrp.orcid</value>
+				<value>crisrp.authorid</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+	<bean id="searchFilterRPMembershipType"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="rpmembershiptype" />
+		<property name="metadataFields">
+			<list>
+				<value>crisrp.eurocrisScope</value>
+			</list>
+		</property>
+		<property name="facetLimit" value="10" />
+		<property name="sortOrder" value="COUNT" />
+	</bean>
+
+
+	<bean id="searchFilterRPCountry"
+		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+		<property name="indexFieldName" value="rpcountry" />
+		<property name="metadataFields">
+			<list>
+				<value>crisrp.country</value>
+				<value>crisrp.dept.countrylink</value>
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
@@ -1738,19 +2069,22 @@
 		<property name="sortOrder" value="COUNT" />
 	</bean>
 	
-	<bean id="searchFilterPermissionFulltext"
-		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-		<property name="indexFieldName" value="grantfulltext" />
-		<property name="metadataFields">
-			<list>
-				<value>item.grantfulltext</value>				
-			</list>
-		</property>
-		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+	<!--Sort properties -->
+	<bean id="sortDOName"
+		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		<property name="metadataField" value="crisdo.name" />
 	</bean>
 	
-	<!--Sort properties -->
+	<bean id="sortDRISDate"
+		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		<property name="metadataField" value="crisdris.drisstartdate" />
+	</bean>
+	
+	<bean id="sortDRISOrganisation"
+		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		<property name="metadataField" value="crisdris.drisproviderOrgUnit" />
+	</bean>
+	
 	<bean id="sortTitle"
 		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
 		<property name="metadataField" value="dc.title" />
@@ -1791,6 +2125,8 @@
 				<ref bean="searchFilterAuthor" />
 				<ref bean="searchFilterSubject" />
 				<ref bean="searchFilterIssued" />
+				<ref bean="searchFilterJournalTitle" />
+				<ref bean="searchFilterConferenceName" />
 				<ref bean="searchFilterType" />
 				<ref bean="searchFilterFulltext" />			
 		</list>
@@ -1820,8 +2156,9 @@
 	<bean id="facetsRPConfiguration" class="java.util.ArrayList">
 		<constructor-arg>
 		<list>
-				<ref bean="searchFilterRPDept" />
-				<ref bean="searchFilterRPWorkgroup" />
+				<ref bean="searchFilterRPInterests" />
+				<ref bean="searchFilterRPMembershipType" />
+				<ref bean="searchFilterRPCountry" />				
 		</list>
 		</constructor-arg>
 	</bean>
@@ -1831,7 +2168,9 @@
 		<list>
 				<ref bean="searchFilterObjectPeople" />
 				<ref bean="searchFilterRPInterests" />
-				<ref bean="searchFilterRPWorkgroup" />
+				<ref bean="searchFilterRPMembershipType" />
+				<ref bean="searchFilterRPCountry" />				
+
 		</list>
 		</constructor-arg>
 	</bean>
@@ -1849,8 +2188,9 @@
 	<bean id="facetsOUConfiguration" class="java.util.ArrayList">
 		<constructor-arg>
 		<list>
-				<ref bean="searchFilterObjectName" />
-				<ref bean="searchFilterStartDate" />
+				<ref bean="searchFilterOUCountry" />
+				<ref bean="searchFilterEurocrisScope" />
+				<ref bean="searchFilterOUType" />
 		</list>
 		</constructor-arg>
 	</bean>
@@ -1876,5 +2216,24 @@
 		</constructor-arg>
 	</bean>
 
+	<bean id="facetsDRISConfiguration" class="java.util.ArrayList">
+		<constructor-arg>
+		<list>
+				<ref bean="searchFilterDRISSoftware" />
+				<ref bean="searchFilterDRISCerifCompatibility" />
+				<ref bean="searchFilterDRISCerifVersion" />
+				<ref bean="searchFilterDRISCoverage" />
+				<ref bean="searchFilterDRISCountry" />
+				<ref bean="searchFilterDRISStatus" />
+		</list>
+		</constructor-arg>
+	</bean>
 
+	<bean id="facetsSemanticConfiguration" class="java.util.ArrayList">
+		<constructor-arg>
+		<list>
+				<ref bean="searchFilterSchema" />
+		</list>
+		</constructor-arg>
+	</bean>
 </beans>

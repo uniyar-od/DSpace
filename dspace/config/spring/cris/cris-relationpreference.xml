@@ -11,6 +11,14 @@
            http://www.springframework.org/schema/util/spring-util-3.0.xsd"
     default-autowire-candidates="*Service,*DAO,javax.sql.DataSource">
 	
+	<bean id="relationSchemaVSClassConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
+		<property name="relationName" value="crisscheme.classifications" />
+		<property name="relationClass" value="org.dspace.app.cris.model.ResearchObject" />		
+		<property name="type" value="crisclasscerif" />
+		<property name="query">
+			<value>crisclasscerif.classcerifpointerscheme_authority:{0}</value>
+		</property>
+	</bean>
 	
 	<bean id="relationRPVSItemConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
 		<property name="relationName" value="crisrp.publications" />		
@@ -92,7 +100,14 @@
 		</property>
 	</bean>
 
-						
+	<bean id="relationEVENTSVSItemConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
+		<property name="relationName" value="crisevents.publications" />		
+		<property name="relationClass" value="org.dspace.content.Item" />		
+		<property name="query">
+			<value>dc.relation.conference_authority:{0}</value>
+		</property>
+	</bean>
+							
 	<bean
 		class="org.dspace.app.cris.configuration.RelationPreferenceServiceConfiguration">
 		<property name="list">

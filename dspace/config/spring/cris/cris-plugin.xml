@@ -45,7 +45,821 @@
 		<property name="metricsPersistenceService" ref="org.dspace.app.cris.metrics.common.services.MetricsPersistenceService" />
 		<property name="allowsUpdateByDefault" value="true" />
 		<property name="configurations">
-			<bean class="java.util.HashMap" />
+		<map>
+			<entry key="eurocris.dris.orgname">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>
+							<entry key="eurocris.dris.orgacronym">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="acronym" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.orgparent">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="parentorgunit" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.orgtype">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="orgunitclass" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.orgcountry">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="countrylink" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.orgurl">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="url" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>																						
+						</map>
+					</property>
+				</bean>
+			</entry>
+			
+			<entry key="eurocris.dris.contactname">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>
+							<entry key="eurocris.dris.contactdepartment">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="dept" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.contactemail">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="email" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+						</map>
+					</property>
+				</bean>
+			</entry>
+			
+			<entry key="eurocris.dris.name">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>
+							<entry key="eurocris.dris.orgname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="providerOrgUnit" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.contactname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="providerContact" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.reporgname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repproviderOrgUnit" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repcontactname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repproviderContact" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.dris.acronym">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="acronym" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.description">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="description" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.url">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="uri" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.status">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="status" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.date">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="startdate" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+									<property name="formatAsDate" value="true" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.scope">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="scope" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.software">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="software" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>											
+							<entry key="eurocris.dris.compatibility">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="cerifCompatibility" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>											
+							<entry key="eurocris.dris.cerifversion">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="cerifVersion" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>											
+							<entry key="eurocris.dris.coverage">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="coverage" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.internallink">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="linksInternalSystem" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.externallink">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="linksExternalSystem" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>																										
+							<entry key="eurocris.dris.noresearchers">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="numberResearchers" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.nousers">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="numberUsers" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.norequests">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="numberDBRequest" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.datasupply">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="responsibleDataSupply" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>								
+							<entry key="eurocris.dris.datavalidation">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="responsibleDataValidation" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>																																					
+							<entry key="eurocris.dris.datareport">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="responsibleDataOutput" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.ictsupport">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="ictSupport" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>	
+							<entry key="eurocris.dris.orgcountry">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="country" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.publication">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="publication" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repository">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="institutionalRepository" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>							
+							<entry key="eurocris.dris.repositorylink">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repositoryLink" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repositoryfulltext">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="fulltext" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repname" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repurl">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repurl" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repscope">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repscope" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repinstscope">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repinstscope" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repoa">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repoa" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repsoftware">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repsoftware" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repcoverage">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repcoverage" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repmedia">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repmedia" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repmetadata">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repmetadata" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repdatasupply">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repDataSupply" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repdatavalidation">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repDataValidation" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repictsupport">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repictSupport" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repnousers">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repnumberUsers" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repnorequests">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="repnumberDBRequest" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+						</map>
+					</property>
+				</bean>
+			</entry>
+			
+			<entry key="eurocris.dris.reporgname">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>			
+							<entry key="eurocris.dris.reporgacronym">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="acronym" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>																																																																																					
+							<entry key="eurocris.dris.reporgurl">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="url" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>		
+							<entry key="eurocris.dris.orgcountry">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="countrylink" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+						</map>
+					</property>
+				</bean>
+			</entry>
+			
+			<entry key="eurocris.dris.repcontactname">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>			
+							<entry key="eurocris.dris.repcontactdepartment">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="dept" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							<entry key="eurocris.dris.repcontactemail">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="email" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+						</map>
+					</property>
+				</bean>
+			</entry>
+			
+			<!-- Membership -->
+			<entry key="eurocris.organisation.name">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>
+							<entry key="eurocris.organisation.membershipstartdate">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="currentMembershipStartDate" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="0" />
+									<property name="formatAsDate" value="true" />
+								</bean>
+							</entry>
+								
+							<entry key="eurocris.organisation.membershipenddate">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="currentMembershipEndDate" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="0" />
+									<property name="formatAsDate" value="true" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.organisation.membershiptype">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="eurocrisScope" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+									
+							<entry key="eurocris.organisation.acronym">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="acronym" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.acronym">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="acronym" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.organisation.parent">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="parentorgunit" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.type">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="orgunitclass" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.address">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="address" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.pobox">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="pobox" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.postalcode">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="postalcode" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.city">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="city" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.state">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="state" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.country">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="countrylink" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.organisation.url">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="url" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.member.fullname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="principalcontact" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.extramember.fullname">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="institutionalmembers" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+						</map>
+					</property>
+				</bean>	
+			</entry>
+			
+			<entry key="eurocris.member.fullname">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+							<map>
+							<entry key="eurocris.member.membershipstartdate">
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="currentMembershipStartDate" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="0" />
+										<property name="formatAsDate" value="true" />
+									</bean>
+								</entry>
+									
+								<entry key="eurocris.member.membershipenddate">
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="currentMembershipEndDate" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="0" />
+										<property name="formatAsDate" value="true" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.membershiptype">
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="eurocrisScope" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.title">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="title" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.function">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="function" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+	
+								<entry key="eurocris.member.department">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="dept" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.address">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="address" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+	
+								<entry key="eurocris.member.postalcode">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="postalcode" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.city">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="city" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.telephone">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="telephone" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="0" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.mobile">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="mobile" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="0" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.fax">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="fax" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="0" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.email">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="email" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="0" />
+									</bean>
+								</entry>
+								
+								<entry key="eurocris.member.url">							
+									<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="website" />
+										<property name="useAll" value="false" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>	
+							</map>
+					</property>
+				</bean>					
+			</entry>
+			
+			<entry key="eurocris.extramember.fullname">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>
+							<entry key="eurocris.extramember.title">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="title" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.function">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="function" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.extramember.department">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="dept" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.address">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="address" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.extramember.postalcode">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="postalcode" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.city">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="city" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.telephone">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="telephone" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.mobile">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="mobile" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.fax">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="fax" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.email">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="email" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="0" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.extramember.url">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="website" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>	
+						</map>
+					</property>
+				</bean>					
+			</entry>
+			
+			<entry key="eurocris.member.department">
+				<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+					<property name="mapping">
+						<map>
+							<entry key="eurocris.member.orgacronym">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="acronym" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+							
+							<entry key="eurocris.member.orgtype">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="orgunitclass" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+
+							<entry key="eurocris.member.orgparent">							
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="parentorgunit" />
+									<property name="useAll" value="false" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
+						</map>
+					</property>
+				</bean>		
+			</entry>
+		</map>
 		</property>
 	</bean>
 

@@ -64,7 +64,7 @@
 	<bean class="org.dspace.app.webui.cris.components.ExploreMapProcessors" id="org.dspace.app.webui.cris.components.ExploreMapProcessors">
 		<property name="processorsMap">
 			<map>
-				<entry key="publications">
+				<entry key="researchoutputs">
 					<list>
 						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
 							<property name="browseNames">
@@ -124,6 +124,7 @@
 						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
 							<property name="browseNames">
 								<list>
+									<value>rpmember</value>
 									<value>rpname</value>
 									<value>rpdept</value>
 								</list>
@@ -136,6 +137,9 @@
 						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
 							<property name="browseNames">
 								<list>
+									<value>oueurocris</value>
+									<value>oupartner</value>
+									<value>oumember</value>
 									<value>ouname</value>
 								</list>
 							</property>
@@ -148,6 +152,20 @@
 							<property name="browseNames">
 								<list>
 									<value>pjtitle</value>
+								</list>
+							</property>
+						</bean>
+					</list>
+				</entry>
+				<entry key="dris">
+					<list>
+						<bean class="org.dspace.app.webui.cris.components.BrowseProcessor">
+							<property name="browseNames">
+								<list>
+									<value>drisname</value>
+									<value>driscountry</value>
+									<value>drisscope</value>
+									<value>driscoverage</value>
 								</list>
 							</property>
 						</bean>
@@ -190,5 +208,5 @@
 		class="org.dspace.app.webui.cris.metrics.NumberFormatter">
 		<property name="type" value="NUMBER"/>
 		<property name="minFractionDigits" value="3"/>
-	</bean>	
+	</bean>		
 </beans>

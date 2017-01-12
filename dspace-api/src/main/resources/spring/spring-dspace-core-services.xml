@@ -45,6 +45,9 @@
     			<entry key="submitter">
     				<bean class="org.dspace.content.generator.SubmitterValueGenerator" />
     			</entry>
+    			  <entry key="researcher">
+    				<bean class="org.dspace.app.cris.content.generator.ResearcherValueGenerator" />
+    			</entry>
     			<entry key="date">
     				<bean class="org.dspace.content.generator.DateValueGenerator" />
     			</entry>

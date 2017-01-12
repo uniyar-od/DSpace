@@ -416,7 +416,23 @@
 	<bean id="doComponentsService" class="org.dspace.app.cris.integration.CrisComponentsService">
 		<property name="components">
 			<map>
-				<entry key="journalspublications" value-ref="publicationlistforjournals" />				
+				<entry key="journalspublications" value-ref="publicationlistforjournals" />			
+				<entry key="cerifclassforcerifscheme" value-ref="cerifclassforcerifscheme" />
+				<entry key="eventspublications" value-ref="publicationlistforevents" />
+			</map>
+		</property>
+	</bean>
+
+	<!-- Publication list for Journal dynamic entity -->
+	<bean id="cerifclassforcerifscheme"
+		class="org.dspace.app.webui.cris.components.CRISDOConfigurerComponent">
+		<property name="relationConfiguration" ref="relationSchemaVSClassConfiguration" />
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>		
+		<property name="target" value="org.dspace.app.cris.model.ResearchObject" />
+		<property name="facets" ref="facetsItemConfiguration"/>		
+		<property name="types">
+			<map>
+				<entry key="all" value-ref="allObjectsComponent" />
 			</map>
 		</property>
 	</bean>
@@ -431,7 +447,22 @@
 		<property name="types">
 			<map>
 				<entry key="selected" value-ref="selectedPublicationForJournalComponent" />				
-				<entry key="all" value-ref="allPublicationForJournalComponent" />
+				<entry key="all" value-ref="allObjectsComponent" />
+			</map>
+		</property>
+	</bean>
+	
+	<!-- Publication list for Events dynamic entity -->
+	<bean id="publicationlistforevents"
+		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		<property name="relationConfiguration" ref="relationEVENTSVSItemConfiguration" />
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>		
+		<property name="target" value="org.dspace.app.cris.model.ResearchObject" />
+		<property name="facets" ref="facetsItemConfiguration"/>		
+		<property name="types">
+			<map>
+				<entry key="selected" value-ref="selectedPublicationForEventsComponent" />
+				<entry key="all" value-ref="allObjectsComponent" />
 			</map>
 		</property>
 	</bean>
@@ -453,7 +484,25 @@
 		</property>
 	</bean>
 
-	<bean id="allPublicationForJournalComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+
+	<bean id="selectedPublicationForEventsComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="selected" />
+		<property name="facetQuery">
+			<value>relationpreferences.crisevents.publications.selected:{1}
+			</value>
+		</property>
+		<property name="order">
+			<value>asc</value>
+		</property>
+		<property name="rpp">
+			<value>20</value>
+		</property>
+		<property name="sortby">
+			<value>1</value>
+		</property>
+	</bean>
+
+	<bean id="allObjectsComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="all" />
 		<property name="facetQuery">
 			<value>*:*</value>
@@ -468,4 +517,5 @@
 			<value>1</value>
 		</property>
 	</bean>
+	
 </beans>
