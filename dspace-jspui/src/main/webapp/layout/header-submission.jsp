@@ -56,7 +56,6 @@
    	    <link href="<%= request.getContextPath() %>/static/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
 		<link href="<%= request.getContextPath() %>/static/css/jstree/themes/default/style.min.css" rel="stylesheet"/>
 	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/dspace-theme.css" type="text/css" />
-	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/number-polyfill.css" type="text/css" />
 <%
     if (!"NONE".equals(feedRef))
     {
@@ -94,7 +93,7 @@
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jdyna/jdyna.js"></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
-    <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"></script>    
+    <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"> </script>
 	<script type='text/javascript'>
 		var j = jQuery.noConflict();
 		var $ = jQuery.noConflict();
@@ -146,12 +145,15 @@
     <%-- HACK: marginwidth, marginheight: for non-CSS compliant Netscape browser --%>
     <body class="undernavigation">
 <a class="sr-only" href="#content">Skip navigation</a>
-<header class="navbar navbar-inverse navbar-square">    
+<header class="navbar navbar-square">    
     <%
     if (!navbar.equals("off"))
     {
 %>
-            <div class="container-fluid">
+            <div class="container">
+				<div class="row">
+            		<a href="http://www.eurocris.org"><img src="<%= request.getContextPath() %>/image/banner-eurocris.png" alt="euroCRIS Banner" /></a>
+            	</div>	
                 <dspace:include page="<%= navbar %>" />
             </div>
 <%
@@ -159,7 +161,10 @@
     else
     {
     	%>
-        <div class="container-fluid">
+        <div class="container">
+           	<div class="row">
+           		<a href="http://www.eurocris.org"><img src="<%= request.getContextPath() %>/image/banner-eurocris.png" alt="euroCRIS Banner" /></a>
+           	</div>	        
             <dspace:include page="/layout/navbar-minimal.jsp" />
         </div>
 <%    	
@@ -174,7 +179,6 @@
     {
 %>
 <div class="container">
-	<br>
                 <dspace:include page="/layout/location-bar.jsp" />
 </div>                
 <%
@@ -183,7 +187,7 @@
 
 
         <%-- Page contents --%>
-<div class="container fullheight">
+<div class="container">
 <% if (request.getAttribute("dspace.layout.sidebar") != null) { %>
 	<div class="row">
 		<div class="col-md-9">

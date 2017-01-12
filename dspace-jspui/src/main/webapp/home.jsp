@@ -71,7 +71,7 @@
 
 <dspace:layout locbar="nolink" titlekey="jsp.home.title" feedData="<%= feedData %>">
 <div class="row">
-	<div class="col-md-8 sm-12 pull-<%= isRtl? "right":"left" %>">
+	<div class="col-md-12 sm-12 pull-<%= isRtl? "right":"left" %>">
         <%= topNews %>
 
 	<%
@@ -87,9 +87,9 @@
 	<%@ include file="discovery/static-globalsearch-component-facet.jsp" %>
 	<% } %>        
 		  </div>
-	<div class="col-md-4 sm-12 pull-<%= isRtl? "left":"right" %>">
+	<%-- <div class="col-md-4 sm-12 pull-<%= isRtl? "left":"right" %>">
     <%@ include file="components/recent-submissions.jsp" %>
-	</div>
+	</div> --%>
 </div>
 <div class="row">
 	<div class="col-md-4 <%= isRtl ? "pull-right":""%>">

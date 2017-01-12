@@ -193,12 +193,15 @@
     <%-- HACK: marginwidth, marginheight: for non-CSS compliant Netscape browser --%>
     <body class="undernavigation" dir="<%= LocaleUIHelper.ifLtr(request, "ltr","rtl") %>">
 <a class="sr-only" href="#content">Skip navigation</a>
-<header class="navbar navbar-inverse navbar-square">    
+<header class="navbar navbar-square">    
     <%
     if (!navbar.equals("off"))
     {
 %>
-            <div class="container-fluid">
+            <div class="container">
+            	<div class="row  hidden-xs">
+            		<a href="http://www.eurocris.org"><img src="<%= request.getContextPath() %>/image/banner-eurocris.png" alt="euroCRIS Banner" /></a>
+            	</div>	
                 <dspace:include page="<%= navbar %>" />
             </div>
 <%
@@ -206,7 +209,10 @@
     else
     {
     	%>
-        <div class="container-fluid">
+        <div class="container">
+           	<div class="row  hidden-xs">
+           		<a href="http://www.eurocris.org"><img src="<%= request.getContextPath() %>/image/banner-eurocris.png" alt="euroCRIS Banner" /></a>
+           	</div>	
             <dspace:include page="/layout/navbar-minimal.jsp" />
         </div>
 <%    	
@@ -215,62 +221,21 @@
 </header>
 
 <main id="content" role="main">
-<div class="container banner">
-	<div class="row">
-		<div class="col-sm-12">
-<% if (supportedLocales != null && supportedLocales.length > 1)
-     {
- %>
-	 <ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
-      
- <%
-    for (int i = supportedLocales.length-1; i >= 0; i--)
-     {
- %>
-        <li><a onclick="javascript:document.repost.locale.value='<%=supportedLocales[i].toString()%>';
-                  document.repost.submit();" href="?locale=<%=supportedLocales[i].toString()%>">
-          <%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.layout.navbar-default.language."+supportedLocales[i].toString()) %>                  
-       </a></li>
- <%
-     }
- %>
-     </ul>
- <%
-   }
- %>		
-		
-		
-		
-		</div>
-		  <div class="col-sm-8 brand pull-<%= isRtl ?"right" :"left" %>">
-		<h1><fmt:message key="jsp.layout.header-default.brand.heading" /></h1>
-        <fmt:message key="jsp.layout.header-default.brand.description" /> 
-        </div>
-        <div class="col-sm-4 hidden-xs pull-<%= isRtl ?"left" :"right" %>"><img class="img-responsive" src="<%= request.getContextPath() %>/image/logo.gif" alt="DSpace logo" />
-        </div>
-	</div>
-</div>	
-<br/>
                 <%-- Location bar --%>
 <%
     if (locbar)
     {
 %>
 <div class="container">
-	<div class="row">
-		<div class="col-sm-12">
                 <dspace:include page="/layout/location-bar.jsp" />
-        </div>        
-    </div>
 </div>                
 <%
     }
 %>
 
 
-
         <%-- Page contents --%>
-<div class="container fullheight">
+<div class="container">
 <% if (request.getAttribute("dspace.layout.sidebar") != null) { %>
 	<div class="row">
 		<div class="col-md-9 <%= isRtl ? "pull-right":"" %>">

@@ -55,6 +55,8 @@
 <%@page import="com.coverity.security.Escape"%>
 <%@page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
+<%@page import="org.dspace.core.Context" %>
+<%@page import="org.dspace.eperson.Group" %>
 <%@page import="java.util.HashMap"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="org.dspace.discovery.DiscoverFacetField"%>
@@ -165,6 +167,19 @@
 		    }
 		    showFacets.put(f, showFacet);
 		    brefine = brefine || showFacet;
+		}
+	}
+	
+	String specialGroupName = ConfigurationManager.getProperty("authentication","MembershipAuthentication.specialGroupName");
+	boolean isSpecialGroup = false;
+	int collectionid=0;
+	Context c =UIUtil.obtainContext(request);
+	
+	if(StringUtils.isNotBlank(specialGroupName) && "dris".equalsIgnoreCase(searchScope)){
+		collectionid= 36;
+		Group specialGroup = Group.findByName(c, StringUtils.trim(specialGroupName));
+		if(specialGroup != null){ 
+			isSpecialGroup = Group.isMember(c, specialGroup.getID());
 		}
 	}
 %>
@@ -425,13 +440,19 @@ jsp.search.results.searchin<%= StringUtils.isNotBlank(searchScope)?"."+searchSco
 		</div>        
    </div>
 <% } %>
-</div>   
+</div>
 <% 
+if(isSpecialGroup && collectionid>0){%>
+	<form class="form-group" action="<%= request.getContextPath() %>/submit" method="post">
+	<input type="hidden" name="collection" value="<%= collectionid %>" />
+	<input class="btn btn-success col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.collection-home.submit.button"/>" />
+	</form>
+<% }
 
 if( error )
 {
  %>
-	<p class="alert alert-danger text-center">
+  	<p class="alert alert-danger text-center">
 		<fmt:message key="jsp.search.error.discovery" />
 	</p>
 	<%

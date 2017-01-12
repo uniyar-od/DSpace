@@ -40,6 +40,9 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 
+<c:set var="dspace.layout.head" scope="request">
+	<link href="<%=request.getContextPath() %>/css/misctable.css" type="text/css" rel="stylesheet" />
+</c:set>
 <c:set var="root"><%=request.getContextPath()%></c:set>
 <c:set var="info" value="${componentinfomap}" scope="page" />
 <%

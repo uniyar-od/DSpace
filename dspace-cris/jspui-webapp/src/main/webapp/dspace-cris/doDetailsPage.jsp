@@ -15,6 +15,10 @@
 <%@ taglib uri="http://displaytag.sf.net" prefix="display"%>
 
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="org.dspace.core.ConfigurationManager" %>
+<%@page import="org.dspace.core.Context" %>
+<%@page import="org.dspace.eperson.Group" %>
+<%@page import="org.apache.commons.lang.StringUtils"%>
 
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 <%@ taglib uri="researchertags" prefix="researcher"%>
@@ -48,9 +52,23 @@
         currentPage = currentPage.substring( 0, c );
     }
 
+	String specialGroupName = ConfigurationManager.getProperty("authentication","MembershipAuthentication.specialGroupName");
+	boolean isSpecialGroup = false;
+	int collectionid=0;
+	Context context =UIUtil.obtainContext(request);
+	
+	if(StringUtils.isNotBlank(specialGroupName)){
+		collectionid= 36;
+		Group specialGroup = Group.findByName(context, StringUtils.trim(specialGroupName));
+		if(specialGroup != null){ 
+			isSpecialGroup = Group.isMember(context, specialGroup.getID());
+		}
+	}
+    
+    
 %>
 <c:set var="admin" scope="request"><%= isAdmin %></c:set>
-
+<c:set var="specialGroup" scope="request"><%= isSpecialGroup %></c:set>
 <c:set var="dspace.layout.head.last" scope="request">
 	
     <script type="text/javascript"><!--
@@ -177,6 +195,9 @@
 			</div>
 		 	<div class="form-group pull-right" style="margin-top:1.5em;">
 				<div class="btn-group">
+					<c:if test="${specialGroup && entity.typo.shortName=='dris'}">
+						<a class="btn btn-warning" href="<%= request.getContextPath() %>/cris/tools/edit-entity?entity_id=${entity.crisID}&entity_property=eurocris.dris.name&collection_id=36"><i class="fa fa-pencil-square-o"></i> <fmt:message key="jsp.cris.detail.edit.entity" /></a>						
+					</c:if>
 					<a class="btn btn-default" href="<%= request.getContextPath() %>/cris/stats/do.html?id=${entity.uuid}"><i class="fa fa-bar-chart-o"></i> <fmt:message key="jsp.cris.detail.link.statistics" /></a>
 					<c:choose>
 	       					<c:when test="${!subscribed}">
@@ -188,8 +209,8 @@
 					</c:choose>			
 					<a class="btn btn-default" href="<%= request.getContextPath() %>/open-search?query=dc.relation.ispartof_authority:${authority}&amp;format=rss"><i class="fa fa-rss"></i> <fmt:message key="jsp.cris.detail.link.rssfeed" /></a>
 				</div>
-				<c:if test="${do_page_menu && !empty entity}"> 		
-					<c:if test="${!empty addModeType && addModeType=='display'}">
+				<c:if test="${ do_page_menu && !empty entity }"> 		
+					<c:if test="${!empty addModeType && addModeType=='display' }">
 					<div class="btn-group">
 	      				<a class="btn btn-default" href="<%= request.getContextPath() %>/cris/tools/${specificPartPath}/editDynamicData.htm?id=${entity.id}&anagraficaId=${entity.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-pencil-square-o"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.do"><fmt:param>${entity.typo.label}</fmt:param></fmt:message></a>
 		  				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">

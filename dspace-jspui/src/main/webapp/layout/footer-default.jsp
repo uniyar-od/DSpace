@@ -51,39 +51,9 @@
     }
 %>
 </div>
-<br/>
 </main>
             <%-- Page footer --%>
-            <footer class="navbar navbar-inverse navbar-bottom navbar-square">
-             <div class="container">
-	             <div class="row">
-					<div class="col-md-3 col-sm-6">
-	             		<div class="panel panel-default">
-	             			<div class="panel-heading">
-	             				<h6 class="panel-title"><fmt:message key="jsp.layout.footer-default.explore"/></h6>
-	             			</div>
-	             			<div class="panel-body">
-	             			<ul>
-	    <% 	if(showCommList){ %>
-           <li><a href="<%= request.getContextPath() %>/community-list"><fmt:message key="jsp.layout.navbar-default.communities-collections"/></a></li>
-        <%	} 
-            for (String mlink : mlinks) { 
-         %>
-           <c:set var="fmtkey">
-           jsp.layout.navbar-default.cris.<%= mlink.trim() %>
-           </c:set>
-           <li><a href="<%= request.getContextPath() %>/cris/explore/<%= mlink.trim() %>"><fmt:message key="${fmtkey}"/></a></li>
-           <% } %>
-							</ul>
-	             			</div>
-	             		</div>
-	             	</div>
-	             	<div class="col-md-9 col-sm-6">
-	             		<%= footerNews %>
-	             	</div>
-	            </div> 
-            </div>
-			<div class="container-fluid extra-footer row">
+            <footer class="container navbar navbar-inverse navbar-bottom navbar-square">
       			<div id="footer_feedback" class="col-sm-4 pull-<%= isRtl ? "right":"left" %>">                                    
                      <a href="<%= request.getContextPath() %>/feedback"><fmt:message key="jsp.layout.footer-default.feedback"/></a>
                 </div>
@@ -94,7 +64,6 @@
             	 		<img src="<%= request.getContextPath() %>/image/logo-4science-small.png"
                                     alt="Logo 4SCIENCE" height="32px"/></a>
 				</div>
-			</div>
 	    </footer>
     </body>
 </html>

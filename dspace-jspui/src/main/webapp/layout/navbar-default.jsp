@@ -95,16 +95,17 @@
            <span class="icon-bar"></span>
            <span class="icon-bar"></span>
          </button>
+         <a class="navbar-brand" href="<%= request.getContextPath() %>/"
+         	class="<%= currentPage.endsWith("/home.jsp")? 
+        		   "active" : "" %>">
+         	<img height="25" src="<%= request.getContextPath() %>/image/dspace-logo-only.png" alt="DSpace logo" /> Repository</a>
        </div>
        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
          <ul id="top-menu" class="nav navbar-nav navbar-<%= isRtl ? "right":"left"%>">
-           <li class="pull-<%= isRtl ? "right":"left"%>"><a class="navbar-brand" href="<%= request.getContextPath() %>/"><img height="25" src="<%= request.getContextPath() %>/image/dspace-logo-only.png" alt="DSpace logo" /></a></li>
-           <li id="home-top-menu" class="pull-<%= isRtl ? "right":"left"%>   <%= currentPage.endsWith("/home.jsp")? 
-        		   "active" : "" %>"><a href="<%= request.getContextPath() %>/"><fmt:message key="jsp.layout.navbar-default.home"/></a></li>
-		  <% if(showCommList){ %>
+   		  <% if(showCommList){ %>
 		   <li id="communitylist-top-menu" class="<%= currentPage.endsWith("/community-list")? 
         		   "active" : "" %>"><a href="<%= request.getContextPath() %>/community-list"><fmt:message key="jsp.layout.navbar-default.communities-collections"/></a></li>
-        		 <% }%> 
+   		 <% }%> 
            <% for (String mlink : mlinks) { %>
            <c:set var="exploremlink">
            <%= mlink.trim() %>
@@ -139,9 +140,9 @@
           <li id="help-top-menu" class="<%= ( currentPage.endsWith( "/help" ) ? "active" : "" ) %>"><dspace:popup page="<%= LocaleSupport.getLocalizedMessage(pageContext, \"help.index\") %>"><fmt:message key="jsp.layout.navbar-default.help"/></dspace:popup></li>
        </ul>
 
- <%-- if (supportedLocales != null && supportedLocales.length > 1)
+ <% if (supportedLocales != null && supportedLocales.length > 1)
      {
- 
+ %>
     <div class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
 	 <ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
       <li id="language-top-menu" class="dropdown">
@@ -168,7 +169,7 @@
  <%
    }
  %>
- --%>
+
        <div class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
 		<ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
                     <li id="search-top-menu" class="dropdown">

@@ -52,6 +52,9 @@
 	// Is the logged in user an admin
 	Boolean admin = (Boolean)request.getAttribute("is.admin");
 	boolean isAdmin = (admin == null ? false : admin.booleanValue());
+
+	Boolean special = (Boolean)request.getAttribute("group.special");
+	boolean isSpecial = (special == null ? false : special.booleanValue());
 	
     WorkspaceItem[] workspaceItems =
         (WorkspaceItem[]) request.getAttribute("workspace.items");
@@ -261,8 +264,20 @@
         {
             Metadatum[] titleArray =
                 owned[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                                                  : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            List<String> titleDrisArray = owned[i].getItem().getMetadataValue("eurocris.dris.name");
+            List<String> titleMemberArray = owned[i].getItem().getMetadataValue("eurocris.member.fullname");
+            List<String> titleInstitutionalArray = owned[i].getItem().getMetadataValue("eurocris.organisation.name");
+            
+            String title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");
+            if(titleArray.length > 0){ 
+            	title = titleArray[0].value;
+            }else if(titleDrisArray.size()>0){
+            	title = titleDrisArray.get(0);
+            }else if(titleMemberArray.size()>0){
+            	title = titleMemberArray.get(0);
+            }else if(titleInstitutionalArray.size()>0){
+            	title = titleInstitutionalArray.get(0);
+            }
             EPerson submitter = owned[i].getItem().getSubmitter();
 %>
         <tr>
@@ -328,8 +343,20 @@
         {
             Metadatum[] titleArray =
                 pooled[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            List<String> titleDrisArray = pooled[i].getItem().getMetadataValue("eurocris.dris.name");
+            List<String> titleMemberArray = pooled[i].getItem().getMetadataValue("eurocris.member.fullname");
+            List<String> titleInstitutionalArray = pooled[i].getItem().getMetadataValue("eurocris.organisation.name");
+            
+            String title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");
+            if(titleArray.length > 0){ 
+            	title = titleArray[0].value;
+            }else if(titleDrisArray.size()>0){
+            	title = titleDrisArray.get(0);
+            }else if(titleMemberArray.size()>0){
+            	title = titleMemberArray.get(0);
+            }else if(titleInstitutionalArray.size()>0){
+            	title = titleInstitutionalArray.get(0);
+            }
             EPerson submitter = pooled[i].getItem().getSubmitter();
 %>
         <tr>
@@ -398,8 +425,20 @@
         {
             Metadatum[] titleArray =
                 workspaceItems[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            List<String> titleDrisArray = workspaceItems[i].getItem().getMetadataValue("eurocris.dris.name");
+            List<String> titleMemberArray = workspaceItems[i].getItem().getMetadataValue("eurocris.member.fullname");
+            List<String> titleInstitutionalArray = workspaceItems[i].getItem().getMetadataValue("eurocris.organisation.name");
+            
+            String title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");
+            if(titleArray.length > 0){ 
+            	title = titleArray[0].value;
+            }else if(titleDrisArray.size()>0){
+            	title = titleDrisArray.get(0);
+            }else if(titleMemberArray.size()>0){
+            	title = titleMemberArray.get(0);
+            }else if(titleInstitutionalArray.size()>0){
+            	title = titleInstitutionalArray.get(0);
+            }
             EPerson submitter = workspaceItems[i].getItem().getSubmitter();
 %>
         <tr>
@@ -444,8 +483,20 @@
         {
             Metadatum[] titleArray =
                 supervisedItems[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            List<String> titleDrisArray = supervisedItems[i].getItem().getMetadataValue("eurocris.dris.name");
+            List<String> titleMemberArray = supervisedItems[i].getItem().getMetadataValue("eurocris.member.fullname");
+            List<String> titleInstitutionalArray = supervisedItems[i].getItem().getMetadataValue("eurocris.organisation.name");
+            
+            String title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");
+            if(titleArray.length > 0){ 
+            	title = titleArray[0].value;
+            }else if(titleDrisArray.size()>0){
+            	title = titleDrisArray.get(0);
+            }else if(titleMemberArray.size()>0){
+            	title = titleMemberArray.get(0);
+            }else if(titleInstitutionalArray.size()>0){
+            	title = titleInstitutionalArray.get(0);
+            }
             EPerson submitter = supervisedItems[i].getItem().getSubmitter();
 %>
 
@@ -497,8 +548,20 @@
         {
             Metadatum[] titleArray =
                 workflowItems[i].getItem().getDC("title", null, Item.ANY);
-            String title = (titleArray.length > 0 ? titleArray[0].value
-                    : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            List<String> titleDrisArray = workflowItems[i].getItem().getMetadataValue("eurocris.dris.name");
+            List<String> titleMemberArray = workflowItems[i].getItem().getMetadataValue("eurocris.member.fullname");
+            List<String> titleInstitutionalArray = workflowItems[i].getItem().getMetadataValue("eurocris.organisation.name");
+            
+            String title = LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled");
+            if(titleArray.length > 0){ 
+            	title = titleArray[0].value;
+            }else if(titleDrisArray.size()>0){
+            	title = titleDrisArray.get(0);
+            }else if(titleMemberArray.size()>0){
+            	title = titleMemberArray.get(0);
+            }else if(titleInstitutionalArray.size()>0){
+            	title = titleInstitutionalArray.get(0);
+            }
 %>
             <tr>
                 <td headers="t14" class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>

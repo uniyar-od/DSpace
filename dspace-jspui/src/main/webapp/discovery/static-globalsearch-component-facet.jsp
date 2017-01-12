@@ -124,7 +124,9 @@
 
 					<li class="menu-global-processor">
 						<a href="#"
-						title="<%=fvalue.getAuthorityKey()%>"><span class="badge pull-right"><%=fvalue.getCount()%></span> <%=StringUtils.abbreviate(fvalue.getDisplayedValue(), 36)%> &nbsp;&nbsp;&nbsp; <span class="badge invisible"><%=fvalue.getCount()%></span> </a></li>
+						title="<%=fvalue.getAuthorityKey()%>">
+						<span class="badge pull-right"><%=fvalue.getCount()%></span> <%=StringUtils.abbreviate(fvalue.getDisplayedValue(), 36)%> 
+						&nbsp;&nbsp;&nbsp; <span class="badge invisible"><%=fvalue.getCount()%></span></a></li>
 					<%
 			    	}
 		    	}	    		    
@@ -220,7 +222,10 @@
 				    		String fkey =  "jsp.home.group-left-info."+fvalue.getAuthorityKey();
 			        %>
 	
-					<li class="list-group-item"> <span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath() %>/simple-search?query=&location=<%=fvalue.getAuthorityKey()%>"><fmt:message key="<%= fkey %>"/></a></li>
+					<li class="list-group-item">
+						<a class="nowrap" href="<%= request.getContextPath() %>/simple-search?query=&location=<%=fvalue.getAuthorityKey()%>">
+						<span class="badge pull-right"><%= fvalue.getCount() %></span> <fmt:message key="<%= fkey %>"/> 
+						&nbsp;&nbsp;&nbsp;<span class="badge invisible"><%= fvalue.getCount() %></span></a></li>
 			<%
 					    	}
 				    	}
@@ -245,12 +250,13 @@
 			    	{ 
 			        %>
 	
-					<li class="list-group-item"> <span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
+					<li class="list-group-item"> <a class="nowrap" href="<%= request.getContextPath()
 			            + "/simple-search?filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
 		                + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
 		                + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>"
 		                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-		                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li>
+		                <span class="badge pull-right"><%= fvalue.getCount() %></span> 
+		                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %>&nbsp;&nbsp;&nbsp;<span class="badge invisible"><%= fvalue.getCount() %></span></a></li>
 			<%
 					}
 		    	}
@@ -279,7 +285,12 @@
 				    		String fkey =  "jsp.home.group-center-info."+fvalue.getAuthorityKey();
 			        %>
 	
-					<li class="list-group-item"> <span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath() %>/simple-search?query=&location=<%=fvalue.getAuthorityKey()%>"><fmt:message key="<%= fkey %>"/></a></li>
+					<li class="list-group-item"> 
+						<a class="nowrap" href="<%= request.getContextPath() %>/simple-search?query=&location=<%=fvalue.getAuthorityKey()%>">
+						<span class="badge pull-right"><%= fvalue.getCount() %></span>
+						<fmt:message key="<%= fkey %>"/>
+						&nbsp;&nbsp;&nbsp;<span class="badge invisible"><%= fvalue.getCount() %></span>
+						</a></li>
 			<%
 				    		}
 				    	}
@@ -304,12 +315,13 @@
 			    	{ 
 			        %>
 	
-					<li class="list-group-item"> <span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
+					<li class="list-group-item"> <a class="nowrap" href="<%= request.getContextPath()
 			            + "/simple-search?filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
 		                + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
 		                + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>"
 		                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-		                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li>
+		                <span class="badge pull-right"><%= fvalue.getCount() %></span> 
+		                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %>&nbsp;&nbsp;&nbsp;<span class="badge invisible"><%= fvalue.getCount() %></span></a></li>
 			<%
 					}
 		    	}
@@ -338,7 +350,9 @@
 				    		String fkey =  "jsp.home.group-right-info."+fvalue.getAuthorityKey();
 			        %>
 	
-					<li class="list-group-item"> <span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath() %>/simple-search?query=&location=<%=fvalue.getAuthorityKey()%>"><fmt:message key="<%= fkey %>"/></a></li>
+					<li class="list-group-item"> <a class="nowrap" href="<%= request.getContextPath() %>/simple-search?query=&location=<%=fvalue.getAuthorityKey()%>">
+					<span class="badge pull-right"><%= fvalue.getCount() %></span> 
+					<fmt:message key="<%= fkey %>"/>&nbsp;&nbsp;&nbsp;<span class="badge invisible"><%= fvalue.getCount() %></span> </a></li>
 			<%
 				    		}
 				    	}
@@ -364,12 +378,12 @@
 			    	{ 
 			        %>
 	
-					<li class="list-group-item"> <span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
+					<li class="list-group-item"> <a class="nowrap" href="<%= request.getContextPath()
 			            + "/simple-search?filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
 		                + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
 		                + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>"
 		                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-		                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li>
+		                <span class="badge pull-right"><%= fvalue.getCount() %></span> <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %>&nbsp;&nbsp;&nbsp;<span class="badge invisible"><%= fvalue.getCount() %></span> </a></li>
 			<%
 					}
 		    	}
