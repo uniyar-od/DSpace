@@ -1102,6 +1102,17 @@
 		<servlet-name>networkrelationsservice</servlet-name>
 		<url-pattern>/networkdatarelations/*</url-pattern>
 	</servlet-mapping>
+	
+	<servlet>
+		<servlet-name>edit-entity</servlet-name>
+		<servlet-class>org.dspace.app.webui.cris.servlet.EditSpecialEntity</servlet-class>
+	</servlet>	
+	
+	<servlet-mapping>
+		<servlet-name>edit-entity</servlet-name>
+		<url-pattern>/cris/tools/edit-entity</url-pattern>
+	</servlet-mapping>
+		
 	<!-- Pubmed retrieval -->
 	<servlet>
 		<servlet-name>PMCGetCitedByCount</servlet-name>
