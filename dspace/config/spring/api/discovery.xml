@@ -694,8 +694,15 @@
 		</property>
 		<!--Any default filter queries, these filter queries will be used for all 
 			queries done by discovery for this configuration -->
+		<!--<property name="defaultFilterQueries"> -->
+		<!--<list> -->
+		<!--Only find items -->
+		<!--<value>search.resourcetype:2</value> -->
+		<!--</list> -->
+		<!--</property> -->			
 		<property name="defaultFilterQueries">
 			<list>
+			<value>search.resourcetype:2</value>
 			</list>
 		</property>
 		<!--The configuration for the recent submissions -->
