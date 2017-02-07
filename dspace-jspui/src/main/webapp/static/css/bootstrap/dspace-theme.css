@@ -286,6 +286,7 @@ footer.container.navbar.navbar-inverse.navbar-bottom.navbar-square {
 	background: #8c1f7d;
 	background-image: none;
 	color: white;
+	z-index:0;
 } 
 footer.container.navbar.navbar-inverse.navbar-bottom.navbar-square a {
 	color: grey;
