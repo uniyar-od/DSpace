@@ -23,6 +23,8 @@
 
 <%
 	List<Term> terms = (List<Term>) request.getAttribute("terms");
+	List<Term> dnsTerms = (List<Term>) request.getAttribute("dnsterms");
+	List<Term> domainDnsTerms = (List<Term>) request.getAttribute("domaindnsterms");
 	Boolean deleted = (Boolean) request.getAttribute("deleted");
 %>
 <dspace:layout 
@@ -39,13 +41,52 @@
 <% if (deleted != null && deleted) { %>
 <div class="alert alert-success">Deleted</div>
 <% } %>
-
+<div class="col-md-4">
+  <h3><fmt:message key="jsp.dspace-admin.stats-cleaner.useragent"/></h3>
 <% for (Term t : terms) { %>
-<form action="" method="post">
-	<%= t.getTerm() %> [<%= t.getFrequency() %>]
-	<textarea name="userAgent"><%= t.getTerm() %></textarea>
-	<input type="submit" value="delete" />
+ <form action="" method="post">
+ 	<div class="form-group">
+	 <div class="container alert alert-info"> 
+  		<div class="col-md-2"><button class="btn btn-danger" type="submit" value="delete"><i class="fa fa-trash-o "></i></button></div>
+  		<div class="col-md-10">
+ 			<%= t.getTerm() %> <span class="badge">[<%= t.getFrequency() %>]</span>
+			<input type="hidden"  name="userAgent" value="<%= t.getTerm() %>" />
+		</div>
+	</div>
+	</div>
 </form>
-<br/>
 <% } %>
+</div>
+<div class="col-md-4">
+<h3><fmt:message key="jsp.dspace-admin.stats-cleaner.dns"/></h3>
+<% for (Term t : dnsTerms) { %>
+<form action="" method="post">
+ 	<div class="form-group">
+	 <div class="container alert alert-info"> 
+  		<div class="col-md-2"><button class="btn btn-danger" type="submit" value="delete"><i class="fa fa-trash-o "></i></button></div>
+  		<div class="col-md-10">
+ 			<%= t.getTerm() %> <span class="badge">[<%= t.getFrequency() %>]</span>
+			<input type="hidden"  name="dns" value="<%= t.getTerm() %>" />
+		</div>
+	</div>
+	</div>
+</form>
+<% } %>
+</div>
+<div class="col-md-4">
+<h3><fmt:message key="jsp.dspace-admin.stats-cleaner.domaindns"/></h3>
+<% for (Term t : domainDnsTerms) { %>
+<form action="" method="post">
+ 	<div class="form-group">
+	 <div class="container alert alert-info"> 
+  		<div class="col-md-2"><button class="btn btn-danger" type="submit" value="delete"><i class="fa fa-trash-o "></i></button></div>
+  		<div class="col-md-10">
+ 			<%= t.getTerm() %> <span class="badge">[<%= t.getFrequency() %>]</span>
+			<input type="hidden"  name="domaindns" value="<%= t.getTerm() %>" />
+		</div>
+	</div>
+	</div>
+</form>
+<% } %>
+</div>
 </dspace:layout>

@@ -617,6 +617,15 @@
     	<servlet-class>org.dspace.app.webui.servlet.DoiQueuedServlet</servlet-class>
   	</servlet>
   	
+  <servlet>
+    <servlet-name>stats-cleaner</servlet-name>
+    <servlet-class>org.dspace.app.webui.cris.servlet.StatsCleaner</servlet-class>
+  </servlet>  	
+  
+  <servlet-mapping>
+    <servlet-name>stats-cleaner</servlet-name>
+    <url-pattern>/dspace-admin/stats-cleaner</url-pattern>
+  </servlet-mapping>    	
 	<!-- Servlet Mappings -->
 
   	<servlet-mapping>
