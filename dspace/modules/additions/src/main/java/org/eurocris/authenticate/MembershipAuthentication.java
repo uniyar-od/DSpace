@@ -8,6 +8,7 @@
 package org.eurocris.authenticate;
 
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.dspace.app.cris.model.ResearcherPage;
+import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.core.ConfigurationManager;
@@ -84,7 +86,8 @@ public class MembershipAuthentication implements AuthenticationMethod
         if (group != null)
         {
         	ResearcherPage rp = applicationService.getEntityByCrisId(crisID, ResearcherPage.class);
-        	if (rp.getAnagrafica4view().get("eurocrisScope").size() > 0) {
+        	List<RPProperty> scope = rp.getAnagrafica4view().get("eurocrisScope");
+        	if (scope!= null && scope.size() > 0) {
         		return new int[]{group.getID()};
         	}
         	
