@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.storage.rdbms.xmlworkflow;
+package org.dspace.storage.rdbms.migration;
 
 import org.dspace.core.Constants;
 import org.dspace.storage.rdbms.DatabaseUtils;
@@ -35,29 +35,13 @@ public class V7_0_2018_04_03__Upgrade_Workflow_Policy implements JdbcMigration, 
         if (WorkflowServiceFactory.getInstance().getWorkflowService() instanceof XmlWorkflowService)
         {
             // Now, check if the XMLWorkflow table (cwf_workflowitem) already exists in this database
-            // If XMLWorkflow Table does NOT exist in this database, then lets do the migration!
-            // If XMLWorkflow Table ALREADY exists, then this migration is a noop, we assume you manually ran the sql scripts
             if (DatabaseUtils.tableExists(connection, "cwf_workflowitem"))
             {
-                String dbtype = connection.getMetaData().getDatabaseProductName();
-                String dbFileLocation = null;
-                if(dbtype.toLowerCase().contains("postgres"))
-                {
-                    dbFileLocation = "postgres";
-                }else
-                if(dbtype.toLowerCase().contains("oracle")){
-                    dbFileLocation = "oracle";
-                }
+                String dbtype = DatabaseUtils.getDbType(connection);
 
-
-                // Determine path of this migration class (as the SQL scripts
-                // we will run are based on this path under /src/main/resources)
-                String packagePath = V7_0_2018_04_03__Upgrade_Workflow_Policy.class.getPackage().getName().replace(".", "/");
-
-                // Get the contents of our data migration script, based on path & DB type
-                // (e.g. /src/main/resources/[path-to-this-class]/postgres/data_workflow_migration.sql)
-                String dataMigrateSQL = new ClassPathResource(packagePath + "/" +
-                                                          dbFileLocation +
+                String sqlMigrationPath = "org/dspace/storage/rdbms/sqlmigration/workflow/" + dbtype +"/";
+                String dataMigrateSQL = new ClassPathResource(sqlMigrationPath +
+                                                          "xmlworkflow" +
                                                           "/V7.0_2018.04.03__upgrade_workflow_policy.sql", getClass().getClassLoader()).loadAsString(Constants.DEFAULT_ENCODING);
 
                 // Actually execute the Data migration SQL
