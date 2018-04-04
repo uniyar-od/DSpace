@@ -192,7 +192,7 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
                 Restrictions.eq("dSpaceObject", dso),
                 Restrictions.eq("actionId", action)
         ));
-        criteria.add(Restrictions.and(Restrictions.not(Restrictions.eq("rpType", rpType))));
+        criteria.add(Restrictions.and(Restrictions.not(Restrictions.eq("rptype", rpType))));
         return list(criteria);
     }
 }
