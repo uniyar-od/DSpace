@@ -375,6 +375,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 return;
             }
             String uniqueID = dso.getUniqueIndexID();
+            log.debug("Try to delete uniqueID:" + uniqueID);
             getSolr().deleteById(uniqueID);
             if(Constants.ITEM == dso.getType()) {
                 deleteInProgressSubmissionByItemID(uniqueID);
@@ -1684,8 +1685,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     	deleteInProgressSubmissionByItemID(item.getID().toString());
     }
 
-    private void deleteInProgressSubmissionByItemID(String itemID) throws SolrServerException, IOException {
-        getSolr().deleteByQuery("inprogress.item:\""+itemID+"\"");
+    private void deleteInProgressSubmissionByItemID(String uniqueID) throws SolrServerException, IOException {
+        String query = "inprogress.item:\""+uniqueID+"\"";
+        log.debug("Try to delete all in progress submission [DELETEBYQUERY]:" + query);
+        getSolr().deleteByQuery(query);
     }
     
 	private void addFacetIndex(SolrInputDocument document, String field,
@@ -1727,7 +1730,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             }
             String fvalue = acvalue;
             addNamedResourceTypeIndex(doc, acvalue, fvalue);
-            doc.addField("inprogress.item", item.getID());
+            doc.addField("inprogress.item", item.getUniqueIndexID());
             
 	        getSolr().add(doc);
     	}
@@ -1737,7 +1740,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	        List<String> locations = getCollectionLocations(context, workflowItem.getCollection());
 	        SolrInputDocument doc = new SolrInputDocument();
 	
-	        doc.addField("inprogress.item", item.getID());
+	        doc.addField("inprogress.item", item.getUniqueIndexID());
 	        doc.addField("lastModified", item.getLastModified());
 	        if (workflowItem.getSubmitter() != null) {
 	        	addFacetIndex(doc, "submitter", workflowItem.getSubmitter().getID().toString(), workflowItem.getSubmitter().getFullName());
