@@ -10,6 +10,7 @@ package org.dspace.app.rest.submit.step;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
@@ -37,76 +38,91 @@ import org.dspace.services.model.Request;
  */
 public class DescribeStep extends org.dspace.submit.step.DescribeStep implements AbstractRestProcessingStep {
 
-	private static final Logger log = Logger.getLogger(DescribeStep.class);
+    private static final Logger log = Logger.getLogger(DescribeStep.class);
 
-	private DCInputsReader inputReader;
-	
-	public DescribeStep() throws DCInputsReaderException {
-		inputReader = new DCInputsReader();
-	}
-	
-	@Override
-	public DataDescribe getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) {		
-		DataDescribe data = new DataDescribe();
-		try {
-			DCInputSet inputConfig = inputReader.getInputsByFormName(config.getId());
-			for(DCInput[] row : inputConfig.getFields()) {
-			    for(DCInput input : row) {
-    				
-    				List<String> fieldsName = new ArrayList<String>();
-    				if(input.isQualdropValue()) {
-    					for(Object qualifier : input.getPairs()) {
-    						fieldsName.add(input.getFieldName()+"."+(String)qualifier);
-    					}
-    				}
-    				else {
-    					fieldsName.add(input.getFieldName());
-    				}
-    				
-    				
-    				for (String fieldName : fieldsName) {
-    					List<IMetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(),
-    							fieldName);
-    					for (IMetadataValue md : mdv) {
-    						MetadataValueRest dto = new MetadataValueRest();
-    						dto.setAuthority(md.getAuthority());
-    						dto.setConfidence(md.getConfidence());
-    						dto.setLanguage(md.getLanguage());
-    						dto.setPlace(md.getPlace());
-    						dto.setValue(md.getValue());
-    
-    						String[] metadataToCheck = Utils.tokenize(md.getMetadataField().toString());
-    						if (data.getMetadata().containsKey(
-    								Utils.standardize(metadataToCheck[0], metadataToCheck[1], metadataToCheck[2], "."))) {
-    							data.getMetadata()
-    									.get(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
-    											md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
-    											"."))
-    									.add(dto);
-    						} else {
-    							List<MetadataValueRest> listDto = new ArrayList<>();
-    							listDto.add(dto);
-    							data.getMetadata()
-    									.put(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
-    											md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
-    											"."), listDto);
-    						}
-    					}
-    				}
-    			}
-			}
-		} catch (DCInputsReaderException e) {
-			log.error(e.getMessage(), e);
-		}
-		return data;
-	}
+    private DCInputsReader inputReader;
 
-	@Override
-	public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op) throws Exception {
-		
-		PatchOperation<MetadataValueRest> patchOperation = new PatchOperationFactory().instanceOf(DESCRIBE_STEP_METADATA_OPERATION_ENTRY, op.getOp());
-		patchOperation.perform(context, currentRequest, source, op);
-		
-	}
+    public DescribeStep() throws DCInputsReaderException {
+        inputReader = new DCInputsReader();
+    }
+
+    @Override
+    public DataDescribe getData(SubmissionService submissionService, InProgressSubmission obj,
+            SubmissionStepConfig config) {
+        DataDescribe data = new DataDescribe();
+        try {
+            DCInputSet inputConfig = inputReader.getInputsByFormName(config.getId());
+            for (DCInput[] row : inputConfig.getFields()) {
+                for (DCInput input : row) {
+                    readField(obj, config, data, inputConfig);
+                }
+            }
+        } catch (DCInputsReaderException e) {
+            log.error(e.getMessage(), e);
+        }
+        return data;
+    }
+
+    private void readField(InProgressSubmission obj, SubmissionStepConfig config, DataDescribe data,
+            DCInputSet inputConfig) throws DCInputsReaderException {
+        for (DCInput[] row : inputConfig.getFields()) {
+            for (DCInput input : row) {
+
+                List<String> fieldsName = new ArrayList<String>();
+                if (input.isQualdropValue()) {
+                    for (Object qualifier : input.getPairs()) {
+                        fieldsName.add(input.getFieldName() + "." + (String) qualifier);
+                    }
+                } else if (StringUtils.equalsIgnoreCase(input.getInputType(), "group")) {
+                    log.info("Called child form:" + config.getId() + "-"
+                            + Utils.standardize(input.getSchema(), input.getElement(), input.getQualifier(), "-"));
+                    DCInputSet inputConfigChild = inputReader.getInputsByFormName(config.getId() + "-"
+                            + Utils.standardize(input.getSchema(), input.getElement(), input.getQualifier(), "-"));
+                    readField(obj, config, data, inputConfigChild);
+                } else {
+                    fieldsName.add(input.getFieldName());
+                }
+
+                for (String fieldName : fieldsName) {
+                    List<IMetadataValue> mdv = itemService.getMetadataByMetadataString(obj.getItem(), fieldName);
+                    for (IMetadataValue md : mdv) {
+                        MetadataValueRest dto = new MetadataValueRest();
+                        dto.setAuthority(md.getAuthority());
+                        dto.setConfidence(md.getConfidence());
+                        dto.setLanguage(md.getLanguage());
+                        dto.setPlace(md.getPlace());
+                        dto.setValue(md.getValue());
+
+                        String[] metadataToCheck = Utils.tokenize(md.getMetadataField().toString());
+                        if (data.getMetadata().containsKey(
+                                Utils.standardize(metadataToCheck[0], metadataToCheck[1], metadataToCheck[2], "."))) {
+                            data.getMetadata()
+                                    .get(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
+                                            md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
+                                            "."))
+                                    .add(dto);
+                        } else {
+                            List<MetadataValueRest> listDto = new ArrayList<>();
+                            listDto.add(dto);
+                            data.getMetadata()
+                                    .put(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
+                                            md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
+                                            "."), listDto);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op)
+            throws Exception {
+
+        PatchOperation<MetadataValueRest> patchOperation = new PatchOperationFactory()
+                .instanceOf(DESCRIBE_STEP_METADATA_OPERATION_ENTRY, op.getOp());
+        patchOperation.perform(context, currentRequest, source, op);
+
+    }
 
 }
