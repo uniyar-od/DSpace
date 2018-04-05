@@ -5,7 +5,7 @@
 --
 -- http://www.dspace.org/license/
 --
---
+
 -- The follow lines broke upgrade to a fresh DSpace 7 to a DSpace-CRIS 7
 ---------------------------------------------------------------------------
 ---- DS-3431 Workflow system is vulnerable to unauthorized manipulations --

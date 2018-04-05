@@ -1,3 +1,11 @@
+--
+-- The contents of this file are subject to the license and copyright
+-- detailed in the LICENSE and NOTICE files at the root of the source
+-- tree and available online at
+--
+-- http://www.dspace.org/license/
+--
+
 -- UPDATE policies for claimtasks
 -- Item
 UPDATE RESOURCEPOLICY SET rptype = 'TYPE_WORKFLOW' WHERE dspace_object in (SELECT cwf_workflowitem.item_id FROM cwf_workflowitem INNER JOIN cwf_claimtask ON cwf_workflowitem.workflowitem_id = cwf_claimtask.workflowitem_id JOIN item ON cwf_workflowitem.item_id = item.uuid) AND eperson_id not in (SELECT item.submitter_id FROM cwf_workflowitem JOIN item ON cwf_workflowitem.item_id = item.uuid);
