@@ -52,11 +52,7 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
         DataDescribe data = new DataDescribe();
         try {
             DCInputSet inputConfig = inputReader.getInputsByFormName(config.getId());
-            for (DCInput[] row : inputConfig.getFields()) {
-                for (DCInput input : row) {
-                    readField(obj, config, data, inputConfig);
-                }
-            }
+            readField(obj, config, data, inputConfig);
         } catch (DCInputsReaderException e) {
             log.error(e.getMessage(), e);
         }
