@@ -283,7 +283,7 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
         // We return a list to maintain backwards compatibility
         Collection[] output = collections.toArray(new Collection[]{});
         Arrays.sort(output, new NameAscendingComparator());
-        return Arrays.asList(output);
+        return new ArrayList<Collection>(Arrays.asList(output));
     }
 
     void addCollection(Collection collection)
