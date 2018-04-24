@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
  * and the REST data model
  * 
  * @author Andrea Bollini (andrea.bollini at 4science.it)
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
  */
 @Component

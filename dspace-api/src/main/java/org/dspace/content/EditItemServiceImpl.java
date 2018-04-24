@@ -8,15 +8,21 @@
 package org.dspace.content;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.EditItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -59,6 +65,30 @@ public class EditItemServiceImpl implements EditItemService {
     @Override
     public EditItem find(Context context, UUID id) throws SQLException {
         return new EditItem(context, getItemService().find(context, id));
+    }
+
+    @Override
+    public int countTotal(Context context) throws SQLException {
+        return itemService.countTotal(context);
+    }
+
+    @Override
+    public Iterator<EditItem> findAll(Context context, int pageSize, int offset) throws SQLException {
+        Iterator<Item> items = itemService.findAll(context, pageSize, offset);
+        Iterable<Item> iterable = () -> items;
+        Stream<Item> targetStream = StreamSupport.stream(iterable.spliterator(), false);
+        return targetStream.map(x -> new EditItem(context, x)).iterator();
+    }
+
+    @Override
+    public List<EditItem> findBySubmitter(Context context, EPerson ep, int pageSize, int offset) throws SQLException {
+        List<Item> items = itemService.findBySubmitter(context, ep, pageSize, offset);
+        return items.stream().map(x -> new EditItem(context, x)).collect(Collectors.toList());
+    }
+
+    @Override
+    public int countBySubmitter(Context context, EPerson ep) throws SQLException {
+        return itemService.countBySubmitter(context, ep);
     }
 
 }

@@ -7,9 +7,14 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
 import java.util.UUID;
 
 import org.dspace.content.EditItem;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 
 /**
  * Service interface class for the Item object.
@@ -20,5 +25,15 @@ import org.dspace.content.EditItem;
  */
 public interface EditItemService extends InProgressSubmissionService<EditItem, UUID>
 {
+
+    ItemService getItemService();
+    
+    int countTotal(Context context) throws SQLException;
+
+    Iterator<EditItem> findAll(Context context, int pageSize, int offset) throws SQLException;
+
+    List<EditItem> findBySubmitter(Context context, EPerson ep, int pageSize, int offset) throws SQLException;
+
+    int countBySubmitter(Context context, EPerson ep) throws SQLException;
     
 }

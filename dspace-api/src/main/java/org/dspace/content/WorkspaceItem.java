@@ -50,7 +50,7 @@ import org.hibernate.proxy.HibernateProxyHelper;
  */
 @Entity
 @Table(name = "workspaceitem")
-public class WorkspaceItem implements InProgressSubmission, Serializable, ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer>
+public class WorkspaceItem implements InProgressSubmission<Integer>, Serializable, ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer>
 {
     
     @Transient

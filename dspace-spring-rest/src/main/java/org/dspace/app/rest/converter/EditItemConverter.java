@@ -12,36 +12,37 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.rest.model.EditItemRest;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.SubmissionDefinitionRest;
 import org.dspace.app.rest.model.SubmissionSectionRest;
-import org.dspace.app.rest.model.WorkspaceItemRest;
+import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.submit.AbstractRestProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Collection;
+import org.dspace.content.EditItem;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.eperson.EPerson;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * This is the converter from/to the WorkspaceItem in the DSpace API data model
+ * This is the converter from/to the EditItem in the DSpace API data model
  * and the REST data model
  * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
  */
 @Component
-public class WorkspaceItemConverter
-		extends DSpaceConverter<org.dspace.content.WorkspaceItem, org.dspace.app.rest.model.WorkspaceItemRest> 
-	implements BrowsableDSpaceObjectConverter<org.dspace.content.WorkspaceItem, org.dspace.app.rest.model.WorkspaceItemRest> {
+public class EditItemConverter
+		extends DSpaceConverter<EditItem, EditItemRest>
+		implements BrowsableDSpaceObjectConverter<EditItem, EditItemRest> {
 
-	private static final Logger log = Logger.getLogger(WorkspaceItemConverter.class);
+	private static final Logger log = Logger.getLogger(EditItemConverter.class);
 
 	@Autowired
 	private EPersonConverter epersonConverter;
@@ -62,13 +63,13 @@ public class WorkspaceItemConverter
 	@Autowired
 	SubmissionService submissionService; 
 
-	public WorkspaceItemConverter() throws SubmissionConfigReaderException {
+	public EditItemConverter() throws SubmissionConfigReaderException {
 		submissionConfigReader = new SubmissionConfigReader();
 	}
 
 	@Override
-	public WorkspaceItemRest fromModel(org.dspace.content.WorkspaceItem obj) {
-		WorkspaceItemRest witem = new WorkspaceItemRest();
+	public EditItemRest fromModel(EditItem obj) {
+		EditItemRest witem = new EditItemRest();
 		
 		Collection collection = obj.getCollection();
 		Item item = obj.getItem();
@@ -132,7 +133,7 @@ public class WorkspaceItemConverter
 	}
 
 	@Override
-	public org.dspace.content.WorkspaceItem toModel(WorkspaceItemRest obj) {
+	public EditItem toModel(EditItemRest obj) {
 		return null;
 	}
 
@@ -157,6 +158,6 @@ public class WorkspaceItemConverter
 	
 	@Override
 	public boolean supportsModel(Object object) {
-		return object instanceof WorkspaceItem;
+		return object instanceof XmlWorkflowItem;
 	}
 }

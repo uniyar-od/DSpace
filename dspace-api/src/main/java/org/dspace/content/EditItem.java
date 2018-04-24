@@ -14,7 +14,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
-public class EditItem implements InProgressSubmission {
+public class EditItem implements InProgressSubmission<UUID> {
 	
 	private Item item;
 	
@@ -26,9 +26,8 @@ public class EditItem implements InProgressSubmission {
 	}
 
 	@Override
-	public Integer getID() {
-		//risk of collision but this is only a fake ID, instead use getItem().getID()
-		return item.getID().hashCode();
+	public UUID getID() {
+		return item.getID();
 	}
 
 	@Override
