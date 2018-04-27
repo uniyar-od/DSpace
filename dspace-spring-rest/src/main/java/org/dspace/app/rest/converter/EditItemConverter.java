@@ -158,6 +158,6 @@ public class EditItemConverter
 	
 	@Override
 	public boolean supportsModel(Object object) {
-		return object instanceof XmlWorkflowItem;
+		return object instanceof EditItem;
 	}
 }
