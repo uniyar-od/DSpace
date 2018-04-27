@@ -25,7 +25,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class EditItemRest extends BaseObjectRest<UUID> {
     
-    public static final String NAME = "item";
+    public static final String NAME = "edititem";
     public static final String CATEGORY = RestAddressableModel.SUBMISSION;
 
     private Date lastModified = new Date();
