@@ -146,7 +146,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
 
         Context context = obtainContext();
         EditItem source = is.find(context, id);
-        if (authorizeService.isAdmin(context)
+        if (!authorizeService.isAdmin(context)
                 && !is.getItemService().canEdit(context, source.getItem())) {
             throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
         }
@@ -203,7 +203,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
         List<Operation> operations = patch.getOperations();
         
         EditItem source = is.find(context, id);
-        if (authorizeService.isAdmin(context)
+        if (!authorizeService.isAdmin(context)
                 && !is.getItemService().canEdit(context, source.getItem())) {
             throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
         }
@@ -269,7 +269,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
         EditItem source = null;
         try {
             source = is.find(context, id);
-            if (authorizeService.isAdmin(context)
+            if (!authorizeService.isAdmin(context)
                     && !is.getItemService().canEdit(context, source.getItem())) {
                 throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
             }

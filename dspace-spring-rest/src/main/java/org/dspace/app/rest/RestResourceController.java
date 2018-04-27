@@ -36,10 +36,9 @@ import org.dspace.app.rest.exception.RepositorySearchMethodNotFoundException;
 import org.dspace.app.rest.exception.RepositorySearchNotFoundException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.link.HalLinkService;
-import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.LinkRest;
+import org.dspace.app.rest.model.RestAddressableModel;
 import org.dspace.app.rest.model.RestModel;
-import org.dspace.app.rest.model.WorkspaceItemRest;
 import org.dspace.app.rest.model.hateoas.DSpaceResource;
 import org.dspace.app.rest.model.hateoas.EmbeddedPage;
 import org.dspace.app.rest.model.hateoas.HALResource;
@@ -484,10 +483,10 @@ public class RestResourceController implements InitializingBean {
 	 */
 	@RequestMapping(method = RequestMethod.POST, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID, headers = "content-type=multipart/form-data")	
 	public <ID extends Serializable> ResponseEntity<ResourceSupport> upload(HttpServletRequest request,
-			@PathVariable String apiCategory, @PathVariable String model, @PathVariable UUID id,
+			@PathVariable String apiCategory, @PathVariable String model, @PathVariable UUID uuid,
 			@RequestParam(required=false, value="extraField") String extraField,
 		    @RequestParam("file") MultipartFile uploadfile) throws HttpRequestMethodNotSupportedException {
-		return uploadInternal(request, apiCategory, model, id, extraField, uploadfile);
+		return uploadInternal(request, apiCategory, model, uuid, extraField, uploadfile);
 	}
     
 	/**
@@ -554,8 +553,8 @@ public class RestResourceController implements InitializingBean {
 	 */
 	@RequestMapping(method = RequestMethod.PATCH, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID)
 	public ResponseEntity<ResourceSupport> patch(HttpServletRequest request, @PathVariable String apiCategory,
-			@PathVariable String model, @PathVariable UUID id, @RequestBody(required = true) JsonNode jsonNode) throws HttpRequestMethodNotSupportedException {
-		return patchInternal(request, apiCategory, model, id, jsonNode);
+			@PathVariable String model, @PathVariable UUID uuid, @RequestBody(required = true) JsonNode jsonNode) throws HttpRequestMethodNotSupportedException {
+		return patchInternal(request, apiCategory, model, uuid, jsonNode);
 	}
 	
 	/**
@@ -858,8 +857,8 @@ public class RestResourceController implements InitializingBean {
 	
 	@RequestMapping(method = RequestMethod.DELETE, value = REGEX_REQUESTMAPPING_IDENTIFIER_AS_UUID)
 	public ResponseEntity<ResourceSupport> delete(HttpServletRequest request, @PathVariable String apiCategory,
-			@PathVariable String model, @PathVariable UUID id) throws HttpRequestMethodNotSupportedException {		
-		return deleteInternal(apiCategory, model, id);
+			@PathVariable String model, @PathVariable UUID uuid) throws HttpRequestMethodNotSupportedException {		
+		return deleteInternal(apiCategory, model, uuid);
 	}
 	
 	/**
