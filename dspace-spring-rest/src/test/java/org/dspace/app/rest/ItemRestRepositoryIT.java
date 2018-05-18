@@ -16,7 +16,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.InputStream;
 import java.util.UUID;
-
 import javax.ws.rs.core.MediaType;
 
 import org.apache.commons.io.IOUtils;
@@ -316,10 +315,167 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void patchTest() throws Exception {
+    public void widthdrawPatchTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withRemovePermission(true)
+                                           .withName("Collection 1").build();
+
+        //2. One public item
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Public item 1")
+                               .withIssueDate("2017-10-17")
+                               .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .withWritePermission(true)
+                               .build();
+
+        // A token must be provided for withdraw operation. The person
+        // is used in the provenance note.
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        // withdraw item
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+            .header(AUTHORIZATION_HEADER, AUTHORIZATION_TYPE + " " + token)
+            .content("[{\"op\":\"replace\",\"path\":\"/withdrawn\", \"value\": true}]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                        .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
+                        .andExpect(jsonPath("$.inArchive", Matchers.is(false)));
+
+        // item already withdrawn, no-op, 200 response
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+            .content("[{\"op\":\"replace\",\"path\":\"/withdrawn\", \"value\": true}]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk());
+
+    }
+
+    @Test
+    public void valueMissingForWithdrawalOperation() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withRemovePermission(true)
+                                           .withName("Collection 1").build();
+
+        //2. One public item
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Public item 1")
+                               .withIssueDate("2017-10-17")
+                               .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .withWritePermission(true)
+                               .build();
 
         String token = getAuthToken(eperson.getEmail(), password);
 
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+            .content("[{\"op\":\"replace\",\"path\":\"/withdrawn\", \"value\":]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void reinstatePatchTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withAddPermission(true)
+                                           .withRemovePermission(true)
+                                           .withName("Collection 1").build();
+
+        //2. One public item
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Public item 1")
+                               .withIssueDate("2017-10-17")
+                               .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .withWritePermission(true)
+                               .build();
+
+        // A token must be provided for reinstate operation. The person
+        // is used in the provenance note.
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        // first, withdraw item
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+            .content("[{\"op\":\"replace\",\"path\":\"/withdrawn\", \"value\": true}]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk());
+
+        // reinstate item
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+            .header(AUTHORIZATION_HEADER, AUTHORIZATION_TYPE + " " + token)
+            .content("[{\"op\":\"replace\",\"path\":\"/withdrawn\", \"value\": false}]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                   .andExpect(jsonPath("$.withdrawn", Matchers.is(false)))
+                   .andExpect(jsonPath("$.inArchive", Matchers.is(true)));
+    }
+
+    @Test
+    public void makeDiscoverablePatchTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+
+        //2. One private item
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Public item 1")
+                               .withIssueDate("2017-10-17")
+                               .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .makePrivate()
+                               .build();
+
+        // make discoverable
+        getClient().perform(patch("/api/core/items/" + item.getID())
+            .content("[{\"op\":\"replace\",\"path\":\"/discoverable\",\"value\":true}]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                        .andExpect(jsonPath("$.discoverable", Matchers.is(true)));
+
+    }
+
+    @Test
+    public void makePrivatePatchTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         //** GIVEN **
@@ -340,37 +496,47 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                .withSubject("ExtraEntry")
                                .build();
 
-        // withdraw item
-        getClient(token).perform(patch("/api/core/items/" + item.getID())
-            .content("[{\"op\":\"replace\",\"path\":\"withdraw\"}]")
-            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
-                        .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
-                        .andExpect(jsonPath("$.inArchive", Matchers.is(false)));
-
-        // should return 422 because item is not in archive
-        getClient(token).perform(patch("/api/core/items/" + item.getID())
-            .content("[{\"op\":\"replace\",\"path\":\"withdraw\"}]")
-            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                        .andExpect(status().isUnprocessableEntity());
-
-        // reinstate item
-        getClient(token).perform(patch("/api/core/items/" + item.getID())
-            .content("[{\"op\":\"replace\",\"path\":\"reinstate\"}]")
-            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
-                        .andExpect(jsonPath("$.withdrawn", Matchers.is(false)))
-                        .andExpect(jsonPath("$.inArchive", Matchers.is(true)));
-
         // make private
-        getClient(token).perform(patch("/api/core/items/" + item.getID())
-            .content("[{\"op\":\"replace\",\"path\":\"discoverable\",\"value\":false}]")
+        getClient().perform(patch("/api/core/items/" + item.getID())
+            .content("[{\"op\":\"replace\",\"path\":\"/discoverable\",\"value\":false}]")
             .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                        .andExpect(status().isOk())
-                        .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
-                        .andExpect(jsonPath("$.discoverable", Matchers.is(false)));
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                   .andExpect(jsonPath("$.discoverable", Matchers.is(false)));
+
+    }
+
+    @Test
+    public void valueMissingForDiscoverableOperation() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withRemovePermission(true)
+                                           .withName("Collection 1").build();
+
+        //2. One public item
+        Item item = ItemBuilder.createItem(context, col1)
+                               .withTitle("Public item 1")
+                               .withIssueDate("2017-10-17")
+                               .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .withWritePermission(true)
+                               .build();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+            .content("[{\"op\":\"replace\",\"path\":\"/discoverable\", \"value\":]")
+            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isBadRequest());
     }
 
 }

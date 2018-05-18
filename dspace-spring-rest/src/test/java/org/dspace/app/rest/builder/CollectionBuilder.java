@@ -29,6 +29,8 @@ import org.dspace.core.Context;
 public class CollectionBuilder extends AbstractDSpaceObjectBuilder<Collection> {
 
     private Collection collection;
+    private boolean remove = false;
+    private boolean add = false;
 
     protected CollectionBuilder(Context context) {
         super(context);
@@ -53,6 +55,16 @@ public class CollectionBuilder extends AbstractDSpaceObjectBuilder<Collection> {
         return setMetadataSingleValue(collection, MetadataSchema.DC_SCHEMA, "title", null, name);
     }
 
+    public CollectionBuilder withRemovePermission(boolean removable) {
+        this.remove = removable;
+        return this;
+    }
+
+    public CollectionBuilder withAddPermission(boolean add) {
+        this.add = add;
+        return this;
+    }
+
     public CollectionBuilder withLogo(final String content) throws AuthorizeException, IOException, SQLException {
 
         InputStream is = IOUtils.toInputStream(content, CharEncoding.UTF_8);
@@ -68,10 +80,18 @@ public class CollectionBuilder extends AbstractDSpaceObjectBuilder<Collection> {
     @Override
     public Collection build() {
         try {
+            // Add remove permission to collection so items can be withdrawn, etc.
+            if (remove) {
+                setRemovePermissionForEperson(collection, context.getCurrentUser(), null);
+            }
+            // Add permission added to collection so items can be reinstated, etc.
+            if (add) {
+                setAddPermissionForEperson(collection, context.getCurrentUser(), null);
+            }
             collectionService.update(context, collection);
             context.dispatchEvents();
-
             indexingService.commit();
+
         } catch (Exception e) {
             return handleException(e);
         }
