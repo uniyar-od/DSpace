@@ -88,8 +88,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     public void afterPropertiesSet() throws Exception {
         for(Map.Entry<Integer, BitStoreService> storeEntry : stores.entrySet()) {
             storeEntry.getValue().init();
+            }
         }
-    }
 
     @Override
     public UUID store(Context context, Bitstream bitstream, InputStream is) throws SQLException, IOException
@@ -106,7 +106,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
          * where it should go
          */
         bitstream.setStoreNumber(incoming);
-
+        
         //For efficiencies sake, PUT is responsible for setting bitstream size_bytes, checksum, and checksum_algorithm
         stores.get(incoming).put(bitstream, is);
         //bitstream.setSizeBytes(file.length());
@@ -343,23 +343,21 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         }
     }
 
-    /**
-     *
-     * @param context
-     * @param bitstream the bitstream to be cloned
-     * @return id of the clone bitstream.
-     * @throws SQLException if database error
-     */
 	@Override
     public Bitstream clone(Context context, Bitstream bitstream) throws SQLException, IOException, AuthorizeException {
-		Bitstream clonedBitstream = bitstreamService.create(context, bitstreamService.retrieve(context, bitstream));
+		Bitstream clonedBitstream = bitstreamService.clone(context, bitstream);
+        clonedBitstream.setStoreNumber(bitstream.getStoreNumber());
+        
 		List<IMetadataValue> metadataValues = bitstreamService.getMetadata(bitstream, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-		for (IMetadataValue metadataValue : metadataValues) {
+		
+		for (IMetadataValue metadataValue : metadataValues) 
+		{
 			bitstreamService.addMetadata(context, clonedBitstream, metadataValue.getMetadataField(), metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence());
 		}
+		bitstreamService.update(context, clonedBitstream);
 		return clonedBitstream;
 
-	}
+    }
 
     /**
      * Migrates all assets off of one assetstore to another

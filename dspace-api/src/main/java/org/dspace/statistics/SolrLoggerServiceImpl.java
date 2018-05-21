@@ -535,8 +535,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             }
             //Store the scope
             if(scope != null){
-                solrDoc.addField("scopeId", scope.getType());
-                solrDoc.addField("scopeType", scope.getID());
+                solrDoc.addField("scopeId", scope.getID());
+                solrDoc.addField("scopeType", scope.getType());
             }
 
             if(rpp != -1){
@@ -661,6 +661,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
     }
 
+    @Override
     public boolean isUseProxies()
     {
     	if (useProxies == null)
@@ -943,12 +944,12 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             String dateEnd, boolean showTotal, Context context) throws SolrServerException
     {
 		return queryFacetDate(query, filterQuery, max, dateType, dateStart,
-				dateEnd, 1, showTotal);
+				dateEnd, 1, showTotal, context);
     }
     
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, int gap, boolean showTotal) throws SolrServerException
+            String dateEnd, int gap, boolean showTotal, Context context) throws SolrServerException
     {
         QueryResponse queryResponse = query(query, filterQuery, null, 0, max,
                 dateType, dateStart, dateEnd, gap, null, null, false);
@@ -968,7 +969,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             FacetField.Count dateCount = dateFacet.getValues().get(i);
             result[i] = new ObjectCount();
             result[i].setCount(dateCount.getCount());
-            result[i].setValue(getDateView(dateCount.getName(), dateType));
+            result[i].setValue(getDateView(dateCount.getName(), dateType, context));
         }
         if (showTotal)
         {
@@ -1003,7 +1004,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         return objCount;
     }
 
-    protected String getDateView(String name, String type)
+    protected String getDateView(String name, String type, Context context)
     {
         if (name != null && name.matches("^[0-9]{4}\\-[0-9]{2}.*"))
         {
@@ -1018,7 +1019,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             Date date = null;
             try
             {
-                SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT_8601);
+                SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT_8601, context.getCurrentLocale());
                 date = format.parse(name);
             }
             catch (ParseException e)
@@ -1028,7 +1029,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                     // We should use the dcdate (the dcdate is used when
                     // generating random data)
                     SimpleDateFormat format = new SimpleDateFormat(
-                            DATE_FORMAT_DCDATE);
+                            DATE_FORMAT_DCDATE, context.getCurrentLocale());
                     date = format.parse(name);
                 }
                 catch (ParseException e1)
@@ -1052,7 +1053,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 dateformatString = "yyyy";
             }
             SimpleDateFormat simpleFormat = new SimpleDateFormat(
-                    dateformatString);
+                    dateformatString, context.getCurrentLocale());
             if (date != null)
             {
                 name = simpleFormat.format(date);

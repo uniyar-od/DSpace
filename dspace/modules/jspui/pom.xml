@@ -345,6 +345,19 @@
            <artifactId>javax.servlet-api</artifactId>
            <scope>provided</scope>
         </dependency>
-	</dependencies>
+
+       	<dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-rs</artifactId>
+            <type>war</type>
+	  	</dependency>
+	  	        
+       	<dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-rs</artifactId>
+            <type>jar</type>
+            <classifier>classes</classifier>
+	  	</dependency>
+    </dependencies>
 
 </project>

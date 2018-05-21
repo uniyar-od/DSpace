@@ -218,6 +218,9 @@ batch.customer.recipient =
 # Enabled by default in authentication.cfg
 #plugin.sequence.org.dspace.authenticate.AuthenticationMethod = org.dspace.authenticate.PasswordAuthentication
 
+########### RESOURCESYNC ##########
+resourcesync.base-url = ${dspace.baseUrl}/rs
+
 #---------------------------------------------------------------#
 #--------------OAUTH AUTHENTICATION CONFIGURATIONS--------------#
 #---------------------------------------------------------------#

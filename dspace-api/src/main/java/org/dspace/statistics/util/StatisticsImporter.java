@@ -55,10 +55,15 @@ public class StatisticsImporter
     protected final SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
 
 
+
+    /**
+     * GEOIP lookup service
+     */
+    private static DatabaseReader geoipLookup;
+
     /** Whether to skip the DNS reverse lookup or not */
     private static boolean skipReverseDNS = false;
 
-    
     /** Local items */
     private List<UUID> localItems;
 
@@ -300,6 +305,11 @@ public class StatisticsImporter
 
                 // Get the eperson details
                 EPerson eperson = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, user);
+                int epersonId = 0;
+                if (eperson != null)
+                {
+                    eperson.getID();
+                }
 
                 // Save it in our server
                 solrLoggerService.postView((BrowsableDSpaceObject)dso, ip, dns, null, eperson);
@@ -391,6 +401,33 @@ public class StatisticsImporter
 
         // Verbose option
         boolean verbose = line.hasOption('v');
+
+
+        // Find our solr server
+        String sserver = ConfigurationManager.getProperty("solr-statistics", "server");
+        if (verbose)
+        {
+            System.out.println("Writing to solr server at: " + sserver);
+        }
+		solr = new HttpSolrServer(sserver);
+
+        String dbPath = ConfigurationManager.getProperty("usage-statistics", "dbfile");
+        try {
+            File dbFile = new File(dbPath);
+            geoipLookup = new DatabaseReader.Builder(dbFile).build();
+        } catch (FileNotFoundException fe) {
+            log.error(
+                "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
+                    "based reports! Please see the DSpace installation instructions for instructions to install this " +
+                    "file.",
+                fe);
+        } catch (IOException e) {
+            log.error(
+                "Unable to load GeoLite Database file (" + dbPath + ")! You may need to reinstall it. See the DSpace " +
+                    "installation instructions for more details.",
+                e);
+        }
+
 
         StatisticsImporter si = new StatisticsImporter(local);
         if (line.hasOption('m'))

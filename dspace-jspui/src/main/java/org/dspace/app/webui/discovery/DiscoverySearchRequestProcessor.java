@@ -66,15 +66,15 @@ import org.w3c.dom.Document;
 
 public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 {
-	private static final int ITEMMAP_RESULT_PAGE_SIZE = 50;
+    private static final int ITEMMAP_RESULT_PAGE_SIZE = 50;
 
-	private static String msgKey = "org.dspace.app.webui.servlet.FeedServlet";
+    private static String msgKey = "org.dspace.app.webui.servlet.FeedServlet";
 
-	/** log4j category */
-	private static Logger log = Logger.getLogger(DiscoverySearchRequestProcessor.class);
+    /** log4j category */
+    private static Logger log = Logger.getLogger(DiscoverySearchRequestProcessor.class);
 
-	// locale-sensitive metadata labels
-	private Map<String, Map<String, String>> localeLabels = null;
+    // locale-sensitive metadata labels
+    private Map<String, Map<String, String>> localeLabels = null;
 
     private List<String> searchIndices = null;
     
@@ -216,7 +216,7 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
             localeLabels.put(locale.toString(), labelMap);
         }
         return labelMap;
-	}
+    }
 
     private Map<String, String> getLocaleLabels(Locale locale)
     {
@@ -492,23 +492,23 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
 		return;
 	}
 
-	/**
-	 * Method for constructing the discovery advanced search form
-	 * 
+    /**
+     * Method for constructing the discovery advanced search form
+     * 
      * author: Andrea Bollini
-	 */
-	@Override
+     */
+    @Override
     public void doAdvancedSearch(Context context, HttpServletRequest request,
             HttpServletResponse response) throws SearchProcessorException,
             IOException, ServletException
             {
-		// just redirect to the simple search servlet.
-		// The advanced form is always displayed with Discovery togheter with
-		// the search result
-		// the first access to the advanced form performs a search for
-		// "anythings" (SOLR *:*)
-		response.sendRedirect(request.getContextPath() + "/simple-search");
-	}
+                // just redirect to the simple search servlet.
+                // The advanced form is always displayed with Discovery togheter with
+                // the search result
+                // the first access to the advanced form performs a search for
+                // "anythings" (SOLR *:*)
+                response.sendRedirect(request.getContextPath() + "/simple-search");
+            }
 
     /**
      * Method for searching authors in item map
@@ -566,14 +566,14 @@ public class DiscoverySearchRequestProcessor implements SearchRequestProcessor
         
         JSPManager.showJSP(request, response, "itemmap-browse.jsp");
     }
-
-	@Override
+    
+    @Override
     public String getI18NKeyPrefix()
     {
-		return "jsp.search.filter.";
-	}
-
-	@Override
+        return "jsp.search.filter.";
+    }
+    
+    @Override
     public List<String> getSearchIndices()
     {
 		init();

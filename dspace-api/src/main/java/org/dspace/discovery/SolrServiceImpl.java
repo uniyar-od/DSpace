@@ -47,6 +47,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.AbstractUpdateRequest;
@@ -201,7 +202,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                             .setQuery(RESOURCE_TYPE_FIELD + ":2 AND " + RESOURCE_ID_FIELD + ":1");
                     // Only return obj identifier fields in result doc
                     solrQuery.setFields(RESOURCE_TYPE_FIELD, RESOURCE_ID_FIELD);
-                    solr.query(solrQuery);
+                    solr.query(solrQuery, SolrRequest.METHOD.POST);
 
                     // As long as Solr initialized, check with DatabaseUtils to see
                     // if a reindex is in order. If so, reindex everything
@@ -588,7 +589,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 // returning just their handle
 				query.setFields(HANDLE_FIELD);
                 query.setQuery(RESOURCE_TYPE_FIELD + ":" + type);
-                QueryResponse rsp = getSolr().query(query);
+                QueryResponse rsp = getSolr().query(query, SolrRequest.METHOD.POST);
                 SolrDocumentList docs = rsp.getResults();
 
                 Iterator iter = docs.iterator();
@@ -664,7 +665,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.set("spellcheck", true);
             solrQuery.set(SpellingParams.SPELLCHECK_BUILD, true);
-            getSolr().query(solrQuery);
+            getSolr().query(solrQuery, SolrRequest.METHOD.POST);
         }catch (SolrServerException e)
         {
             //Make sure to also log the exception since this command is usually run from a crontab.
@@ -747,7 +748,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             {
                 return false;
             }
-            rsp = getSolr().query(query);
+            rsp = getSolr().query(query, SolrRequest.METHOD.POST);
         } catch (SolrServerException e)
         {
             throw new SearchServiceException(e.getMessage(),e);
@@ -1167,7 +1168,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     recentSubmissionsConfigurationMap.put(recentSubmissionConfiguration.getMetadataSortField(), recentSubmissionConfiguration);
                 }
 
-                
                 DiscoveryHitHighlightingConfiguration hitHighlightingConfiguration = discoveryConfiguration.getHitHighlightingConfiguration();
                 if(hitHighlightingConfiguration != null)
                 {
@@ -1788,7 +1788,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             SolrQuery solrQuery = resolveToSolrQuery(context, discoveryQuery, includeUnDiscoverable);
 
 
-            QueryResponse queryResponse = getSolr().query(solrQuery);
+            QueryResponse queryResponse = getSolr().query(solrQuery, SolrRequest.METHOD.POST);
             return retrieveResult(context, discoveryQuery, queryResponse);
 
         } catch (Exception e)
@@ -1994,8 +1994,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         urlBuilder.append(solrQuery.toString());
 
         try {
-            HttpGet get = new HttpGet(urlBuilder.toString());
-            HttpResponse response = new DefaultHttpClient().execute(get);
+            HttpPost post = new HttpPost(urlBuilder.toString());
+            post.setEntity(new UrlEncodedFormEntity(postParameters));
+            HttpResponse response = new DefaultHttpClient().execute(post);
             return response.getEntity().getContent();
 
         } catch (Exception e)
@@ -2218,17 +2219,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
         HttpHost hostURL = (HttpHost)(getSolr().getHttpClient().getParams().getParameter(ClientPNames.DEFAULT_HOST));
 
-        HttpGet method = new HttpGet(hostURL.toHostString() + "");
-        try
-        {
-            URI uri = new URIBuilder(method.getURI()).addParameter("q",query.toString()).build();
-        }
-        catch (URISyntaxException e)
-        {
-            throw new SearchServiceException(e);
-        }
+        HttpPost post = new HttpPost(hostURL.toHostString());
+        List<NameValuePair> postParameters = new ArrayList<>();
+        postParameters.add(new BasicNameValuePair("q",query.toString()));
+        post.setEntity(new UrlEncodedFormEntity(postParameters));
 
-        HttpResponse response = getSolr().getHttpClient().execute(method);
+        HttpResponse response = getSolr().getHttpClient().execute(post);
 
         return response.getEntity().getContent();
     }
@@ -2262,7 +2258,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             {
                 solrQuery.addFilterQuery(filterquery);
             }
-            QueryResponse rsp = getSolr().query(solrQuery);
+            QueryResponse rsp = getSolr().query(solrQuery, SolrRequest.METHOD.POST);
             SolrDocumentList docs = rsp.getResults();
 
             Iterator iter = docs.iterator();
@@ -2385,7 +2381,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             {
                 return Collections.emptyList();
             }
-            QueryResponse rsp = getSolr().query(solrQuery);
+            QueryResponse rsp = getSolr().query(solrQuery, SolrRequest.METHOD.POST);
             NamedList mltResults = (NamedList) rsp.getResponse().get("moreLikeThis");
             if(mltResults != null && mltResults.get(item.getType() + "-" + item.getID()) != null)
             {
@@ -2625,7 +2621,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     {
         try
         {
-            return getSolr().query(query);
+            return getSolr().query(query, SolrRequest.METHOD.POST);
         }
         catch (Exception e)
         {

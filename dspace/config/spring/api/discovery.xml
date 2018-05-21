@@ -39,6 +39,9 @@
     <!-- Additional indexing plugin make filtering by has content in original bundle (like pdf's, images) posible via SOLR -->
     <bean id="hasContentInOriginalBundle" class="org.dspace.discovery.SolrServiceContentInOriginalBundleFilterPlugin"/>
 
+    <!-- Additional indexing plugin enables searching by filenames and by file descriptions for files in ORIGINAL bundle -->
+    <bean id="solrServiceFileInfoPlugin" class="org.dspace.discovery.SolrServiceFileInfoPlugin"/>
+
 	<!-- Additional indexing plugin to implement the CRIS browse system via 
 		SOLR -->
 	<bean id="crisBrowseIndexer" scope="prototype"
@@ -300,7 +303,7 @@
 			<list>
 				<ref bean="searchFilterObjectPeople" />
 				<ref bean="searchFilterObjectOU" />
-				
+		        <ref bean="searchFilterContentInOriginalBundle"/>				
 			</list>
 		</property>
 		<!--The search filters which can be used on the discovery search page -->
@@ -311,6 +314,9 @@
 				<ref bean="searchFilterObjectOU" />
 				<ref bean="searchFilterObjectType" />
 				<ref bean="searchFilterSubject" />				
+		        <ref bean="searchFilterContentInOriginalBundle"/>
+                <ref bean="searchFilterFileNameInOriginalBundle" />
+                <ref bean="searchFilterFileDescriptionInOriginalBundle" />				
 			</list>
 		</property>
         <!-- Set TagCloud configuration per discovery configuration -->
@@ -2009,6 +2015,31 @@
         <property name="sortOrderSidebar" value="COUNT"/>
         <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
+	
+    <bean id="searchFilterContentInOriginalBundle" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="has_content_in_original_bundle"/>
+        <property name="metadataFields">
+            <list/>
+        </property>
+        <property name="facetLimit" value="2"/>
+        <property name="type" value="standard"/>
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
+    </bean>
+
+    <bean id="searchFilterFileNameInOriginalBundle" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="original_bundle_filenames"/>
+        <property name="metadataFields">
+            <list/>
+        </property>
+    </bean>
+
+    <bean id="searchFilterFileDescriptionInOriginalBundle" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="original_bundle_descriptions"/>
+        <property name="metadataFields">
+            <list/>
+        </property>
+    </bean>	
 	
 	<!--Sort properties -->
 	<bean id="sortTitle"
