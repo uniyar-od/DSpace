@@ -13,13 +13,11 @@ import java.util.Map;
 
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.integration.batch.ScriptCrossrefSender;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.hibernate.Session;
 import org.hibernate.type.IntegerType;
-import org.hibernate.type.Type;
 
 /**
  * Implements virtual field processing to build doi suffix

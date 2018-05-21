@@ -10,24 +10,12 @@ package org.dspace.content.authority;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.List;
 import java.util.ArrayList;
-import javax.xml.parsers.SAXParserFactory;
-import javax.xml.parsers.SAXParser;
+import java.util.List;
+
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.dspace.content.Collection;
-import org.xml.sax.XMLReader;
-import org.xml.sax.InputSource;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.Attributes;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
-import org.apache.log4j.Logger;
-
-import org.dspace.core.ConfigurationManager;
-import org.dspace.content.DCPersonName;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -35,6 +23,16 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.log4j.Logger;
+import org.dspace.content.Collection;
+import org.dspace.content.DCPersonName;
+import org.dspace.core.ConfigurationManager;
+import org.xml.sax.Attributes;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+import org.xml.sax.XMLReader;
+import org.xml.sax.helpers.DefaultHandler;
 
 /**
  * Sample personal name authority based on Library of Congress Name Authority

@@ -9,6 +9,7 @@ package org.dspace.storage.rdbms.migration;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+
 import org.apache.log4j.Logger;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;

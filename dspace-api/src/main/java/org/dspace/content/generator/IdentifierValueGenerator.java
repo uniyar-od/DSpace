@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 public class IdentifierValueGenerator implements TemplateValueGenerator

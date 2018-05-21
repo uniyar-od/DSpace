@@ -8,16 +8,21 @@
 
 package org.dspace.importer.external.service;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
-import org.dspace.importer.external.exception.MetadataSourceException;
-import org.dspace.importer.external.datamodel.Query;
 import org.dspace.importer.external.datamodel.ImportRecord;
+import org.dspace.importer.external.datamodel.Query;
+import org.dspace.importer.external.exception.MetadataSourceException;
 import org.dspace.importer.external.service.components.Destroyable;
 import org.dspace.importer.external.service.components.MetadataSource;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
 
 /** Main entry point for the import framework.
  * Instead of calling the different importer implementations, the ImportService should be called instead.

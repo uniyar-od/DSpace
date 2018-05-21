@@ -169,7 +169,7 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
 
     @Override
     public Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger, BrowsableDSpaceObject object,
-            String dateType, String dateStart, String dateEnd, int gap) throws SolrServerException
+            String dateType, String dateStart, String dateEnd, int gap, Context context) throws SolrServerException
     {
         String query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());
         String sID = getObjectId(""+object.getID());
@@ -177,7 +177,7 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
         Map<String, ObjectCount[]> map = new HashMap<String, ObjectCount[]>();
         
         map.put(getMode(), statsLogger.queryFacetDate(query, "time:[* TO NOW/" + dateType + dateEnd + dateType + "]", 0, dateType, dateStart,
-                dateEnd, gap, true));
+                dateEnd, gap, true, context));
         return map;
 
 

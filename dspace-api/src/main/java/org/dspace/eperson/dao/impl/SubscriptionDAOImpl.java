@@ -7,10 +7,13 @@
  */
 package org.dspace.eperson.dao.impl;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Subscription;
 import org.dspace.eperson.dao.SubscriptionDAO;
@@ -18,9 +21,6 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Subscription object.

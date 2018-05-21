@@ -7,16 +7,16 @@
  */
 package org.dspace.license.service;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.license.LicenseMetadataValue;
 import org.jdom.Document;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.SQLException;
 
 /**
  * Service interface class for the Creative commons licensing.

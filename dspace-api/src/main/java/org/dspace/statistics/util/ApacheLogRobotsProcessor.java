@@ -7,15 +7,22 @@
  */
 package org.dspace.statistics.util;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
-
-import java.io.*;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Commandline utility to create a file of spider addresses from an Apache

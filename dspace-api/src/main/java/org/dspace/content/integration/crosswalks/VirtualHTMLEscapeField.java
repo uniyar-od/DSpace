@@ -11,8 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 
 /**
  * Effettua l'escape html di un altro metadato

@@ -10,8 +10,6 @@ package org.dspace.discovery.configuration;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
-
 /**
  * @author kstamatis
  *

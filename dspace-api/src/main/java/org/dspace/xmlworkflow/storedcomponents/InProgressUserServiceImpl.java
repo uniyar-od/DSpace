@@ -7,6 +7,10 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -14,10 +18,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.xmlworkflow.storedcomponents.dao.InProgressUserDAO;
 import org.dspace.xmlworkflow.storedcomponents.service.InProgressUserService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Service implementation for the InProgressUser object.

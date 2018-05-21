@@ -7,6 +7,10 @@
  */
 package org.dspace.content.crosswalk;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -17,10 +21,6 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.jdom.Element;
 import org.jdom.Namespace;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * DIM ingestion crosswalk

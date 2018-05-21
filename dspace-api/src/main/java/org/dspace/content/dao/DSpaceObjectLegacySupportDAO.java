@@ -7,10 +7,10 @@
  */
 package org.dspace.content.dao;
 
+import java.sql.SQLException;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
 
 /**
  * Database Access Object interface interface class that adds support to retrieve DSpaceObject by the old integer based identifier which was used

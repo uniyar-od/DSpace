@@ -7,12 +7,12 @@
  */
 package org.dspace.importer.external.datamodel;
 
-import org.dspace.importer.external.metadatamapping.MetadatumDTO;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+
+import org.dspace.importer.external.metadatamapping.MetadatumDTO;
 
 /**
  * This class contains all MetadatumDTO objects from an imported item

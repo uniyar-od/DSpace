@@ -7,21 +7,26 @@
  */
 package org.dspace.xmlworkflow.state.actions.userassignment;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.core.*;
-import org.dspace.eperson.EPerson;
-import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
-import org.dspace.xmlworkflow.service.XmlWorkflowService;
-import org.dspace.xmlworkflow.state.Step;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-import org.dspace.xmlworkflow.*;
-import org.dspace.xmlworkflow.state.actions.ActionResult;
-
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.core.LogManager;
+import org.dspace.eperson.EPerson;
+import org.dspace.xmlworkflow.Role;
+import org.dspace.xmlworkflow.RoleMembers;
+import org.dspace.xmlworkflow.WorkflowConfigurationException;
+import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
+import org.dspace.xmlworkflow.service.XmlWorkflowService;
+import org.dspace.xmlworkflow.state.Step;
+import org.dspace.xmlworkflow.state.actions.ActionResult;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 
 /**
  * Processing class for an action where x number of users

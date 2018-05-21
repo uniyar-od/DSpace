@@ -7,15 +7,15 @@
  */
 package org.dspace.xmlworkflow.storedcomponents.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.service.DSpaceCRUDService;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the ClaimedTask object.

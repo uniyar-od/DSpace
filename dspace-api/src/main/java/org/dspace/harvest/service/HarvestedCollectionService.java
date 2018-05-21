@@ -7,12 +7,12 @@
  */
 package org.dspace.harvest.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
 import org.dspace.harvest.HarvestedCollection;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the HarvestedCollection object.

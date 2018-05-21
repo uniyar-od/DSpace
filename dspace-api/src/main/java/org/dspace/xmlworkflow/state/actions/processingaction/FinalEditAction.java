@@ -7,6 +7,11 @@
  */
 package org.dspace.xmlworkflow.state.actions.processingaction;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DCDate;
 import org.dspace.content.MetadataSchema;
@@ -15,10 +20,6 @@ import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.state.actions.ActionResult;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * Processing class of an action that allows users to

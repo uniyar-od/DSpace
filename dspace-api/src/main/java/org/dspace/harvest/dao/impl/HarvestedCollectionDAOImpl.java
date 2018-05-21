@@ -7,9 +7,13 @@
  */
 package org.dspace.harvest.dao.impl;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+
 import org.dspace.content.Collection;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.harvest.HarvestedCollection;
 import org.dspace.harvest.dao.HarvestedCollectionDAO;
 import org.hibernate.Criteria;
@@ -17,10 +21,6 @@ import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.LogicalExpression;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the HarvestedCollection object.

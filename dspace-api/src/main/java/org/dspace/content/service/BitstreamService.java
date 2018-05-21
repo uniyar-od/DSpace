@@ -7,16 +7,21 @@
  */
 package org.dspace.content.service;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
-import org.dspace.core.Context;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.Item;
+import org.dspace.core.Context;
 
 /**
  * Service interface class for the Bitstream object.

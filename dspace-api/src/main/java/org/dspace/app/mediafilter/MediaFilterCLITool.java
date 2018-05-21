@@ -7,7 +7,22 @@
  */
 package org.dspace.app.mediafilter;
 
-import org.apache.commons.cli.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.MissingArgumentException;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang.ArrayUtils;
 import org.dspace.app.mediafilter.factory.MediaFilterServiceFactory;
 import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.content.Collection;
@@ -19,9 +34,6 @@ import org.dspace.core.Context;
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
-
-import java.util.*;
-import org.apache.commons.lang.ArrayUtils;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**

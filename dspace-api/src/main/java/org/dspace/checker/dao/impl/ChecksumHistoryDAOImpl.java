@@ -14,8 +14,8 @@ import org.dspace.checker.ChecksumHistory;
 import org.dspace.checker.ChecksumResultCode;
 import org.dspace.checker.dao.ChecksumHistoryDAO;
 import org.dspace.content.Bitstream;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.hibernate.Query;
 
 /**

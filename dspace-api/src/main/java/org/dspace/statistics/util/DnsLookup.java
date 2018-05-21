@@ -7,10 +7,18 @@
  */
 package org.dspace.statistics.util;
 
-import org.dspace.core.ConfigurationManager;
-import org.xbill.DNS.*;
-
 import java.io.IOException;
+
+import org.dspace.core.ConfigurationManager;
+import org.xbill.DNS.DClass;
+import org.xbill.DNS.ExtendedResolver;
+import org.xbill.DNS.Message;
+import org.xbill.DNS.Name;
+import org.xbill.DNS.Record;
+import org.xbill.DNS.Resolver;
+import org.xbill.DNS.ReverseMap;
+import org.xbill.DNS.Section;
+import org.xbill.DNS.Type;
 
 /**
  * XBill DNS resolver to retrieve hostnames for client IP addresses.

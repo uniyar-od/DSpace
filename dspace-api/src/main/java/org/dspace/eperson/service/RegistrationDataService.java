@@ -7,11 +7,11 @@
  */
 package org.dspace.eperson.service;
 
+import java.sql.SQLException;
+
 import org.dspace.core.Context;
 import org.dspace.eperson.RegistrationData;
 import org.dspace.service.DSpaceCRUDService;
-
-import java.sql.SQLException;
 
 /**
  * Service interface class for the RegistrationData object.

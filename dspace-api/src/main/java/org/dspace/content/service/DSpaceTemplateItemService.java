@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.content.generator.TemplateValueGenerator;
 import org.dspace.core.Context;
 

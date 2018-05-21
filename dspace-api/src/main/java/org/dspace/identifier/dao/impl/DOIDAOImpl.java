@@ -7,18 +7,18 @@
  */
 package org.dspace.identifier.dao.impl;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.DSpaceObject;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.identifier.DOI;
 import org.dspace.identifier.dao.DOIDAO;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Conjunction;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the DOI object.

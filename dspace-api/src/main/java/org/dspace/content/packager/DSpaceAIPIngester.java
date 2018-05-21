@@ -10,8 +10,6 @@ package org.dspace.content.packager;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import org.jdom.Element;
-
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -20,8 +18,9 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.MetadataValidationException;
-import org.dspace.core.Context;
 import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.jdom.Element;
 
 /**
  * Subclass of the METS packager framework to ingest a DSpace

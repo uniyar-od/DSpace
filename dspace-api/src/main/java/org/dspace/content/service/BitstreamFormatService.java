@@ -7,13 +7,13 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.core.Context;
 import org.dspace.service.DSpaceCRUDService;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the BitstreamFormat object.

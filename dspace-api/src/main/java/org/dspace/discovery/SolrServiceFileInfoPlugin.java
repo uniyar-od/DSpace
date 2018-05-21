@@ -7,14 +7,16 @@
  */
 package org.dspace.discovery;
 
+import java.util.List;
+import java.util.Map;
+
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-
-import java.util.List;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 /**
  * <p>
@@ -41,9 +43,9 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin
     private static final String SOLR_FIELD_NAME_FOR_FILENAMES = "original_bundle_filenames";
     private static final String SOLR_FIELD_NAME_FOR_DESCRIPTIONS = "original_bundle_descriptions";
 
-    @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document)
-    {
+	@Override
+	public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document,
+			Map<String, List<DiscoverySearchFilter>> searchFilters) {
         if (dso instanceof Item)
         {
             Item item = (Item) dso;
@@ -72,6 +74,6 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin
                     }
                 }
             }
-        }
-    }
+        }		
+	}
 }

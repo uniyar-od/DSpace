@@ -7,6 +7,15 @@
  */
 package org.dspace.submit.step;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.UUID;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.SubmissionInfo;
@@ -27,13 +36,6 @@ import org.dspace.eperson.service.GroupService;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.submit.AbstractProcessingStep;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.UUID;
 
 
 /**

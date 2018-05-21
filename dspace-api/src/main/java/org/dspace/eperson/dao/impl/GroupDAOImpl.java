@@ -7,6 +7,11 @@
  */
 package org.dspace.eperson.dao.impl;
 
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.dspace.content.MetadataField;
@@ -16,11 +21,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.dao.GroupDAO;
 import org.hibernate.Query;
-
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Group object.

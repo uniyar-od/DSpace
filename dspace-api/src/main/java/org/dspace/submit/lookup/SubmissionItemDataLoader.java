@@ -8,16 +8,16 @@
 
 package org.dspace.submit.lookup;
 
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.dspace.submit.util.ItemSubmissionLookupDTO;
+
 import gr.ekt.bte.core.DataLoader;
 import gr.ekt.bte.core.DataLoadingSpec;
 import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.exceptions.MalformedSourceException;
-
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.dspace.submit.util.ItemSubmissionLookupDTO;
 
 /**
  * @author Andrea Bollini

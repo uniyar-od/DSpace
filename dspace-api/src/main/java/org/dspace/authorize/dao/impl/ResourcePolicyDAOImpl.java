@@ -10,7 +10,6 @@ package org.dspace.authorize.dao.impl;
 import java.sql.SQLException;
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizableEntity;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.dao.ResourcePolicyDAO;

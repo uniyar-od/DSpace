@@ -8,6 +8,11 @@
 package org.dspace.handle;
 
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.sql.SQLException;
+import java.util.Iterator;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -18,11 +23,6 @@ import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.sql.SQLException;
-import java.util.Iterator;
 
 /**
  * A script to update the handle values in the database. This is typically used

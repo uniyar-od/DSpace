@@ -7,6 +7,14 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -17,10 +25,6 @@ import org.dspace.xmlworkflow.storedcomponents.dao.PoolTaskDAO;
 import org.dspace.xmlworkflow.storedcomponents.service.InProgressUserService;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Service implementation for the PoolTask object.

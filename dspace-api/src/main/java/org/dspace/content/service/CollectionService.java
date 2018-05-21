@@ -7,14 +7,6 @@
  */
 package org.dspace.content.service;
 
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Collection;
-import org.dspace.content.Community;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-import org.dspace.eperson.Group;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -22,6 +14,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.MissingResourceException;
 import java.util.UUID;
+
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.Item;
+import org.dspace.core.Context;
+import org.dspace.eperson.Group;
 
 /**
  * Service interface class for the Collection object.

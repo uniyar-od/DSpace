@@ -7,15 +7,19 @@
  */
 package org.dspace.storage.bitstore;
 
-import org.apache.log4j.Logger;
-import org.dspace.content.Bitstream;
-import org.dspace.core.Utils;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.dspace.content.Bitstream;
+import org.dspace.core.Utils;
 
 /**
  * Native DSpace (or "Directory Scatter" if you prefer) asset store.

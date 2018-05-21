@@ -7,10 +7,10 @@
  */
 package org.dspace.checker.factory;
 
-import org.dspace.checker.service.SimpleReporterService;
 import org.dspace.checker.service.ChecksumHistoryService;
 import org.dspace.checker.service.ChecksumResultService;
 import org.dspace.checker.service.MostRecentChecksumService;
+import org.dspace.checker.service.SimpleReporterService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

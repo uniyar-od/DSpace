@@ -37,7 +37,7 @@ public class MockSolrLoggerServiceImpl
         String locationDbPath = configurationService.getProperty("usage-statistics.dbfile");
         File locationDb = new File(locationDbPath);
         locationDb.createNewFile();
-        locationService = new DatabaseReader.Builder(locationDb).build();
+        DatabaseReader locationService = new DatabaseReader.Builder(locationDb).build();
         useProxies = configurationService.getBooleanProperty("useProxies");
     }
 

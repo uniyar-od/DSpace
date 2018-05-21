@@ -7,18 +7,16 @@
  */
 package org.dspace.versioning.dao.impl;
 
+import java.sql.SQLException;
+
 import org.dspace.content.Item;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.dao.VersionHistoryDAO;
 import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.List;
-import org.dspace.versioning.Version;
 import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the VersionHistory object.

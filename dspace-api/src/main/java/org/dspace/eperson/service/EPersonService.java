@@ -7,6 +7,12 @@
  */
 package org.dspace.eperson.service;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.content.service.DSpaceObjectService;
@@ -14,12 +20,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.PasswordHash;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * Service interface class for the EPerson object.

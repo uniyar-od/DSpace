@@ -8,16 +8,16 @@
 
 package org.dspace.importer.external.service;
 
+import java.util.LinkedList;
+
 import org.dspace.importer.external.datamodel.ImportRecord;
 import org.dspace.importer.external.metadatamapping.MetadataFieldMapping;
 import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
-import org.dspace.importer.external.service.components.MetadataSource;
-import org.dspace.importer.external.service.components.AbstractRemoteMetadataSource;
 import org.dspace.importer.external.metadatamapping.transform.GenerateQueryService;
+import org.dspace.importer.external.service.components.AbstractRemoteMetadataSource;
+import org.dspace.importer.external.service.components.MetadataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Required;
-
-import java.util.LinkedList;
 
 /**
  * This class is a partial implementation of {@link MetadataSource}. It provides assistance with mapping metadata from source format to DSpace format.

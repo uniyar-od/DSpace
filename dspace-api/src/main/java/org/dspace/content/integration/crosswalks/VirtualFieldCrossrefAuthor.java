@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.core.Context;
 
 /**
  * Implements virtual field processing for generate an xml element to insert on

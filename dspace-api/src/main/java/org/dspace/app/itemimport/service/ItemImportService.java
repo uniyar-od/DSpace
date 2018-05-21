@@ -7,15 +7,16 @@
  */
 package org.dspace.app.itemimport.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+
+import javax.mail.MessagingException;
+
 import org.dspace.app.itemimport.BatchUpload;
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-
-import javax.mail.MessagingException;
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Import items into DSpace. The conventional use is upload files by copying

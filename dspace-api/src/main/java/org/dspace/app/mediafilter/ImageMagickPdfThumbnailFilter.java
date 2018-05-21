@@ -7,12 +7,12 @@
  */
 package org.dspace.app.mediafilter;
 
-import org.dspace.content.Item;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
+
+import org.dspace.content.Item;
 
 public class ImageMagickPdfThumbnailFilter extends ImageMagickThumbnailFilter {
    @Override

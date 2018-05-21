@@ -8,17 +8,18 @@
 
 package org.dspace.importer.external.service.components;
 
-import org.apache.log4j.Logger;
-import org.dspace.importer.external.exception.MetadataSourceException;
-import org.dspace.importer.external.exception.SourceExceptionHandler;
-
-import javax.annotation.Resource;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.locks.ReentrantLock;
+
+import javax.annotation.Resource;
+
+import org.apache.log4j.Logger;
+import org.dspace.importer.external.exception.MetadataSourceException;
+import org.dspace.importer.external.exception.SourceExceptionHandler;
 
 /**
  * This class contains primitives to handle request timeouts and to retry requests.

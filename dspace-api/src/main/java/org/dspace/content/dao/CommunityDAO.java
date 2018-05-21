@@ -7,14 +7,14 @@
  */
 package org.dspace.content.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Community;
 import org.dspace.content.MetadataField;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Database Access Object interface class for the Community object.

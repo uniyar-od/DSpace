@@ -7,14 +7,14 @@
  */
 package org.dspace.checker.service;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.Map;
+
 import org.dspace.checker.ChecksumResultCode;
 import org.dspace.checker.MostRecentChecksum;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.Map;
 
 /**
  * Service interface class for the ChecksumHistory object.

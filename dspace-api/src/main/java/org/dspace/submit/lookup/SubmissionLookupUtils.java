@@ -7,23 +7,23 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.Value;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.Value;
 
 /**
  * @author Andrea Bollini

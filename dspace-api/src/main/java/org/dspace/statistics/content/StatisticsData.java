@@ -7,18 +7,18 @@
  */
 package org.dspace.statistics.content;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.solr.client.solrj.SolrServerException;
+import org.dspace.core.Context;
 import org.dspace.statistics.Dataset;
 import org.dspace.statistics.content.filter.StatisticsFilter;
-import org.dspace.core.Context;
-import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.sql.SQLException;
-import java.io.IOException;
-import java.text.ParseException;
 
 /**
  * Abstract "factory" for statistical queries.

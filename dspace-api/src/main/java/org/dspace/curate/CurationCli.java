@@ -24,10 +24,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.Iterator;
-
 /**
  * CurationCli provides command-line access to Curation tools and processes.
  * 

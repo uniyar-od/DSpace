@@ -7,12 +7,11 @@
  */
 package org.dspace.content.integration.crosswalks;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 /**

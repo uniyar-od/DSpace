@@ -8,11 +8,10 @@
 package org.dspace.app.mediafilter;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.content.Item;
 import org.textmining.extraction.TextExtractor;
 import org.textmining.extraction.word.WordTextExtractorFactory;

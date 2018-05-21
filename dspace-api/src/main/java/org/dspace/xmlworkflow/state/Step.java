@@ -7,21 +7,22 @@
  */
 package org.dspace.xmlworkflow.state;
 
-import org.dspace.core.Context;
-import org.dspace.workflow.WorkflowException;
-import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
-import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
-import org.dspace.xmlworkflow.state.actions.UserSelectionActionConfig;
-import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-import org.dspace.xmlworkflow.*;
-import org.dspace.xmlworkflow.storedcomponents.service.InProgressUserService;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.dspace.core.Context;
+import org.dspace.workflow.WorkflowException;
+import org.dspace.xmlworkflow.Role;
+import org.dspace.xmlworkflow.WorkflowConfigurationException;
+import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
+import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
+import org.dspace.xmlworkflow.state.actions.UserSelectionActionConfig;
+import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
+import org.dspace.xmlworkflow.storedcomponents.service.InProgressUserService;
 
 /**
  * A class that contains all the data of an xlworkflow step

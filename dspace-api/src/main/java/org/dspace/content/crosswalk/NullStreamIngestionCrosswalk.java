@@ -7,8 +7,8 @@
  */
 package org.dspace.content.crosswalk;
 
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;

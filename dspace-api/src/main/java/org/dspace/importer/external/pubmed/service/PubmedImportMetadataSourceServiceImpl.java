@@ -8,16 +8,11 @@
 
 package org.dspace.importer.external.pubmed.service;
 
-import org.apache.axiom.om.OMElement;
-import org.apache.axiom.om.OMXMLBuilderFactory;
-import org.apache.axiom.om.OMXMLParserWrapper;
-import org.apache.axiom.om.xpath.AXIOMXPath;
-import org.dspace.content.Item;
-import org.dspace.importer.external.exception.MetadataSourceException;
-import org.dspace.importer.external.datamodel.Query;
-import org.dspace.importer.external.datamodel.ImportRecord;
-import org.dspace.importer.external.service.AbstractImportMetadataSourceService;
-import org.jaxen.JaxenException;
+import java.io.StringReader;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.Callable;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -25,11 +20,17 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import java.io.StringReader;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.Callable;
+
+import org.apache.axiom.om.OMElement;
+import org.apache.axiom.om.OMXMLBuilderFactory;
+import org.apache.axiom.om.OMXMLParserWrapper;
+import org.apache.axiom.om.xpath.AXIOMXPath;
+import org.dspace.content.Item;
+import org.dspace.importer.external.datamodel.ImportRecord;
+import org.dspace.importer.external.datamodel.Query;
+import org.dspace.importer.external.exception.MetadataSourceException;
+import org.dspace.importer.external.service.AbstractImportMetadataSourceService;
+import org.jaxen.JaxenException;
 
 /**
  * Implements a data source for querying pubmed central

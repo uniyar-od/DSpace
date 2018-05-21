@@ -8,19 +8,20 @@
 
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.AbstractModifier;
-import gr.ekt.bte.core.MutableRecord;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.StringValue;
-import gr.ekt.bte.core.Value;
-import org.springframework.beans.factory.InitializingBean;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.MissingResourceException;
+
+import org.springframework.beans.factory.InitializingBean;
+
+import gr.ekt.bte.core.AbstractModifier;
+import gr.ekt.bte.core.MutableRecord;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.StringValue;
+import gr.ekt.bte.core.Value;
 
 /**
  * Modifier to covert ISO 639-2 alpha-3 code to ISO 639-1 alpha-2 code

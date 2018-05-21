@@ -170,9 +170,10 @@ public interface SolrLoggerService {
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
             String dateEnd, boolean showTotal, Context context) throws SolrServerException;
+    
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, int gap, boolean showTotal) throws SolrServerException;
+            String dateEnd, int gap, boolean showTotal, Context context) throws SolrServerException;
     
     public Map<String, Integer> queryFacetQuery(String query,
             String filterQuery, List<String> facetQueries)

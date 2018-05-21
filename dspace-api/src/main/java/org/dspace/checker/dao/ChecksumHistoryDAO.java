@@ -7,14 +7,14 @@
  */
 package org.dspace.checker.dao;
 
+import java.sql.SQLException;
+import java.util.Date;
+
 import org.dspace.checker.ChecksumHistory;
 import org.dspace.checker.ChecksumResultCode;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
-
-import java.sql.SQLException;
-import java.util.Date;
 
 /**
  * Database Access Object interface class for the ChecksumHistory object.

@@ -7,15 +7,15 @@
  */
 package org.dspace.authority.indexer;
 
-import org.dspace.authority.AuthorityValue;
-import org.apache.log4j.Logger;
-import org.dspace.authority.factory.AuthorityServiceFactory;
-import org.dspace.authority.service.AuthorityService;
-import org.dspace.core.Context;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.dspace.authority.AuthorityValue;
+import org.dspace.authority.factory.AuthorityServiceFactory;
+import org.dspace.authority.service.AuthorityService;
+import org.dspace.core.Context;
 
 /**
  *

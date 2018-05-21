@@ -7,13 +7,13 @@
  */
 package org.dspace.xmlworkflow.storedcomponents.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.dspace.xmlworkflow.storedcomponents.CollectionRole;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the CollectionRole object.

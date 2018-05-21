@@ -7,13 +7,13 @@
  */
 package org.dspace.versioning.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.versioning.Version;
-
-import java.sql.SQLException;
-import java.util.List;
 import org.dspace.versioning.VersionHistory;
 
 /**

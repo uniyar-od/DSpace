@@ -17,7 +17,6 @@ import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.CrosswalkInternalException;
 import org.dspace.core.ConfigurationManager;

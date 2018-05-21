@@ -7,16 +7,33 @@
  */
 package org.dspace.content.factory;
 
+import java.util.List;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.EditItem;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.RootObject;
 import org.dspace.content.WorkspaceItem;
-import org.dspace.content.service.*;
+import org.dspace.content.service.BitstreamFormatService;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.DSpaceObjectLegacySupportService;
+import org.dspace.content.service.DSpaceObjectService;
+import org.dspace.content.service.EditItemService;
+import org.dspace.content.service.InProgressSubmissionService;
+import org.dspace.content.service.InstallItemService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
+import org.dspace.content.service.MetadataSchemaService;
+import org.dspace.content.service.MetadataValueService;
+import org.dspace.content.service.RootEntityService;
+import org.dspace.content.service.SiteService;
+import org.dspace.content.service.SupervisedItemService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-
-import java.util.List;
 
 /**
  * Abstract factory to get services for the content package, use ContentServiceFactory.getInstance() to retrieve an implementation

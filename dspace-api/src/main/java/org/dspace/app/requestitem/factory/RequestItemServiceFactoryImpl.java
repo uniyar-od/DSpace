@@ -8,7 +8,6 @@
 package org.dspace.app.requestitem.factory;
 
 import org.dspace.app.requestitem.service.RequestItemService;
-import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

@@ -7,14 +7,12 @@
  */
 package org.dspace.discovery.configuration;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Required;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.InitializingBean;
 
 /**
  * @author Kevin Van de Velde (kevin at atmire dot com)

@@ -7,11 +7,8 @@
  */
 package org.dspace.content.authority;
 
-import java.sql.SQLException;
-
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
-import org.hibernate.Session;
 
 /**
  * This class is the PostgreSQL driver class for reading information about the

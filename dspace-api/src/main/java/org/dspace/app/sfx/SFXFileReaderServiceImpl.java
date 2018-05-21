@@ -12,22 +12,20 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.List;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.sfx.service.SFXFileReaderService;
+import org.dspace.content.DCPersonName;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Document;
-
-import org.dspace.content.DCPersonName;
-import org.dspace.content.Item;
-import org.dspace.core.Constants;
-
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.ParserConfigurationException;
-
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

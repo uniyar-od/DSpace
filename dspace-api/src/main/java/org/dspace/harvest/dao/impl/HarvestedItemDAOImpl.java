@@ -7,16 +7,16 @@
  */
 package org.dspace.harvest.dao.impl;
 
+import java.sql.SQLException;
+
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.harvest.HarvestedItem;
 import org.dspace.harvest.dao.HarvestedItemDAO;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the HarvestedItem object.

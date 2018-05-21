@@ -7,6 +7,8 @@
  */
 package org.dspace.app.requestitem;
 
+import java.sql.SQLException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
@@ -16,8 +18,6 @@ import org.dspace.core.I18nUtil;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
 
 /**
  * RequestItem strategy to allow DSpace support team's helpdesk to receive requestItem request

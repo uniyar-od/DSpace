@@ -7,11 +7,11 @@
  */
 package org.dspace.content.service;
 
-import org.dspace.content.Site;
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
 import java.util.UUID;
+
+import org.dspace.content.Site;
+import org.dspace.core.Context;
 
 /**
  * Service interface class for the Site object.

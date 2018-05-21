@@ -7,12 +7,12 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Class to handle WorkspaceItems which are being supervised.

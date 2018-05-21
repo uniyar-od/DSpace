@@ -7,12 +7,19 @@
  */
 package org.dspace.xmlworkflow.service;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
+import javax.mail.MessagingException;
+import javax.servlet.http.HttpServletRequest;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
-import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.WorkflowException;
+import org.dspace.workflow.WorkflowService;
 import org.dspace.xmlworkflow.RoleMembers;
 import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.state.Workflow;
@@ -21,12 +28,6 @@ import org.dspace.xmlworkflow.state.actions.WorkflowActionConfig;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-
-import javax.mail.MessagingException;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * When an item is submitted and is somewhere in a workflow, it has a row in the

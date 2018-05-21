@@ -8,13 +8,6 @@
 
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.DataLoadingSpec;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.RecordSet;
-import gr.ekt.bte.core.Value;
-import gr.ekt.bte.dataloader.FileDataLoader;
-import gr.ekt.bte.exceptions.MalformedSourceException;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -33,6 +26,13 @@ import org.dspace.app.util.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+
+import gr.ekt.bte.core.DataLoadingSpec;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.RecordSet;
+import gr.ekt.bte.core.Value;
+import gr.ekt.bte.dataloader.FileDataLoader;
+import gr.ekt.bte.exceptions.MalformedSourceException;
 
 /**
  * @author cineca

@@ -7,10 +7,10 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
 
 /**
  * Service interface class that adds support to retrieve DSpaceObject by the old integer based identifier which was used

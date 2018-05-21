@@ -7,13 +7,13 @@
  */
 package org.dspace.curate.service;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.curate.Curator;
 import org.dspace.workflowbasic.BasicWorkflowItem;
-
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * WorkflowCurator manages interactions between curation and workflow.

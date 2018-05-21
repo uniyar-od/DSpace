@@ -7,10 +7,10 @@
  */
 package org.dspace.harvest.service;
 
-import org.dspace.authorize.AuthorizeException;
-
 import java.io.IOException;
 import java.sql.SQLException;
+
+import org.dspace.authorize.AuthorizeException;
 
 /**
  * Service interface class for the scheduling of harvesting tasks.

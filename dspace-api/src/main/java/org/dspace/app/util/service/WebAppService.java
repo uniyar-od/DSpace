@@ -7,12 +7,12 @@
  */
 package org.dspace.app.util.service;
 
-import org.dspace.app.util.WebApp;
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+
+import org.dspace.app.util.WebApp;
+import org.dspace.core.Context;
 
 /**
  * Service interface class for the WebApp object.

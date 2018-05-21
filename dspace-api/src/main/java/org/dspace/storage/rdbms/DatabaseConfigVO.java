@@ -7,6 +7,8 @@
  */
 package org.dspace.storage.rdbms;
 
+import org.dspace.core.DBConnection;
+
 /**
  * Get database configuration parameters.  The parameter values are retrieved by
  * the configured implementation of the {@link DBConnection} interface.

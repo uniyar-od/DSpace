@@ -7,15 +7,15 @@
  */
 package org.dspace.xmlworkflow.service;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.xmlworkflow.WorkflowConfigurationException;
 import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * A class that contains utililty methods related to the workflow

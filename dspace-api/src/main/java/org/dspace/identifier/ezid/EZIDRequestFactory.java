@@ -9,6 +9,7 @@
 package org.dspace.identifier.ezid;
 
 import java.net.URISyntaxException;
+
 import org.springframework.beans.factory.annotation.Required;
 
 /**

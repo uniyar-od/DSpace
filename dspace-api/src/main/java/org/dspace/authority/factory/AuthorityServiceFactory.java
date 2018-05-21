@@ -7,6 +7,8 @@
  */
 package org.dspace.authority.factory;
 
+import java.util.List;
+
 import org.dspace.authority.AuthoritySearchService;
 import org.dspace.authority.AuthorityTypes;
 import org.dspace.authority.indexer.AuthorityIndexerInterface;
@@ -14,8 +16,6 @@ import org.dspace.authority.indexer.AuthorityIndexingService;
 import org.dspace.authority.service.AuthorityService;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.util.List;
 
 /**
  * Abstract factory to get services for the authority package, use AuthorityServiceFactory.getInstance() to retrieve an implementation

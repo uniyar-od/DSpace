@@ -29,6 +29,7 @@ import org.dspace.content.service.SiteService;
 import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
+import org.dspace.utils.DSpace;
 import org.openarchives.resourcesync.ResourceList;
 import org.openarchives.resourcesync.ResourceSyncDocument;
 import org.openarchives.resourcesync.URL;
@@ -84,8 +85,26 @@ public class DSpaceResourceList extends DSpaceResourceDocument
         }
         
         try {
-			BrowseEngine be = new BrowseEngine(context);
-	        BrowserScope bs = new BrowserScope(context);
+
+        	BrowserScope bs = new BrowserScope(context);
+        	
+        	BrowseIndex bi = bs.getBrowseIndex();
+        	
+            boolean isMultilanguage = new DSpace()
+            .getConfigurationService()
+            .getPropertyAsType(
+                    "discovery.browse.authority.multilanguage."
+                            + bi.getName(),
+                    new DSpace()
+                            .getConfigurationService()
+                            .getPropertyAsType(
+                                    "discovery.browse.authority.multilanguage",
+                                    new Boolean(false)),
+                    false);
+			
+	        BrowseEngine be = new BrowseEngine(context, isMultilanguage? 
+                    bs.getUserLocale():null);
+	        	        
 	        bs.setBrowseIndex(BrowseIndex.getItemBrowseIndex());
 	        
 	        bs.setResultsPerPage(100);
@@ -97,7 +116,7 @@ public class DSpaceResourceList extends DSpaceResourceDocument
 	        while (!end) {
 	        	BrowseInfo binfo = be.browse(bs);
 	        	end = binfo.isLast();
-	        	List<Item> items = binfo.getBrowseItemResults();
+	        	List<Item> items = binfo.getItemResults(context);
 	        	for (Item it : items)
 	        	{
 	        		this.addResources(it, rl);

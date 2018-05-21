@@ -8,12 +8,14 @@
 
 package org.dspace.rdf.conversion;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
+
+import com.hp.hpl.jena.rdf.model.Model;
 
 /**
  *

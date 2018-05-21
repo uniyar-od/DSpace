@@ -7,6 +7,9 @@
  */
 package org.dspace.identifier.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
@@ -14,9 +17,6 @@ import org.dspace.identifier.Identifier;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.IdentifierNotFoundException;
 import org.dspace.identifier.IdentifierNotResolvableException;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  *

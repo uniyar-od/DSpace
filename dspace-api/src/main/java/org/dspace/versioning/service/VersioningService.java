@@ -7,14 +7,14 @@
  */
 package org.dspace.versioning.service;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
 
 /**
  *

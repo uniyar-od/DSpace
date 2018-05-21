@@ -7,11 +7,11 @@
  */
 package org.dspace.authority.service;
 
+import java.util.List;
+
 import org.apache.solr.common.SolrDocument;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.core.Context;
-
-import java.util.List;
 
 /**
  * This service contains all methods for using authority values

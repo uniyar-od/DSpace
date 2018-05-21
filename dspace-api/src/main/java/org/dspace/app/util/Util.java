@@ -26,7 +26,6 @@ import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.IMetadataValue;
 import org.dspace.core.Constants;
 import org.dspace.core.I18nUtil;
 

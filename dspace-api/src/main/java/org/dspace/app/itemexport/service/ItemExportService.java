@@ -7,16 +7,17 @@
  */
 package org.dspace.app.itemexport.service;
 
-import org.dspace.content.DSpaceObject;
-import org.dspace.content.Item;
-import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-
-import javax.mail.MessagingException;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+
+import javax.mail.MessagingException;
+
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 
 /**
  * Item exporter to create simple AIPs for DSpace content. Currently exports

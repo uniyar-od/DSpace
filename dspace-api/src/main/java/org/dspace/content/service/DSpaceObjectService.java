@@ -17,7 +17,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataField;
-import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 
 /**

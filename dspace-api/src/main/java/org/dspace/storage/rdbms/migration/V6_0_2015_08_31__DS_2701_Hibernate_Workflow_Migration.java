@@ -7,13 +7,13 @@
  */
 package org.dspace.storage.rdbms.migration;
 
+import java.sql.Connection;
+
 import org.dspace.core.Constants;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.flywaydb.core.api.migration.MigrationChecksumProvider;
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
 import org.flywaydb.core.internal.util.scanner.classpath.ClassPathResource;
-
-import java.sql.Connection;
 
 /**
  * User: kevin (kevin at atmire.com)

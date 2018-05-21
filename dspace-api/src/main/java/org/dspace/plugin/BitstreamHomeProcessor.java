@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 /**

@@ -9,25 +9,25 @@ package org.dspace.content.packager;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.ArrayList;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.core.Constants;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 import edu.harvard.hul.ois.mets.Agent;
 import edu.harvard.hul.ois.mets.Mets;
 import edu.harvard.hul.ois.mets.MetsHdr;
-import edu.harvard.hul.ois.mets.Role;
-import edu.harvard.hul.ois.mets.helper.MetsException;
-import edu.harvard.hul.ois.mets.Type;
 import edu.harvard.hul.ois.mets.Name;
+import edu.harvard.hul.ois.mets.Role;
+import edu.harvard.hul.ois.mets.Type;
+import edu.harvard.hul.ois.mets.helper.MetsException;
 import edu.harvard.hul.ois.mets.helper.PCData;
 
 /**

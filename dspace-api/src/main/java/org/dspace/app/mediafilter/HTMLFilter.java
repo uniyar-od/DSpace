@@ -7,13 +7,13 @@
  */
 package org.dspace.app.mediafilter;
 
-import org.dspace.content.Item;
-
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
 import javax.swing.text.Document;
 import javax.swing.text.html.HTMLEditorKit;
+
+import org.dspace.content.Item;
 
 /*
  * 

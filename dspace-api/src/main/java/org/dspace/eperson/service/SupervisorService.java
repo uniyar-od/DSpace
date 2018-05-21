@@ -7,12 +7,12 @@
  */
 package org.dspace.eperson.service;
 
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
-
-import java.sql.SQLException;
 
 /**
  * Class to represent the supervisor, primarily for use in applying supervisor

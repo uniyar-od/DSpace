@@ -7,11 +7,6 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.DataLoader;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.TransformationEngine;
-import gr.ekt.bte.dataloader.FileDataLoader;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +16,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.dspace.submit.util.SubmissionLookupDTO;
+
+import gr.ekt.bte.core.DataLoader;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.TransformationEngine;
+import gr.ekt.bte.dataloader.FileDataLoader;
 
 /**
  * @author Andrea Bollini

@@ -7,12 +7,18 @@
  */
 package org.dspace.submit.step;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Enumeration;
-import java.util.Map;
 import java.util.HashMap;
-import org.apache.commons.lang3.*;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.util.Util;
@@ -24,12 +30,6 @@ import org.dspace.license.LicenseMetadataValue;
 import org.dspace.license.factory.LicenseServiceFactory;
 import org.dspace.license.service.CreativeCommonsService;
 import org.dspace.submit.AbstractProcessingStep;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * CCLicense step for DSpace Submission Process. 

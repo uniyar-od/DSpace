@@ -7,14 +7,36 @@
  */
 package org.dspace.statistics.content;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
-import org.dspace.content.*;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.dspace.app.util.Util;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.DSpaceObjectLegacySupport;
+import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.core.I18nUtil;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.statistics.Dataset;
@@ -25,18 +47,6 @@ import org.dspace.statistics.content.filter.StatisticsSolrDateFilter;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.statistics.util.LocationUtils;
-import org.dspace.core.Context;
-import org.dspace.core.I18nUtil;
-import org.dspace.core.Constants;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.app.util.Util;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.util.ClientUtils;
-
-import java.util.*;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.io.UnsupportedEncodingException;
 
 /**
  * Query factory associated with a DSpaceObject.

@@ -10,12 +10,11 @@ package org.dspace.app.mediafilter;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
-import org.apache.poi.extractor.ExtractorFactory;
-import org.apache.poi.xslf.extractor.XSLFPowerPointExtractor;
-import org.apache.poi.hslf.extractor.PowerPointExtractor;
-import org.apache.poi.POITextExtractor;
-
 import org.apache.log4j.Logger;
+import org.apache.poi.POITextExtractor;
+import org.apache.poi.extractor.ExtractorFactory;
+import org.apache.poi.hslf.extractor.PowerPointExtractor;
+import org.apache.poi.xslf.extractor.XSLFPowerPointExtractor;
 import org.dspace.content.Item;
 
 /*

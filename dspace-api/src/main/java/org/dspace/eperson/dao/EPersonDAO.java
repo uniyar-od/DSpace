@@ -7,17 +7,17 @@
  */
 package org.dspace.eperson.dao;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
 import org.dspace.content.MetadataField;
 import org.dspace.content.dao.DSpaceObjectDAO;
 import org.dspace.content.dao.DSpaceObjectLegacySupportDAO;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Database Access Object interface class for the EPerson object.

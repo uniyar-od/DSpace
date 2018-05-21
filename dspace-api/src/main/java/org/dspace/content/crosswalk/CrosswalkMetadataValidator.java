@@ -7,6 +7,11 @@
  */
 package org.dspace.content.crosswalk;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.commons.lang3.tuple.Triple;
 import org.dspace.authorize.AuthorizeException;
@@ -18,11 +23,6 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CrosswalkMetadataValidator {
 

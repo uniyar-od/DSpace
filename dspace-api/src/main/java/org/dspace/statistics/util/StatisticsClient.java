@@ -7,15 +7,19 @@
  */
 package org.dspace.statistics.util;
 
-import org.apache.commons.cli.*;
+import java.io.File;
+import java.net.URL;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.apache.tools.ant.taskdefs.Get;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.dspace.statistics.service.SolrLoggerService;
-
-import java.io.*;
-import java.net.URL;
-import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Class to load intermediate statistics files into solr

@@ -18,9 +18,8 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.Site;
+import org.dspace.content.UsageEventEntity;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.Constants;
@@ -64,7 +63,7 @@ public class ResourceSyncConsumer implements Consumer {
 
 		int st = event.getSubjectType();
 
-		DSpaceObject subject = event.getSubject(ctx);
+		UsageEventEntity subject = event.getSubject(ctx);
 //		DSpaceObject object = event.getObject(ctx);
 
 		// If event subject is a Bundle and event was Add or Remove,

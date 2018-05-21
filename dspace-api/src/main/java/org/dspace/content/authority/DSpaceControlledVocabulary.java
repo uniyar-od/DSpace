@@ -7,27 +7,25 @@
  */
 package org.dspace.content.authority;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.io.File;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.dspace.content.Collection;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.xml.sax.InputSource;
-
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
-
+import org.dspace.content.Collection;
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 
 /**
  * ChoiceAuthority source that reads the JSPUI-style hierarchical vocabularies

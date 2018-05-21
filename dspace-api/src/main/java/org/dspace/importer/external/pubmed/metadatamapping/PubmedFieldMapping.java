@@ -8,10 +8,11 @@
 
 package org.dspace.importer.external.pubmed.metadatamapping;
 
-import org.dspace.importer.external.metadatamapping.AbstractMetadataFieldMapping;
+import java.util.Map;
 
 import javax.annotation.Resource;
-import java.util.Map;
+
+import org.dspace.importer.external.metadatamapping.AbstractMetadataFieldMapping;
 
 /**
  * An implementation of {@link AbstractMetadataFieldMapping}

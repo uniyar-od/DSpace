@@ -7,8 +7,6 @@
  */
 package org.dspace.app.statistics;
 
-import org.dspace.app.statistics.Statistics;
-
 import java.util.Date;
 
 /**

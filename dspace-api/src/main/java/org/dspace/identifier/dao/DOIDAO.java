@@ -7,13 +7,13 @@
  */
 package org.dspace.identifier.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.identifier.DOI;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Database Access Object interface class for the DOI object.

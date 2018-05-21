@@ -8,34 +8,34 @@
 package org.dspace.content.crosswalk;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.sql.SQLException;
-
 import org.apache.commons.collections.CollectionUtils;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.*;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.content.Item;
+import org.apache.log4j.Logger;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.Site;
-import org.dspace.content.packager.PackageUtils;
-import org.dspace.eperson.EPerson;
-import org.dspace.authorize.AuthorizeException;
-
-import org.apache.log4j.Logger;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.packager.DSpaceAIPIngester;
 import org.dspace.content.packager.METSManifest;
+import org.dspace.content.packager.PackageUtils;
+import org.dspace.content.service.BitstreamFormatService;
+import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.SiteService;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
-
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.jdom.Element;

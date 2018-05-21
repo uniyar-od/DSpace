@@ -7,12 +7,15 @@
  */
 package org.dspace.storage.rdbms;
 
+import static org.dspace.storage.rdbms.DatabaseUtils.getSchemaName;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 import javax.sql.DataSource;
-import static org.dspace.storage.rdbms.DatabaseUtils.getSchemaName;
+
 import org.flywaydb.core.api.FlywayException;
 
 /**

@@ -7,15 +7,16 @@
  */
 package org.dspace.xmlworkflow.state.actions.userassignment;
 
-import org.dspace.core.Context;
-import org.dspace.xmlworkflow.RoleMembers;
-import org.dspace.xmlworkflow.state.Step;
-import org.dspace.xmlworkflow.WorkflowConfigurationException;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-import org.dspace.xmlworkflow.state.actions.ActionResult;
+import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
+
+import org.dspace.core.Context;
+import org.dspace.xmlworkflow.RoleMembers;
+import org.dspace.xmlworkflow.WorkflowConfigurationException;
+import org.dspace.xmlworkflow.state.Step;
+import org.dspace.xmlworkflow.state.actions.ActionResult;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 
 /**
  * @author Bram De Schouwer (bram.deschouwer at dot com)

@@ -983,6 +983,19 @@
 				</exclusion>
 			</exclusions>
 		 </dependency>
+	        <dependency>
+	           <groupId>org.dspace</groupId>
+	           <artifactId>dspace-rs</artifactId>
+	           <version>${project.version}</version>
+	           <type>war</type>
+	        </dependency>
+	        <dependency>
+	           <groupId>org.dspace</groupId>
+	           <artifactId>dspace-rs</artifactId>
+	           <version>${project.version}</version>
+	           <type>jar</type>
+	           <classifier>classes</classifier>            
+	        </dependency>		 
          <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-sword</artifactId>

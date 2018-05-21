@@ -7,14 +7,14 @@
  */
 package org.dspace.identifier.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.identifier.DOI;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.doi.DOIIdentifierException;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the DOI object.

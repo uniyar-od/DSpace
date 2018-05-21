@@ -7,15 +7,15 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.dspace.xmlworkflow.storedcomponents.dao.CollectionRoleDAO;
 import org.dspace.xmlworkflow.storedcomponents.service.CollectionRoleService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service implementation for the CollectionRole object.

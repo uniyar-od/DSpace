@@ -7,8 +7,6 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +20,8 @@ import org.apache.http.HttpException;
 import org.dspace.core.Context;
 import org.jdom.JDOMException;
 import org.xml.sax.SAXException;
+
+import gr.ekt.bte.core.Record;
 
 /**
  * @author Andrea Bollini

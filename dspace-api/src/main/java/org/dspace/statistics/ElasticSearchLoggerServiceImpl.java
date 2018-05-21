@@ -13,13 +13,13 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
 import java.sql.SQLException;
-import java.util.*;
-import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
-import com.google.common.base.Charsets;
-import com.google.common.io.Resources;
-import com.maxmind.geoip2.DatabaseReader;
-import com.maxmind.geoip2.model.CityResponse;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.exception.ExceptionUtils;
@@ -57,6 +57,11 @@ import org.elasticsearch.node.Node;
 import org.elasticsearch.node.NodeBuilder;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.google.common.base.Charsets;
+import com.google.common.io.Resources;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.model.CityResponse;
 
 /*
  * @deprecated  As of DSpace 6.0, ElasticSearch statistics are replaced by Solr statistics

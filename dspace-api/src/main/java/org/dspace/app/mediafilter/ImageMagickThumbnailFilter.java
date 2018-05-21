@@ -14,21 +14,18 @@ import java.io.InputStream;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import javax.imageio.ImageIO;
-
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.im4java.core.ConvertCmd;
-import org.im4java.core.Info;
 import org.im4java.core.IM4JavaException;
 import org.im4java.core.IMOperation;
+import org.im4java.core.Info;
 import org.im4java.process.ProcessStarter;
-
-import org.dspace.core.ConfigurationManager;
 
 /**
  * Filter image bitstreams, scaling the image to be within the bounds of

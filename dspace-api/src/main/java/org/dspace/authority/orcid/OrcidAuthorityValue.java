@@ -16,8 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBElement;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrDocument;
@@ -28,13 +26,9 @@ import org.dspace.authority.PersonAuthorityValue;
 import org.dspace.authority.orcid.jaxb.address.AddressCtype;
 import org.dspace.authority.orcid.jaxb.address.Addresses;
 import org.dspace.authority.orcid.jaxb.common.ExternalId;
-import org.dspace.authority.orcid.jaxb.keyword.Keyword;
 import org.dspace.authority.orcid.jaxb.keyword.KeywordCtype;
 import org.dspace.authority.orcid.jaxb.othername.OtherNameCtype;
-import org.dspace.authority.orcid.jaxb.person.externalidentifier.ExternalIdentifier;
 import org.dspace.authority.orcid.jaxb.personaldetails.NameCtype;
-import org.dspace.authority.orcid.jaxb.personaldetails.PersonalDetails;
-import org.dspace.authority.orcid.jaxb.researcherurl.ResearcherUrl;
 import org.dspace.authority.orcid.jaxb.researcherurl.ResearcherUrlCtype;
 import org.orcid.ns.record.Record;
 

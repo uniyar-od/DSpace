@@ -7,17 +7,20 @@
  */
 package org.dspace.app.statistics;
 
-import org.dspace.core.ConfigurationManager;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.text.DateFormat;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.*;
+
+import org.dspace.core.ConfigurationManager;
 
 /**
  * This class provides HTML reports for the ReportGenerator class

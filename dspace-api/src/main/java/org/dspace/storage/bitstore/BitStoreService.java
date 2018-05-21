@@ -7,11 +7,11 @@
  */
 package org.dspace.storage.bitstore;
 
-import org.dspace.content.Bitstream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
+
+import org.dspace.content.Bitstream;
 
 /**
  * A low-level asset store interface

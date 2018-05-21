@@ -11,8 +11,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,10 +39,12 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.params.ClientPNames;
-import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrRequest;
@@ -1993,6 +1993,25 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         urlBuilder.append(getSolr().getBaseURL()).append("/select?");
         urlBuilder.append(solrQuery.toString());
 
+        // Post setup
+        NamedList<Object> solrParameters = solrQuery.toNamedList();
+        List<NameValuePair> postParameters = new ArrayList<>();
+        for (Map.Entry<String, Object> solrParameter : solrParameters) {
+            if (solrParameter.getValue() instanceof String[]) {
+                // Multi-valued solr parameter
+                for(String val : (String[])solrParameter.getValue()) {
+                    postParameters.add(new BasicNameValuePair(solrParameter.getKey(), val));
+                }
+
+            }
+            else if(solrParameter.getValue() instanceof String) {
+                postParameters.add(new BasicNameValuePair(solrParameter.getKey(), solrParameter.getValue().toString()));
+            }
+            else {
+                log.warn("Search parameters contain non-string value: " + solrParameter.getValue().toString());
+            }
+        }        
+        
         try {
             HttpPost post = new HttpPost(urlBuilder.toString());
             post.setEntity(new UrlEncodedFormEntity(postParameters));

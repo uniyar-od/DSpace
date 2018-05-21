@@ -7,6 +7,10 @@
  */
 package org.dspace.content.dao.impl;
 
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
+
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
@@ -18,10 +22,6 @@ import org.dspace.core.Context;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Bitstream object.

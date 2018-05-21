@@ -7,15 +7,15 @@
  */
 package org.dspace.workflowbasic.service;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflowbasic.BasicWorkflowItem;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Workflow state machine

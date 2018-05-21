@@ -7,18 +7,19 @@
  */
 package org.dspace.content.dao;
 
-import org.dspace.content.Bundle;
-import org.dspace.content.Collection;
-import org.dspace.content.Item;
-import org.dspace.content.MetadataField;
-import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
 
 /**
  * Database Access Object interface class for the Item object.

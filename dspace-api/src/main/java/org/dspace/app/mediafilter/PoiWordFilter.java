@@ -8,8 +8,8 @@
 package org.dspace.app.mediafilter;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.poi.POITextExtractor;
 import org.apache.poi.extractor.ExtractorFactory;

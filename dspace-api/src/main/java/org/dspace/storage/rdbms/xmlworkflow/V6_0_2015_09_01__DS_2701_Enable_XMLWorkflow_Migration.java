@@ -7,6 +7,8 @@
  */
 package org.dspace.storage.rdbms.xmlworkflow;
 
+import java.sql.Connection;
+
 import org.dspace.core.Constants;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
@@ -14,8 +16,6 @@ import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.flywaydb.core.api.migration.MigrationChecksumProvider;
 import org.flywaydb.core.api.migration.jdbc.JdbcMigration;
 import org.flywaydb.core.internal.util.scanner.classpath.ClassPathResource;
-
-import java.sql.Connection;
 
 /**
  * This class automatically migrates your DSpace Database to use the

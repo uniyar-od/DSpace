@@ -7,11 +7,6 @@
  */
 package org.dspace.submit.util;
 
-import gr.ekt.bte.core.DataLoader;
-import gr.ekt.bte.core.MutableRecord;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.Value;
-
 import java.io.Serializable;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,6 +14,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.dspace.submit.lookup.SubmissionLookupService;
+
+import gr.ekt.bte.core.DataLoader;
+import gr.ekt.bte.core.MutableRecord;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.Value;
 
 /**
  * @author Andrea Bollini

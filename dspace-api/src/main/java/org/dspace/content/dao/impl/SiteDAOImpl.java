@@ -7,13 +7,13 @@
  */
 package org.dspace.content.dao.impl;
 
+import java.sql.SQLException;
+
 import org.dspace.content.Site;
 import org.dspace.content.dao.SiteDAO;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.hibernate.Criteria;
-
-import java.sql.SQLException;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Site object.

@@ -7,15 +7,15 @@
  */
 package org.dspace.eperson.dao.impl;
 
-import org.dspace.core.Context;
+import java.sql.SQLException;
+
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.eperson.RegistrationData;
 import org.dspace.eperson.dao.RegistrationDataDAO;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the RegistrationData object.

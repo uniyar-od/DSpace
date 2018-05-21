@@ -7,11 +7,11 @@
  */
 package org.dspace.statistics.content.filter;
 
-import org.dspace.statistics.SolrLoggerServiceImpl;
-
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.Calendar;
+import java.util.Date;
+
+import org.dspace.statistics.SolrLoggerServiceImpl;
 
 /**
  * Encapsulate a range of dates for Solr query filtering.

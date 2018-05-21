@@ -7,13 +7,13 @@
  */
 package org.dspace.harvest.dao;
 
+import java.sql.SQLException;
+
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.harvest.HarvestedItem;
-
-import java.sql.SQLException;
 
 /**
  * Database Access Object interface class for the HarvestedItem object.

@@ -29,5 +29,5 @@ public interface IStatsComponent<T extends BrowsableDSpaceObject> extends IStats
        
     Map<String, ObjectCount[]> queryFacetDate(SolrLoggerService statsLogger,
             T object, String dateType, String dateStart,
-            String dateEnd, int gap) throws SolrServerException;
+            String dateEnd, int gap, Context context) throws SolrServerException;
 }

@@ -7,14 +7,14 @@
  */
 package org.dspace.storage.rdbms;
 
+import java.sql.Connection;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.service.SiteService;
 import org.dspace.core.Context;
 import org.flywaydb.core.api.MigrationInfo;
 import org.flywaydb.core.api.callback.FlywayCallback;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.Connection;
 
 /**
  * Callback method to ensure that the Site object is created (if no site exists)

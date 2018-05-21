@@ -7,13 +7,13 @@
  */
 package org.dspace.content.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Database Access Object interface class for the MetadataField object.

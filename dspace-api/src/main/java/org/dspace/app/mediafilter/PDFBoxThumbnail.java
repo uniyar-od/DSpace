@@ -7,17 +7,14 @@
  */
 package org.dspace.app.mediafilter;
 
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
-
 import org.dspace.content.Item;
-
-import org.dspace.app.mediafilter.JPEGFilter;
 
 /**
  * Create JPEG thumbnails from PDF cover page using PDFBox.

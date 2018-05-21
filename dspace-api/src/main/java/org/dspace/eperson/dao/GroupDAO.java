@@ -7,6 +7,10 @@
  */
 package org.dspace.eperson.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.UUID;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.dspace.content.MetadataField;
 import org.dspace.content.dao.DSpaceObjectDAO;
@@ -14,10 +18,6 @@ import org.dspace.content.dao.DSpaceObjectLegacySupportDAO;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * Database Access Object interface class for the Group object.

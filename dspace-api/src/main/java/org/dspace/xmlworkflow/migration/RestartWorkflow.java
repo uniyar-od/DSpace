@@ -7,7 +7,14 @@
  */
 package org.dspace.xmlworkflow.migration;
 
-import org.apache.commons.cli.*;
+import java.util.List;
+import java.util.UUID;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
@@ -19,9 +26,6 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-
-import java.util.List;
-import java.util.UUID;
 
 /**
  * A utility class that will send all the worklfow items

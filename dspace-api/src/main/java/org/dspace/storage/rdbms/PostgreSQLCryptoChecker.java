@@ -10,6 +10,7 @@ package org.dspace.storage.rdbms;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+
 import org.apache.log4j.Logger;
 import org.flywaydb.core.api.FlywayException;
 import org.flywaydb.core.api.MigrationInfo;

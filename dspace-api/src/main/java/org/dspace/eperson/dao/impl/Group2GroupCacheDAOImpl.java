@@ -7,8 +7,11 @@
  */
 package org.dspace.eperson.dao.impl;
 
-import org.dspace.core.Context;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.Group2GroupCache;
 import org.dspace.eperson.dao.Group2GroupCacheDAO;
@@ -16,10 +19,6 @@ import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Disjunction;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the Group2GroupCache object.

@@ -17,15 +17,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Utils;
 
 public class XSDServlet extends HttpServlet
 {
-    /** log4j category */
-    private static Logger log = Logger.getLogger(XSDServlet.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse response)

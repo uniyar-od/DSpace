@@ -7,12 +7,12 @@
  */
 package org.dspace.checker.dao;
 
+import java.sql.SQLException;
+
 import org.dspace.checker.ChecksumResult;
 import org.dspace.checker.ChecksumResultCode;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
-
-import java.sql.SQLException;
 
 /**
  * Database Access Object interface class for the ChecksumResult object.

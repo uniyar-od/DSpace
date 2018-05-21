@@ -8,9 +8,9 @@
 
 package org.dspace.content.crosswalk;
 
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
+
+import org.dspace.core.Context;
 
 /**
  * Created by jonas - jonas@atmire.com on 21/04/17.

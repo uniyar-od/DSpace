@@ -7,15 +7,17 @@
  */
 package org.dspace.xmlworkflow.state.actions.processingaction;
 
+import java.sql.SQLException;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.xmlworkflow.state.actions.Action;
-import org.dspace.xmlworkflow.storedcomponents.*;
+import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
 
 /**
  * A class that that extends the action to support the common

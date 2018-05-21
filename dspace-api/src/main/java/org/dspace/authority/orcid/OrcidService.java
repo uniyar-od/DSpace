@@ -8,7 +8,6 @@
 package org.dspace.authority.orcid;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +43,6 @@ import org.dspace.authority.orcid.jaxb.activities.Works;
 import org.dspace.authority.orcid.jaxb.address.Address;
 import org.dspace.authority.orcid.jaxb.address.Addresses;
 import org.dspace.authority.orcid.jaxb.bulk.Bulk;
-import org.dspace.authority.orcid.jaxb.common.SourceType;
 import org.dspace.authority.orcid.jaxb.education.Education;
 import org.dspace.authority.orcid.jaxb.education.EducationSummary;
 import org.dspace.authority.orcid.jaxb.email.Emails;
@@ -65,7 +63,6 @@ import org.dspace.authority.orcid.jaxb.work.Work;
 import org.dspace.authority.orcid.jaxb.work.WorkSummary;
 import org.dspace.authority.rest.RestSource;
 import org.dspace.content.DCPersonName;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.utils.DSpace;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;

@@ -7,20 +7,24 @@
  */
 package org.dspace.checker.dao.impl;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.List;
+
 import org.dspace.checker.ChecksumHistory;
 import org.dspace.checker.ChecksumResultCode;
 import org.dspace.checker.MostRecentChecksum;
 import org.dspace.checker.dao.MostRecentChecksumDAO;
 import org.dspace.content.Bitstream;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
-import org.hibernate.criterion.*;
-
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.List;
+import org.hibernate.criterion.DetachedCriteria;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Property;
+import org.hibernate.criterion.Restrictions;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the MostRecentChecksum object.

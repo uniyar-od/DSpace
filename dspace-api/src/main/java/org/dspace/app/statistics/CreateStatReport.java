@@ -18,9 +18,8 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
-
-import org.dspace.core.Context;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
 
 /**
  * This class allows the running of the DSpace statistic tools

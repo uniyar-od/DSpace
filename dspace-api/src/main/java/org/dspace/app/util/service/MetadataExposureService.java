@@ -7,9 +7,9 @@
  */
 package org.dspace.app.util.service;
 
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
+
+import org.dspace.core.Context;
 
 /**
  * Static utility class to manage configuration for exposure (hiding) of

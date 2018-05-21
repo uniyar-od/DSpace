@@ -7,11 +7,11 @@
  */
 package org.dspace.app.sfx.service;
 
+import java.io.IOException;
+
 import org.dspace.content.Item;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
-
-import java.io.IOException;
 
 /**
  * XML configuration file reader for DSpace metadata fields (DC) mapping

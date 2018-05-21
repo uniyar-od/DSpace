@@ -7,14 +7,14 @@
  */
 package org.dspace.storage.rdbms.hibernate.postgres;
 
+import java.sql.Types;
+
 import org.hibernate.dialect.PostgreSQL82Dialect;
 import org.hibernate.metamodel.spi.TypeContributions;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.type.PostgresUUIDType;
 import org.hibernate.type.descriptor.sql.LongVarcharTypeDescriptor;
 import org.hibernate.type.descriptor.sql.SqlTypeDescriptor;
-
-import java.sql.Types;
 
 /**
  * UUID's are not supported by default in hibernate due to differences in the database in order to fix this a custom sql dialect is needed.

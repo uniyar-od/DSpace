@@ -7,10 +7,11 @@
  */
 package org.dspace.statistics.util;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Interface to implement a SpiderDetectorService

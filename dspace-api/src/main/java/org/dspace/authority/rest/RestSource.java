@@ -7,14 +7,10 @@
  */
 package org.dspace.authority.rest;
 
-<<<<<<< HEAD
-import org.dspace.authority.AuthorityValue;
-
 import java.io.IOException;
 import java.util.List;
-=======
-import org.dspace.authority.SolrAuthorityInterface;
->>>>>>> refs/heads/dspace-6-rs
+
+import org.dspace.authority.AuthorityValue;
 
 /**
  *
@@ -23,7 +19,7 @@ import org.dspace.authority.SolrAuthorityInterface;
  * @author Ben Bosman (ben at atmire dot com)
  * @author Mark Diggory (markd at atmire dot com)
  */
-public abstract class RestSource implements SolrAuthorityInterface {
+public abstract class RestSource {
 
     protected RESTConnector restConnector;
 
@@ -31,11 +27,8 @@ public abstract class RestSource implements SolrAuthorityInterface {
         this.restConnector = new RESTConnector(url);
     }
 
-<<<<<<< HEAD
     public abstract List<AuthorityValue> queryAuthorities(String field, String text, int start, int max) throws IOException;
     public abstract List<AuthorityValue> queryAuthorities(String text, int max) throws IOException;
 
     public abstract AuthorityValue queryAuthorityID(String id);
-=======
->>>>>>> refs/heads/dspace-6-rs
 }

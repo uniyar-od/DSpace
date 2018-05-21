@@ -7,16 +7,16 @@
  */
 package org.dspace.app.util;
 
+import java.sql.SQLException;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * This comparator is used to order files of an item, so that they are ordered in a way that the first one

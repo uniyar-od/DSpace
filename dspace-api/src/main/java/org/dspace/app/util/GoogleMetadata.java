@@ -8,38 +8,16 @@
 package org.dspace.app.util;
 
 import java.sql.SQLException;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import org.apache.log4j.Logger;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.content.*;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.jdom.Element;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.jdom.Element;
 
 /**
  * Configuration and mapping for Google Scholar output metadata

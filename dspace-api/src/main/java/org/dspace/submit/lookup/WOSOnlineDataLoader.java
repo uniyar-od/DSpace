@@ -7,21 +7,20 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
-import org.dspace.submit.lookup.NetworkSubmissionLookupDataLoader;
+
+import gr.ekt.bte.core.Record;
 
 public class WOSOnlineDataLoader extends NetworkSubmissionLookupDataLoader {
 

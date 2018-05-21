@@ -8,14 +8,14 @@
 package org.dspace.importer.external.metadatamapping;
 
 
-import org.apache.log4j.Logger;
-import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
-import org.dspace.importer.external.metadatamapping.transform.MetadataProcessorService;
-
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.dspace.importer.external.metadatamapping.contributor.MetadataContributor;
+import org.dspace.importer.external.metadatamapping.transform.MetadataProcessorService;
 
 /**
  * Abstract class that implements {@link MetadataFieldMapping}

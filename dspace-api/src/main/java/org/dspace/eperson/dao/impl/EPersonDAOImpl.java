@@ -7,6 +7,15 @@
  */
 package org.dspace.eperson.dao.impl;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,9 +28,6 @@ import org.dspace.eperson.dao.EPersonDAO;
 import org.hibernate.Criteria;
 import org.hibernate.Query;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the EPerson object.

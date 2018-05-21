@@ -7,11 +7,11 @@
  */
 package org.dspace.content.service;
 
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
 
 /**
  * Service interface class for the InProgressSubmission.

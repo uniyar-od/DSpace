@@ -17,8 +17,8 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.util.DateMathParser;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 public class DateValueGenerator implements TemplateValueGenerator

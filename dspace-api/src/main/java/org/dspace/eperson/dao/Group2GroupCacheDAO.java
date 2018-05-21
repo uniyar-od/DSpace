@@ -7,13 +7,13 @@
  */
 package org.dspace.eperson.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.Group2GroupCache;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Database Access Object interface class for the Group2GroupCache object.

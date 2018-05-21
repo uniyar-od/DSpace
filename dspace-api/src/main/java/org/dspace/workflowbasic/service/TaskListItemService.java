@@ -7,13 +7,13 @@
  */
 package org.dspace.workflowbasic.service;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflowbasic.BasicWorkflowItem;
 import org.dspace.workflowbasic.TaskListItem;
-
-import java.sql.SQLException;
-import java.util.List;
 
 /**
  * Service interface class for the TaskListItem object.

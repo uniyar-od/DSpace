@@ -7,6 +7,10 @@
  */
 package org.dspace.disseminate.service;
 
+import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
+
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
@@ -14,10 +18,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-
-import java.io.File;
-import java.io.IOException;
-import java.sql.SQLException;
 
 /**
  * The Citation Document produces a dissemination package (DIP) that is different that the archival package (AIP).

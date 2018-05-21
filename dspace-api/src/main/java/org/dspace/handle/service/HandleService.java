@@ -7,12 +7,11 @@
  */
 package org.dspace.handle.service;
 
-import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.Context;
-
 import java.sql.SQLException;
 import java.util.List;
+
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.Context;
 
 /**
  * Interface to the <a href="http://www.handle.net" target=_new>CNRI Handle

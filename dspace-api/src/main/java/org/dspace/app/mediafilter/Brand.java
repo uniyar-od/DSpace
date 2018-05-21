@@ -7,12 +7,12 @@
  */
 package org.dspace.app.mediafilter;
 
-import java.awt.image.BufferedImage;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
 
 /**
  * Class to attach a footer to an image using ImageMagick.

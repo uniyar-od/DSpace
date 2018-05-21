@@ -7,9 +7,9 @@
  */
 package org.dspace.discovery.configuration;
 
-import org.springframework.beans.factory.annotation.Required;
-
 import java.util.List;
+
+import org.springframework.beans.factory.annotation.Required;
 
 /**
  * @author Kevin Van de Velde (kevin at atmire dot com)

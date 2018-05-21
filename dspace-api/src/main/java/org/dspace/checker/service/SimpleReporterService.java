@@ -7,12 +7,12 @@
  */
 package org.dspace.checker.service;
 
-import org.dspace.core.Context;
-
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.sql.SQLException;
 import java.util.Date;
+
+import org.dspace.core.Context;
 
 /**
  * 

@@ -7,9 +7,8 @@
  */
 package org.dspace.content;
 
-import java.util.UUID;
-
 import java.util.List;
+import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
 

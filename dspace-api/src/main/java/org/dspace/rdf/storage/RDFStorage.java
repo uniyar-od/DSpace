@@ -8,8 +8,9 @@
 
 package org.dspace.rdf.storage;
 
-import com.hp.hpl.jena.rdf.model.Model;
 import java.util.List;
+
+import com.hp.hpl.jena.rdf.model.Model;
 
 /**
  *

@@ -7,18 +7,22 @@
  */
 package org.dspace.submit.lookup;
 
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpException;
+import org.dspace.core.Context;
+
 import gr.ekt.bte.core.DataLoadingSpec;
 import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.core.Value;
 import gr.ekt.bte.exceptions.MalformedSourceException;
-
-import java.io.IOException;
-import java.util.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpException;
-import org.dspace.core.Context;
 
 /**
  * @author Andrea Bollini

@@ -7,11 +7,11 @@
  */
 package org.dspace.discovery.configuration;
 
-import org.dspace.services.factory.DSpaceServicesFactory;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * @author Kevin Van de Velde (kevin at atmire dot com)

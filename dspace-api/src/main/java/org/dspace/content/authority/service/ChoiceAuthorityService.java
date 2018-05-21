@@ -7,14 +7,13 @@
  */
 package org.dspace.content.authority.service;
 
+import java.util.List;
+import java.util.Set;
+
 import org.dspace.content.Collection;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * Broker for ChoiceAuthority plugins, and for other information configured

@@ -8,12 +8,12 @@
 
 package org.dspace.authority.indexer;
 
+import java.sql.SQLException;
+
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
 
 /**
  *

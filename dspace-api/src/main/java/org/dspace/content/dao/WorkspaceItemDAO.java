@@ -7,16 +7,16 @@
  */
 package org.dspace.content.dao;
 
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 import org.dspace.eperson.EPerson;
-
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Database Access Object interface class for the WorkspaceItem object.

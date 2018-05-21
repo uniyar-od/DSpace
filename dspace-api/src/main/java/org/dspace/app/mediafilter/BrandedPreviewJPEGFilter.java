@@ -7,15 +7,13 @@
  */
 package org.dspace.app.mediafilter;
 
-import java.awt.image.*;
+import java.awt.image.BufferedImage;
 import java.io.InputStream;
 
 import javax.imageio.ImageIO;
 
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
-
-import org.dspace.app.mediafilter.JPEGFilter;
 
 /**
  * Filter image bitstreams, scaling the image to be within the bounds of

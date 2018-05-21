@@ -7,14 +7,14 @@
  */
 package org.dspace.app.requestitem.dao.impl;
 
+import java.sql.SQLException;
+
 import org.dspace.app.requestitem.RequestItem;
 import org.dspace.app.requestitem.dao.RequestItemDAO;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-
-import java.sql.SQLException;
 
 /**
  * Hibernate implementation of the Database Access Object interface class for the RequestItem object.

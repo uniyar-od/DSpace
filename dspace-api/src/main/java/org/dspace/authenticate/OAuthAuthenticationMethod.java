@@ -35,7 +35,7 @@ import org.dspace.eperson.service.EPersonService;
  *
  * @author mdiggory at atmire.com
  */
-public class OAuthAuthenticationMethod implements AuthenticationMethod{
+public class OAuthAuthenticationMethod implements AuthenticationMethod {
 
     /** log4j category */
     private static Logger log = Logger.getLogger(OAuthAuthenticationMethod.class);

@@ -7,11 +7,11 @@
  */
 package org.dspace.content.comparator;
 
+import java.util.Comparator;
+
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.DSpaceObject;
-
-import java.util.Comparator;
 
 public class NameAscendingComparator implements Comparator<DSpaceObject>{
 

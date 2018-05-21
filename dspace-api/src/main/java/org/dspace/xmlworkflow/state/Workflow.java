@@ -7,18 +7,18 @@
  */
 package org.dspace.xmlworkflow.state;
 
-import org.dspace.core.Context;
-import org.dspace.xmlworkflow.Role;
-import org.dspace.xmlworkflow.WorkflowConfigurationException;
-import org.dspace.workflow.WorkflowException;
-import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
-import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
-
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+
+import org.dspace.core.Context;
+import org.dspace.workflow.WorkflowException;
+import org.dspace.xmlworkflow.Role;
+import org.dspace.xmlworkflow.WorkflowConfigurationException;
+import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
+import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 
 /**
  * Class that contains all the steps & roles involved in a certain

@@ -7,8 +7,6 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -32,6 +30,8 @@ import org.apache.http.params.HttpParams;
 import org.dspace.app.util.XMLUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import gr.ekt.bte.core.Record;
 
 /**
  * @author Andrea Bollini

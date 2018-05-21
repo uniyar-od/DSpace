@@ -7,11 +7,11 @@
  */
 package org.dspace.authority.service;
 
+import java.sql.SQLException;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-
-import java.sql.SQLException;
 
 /**
  * Service interface class for the Metadata Authority

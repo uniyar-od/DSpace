@@ -73,7 +73,6 @@ import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -119,7 +118,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     public static final String DATE_FORMAT_DCDATE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
-    private Boolean useProxies;
+    public Boolean useProxies;
     
     @Autowired(required = true)
     private SpiderDetector spiderDetector;

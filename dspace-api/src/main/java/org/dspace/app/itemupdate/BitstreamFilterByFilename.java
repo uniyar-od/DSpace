@@ -7,7 +7,8 @@
  */
 package org.dspace.app.itemupdate;
 
-import java.util.regex.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.dspace.content.Bitstream;
 

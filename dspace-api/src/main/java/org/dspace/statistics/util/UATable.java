@@ -8,8 +8,6 @@
 package org.dspace.statistics.util;
 
 import java.util.HashSet;
-import java.util.regex.Pattern;
-import java.util.Set;
 
 public class UATable {
 

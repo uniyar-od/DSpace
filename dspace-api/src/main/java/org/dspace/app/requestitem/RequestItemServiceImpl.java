@@ -7,6 +7,9 @@
  */
 package org.dspace.app.requestitem;
 
+import java.sql.SQLException;
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 import org.dspace.app.requestitem.dao.RequestItemDAO;
 import org.dspace.app.requestitem.service.RequestItemService;
@@ -15,9 +18,6 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.sql.SQLException;
-import java.util.Date;
 
 /**
  * Service implementation for the RequestItem object.

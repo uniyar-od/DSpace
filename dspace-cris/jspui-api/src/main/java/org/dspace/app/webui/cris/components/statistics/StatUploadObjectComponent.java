@@ -123,7 +123,7 @@ public class StatUploadObjectComponent<T extends BrowsableDSpaceObject> extends 
 
 	@Override
 	public Map queryFacetDate(SolrLoggerService statsLogger, BrowsableDSpaceObject object,
-			String dateType, String dateStart, String dateEnd, int gap)
+			String dateType, String dateStart, String dateEnd, int gap, Context context)
 			throws SolrServerException {
 		// TODO Auto-generated method stub
 		return null;

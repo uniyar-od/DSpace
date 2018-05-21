@@ -7,17 +7,22 @@
  */
 package org.dspace.app.statistics;
 
-import org.apache.commons.lang.time.DateUtils;
-import org.dspace.core.ConfigurationManager;
-
-import java.text.DateFormat;
-import java.util.*;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 import java.io.File;
 import java.io.FilenameFilter;
-import java.text.SimpleDateFormat;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang.time.DateUtils;
+import org.dspace.core.ConfigurationManager;
 
 /**
  * Helper class for loading the analysis / report files from the reports directory

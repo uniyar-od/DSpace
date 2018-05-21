@@ -8,7 +8,6 @@
 package org.dspace.identifier.doi;
 
 import org.apache.log4j.Logger;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.UsageEventEntity;
 import org.dspace.content.factory.ContentServiceFactory;

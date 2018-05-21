@@ -7,15 +7,15 @@
  */
 package org.dspace.app.mediafilter.service;
 
+import java.util.List;
+import java.util.Map;
+
 import org.dspace.app.mediafilter.FormatFilter;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * MediaFilterManager is the class that invokes the media/format filters over the

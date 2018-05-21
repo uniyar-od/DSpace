@@ -14,7 +14,10 @@ import java.text.ParseException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.DCDate;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 /**

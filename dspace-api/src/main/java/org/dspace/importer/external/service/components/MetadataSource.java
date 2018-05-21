@@ -8,12 +8,12 @@
 
 package org.dspace.importer.external.service.components;
 
-import org.dspace.content.Item;
-import org.dspace.importer.external.exception.MetadataSourceException;
-import org.dspace.importer.external.datamodel.Query;
-import org.dspace.importer.external.datamodel.ImportRecord;
-
 import java.util.Collection;
+
+import org.dspace.content.Item;
+import org.dspace.importer.external.datamodel.ImportRecord;
+import org.dspace.importer.external.datamodel.Query;
+import org.dspace.importer.external.exception.MetadataSourceException;
 
 /** Common interface for all import implementations.
  * @author Roeland Dillen (roeland at atmire dot com)
