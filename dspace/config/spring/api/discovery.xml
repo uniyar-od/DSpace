@@ -1680,18 +1680,6 @@
 		</property>
 	</bean>
 		
-
-    <bean id="searchFilterContentInOriginalBundle" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
-        <property name="indexFieldName" value="has_content_in_original_bundle"/>
-        <property name="metadataFields">
-            <list/>
-        </property>
-        <property name="facetLimit" value="2"/>
-        <property name="type" value="standard"/>
-        <property name="sortOrderSidebar" value="COUNT"/>
-        <property name="sortOrderFilterPage" value="COUNT"/>
-    </bean>
-    
 	<bean id="searchFilterObjectName"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
 		<property name="indexFieldName" value="objectname" />
