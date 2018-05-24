@@ -8,30 +8,34 @@
 package org.dspace.discovery.configuration;
 
 
-
 public class DiscoveryCollapsingConfiguration {
-    
-	private String groupIndexFieldName;
 
-	private int groupLimit;
-	
+    private String groupIndexFieldName;
+
+    private int groupLimit;
+
     public String getGroupIndexFieldName() {
-		return groupIndexFieldName;
-	}
-	public void setGroupIndexFieldName(String groupField) {
-		this.groupIndexFieldName = groupField;
-	}
-	public int getGroupLimit() {
-		return groupLimit;
-	}
-	public void setGroupLimit(int groupLimit) {
-		this.groupLimit = groupLimit;
-	}
+        return groupIndexFieldName;
+    }
+
+    public void setGroupIndexFieldName(String groupField) {
+        this.groupIndexFieldName = groupField;
+    }
+
+    public int getGroupLimit() {
+        return groupLimit;
+    }
+
+    public void setGroupLimit(int groupLimit) {
+        this.groupLimit = groupLimit;
+    }
+
     public String getGroupField() {
-		return getGroupIndexFieldName() + "_group";
-	}
-	public String getGlobalFacet() {
-		return getGroupIndexFieldName() + "_filter";
-	}
-    
+        return getGroupIndexFieldName() + "_group";
+    }
+
+    public String getGlobalFacet() {
+        return getGroupIndexFieldName() + "_filter";
+    }
+
 }

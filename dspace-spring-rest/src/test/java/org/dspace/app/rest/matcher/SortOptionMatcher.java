@@ -7,37 +7,30 @@
  */
 package org.dspace.app.rest.matcher;
 
-import org.hamcrest.Matcher;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
 
+import org.hamcrest.Matcher;
+
 public class SortOptionMatcher {
 
+    private SortOptionMatcher() { }
+
     public static Matcher<? super Object> titleSortOption() {
-        return allOf(
-                hasJsonPath("$.name", is("dc.title"))
-        );
+        return allOf(hasJsonPath("$.name", is("dc.title")));
     }
 
     public static Matcher<? super Object> dateIssuedSortOption() {
-        return allOf(
-                hasJsonPath("$.name", is("dc.date.issued"))
-        );
+        return allOf(hasJsonPath("$.name", is("dc.date.issued")));
     }
 
     public static Matcher<? super Object> scoreSortOption() {
-        return allOf(
-                hasJsonPath("$.name", is("score"))
-        );
+        return allOf(hasJsonPath("$.name", is("score")));
     }
 
-    public static Matcher<? super Object> sortByAndOrder(String by, String order){
-        return allOf(
-                hasJsonPath("$.by", is(by)),
-                hasJsonPath("$.order", is(order))
-        );
+    public static Matcher<? super Object> sortByAndOrder(String by, String order) {
+        return allOf(hasJsonPath("$.by", is(by)), hasJsonPath("$.order", is(order)));
     }
 
 }

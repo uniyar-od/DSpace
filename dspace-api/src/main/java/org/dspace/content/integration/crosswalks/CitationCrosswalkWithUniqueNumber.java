@@ -10,54 +10,49 @@ package org.dspace.content.integration.crosswalks;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.core.Context;
 
 /**
- * 
  * Disseminate citations crosswalk, wrap ReferCrosswalk to manage custom
  * operation after default dissemination. TODO ingest?
- * 
- * @author pascarelli
  *
+ * @author pascarelli
  */
 public class CitationCrosswalkWithUniqueNumber extends ReferCrosswalk implements IDisseminateUniqueNumber {
 
-	@Override
-	public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
-			throws CrosswalkException, IOException, SQLException, AuthorizeException {
+    @Override
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
+        throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
-		disseminate(context, dso, out, null);
+        disseminate(context, dso, out, null);
 
-	}
+    }
 
-	@Override
-	public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out, Integer index)
-            throws CrosswalkException, IOException, SQLException,
-            AuthorizeException
-    {
- 
+    @Override
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out, Integer index)
+        throws CrosswalkException, IOException, SQLException,
+        AuthorizeException {
+
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         super.disseminate(context, dso, stream);
-        
-        String s = ""; 
-        if(index!=null) {	
-        	s = "("+index+")";
+
+        String s = "";
+        if (index != null) {
+            s = "(" + index + ")";
         }
         s += stream.toString().replaceAll("\\r\\n", "");
         s += " \r\n";
-        
+
         out.write(s.getBytes());
     }
-	
-	@Override
-	public boolean assignUniqueNumber() {
-		return true;
-	}
+
+    @Override
+    public boolean assignUniqueNumber() {
+        return true;
+    }
 }

@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
-
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
@@ -49,115 +48,116 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is the repository responsible to manage PooledTask Rest object
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 
 @Component(PoolTaskRest.CATEGORY + "." + ClaimedTaskRest.NAME)
 public class ClaimedTaskRestRepository extends DSpaceRestRepository<ClaimedTaskRest, Integer> {
 
-	private static final Logger log = Logger.getLogger(ClaimedTaskRestRepository.class);
-	
-	@Autowired
-	ItemService itemService;
-	
-	@Autowired
-	EPersonService epersonService;
-	
-	@Autowired
-	ClaimedTaskService claimedTaskService;
-	
-	@Autowired
-	ClaimedTaskConverter converter;
+    private static final Logger log = Logger.getLogger(ClaimedTaskRestRepository.class);
 
-	@Autowired
-	XmlWorkflowService workflowService;
-	
-	@Autowired
-	WorkflowRequirementsService workflowRequirementsService;
-	
-	@Override
-	public ClaimedTaskRest findOne(Context context, Integer id) {
-		ClaimedTask task = null;
-		try {
-			task = claimedTaskService.find(context, id);
-		} catch (SQLException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		if (task == null) {
-			return null;
-		}
-		return converter.fromModel(task);
-	}
+    @Autowired
+    ItemService itemService;
 
-	@SearchRestMethod(name = "findByUser")
-	public Page<ClaimedTaskRest> findByUser(@Param(value="uuid") UUID userID, Pageable pageable) {
-		List<ClaimedTask> tasks = null;
-		try {		
-			Context context = obtainContext();
-			EPerson ep = epersonService.find(context, userID); 
-			tasks = claimedTaskService.findByEperson(context, ep);
-		} catch (SQLException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		Page<ClaimedTaskRest> page = utils.getPage(tasks, pageable).map(converter);
-		return page;
-	}
-	
-	@Override
-	public Class<ClaimedTaskRest> getDomainClass() {
-		return ClaimedTaskRest.class;
-	}
-	
-	@Override
-	public ClaimedTaskResource wrapResource(ClaimedTaskRest task, String... rels) {
-		return new ClaimedTaskResource(task, utils, rels);
-	}
-	
-	@Override
-	protected ClaimedTaskRest action(Context context, HttpServletRequest request, Integer id)
-			throws SQLException, IOException, AuthorizeException {
-		ClaimedTask task = null;
-		task = claimedTaskService.find(context, id);
-		XmlWorkflowServiceFactory factory = (XmlWorkflowServiceFactory) XmlWorkflowServiceFactory.getInstance();
-		Workflow workflow;
-		try {
-			workflow = factory.getWorkflowFactory().getWorkflow(task.getWorkflowItem().getCollection());
+    @Autowired
+    EPersonService epersonService;
 
-			Step step = workflow.getStep(task.getStepID());
-			WorkflowActionConfig currentActionConfig = step.getActionConfig(task.getActionID());
-			workflowService.doState(context, context.getCurrentUser(), request, task.getWorkflowItem().getID(),
-					workflow, currentActionConfig);
-			if (!Action.getErrorFields(request).isEmpty()) {
-				throw new UnprocessableEntityException();
-			}
-			// workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task.getStepID());
-            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, task.getWorkflowItem().getItem().getID(),
-                    null, itemService.getIdentifiers(context, task.getWorkflowItem().getItem())));
-		} catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
-			throw new RuntimeException(e.getMessage(), e); 
-		}
-		return null;
-	}
-	
-	@Override
-	protected void delete(Context context, Integer id) {
-		ClaimedTask task = null;
-		try {
-			task = claimedTaskService.find(context, id);
-			XmlWorkflowItem workflowItem = task.getWorkflowItem();
+    @Autowired
+    ClaimedTaskService claimedTaskService;
+
+    @Autowired
+    ClaimedTaskConverter converter;
+
+    @Autowired
+    XmlWorkflowService workflowService;
+
+    @Autowired
+    WorkflowRequirementsService workflowRequirementsService;
+
+    @Override
+    public ClaimedTaskRest findOne(Context context, Integer id) {
+        ClaimedTask task = null;
+        try {
+            task = claimedTaskService.find(context, id);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        if (task == null) {
+            return null;
+        }
+        return converter.fromModel(task);
+    }
+
+    @SearchRestMethod(name = "findByUser")
+    public Page<ClaimedTaskRest> findByUser(@Param(value = "uuid") UUID userID, Pageable pageable) {
+        List<ClaimedTask> tasks = null;
+        try {
+            Context context = obtainContext();
+            EPerson ep = epersonService.find(context, userID);
+            tasks = claimedTaskService.findByEperson(context, ep);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        Page<ClaimedTaskRest> page = utils.getPage(tasks, pageable).map(converter);
+        return page;
+    }
+
+    @Override
+    public Class<ClaimedTaskRest> getDomainClass() {
+        return ClaimedTaskRest.class;
+    }
+
+    @Override
+    public ClaimedTaskResource wrapResource(ClaimedTaskRest task, String... rels) {
+        return new ClaimedTaskResource(task, utils, rels);
+    }
+
+    @Override
+    protected ClaimedTaskRest action(Context context, HttpServletRequest request, Integer id)
+        throws SQLException, IOException, AuthorizeException {
+        ClaimedTask task = null;
+        task = claimedTaskService.find(context, id);
+        XmlWorkflowServiceFactory factory = (XmlWorkflowServiceFactory) XmlWorkflowServiceFactory.getInstance();
+        Workflow workflow;
+        try {
+            workflow = factory.getWorkflowFactory().getWorkflow(task.getWorkflowItem().getCollection());
+
+            Step step = workflow.getStep(task.getStepID());
+            WorkflowActionConfig currentActionConfig = step.getActionConfig(task.getActionID());
+            workflowService
+                .doState(context, context.getCurrentUser(), request, task.getWorkflowItem().getID(), workflow,
+                    currentActionConfig);
+            if (!Action.getErrorFields(request).isEmpty()) {
+                throw new UnprocessableEntityException();
+            }
+            // workflowRequirementsService.removeClaimedUser(context, task.getWorkflowItem(), task.getOwner(), task
+            // .getStepID());
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, task.getWorkflowItem().getItem().getID(), null,
+                itemService.getIdentifiers(context, task.getWorkflowItem().getItem())));
+        } catch (WorkflowConfigurationException | MessagingException | WorkflowException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    @Override
+    protected void delete(Context context, Integer id) {
+        ClaimedTask task = null;
+        try {
+            task = claimedTaskService.find(context, id);
+            XmlWorkflowItem workflowItem = task.getWorkflowItem();
             workflowService.deleteClaimedTask(context, workflowItem, task);
-			workflowRequirementsService.removeClaimedUser(context, workflowItem, task.getOwner(), task.getStepID());
-            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, workflowItem.getItem().getID(),
-                    null, itemService.getIdentifiers(context, workflowItem.getItem())));
-		} catch (SQLException | IOException | WorkflowConfigurationException | AuthorizeException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-	}
+            workflowRequirementsService.removeClaimedUser(context, workflowItem, task.getOwner(), task.getStepID());
+            context.addEvent(new Event(Event.MODIFY, Constants.ITEM, workflowItem.getItem().getID(), null,
+                itemService.getIdentifiers(context, workflowItem.getItem())));
+        } catch (SQLException | IOException | WorkflowConfigurationException | AuthorizeException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
 
-	@Override
-	public Page<ClaimedTaskRest> findAll(Context context, Pageable pageable) {
-		throw new RuntimeException("Method not allowed!");
-	}
+    @Override
+    public Page<ClaimedTaskRest> findAll(Context context, Pageable pageable) {
+        throw new RuntimeException("Method not allowed!");
+    }
 }

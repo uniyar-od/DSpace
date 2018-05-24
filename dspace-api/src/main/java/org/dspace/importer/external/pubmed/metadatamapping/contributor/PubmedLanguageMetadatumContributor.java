@@ -7,6 +7,7 @@
  */
 
 package org.dspace.importer.external.pubmed.metadatamapping.contributor;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -28,27 +29,30 @@ import org.dspace.importer.external.metadatamapping.contributor.MetadataContribu
 public class PubmedLanguageMetadatumContributor<T> implements MetadataContributor<T> {
     Logger log = Logger.getLogger(PubmedDateMetadatumContributor.class);
 
-    private MetadataFieldMapping<T,MetadataContributor<T>> metadataFieldMapping;
-    private HashMap<String,String> iso3toIso2;
+    private MetadataFieldMapping<T, MetadataContributor<T>> metadataFieldMapping;
+    private HashMap<String, String> iso3toIso2;
 
     private MetadataFieldConfig field;
     private MetadataContributor language;
 
     /**
-     * Initialize PubmedLanguageMetadatumContributor and create the iso3toiso2 mapping used in the transforming of language codes
+     * Initialize PubmedLanguageMetadatumContributor and create the iso3toiso2 mapping used in the transforming of
+     * language codes
      */
     public PubmedLanguageMetadatumContributor() {
         iso3toIso2 = new HashMap<>();
         // Populate the languageMap with the mapping between iso3 and iso2 language codes
         for (Locale locale : Locale.getAvailableLocales()) {
-            iso3toIso2.put(locale.getISO3Language(),locale.getLanguage());
+            iso3toIso2.put(locale.getISO3Language(), locale.getLanguage());
         }
     }
 
     /**
-     * Initialize the PubmedLanguageMetadatumContributor class using a {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} and a language -{@link org.dspace.importer.external.metadatamapping.contributor.MetadataContributor}
+     * Initialize the PubmedLanguageMetadatumContributor class using a
+     * {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} and a language
+     * -{@link org.dspace.importer.external.metadatamapping.contributor.MetadataContributor}
      *
-     * @param field {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} used in mapping
+     * @param field    {@link org.dspace.importer.external.metadatamapping.MetadataFieldConfig} used in mapping
      * @param language the language.
      */
     public PubmedLanguageMetadatumContributor(MetadataFieldConfig field, MetadataContributor language) {
@@ -69,8 +73,6 @@ public class PubmedLanguageMetadatumContributor<T> implements MetadataContributo
     }
 
     /**
-     *
-     *
      * @param t A class to retrieve metadata from.
      * @return a collection of import records. Only the identifier of the found records may be put in the record.
      */

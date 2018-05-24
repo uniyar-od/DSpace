@@ -29,9 +29,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import javax.servlet.http.HttpServletRequest;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -87,47 +88,43 @@ import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import au.com.bytecode.opencsv.CSVReader;
-import au.com.bytecode.opencsv.CSVWriter;
-
 /**
  * Static holder for a HttpSolrClient connection pool to issue
  * usage logging events to Solr from DSpace libraries, and some static query
  * composers.
- * 
+ *
  * @author ben at atmire.com
  * @author kevinvandevelde at atmire.com
  * @author mdiggory at atmire.com
  */
-public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBean
-{
+public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBean {
     private static final Logger log = Logger.getLogger(SolrLoggerServiceImpl.class);
-    
-	public static final String CFG_STAT_MODULE = "solr-statistics";
-    
-	public static final String CFG_USAGE_MODULE = "usage-statistics";
+
+    public static final String CFG_STAT_MODULE = "solr-statistics";
+
+    public static final String CFG_USAGE_MODULE = "usage-statistics";
 
     private static final String MULTIPLE_VALUES_SPLITTER = "|";
 
     protected SolrServer solr;
 
     public SolrServer getSolr() {
-		return solr;
-	}
+        return solr;
+    }
 
-	public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
+    public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public static final String DATE_FORMAT_DCDATE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
     protected Boolean useProxies;
-    
+
     @Autowired(required = true)
     private SpiderDetector spiderDetector;
 
     private List<String> statisticYearCores = new ArrayList<String>();
 
     private boolean statisticYearCoresInit = false;
-    
+
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
@@ -136,32 +133,31 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     private ConfigurationService configurationService;
 
     public static enum StatisticsType {
-   		VIEW ("view"),
-   		SEARCH ("search"),
-   		SEARCH_RESULT ("search_result"),
+        VIEW("view"),
+        SEARCH("search"),
+        SEARCH_RESULT("search_result"),
         WORKFLOW("workflow");
 
-   		private final String text;
+        private final String text;
 
         StatisticsType(String text) {
-   	        this.text = text;
-   	    }
-   	    public String text()   { return text; }
-   	}
+            this.text = text;
+        }
 
-    protected SolrLoggerServiceImpl()
-    {
+        public String text() {
+            return text;
+        }
+    }
+
+    protected SolrLoggerServiceImpl() {
 
     }
 
-    public boolean getUseProxies()
-    {
-        if (useProxies == null)
-        {
+    public boolean getUseProxies() {
+        if (useProxies == null) {
             boolean result = false;
             if ("true".equals(configurationService.getProperty(
-                    "solr-statistics.useProxies")))
-            {
+                "solr-statistics.useProxies"))) {
                 result = true;
             }
             log.info("useProxies=" + useProxies);
@@ -171,27 +167,22 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception
-    {
+    public void afterPropertiesSet() throws Exception {
         log.info("solr-statistics.spidersfile:" + configurationService.getProperty("solr-statistics.spidersfile"));
         log.info("solr-statistics.server:" + configurationService.getProperty("solr-statistics.server"));
         log.info("usage-statistics.dbfile:" + configurationService.getProperty("usage-statistics.dbfile"));
-    	
-        
-        
-        if (configurationService.getProperty("solr-statistics.server") != null)
-        {
+
+
+        if (configurationService.getProperty("solr-statistics.server") != null) {
             String pcore = configurationService.getProperty(CFG_STAT_MODULE +
-                    ".server");
+                                                                ".server");
             log.info("solr-statistics.server:" + pcore);
             HttpSolrServer server = null;
-            
-            if (pcore != null)
-            {
-                try
-                {
+
+            if (pcore != null) {
+                try {
                     server = new HttpSolrServer(pcore);
-                    
+
                     //Attempt to retrieve all the statistic year cores
                     File solrDir = new File(configurationService.getProperty("dspace.dir") + "/solr/");
                     File[] solrCoreFiles = solrDir.listFiles(new FileFilter() {
@@ -209,13 +200,12 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
                         createCore(server, solrCoreFile.getName());
                         //Add it to our cores list so we can query it !
-                        statisticYearCores.add(baseSolrUrl.replace("http://", "").replace("https://", "") + solrCoreFile.getName());
+                        statisticYearCores
+                            .add(baseSolrUrl.replace("http://", "").replace("https://", "") + solrCoreFile.getName());
                     }
                     //Also add the core containing the current year !
                     statisticYearCores.add(server.getBaseURL().replace("http://", "").replace("https://", ""));
-                }
-                catch (Exception e)
-                {
+                } catch (Exception e) {
                     log.warn(e.getMessage(), e);
                 }
             }
@@ -223,29 +213,27 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
     }
 
-    
-    public SolrDocumentList getRawData(int type, int year) throws SolrServerException
-    {
+
+    public SolrDocumentList getRawData(int type, int year) throws SolrServerException {
         SolrQuery query = new SolrQuery();
-        String start = year+"-01-01T00:00:00.000Z";
-        String end = (year+1)+"-01-01T00:00:00.000Z";
-        query.setQuery("time:["+start+" TO "+end+"]");
+        String start = year + "-01-01T00:00:00.000Z";
+        String end = (year + 1) + "-01-01T00:00:00.000Z";
+        query.setQuery("time:[" + start + " TO " + end + "]");
         query.setFilterQueries("type:" + type);
         query.setRows(Integer.MAX_VALUE);
         query.setFields("ip", "id", "type", "time", "dns", "epersonid",
-                "isBot", "userAgent");
+                        "isBot", "userAgent");
         QueryResponse resp = getSolr().query(query);
         return resp.getResults();
     }
-    
-    public SolrDocumentList getRawData(int type) throws SolrServerException
-    {
+
+    public SolrDocumentList getRawData(int type) throws SolrServerException {
         SolrQuery query = new SolrQuery();
         query.setQuery("*:*");
         query.setFilterQueries("type:" + type);
         query.setRows(Integer.MAX_VALUE);
         query.setFields("ip", "id", "type", "time", "dns", "epersonid",
-                "isBot", "userAgent");
+                        "isBot", "userAgent");
         QueryResponse resp = getSolr().query(query);
         return resp.getResults();
     }
@@ -253,40 +241,37 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     /**
      * Old post method, use the new postview method instead !
      *
-     * @deprecated
      * @param dspaceObject the object used.
-     * @param request the current request context.
-     * @param currentUser the current session's user.
+     * @param request      the current request context.
+     * @param currentUser  the current session's user.
+     * @deprecated
      */
     public void post(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
-            EPerson currentUser)
-    {
-        postView(dspaceObject, request,  currentUser);
+                     EPerson currentUser) {
+        postView(dspaceObject, request, currentUser);
     }
 
     /**
      * Store a usage event into Solr.
      *
      * @param dspaceObject the object used.
-     * @param request the current request context.
-     * @param currentUser the current session's user.
+     * @param request      the current request context.
+     * @param currentUser  the current session's user.
      */
     public void postView(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
-                                EPerson currentUser)
-    {
-    	if (solr == null)
-        {
+                         EPerson currentUser) {
+        if (solr == null) {
             return;
         }
         initSolrYearCores();
 
 
-        try
-        {
+        try {
             SolrInputDocument doc1 = getCommonSolrDocByRequest(dspaceObject, request, currentUser);
-            if (doc1 == null) return;
-            if(dspaceObject instanceof Bitstream)
-            {
+            if (doc1 == null) {
+                return;
+            }
+            if (dspaceObject instanceof Bitstream) {
                 Bitstream bit = (Bitstream) dspaceObject;
                 List<Bundle> bundles = bit.getBundles();
                 for (Bundle bundle : bundles) {
@@ -301,73 +286,70 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             //commits are executed automatically using the solr autocommit
 //            solr.commit(false, false);
 
-        }
-        catch (RuntimeException re)
-        {
+        } catch (RuntimeException re) {
             throw re;
-        }
-        catch (Exception e)
-        {
-        	log.error(e.getMessage(), e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
-    
+
     @Override
-	public void postView(BrowsableDSpaceObject dspaceObject,
-			String ip, String userAgent, String xforwarderfor, EPerson currentUser) {
-		if (getSolr() == null)
-		{
-			return;
-		}
+    public void postView(BrowsableDSpaceObject dspaceObject,
+                         String ip, String userAgent, String xforwarderfor, EPerson currentUser) {
+        if (getSolr() == null) {
+            return;
+        }
 
-		try {
-			SolrInputDocument doc1 = getCommonSolrDocByHeaders(dspaceObject, ip, userAgent, xforwarderfor,
-					currentUser);
-			if (doc1 == null)
-				return;
-			if (dspaceObject instanceof Bitstream) {
-				Bitstream bit = (Bitstream) dspaceObject;
-				List<Bundle> bundles = bit.getBundles();
-				for (Bundle bundle : bundles) {
-					doc1.addField("bundleName", bundle.getName());
-				}
-			}
+        try {
+            SolrInputDocument doc1 = getCommonSolrDocByHeaders(dspaceObject, ip, userAgent, xforwarderfor,
+                                                               currentUser);
+            if (doc1 == null) {
+                return;
+            }
+            if (dspaceObject instanceof Bitstream) {
+                Bitstream bit = (Bitstream) dspaceObject;
+                List<Bundle> bundles = bit.getBundles();
+                for (Bundle bundle : bundles) {
+                    doc1.addField("bundleName", bundle.getName());
+                }
+            }
 
-			doc1.addField("statistics_type", StatisticsType.VIEW.text());
+            doc1.addField("statistics_type", StatisticsType.VIEW.text());
 
-			solr.add(doc1);
-			// commits are executed automatically using the solr autocommit
-			// solr.commit(false, false);
+            solr.add(doc1);
+            // commits are executed automatically using the solr autocommit
+            // solr.commit(false, false);
 
-		} catch (RuntimeException re) {
-			throw re;
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
-	}
-    
+        } catch (RuntimeException re) {
+            throw re;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
 
     /**
      * Returns a solr input document containing common information about the statistics
      * regardless if we are logging a search or a view of a DSpace object
+     *
      * @param dspaceObject the object used.
-     * @param request the current request context.
-     * @param currentUser the current session's user.
+     * @param request      the current request context.
+     * @param currentUser  the current session's user.
      * @return a solr input document
      * @throws SQLException in case of a database exception
      */
-    private SolrInputDocument getCommonSolrDocByRequest(BrowsableDSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) throws SQLException {
+    private SolrInputDocument getCommonSolrDocByRequest(BrowsableDSpaceObject dspaceObject, HttpServletRequest request,
+                                                        EPerson currentUser) throws SQLException {
         boolean isSpiderBot = request != null && getSpiderDetector().isSpider(request);
-        if(isSpiderBot &&
-                !configurationService.getBooleanProperty("usage-statistics.logBots", true))
-        {
+        if (isSpiderBot &&
+            !configurationService.getBooleanProperty("usage-statistics.logBots", true)) {
             return null;
         }
 
         SolrInputDocument doc1 = new SolrInputDocument();
         // Save our basic info that we already have
 
-        if(request != null){
+        if (request != null) {
             String ip = request.getRemoteAddr();
 
             if (isUseProxies() && request.getHeader("X-Forwarded-For") != null) {
@@ -386,56 +368,53 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             doc1.addField("ip", ip);
 
             //Also store the referrer
-            if(request.getHeader("referer") != null){
+            if (request.getHeader("referer") != null) {
                 doc1.addField("referrer", request.getHeader("referer"));
             }
-            
-            if (request.getHeader("User-Agent") != null)
+
+            if (request.getHeader("User-Agent") != null) {
                 doc1.addField("userAgent", request.getHeader("User-Agent"));
-            
-            doc1.addField("isBot",isSpiderBot);
-            
-            try
-            {
+            }
+
+            doc1.addField("isBot", isSpiderBot);
+
+            try {
                 String dns = DnsLookup.reverseDns(ip);
                 doc1.addField("dns", dns.toLowerCase());
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.info("Failed DNS Lookup for IP:" + ip);
-                log.debug(e.getMessage(),e);
+                log.debug(e.getMessage(), e);
             }
         }
 
-        if(dspaceObject != null){
+        if (dspaceObject != null) {
             doc1.addField("id", dspaceObject.getID());
             doc1.addField("type", dspaceObject.getType());
-            if(dspaceObject.haveHierarchy()) {
-            	storeParents(doc1, (DSpaceObject)dspaceObject);
+            if (dspaceObject.haveHierarchy()) {
+                storeParents(doc1, (DSpaceObject) dspaceObject);
             }
         }
         // Save the current time
         doc1.addField("time", DateFormatUtils.format(new Date(), DATE_FORMAT_8601));
-        if (currentUser != null)
-        {
+        if (currentUser != null) {
             doc1.addField("epersonid", currentUser.getID());
         }
 
         // Do any additional indexing, depends on the plugins
         List<SolrStatsIndexPlugin> solrServiceIndexPlugins = new DSpace()
-                .getServiceManager().getServicesByType(
-                        SolrStatsIndexPlugin.class);
-        for (SolrStatsIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
-        {
+            .getServiceManager().getServicesByType(
+                SolrStatsIndexPlugin.class);
+        for (SolrStatsIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins) {
             solrServiceIndexPlugin.additionalIndex(request, dspaceObject,
-                    doc1);
+                                                   doc1);
         }
-        
+
         return doc1;
     }
 
-    private SolrInputDocument getCommonSolrDocByHeaders(BrowsableDSpaceObject dspaceObject, String ip, String userAgent, String xforwarderfor, EPerson currentUser) throws SQLException {
-    	if (isUseProxies() && xforwarderfor != null) {
+    private SolrInputDocument getCommonSolrDocByHeaders(BrowsableDSpaceObject dspaceObject, String ip, String userAgent,
+                                                        String xforwarderfor, EPerson currentUser) throws SQLException {
+        if (isUseProxies() && xforwarderfor != null) {
             /* This header is a comma delimited list */
             for (String xfip : xforwarderfor.split(",")) {
                 /* proxy itself will sometime populate this header with the same value in
@@ -446,123 +425,113 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                     ip = xfip.trim();
                 }
             }
-    	}
-    	
-    	String dns = null;
-    	try
-        {
+        }
+
+        String dns = null;
+        try {
             dns = DnsLookup.reverseDns(ip);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error("Failed DNS Lookup for IP:" + ip);
-            log.debug(e.getMessage(),e);
+            log.debug(e.getMessage(), e);
         }
-    	return getCommonSolrDocByFinalIP(dspaceObject, ip, dns, userAgent, currentUser);
+        return getCommonSolrDocByFinalIP(dspaceObject, ip, dns, userAgent, currentUser);
     }
-    
-    private SolrInputDocument getCommonSolrDocByFinalIP(BrowsableDSpaceObject dspaceObject, String ip, String dns, String userAgent, EPerson currentUser) throws SQLException {
+
+    private SolrInputDocument getCommonSolrDocByFinalIP(BrowsableDSpaceObject dspaceObject, String ip, String dns,
+                                                        String userAgent, EPerson currentUser) throws SQLException {
         boolean isSpiderBot = spiderDetector.isSpider(ip);
-        if(isSpiderBot &&
-                !configurationService.getBooleanProperty("usage-statistics.logBots", true))
-        {
+        if (isSpiderBot &&
+            !configurationService.getBooleanProperty("usage-statistics.logBots", true)) {
             return null;
         }
 
         SolrInputDocument doc1 = new SolrInputDocument();
-        
+
         // Save our basic info that we already have
         doc1.addField("ip", ip);
 
-        if (userAgent != null)
-        {
-        	doc1.addField("userAgent", userAgent);
+        if (userAgent != null) {
+            doc1.addField("userAgent", userAgent);
         }
-        
-        doc1.addField("isBot",isSpiderBot);
-        
-        if (dns != null)
-        {
+
+        doc1.addField("isBot", isSpiderBot);
+
+        if (dns != null) {
             doc1.addField("dns", dns.toLowerCase());
         }
-            
-        if(dspaceObject != null){
+
+        if (dspaceObject != null) {
             doc1.addField("id", dspaceObject.getID());
             doc1.addField("type", dspaceObject.getType());
-            if(dspaceObject.haveHierarchy()) {
-            	storeParents(doc1, (DSpaceObject)dspaceObject);
+            if (dspaceObject.haveHierarchy()) {
+                storeParents(doc1, (DSpaceObject) dspaceObject);
             }
         }
         // Save the current time
         doc1.addField("time", DateFormatUtils.format(new Date(), DATE_FORMAT_8601));
-        if (currentUser != null)
-        {
+        if (currentUser != null) {
             doc1.addField("epersonid", currentUser.getID());
         }
 
         // Do any additional indexing, depends on the plugins
         List<SolrStatsIndexPlugin> solrServiceIndexPlugins = new DSpace()
-                .getServiceManager().getServicesByType(
-                        SolrStatsIndexPlugin.class);
-        for (SolrStatsIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
-        {
+            .getServiceManager().getServicesByType(
+                SolrStatsIndexPlugin.class);
+        for (SolrStatsIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins) {
             solrServiceIndexPlugin.additionalIndex(null, dspaceObject,
-                    doc1);
+                                                   doc1);
         }
-                
+
         return doc1;
     }
 
-    
+
     @Override
     public void postSearch(BrowsableDSpaceObject resultObject, HttpServletRequest request, EPerson currentUser,
-                                 List<String> queries, int rpp, String sortBy, String order, int page, DSpaceObject scope) {
-        try
-        {
+                           List<String> queries, int rpp, String sortBy, String order, int page, DSpaceObject scope) {
+        try {
             SolrInputDocument solrDoc = getCommonSolrDocByRequest(resultObject, request, currentUser);
-            if (solrDoc == null) return;
+            if (solrDoc == null) {
+                return;
+            }
             initSolrYearCores();
 
             for (String query : queries) {
                 solrDoc.addField("query", query);
             }
 
-            if(resultObject != null){
+            if (resultObject != null) {
                 //We have a search result
                 solrDoc.addField("statistics_type", StatisticsType.SEARCH_RESULT.text());
-            }else{
+            } else {
                 solrDoc.addField("statistics_type", StatisticsType.SEARCH.text());
             }
             //Store the scope
-            if(scope != null){
+            if (scope != null) {
                 solrDoc.addField("scopeId", scope.getType());
                 solrDoc.addField("scopeType", scope.getID());
             }
 
-            if(rpp != -1){
+            if (rpp != -1) {
                 solrDoc.addField("rpp", rpp);
             }
 
-            if(sortBy != null){
+            if (sortBy != null) {
                 solrDoc.addField("sortBy", sortBy);
-                if(order != null){
+                if (order != null) {
                     solrDoc.addField("sortOrder", order);
                 }
             }
 
-            if(page != -1){
+            if (page != -1) {
                 solrDoc.addField("page", page);
             }
 
             getSolr().add(solrDoc);
-        }
-        catch (RuntimeException re)
-        {
+        } catch (RuntimeException re) {
             throw re;
-        }
-        catch (Exception e)
-        {
-        	log.error(e.getMessage(), e);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
     }
 
@@ -570,25 +539,26 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public void postWorkflow(UsageWorkflowEvent usageWorkflowEvent) throws SQLException {
         initSolrYearCores();
         try {
-            SolrInputDocument solrDoc = getCommonSolrDocByRequest((BrowsableDSpaceObject)usageWorkflowEvent.getObject(), null, null);
+            SolrInputDocument solrDoc = getCommonSolrDocByRequest(
+                (BrowsableDSpaceObject) usageWorkflowEvent.getObject(), null, null);
 
             //Log the current collection & the scope !
             solrDoc.addField("owningColl", usageWorkflowEvent.getScope().getID());
             storeParents(solrDoc, usageWorkflowEvent.getScope());
 
-            if(usageWorkflowEvent.getWorkflowStep() != null){
+            if (usageWorkflowEvent.getWorkflowStep() != null) {
                 solrDoc.addField("workflowStep", usageWorkflowEvent.getWorkflowStep());
             }
-            if(usageWorkflowEvent.getOldState() != null){
+            if (usageWorkflowEvent.getOldState() != null) {
                 solrDoc.addField("previousWorkflowStep", usageWorkflowEvent.getOldState());
             }
-            if(usageWorkflowEvent.getGroupOwners() != null){
+            if (usageWorkflowEvent.getGroupOwners() != null) {
                 for (int i = 0; i < usageWorkflowEvent.getGroupOwners().length; i++) {
                     Group group = usageWorkflowEvent.getGroupOwners()[i];
                     solrDoc.addField("owner", "g" + group.getID());
                 }
             }
-            if(usageWorkflowEvent.getEpersonOwners() != null){
+            if (usageWorkflowEvent.getEpersonOwners() != null) {
                 for (int i = 0; i < usageWorkflowEvent.getEpersonOwners().length; i++) {
                     EPerson ePerson = usageWorkflowEvent.getEpersonOwners()[i];
                     solrDoc.addField("owner", "e" + ePerson.getID());
@@ -598,57 +568,47 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             solrDoc.addField("workflowItemId", usageWorkflowEvent.getWorkflowItem().getID());
 
             EPerson submitter = ((Item) usageWorkflowEvent.getObject()).getSubmitter();
-            if(submitter != null){
+            if (submitter != null) {
                 solrDoc.addField("submitter", submitter.getID());
             }
             solrDoc.addField("statistics_type", StatisticsType.WORKFLOW.text());
-            if(usageWorkflowEvent.getActor() != null){
+            if (usageWorkflowEvent.getActor() != null) {
                 solrDoc.addField("actor", usageWorkflowEvent.getActor().getID());
             }
 
             getSolr().add(solrDoc);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             //Log the exception, no need to send it through, the workflow shouldn't crash because of this !
-        	log.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
 
     }
 
     @Override
     public void storeParents(SolrInputDocument doc1, DSpaceObject dso)
-            throws SQLException
-    {
-        if (dso instanceof Community)
-        {
+        throws SQLException {
+        if (dso instanceof Community) {
             Community comm = (Community) dso;
             List<Community> parentCommunities = comm.getParentCommunities();
             for (Community parent : parentCommunities) {
                 doc1.addField("owningComm", parent.getID());
                 storeParents(doc1, parent);
             }
-        }
-        else if (dso instanceof Collection)
-        {
+        } else if (dso instanceof Collection) {
             Collection coll = (Collection) dso;
             List<Community> communities = coll.getCommunities();
             for (Community community : communities) {
                 doc1.addField("owningComm", community.getID());
                 storeParents(doc1, community);
             }
-        }
-        else if (dso instanceof Item)
-        {
+        } else if (dso instanceof Item) {
             Item item = (Item) dso;
             List<Collection> collections = item.getCollections();
             for (Collection collection : collections) {
                 doc1.addField("owningColl", collection.getID());
                 storeParents(doc1, collection);
             }
-        }
-        else if (dso instanceof Bitstream)
-        {
+        } else if (dso instanceof Bitstream) {
             Bitstream bitstream = (Bitstream) dso;
             List<Bundle> bundles = bitstream.getBundles();
             for (Bundle bundle : bundles) {
@@ -661,10 +621,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
     }
 
-    public boolean isUseProxies()
-    {
-    	if (useProxies == null)
-        {
+    public boolean isUseProxies() {
+        if (useProxies == null) {
             getUseProxies();
         }
         return useProxies;
@@ -672,33 +630,30 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     @Override
     public void removeIndex(String query) throws IOException,
-            SolrServerException
-    {
+        SolrServerException {
         getSolr().deleteByQuery(query);
         getSolr().commit();
     }
 
-    public class ResultProcessor
-    {
+    public class ResultProcessor {
 
         public void execute(String query) throws SolrServerException, IOException {
             Map<String, String> params = new HashMap<String, String>();
             params.put("q", query);
             params.put("rows", "10");
-            if(0 < statisticYearCores.size()){
+            if (0 < statisticYearCores.size()) {
                 params.put(ShardParams.SHARDS, StringUtils.join(statisticYearCores.iterator(), ','));
             }
             MapSolrParams solrParams = new MapSolrParams(params);
             QueryResponse response = getSolr().query(solrParams);
-            
+
             long numbFound = response.getResults().getNumFound();
 
             // process the first batch
             process(response.getResults());
 
             // Run over the rest
-            for (int i = 10; i < numbFound; i += 10)
-            {
+            for (int i = 10; i < numbFound; i += 10) {
                 params.put("start", String.valueOf(i));
                 solrParams = new MapSolrParams(params);
                 response = getSolr().query(solrParams);
@@ -713,16 +668,18 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         /**
          * Override to manage pages of documents
+         *
          * @param docs
          */
         public void process(List<SolrDocument> docs) throws IOException, SolrServerException {
-            for(SolrDocument doc : docs){
+            for (SolrDocument doc : docs) {
                 process(doc);
             }
         }
 
         /**
          * Override to manage individual documents
+         *
          * @param doc
          */
         public void process(SolrDocument doc) throws IOException, SolrServerException {
@@ -733,14 +690,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
 
     @Override
-    public void markRobotsByIP()
-    {
-        for(String ip : getSpiderDetector().getSpiderIpAddresses()){
+    public void markRobotsByIP() {
+        for (String ip : getSpiderDetector().getSpiderIpAddresses()) {
 
             try {
 
                 /* Result Process to alter record to be identified as a bot */
-                ResultProcessor processor = new ResultProcessor(){
+                ResultProcessor processor = new ResultProcessor() {
                     @Override
                     public void process(SolrDocument doc) throws IOException, SolrServerException {
                         doc.removeFields("isBot");
@@ -752,12 +708,12 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 };
 
                 /* query for ip, exclude results previously set as bots. */
-                processor.execute("ip:"+ip+ "* AND -isBot:true");
+                processor.execute("ip:" + ip + "* AND -isBot:true");
 
                 getSolr().commit();
 
             } catch (Exception e) {
-                log.error(e.getMessage(),e);
+                log.error(e.getMessage(), e);
             }
 
 
@@ -766,62 +722,58 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public void markRobotByUserAgent(String agent){
+    public void markRobotByUserAgent(String agent) {
         try {
 
-                /* Result Process to alter record to be identified as a bot */
-                ResultProcessor processor = new ResultProcessor(){
-                    @Override
-                    public void process(SolrDocument doc) throws IOException, SolrServerException {
-                        doc.removeFields("isBot");
-                        doc.addField("isBot", true);
-                        SolrInputDocument newInput = ClientUtils.toSolrInputDocument(doc);
-                        getSolr().add(newInput);
-                    }
-                };
+            /* Result Process to alter record to be identified as a bot */
+            ResultProcessor processor = new ResultProcessor() {
+                @Override
+                public void process(SolrDocument doc) throws IOException, SolrServerException {
+                    doc.removeFields("isBot");
+                    doc.addField("isBot", true);
+                    SolrInputDocument newInput = ClientUtils.toSolrInputDocument(doc);
+                    getSolr().add(newInput);
+                }
+            };
 
-                /* query for ip, exclude results previously set as bots. */
-                processor.execute("userAgent:"+agent+ " AND -isBot:true");
+            /* query for ip, exclude results previously set as bots. */
+            processor.execute("userAgent:" + agent + " AND -isBot:true");
 
-                getSolr().commit();
-            } catch (Exception e) {
-                log.error(e.getMessage(),e);
-            }
-    }
-
-    @Override
-    public void deleteRobotsByIsBotFlag()
-    {
-        try {
-           getSolr().deleteByQuery("isBot:true");
+            getSolr().commit();
         } catch (Exception e) {
-           log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
         }
     }
 
     @Override
-    public void deleteIP(String ip)
-    {
+    public void deleteRobotsByIsBotFlag() {
         try {
-        	 getSolr().deleteByQuery("ip:"+ip + "*");
+            getSolr().deleteByQuery("isBot:true");
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
         }
     }
 
     @Override
-    public void deleteRobotsByIP()
-    {
-        for(String ip : getSpiderDetector().getSpiderIpAddresses()){
+    public void deleteIP(String ip) {
+        try {
+            getSolr().deleteByQuery("ip:" + ip + "*");
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void deleteRobotsByIP() {
+        for (String ip : getSpiderDetector().getSpiderIpAddresses()) {
             deleteIP(ip);
         }
     }
 
     @Override
     public void update(String query, String action,
-            List<String> fieldNames, List<List<Object>> fieldValuesList)
-            throws SolrServerException, IOException
-    {
+                       List<String> fieldNames, List<List<Object>> fieldValuesList)
+        throws SolrServerException, IOException {
         // Since there is NO update
         // We need to get our documents
         // QueryResponse queryResponse = solr.query()//query(query, null, -1,
@@ -829,12 +781,12 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         final List<SolrDocument> docsToUpdate = new ArrayList<SolrDocument>();
 
-        ResultProcessor processor = new ResultProcessor(){
-                @Override
-                public void process(List<SolrDocument> docs) throws IOException, SolrServerException {
-                    docsToUpdate.addAll(docs);
-                }
-            };
+        ResultProcessor processor = new ResultProcessor() {
+            @Override
+            public void process(List<SolrDocument> docs) throws IOException, SolrServerException {
+                docsToUpdate.addAll(docs);
+            }
+        };
 
         processor.execute(query);
 
@@ -842,45 +794,36 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         getSolr().deleteByQuery(query);
 
         // Add the new (updated onces
-        for (int i = 0; i < docsToUpdate.size(); i++)
-        {
+        for (int i = 0; i < docsToUpdate.size(); i++) {
             SolrDocument solrDocument = docsToUpdate.get(i);
             // Now loop over our fieldname actions
-            for (int j = 0; j < fieldNames.size(); j++)
-            {
+            for (int j = 0; j < fieldNames.size(); j++) {
                 String fieldName = fieldNames.get(j);
                 List<Object> fieldValues = fieldValuesList.get(j);
 
-                if (action.equals("addOne") || action.equals("replace"))
-                {
-                    if (action.equals("replace"))
-                    {
+                if (action.equals("addOne") || action.equals("replace")) {
+                    if (action.equals("replace")) {
                         solrDocument.removeFields(fieldName);
                     }
 
-                    for (Object fieldValue : fieldValues)
-                    {
+                    for (Object fieldValue : fieldValues) {
                         solrDocument.addField(fieldName, fieldValue);
                     }
-                }
-                else if (action.equals("remOne"))
-                {
+                } else if (action.equals("remOne")) {
                     // Remove the field
                     java.util.Collection<Object> values = solrDocument
-                            .getFieldValues(fieldName);
+                        .getFieldValues(fieldName);
                     solrDocument.removeFields(fieldName);
-                    for (Object value : values)
-                    {
+                    for (Object value : values) {
                         // Keep all the values besides the one we need to remove
-                        if (!fieldValues.contains((value)))
-                        {
+                        if (!fieldValues.contains((value))) {
                             solrDocument.addField(fieldName, value);
                         }
                     }
                 }
             }
             SolrInputDocument newInput = ClientUtils
-                    .toSolrInputDocument(solrDocument);
+                .toSolrInputDocument(solrDocument);
             getSolr().add(newInput);
         }
         getSolr().commit();
@@ -889,49 +832,41 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public void query(String query, int max) throws SolrServerException
-    {
-        query(query, null, null,0, max, null, null, null, null, null, false);
+    public void query(String query, int max) throws SolrServerException {
+        query(query, null, null, 0, max, null, null, null, null, null, false);
     }
 
     @Override
     public ObjectCount[] queryFacetField(String query,
-            String filterQuery, String facetField, int max, boolean showTotal,
-            List<String> facetQueries) throws SolrServerException
-    {
+                                         String filterQuery, String facetField, int max, boolean showTotal,
+                                         List<String> facetQueries) throws SolrServerException {
         QueryResponse queryResponse = query(query, filterQuery, facetField,
-                0,max, null, null, null, facetQueries, null, false);
-        if (queryResponse == null)
-        {
+                                            0, max, null, null, null, facetQueries, null, false);
+        if (queryResponse == null) {
             return new ObjectCount[0];
         }
 
         FacetField field = queryResponse.getFacetField(facetField);
         // At least make sure we have one value
-        if (0 < field.getValueCount())
-        {
+        if (0 < field.getValueCount()) {
             // Create an array for our result
             ObjectCount[] result = new ObjectCount[field.getValueCount()
-                    + (showTotal ? 1 : 0)];
+                + (showTotal ? 1 : 0)];
             // Run over our results & store them
-            for (int i = 0; i < field.getValues().size(); i++)
-            {
+            for (int i = 0; i < field.getValues().size(); i++) {
                 FacetField.Count fieldCount = field.getValues().get(i);
                 result[i] = new ObjectCount();
                 result[i].setCount(fieldCount.getCount());
                 result[i].setValue(fieldCount.getName());
             }
-            if (showTotal)
-            {
+            if (showTotal) {
                 result[result.length - 1] = new ObjectCount();
                 result[result.length - 1].setCount(queryResponse.getResults()
-                        .getNumFound());
+                                                                .getNumFound());
                 result[result.length - 1].setValue("total");
             }
             return result;
-        }
-        else
-        {
+        } else {
             // Return an empty array cause we got no data
             return new ObjectCount[0];
         }
@@ -939,21 +874,18 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     @Override
     public ObjectCount[] queryFacetDate(String query,
-            String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, boolean showTotal, Context context) throws SolrServerException
-    {
-		return queryFacetDate(query, filterQuery, max, dateType, dateStart,
-				dateEnd, 1, showTotal);
+                                        String filterQuery, int max, String dateType, String dateStart,
+                                        String dateEnd, boolean showTotal, Context context) throws SolrServerException {
+        return queryFacetDate(query, filterQuery, max, dateType, dateStart,
+                              dateEnd, 1, showTotal);
     }
-    
+
     public ObjectCount[] queryFacetDate(String query,
-            String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, int gap, boolean showTotal) throws SolrServerException
-    {
+                                        String filterQuery, int max, String dateType, String dateStart,
+                                        String dateEnd, int gap, boolean showTotal) throws SolrServerException {
         QueryResponse queryResponse = query(query, filterQuery, null, 0, max,
-                dateType, dateStart, dateEnd, gap, null, null, false);
-        if (queryResponse == null)
-        {
+                                            dateType, dateStart, dateEnd, gap, null, null, false);
+        if (queryResponse == null) {
             return new ObjectCount[0];
         }
 
@@ -961,20 +893,18 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         // TODO: check if this cannot crash I checked it, it crashed!!!
         // Create an array for our result
         ObjectCount[] result = new ObjectCount[dateFacet.getValueCount()
-                + (showTotal ? 1 : 0)];
+            + (showTotal ? 1 : 0)];
         // Run over our datefacet & store all the values
-        for (int i = 0; i < dateFacet.getValues().size(); i++)
-        {
+        for (int i = 0; i < dateFacet.getValues().size(); i++) {
             FacetField.Count dateCount = dateFacet.getValues().get(i);
             result[i] = new ObjectCount();
             result[i].setCount(dateCount.getCount());
             result[i].setValue(getDateView(dateCount.getName(), dateType));
         }
-        if (showTotal)
-        {
+        if (showTotal) {
             result[result.length - 1] = new ObjectCount();
             result[result.length - 1].setCount(queryResponse.getResults()
-                    .getNumFound());
+                                                            .getNumFound());
             // TODO: Make sure that this total is gotten out of the msgs.xml
             result[result.length - 1].setValue("total");
         }
@@ -983,30 +913,26 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     @Override
     public Map<String, Integer> queryFacetQuery(String query,
-            String filterQuery, List<String> facetQueries)
-            throws SolrServerException
-    {
-        QueryResponse response = query(query, filterQuery, null,0, 1, null, null,
-                null, facetQueries, null, false);
+                                                String filterQuery, List<String> facetQueries)
+        throws SolrServerException {
+        QueryResponse response = query(query, filterQuery, null, 0, 1, null, null,
+                                       null, facetQueries, null, false);
         return response.getFacetQuery();
     }
 
     @Override
     public ObjectCount queryTotal(String query, String filterQuery)
-            throws SolrServerException
-    {
-        QueryResponse queryResponse = query(query, filterQuery, null,0, -1, null,
-                null, null, null, null, false);
+        throws SolrServerException {
+        QueryResponse queryResponse = query(query, filterQuery, null, 0, -1, null,
+                                            null, null, null, null, false);
         ObjectCount objCount = new ObjectCount();
         objCount.setCount(queryResponse.getResults().getNumFound());
 
         return objCount;
     }
 
-    protected String getDateView(String name, String type)
-    {
-        if (name != null && name.matches("^[0-9]{4}\\-[0-9]{2}.*"))
-        {
+    protected String getDateView(String name, String type) {
+        if (name != null && name.matches("^[0-9]{4}\\-[0-9]{2}.*")) {
             /*
              * if("YEAR".equalsIgnoreCase(type)) return name.substring(0, 4);
              * else if("MONTH".equalsIgnoreCase(type)) return name.substring(0,
@@ -1016,45 +942,33 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
              */
             // Get our date
             Date date = null;
-            try
-            {
+            try {
                 SimpleDateFormat format = new SimpleDateFormat(DATE_FORMAT_8601);
                 date = format.parse(name);
-            }
-            catch (ParseException e)
-            {
-                try
-                {
+            } catch (ParseException e) {
+                try {
                     // We should use the dcdate (the dcdate is used when
                     // generating random data)
                     SimpleDateFormat format = new SimpleDateFormat(
-                            DATE_FORMAT_DCDATE);
+                        DATE_FORMAT_DCDATE);
                     date = format.parse(name);
-                }
-                catch (ParseException e1)
-                {
+                } catch (ParseException e1) {
                     e1.printStackTrace();
                 }
                 // e.printStackTrace();
             }
             String dateformatString = "dd-MM-yyyy";
-            if ("DAY".equals(type))
-            {
+            if ("DAY".equals(type)) {
                 dateformatString = "dd-MM-yyyy";
-            }
-            else if ("MONTH".equals(type))
-            {
+            } else if ("MONTH".equals(type)) {
                 dateformatString = "MMMM yyyy";
 
-            }
-            else if ("YEAR".equals(type))
-            {
+            } else if ("YEAR".equals(type)) {
                 dateformatString = "yyyy";
             }
             SimpleDateFormat simpleFormat = new SimpleDateFormat(
-                    dateformatString);
-            if (date != null)
-            {
+                dateformatString);
+            if (date != null) {
                 name = simpleFormat.format(date);
             }
 
@@ -1064,66 +978,57 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     @Override
     public QueryResponse query(String query, String filterQuery,
-            String facetField, int rows, int max, String dateType, String dateStart,
-            String dateEnd, List<String> facetQueries, String sort, boolean ascending)
-            throws SolrServerException
-    {
-    	return query(query, filterQuery,
-            facetField, rows, max, dateType, dateStart,
-            dateEnd, 1, facetQueries, sort, ascending);
+                               String facetField, int rows, int max, String dateType, String dateStart,
+                               String dateEnd, List<String> facetQueries, String sort, boolean ascending)
+        throws SolrServerException {
+        return query(query, filterQuery,
+                     facetField, rows, max, dateType, dateStart,
+                     dateEnd, 1, facetQueries, sort, ascending);
     }
-    
-	public QueryResponse query(String query, String filterQuery,
-	        String facetField, int rows, int max, String dateType, String dateStart,
-	        String dateEnd, int gap, List<String> facetQueries, String sort, boolean ascending)
-	        throws SolrServerException            
-    {
-        if (getSolr() == null)
-        {
+
+    public QueryResponse query(String query, String filterQuery,
+                               String facetField, int rows, int max, String dateType, String dateStart,
+                               String dateEnd, int gap, List<String> facetQueries, String sort, boolean ascending)
+        throws SolrServerException {
+        if (getSolr() == null) {
             return null;
         }
 
         // System.out.println("QUERY");
         SolrQuery solrQuery = new SolrQuery().setRows(rows).setQuery(query)
-                .setFacetMinCount(1);
+                                             .setFacetMinCount(1);
         addAdditionalSolrYearCores(solrQuery);
 
         // Set the date facet if present
-        if (dateType != null)
-        {
+        if (dateType != null) {
             solrQuery.setParam("facet.date", "time")
-                    .
-                    // EXAMPLE: NOW/MONTH+1MONTH
+                .
+                // EXAMPLE: NOW/MONTH+1MONTH
                     setParam("facet.date.end",
-                            "NOW/" + dateType + dateEnd + dateType).setParam(
-                            "facet.date.gap", "+" + gap + dateType)
-                    .
-                    // EXAMPLE: NOW/MONTH-" + nbMonths + "MONTHS
+                             "NOW/" + dateType + dateEnd + dateType).setParam(
+                "facet.date.gap", "+" + gap + dateType)
+                .
+                // EXAMPLE: NOW/MONTH-" + nbMonths + "MONTHS
                     setParam("facet.date.start",
-                            "NOW/" + dateType + dateStart + dateType + "S")
-                    .setFacet(true);
+                             "NOW/" + dateType + dateStart + dateType + "S")
+                .setFacet(true);
         }
-        if (facetQueries != null)
-        {
-            for (int i = 0; i < facetQueries.size(); i++)
-            {
+        if (facetQueries != null) {
+            for (int i = 0; i < facetQueries.size(); i++) {
                 String facetQuery = facetQueries.get(i);
                 solrQuery.addFacetQuery(facetQuery);
             }
-            if (0 < facetQueries.size())
-            {
+            if (0 < facetQueries.size()) {
                 solrQuery.setFacet(true);
             }
         }
 
-        if (facetField != null)
-        {
+        if (facetField != null) {
             solrQuery.addFacetField(facetField);
         }
 
         // Set the top x of if present
-        if (max != -1)
-        {
+        if (max != -1) {
             solrQuery.setFacetLimit(max);
         }
 
@@ -1132,24 +1037,22 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         // not be influenced
 
         // Choose to filter by the Legacy spider IP list (may get too long to properly filter all IP's
-        if(configurationService.getBooleanProperty("solr-statistics.query.filter.spiderIp",false))
-        {
+        if (configurationService.getBooleanProperty("solr-statistics.query.filter.spiderIp", false)) {
             solrQuery.addFilterQuery(getIgnoreSpiderIPs());
         }
 
         // Choose to filter by isBot field, may be overriden in future
         // to allow views on stats based on bots.
-        if(configurationService.getBooleanProperty("solr-statistics.query.filter.isBot",true))
-        {
+        if (configurationService.getBooleanProperty("solr-statistics.query.filter.isBot", true)) {
             solrQuery.addFilterQuery("-isBot:true");
         }
 
-        if(sort != null){
+        if (sort != null) {
             solrQuery.setSortField(sort, (ascending ? SolrQuery.ORDER.asc : SolrQuery.ORDER.desc));
         }
 
         String[] bundles = configurationService.getArrayProperty("solr-statistics.query.filter.bundles");
-        if(bundles != null && bundles.length > 0){
+        if (bundles != null && bundles.length > 0) {
 
             /**
              * The code below creates a query that will allow only records which do not have a bundlename
@@ -1161,7 +1064,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             for (int i = 0; i < bundles.length; i++) {
                 String bundle = bundles[i].trim();
                 bundleQuery.append("-bundleName:").append(bundle);
-                if(i != bundles.length - 1){
+                if (i != bundles.length - 1) {
                     bundleQuery.append(" AND ");
                 }
             }
@@ -1171,19 +1074,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             solrQuery.addFilterQuery(bundleQuery.toString());
         }
 
-        if (filterQuery != null)
-        {
+        if (filterQuery != null) {
             solrQuery.addFilterQuery(filterQuery);
         }
 
         QueryResponse response;
-        try
-        {
+        try {
             // solr.set
             response = solr.query(solrQuery);
-        }
-        catch (SolrServerException e)
-        {
+        } catch (SolrServerException e) {
             System.err.println("Error using query " + query);
             throw e;
         }
@@ -1191,12 +1090,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
 
-    /** String of IP and Ranges in IPTable as a Solr Query */
+    /**
+     * String of IP and Ranges in IPTable as a Solr Query
+     */
     protected String filterQuery = null;
 
     @Override
-    public String getIgnoreSpiderIPs()
-    {
+    public String getIgnoreSpiderIPs() {
         if (filterQuery == null) {
             StringBuilder query = new StringBuilder();
             boolean first = true;
@@ -1214,16 +1114,16 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         return filterQuery;
 
     }
-    
+
     @Override
     public void optimizeSOLR() {
         try {
             long start = System.currentTimeMillis();
-            System.out.println("SOLR Optimize -- Process Started:"+start);
+            System.out.println("SOLR Optimize -- Process Started:" + start);
             getSolr().optimize();
             long finish = System.currentTimeMillis();
-            System.out.println("SOLR Optimize -- Process Finished:"+finish);
-            System.out.println("SOLR Optimize -- Total time taken:"+(finish-start) + " (ms).");
+            System.out.println("SOLR Optimize -- Process Finished:" + finish);
+            System.out.println("SOLR Optimize -- Total time taken:" + (finish - start) + " (ms).");
         } catch (SolrServerException sse) {
             System.err.println(sse.getMessage());
         } catch (IOException ioe) {
@@ -1243,14 +1143,16 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         yearRangeQuery.add(FacetParams.FACET_RANGE, "time");
         //We go back to 2000 the year 2000, this is a bit overkill but this way we ensure we have everything
         //The alternative would be to sort but that isn't recommended since it would be a very costly query !
-        yearRangeQuery.add(FacetParams.FACET_RANGE_START, "NOW/YEAR-" + (Calendar.getInstance().get(Calendar.YEAR) - 2000) + "YEARS");
+        yearRangeQuery.add(FacetParams.FACET_RANGE_START,
+                           "NOW/YEAR-" + (Calendar.getInstance().get(Calendar.YEAR) - 2000) + "YEARS");
         //Add the +0year to ensure that we DO NOT include the current year
         yearRangeQuery.add(FacetParams.FACET_RANGE_END, "NOW/YEAR+0YEARS");
         yearRangeQuery.add(FacetParams.FACET_RANGE_GAP, "+1YEAR");
         yearRangeQuery.add(FacetParams.FACET_MINCOUNT, String.valueOf(1));
 
         //Create a temp directory to store our files in !
-        File tempDirectory = new File(configurationService.getProperty("dspace.dir") + File.separator + "temp" + File.separator);
+        File tempDirectory = new File(
+            configurationService.getProperty("dspace.dir") + File.separator + "temp" + File.separator);
         tempDirectory.mkdirs();
 
 
@@ -1293,13 +1195,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
             //Start by creating a new core
             String coreName = "statistics-" + dcStart.getYearUTC();
-            HttpSolrServer statisticsYearServer = createCore((HttpSolrServer)solr, coreName);
+            HttpSolrServer statisticsYearServer = createCore((HttpSolrServer) solr, coreName);
 
             System.out.println("Moving: " + totalRecords + " into core " + coreName);
             log.info("Moving: " + totalRecords + " records into core " + coreName);
 
             List<File> filesToUpload = new ArrayList<File>();
-            for(int i = 0; i < totalRecords; i+=10000){
+            for (int i = 0; i < totalRecords; i += 10000) {
                 String solrRequestUrl = ((HttpSolrServer) solr).getBaseURL() + "/select";
                 solrRequestUrl = generateURL(solrRequestUrl, yearQueryParams);
 
@@ -1307,7 +1209,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 HttpResponse response = new DefaultHttpClient().execute(get);
                 InputStream csvInputstream = response.getEntity().getContent();
                 //Write the csv ouput to a file !
-                File csvFile = new File(tempDirectory.getPath() + File.separatorChar + "temp." + dcStart.getYearUTC() + "." + i + ".csv");
+                File csvFile = new File(
+                    tempDirectory.getPath() + File.separatorChar + "temp." + dcStart.getYearUTC() + "." + i + ".csv");
                 FileUtils.copyInputStreamToFile(csvInputstream, csvFile);
                 filesToUpload.add(csvFile);
 
@@ -1322,14 +1225,16 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 ContentStreamUpdateRequest contentStreamUpdateRequest = new ContentStreamUpdateRequest("/update/csv");
                 contentStreamUpdateRequest.setParam("stream.contentType", "text/plain;charset=utf-8");
                 contentStreamUpdateRequest.setParam("escape", "\\");
-	            contentStreamUpdateRequest.setParam("skip", "_version_");
+                contentStreamUpdateRequest.setParam("skip", "_version_");
                 contentStreamUpdateRequest.setAction(AbstractUpdateRequest.ACTION.COMMIT, true, true);
                 contentStreamUpdateRequest.addFile(tempCsv, "text/plain;charset=utf-8");
 
-                //Add parsing directives for the multivalued fields so that they are stored as separate values instead of one value
+                //Add parsing directives for the multivalued fields so that they are stored as separate values
+                // instead of one value
                 for (String multivaluedField : multivaluedFields) {
                     contentStreamUpdateRequest.setParam("f." + multivaluedField + ".split", Boolean.TRUE.toString());
-                    contentStreamUpdateRequest.setParam("f." + multivaluedField + ".separator", MULTIPLE_VALUES_SPLITTER);
+                    contentStreamUpdateRequest
+                        .setParam("f." + multivaluedField + ".separator", MULTIPLE_VALUES_SPLITTER);
                 }
 
                 statisticsYearServer.request(contentStreamUpdateRequest);
@@ -1349,24 +1254,26 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     protected HttpSolrServer createCore(HttpSolrServer solr, String coreName) throws IOException, SolrServerException {
-        String solrDir = configurationService.getProperty("dspace.dir") + File.separator + "solr" +File.separator;
+        String solrDir = configurationService.getProperty("dspace.dir") + File.separator + "solr" + File.separator;
         String baseSolrUrl = solr.getBaseURL().replace("statistics", "");
-        
-        //DS-3458: Test to see if a solr core already exists.  If it exists, return that server.  Otherwise create a new one.
+
+        //DS-3458: Test to see if a solr core already exists.  If it exists, return that server.  Otherwise create a
+        // new one.
         HttpSolrServer returnServer = new HttpSolrServer(baseSolrUrl + "/" + coreName);
         try {
             SolrPingResponse ping = returnServer.ping();
             log.debug(String.format("Ping of Solr Core [%s] Returned with Status [%d]", coreName, ping.getStatus()));
             return returnServer;
-        } catch(Exception e) {
-            log.debug(String.format("Ping of Solr Core [%s] Failed with [%s].  New Core Will be Created", coreName, e.getClass().getName()));
+        } catch (Exception e) {
+            log.debug(String.format("Ping of Solr Core [%s] Failed with [%s].  New Core Will be Created", coreName,
+                                    e.getClass().getName()));
         }
-        
+
         //Unfortunately, this class is documented as "experimental and subject to change" on the Lucene website.
         //http://lucene.apache.org/solr/4_4_0/solr-solrj/org/apache/solr/client/solrj/request/CoreAdminRequest.html
         CoreAdminRequest.Create create = new CoreAdminRequest.Create();
         create.setCoreName(coreName);
-        
+
         //The config files for a statistics shard reside wihtin the statistics repository
         create.setInstanceDir("statistics");
         create.setDataDir(solrDir + coreName + File.separator + "data");
@@ -1378,9 +1285,10 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     /**
      * Retrieves a list of all the multi valued fields in the solr core
+     *
      * @return all fields tagged as multivalued
      * @throws SolrServerException When getting the schema information from the SOLR core fails
-     * @throws IOException When connection to the SOLR server fails
+     * @throws IOException         When connection to the SOLR server fails
      */
     public Set<String> getMultivaluedFieldNames() throws SolrServerException, IOException {
         Set<String> multivaluedFields = new HashSet<String>();
@@ -1388,14 +1296,11 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         lukeRequest.setShowSchema(true);
         LukeResponse process = lukeRequest.process(solr);
         Map<String, LukeResponse.FieldInfo> fields = process.getFieldInfo();
-        for(String fieldName : fields.keySet())
-        {
+        for (String fieldName : fields.keySet()) {
             LukeResponse.FieldInfo fieldInfo = fields.get(fieldName);
             EnumSet<FieldFlag> flags = fieldInfo.getFlags();
-            for(FieldFlag fieldFlag : flags)
-            {
-                if(fieldFlag.getAbbreviation() == FieldFlag.MULTI_VALUED.getAbbreviation())
-                {
+            for (FieldFlag fieldFlag : flags) {
+                if (fieldFlag.getAbbreviation() == FieldFlag.MULTI_VALUED.getAbbreviation()) {
                     multivaluedFields.add(fieldName);
                 }
             }
@@ -1406,7 +1311,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     @Override
     public void reindexBitstreamHits(boolean removeDeletedBitstreams) throws Exception {
-        if(!(solr instanceof HttpSolrServer)) {
+        if (!(solr instanceof HttpSolrServer)) {
             return;
         }
 
@@ -1423,10 +1328,11 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             addAdditionalSolrYearCores(query);
             long totalRecords = getSolr().query(query).getResults().getNumFound();
 
-            File tempDirectory = new File(configurationService.getProperty("dspace.dir") + File.separator + "temp" + File.separator);
+            File tempDirectory = new File(
+                configurationService.getProperty("dspace.dir") + File.separator + "temp" + File.separator);
             tempDirectory.mkdirs();
             List<File> tempCsvFiles = new ArrayList<File>();
-            for(int i = 0; i < totalRecords; i+=10000){
+            for (int i = 0; i < totalRecords; i += 10000) {
                 Map<String, String> params = new HashMap<String, String>();
                 params.put(CommonParams.Q, "*:*");
                 params.put(CommonParams.FQ, "-bundleName:[* TO *] AND type:" + Constants.BITSTREAM);
@@ -1434,13 +1340,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 params.put(CommonParams.ROWS, String.valueOf(10000));
                 params.put(CommonParams.START, String.valueOf(i));
 
-                String solrRequestUrl = ((HttpSolrServer)getSolr()).getBaseURL() + "/select";
+                String solrRequestUrl = ((HttpSolrServer) getSolr()).getBaseURL() + "/select";
                 solrRequestUrl = generateURL(solrRequestUrl, params);
 
                 HttpGet get = new HttpGet(solrRequestUrl);
                 HttpResponse response = new DefaultHttpClient().execute(get);
 
-                InputStream  csvOutput = response.getEntity().getContent();
+                InputStream csvOutput = response.getEntity().getContent();
                 Reader csvReader = new InputStreamReader(csvOutput);
                 List<String[]> rows = new CSVReader(csvReader).readAll();
                 String[][] csvParsed = rows.toArray(new String[rows.size()][]);
@@ -1448,7 +1354,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 //Attempt to find the bitstream id index !
                 int idIndex = 0;
                 for (int j = 0; j < header.length; j++) {
-                    if(header[j].equals("id")){
+                    if (header[j].equals("id")) {
                         idIndex = j;
                     }
                 }
@@ -1462,28 +1368,27 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 csvp.writeNext((String[]) ArrayUtils.add(header, "bundleName"));
                 Map<String, String> bitBundleCache = new HashMap<>();
                 //Loop over each line (skip the headers though)!
-                for (int j = 1; j < csvParsed.length; j++){
+                for (int j = 1; j < csvParsed.length; j++) {
                     String[] csvLine = csvParsed[j];
                     //Write the default line !
                     String bitstreamId = csvLine[idIndex];
                     //Attempt to retrieve our bundle name from the cache !
                     String bundleName = bitBundleCache.get(bitstreamId);
-                    if(bundleName == null){
+                    if (bundleName == null) {
                         //Nothing found retrieve the bitstream
                         Bitstream bitstream = bitstreamService.findByIdOrLegacyId(context, bitstreamId);
                         //Attempt to retrieve our bitstream !
-                        if (bitstream != null){
+                        if (bitstream != null) {
                             List<Bundle> bundles = bitstream.getBundles();
-                            if(bundles != null && 0 < bundles.size()){
+                            if (bundles != null && 0 < bundles.size()) {
                                 Bundle bundle = bundles.get(0);
                                 bundleName = bundle.getName();
-                            }else{
+                            } else {
                                 //No bundle found, we are either a collection or a community logo, check for it !
                                 DSpaceObject parentObject = bitstreamService.getParentObject(context, bitstream);
-                                if(parentObject instanceof Collection){
+                                if (parentObject instanceof Collection) {
                                     bundleName = "LOGO-COLLECTION";
-                                }else
-                                if(parentObject instanceof Community){
+                                } else if (parentObject instanceof Community) {
                                     bundleName = "LOGO-COMMUNITY";
                                 }
 
@@ -1493,8 +1398,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                             //Remove the bitstream from cache
                         }
                         //Check if we don't have a bundlename
-                        //If we don't have one & we do not need to delete the deleted bitstreams ensure that a BITSTREAM_DELETED bundle name is given !
-                        if(bundleName == null && !removeDeletedBitstreams){
+                        //If we don't have one & we do not need to delete the deleted bitstreams ensure that a
+                        // BITSTREAM_DELETED bundle name is given !
+                        if (bundleName == null && !removeDeletedBitstreams) {
                             bundleName = "BITSTREAM_DELETED";
                         }
                     }
@@ -1535,7 +1441,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public void exportHits() throws Exception {
         Context context = new Context();
 
-        File tempDirectory = new File(configurationService.getProperty("dspace.dir") + File.separator + "temp" + File.separator);
+        File tempDirectory = new File(
+            configurationService.getProperty("dspace.dir") + File.separator + "temp" + File.separator);
         tempDirectory.mkdirs();
 
         try {
@@ -1552,7 +1459,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             long totalRecords = solr.query(query).getResults().getNumFound();
             System.out.println("There are " + totalRecords + " usage events in SOLR for download/view.");
 
-            for(int i = 0; i < totalRecords; i+=10000){
+            for (int i = 0; i < totalRecords; i += 10000) {
                 solrParams.set(CommonParams.START, String.valueOf(i));
                 QueryResponse queryResponse = solr.query(solrParams);
                 SolrDocumentList docs = queryResponse.getResults();
@@ -1562,7 +1469,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
                 //export docs
                 addDocumentsToFile(context, docs, exportOutput);
-                System.out.println("Export hits [" + i + " - " + String.valueOf(i+9999) + "] to " + exportOutput.getCanonicalPath());
+                System.out.println(
+                    "Export hits [" + i + " - " + String.valueOf(i + 9999) + "] to " + exportOutput.getCanonicalPath());
             }
         } catch (Exception e) {
             log.error("Error while exporting SOLR data", e);
@@ -1572,10 +1480,11 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
     }
 
-    protected void addDocumentsToFile(Context context, SolrDocumentList docs, File exportOutput) throws SQLException, ParseException, IOException {
-        for(SolrDocument doc : docs) {
+    protected void addDocumentsToFile(Context context, SolrDocumentList docs, File exportOutput)
+        throws SQLException, ParseException, IOException {
+        for (SolrDocument doc : docs) {
             String ip = doc.get("ip").toString();
-            if(ip.equals("::1")) {
+            if (ip.equals("::1")) {
                 ip = "127.0.0.1";
             }
 
@@ -1584,9 +1493,10 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             String time = doc.get("time").toString();
 
             //20140527162409835,view_bitstream,1292,2014-05-27T16:24:09,anonymous,127.0.0.1
-            DSpaceObjectLegacySupportService dsoService = contentServiceFactory.getDSpaceLegacyObjectService(Integer.parseInt(type));
+            DSpaceObjectLegacySupportService dsoService = contentServiceFactory
+                .getDSpaceLegacyObjectService(Integer.parseInt(type));
             DSpaceObject dso = dsoService.findByIdOrLegacyId(context, id);
-            if(dso == null) {
+            if (dso == null) {
                 log.debug("Document no longer exists in DB. type:" + type + " id:" + id);
                 continue;
             }
@@ -1598,7 +1508,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             //OutputFormat: 2014-05-27T16:24:09
             DateFormat outputDateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
-            String out = time + "," + "view_" + contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso).toLowerCase() + "," + id + ","  + outputDateFormat.format(solrDate) + ",anonymous," + ip + "\n";
+            String out = time + "," + "view_" + contentServiceFactory.getDSpaceObjectService(dso).getTypeText(dso)
+                                                                     .toLowerCase() + "," + id + "," + outputDateFormat
+                .format(solrDate) + ",anonymous," + ip + "\n";
             FileUtils.writeStringToFile(exportOutput, out, true);
 
         }
@@ -1607,15 +1519,11 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     protected String generateURL(String baseURL, Map<String, String> parameters) throws UnsupportedEncodingException {
         boolean first = true;
         StringBuilder result = new StringBuilder(baseURL);
-        for (String key : parameters.keySet())
-        {
-            if (first)
-            {
+        for (String key : parameters.keySet()) {
+            if (first) {
                 result.append("?");
                 first = false;
-            }
-            else
-            {
+            } else {
                 result.append("&");
             }
 
@@ -1625,44 +1533,42 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         return result.toString();
     }
 
-    protected void addAdditionalSolrYearCores(SolrQuery solrQuery){
+    protected void addAdditionalSolrYearCores(SolrQuery solrQuery) {
         //Only add if needed
         initSolrYearCores();
-        if(0 < statisticYearCores.size()){
+        if (0 < statisticYearCores.size()) {
             //The shards are a comma separated list of the urls to the cores
             solrQuery.add(ShardParams.SHARDS, StringUtils.join(statisticYearCores.iterator(), ","));
         }
 
     }
-    
-    public void setSpiderDetector(SpiderDetector spiderDetector)
-    {
+
+    public void setSpiderDetector(SpiderDetector spiderDetector) {
         this.spiderDetector = spiderDetector;
     }
 
-    public SpiderDetector getSpiderDetector()
-    {
+    public SpiderDetector getSpiderDetector() {
         return spiderDetector;
     }
-    
-    public void deleteByType(int type) throws SolrServerException, IOException
-    {
+
+    public void deleteByType(int type) throws SolrServerException, IOException {
         getSolr().deleteByQuery("type:" + type);
     }
-    
+
     /*
      * The statistics shards should not be initialized until all tomcat webapps are fully initialized.
-     * DS-3457 uncovered an issue in DSpace 6x in which this code triggered tomcat to hang when statistics shards are present.
+     * DS-3457 uncovered an issue in DSpace 6x in which this code triggered tomcat to hang when statistics shards are
+     * present.
      * This code is synchonized in the event that 2 threads trigger the initialization at the same time.
      */
     protected synchronized void initSolrYearCores() {
         if (statisticYearCoresInit) {
             return;
         }
-        try
-        {
+        try {
             //Attempt to retrieve all the statistic year cores
-            File solrDir = new File(configurationService.getProperty("dspace.dir") + File.separator + "solr" + File.separator);
+            File solrDir = new File(
+                configurationService.getProperty("dspace.dir") + File.separator + "solr" + File.separator);
             File[] solrCoreFiles = solrDir.listFiles(new FileFilter() {
 
                 @Override
@@ -1678,7 +1584,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
                 createCore((HttpSolrServer) solr, solrCoreFile.getName());
                 //Add it to our cores list so we can query it !
-                statisticYearCores.add(baseSolrUrl.replace("http://", "").replace("https://", "") + solrCoreFile.getName());
+                statisticYearCores
+                    .add(baseSolrUrl.replace("http://", "").replace("https://", "") + solrCoreFile.getName());
             }
             //Also add the core containing the current year !
             statisticYearCores.add(((HttpSolrServer) solr).getBaseURL().replace("http://", "").replace("https://", ""));
@@ -1688,14 +1595,12 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         statisticYearCoresInit = true;
     }
 
-    
+
     @Override
     public Map<String, List<String>> queryField(String query,
-            List oldFieldVals, String field)
-    {
+                                                List oldFieldVals, String field) {
         Map<String, List<String>> currentValsStored = new HashMap<String, List<String>>();
-        try
-        {
+        try {
             // Get one document (since all the metadata for all the values
             // should be the same just get the first one we find
             Map<String, String> params = new HashMap<String, String>();
@@ -1704,24 +1609,20 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             MapSolrParams solrParams = new MapSolrParams(params);
             QueryResponse response = solr.query(solrParams);
             // Make sure we at least got a document
-            if (response.getResults().getNumFound() == 0)
-            {
+            if (response.getResults().getNumFound() == 0) {
                 return currentValsStored;
             }
-        }
-        catch (SolrServerException e)
-        {
+        } catch (SolrServerException e) {
             e.printStackTrace();
         }
         return currentValsStored;
     }
 
-    
-    public void deleteByTypeAndYear(int type, int year) throws SolrServerException, IOException
-    {
-        String start = year+"-01-01T00:00:00.000Z";
-        String end = (year+1)+"-01-01T00:00:00.000Z";
-        String query = "type:" + type + " AND " + "time:["+start+" TO "+end+"]";
+
+    public void deleteByTypeAndYear(int type, int year) throws SolrServerException, IOException {
+        String start = year + "-01-01T00:00:00.000Z";
+        String end = (year + 1) + "-01-01T00:00:00.000Z";
+        String query = "type:" + type + " AND " + "time:[" + start + " TO " + end + "]";
         getSolr().deleteByQuery(query);
     }
 }

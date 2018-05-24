@@ -9,7 +9,6 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
@@ -32,35 +31,34 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Pascarelli Luigi Andrea (luigiandrea.pascarelli at 4science dot it)
  */
 public class EditItemServiceImpl implements EditItemService {
-	
+
     @Autowired(required = true)
     private ItemService itemService;
 
-	@Override
-	public void deleteWrapper(Context context, EditItem inProgressSubmission) throws SQLException, AuthorizeException {
-		try {
-			getItemService().delete(context, inProgressSubmission.getItem());
-		} catch (IOException e) {
-			throw new SQLException(e);
-		}		
-	}
+    @Override
+    public void deleteWrapper(Context context, EditItem inProgressSubmission) throws SQLException, AuthorizeException {
+        try {
+            getItemService().delete(context, inProgressSubmission.getItem());
+        } catch (IOException e) {
+            throw new SQLException(e);
+        }
+    }
 
-	@Override
-	public void update(Context context, EditItem inProgressSubmission) throws SQLException, AuthorizeException {
-		getItemService().update(context, inProgressSubmission.getItem());		
-	}
-	
-    public ItemService getItemService()
-    {
+    @Override
+    public void update(Context context, EditItem inProgressSubmission) throws SQLException, AuthorizeException {
+        getItemService().update(context, inProgressSubmission.getItem());
+    }
+
+    public ItemService getItemService() {
         return itemService;
     }
 
-	@Override
-	public void move(Context context, EditItem inProgressSubmission, Collection fromCollection, Collection toCollection)
-			throws DCInputsReaderException {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void move(Context context, EditItem inProgressSubmission, Collection fromCollection, Collection toCollection)
+        throws DCInputsReaderException {
+        // TODO Auto-generated method stub
+
+    }
 
     @Override
     public EditItem find(Context context, UUID id) throws SQLException {

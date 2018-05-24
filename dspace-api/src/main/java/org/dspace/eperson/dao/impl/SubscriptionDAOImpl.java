@@ -7,10 +7,13 @@
  */
 package org.dspace.eperson.dao.impl;
 
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.core.Context;
 import org.dspace.core.AbstractHibernateDAO;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Subscription;
 import org.dspace.eperson.dao.SubscriptionDAO;
@@ -19,9 +22,6 @@ import org.hibernate.Query;
 import org.hibernate.criterion.Order;
 import org.hibernate.criterion.Restrictions;
 
-import java.sql.SQLException;
-import java.util.List;
-
 /**
  * Hibernate implementation of the Database Access Object interface class for the Subscription object.
  * This class is responsible for all database calls for the Subscription object and is autowired by spring
@@ -29,10 +29,8 @@ import java.util.List;
  *
  * @author kevinvandevelde at atmire.com
  */
-public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> implements SubscriptionDAO
-{
-    protected SubscriptionDAOImpl()
-    {
+public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> implements SubscriptionDAO {
+    protected SubscriptionDAOImpl() {
         super();
     }
 
@@ -40,22 +38,23 @@ public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> impl
     public List<Subscription> findByEPerson(Context context, EPerson eperson) throws SQLException {
         Criteria criteria = createCriteria(context, Subscription.class);
         criteria.add(
-                Restrictions.and(
-                        Restrictions.eq("ePerson", eperson)
-                )
+            Restrictions.and(
+                Restrictions.eq("ePerson", eperson)
+            )
         );
         return list(criteria);
 
     }
 
     @Override
-    public Subscription findByCollectionAndEPerson(Context context, EPerson eperson, Collection collection) throws SQLException {
+    public Subscription findByCollectionAndEPerson(Context context, EPerson eperson, Collection collection)
+        throws SQLException {
         Criteria criteria = createCriteria(context, Subscription.class);
         criteria.add(
-                Restrictions.and(
-                        Restrictions.eq("ePerson", eperson),
-                        Restrictions.eq("collection", collection)
-                )
+            Restrictions.and(
+                Restrictions.eq("ePerson", eperson),
+                Restrictions.eq("collection", collection)
+            )
         );
         return singleResult(criteria);
     }
@@ -76,7 +75,7 @@ public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> impl
         query.setParameter("community", community);
         query.executeUpdate();
     }
-    
+
     @Override
     public void deleteByEPerson(Context context, EPerson eperson) throws SQLException {
         String hqlQuery = "delete from Subscription where ePerson=:ePerson";
@@ -86,7 +85,8 @@ public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> impl
     }
 
     @Override
-    public void deleteByCollectionAndEPerson(Context context, Collection collection, EPerson eperson) throws SQLException {
+    public void deleteByCollectionAndEPerson(Context context, Collection collection, EPerson eperson)
+        throws SQLException {
         String hqlQuery = "delete from Subscription where collection=:collection AND ePerson=:ePerson";
         Query query = createQuery(context, hqlQuery);
         query.setParameter("collection", collection);
@@ -102,51 +102,53 @@ public class SubscriptionDAOImpl extends AbstractHibernateDAO<Subscription> impl
         query.setParameter("ePerson", eperson);
         query.executeUpdate();
     }
-    
+
     @Override
     public List<Subscription> findAllOrderedByEPerson(Context context) throws SQLException {
         Criteria criteria = createCriteria(context, Subscription.class);
         criteria.addOrder(Order.asc("eperson.id"));
         return list(criteria);
     }
-    
+
     @Override
     public void deleteByEPersonWithCollection(Context context, EPerson eperson) throws SQLException {
-    	String hqlQuery = "delete from Subscription where ePerson=:ePerson and collection is not null";
-    	Query query = createQuery(context, hqlQuery);
+        String hqlQuery = "delete from Subscription where ePerson=:ePerson and collection is not null";
+        Query query = createQuery(context, hqlQuery);
         query.setParameter("ePerson", eperson);
         query.executeUpdate();
     }
-    
+
     @Override
     public void deleteByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException {
-    	String hqlQuery = "delete from Subscription where ePerson=:ePerson and community is not null";
-    	Query query = createQuery(context, hqlQuery);
+        String hqlQuery = "delete from Subscription where ePerson=:ePerson and community is not null";
+        Query query = createQuery(context, hqlQuery);
         query.setParameter("ePerson", eperson);
         query.executeUpdate();
     }
-    
+
     public List<Subscription> findByEPersonWithCollection(Context context, EPerson eperson) throws SQLException {
         String hqlQuery = "from Subscription where ePerson=:ePerson and collection is not null";
         Query query = createQuery(context, hqlQuery);
-        query.setParameter("ePerson", eperson);        
+        query.setParameter("ePerson", eperson);
         return query.list();
     }
+
     public List<Subscription> findByEPersonWithCommunity(Context context, EPerson eperson) throws SQLException {
         String hqlQuery = "from Subscription where ePerson=:ePerson and community is not null";
         Query query = createQuery(context, hqlQuery);
-        query.setParameter("ePerson", eperson);        
+        query.setParameter("ePerson", eperson);
         return query.list();
     }
-    
+
     @Override
-    public Subscription findByCommunityAndEPerson(Context context, EPerson eperson, Community collection) throws SQLException {
+    public Subscription findByCommunityAndEPerson(Context context, EPerson eperson, Community collection)
+        throws SQLException {
         Criteria criteria = createCriteria(context, Subscription.class);
         criteria.add(
-                Restrictions.and(
-                        Restrictions.eq("ePerson", eperson),
-                        Restrictions.eq("community", collection)
-                )
+            Restrictions.and(
+                Restrictions.eq("ePerson", eperson),
+                Restrictions.eq("community", collection)
+            )
         );
         return singleResult(criteria);
     }

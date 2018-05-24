@@ -4,6 +4,15 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Pubmed implementation of {@link org.dspace.importer.external.service.components.MetadataSource}
+ * Based on metadata support in {@link org.dspace.importer.external.metadatamapping}
+ *
+ * @author Roeland Dillen (roeland at atmire dot com)
+ *
+ * Pubmed implementation of {@link org.dspace.importer.external.service.components.MetadataSource}
+ * Based on metadata support in {@link org.dspace.importer.external.metadatamapping}
+ * @author Roeland Dillen (roeland at atmire dot com)
  */
 
 /**

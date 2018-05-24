@@ -14,242 +14,228 @@ import org.dspace.core.Context;
 import org.dspace.services.model.Event;
 
 /**
- * 
  * @author Mark Diggory (mdiggory at atmire.com)
- *
  */
 public class UsageEvent extends Event {
-	
-	public static enum Action {
-		VIEW ("view"),
-		CREATE ("create"),
-		UPDATE ("update"),
-		DELETE ("delete"),
-		ADD ("add"),
-		REMOVE ("remove"),
-		BROWSE ("browse"),
-		SEARCH ("search"),
-		WORKFLOW ("workflow"),
-		LOGIN ("login"),
-		SUBSCRIBE ("subscribe"),
-		UNSUBSCRIBE ("unsubscribe"),
-		WITHDRAW ("withdraw"),
-		REINSTATE ("reinstate"); 
-		
-		private final String text;
-	    
-	    Action(String text) {
-	        this.text = text;
-	    }
-	    String text()   { return text; }
-	}
-	
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
 
-	private HttpServletRequest request;
-	
-	private String ip;
-	
-	private String userAgent;
-	
-	private String xforwardedfor;
-	
-	private Context context;
-	
-	private UsageEventEntity object;
+    public static enum Action {
+        VIEW("view"),
+        CREATE("create"),
+        UPDATE("update"),
+        DELETE("delete"),
+        ADD("add"),
+        REMOVE("remove"),
+        BROWSE("browse"),
+        SEARCH("search"),
+        WORKFLOW("workflow"),
+        LOGIN("login"),
+        SUBSCRIBE("subscribe"),
+        UNSUBSCRIBE("unsubscribe"),
+        WITHDRAW("withdraw"),
+        REINSTATE("reinstate");
 
-	private Action action;
+        private final String text;
 
-	private static String checkParams(Action action, HttpServletRequest request, Context context, UsageEventEntity object)
-	{
+        Action(String text) {
+            this.text = text;
+        }
+
+        String text() {
+            return text;
+        }
+    }
+
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+
+    private HttpServletRequest request;
+
+    private String ip;
+
+    private String userAgent;
+
+    private String xforwardedfor;
+
+    private Context context;
+
+    private UsageEventEntity object;
+
+    private Action action;
+
+    private static String checkParams(Action action, HttpServletRequest request, Context context,
+                                      UsageEventEntity object) {
         StringBuilder eventName = new StringBuilder();
-		if(action == null)
-        {
+        if (action == null) {
             throw new IllegalStateException("action cannot be null");
         }
-			
-		if(action != Action.WORKFLOW && request == null)
-        {
+
+        if (action != Action.WORKFLOW && request == null) {
             throw new IllegalStateException("request cannot be null");
         }
-		
 
-		if(context == null)
-        {
+
+        if (context == null) {
             throw new IllegalStateException("context cannot be null");
         }
-		
-		if(action != Action.WORKFLOW && action != Action.SEARCH && object == null)
-        {
+
+        if (action != Action.WORKFLOW && action != Action.SEARCH && object == null) {
             throw new IllegalStateException("object cannot be null");
-        }else
-        if(object != null){
-        	String objText = object.getTypeText().toLowerCase();
+        } else if (object != null) {
+            String objText = object.getTypeText().toLowerCase();
             eventName.append(objText).append(":");
         }
         eventName.append(action.text());
-        
-		return eventName.toString();
-	}
-	
-	private static String checkParams(Action action, Context context, UsageEventEntity object)
-	{
+
+        return eventName.toString();
+    }
+
+    private static String checkParams(Action action, Context context, UsageEventEntity object) {
         StringBuilder eventName = new StringBuilder();
-		if(action == null)
-        {
+        if (action == null) {
             throw new IllegalStateException("action cannot be null");
         }
-			
-//		if(action != Action.WORKFLOW)
-//        {
-//            throw new IllegalStateException("request cannot be null");
-//        }
-		
 
-		if(context == null)
-        {
+//  if(action != Action.WORKFLOW)
+//  {
+//      throw new IllegalStateException("request cannot be null");
+//  }
+
+
+        if (context == null) {
             throw new IllegalStateException("context cannot be null");
         }
-		
-		if(action != Action.WORKFLOW && action != Action.SEARCH && object == null)
-        {
+
+        if (action != Action.WORKFLOW && action != Action.SEARCH && object == null) {
             throw new IllegalStateException("object cannot be null");
-        }else
-        if(object != null){
-        	String objText = object.getTypeText().toLowerCase();
+        } else if (object != null) {
+            String objText = object.getTypeText().toLowerCase();
             eventName.append(objText).append(":");
         }
         eventName.append(action.text());
-        
 
-		return eventName.toString();
-	}
-	
-	public UsageEvent(Action action, HttpServletRequest request, Context context, UsageEventEntity object)
-	{
-		
-		super(checkParams(action, request, context, object));
-		
-		this.action = action;
 
-		this.setResourceReference(object != null ? object.getTypeText().toLowerCase() + ":" + object.getID() : null);
-		
-		switch(action)
-		{
-			case CREATE:
-			case UPDATE:
-			case DELETE:
-			case WITHDRAW:
-			case REINSTATE:	
-			case ADD:
-			case REMOVE:
-				this.setModify(true);
-				break;
-			default : 
-				this.setModify(false);
-		}
-		
-		if(context != null && context.getCurrentUser() != null)
-		{
-			this.setUserId(
-					String.valueOf(context.getCurrentUser().getID()));
-		}
-		this.request = request;
-		this.context = context;
-		this.object = object;
-	}
+        return eventName.toString();
+    }
 
-	public UsageEvent(Action action, String ip, String userAgent, String xforwardedfor, Context context, UsageEventEntity object)
-	{
-		
-		super(checkParams(action, context, object));
-		
-		this.action = action;
-	
-		this.setResourceReference(object != null ? object.getTypeText().toLowerCase() + ":" + object.getID() : null);
-		
-		switch(action)
-		{
-			case CREATE:
-			case UPDATE:
-			case DELETE:
-			case WITHDRAW:
-			case REINSTATE:	
-			case ADD:
-			case REMOVE:
-				this.setModify(true);
-				break;
-			default : 
-				this.setModify(false);
-		}
-		
-		if(context != null && context.getCurrentUser() != null)
-		{
-			this.setUserId(
-					String.valueOf(context.getCurrentUser().getID()));
-		}
-		this.request = null;
-		this.ip = ip;
-		this.userAgent = userAgent;
-		this.xforwardedfor = xforwardedfor;
-		this.context = context;
-		this.object = object;
-	}
+    public UsageEvent(Action action, HttpServletRequest request, Context context, UsageEventEntity object) {
 
-	
-	public HttpServletRequest getRequest() {
-		return request;
-	}
+        super(checkParams(action, request, context, object));
 
-	public String getIp() {
-		return ip;
-	}
+        this.action = action;
 
-	public void setIp(String ip) {
-		this.ip = ip;
-	}
+        this.setResourceReference(object != null ? object.getTypeText().toLowerCase() + ":" + object.getID() : null);
 
-	public String getUserAgent() {
-		return userAgent;
-	}
+        switch (action) {
+            case CREATE:
+            case UPDATE:
+            case DELETE:
+            case WITHDRAW:
+            case REINSTATE:
+            case ADD:
+            case REMOVE:
+                this.setModify(true);
+                break;
+            default:
+                this.setModify(false);
+        }
 
-	public void setUserAgent(String userAgent) {
-		this.userAgent = userAgent;
-	}
+        if (context != null && context.getCurrentUser() != null) {
+            this.setUserId(
+                String.valueOf(context.getCurrentUser().getID()));
+        }
+        this.request = request;
+        this.context = context;
+        this.object = object;
+    }
 
-	public String getXforwardedfor() {
-		return xforwardedfor;
-	}
+    public UsageEvent(Action action, String ip, String userAgent, String xforwardedfor, Context context,
+                      UsageEventEntity object) {
 
-	public void setXforwardedfor(String xforwardedfor) {
-		this.xforwardedfor = xforwardedfor;
-	}
+        super(checkParams(action, context, object));
 
-	public void setRequest(HttpServletRequest request) {
-		this.request = request;
-	}
+        this.action = action;
 
-	public Context getContext() {
-		return context;
-	}
+        this.setResourceReference(object != null ? object.getTypeText().toLowerCase() + ":" + object.getID() : null);
 
-	public void setContext(Context context) {
-		this.context = context;
-	}
+        switch (action) {
+            case CREATE:
+            case UPDATE:
+            case DELETE:
+            case WITHDRAW:
+            case REINSTATE:
+            case ADD:
+            case REMOVE:
+                this.setModify(true);
+                break;
+            default:
+                this.setModify(false);
+        }
 
-	public UsageEventEntity getObject() {
-		return object;
-	}
+        if (context != null && context.getCurrentUser() != null) {
+            this.setUserId(
+                String.valueOf(context.getCurrentUser().getID()));
+        }
+        this.request = null;
+        this.ip = ip;
+        this.userAgent = userAgent;
+        this.xforwardedfor = xforwardedfor;
+        this.context = context;
+        this.object = object;
+    }
 
-	public void setObject(UsageEventEntity object) {
-		this.object = object;
-	}
 
-	public Action getAction() {
-		return this.action;
-	}
-	
+    public HttpServletRequest getRequest() {
+        return request;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public String getUserAgent() {
+        return userAgent;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
+    }
+
+    public String getXforwardedfor() {
+        return xforwardedfor;
+    }
+
+    public void setXforwardedfor(String xforwardedfor) {
+        this.xforwardedfor = xforwardedfor;
+    }
+
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
+    }
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
+
+    public UsageEventEntity getObject() {
+        return object;
+    }
+
+    public void setObject(UsageEventEntity object) {
+        this.object = object;
+    }
+
+    public Action getAction() {
+        return this.action;
+    }
+
 }

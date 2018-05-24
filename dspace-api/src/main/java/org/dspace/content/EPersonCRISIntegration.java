@@ -9,7 +9,6 @@ package org.dspace.content;
 
 import java.util.UUID;
 
-public interface EPersonCRISIntegration
-{
+public interface EPersonCRISIntegration {
     public String getResearcher(UUID epersonID);
 }

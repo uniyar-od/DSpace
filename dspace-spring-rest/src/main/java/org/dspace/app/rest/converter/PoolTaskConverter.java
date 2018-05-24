@@ -17,39 +17,37 @@ import org.springframework.stereotype.Component;
 /**
  * This is the converter from/to the PoolTask in the DSpace API data model
  * and the REST data model
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 @Component
-public class PoolTaskConverter
-		extends DSpaceConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest>
-		implements BrowsableDSpaceObjectConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest> {
+public class PoolTaskConverter extends DSpaceConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest>
+    implements BrowsableDSpaceObjectConverter<PoolTask, org.dspace.app.rest.model.PoolTaskRest> {
 
-	private static final Logger log = Logger.getLogger(PoolTaskConverter.class);
+    private static final Logger log = Logger.getLogger(PoolTaskConverter.class);
 
-	@Autowired
-	private WorkflowItemConverter workflowItemConverter;
+    @Autowired
+    private WorkflowItemConverter workflowItemConverter;
 
-	@Override
-	public PoolTaskRest fromModel(PoolTask obj) {
-		PoolTaskRest taskRest = new PoolTaskRest();
-		
-		XmlWorkflowItem witem = obj.getWorkflowItem();
-		taskRest.setId(obj.getID());
-		taskRest.setWorkflowitem(workflowItemConverter.convert(witem));
-		taskRest.setAction(obj.getActionID());
-		taskRest.setStep(obj.getStepID());
-		return taskRest;
-	}
+    @Override
+    public PoolTaskRest fromModel(PoolTask obj) {
+        PoolTaskRest taskRest = new PoolTaskRest();
 
-	@Override
-	public PoolTask toModel(PoolTaskRest obj) {
-		return null;
-	}
+        XmlWorkflowItem witem = obj.getWorkflowItem();
+        taskRest.setId(obj.getID());
+        taskRest.setWorkflowitem(workflowItemConverter.convert(witem));
+        taskRest.setAction(obj.getActionID());
+        taskRest.setStep(obj.getStepID());
+        return taskRest;
+    }
 
-	@Override
-	public boolean supportsModel(Object object) {
-		return object instanceof PoolTask;
-	}
+    @Override
+    public PoolTask toModel(PoolTaskRest obj) {
+        return null;
+    }
+
+    @Override
+    public boolean supportsModel(Object object) {
+        return object instanceof PoolTask;
+    }
 }

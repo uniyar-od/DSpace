@@ -11,24 +11,7 @@ import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
-
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.lang3.StringUtils;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
-import org.dspace.eperson.service.EPersonService;
-import org.dspace.services.ConfigurationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.keygen.BytesKeyGenerator;
-import org.springframework.security.crypto.keygen.KeyGenerators;
-import org.springframework.stereotype.Component;
 
 import com.nimbusds.jose.CompressionAlgorithm;
 import com.nimbusds.jose.EncryptionMethod;
@@ -48,6 +31,21 @@ import com.nimbusds.jose.crypto.MACVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.nimbusds.jwt.util.DateUtils;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
+import org.dspace.eperson.service.EPersonService;
+import org.dspace.services.ConfigurationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.keygen.BytesKeyGenerator;
+import org.springframework.security.crypto.keygen.KeyGenerators;
+import org.springframework.stereotype.Component;
 
 /**
  * Class responsible for creating and parsing JWTs, supports both JWS and JWE
@@ -103,7 +101,8 @@ public class JWTTokenHandler implements InitializingBean {
      * @throws ParseException
      * @throws SQLException
      */
-    public EPerson parseEPersonFromToken(String token, HttpServletRequest request, Context context) throws JOSEException, ParseException, SQLException {
+    public EPerson parseEPersonFromToken(String token, HttpServletRequest request, Context context)
+        throws JOSEException, ParseException, SQLException {
         if (StringUtils.isBlank(token)) {
             return null;
         }
@@ -139,7 +138,8 @@ public class JWTTokenHandler implements InitializingBean {
      * @return
      * @throws JOSEException
      */
-    public String createTokenForEPerson(Context context, HttpServletRequest request, Date previousLoginDate, List<Group> groups) throws JOSEException, SQLException {
+    public String createTokenForEPerson(Context context, HttpServletRequest request, Date previousLoginDate,
+                                        List<Group> groups) throws JOSEException, SQLException {
 
         EPerson ePerson = updateSessionSalt(context, previousLoginDate);
 
@@ -183,28 +183,26 @@ public class JWTTokenHandler implements InitializingBean {
 
     private JWEObject encryptJWT(SignedJWT signedJWT) throws JOSEException {
         JWEObject jweObject = new JWEObject(
-                compression(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128GCM)
-                        .contentType("JWT"))
+            compression(new JWEHeader.Builder(JWEAlgorithm.DIR, EncryptionMethod.A128GCM).contentType("JWT"))
 
-                        .build(), new Payload(signedJWT)
-        );
+                .build(), new Payload(signedJWT));
 
         jweObject.encrypt(new DirectEncrypter(getEncryptionKey()));
         return jweObject;
     }
 
-    private boolean isValidToken(HttpServletRequest request, SignedJWT signedJWT, JWTClaimsSet jwtClaimsSet, EPerson ePerson) throws JOSEException {
-        if(StringUtils.isBlank(ePerson.getSessionSalt())) {
+    private boolean isValidToken(HttpServletRequest request, SignedJWT signedJWT, JWTClaimsSet jwtClaimsSet,
+                                 EPerson ePerson) throws JOSEException {
+        if (StringUtils.isBlank(ePerson.getSessionSalt())) {
             return false;
         } else {
             JWSVerifier verifier = new MACVerifier(buildSigningKey(request, ePerson));
 
             //If token is valid and not expired return eperson in token
             Date expirationTime = jwtClaimsSet.getExpirationTime();
-            return signedJWT.verify(verifier)
-                    && expirationTime != null
-                    //Ensure expiration timestamp is after the current time, with a minute of acceptable clock skew.
-                    && DateUtils.isAfter(expirationTime, new Date(), MAX_CLOCK_SKEW_SECONDS);
+            return signedJWT.verify(verifier) && expirationTime != null
+                   //Ensure expiration timestamp is after the current time, with a minute of acceptable clock skew.
+                   && DateUtils.isAfter(expirationTime, new Date(), MAX_CLOCK_SKEW_SECONDS);
         }
     }
 
@@ -226,9 +224,9 @@ public class JWTTokenHandler implements InitializingBean {
         return ePersonClaimProvider.getEPerson(context, jwtClaimsSet);
     }
 
-    private SignedJWT createSignedJWT(HttpServletRequest request, EPerson ePerson, JWTClaimsSet claimsSet) throws JOSEException {
-        SignedJWT signedJWT = new SignedJWT(
-                new JWSHeader(JWSAlgorithm.HS256), claimsSet);
+    private SignedJWT createSignedJWT(HttpServletRequest request, EPerson ePerson, JWTClaimsSet claimsSet)
+        throws JOSEException {
+        SignedJWT signedJWT = new SignedJWT(new JWSHeader(JWSAlgorithm.HS256), claimsSet);
 
         JWSSigner signer = new MACSigner(buildSigningKey(request, ePerson));
         signedJWT.sign(signer);
@@ -242,9 +240,7 @@ public class JWTTokenHandler implements InitializingBean {
             builder = builder.claim(jwtClaimProvider.getKey(), jwtClaimProvider.getValue(context, request));
         }
 
-        return builder
-                .expirationTime(new Date(System.currentTimeMillis() + getExpirationPeriod()))
-                .build();
+        return builder.expirationTime(new Date(System.currentTimeMillis() + getExpirationPeriod())).build();
     }
 
     //This method makes compression configurable
@@ -256,7 +252,8 @@ public class JWTTokenHandler implements InitializingBean {
     }
 
     /**
-     * This returns the key used for signing the token. This key is at least 256 bits/32 bytes (server key has minimum length of 1 byte and the eperson session salt is always 32 bytes),
+     * This returns the key used for signing the token. This key is at least 256 bits/32 bytes (server key has
+     * minimum length of 1 byte and the eperson session salt is always 32 bytes),
      * this way the key is always long enough for the HMAC using SHA-256 algorithm.
      * More information: https://tools.ietf.org/html/rfc7518#section-3.2
      *
@@ -288,9 +285,8 @@ public class JWTTokenHandler implements InitializingBean {
 
             //If the previous login was within the configured token expiration time, we reuse the session salt.
             //This allows a user to login on multiple devices/browsers at the same time.
-            if (StringUtils.isBlank(ePerson.getSessionSalt())
-                    || previousLoginDate == null
-                    || (ePerson.getLastActive().getTime() - previousLoginDate.getTime() > expirationTime)) {
+            if (StringUtils.isBlank(ePerson.getSessionSalt()) || previousLoginDate == null ||
+                (ePerson.getLastActive().getTime() - previousLoginDate.getTime() > expirationTime)) {
 
                 ePerson.setSessionSalt(generateRandomKey());
                 ePersonService.update(context, ePerson);

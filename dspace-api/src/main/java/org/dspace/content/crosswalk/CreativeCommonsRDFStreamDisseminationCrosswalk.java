@@ -28,41 +28,36 @@ import org.dspace.license.service.CreativeCommonsService;
 /**
  * Export the item's Creative Commons license, RDF form.
  *
- * @author  Larry Stone
+ * @author Larry Stone
  * @version $Revision: 1.0 $
  */
 public class CreativeCommonsRDFStreamDisseminationCrosswalk
-    implements StreamDisseminationCrosswalk
-{
-    /** log4j logger */
+    implements StreamDisseminationCrosswalk {
+    /**
+     * log4j logger
+     */
     private static Logger log = Logger.getLogger(CreativeCommonsRDFStreamDisseminationCrosswalk.class);
     protected BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
-    protected CreativeCommonsService creativeCommonsService = LicenseServiceFactory.getInstance().getCreativeCommonsService();
+    protected CreativeCommonsService creativeCommonsService = LicenseServiceFactory.getInstance()
+                                                                                   .getCreativeCommonsService();
 
     @Override
-    public boolean canDisseminate(Context context, DSpaceObject dso)
-    {
-        try
-        {
+    public boolean canDisseminate(Context context, DSpaceObject dso) {
+        try {
             return dso.getType() == Constants.ITEM &&
-                    creativeCommonsService.getLicenseRdfBitstream((Item) dso) != null;
-        }
-        catch (Exception e)
-        {
+                creativeCommonsService.getLicenseRdfBitstream((Item) dso) != null;
+        } catch (Exception e) {
             log.error("Failed getting CC license", e);
-            return  false;
+            return false;
         }
     }
 
     @Override
     public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
-        throws CrosswalkException, IOException, SQLException, AuthorizeException
-    {
-        if (dso.getType() == Constants.ITEM)
-        {
+        throws CrosswalkException, IOException, SQLException, AuthorizeException {
+        if (dso.getType() == Constants.ITEM) {
             Bitstream cc = creativeCommonsService.getLicenseRdfBitstream((Item) dso);
-            if (cc != null)
-            {
+            if (cc != null) {
                 Utils.copy(bitstreamService.retrieve(context, cc), out);
                 out.close();
             }
@@ -70,13 +65,12 @@ public class CreativeCommonsRDFStreamDisseminationCrosswalk
     }
 
     @Override
-    public String getMIMEType()
-    {
+    public String getMIMEType() {
         return "text/xml";
     }
 
-	@Override
-	public boolean assignUniqueNumber() {
-		return false;
-	}
+    @Override
+    public boolean assignUniqueNumber() {
+        return false;
+    }
 }

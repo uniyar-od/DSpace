@@ -36,114 +36,110 @@ import org.springframework.web.multipart.MultipartFile;
 /**
  * Upload step for DSpace Spring Rest. Expose information about the bitstream
  * uploaded for the in progress submission.
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
-public class UploadStep extends org.dspace.submit.step.UploadStep implements AbstractRestProcessingStep, UploadableStep {
+public class UploadStep extends org.dspace.submit.step.UploadStep
+    implements AbstractRestProcessingStep, UploadableStep {
 
-	private static final Logger log = Logger.getLogger(UploadStep.class);
-	
-	@Override
-	public DataUpload getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) throws Exception {
+    private static final Logger log = Logger.getLogger(UploadStep.class);
 
-		DataUpload result = new DataUpload();
-		List<Bundle> bundles = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
-		for (Bundle bundle : bundles) {
-			for (Bitstream source : bundle.getBitstreams()) {
-				UploadBitstreamRest b = submissionService.buildUploadBitstream(configurationService, source);
-				result.getFiles().add(b);
-			}
-		}
-		return result;
-	}
+    @Override
+    public DataUpload getData(SubmissionService submissionService, InProgressSubmission obj,
+                              SubmissionStepConfig config) throws Exception {
 
-	@Override
-	public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op) throws Exception {
-		
-		String instance = "";
-		if("remove".equals(op.getOp())) {
-			if(op.getPath().contains(UPLOAD_STEP_METADATA_PATH)) {
-				instance = UPLOAD_STEP_METADATA_OPERATION_ENTRY;
-			}
-			else if(op.getPath().contains(UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY)) {
-				instance = UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY;
-			}
-			else {
-				instance = UPLOAD_STEP_REMOVE_OPERATION_ENTRY;	
-			}			
-		}
-		else if("move".equals(op.getOp())) {
-			if(op.getPath().contains(UPLOAD_STEP_METADATA_PATH)) {
-				instance = UPLOAD_STEP_METADATA_OPERATION_ENTRY;
-			}
-			else {
-				instance = UPLOAD_STEP_MOVE_OPERATION_ENTRY;	
-			}		
-		}
-		else {
-			if(op.getPath().contains(UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY)) {
-				instance = UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY;
-			}
-			else {
-				instance = UPLOAD_STEP_METADATA_OPERATION_ENTRY;
-			}
-		}
-		PatchOperation<?> patchOperation = new PatchOperationFactory().instanceOf(instance, op.getOp());
-		patchOperation.perform(context, currentRequest, source, op);
+        DataUpload result = new DataUpload();
+        List<Bundle> bundles = itemService.getBundles(obj.getItem(), Constants.CONTENT_BUNDLE_NAME);
+        for (Bundle bundle : bundles) {
+            for (Bitstream source : bundle.getBitstreams()) {
+                UploadBitstreamRest b = submissionService.buildUploadBitstream(configurationService, source);
+                result.getFiles().add(b);
+            }
+        }
+        return result;
+    }
 
-	}
-	
-	
-	@Override
-	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig, InProgressSubmission wsi,
-			MultipartFile file, String extraField) {
-		
-		Bitstream source = null;
-		BitstreamFormat bf = null;
+    @Override
+    public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op)
+        throws Exception {
 
-		Item item = wsi.getItem();
-		List<Bundle> bundles = null;
-		try {
-			// do we already have a bundle?
-			bundles = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
-			
-			InputStream inputStream = new BufferedInputStream(file.getInputStream());
-			if (bundles.size() < 1) {
-				// set bundle's name to ORIGINAL
-				source = itemService.createSingleBitstream(context, inputStream, item, Constants.CONTENT_BUNDLE_NAME);
-			} else {
-				// we have a bundle already, just add bitstream
-				source = bitstreamService.create(context, bundles.get(0), inputStream);
-			}
+        String instance = "";
+        if ("remove".equals(op.getOp())) {
+            if (op.getPath().contains(UPLOAD_STEP_METADATA_PATH)) {
+                instance = UPLOAD_STEP_METADATA_OPERATION_ENTRY;
+            } else if (op.getPath().contains(UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY)) {
+                instance = UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY;
+            } else {
+                instance = UPLOAD_STEP_REMOVE_OPERATION_ENTRY;
+            }
+        } else if ("move".equals(op.getOp())) {
+            if (op.getPath().contains(UPLOAD_STEP_METADATA_PATH)) {
+                instance = UPLOAD_STEP_METADATA_OPERATION_ENTRY;
+            } else {
+                instance = UPLOAD_STEP_MOVE_OPERATION_ENTRY;
+            }
+        } else {
+            if (op.getPath().contains(UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY)) {
+                instance = UPLOAD_STEP_ACCESSCONDITIONS_OPERATION_ENTRY;
+            } else {
+                instance = UPLOAD_STEP_METADATA_OPERATION_ENTRY;
+            }
+        }
+        PatchOperation<?> patchOperation = new PatchOperationFactory().instanceOf(instance, op.getOp());
+        patchOperation.perform(context, currentRequest, source, op);
 
-			source.setName(context, file.getOriginalFilename());
-			// TODO how retrieve this information?
-			source.setSource(context, extraField);
+    }
 
-			// Identify the format
-			bf = bitstreamFormatService.guessFormat(context, source);
-			source.setFormat(context, bf);
 
-			// Update to DB
-			bitstreamService.update(context, source);
-			itemService.update(context, item);
-			
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			ErrorRest result = new ErrorRest();
-			result.setMessage(e.getMessage());
-			if(bundles!=null && bundles.size()>0) {
-				result.getPaths().add("/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
-					+ stepConfig.getId() + "/files/" + bundles.get(0).getBitstreams().size());
-			}
-			else {
-				result.getPaths().add("/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/"
-						+ stepConfig.getId());
-			}
-			return result;
-		}
-		
-		return null;
-	}
+    @Override
+    public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
+                            InProgressSubmission wsi, MultipartFile file, String extraField) {
+
+        Bitstream source = null;
+        BitstreamFormat bf = null;
+
+        Item item = wsi.getItem();
+        List<Bundle> bundles = null;
+        try {
+            // do we already have a bundle?
+            bundles = itemService.getBundles(item, Constants.CONTENT_BUNDLE_NAME);
+
+            InputStream inputStream = new BufferedInputStream(file.getInputStream());
+            if (bundles.size() < 1) {
+                // set bundle's name to ORIGINAL
+                source = itemService.createSingleBitstream(context, inputStream, item, Constants.CONTENT_BUNDLE_NAME);
+            } else {
+                // we have a bundle already, just add bitstream
+                source = bitstreamService.create(context, bundles.get(0), inputStream);
+            }
+
+            source.setName(context, file.getOriginalFilename());
+            // TODO how retrieve this information?
+            source.setSource(context, extraField);
+
+            // Identify the format
+            bf = bitstreamFormatService.guessFormat(context, source);
+            source.setFormat(context, bf);
+
+            // Update to DB
+            bitstreamService.update(context, source);
+            itemService.update(context, item);
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            ErrorRest result = new ErrorRest();
+            result.setMessage(e.getMessage());
+            if (bundles != null && bundles.size() > 0) {
+                result.getPaths().add(
+                    "/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + stepConfig.getId() + "/files/" +
+                    bundles.get(0).getBitstreams().size());
+            } else {
+                result.getPaths()
+                    .add("/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + stepConfig.getId());
+            }
+            return result;
+        }
+
+        return null;
+    }
 }

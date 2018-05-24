@@ -16,27 +16,22 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class MetadataValueISSNExtractor implements ISSNItemExtractor
-{
+public class MetadataValueISSNExtractor implements ISSNItemExtractor {
     @Autowired(required = true)
     public ItemService itemService;
 
     private List<String> metadataList;
 
-    public void setMetadataList(List<String> metadataList)
-    {
+    public void setMetadataList(List<String> metadataList) {
         this.metadataList = metadataList;
     }
 
     @Override
-    public List<String> getISSNs(Context context, Item item)
-    {
+    public List<String> getISSNs(Context context, Item item) {
         List<String> values = new ArrayList<String>();
-        for (String metadata : metadataList)
-        {
+        for (String metadata : metadataList) {
             List<IMetadataValue> dcvalues = itemService.getMetadataByMetadataString(item, metadata);
-            for (IMetadataValue dcvalue : dcvalues)
-            {
+            for (IMetadataValue dcvalue : dcvalues) {
                 values.add(dcvalue.getValue());
             }
         }

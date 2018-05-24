@@ -16,7 +16,6 @@ import org.dspace.app.rest.model.EditItemRest;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.SubmissionDefinitionRest;
 import org.dspace.app.rest.model.SubmissionSectionRest;
-import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.submit.AbstractRestProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.util.SubmissionConfigReader;
@@ -26,138 +25,135 @@ import org.dspace.content.Collection;
 import org.dspace.content.EditItem;
 import org.dspace.content.Item;
 import org.dspace.eperson.EPerson;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
  * This is the converter from/to the EditItem in the DSpace API data model
  * and the REST data model
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 @Component
-public class EditItemConverter
-		extends DSpaceConverter<EditItem, EditItemRest>
-		implements BrowsableDSpaceObjectConverter<EditItem, EditItemRest> {
+public class EditItemConverter extends DSpaceConverter<EditItem, EditItemRest>
+    implements BrowsableDSpaceObjectConverter<EditItem, EditItemRest> {
 
-	private static final Logger log = Logger.getLogger(EditItemConverter.class);
+    private static final Logger log = Logger.getLogger(EditItemConverter.class);
 
-	@Autowired
-	private EPersonConverter epersonConverter;
+    @Autowired
+    private EPersonConverter epersonConverter;
 
-	@Autowired
-	private ItemConverter itemConverter;
+    @Autowired
+    private ItemConverter itemConverter;
 
-	@Autowired
-	private CollectionConverter collectionConverter;
-	
-	private SubmissionConfigReader submissionConfigReader;
+    @Autowired
+    private CollectionConverter collectionConverter;
 
-	@Autowired
-	private SubmissionDefinitionConverter submissionDefinitionConverter;
-	@Autowired
-	private SubmissionSectionConverter submissionSectionConverter;
-	
-	@Autowired
-	SubmissionService submissionService; 
+    private SubmissionConfigReader submissionConfigReader;
 
-	public EditItemConverter() throws SubmissionConfigReaderException {
-		submissionConfigReader = new SubmissionConfigReader();
-	}
+    @Autowired
+    private SubmissionDefinitionConverter submissionDefinitionConverter;
+    @Autowired
+    private SubmissionSectionConverter submissionSectionConverter;
 
-	@Override
-	public EditItemRest fromModel(EditItem obj) {
-		EditItemRest witem = new EditItemRest();
-		
-		Collection collection = obj.getCollection();
-		Item item = obj.getItem();
-		EPerson submitter = null;
-		try {
-			 submitter = obj.getSubmitter();	
-		} catch (SQLException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		
-		witem.setId(obj.getID());
-		witem.setCollection(collection!=null?collectionConverter.convert(collection):null);
-		witem.setItem(itemConverter.convert(item));
-		witem.setSubmitter(epersonConverter.convert(submitter));
-		
-		// 1. retrieve the submission definition
-		// 2. iterate over the submission section to allow to plugin additional
-		// info
-		
-		if (collection != null) {
-			SubmissionDefinitionRest def = submissionDefinitionConverter
-					.convert(submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle()));
-			witem.setSubmissionDefinition(def);
-			for (SubmissionSectionRest sections : def.getPanels()) {
-				SubmissionStepConfig stepConfig = submissionSectionConverter.toModel(sections);
+    @Autowired
+    SubmissionService submissionService;
 
-				/*
-				 * First, load the step processing class (using the current
-				 * class loader)
-				 */
-				ClassLoader loader = this.getClass().getClassLoader();
-				Class stepClass;
-				try {
-					stepClass = loader.loadClass(stepConfig.getProcessingClassName());
+    public EditItemConverter() throws SubmissionConfigReaderException {
+        submissionConfigReader = new SubmissionConfigReader();
+    }
 
-					Object stepInstance = stepClass.newInstance();
+    @Override
+    public EditItemRest fromModel(EditItem obj) {
+        EditItemRest witem = new EditItemRest();
 
-					if (stepInstance instanceof AbstractRestProcessingStep) {
-						// load the interface for this step
-						AbstractRestProcessingStep stepProcessing = (AbstractRestProcessingStep) stepClass
-								.newInstance();
-						for(ErrorRest error : stepProcessing.validate(submissionService, obj, stepConfig)) {
-							addError(witem.getErrors(),error);
-						}
-						witem.getSections().put(sections.getId(),
-								stepProcessing.getData(submissionService, obj, stepConfig));
-					} else {
-						log.warn("The submission step class specified by '"
-								+ stepConfig.getProcessingClassName()
-								+ "' does not extend the class org.dspace.app.rest.submit.AbstractRestProcessingStep!"
-								+ " Therefore it cannot be used by the Configurable Submission as the <processing-class>!");
-					}
+        Collection collection = obj.getCollection();
+        Item item = obj.getItem();
+        EPerson submitter = null;
+        try {
+            submitter = obj.getSubmitter();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
 
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-				}
+        witem.setId(obj.getID());
+        witem.setCollection(collection != null ? collectionConverter.convert(collection) : null);
+        witem.setItem(itemConverter.convert(item));
+        witem.setSubmitter(epersonConverter.convert(submitter));
 
-			}
-		}
-		return witem;
-	}
+        // 1. retrieve the submission definition
+        // 2. iterate over the submission section to allow to plugin additional
+        // info
 
-	@Override
-	public EditItem toModel(EditItemRest obj) {
-		return null;
-	}
+        if (collection != null) {
+            SubmissionDefinitionRest def = submissionDefinitionConverter
+                .convert(submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle()));
+            witem.setSubmissionDefinition(def);
+            for (SubmissionSectionRest sections : def.getPanels()) {
+                SubmissionStepConfig stepConfig = submissionSectionConverter.toModel(sections);
 
-	
-	public void addError(List<ErrorRest> errors, ErrorRest toAdd) {
-		
-		boolean found = false;
-		String i18nKey = toAdd.getMessage();
-		if (StringUtils.isNotBlank(i18nKey)) {
-			for (ErrorRest error : errors) {
-				if (i18nKey.equals(error.getMessage())) {
-					error.getPaths().addAll(toAdd.getPaths());
-					found = true;
-					break;
-				}
-			}
-		}
-		if(!found) {			
-			errors.add(toAdd);
-		}
-	}
-	
-	@Override
-	public boolean supportsModel(Object object) {
-		return object instanceof EditItem;
-	}
+                /*
+                 * First, load the step processing class (using the current
+                 * class loader)
+                 */
+                ClassLoader loader = this.getClass().getClassLoader();
+                Class stepClass;
+                try {
+                    stepClass = loader.loadClass(stepConfig.getProcessingClassName());
+
+                    Object stepInstance = stepClass.newInstance();
+
+                    if (stepInstance instanceof AbstractRestProcessingStep) {
+                        // load the interface for this step
+                        AbstractRestProcessingStep stepProcessing =
+                            (AbstractRestProcessingStep) stepClass.newInstance();
+                        for (ErrorRest error : stepProcessing.validate(submissionService, obj, stepConfig)) {
+                            addError(witem.getErrors(), error);
+                        }
+                        witem.getSections()
+                            .put(sections.getId(), stepProcessing.getData(submissionService, obj, stepConfig));
+                    } else {
+                        log.warn("The submission step class specified by '" + stepConfig.getProcessingClassName() +
+                                 "' does not extend the class org.dspace.app.rest.submit.AbstractRestProcessingStep!" +
+                                 " Therefore it cannot be used by the Configurable Submission as the " +
+                                 "<processing-class>!");
+                    }
+
+                } catch (Exception e) {
+                    log.error(e.getMessage(), e);
+                }
+
+            }
+        }
+        return witem;
+    }
+
+    @Override
+    public EditItem toModel(EditItemRest obj) {
+        return null;
+    }
+
+
+    public void addError(List<ErrorRest> errors, ErrorRest toAdd) {
+
+        boolean found = false;
+        String i18nKey = toAdd.getMessage();
+        if (StringUtils.isNotBlank(i18nKey)) {
+            for (ErrorRest error : errors) {
+                if (i18nKey.equals(error.getMessage())) {
+                    error.getPaths().addAll(toAdd.getPaths());
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (!found) {
+            errors.add(toAdd);
+        }
+    }
+
+    @Override
+    public boolean supportsModel(Object object) {
+        return object instanceof EditItem;
+    }
 }

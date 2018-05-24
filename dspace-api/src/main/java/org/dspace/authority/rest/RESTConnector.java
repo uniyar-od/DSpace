@@ -12,9 +12,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.log4j.Logger;
 import org.dspace.services.ConfigurationService;
 import org.dspace.utils.DSpace;
@@ -35,34 +32,34 @@ public class RESTConnector {
     private String url;
 
     private ClientConfig clientConfig = null;
-    
+
     public RESTConnector(String url) {
         this.url = url;
     }
 
     public WebTarget getClientRest(String path) {
-    	Client client = ClientBuilder.newClient(getClientConfig());
-    	WebTarget target = client.target(url).path(path);
-    	return target;
+        Client client = ClientBuilder.newClient(getClientConfig());
+        WebTarget target = client.target(url).path(path);
+        return target;
     }
 
-	public ClientConfig getClientConfig() {
-		if(this.clientConfig == null) {
-	        ConfigurationService configurationService = new DSpace().getConfigurationService();
-	        
-	        String proxyHost =  configurationService.getProperty("http.proxy.host");
-	        String proxyPortTmp = configurationService.getProperty("http.proxy.port");
-	        
-	        this.clientConfig = new ClientConfig();
-	        if(StringUtils.isNotBlank(proxyHost)){
-	        	
-		        int proxyPort = (StringUtils.isNotBlank(proxyPortTmp))?Integer.parseInt(proxyPortTmp):80;
-	        	this.clientConfig.connectorProvider(new ApacheConnectorProvider());
-	            this.clientConfig.property(ClientProperties.PROXY_URI, proxyHost + ":" + proxyPort);
-	        }
-		}
-		return clientConfig;
-	}
+    public ClientConfig getClientConfig() {
+        if (this.clientConfig == null) {
+            ConfigurationService configurationService = new DSpace().getConfigurationService();
+
+            String proxyHost = configurationService.getProperty("http.proxy.host");
+            String proxyPortTmp = configurationService.getProperty("http.proxy.port");
+
+            this.clientConfig = new ClientConfig();
+            if (StringUtils.isNotBlank(proxyHost)) {
+
+                int proxyPort = (StringUtils.isNotBlank(proxyPortTmp)) ? Integer.parseInt(proxyPortTmp) : 80;
+                this.clientConfig.connectorProvider(new ApacheConnectorProvider());
+                this.clientConfig.property(ClientProperties.PROXY_URI, proxyHost + ":" + proxyPort);
+            }
+        }
+        return clientConfig;
+    }
 
 
 }

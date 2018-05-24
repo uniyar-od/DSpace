@@ -14,23 +14,25 @@ import org.dspace.license.factory.LicenseServiceFactory;
 import org.dspace.license.service.CreativeCommonsService;
 import org.dspace.submit.AbstractProcessingStep;
 
-public class CCLicenseStep extends AbstractProcessingStep
-{
-    /** log4j logger */
+public class CCLicenseStep extends AbstractProcessingStep {
+    /**
+     * log4j logger
+     */
     private static Logger log = Logger.getLogger(CCLicenseStep.class);
 
-    protected final CreativeCommonsService creativeCommonsService = LicenseServiceFactory.getInstance().getCreativeCommonsService();
+    protected final CreativeCommonsService creativeCommonsService = LicenseServiceFactory.getInstance()
+                                                                                         .getCreativeCommonsService();
 
-	@Override
-	public void doPreProcessing(Context context, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void doPreProcessing(Context context, InProgressSubmission wsi) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void doPostProcessing(Context context, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
-		
-	}
+    }
+
+    @Override
+    public void doPostProcessing(Context context, InProgressSubmission wsi) {
+        // TODO Auto-generated method stub
+
+    }
 
 }

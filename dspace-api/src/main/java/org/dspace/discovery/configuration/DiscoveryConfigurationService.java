@@ -13,7 +13,6 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
@@ -28,7 +27,7 @@ public class DiscoveryConfigurationService {
     public void setExtraConfigurationMapping(Map<String, List<String>> extraConfigurationMapping) {
         this.extraConfigurationMapping = extraConfigurationMapping;
     }
-    
+
     public Map<String, List<String>> getExtraConfigurationMapping() {
         return extraConfigurationMapping;
     }
@@ -51,7 +50,7 @@ public class DiscoveryConfigurationService {
 
     public DiscoveryConfiguration getDiscoveryConfiguration(BrowsableDSpaceObject dso) {
         String name;
-        if(dso == null) {
+        if (dso == null) {
             name = "site";
         } else {
             name = dso.getHandle();
@@ -73,8 +72,9 @@ public class DiscoveryConfigurationService {
         return result;
     }
 
-    public DiscoveryConfiguration getDiscoveryConfigurationByNameOrDso(final String configurationName, final BrowsableDSpaceObject dso) {
-        if(StringUtils.isNotBlank(configurationName) && getMap().containsKey(configurationName)) {
+    public DiscoveryConfiguration getDiscoveryConfigurationByNameOrDso(final String configurationName,
+                                                                       final BrowsableDSpaceObject dso) {
+        if (StringUtils.isNotBlank(configurationName) && getMap().containsKey(configurationName)) {
             return getMap().get(configurationName);
         } else {
             return getDiscoveryConfiguration(dso);
@@ -83,9 +83,13 @@ public class DiscoveryConfigurationService {
 
     public static void main(String[] args) {
         System.out.println(DSpaceServicesFactory.getInstance().getServiceManager().getServicesNames().size());
-        DiscoveryConfigurationService mainService = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(DiscoveryConfigurationService.class.getName(), DiscoveryConfigurationService.class);
+        DiscoveryConfigurationService mainService = DSpaceServicesFactory.getInstance().getServiceManager()
+                                                                         .getServiceByName(
+                                                                             DiscoveryConfigurationService.class
+                                                                                 .getName(),
+                                                                             DiscoveryConfigurationService.class);
 
-        for(String key : mainService.getMap().keySet()){
+        for (String key : mainService.getMap().keySet()) {
             System.out.println(key);
 
             System.out.println("Facets:");
@@ -110,12 +114,13 @@ public class DiscoveryConfigurationService {
             }
 
             System.out.println("Recent submissions configuration:");
-            DiscoveryRecentSubmissionsConfiguration recentSubmissionConfiguration = discoveryConfiguration.getRecentSubmissionConfiguration();
+            DiscoveryRecentSubmissionsConfiguration recentSubmissionConfiguration = discoveryConfiguration
+                .getRecentSubmissionConfiguration();
             System.out.println("\tMetadata sort field: " + recentSubmissionConfiguration.getMetadataSortField());
             System.out.println("\tMax recent submissions: " + recentSubmissionConfiguration.getMax());
 
             List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
-            if(0 < defaultFilterQueries.size()){
+            if (0 < defaultFilterQueries.size()) {
                 System.out.println("Default filter queries");
                 for (String fq : defaultFilterQueries) {
                     System.out.println("\t" + fq);

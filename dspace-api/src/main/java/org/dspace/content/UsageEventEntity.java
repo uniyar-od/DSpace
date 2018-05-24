@@ -12,18 +12,18 @@ import java.util.UUID;
 
 public interface UsageEventEntity {
 
-	UUID getID();
+    UUID getID();
 
-	String getTypeText();
-	
-	int getType();
+    String getTypeText();
 
-	String getHandle();
+    int getType();
 
-	String getName();
+    String getHandle();
 
-	boolean haveHierarchy();
+    String getName();
 
-	List<String> getMetadataValue(String mdString);
+    boolean haveHierarchy();
+
+    List<String> getMetadataValue(String mdString);
 
 }

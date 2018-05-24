@@ -9,7 +9,6 @@ package org.dspace.content.integration.defaultvalues;
 
 import org.dspace.content.Item;
 
-public interface EnhancedValuesGenerator
-{
+public interface EnhancedValuesGenerator {
     public DefaultValuesBean generateValues(Item item, String schema, String element, String qualifier, String value);
 }

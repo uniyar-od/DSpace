@@ -4,6 +4,8 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Defines types managed by the core services.
  */
 /**
  * Defines types managed by the core services.

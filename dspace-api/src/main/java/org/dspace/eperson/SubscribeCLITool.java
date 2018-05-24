@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.TimeZone;
-
 import javax.mail.MessagingException;
 
 import org.apache.commons.cli.CommandLine;
@@ -34,7 +33,6 @@ import org.dspace.content.DCDate;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.IMetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
@@ -76,17 +74,13 @@ public class SubscribeCLITool {
      * For example, if today's date is 2002-10-10 (in UTC) items made available
      * during 2002-10-09 (UTC) will be included.
      *
-     * @param context
-     *     The relevant DSpace Context.
-     * @param test
-     *     If true, do a "dry run", i.e. don't actually send email, just log the attempt
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
-     * @throws IOException
-     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @param context The relevant DSpace Context.
+     * @param test    If true, do a "dry run", i.e. don't actually send email, just log the attempt
+     * @throws SQLException An exception that provides information on a database access error or other errors.
+     * @throws IOException  A general class of exceptions produced by failed or interrupted I/O operations.
      */
     public static void processDaily(Context context, boolean test) throws SQLException,
-            IOException {
+        IOException {
         // Grab the subscriptions
 
         List<Subscription> subscriptions = subscribeService.findAll(context);
@@ -98,8 +92,8 @@ public class SubscribeCLITool {
         for (Subscription subscription : subscriptions) {
             // Does this row relate to the same e-person as the last?
             if ((currentEPerson == null)
-                    || (!subscription.getePerson().getID().equals(currentEPerson
-                                            .getID()))) {
+                || (!subscription.getePerson().getID().equals(currentEPerson
+                                                                  .getID()))) {
                 // New e-person. Send mail for previous e-person
                 if (currentEPerson != null) {
 
@@ -107,7 +101,7 @@ public class SubscribeCLITool {
                         sendEmail(context, currentEPerson, collections, test);
                     } catch (MessagingException me) {
                         log.error("Failed to send subscription to eperson_id="
-                                + currentEPerson.getID());
+                                      + currentEPerson.getID());
                         log.error(me);
                     }
                 }
@@ -125,7 +119,7 @@ public class SubscribeCLITool {
                 sendEmail(context, currentEPerson, collections, test);
             } catch (MessagingException me) {
                 log.error("Failed to send subscription to eperson_id="
-                        + currentEPerson.getID());
+                              + currentEPerson.getID());
                 log.error(me);
             }
         }
@@ -139,18 +133,14 @@ public class SubscribeCLITool {
      * @param context     DSpace context object
      * @param eperson     eperson to send to
      * @param collections List of collection IDs (Integers)
-     * @param test
-     *     If true, do a "dry run", i.e. don't actually send email, just log the attempt
-     * @throws IOException
-     *     A general class of exceptions produced by failed or interrupted I/O operations.
-     * @throws MessagingException
-     *     A general class of exceptions for sending email.
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
+     * @param test        If true, do a "dry run", i.e. don't actually send email, just log the attempt
+     * @throws IOException        A general class of exceptions produced by failed or interrupted I/O operations.
+     * @throws MessagingException A general class of exceptions for sending email.
+     * @throws SQLException       An exception that provides information on a database access error or other errors.
      */
     public static void sendEmail(Context context, EPerson eperson,
                                  List<Collection> collections, boolean test) throws IOException, MessagingException,
-            SQLException {
+        SQLException {
         // Get a resource bundle according to the eperson language preferences
         Locale supportedLocale = I18nUtil.getEPersonLocale(eperson);
         ResourceBundle labels = ResourceBundle.getBundle("Messages", supportedLocale);
@@ -181,19 +171,21 @@ public class SubscribeCLITool {
             Collection c = collections.get(i);
 
             try {
-                boolean includeAll = ConfigurationManager.getBooleanProperty("harvest.includerestricted.subscription", true);
+                boolean includeAll = ConfigurationManager
+                    .getBooleanProperty("harvest.includerestricted.subscription", true);
 
                 // we harvest all the changed item from yesterday until now
-                List<HarvestedItemInfo> itemInfos = Harvest.harvest(context, c, new DCDate(midnightYesterday).toString(), null, 0, // Limit
-                        // and
-                        // offset
-                        // zero,
-                        // get
-                        // everything
-                        0, true, // Need item objects
-                        false, // But not containers
-                        false, // Or withdrawals
-                        includeAll);
+                List<HarvestedItemInfo> itemInfos = Harvest
+                    .harvest(context, c, new DCDate(midnightYesterday).toString(), null, 0, // Limit
+                             // and
+                             // offset
+                             // zero,
+                             // get
+                             // everything
+                             0, true, // Need item objects
+                             false, // But not containers
+                             false, // Or withdrawals
+                             includeAll);
 
                 if (ConfigurationManager.getBooleanProperty("eperson.subscription.onlynew", false)) {
                     // get only the items archived yesterday
@@ -208,21 +200,22 @@ public class SubscribeCLITool {
                 if (itemInfos.size() > 0) {
                     if (!isFirst) {
                         emailText
-                                .append("\n---------------------------------------\n");
+                            .append("\n---------------------------------------\n");
                     } else {
                         isFirst = false;
                     }
 
                     emailText.append(labels.getString("org.dspace.eperson.Subscribe.new-items")).append(" ").append(
-                            c.getName()).append(": ").append(
-                            itemInfos.size()).append("\n\n");
+                        c.getName()).append(": ").append(
+                        itemInfos.size()).append("\n\n");
 
                     for (int j = 0; j < itemInfos.size(); j++) {
                         HarvestedItemInfo hii = (HarvestedItemInfo) itemInfos
-                                .get(j);
+                            .get(j);
 
                         String title = hii.item.getName();
-                        emailText.append("      ").append(labels.getString("org.dspace.eperson.Subscribe.title")).append(" ");
+                        emailText.append("      ").append(labels.getString("org.dspace.eperson.Subscribe.title"))
+                                 .append(" ");
 
                         if (StringUtils.isNotBlank(title)) {
                             emailText.append(title);
@@ -230,21 +223,24 @@ public class SubscribeCLITool {
                             emailText.append(labels.getString("org.dspace.eperson.Subscribe.untitled"));
                         }
 
-                        List<IMetadataValue> authors = itemService.getMetadata(hii.item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
+                        List<IMetadataValue> authors = itemService
+                            .getMetadata(hii.item, MetadataSchema.DC_SCHEMA, "contributor", Item.ANY, Item.ANY);
 
                         if (authors.size() > 0) {
-                            emailText.append("\n    ").append(labels.getString("org.dspace.eperson.Subscribe.authors")).append(" ").append(
-                                    authors.get(0).getValue());
+                            emailText.append("\n    ").append(labels.getString("org.dspace.eperson.Subscribe.authors"))
+                                     .append(" ").append(
+                                authors.get(0).getValue());
 
                             for (int k = 1; k < authors.size(); k++) {
                                 emailText.append("\n             ").append(
-                                        authors.get(k).getValue());
+                                    authors.get(k).getValue());
                             }
                         }
 
-                        emailText.append("\n         ").append(labels.getString("org.dspace.eperson.Subscribe.id")).append(" ").append(
-                                handleService.getCanonicalForm(hii.handle)).append(
-                                "\n\n");
+                        emailText.append("\n         ").append(labels.getString("org.dspace.eperson.Subscribe.id"))
+                                 .append(" ").append(
+                            handleService.getCanonicalForm(hii.handle)).append(
+                            "\n\n");
                     }
                 }
             } catch (ParseException pe) {
@@ -336,14 +332,14 @@ public class SubscribeCLITool {
 
     private static List<HarvestedItemInfo> filterOutToday(List<HarvestedItemInfo> completeList) {
         log.debug("Filtering out all today item to leave new items list size="
-                + completeList.size());
+                      + completeList.size());
         List<HarvestedItemInfo> filteredList = new ArrayList<HarvestedItemInfo>();
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         String today = sdf.format(new Date());
         // Get the start and end dates for yesterday
         Date thisTimeYesterday = new Date(System.currentTimeMillis()
-                - (24 * 60 * 60 * 1000));
+                                              - (24 * 60 * 60 * 1000));
         String yesterday = sdf.format(thisTimeYesterday);
 
         for (HarvestedItemInfo infoObject : completeList) {
@@ -353,7 +349,7 @@ public class SubscribeCLITool {
             // has the item modified today?
             if (lastUpdateStr.equals(today)) {
                 List<IMetadataValue> dateAccArr = itemService.getMetadata(infoObject.item, "dc",
-                        "date", "accessioned", Item.ANY);
+                                                                          "date", "accessioned", Item.ANY);
                 // we need only the item archived yesterday
                 if (dateAccArr != null && dateAccArr.size() > 0) {
                     for (IMetadataValue date : dateAccArr) {
@@ -362,19 +358,19 @@ public class SubscribeCLITool {
                             if (date.getValue().startsWith(yesterday)) {
                                 filteredList.add(infoObject);
                                 log.debug("adding : " + dateAccArr.get(0).getValue()
-                                        + " : " + today + " : "
-                                        + infoObject.handle);
+                                              + " : " + today + " : "
+                                              + infoObject.handle);
                                 break;
                             } else {
                                 log.debug("ignoring : " + dateAccArr.get(0).getValue()
-                                        + " : " + today + " : "
-                                        + infoObject.handle);
+                                              + " : " + today + " : "
+                                              + infoObject.handle);
                             }
                         }
                     }
                 } else {
                     log.debug("no date accessioned, adding  : "
-                            + infoObject.handle);
+                                  + infoObject.handle);
                     filteredList.add(infoObject);
                 }
             } else {
@@ -393,11 +389,12 @@ public class SubscribeCLITool {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         // Get the start and end dates for yesterday
         Date thisTimeYesterday = new Date(System.currentTimeMillis()
-                - (24 * 60 * 60 * 1000));
+                                              - (24 * 60 * 60 * 1000));
         String yesterday = sdf.format(thisTimeYesterday);
 
         for (HarvestedItemInfo infoObject : completeList) {
-            List<IMetadataValue> dateAccArr = itemService.getMetadata(infoObject.item, "dc", "date", "accessioned", Item.ANY);
+            List<IMetadataValue> dateAccArr = itemService
+                .getMetadata(infoObject.item, "dc", "date", "accessioned", Item.ANY);
 
             if (dateAccArr != null && dateAccArr.size() > 0) {
                 for (IMetadataValue date : dateAccArr) {
@@ -405,10 +402,14 @@ public class SubscribeCLITool {
                         // if it has been archived yesterday
                         if (date.getValue().startsWith(yesterday)) {
                             filteredList.add(infoObject);
-                            log.debug("adding : " + dateAccArr.get(0).getValue() + " : " + yesterday + " : " + infoObject.handle);
+                            log.debug("adding : " + dateAccArr.get(0)
+                                                              .getValue() + " : " + yesterday + " : " + infoObject
+                                .handle);
                             break;
                         } else {
-                            log.debug("ignoring : " + dateAccArr.get(0).getValue() + " : " + yesterday + " : " + infoObject.handle);
+                            log.debug("ignoring : " + dateAccArr.get(0)
+                                                                .getValue() + " : " + yesterday + " : " + infoObject
+                                .handle);
                         }
                     }
                 }

@@ -25,28 +25,28 @@ import org.dspace.core.Context;
 public interface IndexingService {
 
     void indexContent(Context context, BrowsableDSpaceObject dso)
-            throws SQLException;
+        throws SQLException;
 
     void indexContent(Context context, BrowsableDSpaceObject dso,
                       boolean force) throws SQLException;
 
     void indexContent(Context context, BrowsableDSpaceObject dso,
-            boolean force, boolean commit) throws SQLException, SearchServiceException;
-    
+                      boolean force, boolean commit) throws SQLException, SearchServiceException;
+
     void unIndexContent(Context context, BrowsableDSpaceObject dso)
-            throws SQLException, IOException;
+        throws SQLException, IOException;
 
     void unIndexContent(Context context, BrowsableDSpaceObject dso, boolean commit)
-            throws SQLException, IOException;
-    
+        throws SQLException, IOException;
+
     void unIndexContent(Context context, String uniqueSearchID)
-            throws IOException;
+        throws IOException;
 
     void unIndexContent(Context context, String uniqueSearchID, boolean commit)
-            throws IOException;
+        throws IOException;
 
     void reIndexContent(Context context, BrowsableDSpaceObject dso)
-            throws SQLException, IOException;
+        throws SQLException, IOException;
 
     void createIndex(Context context) throws SQLException, IOException;
 
@@ -55,15 +55,15 @@ public interface IndexingService {
     void updateIndex(Context context, boolean force);
 
     void updateIndex(Context context, boolean force, int type);
-    
+
     void updateIndex(Context context, List<UUID> ids, boolean force, int type);
 
     void cleanIndex(boolean force) throws IOException,
-            SQLException, SearchServiceException;
+        SQLException, SearchServiceException;
 
     void cleanIndex(boolean force, int type) throws IOException,
-    SQLException, SearchServiceException;
-    
+        SQLException, SearchServiceException;
+
     void commit() throws SearchServiceException;
 
     void optimize() throws SearchServiceException;

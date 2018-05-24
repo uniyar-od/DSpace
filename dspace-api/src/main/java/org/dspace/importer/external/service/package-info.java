@@ -4,6 +4,13 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Main import framework services.
+ *
+ * @author Roeland Dillen (roeland at atmire dot com)
+ *
+ * Main import framework services.
+ * @author Roeland Dillen (roeland at atmire dot com)
  */
 
 /**

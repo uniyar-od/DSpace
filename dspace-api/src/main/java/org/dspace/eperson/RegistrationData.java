@@ -8,7 +8,6 @@
 package org.dspace.eperson;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,13 +27,13 @@ import org.dspace.core.ReloadableEntity;
  * @author kevinvandevelde at atmire.com
  */
 @Entity
-@Table(name="registrationdata")
+@Table(name = "registrationdata")
 public class RegistrationData implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="registrationdata_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="registrationdata_seq")
-    @SequenceGenerator(name="registrationdata_seq", sequenceName="registrationdata_seq", allocationSize = 1)
+    @Column(name = "registrationdata_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "registrationdata_seq")
+    @SequenceGenerator(name = "registrationdata_seq", sequenceName = "registrationdata_seq", allocationSize = 1)
     private Integer id;
 
     @Column(name = "email", unique = true, length = 64)
@@ -50,10 +49,8 @@ public class RegistrationData implements ReloadableEntity<Integer> {
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.eperson.service.RegistrationDataService#create(Context)}
-     *
      */
-    protected RegistrationData()
-    {
+    protected RegistrationData() {
 
     }
 

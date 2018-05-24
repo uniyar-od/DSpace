@@ -32,15 +32,14 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Ben Bosman (ben at atmire dot com)
  * @author Mark Diggory (markd at atmire dot com)
  */
-public class AuthorityValueServiceImpl implements AuthorityValueService{
+public class AuthorityValueServiceImpl implements AuthorityValueService {
 
     private final Logger log = Logger.getLogger(AuthorityValueServiceImpl.class);
 
     @Autowired(required = true)
     protected AuthorityTypes authorityTypes;
 
-    protected AuthorityValueServiceImpl()
-    {
+    protected AuthorityValueServiceImpl() {
 
     }
 
@@ -108,7 +107,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
             updated.setField(value.getField());
             if (updated.hasTheSameInformationAs(value)) {
                 updated.setLastModified(value.getLastModified());
-            }else {
+            } else {
                 updated.updateLastModifiedDate();
             }
         }
@@ -117,7 +116,8 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 
     /**
      * Item.ANY does not work here.
-     * @param context Context
+     *
+     * @param context     Context
      * @param authorityID authority id
      * @return AuthorityValue
      */
@@ -149,20 +149,24 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
     }
 
     @Override
-    public List<AuthorityValue> findByValue(Context context, String schema, String element, String qualifier, String value) {
+    public List<AuthorityValue> findByValue(Context context, String schema, String element, String qualifier,
+                                            String value) {
         String field = fieldParameter(schema, element, qualifier);
         return findByValue(context, field, qualifier);
     }
 
     @Override
-    public List<AuthorityValue> findByName(Context context, String schema, String element, String qualifier, String name) {
+    public List<AuthorityValue> findByName(Context context, String schema, String element, String qualifier,
+                                           String name) {
         String field = fieldParameter(schema, element, qualifier);
-        String queryString = "first_name:" + name + " OR last_name:" + name + " OR name_variant:" + name + " AND field:" + field;
+        String queryString = "first_name:" + name + " OR last_name:" + name + " OR name_variant:" + name + " AND " +
+            "field:" + field;
         return find(context, queryString);
     }
 
     @Override
-    public List<AuthorityValue> findByAuthorityMetadata(Context context, String schema, String element, String qualifier, String value) {
+    public List<AuthorityValue> findByAuthorityMetadata(Context context, String schema, String element,
+                                                        String qualifier, String value) {
         String field = fieldParameter(schema, element, qualifier);
         String queryString = "all_Labels:" + value + " AND field:" + field;
         return find(context, queryString);
@@ -192,7 +196,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
     public AuthorityValue getAuthorityValueType(String metadataString) {
         AuthorityValue fromAuthority = null;
         for (AuthorityValue type : authorityTypes.getTypes()) {
-            if (StringUtils.startsWithIgnoreCase(metadataString,type.getAuthorityType())) {
+            if (StringUtils.startsWithIgnoreCase(metadataString, type.getAuthorityType())) {
                 fromAuthority = type;
             }
         }
@@ -206,7 +210,8 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
             solrQuery.setQuery(filtered(queryString));
             log.debug("AuthorityValueFinder makes the query: " + queryString);
             QueryResponse queryResponse = SolrAuthority.getSearchService().search(solrQuery);
-            if (queryResponse != null && queryResponse.getResults() != null && 0 < queryResponse.getResults().getNumFound()) {
+            if (queryResponse != null && queryResponse.getResults() != null && 0 < queryResponse.getResults()
+                                                                                                .getNumFound()) {
                 for (SolrDocument document : queryResponse.getResults()) {
                     AuthorityValue authorityValue = fromSolr(document);
                     findings.add(authorityValue);
@@ -214,7 +219,8 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
                 }
             }
         } catch (Exception e) {
-            log.error(LogManager.getHeader(context, "Error while retrieving AuthorityValue from solr", "query: " + queryString),e);
+            log.error(LogManager.getHeader(context, "Error while retrieving AuthorityValue from solr",
+                                           "query: " + queryString), e);
         }
 
         return findings;

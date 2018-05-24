@@ -7,63 +7,61 @@
  */
 package org.dspace.app.rest.model;
 
-import org.dspace.app.rest.RestResourceController;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.dspace.app.rest.RestResourceController;
 
 /**
  * The PoolTask REST Resource
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 public class PoolTaskRest extends BaseObjectRest<Integer> {
-	public static final String NAME = "pooltask";
-	public static final String CATEGORY = RestAddressableModel.WORKFLOW;
+    public static final String NAME = "pooltask";
+    public static final String CATEGORY = RestAddressableModel.WORKFLOW;
 
-	private String step;
-	
-	private String action;
-	
-	@JsonIgnore
-	private WorkflowItemRest workflowitem;
-	
-	@Override
-	public String getCategory() {
-		return CATEGORY;
-	}
-	
-	@Override
-	public String getType() {
-		return NAME;
-	}
-	
-	@Override
-	public Class getController() {
-		return RestResourceController.class;
-	}
+    private String step;
 
-	public String getStep() {
-		return step;
-	}
+    private String action;
 
-	public void setStep(String step) {
-		this.step = step;
-	}
+    @JsonIgnore
+    private WorkflowItemRest workflowitem;
 
-	public String getAction() {
-		return action;
-	}
+    @Override
+    public String getCategory() {
+        return CATEGORY;
+    }
 
-	public void setAction(String action) {
-		this.action = action;
-	}
+    @Override
+    public String getType() {
+        return NAME;
+    }
 
-	public WorkflowItemRest getWorkflowitem() {
-		return workflowitem;
-	}
+    @Override
+    public Class getController() {
+        return RestResourceController.class;
+    }
 
-	public void setWorkflowitem(WorkflowItemRest workflowitem) {
-		this.workflowitem = workflowitem;
-	}
+    public String getStep() {
+        return step;
+    }
+
+    public void setStep(String step) {
+        this.step = step;
+    }
+
+    public String getAction() {
+        return action;
+    }
+
+    public void setAction(String action) {
+        this.action = action;
+    }
+
+    public WorkflowItemRest getWorkflowitem() {
+        return workflowitem;
+    }
+
+    public void setWorkflowitem(WorkflowItemRest workflowitem) {
+        this.workflowitem = workflowitem;
+    }
 }

@@ -25,9 +25,9 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * <p>Java class for anonymous complex type.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
- * 
+ *
  * <pre>
  * &lt;complexType&gt;
  *   &lt;complexContent&gt;
@@ -67,8 +67,6 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
  *   &lt;/complexContent&gt;
  * &lt;/complexType&gt;
  * </pre>
- * 
- * 
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "", propOrder = {
@@ -83,7 +81,7 @@ public class Org {
 
     @XmlElement(name = "head")
     protected List<Head> heads;
-    @XmlElements({
+    @XmlElements( {
         @XmlElement(name = "label", type = Label.class),
         @XmlElement(name = "name", type = Name.class),
         @XmlElement(name = "orgName", type = OrgName.class),
@@ -98,12 +96,12 @@ public class Org {
         @XmlElement(name = "anchor", type = Anchor.class)
     })
     protected List<Object> labelsAndNamesAndOrgNames;
-    @XmlElements({
+    @XmlElements( {
         @XmlElement(name = "p", type = P.class),
         @XmlElement(name = "trash", type = Trash.class)
     })
     protected List<Object> psAndTrashes;
-    @XmlElements({
+    @XmlElements( {
         @XmlElement(name = "note", type = Note.class),
         @XmlElement(name = "bibl", type = Bibl.class),
         @XmlElement(name = "biblStruct", type = BiblStruct.class),
@@ -197,25 +195,23 @@ public class Org {
 
     /**
      * Gets the value of the heads property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the heads property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getHeads().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Head }
-     * 
-     * 
      */
     public List<Head> getHeads() {
         if (heads == null) {
@@ -226,20 +222,20 @@ public class Org {
 
     /**
      * Gets the value of the labelsAndNamesAndOrgNames property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the labelsAndNamesAndOrgNames property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getLabelsAndNamesAndOrgNames().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Label }
@@ -254,8 +250,6 @@ public class Org {
      * {@link Forename }
      * {@link RoleName }
      * {@link Anchor }
-     * 
-     * 
      */
     public List<Object> getLabelsAndNamesAndOrgNames() {
         if (labelsAndNamesAndOrgNames == null) {
@@ -266,26 +260,24 @@ public class Org {
 
     /**
      * Gets the value of the psAndTrashes property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the psAndTrashes property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getPSAndTrashes().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link P }
      * {@link Trash }
-     * 
-     * 
      */
     public List<Object> getPSAndTrashes() {
         if (psAndTrashes == null) {
@@ -296,20 +288,20 @@ public class Org {
 
     /**
      * Gets the value of the notesAndBiblsAndBiblStructs property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the notesAndBiblsAndBiblStructs property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getNotesAndBiblsAndBiblStructs().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Note }
@@ -317,8 +309,6 @@ public class Org {
      * {@link BiblStruct }
      * {@link ListBibl }
      * {@link Link }
-     * 
-     * 
      */
     public List<Object> getNotesAndBiblsAndBiblStructs() {
         if (notesAndBiblsAndBiblStructs == null) {
@@ -329,25 +319,23 @@ public class Org {
 
     /**
      * Gets the value of the orgs property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the orgs property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getOrgs().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link Org }
-     * 
-     * 
      */
     public List<Org> getOrgs() {
         if (orgs == null) {
@@ -358,25 +346,23 @@ public class Org {
 
     /**
      * Gets the value of the roles property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the roles property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getRoles().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getRoles() {
         if (roles == null) {
@@ -387,11 +373,9 @@ public class Org {
 
     /**
      * Gets the value of the subtype property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getSubtype() {
         return subtype;
@@ -399,11 +383,9 @@ public class Org {
 
     /**
      * Sets the value of the subtype property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setSubtype(String value) {
         this.subtype = value;
@@ -411,11 +393,9 @@ public class Org {
 
     /**
      * Gets the value of the type property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getType() {
         return type;
@@ -423,11 +403,9 @@ public class Org {
 
     /**
      * Sets the value of the type property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setType(String value) {
         this.type = value;
@@ -435,11 +413,9 @@ public class Org {
 
     /**
      * Gets the value of the coords property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getCoords() {
         return coords;
@@ -447,11 +423,9 @@ public class Org {
 
     /**
      * Sets the value of the coords property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setCoords(String value) {
         this.coords = value;
@@ -459,11 +433,9 @@ public class Org {
 
     /**
      * Gets the value of the n property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getN() {
         return n;
@@ -471,11 +443,9 @@ public class Org {
 
     /**
      * Sets the value of the n property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setN(String value) {
         this.n = value;
@@ -483,11 +453,9 @@ public class Org {
 
     /**
      * Gets the value of the lang property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getLang() {
         return lang;
@@ -495,11 +463,9 @@ public class Org {
 
     /**
      * Sets the value of the lang property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setLang(String value) {
         this.lang = value;
@@ -507,25 +473,23 @@ public class Org {
 
     /**
      * Gets the value of the renditions property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the renditions property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getRenditions().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getRenditions() {
         if (renditions == null) {
@@ -536,11 +500,9 @@ public class Org {
 
     /**
      * Gets the value of the style property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getStyle() {
         return style;
@@ -548,11 +510,9 @@ public class Org {
 
     /**
      * Sets the value of the style property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setStyle(String value) {
         this.style = value;
@@ -560,25 +520,23 @@ public class Org {
 
     /**
      * Gets the value of the rends property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the rends property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getRends().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getRends() {
         if (rends == null) {
@@ -589,11 +547,9 @@ public class Org {
 
     /**
      * Gets the value of the id property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getId() {
         return id;
@@ -601,11 +557,9 @@ public class Org {
 
     /**
      * Sets the value of the id property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setId(String value) {
         this.id = value;
@@ -613,11 +567,9 @@ public class Org {
 
     /**
      * Gets the value of the base property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getBase() {
         return base;
@@ -625,11 +577,9 @@ public class Org {
 
     /**
      * Sets the value of the base property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setBase(String value) {
         this.base = value;
@@ -637,25 +587,23 @@ public class Org {
 
     /**
      * Gets the value of the resps property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the resps property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getResps().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getResps() {
         if (resps == null) {
@@ -666,11 +614,9 @@ public class Org {
 
     /**
      * Gets the value of the cert property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TeiDataCertainty }
-     *     
+     *
+     * @return possible object is
+     * {@link TeiDataCertainty }
      */
     public TeiDataCertainty getCert() {
         return cert;
@@ -678,11 +624,9 @@ public class Org {
 
     /**
      * Sets the value of the cert property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TeiDataCertainty }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TeiDataCertainty }
      */
     public void setCert(TeiDataCertainty value) {
         this.cert = value;
@@ -690,25 +634,23 @@ public class Org {
 
     /**
      * Gets the value of the selects property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the selects property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getSelects().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getSelects() {
         if (selects == null) {
@@ -719,25 +661,23 @@ public class Org {
 
     /**
      * Gets the value of the corresps property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the corresps property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getCorresps().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getCorresps() {
         if (corresps == null) {
@@ -748,11 +688,9 @@ public class Org {
 
     /**
      * Gets the value of the sameAs property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getSameAs() {
         return sameAs;
@@ -760,11 +698,9 @@ public class Org {
 
     /**
      * Sets the value of the sameAs property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setSameAs(String value) {
         this.sameAs = value;
@@ -772,25 +708,23 @@ public class Org {
 
     /**
      * Gets the value of the excludes property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the excludes property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getExcludes().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getExcludes() {
         if (excludes == null) {
@@ -801,11 +735,9 @@ public class Org {
 
     /**
      * Gets the value of the copyOf property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getCopyOf() {
         return copyOf;
@@ -813,11 +745,9 @@ public class Org {
 
     /**
      * Sets the value of the copyOf property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setCopyOf(String value) {
         this.copyOf = value;
@@ -825,11 +755,9 @@ public class Org {
 
     /**
      * Gets the value of the prev property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getPrev() {
         return prev;
@@ -837,11 +765,9 @@ public class Org {
 
     /**
      * Sets the value of the prev property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setPrev(String value) {
         this.prev = value;
@@ -849,25 +775,23 @@ public class Org {
 
     /**
      * Gets the value of the synches property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the synches property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getSynches().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getSynches() {
         if (synches == null) {
@@ -878,11 +802,9 @@ public class Org {
 
     /**
      * Gets the value of the next property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getNext() {
         return next;
@@ -890,11 +812,9 @@ public class Org {
 
     /**
      * Sets the value of the next property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setNext(String value) {
         this.next = value;
@@ -902,11 +822,9 @@ public class Org {
 
     /**
      * Gets the value of the space property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getSpace() {
         return space;
@@ -914,11 +832,9 @@ public class Org {
 
     /**
      * Sets the value of the space property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setSpace(String value) {
         this.space = value;
@@ -926,11 +842,9 @@ public class Org {
 
     /**
      * Gets the value of the sortKey property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getSortKey() {
         return sortKey;
@@ -938,11 +852,9 @@ public class Org {
 
     /**
      * Sets the value of the sortKey property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setSortKey(String value) {
         this.sortKey = value;
@@ -950,25 +862,23 @@ public class Org {
 
     /**
      * Gets the value of the evidences property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the evidences property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getEvidences().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getEvidences() {
         if (evidences == null) {
@@ -979,11 +889,9 @@ public class Org {
 
     /**
      * Gets the value of the instant property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getInstant() {
         if (instant == null) {
@@ -995,11 +903,9 @@ public class Org {
 
     /**
      * Sets the value of the instant property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setInstant(String value) {
         this.instant = value;
@@ -1007,11 +913,9 @@ public class Org {
 
     /**
      * Gets the value of the unit property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getUnit() {
         return unit;
@@ -1019,11 +923,9 @@ public class Org {
 
     /**
      * Sets the value of the unit property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setUnit(String value) {
         this.unit = value;
@@ -1031,11 +933,9 @@ public class Org {
 
     /**
      * Gets the value of the quantity property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getQuantity() {
         return quantity;
@@ -1043,11 +943,9 @@ public class Org {
 
     /**
      * Sets the value of the quantity property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setQuantity(String value) {
         this.quantity = value;
@@ -1055,11 +953,9 @@ public class Org {
 
     /**
      * Gets the value of the precision property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link TeiDataCertainty }
-     *     
+     *
+     * @return possible object is
+     * {@link TeiDataCertainty }
      */
     public TeiDataCertainty getPrecision() {
         return precision;
@@ -1067,11 +963,9 @@ public class Org {
 
     /**
      * Sets the value of the precision property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link TeiDataCertainty }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link TeiDataCertainty }
      */
     public void setPrecision(TeiDataCertainty value) {
         this.precision = value;
@@ -1079,11 +973,9 @@ public class Org {
 
     /**
      * Gets the value of the atMost property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getAtMost() {
         return atMost;
@@ -1091,11 +983,9 @@ public class Org {
 
     /**
      * Sets the value of the atMost property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setAtMost(String value) {
         this.atMost = value;
@@ -1103,11 +993,9 @@ public class Org {
 
     /**
      * Gets the value of the min property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getMin() {
         return min;
@@ -1115,11 +1003,9 @@ public class Org {
 
     /**
      * Sets the value of the min property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setMin(String value) {
         this.min = value;
@@ -1127,11 +1013,9 @@ public class Org {
 
     /**
      * Gets the value of the atLeast property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getAtLeast() {
         return atLeast;
@@ -1139,11 +1023,9 @@ public class Org {
 
     /**
      * Sets the value of the atLeast property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setAtLeast(String value) {
         this.atLeast = value;
@@ -1151,11 +1033,9 @@ public class Org {
 
     /**
      * Gets the value of the max property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getMax() {
         return max;
@@ -1163,11 +1043,9 @@ public class Org {
 
     /**
      * Sets the value of the max property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setMax(String value) {
         this.max = value;
@@ -1175,11 +1053,9 @@ public class Org {
 
     /**
      * Gets the value of the confidence property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link Double }
-     *     
+     *
+     * @return possible object is
+     * {@link Double }
      */
     public Double getConfidence() {
         return confidence;
@@ -1187,11 +1063,9 @@ public class Org {
 
     /**
      * Sets the value of the confidence property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link Double }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link Double }
      */
     public void setConfidence(Double value) {
         this.confidence = value;
@@ -1199,11 +1073,9 @@ public class Org {
 
     /**
      * Gets the value of the extent property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getExtent() {
         return extent;
@@ -1211,11 +1083,9 @@ public class Org {
 
     /**
      * Sets the value of the extent property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setExtent(String value) {
         this.extent = value;
@@ -1223,11 +1093,9 @@ public class Org {
 
     /**
      * Gets the value of the scope property.
-     * 
-     * @return
-     *     possible object is
-     *     {@link String }
-     *     
+     *
+     * @return possible object is
+     * {@link String }
      */
     public String getScope() {
         return scope;
@@ -1235,11 +1103,9 @@ public class Org {
 
     /**
      * Sets the value of the scope property.
-     * 
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *     
+     *
+     * @param value allowed object is
+     *              {@link String }
      */
     public void setScope(String value) {
         this.scope = value;
@@ -1247,25 +1113,23 @@ public class Org {
 
     /**
      * Gets the value of the sources property.
-     * 
+     *
      * <p>
      * This accessor method returns a reference to the live list,
      * not a snapshot. Therefore any modification you make to the
      * returned list will be present inside the JAXB object.
      * This is why there is not a <CODE>set</CODE> method for the sources property.
-     * 
+     *
      * <p>
      * For example, to add a new item, do as follows:
      * <pre>
      *    getSources().add(newItem);
      * </pre>
-     * 
-     * 
+     *
+     *
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link String }
-     * 
-     * 
      */
     public List<String> getSources() {
         if (sources == null) {

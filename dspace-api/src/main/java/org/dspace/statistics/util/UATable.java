@@ -8,8 +8,6 @@
 package org.dspace.statistics.util;
 
 import java.util.HashSet;
-import java.util.regex.Pattern;
-import java.util.Set;
 
 public class UATable {
 
@@ -24,12 +22,12 @@ public class UATable {
      * @param ip
      */
     public void add(String ua) {
-	try {
+        try {
 //		Pattern pattern = Pattern.compile(ua);
 //		set.add(pattern);
-		set.add(ua);
-	} finally {
-	}
+            set.add(ua);
+        } finally {
+        }
     }
 
     public boolean contains(String ua) {
@@ -38,7 +36,7 @@ public class UATable {
 //			return true;
 //	}
 //	return false;
-	return set.contains(ua);
+        return set.contains(ua);
     }
 
 }

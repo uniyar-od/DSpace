@@ -14,13 +14,12 @@ import org.dspace.app.rest.utils.Utils;
 /**
  * PooledTask Rest HAL Resource. The HAL Resource wraps the REST Resource
  * adding support for the links and embedded resources
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 @RelNameDSpaceResource(ClaimedTaskRest.NAME)
 public class ClaimedTaskResource extends DSpaceResource<ClaimedTaskRest> {
-	public ClaimedTaskResource(ClaimedTaskRest witem, Utils utils, String... rels) {
-		super(witem, utils, rels);
-	}
+    public ClaimedTaskResource(ClaimedTaskRest witem, Utils utils, String... rels) {
+        super(witem, utils, rels);
+    }
 }

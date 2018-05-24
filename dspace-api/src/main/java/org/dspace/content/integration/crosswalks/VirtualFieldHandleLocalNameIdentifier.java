@@ -14,46 +14,44 @@ import org.dspace.content.Item;
 
 /**
  * Implements virtual field processing to build custom identifier
- * 
+ *
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science dot it)
  */
 public class VirtualFieldHandleLocalNameIdentifier
-    implements VirtualFieldDisseminator, VirtualFieldIngester
-{
+    implements VirtualFieldDisseminator, VirtualFieldIngester {
 
-    public VirtualFieldHandleLocalNameIdentifier()
-    {
+    public VirtualFieldHandleLocalNameIdentifier() {
     }
 
-    public String[] getMetadata(Item item, Map fieldCache, String fieldName)
-    {
-        if(fieldCache.containsKey(fieldName))
+    public String[] getMetadata(Item item, Map fieldCache, String fieldName) {
+        if (fieldCache.containsKey(fieldName)) {
             return (new String[] {
-                (String)fieldCache.get(fieldName)
+                (String) fieldCache.get(fieldName)
             });
+        }
         String handle = item.getHandle();
         int position = handle.indexOf("/");
-        if(StringUtils.isNotBlank(handle))
-            fieldCache.put("virtual.handlelocalname", (new StringBuilder(handle.substring(position+1))).toString());
-        else
+        if (StringUtils.isNotBlank(handle)) {
+            fieldCache.put("virtual.handlelocalname", (new StringBuilder(handle.substring(position + 1))).toString());
+        } else {
             fieldCache.put("virtual.handlelocalname", (new StringBuilder("ATT-")).append(item.getID()).toString());
-        if(fieldCache.containsKey(fieldName))
+        }
+        if (fieldCache.containsKey(fieldName)) {
             return (new String[] {
-                (String)fieldCache.get(fieldName)
+                (String) fieldCache.get(fieldName)
             });
-        else
+        } else {
             return null;
+        }
     }
 
-    public boolean addMetadata(Item item, Map fieldCache, String fieldName, String s)
-    {
+    public boolean addMetadata(Item item, Map fieldCache, String fieldName, String s) {
         // NOOP - we won't add any metadata yet, we'll pick it up when we
         // finalise the item
         return true;
     }
 
-    public boolean finalizeItem(Item item, Map fieldCache)
-    {
+    public boolean finalizeItem(Item item, Map fieldCache) {
         return false;
     }
 }

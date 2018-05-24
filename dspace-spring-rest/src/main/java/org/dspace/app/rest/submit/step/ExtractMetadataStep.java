@@ -12,6 +12,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.RecordSet;
+import gr.ekt.bte.core.Value;
+import gr.ekt.bte.dataloader.FileDataLoader;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -29,81 +33,77 @@ import org.dspace.submit.extraction.MetadataExtractor;
 import org.dspace.submit.step.ExtractionStep;
 import org.springframework.web.multipart.MultipartFile;
 
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.RecordSet;
-import gr.ekt.bte.core.Value;
-import gr.ekt.bte.dataloader.FileDataLoader;
-
 /**
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
- *
  */
 public class ExtractMetadataStep extends ExtractionStep implements UploadableStep {
 
-	private static final Logger log = Logger.getLogger(ExtractMetadataStep.class);
+    private static final Logger log = Logger.getLogger(ExtractMetadataStep.class);
 
-	@Override
-	public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
-			InProgressSubmission wsi, MultipartFile multipartFile, String extraField) throws IOException {
+    @Override
+    public ErrorRest upload(Context context, SubmissionService submissionService, SubmissionStepConfig stepConfig,
+                            InProgressSubmission wsi, MultipartFile multipartFile, String extraField)
+        throws IOException {
 
-		Item item = wsi.getItem();
-		try {
-			List<MetadataExtractor> extractors = DSpaceServicesFactory.getInstance().getServiceManager()
-					.getServicesByType(MetadataExtractor.class);
-			File file = null;
-			for (MetadataExtractor extractor : extractors) {
-				FileDataLoader dataLoader = extractor.getDataLoader();
-				RecordSet recordSet = null;
-				if (extractor.getExtensions().contains(FilenameUtils.getExtension(multipartFile.getOriginalFilename()))) {
+        Item item = wsi.getItem();
+        try {
+            List<MetadataExtractor> extractors =
+                DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(MetadataExtractor.class);
+            File file = null;
+            for (MetadataExtractor extractor : extractors) {
+                FileDataLoader dataLoader = extractor.getDataLoader();
+                RecordSet recordSet = null;
+                if (extractor.getExtensions()
+                    .contains(FilenameUtils.getExtension(multipartFile.getOriginalFilename()))) {
 
-					if (file == null) {
-						file = Utils.getFile(multipartFile, "submissionlookup-loader", stepConfig.getId());
-					}
+                    if (file == null) {
+                        file = Utils.getFile(multipartFile, "submissionlookup-loader", stepConfig.getId());
+                    }
 
-					FileDataLoader fdl = (FileDataLoader) dataLoader;
-					fdl.setFilename(file.getAbsolutePath());
-					
-					
-					recordSet = convertFields(dataLoader.getRecords(), bteBatchImportService.getOutputMap());
-					 			
-					enrichItem(context, recordSet.getRecords(), item);
+                    FileDataLoader fdl = (FileDataLoader) dataLoader;
+                    fdl.setFilename(file.getAbsolutePath());
 
-				}
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-			ErrorRest result = new ErrorRest();
-			result.setMessage(e.getMessage());
-			result.getPaths().add("/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + stepConfig.getId());
-			return result;
-		}
-		return null;
-	}
 
-	public RecordSet convertFields(RecordSet recordSet, Map<String, String> fieldMap) {
-		RecordSet result = new RecordSet();
-		for (Record publication : recordSet.getRecords()) {
-			for (String fieldName : fieldMap.keySet()) {
-				String md = null;
-				if (fieldMap != null) {
-					md = fieldMap.get(fieldName);
-				}
+                    recordSet = convertFields(dataLoader.getRecords(), bteBatchImportService.getOutputMap());
 
-				if (StringUtils.isBlank(md)) {
-					continue;
-				} else {
-					md = md.trim();
-				}
+                    enrichItem(context, recordSet.getRecords(), item);
 
-				if (publication.isMutable()) {
-					List<Value> values = publication.getValues(md);
-					publication.makeMutable().removeField(md);
-					publication.makeMutable().addField(fieldName, values);
-				}
-			}
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            ErrorRest result = new ErrorRest();
+            result.setMessage(e.getMessage());
+            result.getPaths().add("/" + WorkspaceItemRestRepository.OPERATION_PATH_SECTIONS + "/" + stepConfig.getId());
+            return result;
+        }
+        return null;
+    }
 
-			result.addRecord(publication);
-		}
-		return result;
-	}
+    public RecordSet convertFields(RecordSet recordSet, Map<String, String> fieldMap) {
+        RecordSet result = new RecordSet();
+        for (Record publication : recordSet.getRecords()) {
+            for (String fieldName : fieldMap.keySet()) {
+                String md = null;
+                if (fieldMap != null) {
+                    md = fieldMap.get(fieldName);
+                }
+
+                if (StringUtils.isBlank(md)) {
+                    continue;
+                } else {
+                    md = md.trim();
+                }
+
+                if (publication.isMutable()) {
+                    List<Value> values = publication.getValues(md);
+                    publication.makeMutable().removeField(md);
+                    publication.makeMutable().addField(fieldName, values);
+                }
+            }
+
+            result.addRecord(publication);
+        }
+        return result;
+    }
 }

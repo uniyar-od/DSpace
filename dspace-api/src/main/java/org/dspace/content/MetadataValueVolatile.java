@@ -9,102 +9,102 @@ package org.dspace.content;
 
 public class MetadataValueVolatile implements IMetadataValue {
 
-	public String schema;
-	public String element;
-	public String qualifier;
-	String authority;
-	String language;
-	String value;
-	int confidence;
-	int place;
-	
-	public MetadataValueVolatile() {
-	}
-	
-	public MetadataValueVolatile(String schema, String element, String qualifier, String authority, String language) {
-		this.schema = schema;
-		this.element = element;
-		this.qualifier = qualifier;
-		this.authority = authority;
-		this.language = language;
-	}
+    public String schema;
+    public String element;
+    public String qualifier;
+    String authority;
+    String language;
+    String value;
+    int confidence;
+    int place;
 
-	@Override
-	public String getSchema() {
-		return schema;
-	}
+    public MetadataValueVolatile() {
+    }
 
-	@Override
-	public String getElement() {
-		return element;
-	}
+    public MetadataValueVolatile(String schema, String element, String qualifier, String authority, String language) {
+        this.schema = schema;
+        this.element = element;
+        this.qualifier = qualifier;
+        this.authority = authority;
+        this.language = language;
+    }
 
-	@Override
-	public String getQualifier() {
-		return qualifier;
-	}
+    @Override
+    public String getSchema() {
+        return schema;
+    }
 
-	@Override
-	public String getLanguage() {
-		return language;
-	}
+    @Override
+    public String getElement() {
+        return element;
+    }
 
-	public void setLanguage(String lang) {
-		language = lang;
-	}
-	
-	@Override
-	public void setValue(String value) {
-		this.value = value;
-	}
+    @Override
+    public String getQualifier() {
+        return qualifier;
+    }
 
-	@Override
-	public void setConfidence(int confidence) {
-		this.confidence = confidence;
-	}
+    @Override
+    public String getLanguage() {
+        return language;
+    }
 
-	@Override
-	public void setAuthority(String authority) {
-		this.authority = authority;
-	}
+    public void setLanguage(String lang) {
+        language = lang;
+    }
 
-	@Override
-	public String getAuthority() {
-		return this.authority;
-	}
+    @Override
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	@Override
-	public int getConfidence() {
-		return this.confidence;
-	}
+    @Override
+    public void setConfidence(int confidence) {
+        this.confidence = confidence;
+    }
 
-	@Override
-	public String getValue() {
-		return this.value;
-	}
+    @Override
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
 
-	@Override
-	public MetadataField getMetadataField() {
-		MetadataField mm = new MetadataField();
-		mm.setElement(element);
-		mm.setQualifier(qualifier);
-		
-		MetadataSchema mschema = new MetadataSchema();
-		mschema.setName(schema);
-		mschema.setNamespace("http://dspace.org/cris");
-		mm.setMetadataSchema(mschema);
-		
-		return mm;
-	}
+    @Override
+    public String getAuthority() {
+        return this.authority;
+    }
 
-	@Override
-	public int getPlace() {		
-		return this.place;
-	}
+    @Override
+    public int getConfidence() {
+        return this.confidence;
+    }
 
-	@Override
-	public void setPlace(int place) {
-		this.place = place;		
-	}
-	
+    @Override
+    public String getValue() {
+        return this.value;
+    }
+
+    @Override
+    public MetadataField getMetadataField() {
+        MetadataField mm = new MetadataField();
+        mm.setElement(element);
+        mm.setQualifier(qualifier);
+
+        MetadataSchema mschema = new MetadataSchema();
+        mschema.setName(schema);
+        mschema.setNamespace("http://dspace.org/cris");
+        mm.setMetadataSchema(mschema);
+
+        return mm;
+    }
+
+    @Override
+    public int getPlace() {
+        return this.place;
+    }
+
+    @Override
+    public void setPlace(int place) {
+        this.place = place;
+    }
+
 }

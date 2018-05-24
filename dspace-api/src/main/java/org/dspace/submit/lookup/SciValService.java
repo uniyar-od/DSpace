@@ -7,8 +7,6 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -17,11 +15,11 @@ import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import gr.ekt.bte.core.Record;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
@@ -38,258 +36,264 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 public class SciValService {
-    
-	private static Logger log = Logger.getLogger(SciValService.class);
 
-	private final String REQUEST_HEAD_SINGLE = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soapenv:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:msap=\"sais.scivalcontent.comm\" xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-			+ "<soapenv:Header/><soapenv:Body><msap:match soapenv:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><matchrequest xsi:type=\"msap:MatchRequest\"><requestmetadata soapenc:arrayType=\"msap:RequestMetadata[1]\" xsi:type=\"msap:RequestMetadataArray\">";
-	private final String REQUEST_HEAD_MULTI = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soapenv:Envelope xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:msap=\"sais.scivalcontent.com\" xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\">"
-			+ "<soapenv:Header/><soapenv:Body><msap:match soapenv:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\"><matchrequest xsi:type=\"msap:MatchRequest\">"
-			+ "<requestmetadata soapenc:arrayType=\"msap:RequestMetadata[PLACE-HOLDER-MULTI]\" xsi:type=\"msap:RequestMetadataArray\">";
-	private final String REQUEST_END = "</requestmetadata><maxhits xsi:type=\"xsd:int\">10</maxhits><clientKey xsi:type=\"xsd:string\">PLACE-HOLDER_CLIENT_KEY</clientKey></matchrequest></msap:match></soapenv:Body></soapenv:Envelope>";
+    private static Logger log = Logger.getLogger(SciValService.class);
 
-	private String endPoint = "http://sais.scivalcontent.com/";
-	private String retrieveBaseURL = "http://sais.scivalcontent.com/REST/?";
-	
-	public void setEndPoint(String endPoint) {
-		this.endPoint = endPoint;
-	}
-	
-	public List<Record> search(String doi, String title, String author, int year, String clientKey)
-			throws HttpException, IOException {
-		StringBuffer query = buildQueryPart(doi, title, author, year);
-		return search(query.toString(), 1, clientKey);
-	}
-	
-	public List<Record> search(Set<String> dois, String clientKey)
-			throws HttpException, IOException {
-		if (dois != null && dois.size() > 0)
-		{
-			StringBuffer query = new StringBuffer();
-			for (String doi : dois)
-			{
-				query.append(buildQueryPart(doi, null, null, -1));
-			}
-			return search(query.toString(), dois.size(), clientKey);
-		}
-		return null;
-	}
+    private final String REQUEST_HEAD_SINGLE = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soapenv:Envelope " +
+        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +
+        "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:msap=\"sais.scivalcontent.comm\" " +
+        "xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+        + "<soapenv:Header/><soapenv:Body><msap:match soapenv:encodingStyle=\"http://schemas.xmlsoap" +
+        ".org/soap/encoding/\"><matchrequest xsi:type=\"msap:MatchRequest\"><requestmetadata " +
+        "soapenc:arrayType=\"msap:RequestMetadata[1]\" xsi:type=\"msap:RequestMetadataArray\">";
+    private final String REQUEST_HEAD_MULTI = "<?xml version=\"1.0\" encoding=\"utf-8\"?><soapenv:Envelope " +
+        "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" " +
+        "xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:msap=\"sais.scivalcontent.com\" " +
+        "xmlns:soapenc=\"http://schemas.xmlsoap.org/soap/encoding/\">"
+        + "<soapenv:Header/><soapenv:Body><msap:match soapenv:encodingStyle=\"http://schemas.xmlsoap" +
+        ".org/soap/encoding/\"><matchrequest xsi:type=\"msap:MatchRequest\">"
+        + "<requestmetadata soapenc:arrayType=\"msap:RequestMetadata[PLACE-HOLDER-MULTI]\" " +
+        "xsi:type=\"msap:RequestMetadataArray\">";
+    private final String REQUEST_END = "</requestmetadata><maxhits xsi:type=\"xsd:int\">10</maxhits><clientKey " +
+        "xsi:type=\"xsd:string\">PLACE-HOLDER_CLIENT_KEY</clientKey></matchrequest></msap:match></soapenv:Body" +
+        "></soapenv:Envelope>";
 
-	public StringBuffer buildQueryPart(String doi, String title, String author,
-			int year) {
-		StringBuffer query = new StringBuffer(" <item xsi:type=\"ns1:RequestMetadata\">");
-		if (StringUtils.isNotBlank(doi)) {
-			query.append("<doi xsi:type=\"xsd:string\">");
-			query.append(doi);
-			query.append("</doi>");
-		}
-		if (StringUtils.isNotBlank(title)) {
-			query.append("<articleTitle xsi:type=\"xsd:string\">");
-			query.append(title);
-			query.append("</articleTitle>");
-		}
-		if (StringUtils.isNotBlank(author)) {
-			query.append("<namedAuthor xsi:type=\"xsd:string\">");
-			query.append(author);
-			query.append("</namedAuthor>");
-		}
-		if (year != -1) {
-			query.append("<year xsi:type=\"xsd:int\">");
-			query.append(year);
-			query.append("</year>");
-		}
-		query.append("</item>");
-		return query;
-	}
+    private String endPoint = "http://sais.scivalcontent.com/";
+    private String retrieveBaseURL = "http://sais.scivalcontent.com/REST/?";
 
-	public List<Record> search(String query, int count, String clientKey) throws IOException,
-			HttpException {
+    public void setEndPoint(String endPoint) {
+        this.endPoint = endPoint;
+    }
 
-		List<Record> results = new ArrayList<Record>();
-		if (!ConfigurationManager.getBooleanProperty("remoteservice.demo")) {
-			PostMethod method = null;
-			try {
-				HttpClient client = new HttpClient();
-				method = new PostMethod(
-						endPoint);
-				method.addRequestHeader("SOAPAction", endPoint+"?method=match");
+    public List<Record> search(String doi, String title, String author, int year, String clientKey)
+        throws HttpException, IOException {
+        StringBuffer query = buildQueryPart(doi, title, author, year);
+        return search(query.toString(), 1, clientKey);
+    }
 
-				String requestHead = count > 1 ? REQUEST_HEAD_MULTI
-						.replace("PLACE-HOLDER-MULTI", String.valueOf(count)) : REQUEST_HEAD_SINGLE;
-				String raw_body = requestHead + query + REQUEST_END.replace("PLACE-HOLDER_CLIENT_KEY", clientKey);
+    public List<Record> search(Set<String> dois, String clientKey)
+        throws HttpException, IOException {
+        if (dois != null && dois.size() > 0) {
+            StringBuffer query = new StringBuffer();
+            for (String doi : dois) {
+                query.append(buildQueryPart(doi, null, null, -1));
+            }
+            return search(query.toString(), dois.size(), clientKey);
+        }
+        return null;
+    }
 
-				RequestEntity re = new StringRequestEntity(raw_body, "text/xml", "UTF-8");
-				method.setRequestEntity(re);
-				// Execute the method.
-				int statusCode = client.executeMethod(method);
+    public StringBuffer buildQueryPart(String doi, String title, String author,
+                                       int year) {
+        StringBuffer query = new StringBuffer(" <item xsi:type=\"ns1:RequestMetadata\">");
+        if (StringUtils.isNotBlank(doi)) {
+            query.append("<doi xsi:type=\"xsd:string\">");
+            query.append(doi);
+            query.append("</doi>");
+        }
+        if (StringUtils.isNotBlank(title)) {
+            query.append("<articleTitle xsi:type=\"xsd:string\">");
+            query.append(title);
+            query.append("</articleTitle>");
+        }
+        if (StringUtils.isNotBlank(author)) {
+            query.append("<namedAuthor xsi:type=\"xsd:string\">");
+            query.append(author);
+            query.append("</namedAuthor>");
+        }
+        if (year != -1) {
+            query.append("<year xsi:type=\"xsd:int\">");
+            query.append(year);
+            query.append("</year>");
+        }
+        query.append("</item>");
+        return query;
+    }
 
-				if (statusCode != HttpStatus.SC_OK) {
-					throw new RuntimeException(
-							"Chiamata al webservice fallita: "
-									+ method.getStatusLine());
-				}
+    public List<Record> search(String query, int count, String clientKey) throws IOException,
+        HttpException {
 
-				DocumentBuilderFactory factory = DocumentBuilderFactory
-						.newInstance();
-				factory.setValidating(false);
-				factory.setIgnoringComments(true);
-				factory.setIgnoringElementContentWhitespace(true);
+        List<Record> results = new ArrayList<Record>();
+        if (!ConfigurationManager.getBooleanProperty("remoteservice.demo")) {
+            PostMethod method = null;
+            try {
+                HttpClient client = new HttpClient();
+                method = new PostMethod(
+                    endPoint);
+                method.addRequestHeader("SOAPAction", endPoint + "?method=match");
 
-				DocumentBuilder builder;
-				try {
-					builder = factory.newDocumentBuilder();
+                String requestHead = count > 1 ? REQUEST_HEAD_MULTI
+                    .replace("PLACE-HOLDER-MULTI", String.valueOf(count)) : REQUEST_HEAD_SINGLE;
+                String raw_body = requestHead + query + REQUEST_END.replace("PLACE-HOLDER_CLIENT_KEY", clientKey);
 
-					InputStream responseBodyAsStream = method
-							.getResponseBodyAsStream();
-					Document inDoc = builder.parse(responseBodyAsStream);
+                RequestEntity re = new StringRequestEntity(raw_body, "text/xml", "UTF-8");
+                method.setRequestEntity(re);
+                // Execute the method.
+                int statusCode = client.executeMethod(method);
 
-					Element xmlRoot = inDoc.getDocumentElement();
-			        Element soapBody = XMLUtils
-			                .getSingleElement(xmlRoot, "SOAP-ENV:Body");
-			        
-			        Element matchResponse = XMLUtils.getSingleElement(soapBody, "SOAP-ENV:matchResponse");
-			        Element matchReturn = XMLUtils.getSingleElement(matchResponse, "matchReturn");
-					List<Element> matchItems = XMLUtils.getElementList(matchReturn, "item");
-					for (Element matchItem : matchItems) {
-						Element resultmetadata = XMLUtils.getSingleElement(matchItem, "resultmetadata");
-						List<Element> items = XMLUtils.getElementList(resultmetadata, "item");
-						int tot = items.size();
-						for (int i = 0; i < tot; i++) {
-							Record scopusItem = SciValUtils.convertScopusDomToRecord(items.get(i));
-							results.add(scopusItem);
-						}
-			        }
-				} catch (ParserConfigurationException e) {
-					log.error(e.getMessage(), e);
-				}
-				catch (SAXException e1) {
-					log.error(e1.getMessage(), e1);
-				}
-			} finally {
-				if (method != null) {
-					method.releaseConnection();
-				}
-			}
-		} else {
-			InputStream stream = null;
-			try {
-				File file = new File(
-						ConfigurationManager.getProperty("dspace.dir")
-								+ "/config/crosswalks/demo/scopus.xml");
-				stream = new FileInputStream(file);
-				DocumentBuilderFactory factory = DocumentBuilderFactory
-						.newInstance();
-				factory.setValidating(false);
-				factory.setIgnoringComments(true);
-				factory.setIgnoringElementContentWhitespace(true);
+                if (statusCode != HttpStatus.SC_OK) {
+                    throw new RuntimeException(
+                        "Chiamata al webservice fallita: "
+                            + method.getStatusLine());
+                }
 
-				DocumentBuilder builder;
-				builder = factory.newDocumentBuilder();
+                DocumentBuilderFactory factory = DocumentBuilderFactory
+                    .newInstance();
+                factory.setValidating(false);
+                factory.setIgnoringComments(true);
+                factory.setIgnoringElementContentWhitespace(true);
 
-				Document inDoc = builder.parse(stream);
+                DocumentBuilder builder;
+                try {
+                    builder = factory.newDocumentBuilder();
 
-				Element xmlRoot = inDoc.getDocumentElement();
-		        Element soapBody = XMLUtils
-.getSingleElement(xmlRoot,
-						"SOAP-ENV:Body");
-		        
-				Element matchResponse = XMLUtils.getSingleElement(soapBody,
-						"SOAP-ENV:matchResponse");
-		        Element matchReturn = XMLUtils.getSingleElement(matchResponse, "matchReturn");
-		        Element item = XMLUtils.getSingleElement(matchReturn, "item");
-		        Element resultmetadata = XMLUtils.getSingleElement(item, "resultmetadata");
-		        List<Element> items = XMLUtils.getElementList(resultmetadata, "item");
-		        int tot = items.size();
-		        for (int i = 0; i < tot; i++)
-		        {
-					Record scopusItem = SciValUtils.convertScopusDomToRecord(items.get(i));
-		        	results.add(scopusItem);			        	
-		        }
-			} catch (Exception e) {
-				throw new RuntimeException(e.getMessage(), e);
-			} finally {
-				if (stream != null) {
-					try {
-						stream.close();
-					} catch (IOException e) {
-						log.error(e.getMessage(), e);
-					}
-				}
-			}
-		}
-		return results;
-	}
+                    InputStream responseBodyAsStream = method
+                        .getResponseBodyAsStream();
+                    Document inDoc = builder.parse(responseBodyAsStream);
 
-	/**
-	 * @throws IOException
-	 *             *
-	 * 
-	 * */
-	public Record retrieve(String eid, String clientKey) throws IOException {
-		Record fsi = null;
-		if (!ConfigurationManager.getBooleanProperty("remoteservice.demo")) {
-			String retrieveEndPoint = retrieveBaseURL + "clientKey=" + clientKey + "&retrieve=" + eid;
-			if (StringUtils.isBlank(clientKey)) {
-				return fsi;
-			}
-			try {
-				GetMethod method = new GetMethod(retrieveEndPoint);
-				HttpClient client = new HttpClient();
-				client.executeMethod(method);
+                    Element xmlRoot = inDoc.getDocumentElement();
+                    Element soapBody = XMLUtils
+                        .getSingleElement(xmlRoot, "SOAP-ENV:Body");
 
-				InputStream responseStream = method.getResponseBodyAsStream();
-				if (responseStream.toString().startsWith("{\"error\"")) {
-					return null;
-				}
+                    Element matchResponse = XMLUtils.getSingleElement(soapBody, "SOAP-ENV:matchResponse");
+                    Element matchReturn = XMLUtils.getSingleElement(matchResponse, "matchReturn");
+                    List<Element> matchItems = XMLUtils.getElementList(matchReturn, "item");
+                    for (Element matchItem : matchItems) {
+                        Element resultmetadata = XMLUtils.getSingleElement(matchItem, "resultmetadata");
+                        List<Element> items = XMLUtils.getElementList(resultmetadata, "item");
+                        int tot = items.size();
+                        for (int i = 0; i < tot; i++) {
+                            Record scopusItem = SciValUtils.convertScopusDomToRecord(items.get(i));
+                            results.add(scopusItem);
+                        }
+                    }
+                } catch (ParserConfigurationException e) {
+                    log.error(e.getMessage(), e);
+                } catch (SAXException e1) {
+                    log.error(e1.getMessage(), e1);
+                }
+            } finally {
+                if (method != null) {
+                    method.releaseConnection();
+                }
+            }
+        } else {
+            InputStream stream = null;
+            try {
+                File file = new File(
+                    ConfigurationManager.getProperty("dspace.dir")
+                        + "/config/crosswalks/demo/scopus.xml");
+                stream = new FileInputStream(file);
+                DocumentBuilderFactory factory = DocumentBuilderFactory
+                    .newInstance();
+                factory.setValidating(false);
+                factory.setIgnoringComments(true);
+                factory.setIgnoringElementContentWhitespace(true);
 
-				DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-				DocumentBuilder builder;
-				try {
-					builder = factory.newDocumentBuilder();
-					Document inDoc = builder.parse(responseStream);
-					Element xmlRoot = inDoc.getDocumentElement();
+                DocumentBuilder builder;
+                builder = factory.newDocumentBuilder();
 
-					fsi = SciValUtils.convertFullScopusDomToRecord(xmlRoot);
+                Document inDoc = builder.parse(stream);
 
-				} catch (ParserConfigurationException e) {
+                Element xmlRoot = inDoc.getDocumentElement();
+                Element soapBody = XMLUtils
+                    .getSingleElement(xmlRoot,
+                                      "SOAP-ENV:Body");
 
-					log.error(e.getMessage(), e);
-				} catch (SAXException e) {
+                Element matchResponse = XMLUtils.getSingleElement(soapBody,
+                                                                  "SOAP-ENV:matchResponse");
+                Element matchReturn = XMLUtils.getSingleElement(matchResponse, "matchReturn");
+                Element item = XMLUtils.getSingleElement(matchReturn, "item");
+                Element resultmetadata = XMLUtils.getSingleElement(item, "resultmetadata");
+                List<Element> items = XMLUtils.getElementList(resultmetadata, "item");
+                int tot = items.size();
+                for (int i = 0; i < tot; i++) {
+                    Record scopusItem = SciValUtils.convertScopusDomToRecord(items.get(i));
+                    results.add(scopusItem);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException(e.getMessage(), e);
+            } finally {
+                if (stream != null) {
+                    try {
+                        stream.close();
+                    } catch (IOException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                }
+            }
+        }
+        return results;
+    }
 
-					log.error(e.getMessage(), e);
-				}
-			} catch (MalformedURLException e1) {
+    /**
+     * @throws IOException *
+     */
+    public Record retrieve(String eid, String clientKey) throws IOException {
+        Record fsi = null;
+        if (!ConfigurationManager.getBooleanProperty("remoteservice.demo")) {
+            String retrieveEndPoint = retrieveBaseURL + "clientKey=" + clientKey + "&retrieve=" + eid;
+            if (StringUtils.isBlank(clientKey)) {
+                return fsi;
+            }
+            try {
+                GetMethod method = new GetMethod(retrieveEndPoint);
+                HttpClient client = new HttpClient();
+                client.executeMethod(method);
 
-				log.error(e1.getMessage(), e1);
-			} catch (IOException e) {
+                InputStream responseStream = method.getResponseBodyAsStream();
+                if (responseStream.toString().startsWith("{\"error\"")) {
+                    return null;
+                }
 
-				log.error(e.getMessage(), e);
-			}
-		} else {
-			InputStream responseStream = null;
-			File file = new File(ConfigurationManager.getProperty("dspace.dir")
-					+ "/config/crosswalks/demo/scopus-full.xml");
-			responseStream = new FileInputStream(file);
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			DocumentBuilder builder;
-			try {
-				builder = factory.newDocumentBuilder();
-				Document inDoc = builder.parse(responseStream);
-				Element xmlRoot = inDoc.getDocumentElement();
+                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                DocumentBuilder builder;
+                try {
+                    builder = factory.newDocumentBuilder();
+                    Document inDoc = builder.parse(responseStream);
+                    Element xmlRoot = inDoc.getDocumentElement();
 
-				fsi = SciValUtils.convertFullScopusDomToRecord(xmlRoot);
+                    fsi = SciValUtils.convertFullScopusDomToRecord(xmlRoot);
 
-			} catch (ParserConfigurationException e) {
+                } catch (ParserConfigurationException e) {
 
-				log.error(e.getMessage(), e);
-			} catch (SAXException e) {
+                    log.error(e.getMessage(), e);
+                } catch (SAXException e) {
 
-				log.error(e.getMessage(), e);
-			}
-		}
+                    log.error(e.getMessage(), e);
+                }
+            } catch (MalformedURLException e1) {
 
-		return fsi;
+                log.error(e1.getMessage(), e1);
+            } catch (IOException e) {
 
-	}
+                log.error(e.getMessage(), e);
+            }
+        } else {
+            InputStream responseStream = null;
+            File file = new File(ConfigurationManager.getProperty("dspace.dir")
+                                     + "/config/crosswalks/demo/scopus-full.xml");
+            responseStream = new FileInputStream(file);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder;
+            try {
+                builder = factory.newDocumentBuilder();
+                Document inDoc = builder.parse(responseStream);
+                Element xmlRoot = inDoc.getDocumentElement();
+
+                fsi = SciValUtils.convertFullScopusDomToRecord(xmlRoot);
+
+            } catch (ParserConfigurationException e) {
+
+                log.error(e.getMessage(), e);
+            } catch (SAXException e) {
+
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        return fsi;
+
+    }
 
 }

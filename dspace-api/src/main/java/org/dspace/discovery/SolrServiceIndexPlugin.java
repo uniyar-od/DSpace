@@ -24,5 +24,6 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
  */
 public interface SolrServiceIndexPlugin {
 
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters);
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document,
+                                Map<String, List<DiscoverySearchFilter>> searchFilters);
 }

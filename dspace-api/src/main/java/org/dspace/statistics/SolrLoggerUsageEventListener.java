@@ -20,63 +20,63 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Simple SolrLoggerUsageEvent facade to separate Solr specific 
+ * Simple SolrLoggerUsageEvent facade to separate Solr specific
  * logging implementation from DSpace.
- * 
- * @author mdiggory
  *
+ * @author mdiggory
  */
 public class SolrLoggerUsageEventListener extends AbstractUsageEventListener {
 
-	private static Logger log = Logger.getLogger(SolrLoggerUsageEventListener.class);
+    private static Logger log = Logger.getLogger(SolrLoggerUsageEventListener.class);
 
     protected SolrLoggerService solrLoggerService;
 
-	@Autowired
-	public void setSolrLoggerService(SolrLoggerService solrLoggerService) {
-		this.solrLoggerService = solrLoggerService;
-	}
+    @Autowired
+    public void setSolrLoggerService(SolrLoggerService solrLoggerService) {
+        this.solrLoggerService = solrLoggerService;
+    }
 
-	@Override
-	public void receiveEvent(Event event) {
+    @Override
+    public void receiveEvent(Event event) {
 
-		if(event instanceof UsageEvent)
-		{
-			log.debug("Usage event received " + event.getName());
-			try{
-			    UsageEvent ue = (UsageEvent)event;
+        if (event instanceof UsageEvent) {
+            log.debug("Usage event received " + event.getName());
+            try {
+                UsageEvent ue = (UsageEvent) event;
 
-			    EPerson currentUser = ue.getContext() == null ? null : ue.getContext().getCurrentUser();
+                EPerson currentUser = ue.getContext() == null ? null : ue.getContext().getCurrentUser();
 
-                if(UsageEvent.Action.VIEW == ue.getAction()){
-                	if(ue.getRequest()!=null){
-                        solrLoggerService.postView((BrowsableDSpaceObject)ue.getObject(), ue.getRequest(), currentUser);
-                	} else {
-                        solrLoggerService.postView((BrowsableDSpaceObject)ue.getObject(), ue.getIp(), ue.getUserAgent(), ue.getXforwardedfor(), currentUser);
-                	}
-                }else
-                if(UsageEvent.Action.SEARCH == ue.getAction()){
+                if (UsageEvent.Action.VIEW == ue.getAction()) {
+                    if (ue.getRequest() != null) {
+                        solrLoggerService
+                            .postView((BrowsableDSpaceObject) ue.getObject(), ue.getRequest(), currentUser);
+                    } else {
+                        solrLoggerService
+                            .postView((BrowsableDSpaceObject) ue.getObject(), ue.getIp(), ue.getUserAgent(),
+                                      ue.getXforwardedfor(), currentUser);
+                    }
+                } else if (UsageEvent.Action.SEARCH == ue.getAction()) {
                     UsageSearchEvent usageSearchEvent = (UsageSearchEvent) ue;
                     //Only log if the user has already filled in a query !
-                    if(!CollectionUtils.isEmpty(((UsageSearchEvent) ue).getQueries())){
-                        solrLoggerService.postSearch((BrowsableDSpaceObject)ue.getObject(), ue.getRequest(), currentUser,
-								usageSearchEvent.getQueries(), usageSearchEvent.getRpp(), usageSearchEvent.getSortBy(),
-								usageSearchEvent.getSortOrder(), usageSearchEvent.getPage(), usageSearchEvent.getScope());
+                    if (!CollectionUtils.isEmpty(((UsageSearchEvent) ue).getQueries())) {
+                        solrLoggerService
+                            .postSearch((BrowsableDSpaceObject) ue.getObject(), ue.getRequest(), currentUser,
+                                        usageSearchEvent.getQueries(), usageSearchEvent.getRpp(),
+                                        usageSearchEvent.getSortBy(),
+                                        usageSearchEvent.getSortOrder(), usageSearchEvent.getPage(),
+                                        usageSearchEvent.getScope());
                     }
-                }else
-                if(UsageEvent.Action.WORKFLOW == ue.getAction()){
+                } else if (UsageEvent.Action.WORKFLOW == ue.getAction()) {
                     UsageWorkflowEvent usageWorkflowEvent = (UsageWorkflowEvent) ue;
 
                     solrLoggerService.postWorkflow(usageWorkflowEvent);
                 }
 
-			}
-			catch(Exception e)
-			{
-				log.error(e.getMessage());
-			}
-		}
+            } catch (Exception e) {
+                log.error(e.getMessage());
+            }
+        }
 
-	}
+    }
 
 }

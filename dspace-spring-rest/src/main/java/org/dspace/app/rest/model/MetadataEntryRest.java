@@ -10,59 +10,58 @@ package org.dspace.app.rest.model;
 /**
  * An embeddable representation of the Metadata to use in with DSpace REST
  * Resource
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 public class MetadataEntryRest {
-	String key;
+    String key;
 
-	String value;
+    String value;
 
-	String language;
-	
-	String authority;
-	
-	int confidence;
+    String language;
 
-	public String getKey() {
-		return key;
-	}
+    String authority;
 
-	public void setKey(String key) {
-		this.key = key;
-	}
+    int confidence;
 
-	public String getValue() {
-		return value;
-	}
+    public String getKey() {
+        return key;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setKey(String key) {
+        this.key = key;
+    }
 
-	public String getLanguage() {
-		return language;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setLanguage(String language) {
-		this.language = language;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public String getAuthority() {
-		return authority;
-	}
+    public String getLanguage() {
+        return language;
+    }
 
-	public void setAuthority(String authority) {
-		this.authority = authority;
-	}
+    public void setLanguage(String language) {
+        this.language = language;
+    }
 
-	public int getConfidence() {
-		return confidence;
-	}
+    public String getAuthority() {
+        return authority;
+    }
 
-	public void setConfidence(int confidence) {
-		this.confidence = confidence;
-	}
+    public void setAuthority(String authority) {
+        this.authority = authority;
+    }
+
+    public int getConfidence() {
+        return confidence;
+    }
+
+    public void setConfidence(int confidence) {
+        this.confidence = confidence;
+    }
 
 }

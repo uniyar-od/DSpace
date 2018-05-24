@@ -11,19 +11,16 @@ import java.util.List;
 
 import org.dspace.content.integration.defaultvalues.EnhancedValuesGenerator;
 
-public class ItemEnhancer extends AItemEnhancer
-{
+public class ItemEnhancer extends AItemEnhancer {
 
     private List<EnhancedValuesGenerator> generators;
 
-    public List<EnhancedValuesGenerator> getGenerators()
-    {
+    public List<EnhancedValuesGenerator> getGenerators() {
         return generators;
     }
 
-    public void setGenerators(List<EnhancedValuesGenerator> generators)
-    {
+    public void setGenerators(List<EnhancedValuesGenerator> generators) {
         this.generators = generators;
     }
-    
+
 }

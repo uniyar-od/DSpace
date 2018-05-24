@@ -25,46 +25,45 @@ import org.springframework.stereotype.Component;
 
 /**
  * Controller for exposition of authority services
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 @Component(AuthorityRest.CATEGORY + "." + AuthorityRest.NAME)
 public class AuthorityRestRepository extends DSpaceRestRepository<AuthorityRest, String> {
 
-	@Autowired
-	private ChoiceAuthorityService cas;
-	
-	@Autowired
-	private AuthorityUtils authorityUtils;
-	
-	@Override
-	public AuthorityRest findOne(Context context, String name) {
-		ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(name);
-		AuthorityRest result = authorityUtils.convertAuthority(source, name);
-		return result;
-	}
+    @Autowired
+    private ChoiceAuthorityService cas;
 
-	@Override
-	public Page<AuthorityRest> findAll(Context context, Pageable pageable) {
-		Set<String> authoritiesName = cas.getChoiceAuthoritiesNames();
-		List<AuthorityRest> results = new ArrayList<AuthorityRest>();
-		for(String authorityName : authoritiesName) {
-			ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(authorityName);						
-			AuthorityRest result = authorityUtils.convertAuthority(source, authorityName);
-			results.add(result);
-		}
-		return new PageImpl<AuthorityRest>(results, pageable, results.size());
-	}
+    @Autowired
+    private AuthorityUtils authorityUtils;
 
-	@Override
-	public Class<AuthorityRest> getDomainClass() {
-		return AuthorityRest.class;
-	}
+    @Override
+    public AuthorityRest findOne(Context context, String name) {
+        ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(name);
+        AuthorityRest result = authorityUtils.convertAuthority(source, name);
+        return result;
+    }
 
-	@Override
-	public AuthorityResource wrapResource(AuthorityRest model, String... rels) {
-		return new AuthorityResource(model, utils, rels);
-	}
+    @Override
+    public Page<AuthorityRest> findAll(Context context, Pageable pageable) {
+        Set<String> authoritiesName = cas.getChoiceAuthoritiesNames();
+        List<AuthorityRest> results = new ArrayList<AuthorityRest>();
+        for (String authorityName : authoritiesName) {
+            ChoiceAuthority source = cas.getChoiceAuthorityByAuthorityName(authorityName);
+            AuthorityRest result = authorityUtils.convertAuthority(source, authorityName);
+            results.add(result);
+        }
+        return new PageImpl<AuthorityRest>(results, pageable, results.size());
+    }
+
+    @Override
+    public Class<AuthorityRest> getDomainClass() {
+        return AuthorityRest.class;
+    }
+
+    @Override
+    public AuthorityResource wrapResource(AuthorityRest model, String... rels) {
+        return new AuthorityResource(model, utils, rels);
+    }
 
 }

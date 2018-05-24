@@ -69,7 +69,7 @@ public class ContextReadOnlyCache {
 
     public void cacheAllMemberGroupsSet(EPerson ePerson, Set<Group> groups) {
         allMemberGroupsCache.put(buildAllMembersGroupKey(ePerson),
-                groups);
+                                 groups);
 
         //clear the individual groupMembershipCache as we have all memberships now.
         groupMembershipCache.clear();
@@ -89,15 +89,16 @@ public class ContextReadOnlyCache {
         return ePerson == null ? "" : ePerson.getID().toString();
     }
 
-    private ImmutableTriple<String, Integer, String> buildAuthorizedActionKey(AuthorizableEntity dspaceObject, int action, EPerson eperson) {
+    private ImmutableTriple<String, Integer, String> buildAuthorizedActionKey(AuthorizableEntity dspaceObject,
+                                                                              int action, EPerson eperson) {
         return new ImmutableTriple<>(dspaceObject == null ? "" : dspaceObject.getID().toString(),
-                Integer.valueOf(action),
-                eperson == null ? "" : eperson.getID().toString());
+                                     Integer.valueOf(action),
+                                     eperson == null ? "" : eperson.getID().toString());
     }
 
     private Pair<String, String> buildGroupMembershipKey(Group group, EPerson eperson) {
         return new ImmutablePair<>(group == null ? "" : group.getName(),
-                eperson == null ? "" : eperson.getID().toString());
+                                   eperson == null ? "" : eperson.getID().toString());
     }
 
 }

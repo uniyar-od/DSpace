@@ -18,7 +18,8 @@ import org.dspace.core.GenericDAO;
 
 /**
  * Database Access Object interface class for the IMetadataValue object.
- * The implementation of this class is responsible for all database calls for the IMetadataValue object and is autowired by spring
+ * The implementation of this class is responsible for all database calls for the IMetadataValue object and is
+ * autowired by spring
  * This class should only be accessed from a single service and should never be exposed outside of the API
  *
  * @author kevinvandevelde at atmire.com
@@ -32,7 +33,7 @@ public interface MetadataValueDAO extends GenericDAO<MetadataValue> {
     public void deleteByMetadataField(Context context, MetadataField metadataField) throws SQLException;
 
     public MetadataValue getMinimum(Context context, int metadataFieldId)
-            throws SQLException;
+        throws SQLException;
 
     int countRows(Context context) throws SQLException;
 

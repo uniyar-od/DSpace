@@ -17,15 +17,15 @@
            http://www.springframework.org/schema/context/spring-context-2.5.xsd"
        default-autowire-candidates="*Service,*DAO,javax.sql.DataSource">
 
-    <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
+  <context:annotation-config/> <!-- allows us to use spring annotations in beans -->
 
-    <bean class="org.dspace.discovery.MockSolrServiceImpl" id="org.dspace.discovery.SearchService"/>
+  <bean class="org.dspace.discovery.MockSolrServiceImpl" id="org.dspace.discovery.SearchService"/>
 
-    <alias name="org.dspace.discovery.SearchService" alias="org.dspace.discovery.IndexingService"/>
+  <alias name="org.dspace.discovery.SearchService" alias="org.dspace.discovery.IndexingService"/>
 
-    <!--<bean class="org.dspace.discovery.SolrServiceIndexOutputPlugin" id="solrServiceIndexOutputPlugin"/>-->
+  <!--<bean class="org.dspace.discovery.SolrServiceIndexOutputPlugin" id="solrServiceIndexOutputPlugin"/>-->
 
-    <!-- Statistics services are both lazy loaded (by name), as you are likely just using ONE of them and not both -->
-    <bean id="solrLoggerService" class="org.dspace.statistics.MockSolrLoggerServiceImpl" lazy-init="true"/>
+  <!-- Statistics services are both lazy loaded (by name), as you are likely just using ONE of them and not both -->
+  <bean id="solrLoggerService" class="org.dspace.statistics.MockSolrLoggerServiceImpl" lazy-init="true"/>
 
 </beans>

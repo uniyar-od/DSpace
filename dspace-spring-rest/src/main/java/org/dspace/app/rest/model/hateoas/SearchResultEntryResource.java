@@ -29,8 +29,9 @@ public class SearchResultEntryResource extends HALResource<SearchResultEntryRest
 
         RestAddressableModel dspaceObject = data.getRObject();
 
-        if(dspaceObject != null) {
-            DSpaceRestRepository resourceRepository = utils.getResourceRepository(dspaceObject.getCategory(), dspaceObject.getType());
+        if (dspaceObject != null) {
+            DSpaceRestRepository resourceRepository =
+                utils.getResourceRepository(dspaceObject.getCategory(), dspaceObject.getType());
             embedResource(R_OBJECT_LINK, resourceRepository.wrapResource(dspaceObject));
         }
 

@@ -12,11 +12,7 @@ import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang.StringUtils;
-import org.dspace.app.rest.model.DSpaceObjectRest;
 import org.dspace.app.rest.model.RestAddressableModel;
-import org.dspace.app.rest.model.SearchFacetEntryRest;
-import org.dspace.app.rest.model.SearchFacetValueRest;
 import org.dspace.app.rest.model.SearchResultEntryRest;
 import org.dspace.app.rest.model.SearchResultsRest;
 import org.dspace.app.rest.parameter.SearchFilter;
@@ -24,7 +20,6 @@ import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
-import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -42,9 +37,12 @@ public class DiscoverResultConverter {
     private DiscoverFacetsConverter facetConverter;
     @Autowired
     private SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter;
-    
-    public SearchResultsRest convert(final Context context, final String query, final String dsoType, final String configuration, final String scope,
-                                     final List<SearchFilter> searchFilters, final Pageable page, final DiscoverResult searchResult, final DiscoveryConfiguration discoveryConfiguration) {
+
+    public SearchResultsRest convert(final Context context, final String query, final String dsoType,
+                                     final String configuration, final String scope,
+                                     final List<SearchFilter> searchFilters, final Pageable page,
+                                     final DiscoverResult searchResult,
+                                     final DiscoveryConfiguration discoveryConfiguration) {
 
         SearchResultsRest resultsRest = new SearchResultsRest();
 
@@ -59,7 +57,8 @@ public class DiscoverResultConverter {
         return resultsRest;
     }
 
-    private void addFacetValues(final DiscoverResult searchResult, final SearchResultsRest resultsRest, final DiscoveryConfiguration configuration) {
+    private void addFacetValues(final DiscoverResult searchResult, final SearchResultsRest resultsRest,
+                                final DiscoveryConfiguration configuration) {
         facetConverter.addFacetValues(searchResult, resultsRest, configuration);
     }
 
@@ -71,9 +70,11 @@ public class DiscoverResultConverter {
             resultEntry.setRObject(convertDSpaceObject(dspaceObject));
 
             //Add hit highlighting for this DSO if present
-            DiscoverResult.DSpaceObjectHighlightResult highlightedResults = searchResult.getHighlightedResults(dspaceObject);
-            if(highlightedResults != null && MapUtils.isNotEmpty(highlightedResults.getHighlightResults())) {
-                for (Map.Entry<String, List<String>> metadataHighlight : highlightedResults.getHighlightResults().entrySet()) {
+            DiscoverResult.DSpaceObjectHighlightResult highlightedResults =
+                searchResult.getHighlightedResults(dspaceObject);
+            if (highlightedResults != null && MapUtils.isNotEmpty(highlightedResults.getHighlightResults())) {
+                for (Map.Entry<String, List<String>> metadataHighlight : highlightedResults.getHighlightResults()
+                    .entrySet()) {
                     resultEntry.addHitHighlights(metadataHighlight.getKey(), metadataHighlight.getValue());
                 }
             }
@@ -84,28 +85,31 @@ public class DiscoverResultConverter {
 
     private RestAddressableModel convertDSpaceObject(final Object dspaceObject) {
         for (BrowsableDSpaceObjectConverter<Object, RestAddressableModel> converter : converters) {
-            if(converter.supportsModel(dspaceObject)) {
+            if (converter.supportsModel(dspaceObject)) {
                 return converter.convert(dspaceObject);
             }
         }
         return null;
     }
 
-    private void setRequestInformation(final Context context, final String query, final String dsoType, final String configuration, final String scope,
-                                       final List<SearchFilter> searchFilters, final Pageable page, final SearchResultsRest resultsRest) {
+    private void setRequestInformation(final Context context, final String query, final String dsoType,
+                                       final String configuration, final String scope,
+                                       final List<SearchFilter> searchFilters, final Pageable page,
+                                       final SearchResultsRest resultsRest) {
         resultsRest.setQuery(query);
         resultsRest.setConfiguration(configuration);
         resultsRest.setDsoType(dsoType);
 
         resultsRest.setScope(scope);
 
-        if(page != null && page.getSort() != null && page.getSort().iterator().hasNext()) {
+        if (page != null && page.getSort() != null && page.getSort().iterator().hasNext()) {
             Sort.Order order = page.getSort().iterator().next();
             resultsRest.setSort(order.getProperty(), order.getDirection().name());
         }
         for (SearchFilter searchFilter : CollectionUtils.emptyIfNull(searchFilters)) {
 
-            resultsRest.addAppliedFilter(searchFilterToAppliedFilterConverter.convertSearchFilter(context, searchFilter));
+            resultsRest
+                .addAppliedFilter(searchFilterToAppliedFilterConverter.convertSearchFilter(context, searchFilter));
         }
     }
 }

@@ -33,100 +33,92 @@ import org.dspace.utils.DSpace;
  * @author Andrea Bollini
  * @version $Revision $
  */
-public class ItemAuthority implements ChoiceAuthority
-{
+public class ItemAuthority implements ChoiceAuthority {
     private static final Logger log = Logger.getLogger(ItemAuthority.class);
-    
+
     private DSpace dspace = new DSpace();
-    
-    private SearchService searchService  = dspace.getServiceManager().getServiceByName(
-            "org.dspace.discovery.SearchService", SearchService.class);
+
+    private SearchService searchService = dspace.getServiceManager().getServiceByName(
+        "org.dspace.discovery.SearchService", SearchService.class);
 
     // punt!  this is a poor implementation..
     @Override
-    public Choices getBestMatch(String field, String text, Collection collection, String locale)
-    {
+    public Choices getBestMatch(String field, String text, Collection collection, String locale) {
         return getMatches(field, text, collection, 0, 2, locale);
     }
 
     /**
-	 * Match a proposed value against existend DSpace item applying an optional
-	 * filter query to limit the scope only to specific item types
-	 */
+     * Match a proposed value against existend DSpace item applying an optional
+     * filter query to limit the scope only to specific item types
+     */
     @Override
-    public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale)
-    {
-    	Context context = null;
-    	if (limit <= 0) {
-    		limit = 20;
-    	}
-    	
+    public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale) {
+        Context context = null;
+        if (limit <= 0) {
+            limit = 20;
+        }
+
         String luceneQuery = ClientUtils.escapeQueryChars(text);
-        luceneQuery = luceneQuery.replaceAll("\\\\ "," ");
+        luceneQuery = luceneQuery.replaceAll("\\\\ ", " ");
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.setDSpaceObjectFilter(org.dspace.core.Constants.ITEM);
-        String filter = ConfigurationManager.getProperty("cris","ItemAuthority."
-                + field + ".filter");
-        if (StringUtils.isNotBlank(filter))
-        {
+        String filter = ConfigurationManager.getProperty("cris", "ItemAuthority."
+            + field + ".filter");
+        if (StringUtils.isNotBlank(filter)) {
             discoverQuery.addFilterQueries(filter);
         }
 
         discoverQuery
-                .setQuery(luceneQuery);
+            .setQuery(luceneQuery);
         discoverQuery.setStart(start);
         discoverQuery.setMaxResults(limit);
-        
+
         DiscoverResult resultSearch;
-		try {
-			context = new Context();
-			resultSearch = searchService.search(context,
-			        discoverQuery, false);
-			List<Choice> choiceList = new ArrayList<Choice>();
+        try {
+            context = new Context();
+            resultSearch = searchService.search(context,
+                                                discoverQuery, false);
+            List<Choice> choiceList = new ArrayList<Choice>();
 
-	        for (BrowsableDSpaceObject dso : resultSearch.getDspaceObjects())
-	        {
-	            choiceList.add(new Choice(dso.getHandle(), dso.getName(),  dso.getName()));
-	        }
+            for (BrowsableDSpaceObject dso : resultSearch.getDspaceObjects()) {
+                choiceList.add(new Choice(dso.getHandle(), dso.getName(), dso.getName()));
+            }
 
-	        Choice[] results = new Choice[choiceList.size()];
-	        results = choiceList.toArray(results);
-			return new Choices(results, 0, results.length, Choices.CF_AMBIGUOUS,
-					resultSearch.getTotalSearchResults() > (start + limit), 0);
-	        
-		} catch (SearchServiceException e) {
-			log.error(e.getMessage(), e);
-			return new Choices(true);
-		}
-		finally {
-			if (context != null && context.isValid()) {
-				context.abort();
-			}
-		}
+            Choice[] results = new Choice[choiceList.size()];
+            results = choiceList.toArray(results);
+            return new Choices(results, 0, results.length, Choices.CF_AMBIGUOUS,
+                               resultSearch.getTotalSearchResults() > (start + limit), 0);
+
+        } catch (SearchServiceException e) {
+            log.error(e.getMessage(), e);
+            return new Choices(true);
+        } finally {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        }
     }
 
     @Override
-    public String getLabel(String field, String key, String locale)
-    {
-    	String title = key;
-    	if (key != null) {
-    		Context context = null;
-	    	try {
-	    		context = new Context();
-	    		DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, key);
-	    		if (dso != null) {
-	    			title = dso.getName();
-	    		}
-	    	} catch (SQLException e) {
-				log.error(e.getMessage(), e);
-				return key;
-			}
-			finally {
-				if (context != null && context.isValid()) {
-					context.abort();
-				}
-			}
-    	}
+    public String getLabel(String field, String key, String locale) {
+        String title = key;
+        if (key != null) {
+            Context context = null;
+            try {
+                context = new Context();
+                DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, key);
+                if (dso != null) {
+                    title = dso.getName();
+                }
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+                return key;
+            } finally {
+                if (context != null && context.isValid()) {
+                    context.abort();
+                }
+            }
+        }
         return title;
     }
 }

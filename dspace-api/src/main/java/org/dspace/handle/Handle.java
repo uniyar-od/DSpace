@@ -30,19 +30,19 @@ import org.dspace.core.ReloadableEntity;
  * @author kevinvandevelde at atmire.com
  */
 @Entity
-@Table(name="handle")
+@Table(name = "handle")
 public class Handle implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="handle_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="handle_id_seq")
-    @SequenceGenerator(name="handle_id_seq", sequenceName="handle_id_seq", allocationSize = 1)
+    @Column(name = "handle_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "handle_id_seq")
+    @SequenceGenerator(name = "handle_id_seq", sequenceName = "handle_id_seq", allocationSize = 1)
     private Integer id;
 
     @Column(name = "handle", unique = true)
     private String handle;
 
-    @ManyToOne(fetch =  FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "resource_id")
     private DSpaceObject dso;
 
@@ -59,10 +59,8 @@ public class Handle implements ReloadableEntity<Integer> {
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String)}
      * or
      * {@link org.dspace.handle.service.HandleService#createHandle(Context, DSpaceObject, String, boolean)}
-     *
      */
-    protected Handle()
-    {
+    protected Handle() {
 
     }
 
@@ -103,25 +101,29 @@ public class Handle implements ReloadableEntity<Integer> {
 
     @Override
     public boolean equals(final Object o) {
-        if (this == o) return true;
+        if (this == o) {
+            return true;
+        }
 
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Handle handle1 = (Handle) o;
 
         return new EqualsBuilder()
-                .append(id, handle1.id)
-                .append(handle, handle1.handle)
-                .append(resourceTypeId, handle1.resourceTypeId)
-                .isEquals();
+            .append(id, handle1.id)
+            .append(handle, handle1.handle)
+            .append(resourceTypeId, handle1.resourceTypeId)
+            .isEquals();
     }
 
     @Override
     public int hashCode() {
         return new HashCodeBuilder(17, 37)
-                .append(id)
-                .append(handle)
-                .append(resourceTypeId)
-                .toHashCode();
+            .append(id)
+            .append(handle)
+            .append(resourceTypeId)
+            .toHashCode();
     }
 }

@@ -4,6 +4,13 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * External importer Exception classes + possible handlers
+ *
+ * @author Jonas Van Goolen (jonas at atmire dot com)
+ *
+ * External importer Exception classes + possible handlers
+ * @author Jonas Van Goolen (jonas at atmire dot com)
  */
 
 /**

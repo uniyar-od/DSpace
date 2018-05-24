@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.dspace.statistics.factory.StatisticsServiceFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * SpiderDetector delegates static methods to SpiderDetectorService, which is used to find IP's that are spiders...
@@ -51,8 +50,7 @@ public class SpiderDetector {
      * @throws IOException could not happen since we check the file be4 we use it
      */
     public Set<String> readPatterns(File patternFile)
-            throws IOException
-    {
+        throws IOException {
         return getSpiderDetectorService().readPatterns(patternFile);
     }
 
@@ -65,12 +63,11 @@ public class SpiderDetector {
      * @param clientIP address of the client.
      * @param proxyIPs comma-list of X-Forwarded-For addresses, or null.
      * @param hostname domain name of host, or null.
-     * @param agent User-Agent header value, or null.
+     * @param agent    User-Agent header value, or null.
      * @return true if the client matches any spider characteristics list.
      */
     public boolean isSpider(String clientIP, String proxyIPs,
-                                   String hostname, String agent)
-    {
+                            String hostname, String agent) {
         return getSpiderDetectorService().isSpider(clientIP, proxyIPs, hostname, agent);
     }
 
@@ -80,8 +77,7 @@ public class SpiderDetector {
      * @param request
      * @return true|false if the request was detected to be from a spider.
      */
-    public boolean isSpider(HttpServletRequest request)
-    {
+    public boolean isSpider(HttpServletRequest request) {
         return getSpiderDetectorService().isSpider(request);
     }
 
@@ -95,15 +91,15 @@ public class SpiderDetector {
         return getSpiderDetectorService().isSpider(ip);
     }
 
-	public SpiderDetectorService getSpiderDetectorService() {
-		if(spiderDetectorService==null) {
-			spiderDetectorService =  StatisticsServiceFactory.getInstance().getSpiderDetectorService();
-		}
-		return spiderDetectorService;
-	}
+    public SpiderDetectorService getSpiderDetectorService() {
+        if (spiderDetectorService == null) {
+            spiderDetectorService = StatisticsServiceFactory.getInstance().getSpiderDetectorService();
+        }
+        return spiderDetectorService;
+    }
 
-	public void setSpiderDetectorService(SpiderDetectorService spiderDetectorService) {
-		this.spiderDetectorService = spiderDetectorService;
-	}
+    public void setSpiderDetectorService(SpiderDetectorService spiderDetectorService) {
+        this.spiderDetectorService = spiderDetectorService;
+    }
 
 }

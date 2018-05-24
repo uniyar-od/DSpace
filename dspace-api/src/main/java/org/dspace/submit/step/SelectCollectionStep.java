@@ -14,17 +14,17 @@ import org.dspace.submit.AbstractProcessingStep;
 
 public class SelectCollectionStep extends AbstractProcessingStep {
 
-	private static final Logger log = Logger.getLogger(SelectCollectionStep.class);
+    private static final Logger log = Logger.getLogger(SelectCollectionStep.class);
 
-	@Override
-	public void doPreProcessing(Context context, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
+    @Override
+    public void doPreProcessing(Context context, InProgressSubmission wsi) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	@Override
-	public void doPostProcessing(Context context, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
+    @Override
+    public void doPostProcessing(Context context, InProgressSubmission wsi) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 }

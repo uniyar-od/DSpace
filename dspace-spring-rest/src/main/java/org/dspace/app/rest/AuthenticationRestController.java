@@ -9,14 +9,13 @@ package org.dspace.app.rest;
 
 import java.sql.SQLException;
 import java.util.Arrays;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.rest.converter.EPersonConverter;
 import org.dspace.app.rest.link.HalLinkService;
+import org.dspace.app.rest.model.AuthenticationStatusRest;
 import org.dspace.app.rest.model.AuthnRest;
 import org.dspace.app.rest.model.EPersonRest;
-import org.dspace.app.rest.model.AuthenticationStatusRest;
 import org.dspace.app.rest.model.hateoas.AuthenticationStatusResource;
 import org.dspace.app.rest.model.hateoas.AuthnResource;
 import org.dspace.app.rest.utils.ContextUtil;
@@ -61,7 +60,8 @@ public class AuthenticationRestController implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() {
-        discoverableEndpointsService.register(this, Arrays.asList(new Link("/api/" + AuthnRest.CATEGORY, AuthnRest.NAME)));
+        discoverableEndpointsService
+            .register(this, Arrays.asList(new Link("/api/" + AuthnRest.CATEGORY, AuthnRest.NAME)));
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -78,12 +78,13 @@ public class AuthenticationRestController implements InitializingBean {
         if (context.getCurrentUser() != null) {
             ePersonRest = ePersonConverter.fromModel(context.getCurrentUser());
         }
-        AuthenticationStatusResource authenticationStatusResource = new AuthenticationStatusResource( new AuthenticationStatusRest(ePersonRest), utils);
+        AuthenticationStatusResource authenticationStatusResource =
+            new AuthenticationStatusResource(new AuthenticationStatusRest(ePersonRest), utils);
         halLinkService.addLinks(authenticationStatusResource);
         return authenticationStatusResource;
     }
 
-    @RequestMapping(value = "/login", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/login", method = { RequestMethod.GET, RequestMethod.POST })
     public ResponseEntity login(HttpServletRequest request, @RequestParam(name = "user", required = false) String user,
                                 @RequestParam(name = "password", required = false) String password) {
         //If you can get here, you should be authenticated, the actual login is handled by spring security
@@ -91,10 +92,11 @@ public class AuthenticationRestController implements InitializingBean {
 
         //If we don't have an EPerson here, this means authentication failed and we should return an error message.
 
-        return getLoginResponse(request, "Authentication failed for user " + user + ": The credentials you provided are not valid.");
+        return getLoginResponse(request,
+            "Authentication failed for user " + user + ": The credentials you provided are not valid.");
     }
 
-    @RequestMapping(value = "/logout", method = {RequestMethod.GET, RequestMethod.POST})
+    @RequestMapping(value = "/logout", method = { RequestMethod.GET, RequestMethod.POST })
     public ResponseEntity logout() {
         //This is handled by org.dspace.app.rest.security.CustomLogoutHandler
         return ResponseEntity.ok().build();
@@ -107,9 +109,8 @@ public class AuthenticationRestController implements InitializingBean {
         context = ContextUtil.obtainContext(request);
 
 
-        if(context == null || context.getCurrentUser() == null) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(failedMessage);
+        if (context == null || context.getCurrentUser() == null) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(failedMessage);
         } else {
             //We have a user, so the login was successful.
             return ResponseEntity.ok().build();

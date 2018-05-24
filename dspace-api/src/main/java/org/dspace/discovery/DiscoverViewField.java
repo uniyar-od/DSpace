@@ -11,33 +11,38 @@ package org.dspace.discovery;
 /**
  */
 public class DiscoverViewField {
-	private boolean mandatory = false;
-	private String field;
-	private String decorator;
-	
-	public DiscoverViewField(String field, String decorator, boolean mandatory) {
-		this.decorator = decorator;
-		this.field = field;
-		this.mandatory = mandatory;
-	}
-	
-	public boolean isMandatory() {
-		return mandatory;
-	}
-	public void setMandatory(boolean mandatory) {
-		this.mandatory = mandatory;
-	}
-	public String getField() {
-		return field;
-	}
-	public void setField(String field) {
-		this.field = field;
-	}
-	public String getDecorator() {
-		return decorator;
-	}
-	public void setDecorator(String decorator) {
-		this.decorator = decorator;
-	}
+    private boolean mandatory = false;
+    private String field;
+    private String decorator;
+
+    public DiscoverViewField(String field, String decorator, boolean mandatory) {
+        this.decorator = decorator;
+        this.field = field;
+        this.mandatory = mandatory;
+    }
+
+    public boolean isMandatory() {
+        return mandatory;
+    }
+
+    public void setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
+    }
+
+    public String getField() {
+        return field;
+    }
+
+    public void setField(String field) {
+        this.field = field;
+    }
+
+    public String getDecorator() {
+        return decorator;
+    }
+
+    public void setDecorator(String decorator) {
+        this.decorator = decorator;
+    }
 
 }

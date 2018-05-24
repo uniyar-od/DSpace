@@ -41,16 +41,14 @@ public class SiteServiceImpl extends DSpaceObjectServiceImpl<Site> implements Si
     @Autowired(required = true)
     protected SiteDAO siteDAO;
 
-    protected SiteServiceImpl()
-    {
+    protected SiteServiceImpl() {
         super();
     }
 
     @Override
     public Site createSite(Context context) throws SQLException {
         Site site = findSite(context);
-        if(site == null)
-        {
+        if (site == null) {
             //Only one site can be created at any point in time
             site = siteDAO.create(context, new Site());
             handleService.createHandle(context, site, configurationService.getProperty("handle.prefix") + "/0");
@@ -75,18 +73,19 @@ public class SiteServiceImpl extends DSpaceObjectServiceImpl<Site> implements Si
 
     @Override
     public void update(Context context, Site site) throws SQLException, AuthorizeException {
-        if(!authorizeService.isAdmin(context)){
+        if (!authorizeService.isAdmin(context)) {
             throw new AuthorizeException();
         }
 
         super.update(context, site);
 
-        if(site.isMetadataModified())
-        {
-            context.addEvent(new Event(Event.MODIFY_METADATA, site.getType(), site.getID(), site.getDetails(), getIdentifiers(context, site)));
+        if (site.isMetadataModified()) {
+            context.addEvent(new Event(Event.MODIFY_METADATA, site.getType(), site.getID(), site.getDetails(),
+                                       getIdentifiers(context, site)));
         }
-        if(site.isModified()) {
-            context.addEvent(new Event(Event.MODIFY, site.getType(), site.getID(), site.getDetails(), getIdentifiers(context, site)));
+        if (site.isModified()) {
+            context.addEvent(new Event(Event.MODIFY, site.getType(), site.getID(), site.getDetails(),
+                                       getIdentifiers(context, site)));
         }
         site.clearModified();
         site.clearDetails();
@@ -95,8 +94,7 @@ public class SiteServiceImpl extends DSpaceObjectServiceImpl<Site> implements Si
     }
 
     @Override
-    public String getName(Site dso)
-    {
+    public String getName(Site dso) {
         return ConfigurationManager.getProperty("dspace.name");
     }
 
@@ -110,9 +108,9 @@ public class SiteServiceImpl extends DSpaceObjectServiceImpl<Site> implements Si
         return Constants.SITE;
     }
 
-	@Override
-	public void addMetadata(Context context, Site dso, MetadataField metadataField, String lang, List<String> values,
-			List<String> authorities, List<Integer> confidences) throws SQLException {
-		//NOTHING		
-	}
+    @Override
+    public void addMetadata(Context context, Site dso, MetadataField metadataField, String lang, List<String> values,
+                            List<String> authorities, List<Integer> confidences) throws SQLException {
+        //NOTHING
+    }
 }

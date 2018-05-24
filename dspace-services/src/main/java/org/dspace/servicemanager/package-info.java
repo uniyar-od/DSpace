@@ -4,6 +4,8 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Register, configure, manipulate services.
  */
 /**
  * Register, configure, manipulate services.

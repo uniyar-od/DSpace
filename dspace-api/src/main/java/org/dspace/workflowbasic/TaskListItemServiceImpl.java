@@ -28,8 +28,7 @@ public class TaskListItemServiceImpl implements TaskListItemService {
     @Autowired(required = true)
     protected TaskListItemDAO taskListItemDAO;
 
-    protected TaskListItemServiceImpl()
-    {
+    protected TaskListItemServiceImpl() {
 
     }
 

@@ -14,21 +14,18 @@ import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.Context;
 
 /**
- * Define interface to manage list of DSpaceObject. 
- * 
- * @author pascarelli
+ * Define interface to manage list of DSpaceObject.
  *
+ * @author pascarelli
  */
-public interface StreamGenericDisseminationCrosswalk extends StreamDisseminationCrosswalk
-{
+public interface StreamGenericDisseminationCrosswalk extends StreamDisseminationCrosswalk {
 
     public void disseminate(Context context, List<BrowsableDSpaceObject> dso, OutputStream out)
-    throws CrosswalkException, IOException, SQLException, AuthorizeException;
-    
+        throws CrosswalkException, IOException, SQLException, AuthorizeException;
+
 }

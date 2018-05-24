@@ -7,9 +7,9 @@
  */
 package org.dspace.authority.config;
 
-import org.dspace.authority.AuthorityValue;
-
 import java.util.Map;
+
+import org.dspace.authority.AuthorityValue;
 
 /**
  * User: lantian @ atmire . com

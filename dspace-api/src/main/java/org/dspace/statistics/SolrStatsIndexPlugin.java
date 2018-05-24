@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.browse.BrowsableDSpaceObject;
 
-public interface SolrStatsIndexPlugin
-{
+public interface SolrStatsIndexPlugin {
     public void additionalIndex(HttpServletRequest request, BrowsableDSpaceObject dso, SolrInputDocument document);
 }

@@ -11,25 +11,24 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringEscapeUtils;
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 
 /**
  * Effettua l'escape html di un altro metadato
- * 
+ *
  * @author bollini
  */
 public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
-        VirtualFieldIngester
-{
+                                               VirtualFieldIngester {
     public String[] getMetadata(Item item, Map<String, String> fieldCache,
-            String fieldName)
-    {
+                                String fieldName) {
         // Check to see if the virtual field is already in the cache
         // - processing is quite intensive, so we generate all the values on
         // first request
-        if (fieldCache.containsKey(fieldName))
+        if (fieldCache.containsKey(fieldName)) {
             return fieldCache.get(fieldName).split("\\|");
+        }
 
         String[] virtualFieldName = fieldName.split("\\.", 3);
 
@@ -39,14 +38,11 @@ public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
         // Get the metadatavalue
         List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
 
-        if (dcvs != null && dcvs.size() > 0)
-        {
+        if (dcvs != null && dcvs.size() > 0) {
             StringBuffer sb = new StringBuffer();
             boolean start = true;
-            for (IMetadataValue dc : dcvs)
-            {
-                if (!start)
-                {
+            for (IMetadataValue dc : dcvs) {
+                if (!start) {
                     sb.append("|");
                 }
                 sb.append(StringEscapeUtils.escapeHtml(dc.getValue()));
@@ -61,15 +57,13 @@ public class VirtualHTMLEscapeField implements VirtualFieldDisseminator,
     }
 
     public boolean addMetadata(Item item, Map<String, String> fieldCache,
-            String fieldName, String value)
-    {
+                               String fieldName, String value) {
         // NOOP - we won't add any metadata yet, we'll pick it up when we
         // finalise the item
         return true;
     }
 
-    public boolean finalizeItem(Item item, Map<String, String> fieldCache)
-    {
+    public boolean finalizeItem(Item item, Map<String, String> fieldCache) {
         return false;
     }
 }

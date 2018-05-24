@@ -12,21 +12,22 @@ import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Context;
 import org.dspace.submit.AbstractProcessingStep;
 
-public class StartSubmissionLookupStep extends AbstractProcessingStep
-{
-    /** log4j logger */
+public class StartSubmissionLookupStep extends AbstractProcessingStep {
+    /**
+     * log4j logger
+     */
     private static Logger log = Logger
-            .getLogger(StartSubmissionLookupStep.class);
+        .getLogger(StartSubmissionLookupStep.class);
 
-	@Override
-	public void doPreProcessing(Context context, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
-		
-	}
+    @Override
+    public void doPreProcessing(Context context, InProgressSubmission wsi) {
+        // TODO Auto-generated method stub
 
-	@Override
-	public void doPostProcessing(Context context, InProgressSubmission wsi) {
-		// TODO Auto-generated method stub
-		
-	}
+    }
+
+    @Override
+    public void doPostProcessing(Context context, InProgressSubmission wsi) {
+        // TODO Auto-generated method stub
+
+    }
 }

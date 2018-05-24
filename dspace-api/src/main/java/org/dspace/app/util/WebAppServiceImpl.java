@@ -39,8 +39,7 @@ public class WebAppServiceImpl implements WebAppService {
     protected WebAppDAO webAppDAO;
 
 
-    protected WebAppServiceImpl()
-    {
+    protected WebAppServiceImpl() {
 
     }
 
@@ -66,8 +65,7 @@ public class WebAppServiceImpl implements WebAppService {
     }
 
     @Override
-    public List<WebApp> getApps()
-    {
+    public List<WebApp> getApps() {
         ArrayList<WebApp> apps = new ArrayList<>();
 
         Context context = null;
@@ -76,14 +74,12 @@ public class WebAppServiceImpl implements WebAppService {
             context = new Context();
             List<WebApp> webApps = findAll(context);
 
-            for (WebApp app : webApps)
-            {
+            for (WebApp app : webApps) {
                 method = new HttpHead(app.getUrl());
                 HttpClient client = new DefaultHttpClient();
                 HttpResponse response = client.execute(method);
                 int status = response.getStatusLine().getStatusCode();
-                if (status != HttpStatus.SC_OK)
-                {
+                if (status != HttpStatus.SC_OK) {
                     delete(context, app
 
                     );
@@ -97,12 +93,10 @@ public class WebAppServiceImpl implements WebAppService {
         } catch (IOException e) {
             log.error("Failure checking for a running webapp", e);
         } finally {
-            if (null != method)
-            {
+            if (null != method) {
                 method.releaseConnection();
             }
-            if (null != context)
-            {
+            if (null != context) {
                 context.abort();
             }
         }

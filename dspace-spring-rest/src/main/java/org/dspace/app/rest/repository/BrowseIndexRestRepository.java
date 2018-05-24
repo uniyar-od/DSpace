@@ -24,56 +24,55 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is the repository responsible to Browse Index Rest object
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 @Component(BrowseIndexRest.CATEGORY + "." + BrowseIndexRest.NAME)
 public class BrowseIndexRestRepository extends DSpaceRestRepository<BrowseIndexRest, String> {
-	@Autowired
-	BrowseIndexConverter converter;
-	
-	@Override
-	public BrowseIndexRest findOne(Context context, String name) {
-		BrowseIndexRest bi = null;
-		BrowseIndex bix;
-		try {
-			bix = BrowseIndex.getBrowseIndex(name);
-		} catch (BrowseException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		if (bix != null) {
-			bi = converter.convert(bix);
-		}
-		return bi;
-	}
+    @Autowired
+    BrowseIndexConverter converter;
 
-	@Override
-	public Page<BrowseIndexRest> findAll(Context context, Pageable pageable) {
-		List<BrowseIndexRest> it = null;
-		List<BrowseIndex> indexesList = new ArrayList<BrowseIndex>();
-		int total = 0;
-		try {
-			BrowseIndex[] indexes = BrowseIndex.getBrowseIndices();
-			total = indexes.length;
-			for (BrowseIndex bix: indexes) {
-				indexesList.add(bix);
-			}
-		} catch (BrowseException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		Page<BrowseIndexRest> page = new PageImpl<BrowseIndex>(indexesList, pageable, total).map(converter);
-		return page;
-	}
-	
-	@Override
-	public Class<BrowseIndexRest> getDomainClass() {
-		return BrowseIndexRest.class;
-	}
-	
-	@Override
-	public BrowseIndexResource wrapResource(BrowseIndexRest bix, String... rels) {
-		return new BrowseIndexResource(bix, utils, rels);
-	}
+    @Override
+    public BrowseIndexRest findOne(Context context, String name) {
+        BrowseIndexRest bi = null;
+        BrowseIndex bix;
+        try {
+            bix = BrowseIndex.getBrowseIndex(name);
+        } catch (BrowseException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        if (bix != null) {
+            bi = converter.convert(bix);
+        }
+        return bi;
+    }
+
+    @Override
+    public Page<BrowseIndexRest> findAll(Context context, Pageable pageable) {
+        List<BrowseIndexRest> it = null;
+        List<BrowseIndex> indexesList = new ArrayList<BrowseIndex>();
+        int total = 0;
+        try {
+            BrowseIndex[] indexes = BrowseIndex.getBrowseIndices();
+            total = indexes.length;
+            for (BrowseIndex bix : indexes) {
+                indexesList.add(bix);
+            }
+        } catch (BrowseException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        Page<BrowseIndexRest> page = new PageImpl<BrowseIndex>(indexesList, pageable, total).map(converter);
+        return page;
+    }
+
+    @Override
+    public Class<BrowseIndexRest> getDomainClass() {
+        return BrowseIndexRest.class;
+    }
+
+    @Override
+    public BrowseIndexResource wrapResource(BrowseIndexRest bix, String... rels) {
+        return new BrowseIndexResource(bix, utils, rels);
+    }
 
 }

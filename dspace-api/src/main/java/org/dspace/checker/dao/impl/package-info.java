@@ -4,6 +4,12 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Database access for the Checksum Checker tool, which looks for unexpected
+ * changes in Bitstream content.
+ *
+ * Database access for the Checksum Checker tool, which looks for unexpected
+ * changes in Bitstream content.
  */
 /**
  * Database access for the Checksum Checker tool, which looks for unexpected

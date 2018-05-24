@@ -13,6 +13,7 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 public interface TemplateItemService {
-	void applyTemplate(Context context, Item targetItem, Item templateItem) throws SQLException;
-	void clearTemplate(Context context, Item item, Item item1) throws SQLException;
+    void applyTemplate(Context context, Item targetItem, Item templateItem) throws SQLException;
+
+    void clearTemplate(Context context, Item item, Item item1) throws SQLException;
 }

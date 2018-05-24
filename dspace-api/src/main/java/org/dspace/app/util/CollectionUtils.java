@@ -23,84 +23,83 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
 public class CollectionUtils {
-    
-    private static ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
-    
-	public static CollectionsTree getCollectionsTree(Context context, List<Collection> collections, boolean skipCollection)
-			throws SQLException {
-		
-		if (collections == null || collections.isEmpty()) {
-			return null;
-		}
-		
-		String skipHandles = configurationService.getProperty("submission.skip.handle");
-		//TODO: Should we create a plugin?
-		
 
-		Map<Community, List<Collection>> map = new HashMap<Community, List<Collection>>();
-		for (Collection col : collections) {
-		
-			String handle = col.getHandle();
-			if (skipCollection && StringUtils.contains(handle, skipHandles)) {
-				continue;
-			} 
-			Community com = (Community) col.getCollectionService().getParentObject(context, col);
-			if (map.containsKey(com)) {
-				map.get(com).add(col);
-			} else {
-				List<Collection> cols = new ArrayList<>();
-				cols.add(col);
-				map.put(com, cols);
-			}
-		}
-		List<CollectionsTree> trees = new ArrayList<CollectionsTree>();
-		for (Community com : map.keySet()) {
-			CollectionsTree tree = new CollectionsTree();
-			tree.setCurrent(com);
-			tree.setCollections(map.get(com));
-			trees.add(tree);
-		}
-		Collections.sort(trees);
-		return getCollectionsTree(context, trees);
-	}
+    private static ConfigurationService configurationService = DSpaceServicesFactory.getInstance()
+                                                                                    .getConfigurationService();
 
-	private static CollectionsTree getCollectionsTree(Context context,
-			List<CollectionsTree> trees) throws SQLException {
-		if (trees.size() == 1) {
-			return trees.get(0);
-		}
-		Map<Community, CollectionsTree> map = new HashMap<Community, CollectionsTree>();
-		for (CollectionsTree tree : trees) {
-			Community current = tree.getCurrent();
-			Community com = null;
-			if (current != null)
-			{
-				com = (Community) current.getDSpaceObjectService().getParentObject(context, current);
-			}
-			if (map.containsKey(com)) {
-				map.get(com).getSubTree().add(tree);
-			} else {
-				List<CollectionsTree> subTree;
-				if (current == null) {
-					subTree = tree.getSubTree();	
-				}
-				else
-				{
-					subTree = new ArrayList<>();
-					subTree.add(tree);
-				}
-				CollectionsTree currTree = new CollectionsTree();
-				currTree.setCurrent(com);
-				currTree.setSubTree(subTree);
-				map.put(com, currTree);
-			}
-		}
+    public static CollectionsTree getCollectionsTree(Context context, List<Collection> collections,
+                                                     boolean skipCollection)
+        throws SQLException {
 
-		List<CollectionsTree> result = new ArrayList<CollectionsTree>();
-		for (CollectionsTree t : map.values()) {
-			result.add(t);
-		}
+        if (collections == null || collections.isEmpty()) {
+            return null;
+        }
 
-		return getCollectionsTree(context, result);
-	}
+        String skipHandles = configurationService.getProperty("submission.skip.handle");
+        //TODO: Should we create a plugin?
+
+
+        Map<Community, List<Collection>> map = new HashMap<Community, List<Collection>>();
+        for (Collection col : collections) {
+
+            String handle = col.getHandle();
+            if (skipCollection && StringUtils.contains(handle, skipHandles)) {
+                continue;
+            }
+            Community com = (Community) col.getCollectionService().getParentObject(context, col);
+            if (map.containsKey(com)) {
+                map.get(com).add(col);
+            } else {
+                List<Collection> cols = new ArrayList<>();
+                cols.add(col);
+                map.put(com, cols);
+            }
+        }
+        List<CollectionsTree> trees = new ArrayList<CollectionsTree>();
+        for (Community com : map.keySet()) {
+            CollectionsTree tree = new CollectionsTree();
+            tree.setCurrent(com);
+            tree.setCollections(map.get(com));
+            trees.add(tree);
+        }
+        Collections.sort(trees);
+        return getCollectionsTree(context, trees);
+    }
+
+    private static CollectionsTree getCollectionsTree(Context context,
+                                                      List<CollectionsTree> trees) throws SQLException {
+        if (trees.size() == 1) {
+            return trees.get(0);
+        }
+        Map<Community, CollectionsTree> map = new HashMap<Community, CollectionsTree>();
+        for (CollectionsTree tree : trees) {
+            Community current = tree.getCurrent();
+            Community com = null;
+            if (current != null) {
+                com = (Community) current.getDSpaceObjectService().getParentObject(context, current);
+            }
+            if (map.containsKey(com)) {
+                map.get(com).getSubTree().add(tree);
+            } else {
+                List<CollectionsTree> subTree;
+                if (current == null) {
+                    subTree = tree.getSubTree();
+                } else {
+                    subTree = new ArrayList<>();
+                    subTree.add(tree);
+                }
+                CollectionsTree currTree = new CollectionsTree();
+                currTree.setCurrent(com);
+                currTree.setSubTree(subTree);
+                map.put(com, currTree);
+            }
+        }
+
+        List<CollectionsTree> result = new ArrayList<CollectionsTree>();
+        for (CollectionsTree t : map.values()) {
+            result.add(t);
+        }
+
+        return getCollectionsTree(context, result);
+    }
 }

@@ -31,7 +31,6 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 
 /**
- *
  * @author Antoine Snyers (antoine at atmire.com)
  * @author Kevin Van de Velde (kevin at atmire dot com)
  * @author Ben Bosman (ben at atmire dot com)
@@ -114,7 +113,8 @@ public class UpdateAuthorities {
     protected static Options createCommandLineOptions() {
         Options options = new Options();
         options.addOption("h", "help", false, "help");
-        options.addOption("i", "id", true, "Import and/or update specific solr records with the given ids (comma-separated)");
+        options.addOption("i", "id", true,
+                          "Import and/or update specific solr records with the given ids (comma-separated)");
         return options;
     }
 
@@ -158,12 +158,14 @@ public class UpdateAuthorities {
 
     protected void updateItems(AuthorityValue authority) {
         try {
-            Iterator<Item> itemIterator = itemService.findByMetadataFieldAuthority(context, authority.getField(), authority.getId());
+            Iterator<Item> itemIterator = itemService
+                .findByMetadataFieldAuthority(context, authority.getField(), authority.getId());
             while (itemIterator.hasNext()) {
                 Item next = itemIterator.next();
                 List<IMetadataValue> metadata = itemService.getMetadata(next, authority.getField(), authority.getId());
-                authority.updateItem(context, next, (MetadataValue)metadata.get(0)); //should be only one
-                List<IMetadataValue> metadataAfter = itemService.getMetadata(next, authority.getField(), authority.getId());
+                authority.updateItem(context, next, (MetadataValue) metadata.get(0)); //should be only one
+                List<IMetadataValue> metadataAfter = itemService
+                    .getMetadata(next, authority.getField(), authority.getId());
                 if (!metadata.get(0).getValue().equals(metadataAfter.get(0).getValue())) {
                     print.println("Updated item with handle " + next.getHandle());
                 }

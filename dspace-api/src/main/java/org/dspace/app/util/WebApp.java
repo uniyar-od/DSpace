@@ -8,7 +8,6 @@
 package org.dspace.app.util;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -28,14 +27,14 @@ import org.dspace.core.ReloadableEntity;
  * @author kevinvandevelde at atmire.com
  */
 @Entity
-@Table(name="webapp")
+@Table(name = "webapp")
 public class WebApp implements ReloadableEntity<Integer> {
 
 
     @Id
-    @Column(name="webapp_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="webapp_seq")
-    @SequenceGenerator(name="webapp_seq", sequenceName="webapp_seq", allocationSize = 1)
+    @Column(name = "webapp_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "webapp_seq")
+    @SequenceGenerator(name = "webapp_seq", sequenceName = "webapp_seq", allocationSize = 1)
     private Integer id;
 
     @Column(name = "appname", unique = true, length = 32)
@@ -55,8 +54,7 @@ public class WebApp implements ReloadableEntity<Integer> {
      * Protected constructor, create object using:
      * {@link org.dspace.app.util.service.WebAppService#create(Context, String, String, Date, int)}
      */
-    protected WebApp()
-    {
+    protected WebApp() {
 
     }
 

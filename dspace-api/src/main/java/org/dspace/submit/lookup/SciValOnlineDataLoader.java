@@ -14,105 +14,102 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import gr.ekt.bte.core.Record;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 
-import gr.ekt.bte.core.Record;
-
 
 public class SciValOnlineDataLoader extends NetworkSubmissionLookupDataLoader {
 
-	private static Logger log = Logger.getLogger(SciValOnlineDataLoader.class);
+    private static Logger log = Logger.getLogger(SciValOnlineDataLoader.class);
 
-	private boolean searchProvider = true;
+    private boolean searchProvider = true;
 
-	private SciValService scopusService = new SciValService();
+    private SciValService scopusService = new SciValService();
 
-	private ConfigurationService configurationService;
-	
-	private String apiKey = "";
+    private ConfigurationService configurationService;
 
-	
-	@Override
-	public List<String> getSupportedIdentifiers() {
-		return Arrays.asList(new String[] { SCOPUSEID, DOI });
-	}
+    private String apiKey = "";
 
-	@Override
-	public boolean isSearchProvider() {
 
-		return searchProvider;
-	}
+    @Override
+    public List<String> getSupportedIdentifiers() {
+        return Arrays.asList(new String[] { SCOPUSEID, DOI });
+    }
 
-	public void setSearchProvider(boolean searchProvider) {
-		this.searchProvider = searchProvider;
-	}
+    @Override
+    public boolean isSearchProvider() {
 
-	public void setScopusService(SciValService scopusService) {
-		this.scopusService = scopusService;
-	}
+        return searchProvider;
+    }
 
-	@Override
-	public List<Record> search(Context context, String title, String author, int year) throws HttpException,
-			IOException {
-		List<Record> results = new ArrayList<Record>();
-		if (title != null && year != 0) {
-			List<Record> search = scopusService.search(null, title, author, year, getApiKey());
-			if (search != null) {
-				for (Record scopus : search) {
-					results.add(convertFields(scopus));
-				}
-			}
-		}
-		return results;
-	}
+    public void setSearchProvider(boolean searchProvider) {
+        this.searchProvider = searchProvider;
+    }
 
-	@Override
-	public List<Record> getByIdentifier(Context context, Map<String, Set<String>> keys) throws HttpException,
-			IOException {
-		Set<String> eids = keys != null ? keys.get(SCOPUSEID) : null;
-		Set<String> dois = keys != null ? keys.get(DOI) : null;
-		List<Record> results = new ArrayList<Record>();
+    public void setScopusService(SciValService scopusService) {
+        this.scopusService = scopusService;
+    }
 
-		if (eids != null && eids.size() > 0) {
-			for (String eid : eids) {
-				Record record = scopusService.retrieve(eid, getApiKey());
-				if (record != null) {
-					results.add(convertFields(record));
-				}
-			}
-		} else if (dois != null && dois.size() > 0) {
-			List<Record> records = scopusService.search(dois, getApiKey());
-			for (Record record : records) {
-				results.add(convertFields(record));
-			}
+    @Override
+    public List<Record> search(Context context, String title, String author, int year) throws HttpException,
+        IOException {
+        List<Record> results = new ArrayList<Record>();
+        if (title != null && year != 0) {
+            List<Record> search = scopusService.search(null, title, author, year, getApiKey());
+            if (search != null) {
+                for (Record scopus : search) {
+                    results.add(convertFields(scopus));
+                }
+            }
+        }
+        return results;
+    }
 
-		}
+    @Override
+    public List<Record> getByIdentifier(Context context, Map<String, Set<String>> keys) throws HttpException,
+        IOException {
+        Set<String> eids = keys != null ? keys.get(SCOPUSEID) : null;
+        Set<String> dois = keys != null ? keys.get(DOI) : null;
+        List<Record> results = new ArrayList<Record>();
 
-		return results;
-	}
+        if (eids != null && eids.size() > 0) {
+            for (String eid : eids) {
+                Record record = scopusService.retrieve(eid, getApiKey());
+                if (record != null) {
+                    results.add(convertFields(record));
+                }
+            }
+        } else if (dois != null && dois.size() > 0) {
+            List<Record> records = scopusService.search(dois, getApiKey());
+            for (Record record : records) {
+                results.add(convertFields(record));
+            }
 
-	public String getApiKey() {
-	    if(StringUtils.isBlank(this.apiKey)) {
-	        this.apiKey = getConfigurationService().getProperty("submission.lookup.scivalcontent.apikey");
-	    }
-		return apiKey;
-	}
+        }
 
-	public void setApiKey(String apiKey) {
-		this.apiKey = apiKey;
-	}
+        return results;
+    }
 
-    public ConfigurationService getConfigurationService()
-    {
+    public String getApiKey() {
+        if (StringUtils.isBlank(this.apiKey)) {
+            this.apiKey = getConfigurationService().getProperty("submission.lookup.scivalcontent.apikey");
+        }
+        return apiKey;
+    }
+
+    public void setApiKey(String apiKey) {
+        this.apiKey = apiKey;
+    }
+
+    public ConfigurationService getConfigurationService() {
         return configurationService;
     }
 
-    public void setConfigurationService(ConfigurationService configurationService)
-    {
+    public void setConfigurationService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
     }
 

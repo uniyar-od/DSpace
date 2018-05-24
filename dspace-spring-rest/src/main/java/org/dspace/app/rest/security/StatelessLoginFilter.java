@@ -10,7 +10,6 @@ package org.dspace.app.rest.security;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
-
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -42,33 +41,30 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
     private RestAuthenticationService restAuthenticationService;
 
     @Override
-    public void afterPropertiesSet()  {
+    public void afterPropertiesSet() {
     }
 
-    public StatelessLoginFilter(String url, AuthenticationManager authenticationManager, RestAuthenticationService restAuthenticationService) {
+    public StatelessLoginFilter(String url, AuthenticationManager authenticationManager,
+                                RestAuthenticationService restAuthenticationService) {
         super(new AntPathRequestMatcher(url));
         this.authenticationManager = authenticationManager;
         this.restAuthenticationService = restAuthenticationService;
     }
 
     @Override
-    public Authentication attemptAuthentication(HttpServletRequest req,
-                                                HttpServletResponse res) throws AuthenticationException {
+    public Authentication attemptAuthentication(HttpServletRequest req, HttpServletResponse res)
+        throws AuthenticationException {
 
         String user = req.getParameter("user");
         String password = req.getParameter("password");
 
         try {
-             return authenticationManager.authenticate(
-                    new DSpaceAuthentication(
-                            user,
-                            password,
-                            new ArrayList<>()
-                    )
-            );
-        } catch(BadCredentialsException e) {
-            AuthenticationService authenticationService = AuthenticateServiceFactory.getInstance().getAuthenticationService();
-            Iterator<AuthenticationMethod> authenticationMethodIterator = authenticationService.authenticationMethodIterator();
+            return authenticationManager.authenticate(new DSpaceAuthentication(user, password, new ArrayList<>()));
+        } catch (BadCredentialsException e) {
+            AuthenticationService authenticationService =
+                AuthenticateServiceFactory.getInstance().getAuthenticationService();
+            Iterator<AuthenticationMethod> authenticationMethodIterator =
+                authenticationService.authenticationMethodIterator();
             while (authenticationMethodIterator.hasNext()) {
                 AuthenticationMethod authenticationMethod = authenticationMethodIterator.next();
                 Context context = ContextUtil.obtainContext(req);
@@ -83,9 +79,7 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
 
 
     @Override
-    protected void successfulAuthentication(HttpServletRequest req,
-                                            HttpServletResponse res,
-                                            FilterChain chain,
+    protected void successfulAuthentication(HttpServletRequest req, HttpServletResponse res, FilterChain chain,
                                             Authentication auth) throws IOException, ServletException {
 
         DSpaceAuthentication dSpaceAuthentication = (DSpaceAuthentication) auth;

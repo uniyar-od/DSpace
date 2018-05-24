@@ -22,12 +22,12 @@ import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
  * This class represents a query which the discovery backend can use
  *
  * @author Kevin Van de Velde (kevin at atmire dot com)
- *
  */
-public class DiscoverQuery
-{
+public class DiscoverQuery {
 
-    /** Main attributes for the discovery query **/
+    /**
+     * Main attributes for the discovery query
+     **/
     private String query;
     private List<String> filterQueries;
     private int DSpaceObjectFilter = -1;
@@ -37,14 +37,19 @@ public class DiscoverQuery
     private int start = 0;
     private int maxResults = -1;
 
-    /** Attributes used for sorting of results **/
+    /**
+     * Attributes used for sorting of results
+     **/
     public enum SORT_ORDER {
         desc, asc
     }
+
     private String sortField;
     private SORT_ORDER sortOrder;
 
-    /** Attributes required for the faceting of values **/
+    /**
+     * Attributes required for the faceting of values
+     **/
     private List<DiscoverFacetField> facetFields;
     private List<String> facetQueries;
 
@@ -55,19 +60,22 @@ public class DiscoverQuery
     private int facetOffset = 0;
     private Map<String, DiscoverHitHighlightingField> hitHighlighting;
 
-    /** Used when you want to search for a specific field value **/
+    /**
+     * Used when you want to search for a specific field value
+     **/
     private List<String> searchFields;
 
-    /** Misc attributes can be implementation dependent **/
+    /**
+     * Misc attributes can be implementation dependent
+     **/
     private Map<String, List<String>> properties;
     private List<String> fields;
-    
+
     private Map<String, List<DiscoverViewField>> viewFields;
-    
+
     private String discoveryConfigurationName;
-    
-    public DiscoverQuery()
-    {
+
+    public DiscoverQuery() {
         // Initialize all our lists
         this.filterQueries = new ArrayList<String>();
         this.fieldPresentQueries = new ArrayList<String>();
@@ -78,56 +86,48 @@ public class DiscoverQuery
         this.hitHighlighting = new HashMap<String, DiscoverHitHighlightingField>();
         //Use a linked hashmap since sometimes insertion order might matter
         this.properties = new LinkedHashMap<String, List<String>>();
-		this.fields = new ArrayList<String>();       
-		
-		this.viewFields = new LinkedHashMap<String, List<DiscoverViewField>>();
+        this.fields = new ArrayList<String>();
+
+        this.viewFields = new LinkedHashMap<String, List<DiscoverViewField>>();
     }
 
-    public void setQuery(String query)
-    {
+    public void setQuery(String query) {
         this.query = query;
     }
 
-    public String getQuery()
-    {
+    public String getQuery() {
         return query;
     }
 
-    public int getStart()
-    {
+    public int getStart() {
         return start;
     }
 
-    public void setStart(int start)
-    {
+    public void setStart(int start) {
         this.start = start;
     }
 
-    public void setSortField(String sortField, SORT_ORDER sortOrder)
-    {
+    public void setSortField(String sortField, SORT_ORDER sortOrder) {
         this.sortField = sortField;
         this.sortOrder = sortOrder;
     }
 
-    public String getSortField()
-    {
+    public String getSortField() {
         return sortField;
     }
 
-    public SORT_ORDER getSortOrder()
-    {
+    public SORT_ORDER getSortOrder() {
         return sortOrder;
     }
 
     /**
      * Sets the DSpace object filter, must be an DSpace Object type integer
      * can be used to only return objects from a certain DSpace Object type
-     * 
+     *
      * @param DSpaceObjectFilter the DSpace object filer
-     *            the DSpace object filer
+     *                           the DSpace object filer
      */
-    public void setDSpaceObjectFilter(int DSpaceObjectFilter)
-    {
+    public void setDSpaceObjectFilter(int DSpaceObjectFilter) {
         this.DSpaceObjectFilter = DSpaceObjectFilter;
     }
 
@@ -135,152 +135,143 @@ public class DiscoverQuery
      * Gets the DSpace object filter can be used to only return objects from a
      * Gets the DSpace object filter
      * can be used to only return objects from a certain DSpace Object type
+     *
      * @return the DSpace object filer
      */
-    public int getDSpaceObjectFilter()
-    {
+    public int getDSpaceObjectFilter() {
         return DSpaceObjectFilter;
     }
 
     /**
      * The maximum number of results returned by this query
+     *
      * @return the number of results
      */
-    public int getMaxResults()
-    {
+    public int getMaxResults() {
         return maxResults;
     }
 
     /**
      * Sets the maximum number of results by this query
-     * 
+     *
      * @param maxResults
      * @param maxResults the number of results
      */
-    public void setMaxResults(int maxResults)
-    {
+    public void setMaxResults(int maxResults) {
         this.maxResults = maxResults;
     }
 
     /**
      * Adds new filter queries
-     * 
+     *
      * @param filterQueries
      * @param filterQueries the filter queries to be added
      */
-    public void addFilterQueries(String... filterQueries)
-    {
+    public void addFilterQueries(String... filterQueries) {
         this.filterQueries.addAll(Arrays.asList(filterQueries));
     }
 
     /**
      * Returns the filter queries
+     *
      * @return the filter queries in a list
      */
-    public List<String> getFilterQueries()
-    {
+    public List<String> getFilterQueries() {
         return filterQueries;
     }
 
     /**
      * Adds a query that will ensure that a certain field is present in the index
      * index
-     * 
+     *
      * @param fieldPresentQueries the queries to be added
-     *            the queries to be added
+     *                            the queries to be added
      */
-    public void addFieldPresentQueries(String... fieldPresentQueries)
-    {
+    public void addFieldPresentQueries(String... fieldPresentQueries) {
         this.fieldPresentQueries.addAll(Arrays.asList(fieldPresentQueries));
     }
 
-    public List<String> getFieldPresentQueries()
-    {
+    public List<String> getFieldPresentQueries() {
         return fieldPresentQueries;
     }
 
     /**
      * Adds a new facet query
-     * 
+     *
      * @param facetQuery
      * @param facetQuery the new facet query to be added
      */
-    public void addFacetQuery(String facetQuery)
-    {
+    public void addFacetQuery(String facetQuery) {
         this.facetQueries.add(facetQuery);
     }
 
     /**
      * Returns the facet queries
+     *
      * @return the facet queries for this query
      */
-    public List<String> getFacetQueries()
-    {
+    public List<String> getFacetQueries() {
         return facetQueries;
     }
 
     /**
      * Adds a new facet field
-     * 
+     *
      * @param facetField
      * @param facetField the new facet field to be added
      */
-    public void addFacetField(DiscoverFacetField facetField)
-    {
+    public void addFacetField(DiscoverFacetField facetField) {
         facetFields.add(facetField);
     }
 
     /**
      * Gets the facets fields configured
+     *
      * @return the facet fields for this query
      */
-    public List<DiscoverFacetField> getFacetFields()
-    {
+    public List<DiscoverFacetField> getFacetFields() {
         return facetFields;
     }
 
     /**
      * Gets the minimum number of values that need to be present before a valid facet value has been found
      * facet value has been found
-     * 
+     *
      * @return facetMinCount the minimum number of values to be present for a valid facet
-     *         valid facet
+     * valid facet
      */
-    public int getFacetMinCount()
-    {
+    public int getFacetMinCount() {
         return facetMinCount;
     }
 
     /**
      * Set the minimum number of values that need to be present before a valid facet value has been found
      * facet value has been found
-     * 
+     *
      * @param facetMinCount
      * @param facetMinCount the minimum number of values to be present for a valid facet
      */
-    public void setFacetMinCount(int facetMinCount)
-    {
+    public void setFacetMinCount(int facetMinCount) {
         this.facetMinCount = facetMinCount;
     }
 
     /**
      * Gets the facet field offset
+     *
      * @return the facet field offset
      */
-    public int getFacetOffset()
-    {
+    public int getFacetOffset() {
         return facetOffset;
     }
 
     /**
      * Sets the facet field offset, one facet offset will be used for all the facet fields
      * facet fields
-     * 
+     *
      * @param facetOffset
      * @param facetOffset an integer representing the offset
      */
-    public void setFacetOffset(int facetOffset)
-    {
+    public void setFacetOffset(int facetOffset) {
         this.facetOffset = facetOffset;
     }
 
@@ -288,14 +279,16 @@ public class DiscoverQuery
      * Sets the fields which you want Discovery to return in the search results.
      * It is HIGHLY recommended to limit the fields returned, as by default
      * some backends (like Solr) will return everything.
+     *
      * @param field field to add to the list of fields returned
      */
-    public void addSearchField(String field){
+    public void addSearchField(String field) {
         this.searchFields.add(field);
     }
 
     /**
      * Get list of fields which Discovery will return in the search results
+     *
      * @return List of field names
      */
     public List<String> getSearchFields() {
@@ -304,26 +297,24 @@ public class DiscoverQuery
 
     /**
      * Returns the misc search properties
+     *
      * @return a map containing the properties
      */
-    public Map<String, List<String>> getProperties()
-    {
+    public Map<String, List<String>> getProperties() {
         return properties;
     }
 
     /**
      * Adds a new search property to the misc search properties
-     * 
+     *
      * @param property
      * @param property the name of the property
      * @param value
-     * @param value the value of the property
+     * @param value    the value of the property
      */
-    public void addProperty(String property, String value)
-    {
+    public void addProperty(String property, String value) {
         List<String> toAddList = properties.get(property);
-        if (toAddList == null)
-        {
+        if (toAddList == null) {
             toAddList = new ArrayList<String>();
         }
 
@@ -332,46 +323,39 @@ public class DiscoverQuery
         properties.put(property, toAddList);
     }
 
-    public DiscoverHitHighlightingField getHitHighlightingField(String field)
-    {
+    public DiscoverHitHighlightingField getHitHighlightingField(String field) {
         return hitHighlighting.get(field);
     }
 
-    public List<DiscoverHitHighlightingField> getHitHighlightingFields()
-    {
+    public List<DiscoverHitHighlightingField> getHitHighlightingFields() {
         return new ArrayList<DiscoverHitHighlightingField>(
-                hitHighlighting.values());
+            hitHighlighting.values());
     }
 
     public void addHitHighlightingField(
-            DiscoverHitHighlightingField hitHighlighting)
-    {
+        DiscoverHitHighlightingField hitHighlighting) {
         this.hitHighlighting.put(hitHighlighting.getField(), hitHighlighting);
     }
 
-    public void setNamedFacetQueries(Map<String, String> namedFacetQueries)
-    {
+    public void setNamedFacetQueries(Map<String, String> namedFacetQueries) {
         this.namedFacetQueries = namedFacetQueries;
     }
 
-    public Map<String, String> getNamedFacetQueries()
-    {
-        if(namedFacetQueries==null) {
+    public Map<String, String> getNamedFacetQueries() {
+        if (namedFacetQueries == null) {
             this.namedFacetQueries = new HashMap<String, String>();
         }
         return namedFacetQueries;
     }
 
-    public String getNamedFacetQuery(String facetQuery)
-    {
+    public String getNamedFacetQuery(String facetQuery) {
         if (getNamedFacetQueries() != null
-                && getNamedFacetQueries().containsKey(facetQuery))
-        {
+            && getNamedFacetQueries().containsKey(facetQuery)) {
             return getNamedFacetQueries().get(facetQuery);
         }
         return null;
     }
-    
+
     public boolean isSpellCheck() {
         return spellCheck;
     }
@@ -380,30 +364,28 @@ public class DiscoverQuery
         this.spellCheck = spellCheck;
     }
 
-	public void setFields(List<String> fields) {
-		this.fields = fields;
-	}
+    public void setFields(List<String> fields) {
+        this.fields = fields;
+    }
 
-	public List<String> getFields() {
-		return fields;
-	}
+    public List<String> getFields() {
+        return fields;
+    }
 
-    public List<DiscoverViewField> getViewFields(String type)
-    {
+    public List<DiscoverViewField> getViewFields(String type) {
         return viewFields.get(type);
     }
 
     public void addViewField(String key,
-    		DiscoverViewField viewFields)
-    {
-    	if(getViewFields(key)==null) {
-    		this.viewFields.put(key, new ArrayList<DiscoverViewField>());
-    	}
+                             DiscoverViewField viewFields) {
+        if (getViewFields(key) == null) {
+            this.viewFields.put(key, new ArrayList<DiscoverViewField>());
+        }
         this.viewFields.get(key).add(viewFields);
     }
 
     public void addYearRangeFacet(DiscoverySearchFilterFacet facet, FacetYearRange facetYearRange) {
-        if(facetYearRange.isValid()) {
+        if (facetYearRange.isValid()) {
 
             int newestYear = facetYearRange.getNewestYear();
             int oldestYear = facetYearRange.getOldestYear();
@@ -411,14 +393,17 @@ public class DiscoverQuery
             int gap = facetYearRange.getYearGap();
 
             // We need to determine our top year so we can start our count from a clean year
-            // Example: 2001 and a gap from 10 we need the following result: 2010 - 2000 ; 2000 - 1990 hence the top year
+            // Example: 2001 and a gap from 10 we need the following result: 2010 - 2000 ; 2000 - 1990 hence the top
+            // year
             int topYear = getTopYear(newestYear, gap);
 
             if (gap == 1) {
                 //We need a list of our years
                 //We have a date range add faceting for our field
                 //The faceting will automatically be limited to the 10 years in our span due to our filterquery
-                this.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar(), false));
+                this.addFacetField(
+                    new DiscoverFacetField(facet.getIndexFieldName(), facet.getType(), 10, facet.getSortOrderSidebar(),
+                                           false));
             } else {
                 List<String> facetQueries = buildFacetQueriesWithGap(newestYear, oldestYear, dateFacet, gap, topYear);
                 for (String facetQuery : CollectionUtils.emptyIfNull(facetQueries)) {
@@ -428,7 +413,8 @@ public class DiscoverQuery
         }
     }
 
-    private List<String> buildFacetQueriesWithGap(int newestYear, int oldestYear, String dateFacet, int gap, int topYear) {
+    private List<String> buildFacetQueriesWithGap(int newestYear, int oldestYear, String dateFacet, int gap,
+                                                  int topYear) {
         List<String> facetQueries = new LinkedList<>();
         //Create facet queries but limit them to 11 (11 == when we need to show a "show more" url)
         for (int year = topYear; year > oldestYear && (facetQueries.size() < 11); year -= gap) {

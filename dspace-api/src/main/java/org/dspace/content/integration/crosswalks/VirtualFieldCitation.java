@@ -17,43 +17,41 @@ import org.dspace.core.factory.CoreServiceFactory;
 
 /**
  * Implements virtual field processing for citation information (based on Grahamt version).
- * 
- * @author pascarelli
  *
+ * @author pascarelli
  */
-public class VirtualFieldCitation implements VirtualFieldDisseminator, VirtualFieldIngester
-{
-    /** Logger */
+public class VirtualFieldCitation implements VirtualFieldDisseminator, VirtualFieldIngester {
+    /**
+     * Logger
+     */
     private static Logger log = Logger.getLogger(VirtualFieldCitation.class);
-    
-    public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName)
-    {   
-        StreamDisseminationCrosswalk crosswalk = (StreamDisseminationCrosswalk)CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, fieldName);
+
+    public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName) {
+        StreamDisseminationCrosswalk crosswalk = (StreamDisseminationCrosswalk) CoreServiceFactory.getInstance()
+                                                                                                  .getPluginService()
+                                                                                                  .getNamedPlugin(
+                                                                                                      StreamDisseminationCrosswalk.class,
+                                                                                                      fieldName);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        
+
         String[] result = null;
-        
-        try
-        {            
+
+        try {
             crosswalk.disseminate(null, item, out);
-            result = new String[]{out.toString()};   
-        }        
-        catch (Exception e)
-        {
-            log.error(e.getMessage(),e);
+            result = new String[] { out.toString() };
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
-        
+
         return result;
     }
 
-    public boolean addMetadata(Item item, Map<String, String> fieldCache, String fieldName, String value)
-    {
+    public boolean addMetadata(Item item, Map<String, String> fieldCache, String fieldName, String value) {
         // NOOP - we won't add any metadata yet, we'll pick it up when we finalise the item
         return true;
     }
 
-    public boolean finalizeItem(Item item, Map<String, String> fieldCache)
-    {     
+    public boolean finalizeItem(Item item, Map<String, String> fieldCache) {
         return false;
     }
 }

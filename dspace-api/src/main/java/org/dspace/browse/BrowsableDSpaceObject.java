@@ -17,34 +17,33 @@ import org.dspace.content.IMetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 
-public interface BrowsableDSpaceObject<PK extends Serializable> extends IGlobalSearchResult<PK>
-{
-	public Map<String, Object> getExtraInfo();
+public interface BrowsableDSpaceObject<PK extends Serializable> extends IGlobalSearchResult<PK> {
+    public Map<String, Object> getExtraInfo();
 
     public boolean isArchived();
 
     public List<IMetadataValue> getMetadata(String schema, String element,
-            String qualifier, String lang);
-    
+                                            String qualifier, String lang);
+
     public List<IMetadataValue> getMetadata();
-    
+
     public String getMetadata(String field);
-    
-	public boolean isDiscoverable();
-	
-	public String getName();
 
-	public String findHandle(Context context) throws SQLException;
+    public boolean isDiscoverable();
 
-	public boolean haveHierarchy();
+    public String getName();
 
-	public BrowsableDSpaceObject getParentObject();
-	
-	public String getMetadataFirstValue(String schema, String element, String qualifier, String language);
-	
-	public Date getLastModified();
-	
-	default String getUniqueIndexID() {
-		return getType() + "-" + getID().toString(); 
-	}
+    public String findHandle(Context context) throws SQLException;
+
+    public boolean haveHierarchy();
+
+    public BrowsableDSpaceObject getParentObject();
+
+    public String getMetadataFirstValue(String schema, String element, String qualifier, String language);
+
+    public Date getLastModified();
+
+    default String getUniqueIndexID() {
+        return getType() + "-" + getID().toString();
+    }
 }

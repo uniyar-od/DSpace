@@ -10,7 +10,6 @@ package org.dspace.eperson;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.persistence.Cacheable;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,7 +30,6 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
@@ -42,46 +40,49 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Entity
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
-@Table(name = "epersongroup" )
-public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
-{
+@Table(name = "epersongroup")
+public class Group extends DSpaceObject implements DSpaceObjectLegacySupport {
 
     @Transient
     public static final String ANONYMOUS = "Anonymous";
 
     @Transient
     public static final String ADMIN = "Administrator";
-    
+
     @Transient
     public static final String EMBARGO = "Embargo";
 
     /**
      * Initial value is set to 2 since 0 and 1 are reserved for anonymous and administrative uses, respectively
      */
-    @Column(name="eperson_group_id", insertable = false, updatable = false)
+    @Column(name = "eperson_group_id", insertable = false, updatable = false)
     private Integer legacyId;
 
-    /** This Group may not be deleted or renamed. */
+    /**
+     * This Group may not be deleted or renamed.
+     */
     @Column
     private Boolean permanent = false;
 
     @Column(length = 250, unique = true)
     private String name;
 
-    /** lists of epeople and groups in the group */
+    /**
+     * lists of epeople and groups in the group
+     */
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "epersongroup2eperson",
-            joinColumns = {@JoinColumn(name = "eperson_group_id") },
-            inverseJoinColumns = {@JoinColumn(name = "eperson_id") }
+        name = "epersongroup2eperson",
+        joinColumns = { @JoinColumn(name = "eperson_group_id") },
+        inverseJoinColumns = { @JoinColumn(name = "eperson_id") }
     )
     private final List<EPerson> epeople = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
-            name = "group2group",
-            joinColumns = {@JoinColumn(name = "parent_id") },
-            inverseJoinColumns = {@JoinColumn(name = "child_id") }
+        name = "group2group",
+        joinColumns = { @JoinColumn(name = "parent_id") },
+        inverseJoinColumns = { @JoinColumn(name = "child_id") }
     )
     private final List<Group> groups = new ArrayList<>();
 
@@ -97,15 +98,12 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.eperson.service.GroupService#create(Context)}
-     *
      */
-    protected Group()
-    {
+    protected Group() {
 
     }
 
-    void addMember(EPerson e)
-    {
+    void addMember(EPerson e) {
         getMembers().add(e);
     }
 
@@ -114,47 +112,39 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
      *
      * @return list of EPersons
      */
-    public List<EPerson> getMembers()
-    {
+    public List<EPerson> getMembers() {
         return epeople;
     }
 
-    void addMember(Group g)
-    {
+    void addMember(Group g) {
         getMemberGroups().add(g);
         groupsChanged = true;
     }
 
-    void addParentGroup(Group group)
-    {
+    void addParentGroup(Group group) {
         getParentGroups().add(group);
         groupsChanged = true;
     }
 
-    void removeParentGroup(Group group)
-    {
+    void removeParentGroup(Group group) {
         getParentGroups().remove(group);
         groupsChanged = true;
     }
 
-    boolean remove(EPerson e)
-    {
+    boolean remove(EPerson e) {
         return getMembers().remove(e);
     }
 
-    boolean remove(Group g)
-    {
+    boolean remove(Group g) {
         groupsChanged = true;
         return getMemberGroups().remove(g);
     }
 
-    boolean contains(Group g)
-    {
+    boolean contains(Group g) {
         return getMemberGroups().contains(g);
     }
 
-    boolean contains(EPerson e)
-    {
+    boolean contains(EPerson e) {
         return getMembers().contains(e);
     }
 
@@ -167,8 +157,7 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
      *
      * @return list of groups
      */
-    public List<Group> getMemberGroups()
-    {
+    public List<Group> getMemberGroups() {
         return groups;
     }
 
@@ -176,55 +165,47 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
      * Return <code>true</code> if <code>other</code> is the same Group as
      * this object, <code>false</code> otherwise
      *
-     * @param obj
-     *            object to compare to
-     *
+     * @param obj object to compare to
      * @return <code>true</code> if object passed in represents the same group
-     *         as this object
+     * as this object
      */
-     @Override
-     public boolean equals(Object obj)
-     {
-         if (obj == null)
-         {
-             return false;
-         }
-         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
-         if (getClass() != objClass)
-         {
-             return false;
-         }
-         final Group other = (Group) obj;
-         return this.getID().equals(other.getID());
-     }
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
+        if (getClass() != objClass) {
+            return false;
+        }
+        final Group other = (Group) obj;
+        return this.getID().equals(other.getID());
+    }
 
-     @Override
-     public int hashCode()
-     {
-         int hash = 7;
-         hash = 59 * hash + this.getID().hashCode();
-         hash = 59 * hash + (this.getName() != null? this.getName().hashCode():0);
-         return hash;
-     }
-
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 59 * hash + this.getID().hashCode();
+        hash = 59 * hash + (this.getName() != null ? this.getName().hashCode() : 0);
+        return hash;
+    }
 
 
     @Override
-    public int getType()
-    {
+    public int getType() {
         return Constants.GROUP;
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    /** Change the name of this Group. */
-    void setName(String name) throws SQLException
-    {
-        if(!StringUtils.equals(this.name, name) && !isPermanent()) {
+    /**
+     * Change the name of this Group.
+     */
+    void setName(String name) throws SQLException {
+        if (!StringUtils.equals(this.name, name) && !isPermanent()) {
             this.name = name;
             groupsChanged = true;
         }
@@ -253,8 +234,7 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
      *
      * @return true if this Group may not be renamed or deleted.
      */
-    public Boolean isPermanent()
-    {
+    public Boolean isPermanent() {
         return permanent;
     }
 
@@ -264,36 +244,35 @@ public class Group extends DSpaceObject implements DSpaceObjectLegacySupport
      *
      * @param permanence true if this group may not be renamed or deleted.
      */
-    void setPermanent(boolean permanence)
-    {
+    void setPermanent(boolean permanence) {
         permanent = permanence;
         setModified();
     }
-    
+
     public String getTypeText() {
         return Constants.typeText[Constants.GROUP];
     }
 
-	@Override
-	public List<String> getMetadataValue(String mdString) {
-		return EPersonServiceFactory.getInstance().getGroupService().getAllMetadata(this, mdString);
-	}
-
-	@Override
-	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
-		return EPersonServiceFactory.getInstance().getGroupService().getMetadataByMetadataString(this, mdString);
-	}
-    
-	public boolean isNotRelevant() {
-	    List<String> ee = getMetadataValue(MetadataSchema.GROUP_SCHEMA +".notrelevant");
-	    if(ee != null && !ee.isEmpty()) {
-	        return true;
-	    }
-	    return false;
+    @Override
+    public List<String> getMetadataValue(String mdString) {
+        return EPersonServiceFactory.getInstance().getGroupService().getAllMetadata(this, mdString);
     }
-    
-	@Override
-	public boolean haveHierarchy() {
-		return false;
-	}
+
+    @Override
+    public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+        return EPersonServiceFactory.getInstance().getGroupService().getMetadataByMetadataString(this, mdString);
+    }
+
+    public boolean isNotRelevant() {
+        List<String> ee = getMetadataValue(MetadataSchema.GROUP_SCHEMA + ".notrelevant");
+        if (ee != null && !ee.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean haveHierarchy() {
+        return false;
+    }
 }

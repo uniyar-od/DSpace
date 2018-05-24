@@ -39,17 +39,18 @@ import org.hibernate.proxy.HibernateProxyHelper;
 @Entity
 @Cacheable
 @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-@Table(name="metadatafieldregistry")
+@Table(name = "metadatafieldregistry")
 public class MetadataField implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="metadata_field_id", nullable = false, unique = true)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="metadatafieldregistry_seq")
-    @SequenceGenerator(name="metadatafieldregistry_seq", sequenceName="metadatafieldregistry_seq", allocationSize = 1, initialValue = 1)
+    @Column(name = "metadata_field_id", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "metadatafieldregistry_seq")
+    @SequenceGenerator(name = "metadatafieldregistry_seq", sequenceName = "metadatafieldregistry_seq", allocationSize
+        = 1, initialValue = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "metadata_schema_id",nullable = false)
+    @JoinColumn(name = "metadata_schema_id", nullable = false)
     private MetadataSchema metadataSchema;
 
     @Column(name = "element", length = 64)
@@ -58,18 +59,16 @@ public class MetadataField implements ReloadableEntity<Integer> {
     @Column(name = "qualifier", length = 64)
     private String qualifier = null;
 
-//    @Column(name = "scope_note")
+    //    @Column(name = "scope_note")
 //    @Lob
-    @Column(name="scope_note", columnDefinition = "text")
+    @Column(name = "scope_note", columnDefinition = "text")
     private String scopeNote;
 
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.MetadataFieldService#create(Context, MetadataSchema, String, String, String)}
-     *
      */
-    protected MetadataField()
-    {
+    protected MetadataField() {
 
     }
 
@@ -78,8 +77,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @return metadata field id
      */
-    public Integer getID()
-    {
+    public Integer getID() {
         return id;
     }
 
@@ -88,8 +86,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @return element name
      */
-    public String getElement()
-    {
+    public String getElement() {
         return element;
     }
 
@@ -98,8 +95,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @param element new value for element
      */
-    public void setElement(String element)
-    {
+    public void setElement(String element) {
         this.element = element;
     }
 
@@ -108,8 +104,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @return qualifier
      */
-    public String getQualifier()
-    {
+    public String getQualifier() {
         return qualifier;
     }
 
@@ -118,8 +113,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @param qualifier new value for qualifier
      */
-    public void setQualifier(String qualifier)
-    {
+    public void setQualifier(String qualifier) {
         this.qualifier = qualifier;
     }
 
@@ -128,8 +122,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @return scope note
      */
-    public String getScopeNote()
-    {
+    public String getScopeNote() {
         return scopeNote;
     }
 
@@ -138,8 +131,7 @@ public class MetadataField implements ReloadableEntity<Integer> {
      *
      * @param scopeNote new value for scope note
      */
-    public void setScopeNote(String scopeNote)
-    {
+    public void setScopeNote(String scopeNote) {
         this.scopeNote = scopeNote;
     }
 
@@ -162,44 +154,35 @@ public class MetadataField implements ReloadableEntity<Integer> {
     }
 
 
-
     /**
      * Return <code>true</code> if <code>other</code> is the same MetadataField
      * as this object, <code>false</code> otherwise
      *
-     * @param obj
-     *            object to compare to
-     *
+     * @param obj object to compare to
      * @return <code>true</code> if object passed in represents the same
-     *         MetadataField as this object
+     * MetadataField as this object
      */
     @Override
-    public boolean equals(Object obj)
-    {
-        if (obj == null)
-        {
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
-        if (getClass() != objClass)
-        {
+        if (getClass() != objClass) {
             return false;
         }
         final MetadataField other = (MetadataField) obj;
-        if (this.getID() != other.getID())
-        {
+        if (this.getID() != other.getID()) {
             return false;
         }
-        if (!getMetadataSchema().equals(other.getMetadataSchema()))
-        {
+        if (!getMetadataSchema().equals(other.getMetadataSchema())) {
             return false;
         }
         return true;
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         int hash = 7;
         hash = 47 * hash + getID();
         hash = 47 * hash + getMetadataSchema().getID();
@@ -207,12 +190,9 @@ public class MetadataField implements ReloadableEntity<Integer> {
     }
 
     public String toString(char separator) {
-        if (qualifier == null)
-        {
+        if (qualifier == null) {
             return getMetadataSchema().getName() + separator + element;
-        }
-        else
-        {
+        } else {
             return getMetadataSchema().getName() + separator + element + separator + qualifier;
         }
     }
@@ -230,14 +210,10 @@ public class MetadataField implements ReloadableEntity<Integer> {
      * @param qualifier
      * @return HTML FORM key
      */
-    public static String formKey(String schema, String element, String qualifier)
-    {
-        if (qualifier == null)
-        {
+    public static String formKey(String schema, String element, String qualifier) {
+        if (qualifier == null) {
             return schema + "_" + element;
-        }
-        else
-        {
+        } else {
             return schema + "_" + element + "_" + qualifier;
         }
     }

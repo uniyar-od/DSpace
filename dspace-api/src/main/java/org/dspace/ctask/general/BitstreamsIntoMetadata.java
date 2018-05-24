@@ -24,8 +24,7 @@ import org.dspace.curate.Curator;
  *
  * @author Stuart Lewis
  */
-public class BitstreamsIntoMetadata extends AbstractCurationTask
-{
+public class BitstreamsIntoMetadata extends AbstractCurationTask {
 
     // The status of this item
     protected int status = Curator.CURATE_UNSET;
@@ -44,8 +43,7 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
      * @return The curation task status of the checking
      */
     @Override
-    public int perform(DSpaceObject dso)
-    {
+    public int perform(DSpaceObject dso) {
         // The results that we'll return
         StringBuilder results = new StringBuilder();
 
@@ -53,10 +51,9 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
         status = Curator.CURATE_SKIP;
         boolean changed = false;
         logDebugMessage("The target dso is " + dso.getName());
-        if (dso instanceof Item)
-        {
+        if (dso instanceof Item) {
             try {
-                Item item = (Item)dso;
+                Item item = (Item) dso;
                 itemService.clearMetadata(Curator.curationContext(), item, "dc", "format", Item.ANY, Item.ANY);
                 for (Bundle bundle : item.getBundles()) {
                     if ("ORIGINAL".equals(bundle.getName())) {
@@ -102,10 +99,8 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
      *
      * @param message The message to log
      */
-    protected void logDebugMessage(String message)
-    {
-        if (log.isDebugEnabled())
-        {
+    protected void logDebugMessage(String message) {
+        if (log.isDebugEnabled()) {
             log.debug(message);
         }
     }
@@ -113,11 +108,10 @@ public class BitstreamsIntoMetadata extends AbstractCurationTask
     /**
      * Add the bitstream metadata to the item
      *
-     * @param item The item
+     * @param item      The item
      * @param bitstream The bitstream
-     * @param type The type of bitstream
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
+     * @param type      The type of bitstream
+     * @throws SQLException An exception that provides information on a database access error or other errors.
      */
     protected void addMetadata(Item item, Bitstream bitstream, String type) throws SQLException {
         String value = bitstream.getFormat(Curator.curationContext()).getMIMEType() + "##";

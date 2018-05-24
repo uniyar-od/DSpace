@@ -11,20 +11,22 @@ import org.dspace.content.Collection;
 
 /**
  * Implementation to lookup value from The Art & Architecture Thesaurus (AAT),
- * 
- * @see https://www.getty.edu/research/tools/vocabularies/aat/index.html
- *  
+ *
  * @author Riccardo Fazio (riccardo.fazio at 4science dot it)
+ * @see https://www.getty.edu/research/tools/vocabularies/aat/index.html
  */
 public class AATAuthority extends GettyAuthority {
 
-	String query ="SELECT ?Subject ?Term ?Parents ?ScopeNote { ?Subject luc:term \"%s\"; skos:inScheme aat: ; gvp:prefLabelGVP [skosxl:literalForm ?Term; gvp:term ?pureTerm]. optional {?Subject gvp:parentStringAbbrev ?Parents} optional {?Subject skos:scopeNote [dct:language gvp_lang:en; rdf:value ?ScopeNote]}} ORDER BY ASC(LCASE(STR(?pureTerm)))";
-	
-	@Override
-	public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale) {
-		String sparQL = String.format(query, text);
-		Choices results = query(sparQL);
-		return results;
-	}
+    String query = "SELECT ?Subject ?Term ?Parents ?ScopeNote { ?Subject luc:term \"%s\"; skos:inScheme aat: ; " +
+        "gvp:prefLabelGVP [skosxl:literalForm ?Term; gvp:term ?pureTerm]. optional {?Subject gvp:parentStringAbbrev " +
+        "?Parents} optional {?Subject skos:scopeNote [dct:language gvp_lang:en; rdf:value ?ScopeNote]}} ORDER BY ASC" +
+        "(LCASE(STR(?pureTerm)))";
+
+    @Override
+    public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale) {
+        String sparQL = String.format(query, text);
+        Choices results = query(sparQL);
+        return results;
+    }
 
 }

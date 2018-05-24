@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -47,16 +46,16 @@ import org.dspace.workflow.factory.WorkflowServiceFactory;
  * @author Mark Diggory (markd at atmire dot com)
  */
 @Entity
-@Table(name="cwf_workflowitem")
+@Table(name = "cwf_workflowitem")
 public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
 
     @Transient
     public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
-    
+
     @Id
-    @Column(name="workflowitem_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="cwf_workflowitem_seq")
-    @SequenceGenerator(name="cwf_workflowitem_seq", sequenceName="cwf_workflowitem_seq", allocationSize = 1)
+    @Column(name = "workflowitem_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cwf_workflowitem_seq")
+    @SequenceGenerator(name = "cwf_workflowitem_seq", sequenceName = "cwf_workflowitem_seq", allocationSize = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -79,10 +78,8 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>,
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService#create(Context, Item, Collection)}
-     *
      */
-    protected XmlWorkflowItem()
-    {
+    protected XmlWorkflowItem() {
 
     }
 
@@ -92,93 +89,84 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>,
      * @return the internal identifier
      */
     @Override
-    public Integer getID()
-    {
+    public Integer getID() {
         return id;
     }
 
 
     @Override
-    public Collection getCollection(){
+    public Collection getCollection() {
         return this.collection;
     }
 
-    public void setCollection(Collection collection){
+    public void setCollection(Collection collection) {
         this.collection = collection;
     }
 
     @Override
-    public Item getItem()
-    {
+    public Item getItem() {
         return item;
     }
 
-    public void setItem(Item item){
+    public void setItem(Item item) {
         this.item = item;
     }
 
     @Override
-    public EPerson getSubmitter() throws SQLException
-    {
+    public EPerson getSubmitter() throws SQLException {
         return item.getSubmitter();
     }
 
     @Override
-    public boolean hasMultipleFiles()
-    {
+    public boolean hasMultipleFiles() {
         return multipleFiles;
     }
 
     @Override
-    public void setMultipleFiles(boolean b)
-    {
+    public void setMultipleFiles(boolean b) {
         this.multipleFiles = b;
     }
 
     @Override
-    public boolean hasMultipleTitles()
-    {
+    public boolean hasMultipleTitles() {
         return this.multipleTitles;
     }
 
     @Override
-    public void setMultipleTitles(boolean b)
-    {
+    public void setMultipleTitles(boolean b) {
         this.multipleTitles = b;
     }
 
     @Override
-    public boolean isPublishedBefore()
-    {
+    public boolean isPublishedBefore() {
         return this.publishedBefore;
     }
 
     @Override
-    public void setPublishedBefore(boolean b)
-    {
+    public void setPublishedBefore(boolean b) {
         this.publishedBefore = b;
     }
-    
-	@Override
-	public void update() throws SQLException, AuthorizeException {
-		
-		Context context = null; 
-		try {
-			context = new Context();
-			WorkflowServiceFactory.getInstance().getWorkflowItemService().update(context, this);
-		}
-		finally {
-			if(context!=null && context.isValid()) {
-				context.abort();
-			}
-		}
-	}
 
-	@Override
-	public int getState() {
-		// FIXME
-		return 0;
-	}
+    @Override
+    public void update() throws SQLException, AuthorizeException {
+
+        Context context = null;
+        try {
+            context = new Context();
+            WorkflowServiceFactory.getInstance().getWorkflowItemService().update(context, this);
+        } finally {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        }
+    }
+
+    @Override
+    public int getState() {
+        // FIXME
+        return 0;
+    }
+
     @Override
     public String getHandle() {
         return null;

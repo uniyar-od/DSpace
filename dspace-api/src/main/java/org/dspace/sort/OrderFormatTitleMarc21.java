@@ -15,15 +15,14 @@ import org.dspace.text.filter.TextFilter;
 
 /**
  * MARC 21 title ordering delegate implementation
- * 
+ *
  * @author Graham Triggs
  */
-public class OrderFormatTitleMarc21 extends AbstractTextFilterOFD
-{
-	{
-		filters = new TextFilter[] { new MARC21InitialArticleWord(),
-                                     new DecomposeDiactritics(),
-                                     new StripLeadingNonAlphaNum(),
-									 new LowerCaseAndTrim() };
-	}
+public class OrderFormatTitleMarc21 extends AbstractTextFilterOFD {
+    {
+        filters = new TextFilter[] { new MARC21InitialArticleWord(),
+            new DecomposeDiactritics(),
+            new StripLeadingNonAlphaNum(),
+            new LowerCaseAndTrim() };
+    }
 }

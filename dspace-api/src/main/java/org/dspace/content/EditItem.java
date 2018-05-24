@@ -15,70 +15,70 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 
 public class EditItem implements InProgressSubmission<UUID> {
-	
-	private Item item;
-	
-	private Context context;
 
-	public EditItem(Context context, Item item) {
-		this.context = context;
-		this.item = item;
-	}
+    private Item item;
 
-	@Override
-	public UUID getID() {
-		return item.getID();
-	}
+    private Context context;
 
-	@Override
-	public void update() throws SQLException, AuthorizeException {
-		item.getItemService().update(context, item);
-	}
+    public EditItem(Context context, Item item) {
+        this.context = context;
+        this.item = item;
+    }
 
-	@Override
-	public Item getItem() {
-		return item;
-	}
+    @Override
+    public UUID getID() {
+        return item.getID();
+    }
 
-	@Override
-	public Collection getCollection() {
-		try {
-			return (Collection)item.getItemService().getParentObject(context, item);
-		} catch (SQLException e) {
-			throw new RuntimeException();
-		}
-	}
+    @Override
+    public void update() throws SQLException, AuthorizeException {
+        item.getItemService().update(context, item);
+    }
 
-	@Override
-	public EPerson getSubmitter() throws SQLException {
-		return item.getSubmitter();
-	}
+    @Override
+    public Item getItem() {
+        return item;
+    }
 
-	@Override
-	public boolean hasMultipleFiles() {
-		return true;
-	}
+    @Override
+    public Collection getCollection() {
+        try {
+            return (Collection) item.getItemService().getParentObject(context, item);
+        } catch (SQLException e) {
+            throw new RuntimeException();
+        }
+    }
 
-	@Override
-	public void setMultipleFiles(boolean b) {
-	}
+    @Override
+    public EPerson getSubmitter() throws SQLException {
+        return item.getSubmitter();
+    }
 
-	@Override
-	public boolean hasMultipleTitles() {
-		return true;
-	}
+    @Override
+    public boolean hasMultipleFiles() {
+        return true;
+    }
 
-	@Override
-	public void setMultipleTitles(boolean b) {
-	}
+    @Override
+    public void setMultipleFiles(boolean b) {
+    }
 
-	@Override
-	public boolean isPublishedBefore() {
-		return true;
-	}
+    @Override
+    public boolean hasMultipleTitles() {
+        return true;
+    }
 
-	@Override
-	public void setPublishedBefore(boolean b) {
-	}
+    @Override
+    public void setMultipleTitles(boolean b) {
+    }
+
+    @Override
+    public boolean isPublishedBefore() {
+        return true;
+    }
+
+    @Override
+    public void setPublishedBefore(boolean b) {
+    }
 
 }

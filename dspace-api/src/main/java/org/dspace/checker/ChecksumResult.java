@@ -8,7 +8,6 @@
 package org.dspace.checker;
 
 import java.io.Serializable;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -22,12 +21,11 @@ import javax.persistence.Table;
  * @author kevinvandevelde at atmire.com
  */
 @Entity
-@Table(name="checksum_results")
+@Table(name = "checksum_results")
 public class ChecksumResult
-        implements Serializable
-{
+    implements Serializable {
     @Id
-    @Column(name="result_code")
+    @Column(name = "result_code")
     @Enumerated(EnumType.STRING)
     private ChecksumResultCode resultCode;
 
@@ -37,10 +35,10 @@ public class ChecksumResult
     /**
      * Protected constructor, new object creation impossible
      */
-    protected ChecksumResult()
-    {
+    protected ChecksumResult() {
 
     }
+
     public ChecksumResultCode getResultCode() {
         return resultCode;
     }

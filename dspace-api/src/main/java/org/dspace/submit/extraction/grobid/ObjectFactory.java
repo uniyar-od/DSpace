@@ -12,33 +12,31 @@ import javax.xml.bind.annotation.XmlRegistry;
 
 
 /**
- * This object contains factory methods for each 
- * Java content interface and Java element interface 
- * generated in the org.dspace.submit.extraction.grobid package. 
- * <p>An ObjectFactory allows you to programatically 
- * construct new instances of the Java representation 
- * for XML content. The Java representation of XML 
- * content can consist of schema derived interfaces 
- * and classes representing the binding of schema 
- * type definitions, element declarations and model 
- * groups.  Factory methods for each of these are 
+ * This object contains factory methods for each
+ * Java content interface and Java element interface
+ * generated in the org.dspace.submit.extraction.grobid package.
+ * <p>An ObjectFactory allows you to programatically
+ * construct new instances of the Java representation
+ * for XML content. The Java representation of XML
+ * content can consist of schema derived interfaces
+ * and classes representing the binding of schema
+ * type definitions, element declarations and model
+ * groups.  Factory methods for each of these are
  * provided in this class.
- * 
  */
 @XmlRegistry
 public class ObjectFactory {
 
 
     /**
-     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org.dspace.submit.extraction.grobid
-     * 
+     * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: org
+     * .dspace.submit.extraction.grobid
      */
     public ObjectFactory() {
     }
 
     /**
      * Create an instance of {@link P }
-     * 
      */
     public P createP() {
         return new P();
@@ -46,7 +44,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TeiMacroParaContent }
-     * 
      */
     public TeiMacroParaContent createTeiMacroParaContent() {
         return new TeiMacroParaContent();
@@ -54,7 +51,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Hi }
-     * 
      */
     public Hi createHi() {
         return new Hi();
@@ -62,7 +58,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Term }
-     * 
      */
     public Term createTerm() {
         return new Term();
@@ -70,7 +65,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TeiMacroPhraseSeq }
-     * 
      */
     public TeiMacroPhraseSeq createTeiMacroPhraseSeq() {
         return new TeiMacroPhraseSeq();
@@ -78,7 +72,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Title }
-     * 
      */
     public Title createTitle() {
         return new Title();
@@ -86,7 +79,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Graphic }
-     * 
      */
     public Graphic createGraphic() {
         return new Graphic();
@@ -94,7 +86,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Formula }
-     * 
      */
     public Formula createFormula() {
         return new Formula();
@@ -102,7 +93,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Ptr }
-     * 
      */
     public Ptr createPtr() {
         return new Ptr();
@@ -110,7 +100,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Ref }
-     * 
      */
     public Ref createRef() {
         return new Ref();
@@ -118,7 +107,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Date }
-     * 
      */
     public Date createDate() {
         return new Date();
@@ -126,7 +114,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Email }
-     * 
      */
     public Email createEmail() {
         return new Email();
@@ -134,7 +121,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Address }
-     * 
      */
     public Address createAddress() {
         return new Address();
@@ -142,7 +128,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Link }
-     * 
      */
     public Link createLink() {
         return new Link();
@@ -150,7 +135,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Anchor }
-     * 
      */
     public Anchor createAnchor() {
         return new Anchor();
@@ -158,7 +142,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Note }
-     * 
      */
     public Note createNote() {
         return new Note();
@@ -166,7 +149,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TeiMacroSpecialPara }
-     * 
      */
     public TeiMacroSpecialPara createTeiMacroSpecialPara() {
         return new TeiMacroSpecialPara();
@@ -174,7 +156,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Affiliation }
-     * 
      */
     public Affiliation createAffiliation() {
         return new Affiliation();
@@ -182,7 +163,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Name }
-     * 
      */
     public Name createName() {
         return new Name();
@@ -190,7 +170,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link OrgName }
-     * 
      */
     public OrgName createOrgName() {
         return new OrgName();
@@ -198,7 +177,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link PersName }
-     * 
      */
     public PersName createPersName() {
         return new PersName();
@@ -206,7 +184,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Country }
-     * 
      */
     public Country createCountry() {
         return new Country();
@@ -214,7 +191,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Region }
-     * 
      */
     public Region createRegion() {
         return new Region();
@@ -222,7 +198,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Settlement }
-     * 
      */
     public Settlement createSettlement() {
         return new Settlement();
@@ -230,7 +205,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Idno }
-     * 
      */
     public Idno createIdno() {
         return new Idno();
@@ -238,7 +212,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Surname }
-     * 
      */
     public Surname createSurname() {
         return new Surname();
@@ -246,7 +219,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Forename }
-     * 
      */
     public Forename createForename() {
         return new Forename();
@@ -254,7 +226,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link RoleName }
-     * 
      */
     public RoleName createRoleName() {
         return new RoleName();
@@ -262,7 +233,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Bibl }
-     * 
      */
     public Bibl createBibl() {
         return new Bibl();
@@ -270,7 +240,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Author }
-     * 
      */
     public Author createAuthor() {
         return new Author();
@@ -278,7 +247,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Editor }
-     * 
      */
     public Editor createEditor() {
         return new Editor();
@@ -286,7 +254,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Meeting }
-     * 
      */
     public Meeting createMeeting() {
         return new Meeting();
@@ -294,7 +261,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TeiMacroLimitedContent }
-     * 
      */
     public TeiMacroLimitedContent createTeiMacroLimitedContent() {
         return new TeiMacroLimitedContent();
@@ -302,7 +268,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link BiblStruct }
-     * 
      */
     public BiblStruct createBiblStruct() {
         return new BiblStruct();
@@ -310,7 +275,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Analytic }
-     * 
      */
     public Analytic createAnalytic() {
         return new Analytic();
@@ -318,7 +282,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Availability }
-     * 
      */
     public Availability createAvailability() {
         return new Availability();
@@ -326,7 +289,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Licence }
-     * 
      */
     public Licence createLicence() {
         return new Licence();
@@ -334,7 +296,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Trash }
-     * 
      */
     public Trash createTrash() {
         return new Trash();
@@ -342,7 +303,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Monogr }
-     * 
      */
     public Monogr createMonogr() {
         return new Monogr();
@@ -350,7 +310,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Imprint }
-     * 
      */
     public Imprint createImprint() {
         return new Imprint();
@@ -358,7 +317,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link BiblScope }
-     * 
      */
     public BiblScope createBiblScope() {
         return new BiblScope();
@@ -366,7 +324,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link PubPlace }
-     * 
      */
     public PubPlace createPubPlace() {
         return new PubPlace();
@@ -374,7 +331,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Publisher }
-     * 
      */
     public Publisher createPublisher() {
         return new Publisher();
@@ -382,7 +338,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Edition }
-     * 
      */
     public Edition createEdition() {
         return new Edition();
@@ -390,7 +345,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Series }
-     * 
      */
     public Series createSeries() {
         return new Series();
@@ -398,7 +352,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Figure }
-     * 
      */
     public Figure createFigure() {
         return new Figure();
@@ -406,7 +359,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Head }
-     * 
      */
     public Head createHead() {
         return new Head();
@@ -414,7 +366,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ListBibl }
-     * 
      */
     public ListBibl createListBibl() {
         return new ListBibl();
@@ -422,7 +373,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Label }
-     * 
      */
     public Label createLabel() {
         return new Label();
@@ -430,7 +380,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link List }
-     * 
      */
     public List createList() {
         return new List();
@@ -438,7 +387,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Item }
-     * 
      */
     public Item createItem() {
         return new Item();
@@ -446,7 +394,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Table }
-     * 
      */
     public Table createTable() {
         return new Table();
@@ -454,7 +401,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link FigDesc }
-     * 
      */
     public FigDesc createFigDesc() {
         return new FigDesc();
@@ -462,7 +408,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link AddrLine }
-     * 
      */
     public AddrLine createAddrLine() {
         return new AddrLine();
@@ -470,7 +415,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Street }
-     * 
      */
     public Street createStreet() {
         return new Street();
@@ -478,7 +422,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link PostCode }
-     * 
      */
     public PostCode createPostCode() {
         return new PostCode();
@@ -486,7 +429,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link PostBox }
-     * 
      */
     public PostBox createPostBox() {
         return new PostBox();
@@ -494,7 +436,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TeiHeader }
-     * 
      */
     public TeiHeader createTeiHeader() {
         return new TeiHeader();
@@ -502,7 +443,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link FileDesc }
-     * 
      */
     public FileDesc createFileDesc() {
         return new FileDesc();
@@ -510,7 +450,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TitleStmt }
-     * 
      */
     public TitleStmt createTitleStmt() {
         return new TitleStmt();
@@ -518,7 +457,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link EditionStmt }
-     * 
      */
     public EditionStmt createEditionStmt() {
         return new EditionStmt();
@@ -526,7 +464,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link PublicationStmt }
-     * 
      */
     public PublicationStmt createPublicationStmt() {
         return new PublicationStmt();
@@ -534,7 +471,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link SeriesStmt }
-     * 
      */
     public SeriesStmt createSeriesStmt() {
         return new SeriesStmt();
@@ -542,7 +478,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link NotesStmt }
-     * 
      */
     public NotesStmt createNotesStmt() {
         return new NotesStmt();
@@ -550,7 +485,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link SourceDesc }
-     * 
      */
     public SourceDesc createSourceDesc() {
         return new SourceDesc();
@@ -558,7 +492,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ProfileDesc }
-     * 
      */
     public ProfileDesc createProfileDesc() {
         return new ProfileDesc();
@@ -566,7 +499,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Abstract }
-     * 
      */
     public Abstract createAbstract() {
         return new Abstract();
@@ -574,7 +506,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TextClass }
-     * 
      */
     public TextClass createTextClass() {
         return new TextClass();
@@ -582,7 +513,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link ClassCode }
-     * 
      */
     public ClassCode createClassCode() {
         return new ClassCode();
@@ -590,7 +520,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TeiMacroPhraseSeqLimited }
-     * 
      */
     public TeiMacroPhraseSeqLimited createTeiMacroPhraseSeqLimited() {
         return new TeiMacroPhraseSeqLimited();
@@ -598,7 +527,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Keywords }
-     * 
      */
     public Keywords createKeywords() {
         return new Keywords();
@@ -606,7 +534,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link CorrespDesc }
-     * 
      */
     public CorrespDesc createCorrespDesc() {
         return new CorrespDesc();
@@ -614,7 +541,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link CorrespAction }
-     * 
      */
     public CorrespAction createCorrespAction() {
         return new CorrespAction();
@@ -622,7 +548,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link CorrespContext }
-     * 
      */
     public CorrespContext createCorrespContext() {
         return new CorrespContext();
@@ -630,7 +555,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link XenoData }
-     * 
      */
     public XenoData createXenoData() {
         return new XenoData();
@@ -638,7 +562,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link TEI }
-     * 
      */
     public TEI createTEI() {
         return new TEI();
@@ -646,7 +569,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Text }
-     * 
      */
     public Text createText() {
         return new Text();
@@ -654,7 +576,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Front }
-     * 
      */
     public Front createFront() {
         return new Front();
@@ -662,7 +583,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Div }
-     * 
      */
     public Div createDiv() {
         return new Div();
@@ -670,7 +590,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Body }
-     * 
      */
     public Body createBody() {
         return new Body();
@@ -678,7 +597,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Back }
-     * 
      */
     public Back createBack() {
         return new Back();
@@ -686,7 +604,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Org }
-     * 
      */
     public Org createOrg() {
         return new Org();
@@ -694,7 +611,6 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Cell }
-     * 
      */
     public Cell createCell() {
         return new Cell();

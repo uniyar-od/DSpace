@@ -32,9 +32,8 @@ import org.dspace.services.model.Request;
 
 /**
  * Describe step for DSpace Spring Rest. Handle the exposition of metadata own by the in progress submission.
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 public class DescribeStep extends org.dspace.submit.step.DescribeStep implements AbstractRestProcessingStep {
 
@@ -48,7 +47,7 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
 
     @Override
     public DataDescribe getData(SubmissionService submissionService, InProgressSubmission obj,
-            SubmissionStepConfig config) {
+                                SubmissionStepConfig config) {
         DataDescribe data = new DataDescribe();
         try {
             DCInputSet inputConfig = inputReader.getInputsByFormName(config.getId());
@@ -60,7 +59,7 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
     }
 
     private void readField(InProgressSubmission obj, SubmissionStepConfig config, DataDescribe data,
-            DCInputSet inputConfig) throws DCInputsReaderException {
+                           DCInputSet inputConfig) throws DCInputsReaderException {
         for (DCInput[] row : inputConfig.getFields()) {
             for (DCInput input : row) {
 
@@ -70,10 +69,10 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
                         fieldsName.add(input.getFieldName() + "." + (String) qualifier);
                     }
                 } else if (StringUtils.equalsIgnoreCase(input.getInputType(), "group")) {
-                    log.info("Called child form:" + config.getId() + "-"
-                            + Utils.standardize(input.getSchema(), input.getElement(), input.getQualifier(), "-"));
-                    DCInputSet inputConfigChild = inputReader.getInputsByFormName(config.getId() + "-"
-                            + Utils.standardize(input.getSchema(), input.getElement(), input.getQualifier(), "-"));
+                    log.info("Called child form:" + config.getId() + "-" +
+                             Utils.standardize(input.getSchema(), input.getElement(), input.getQualifier(), "-"));
+                    DCInputSet inputConfigChild = inputReader.getInputsByFormName(config.getId() + "-" + Utils
+                        .standardize(input.getSchema(), input.getElement(), input.getQualifier(), "-"));
                     readField(obj, config, data, inputConfigChild);
                 } else {
                     fieldsName.add(input.getFieldName());
@@ -91,19 +90,18 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
 
                         String[] metadataToCheck = Utils.tokenize(md.getMetadataField().toString());
                         if (data.getMetadata().containsKey(
-                                Utils.standardize(metadataToCheck[0], metadataToCheck[1], metadataToCheck[2], "."))) {
-                            data.getMetadata()
-                                    .get(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
-                                            md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
-                                            "."))
-                                    .add(dto);
+                            Utils.standardize(metadataToCheck[0], metadataToCheck[1], metadataToCheck[2], "."))) {
+                            data.getMetadata().get(Utils
+                                .standardize(md.getMetadataField().getMetadataSchema().getName(),
+                                    md.getMetadataField().getElement(), md.getMetadataField().getQualifier(), "."))
+                                .add(dto);
                         } else {
                             List<MetadataValueRest> listDto = new ArrayList<>();
                             listDto.add(dto);
-                            data.getMetadata()
-                                    .put(Utils.standardize(md.getMetadataField().getMetadataSchema().getName(),
-                                            md.getMetadataField().getElement(), md.getMetadataField().getQualifier(),
-                                            "."), listDto);
+                            data.getMetadata().put(Utils
+                                    .standardize(md.getMetadataField().getMetadataSchema().getName(),
+                                        md.getMetadataField().getElement(), md.getMetadataField().getQualifier(), "."),
+                                listDto);
                         }
                     }
                 }
@@ -113,10 +111,10 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
 
     @Override
     public void doPatchProcessing(Context context, Request currentRequest, InProgressSubmission source, Operation op)
-            throws Exception {
+        throws Exception {
 
-        PatchOperation<MetadataValueRest> patchOperation = new PatchOperationFactory()
-                .instanceOf(DESCRIBE_STEP_METADATA_OPERATION_ENTRY, op.getOp());
+        PatchOperation<MetadataValueRest> patchOperation =
+            new PatchOperationFactory().instanceOf(DESCRIBE_STEP_METADATA_OPERATION_ENTRY, op.getOp());
         patchOperation.perform(context, currentRequest, source, op);
 
     }

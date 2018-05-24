@@ -21,21 +21,23 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DiscoverFacetConfigurationConverter {
-    public FacetConfigurationRest convert(final String configuration, final String scope, DiscoveryConfiguration discoveryConfiguration){
+    public FacetConfigurationRest convert(final String configuration, final String scope,
+                                          DiscoveryConfiguration discoveryConfiguration) {
         FacetConfigurationRest facetConfigurationRest = new FacetConfigurationRest();
 
         facetConfigurationRest.setConfiguration(configuration);
         facetConfigurationRest.setScope(scope);
 
-        if(configuration != null){
+        if (configuration != null) {
             addSidebarFacets(facetConfigurationRest, discoveryConfiguration.getSidebarFacets());
         }
 
         return facetConfigurationRest;
     }
 
-    private void addSidebarFacets(FacetConfigurationRest facetConfigurationRest, List<DiscoverySearchFilterFacet> sidebarFacets) {
-        for(DiscoverySearchFilterFacet discoverySearchFilterFacet : CollectionUtils.emptyIfNull(sidebarFacets)){
+    private void addSidebarFacets(FacetConfigurationRest facetConfigurationRest,
+                                  List<DiscoverySearchFilterFacet> sidebarFacets) {
+        for (DiscoverySearchFilterFacet discoverySearchFilterFacet : CollectionUtils.emptyIfNull(sidebarFacets)) {
 
             SearchFacetEntryRest facetEntry = new SearchFacetEntryRest(discoverySearchFilterFacet.getIndexFieldName());
             facetEntry.setFacetType(discoverySearchFilterFacet.getType());

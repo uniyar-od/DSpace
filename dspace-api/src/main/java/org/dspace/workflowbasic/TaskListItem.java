@@ -33,8 +33,8 @@ public class TaskListItem implements ReloadableEntity<Integer> {
 
     @Id
     @Column(name = "tasklist_id", unique = true, nullable = false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="tasklistitem_seq")
-    @SequenceGenerator(name="tasklistitem_seq", sequenceName="tasklistitem_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "tasklistitem_seq")
+    @SequenceGenerator(name = "tasklistitem_seq", sequenceName = "tasklistitem_seq", allocationSize = 1)
     private int taskListItemId;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -48,10 +48,8 @@ public class TaskListItem implements ReloadableEntity<Integer> {
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.workflowbasic.service.TaskListItemService#create(Context, BasicWorkflowItem, EPerson)}
-     *
      */
-    protected TaskListItem()
-    {
+    protected TaskListItem() {
 
     }
 

@@ -18,9 +18,8 @@ import org.dspace.plugin.PluginException;
 /**
  * @author Pascarelli Luigi Andrea
  */
-public interface ItemSignPostingProcessor
-{
+public interface ItemSignPostingProcessor {
     void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, Item item)
+                 HttpServletResponse response, Item item)
         throws PluginException, AuthorizeException;
 }

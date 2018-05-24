@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-
 import javax.persistence.Cacheable;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -55,21 +54,24 @@ import org.hibernate.proxy.HibernateProxyHelper;
  * @version $Revision$
  */
 @Entity
-@Table(name="collection")
+@Table(name = "collection")
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE, include = "non-lazy")
-public class Collection extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID>
-{
+public class Collection extends DSpaceObject implements DSpaceObjectLegacySupport, BrowsableDSpaceObject<UUID> {
 
-    @Column(name="collection_id", insertable = false, updatable = false)
+    @Column(name = "collection_id", insertable = false, updatable = false)
     private Integer legacyId;
 
-    /** The logo bitstream */
+    /**
+     * The logo bitstream
+     */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "logo_bitstream_id")
     private Bitstream logo;
 
-    /** The item template */
+    /**
+     * The item template
+     */
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "template_item_id")
     private Item template;
@@ -101,11 +103,11 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
     /** The default group of administrators */
     private Group admins;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST})
+    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST })
     @JoinTable(
-            name = "community2collection",
-            joinColumns = {@JoinColumn(name = "collection_id") },
-            inverseJoinColumns = {@JoinColumn(name = "community_id") }
+        name = "community2collection",
+        joinColumns = { @JoinColumn(name = "collection_id") },
+        inverseJoinColumns = { @JoinColumn(name = "community_id") }
     )
     private Set<Community> communities = new HashSet<>();
 
@@ -129,17 +131,15 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * {@link org.dspace.content.service.CollectionService#create(Context, Community)}
      * or
      * {@link org.dspace.content.service.CollectionService#create(Context, Community, String)}
-     *
      */
-    protected Collection()
-    {
+    protected Collection() {
 
     }
 
     @Override
-    public String getName()
-    {
-        String value = getCollectionService().getMetadataFirstValue(this, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
+    public String getName() {
+        String value = getCollectionService()
+            .getMetadataFirstValue(this, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);
         return value == null ? "" : value;
     }
 
@@ -149,8 +149,7 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      *
      * @return the logo of the collection, or <code>null</code>
      */
-    public Bitstream getLogo()
-    {
+    public Bitstream getLogo() {
         return logo;
     }
 
@@ -169,10 +168,9 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * <code>collection_100_submit</code>.
      *
      * @return the default group of submitters, or <code>null</code> if there
-     *         is no default group.
+     * is no default group.
      */
-    public Group getSubmitters()
-    {
+    public Group getSubmitters() {
         return submitters;
     }
 
@@ -198,10 +196,9 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * <code>collection_100_admin</code>.
      *
      * @return group of administrators, or <code>null</code> if there is no
-     *         default group.
+     * default group.
      */
-    public Group getAdministrators()
-    {
+    public Group getAdministrators() {
         return admins;
     }
 
@@ -243,8 +240,7 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      *
      * @return the license for this collection
      */
-    public String getLicenseCollection()
-    {
+    public String getLicenseCollection() {
         return getCollectionService().getMetadata(this, "license");
     }
 
@@ -269,8 +265,7 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * @return the item template, or <code>null</code>
      * @throws SQLException if database error
      */
-    public Item getTemplateItem() throws SQLException
-    {
+    public Item getTemplateItem() throws SQLException {
         return template;
     }
 
@@ -285,11 +280,10 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * @return array of <code>Community</code> objects
      * @throws SQLException if database error
      */
-    public List<Community> getCommunities() throws SQLException
-    {
+    public List<Community> getCommunities() throws SQLException {
         // We return a copy because we do not want people to add elements to this collection directly.
         // We return a list to maintain backwards compatibility
-        Community[] output = communities.toArray(new Community[]{});
+        Community[] output = communities.toArray(new Community[] {});
         Arrays.sort(output, new NameAscendingComparator());
         return Arrays.asList(output);
     }
@@ -309,41 +303,34 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * Return <code>true</code> if <code>other</code> is the same Collection
      * as this object, <code>false</code> otherwise
      *
-     * @param other
-     *            object to compare to
-     *
+     * @param other object to compare to
      * @return <code>true</code> if object passed in represents the same
-     *         collection as this object
+     * collection as this object
      */
-     @Override
-     public boolean equals(Object other)
-     {
-         if (other == null)
-         {
-             return false;
-         }
-         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(other);
-         if (this.getClass() != objClass)
-         {
-             return false;
-         }
-         final Collection otherCollection = (Collection) other;
-         if (!this.getID().equals(otherCollection.getID() ))
-         {
-             return false;
-         }
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) {
+            return false;
+        }
+        Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(other);
+        if (this.getClass() != objClass) {
+            return false;
+        }
+        final Collection otherCollection = (Collection) other;
+        if (!this.getID().equals(otherCollection.getID())) {
+            return false;
+        }
 
-         return true;
-     }
+        return true;
+    }
 
-     @Override
-     public int hashCode()
-     {
-         int hash = 5;
-         hash += 71 * hash + getType();
-         hash += 71 * hash + getID().hashCode();
-         return hash;
-     }
+    @Override
+    public int hashCode() {
+        int hash = 5;
+        hash += 71 * hash + getType();
+        hash += 71 * hash + getID().hashCode();
+        return hash;
+    }
 
     /**
      * return type found in Constants
@@ -351,14 +338,12 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
      * @return int Constants.COLLECTION
      */
     @Override
-    public int getType()
-    {
+    public int getType() {
         return Constants.COLLECTION;
     }
 
     public void setWorkflowGroup(Context context, int step, Group g)
-            throws SQLException, AuthorizeException 
-    {
+        throws SQLException, AuthorizeException {
         getCollectionService().setWorkflowGroup(context, this, step, g);
     }
 
@@ -368,77 +353,75 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
     }
 
     public CollectionService getCollectionService() {
-        if(collectionService == null)
-        {
+        if (collectionService == null) {
             collectionService = ContentServiceFactory.getInstance().getCollectionService();
         }
         return collectionService;
     }
 
-	@Override
-	public String getTypeText() {
-		return Constants.typeText[Constants.COLLECTION];
-	}
+    @Override
+    public String getTypeText() {
+        return Constants.typeText[Constants.COLLECTION];
+    }
 
-	@Override
-	public Map<String, Object> getExtraInfo() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+    @Override
+    public Map<String, Object> getExtraInfo() {
+        // TODO Auto-generated method stub
+        return null;
+    }
 
-	@Override
-	public boolean isArchived() {
-		return true;
-	}
+    @Override
+    public boolean isArchived() {
+        return true;
+    }
 
-	@Override
-	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
-		return getCollectionService().getMetadata(this, schema, element, qualifier, lang);
-	}
+    @Override
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+        return getCollectionService().getMetadata(this, schema, element, qualifier, lang);
+    }
 
-	@Override
-	public boolean isDiscoverable() {
-		return true;
-	}
+    @Override
+    public boolean isDiscoverable() {
+        return true;
+    }
 
-	@Override
-	public String findHandle(Context context) throws SQLException {
-		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
-	}
+    @Override
+    public String findHandle(Context context) throws SQLException {
+        return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+    }
 
-	@Override
-	public String getMetadata(String field) {
-		return getCollectionService().getMetadata(this, field);
-	}
+    @Override
+    public String getMetadata(String field) {
+        return getCollectionService().getMetadata(this, field);
+    }
 
-	@Override
-	public boolean haveHierarchy() {
-		return true;
-	}
-	
-	@Override
-	public BrowsableDSpaceObject getParentObject() {
-		Context context = new Context();
-		try {
-			return (BrowsableDSpaceObject)(getCollectionService().getParentObject(context, this));
-		} catch (SQLException e) {
-		}
-		finally {
-			if(context != null && context.isValid()) {
-				context.abort();
-			}
-		}
-		return null;
-	}
-	
-	@Override
-	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
-		return getCollectionService().getMetadataFirstValue(this, schema, element, qualifier, language);
-	}
-	
-	@Override
-	public Date getLastModified() {
-		//FIXME tmp return NOW
-		return new Date();
-	}
+    @Override
+    public boolean haveHierarchy() {
+        return true;
+    }
+
+    @Override
+    public BrowsableDSpaceObject getParentObject() {
+        Context context = new Context();
+        try {
+            return (BrowsableDSpaceObject) (getCollectionService().getParentObject(context, this));
+        } catch (SQLException e) {
+        } finally {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+        return getCollectionService().getMetadataFirstValue(this, schema, element, qualifier, language);
+    }
+
+    @Override
+    public Date getLastModified() {
+        //FIXME tmp return NOW
+        return new Date();
+    }
 }

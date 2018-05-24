@@ -42,7 +42,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implements BundleService {
 
-    /** log4j logger */
+    /**
+     * log4j logger
+     */
     private static Logger log = Logger.getLogger(Bundle.class);
 
     @Autowired(required = true)
@@ -57,32 +59,25 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     @Autowired(required = true)
     protected ResourcePolicyService resourcePolicyService;
 
-    protected BundleServiceImpl()
-    {
+    protected BundleServiceImpl() {
         super();
     }
 
     @Override
-    public Bundle find(Context context, UUID id) throws SQLException
-    {
+    public Bundle find(Context context, UUID id) throws SQLException {
         // First check the cache
         Bundle bundle = bundleDAO.findByID(context, Bundle.class, id);
-        if (bundle == null)
-        {
-            if (log.isDebugEnabled())
-            {
+        if (bundle == null) {
+            if (log.isDebugEnabled()) {
                 log.debug(LogManager.getHeader(context, "find_bundle",
-                        "not_found,bundle_id=" + id));
+                                               "not_found,bundle_id=" + id));
             }
 
             return null;
-        }
-        else
-        {
-            if (log.isDebugEnabled())
-            {
+        } else {
+            if (log.isDebugEnabled()) {
                 log.debug(LogManager.getHeader(context, "find_bundle",
-                        "bundle_id=" + id));
+                                               "bundle_id=" + id));
             }
 
             return bundle;
@@ -91,8 +86,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 
     @Override
     public Bundle create(Context context, Item item, String name) throws SQLException, AuthorizeException {
-        if (StringUtils.isBlank(name))
-        {
+        if (StringUtils.isBlank(name)) {
             throw new SQLException("Bundle must be created with non-null name");
         }
         authorizeService.authorizeAction(context, item, Constants.ADD);
@@ -104,7 +98,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         itemService.addBundle(context, item, bundle);
 
         log.info(LogManager.getHeader(context, "create_bundle", "bundle_id="
-                + bundle.getID()));
+            + bundle.getID()));
 
         // if we ever use the identifier service for bundles, we should
         // create the bundle before we create the Event and should add all
@@ -129,12 +123,13 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     }
 
     @Override
-    public void addBitstream(Context context, Bundle bundle, Bitstream bitstream) throws SQLException, AuthorizeException {
+    public void addBitstream(Context context, Bundle bundle, Bitstream bitstream)
+        throws SQLException, AuthorizeException {
         // Check authorisation
         authorizeService.authorizeAction(context, bundle, Constants.ADD);
 
         log.info(LogManager.getHeader(context, "add_bitstream", "bundle_id="
-                + bundle.getID() + ",bitstream_id=" + bitstream.getID()));
+            + bundle.getID() + ",bitstream_id=" + bitstream.getID()));
 
         // First check that the bitstream isn't already in the list
         List<Bitstream> bitstreams = bundle.getBitstreams();
@@ -152,8 +147,8 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 
 
         context.addEvent(new Event(Event.ADD, Constants.BUNDLE, bundle.getID(),
-                Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
-                getIdentifiers(context, bundle)));
+                                   Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
+                                   getIdentifiers(context, bundle)));
 
         // copy authorization policies from bundle to bitstream
         // FIXME: multiple inclusion is affected by this...
@@ -162,22 +157,22 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     }
 
     @Override
-    public void removeBitstream(Context context, Bundle bundle, Bitstream bitstream) throws AuthorizeException, SQLException, IOException {
+    public void removeBitstream(Context context, Bundle bundle, Bitstream bitstream)
+        throws AuthorizeException, SQLException, IOException {
         // Check authorisation
         authorizeService.authorizeAction(context, bundle, Constants.REMOVE);
 
         log.info(LogManager.getHeader(context, "remove_bitstream",
-                "bundle_id=" + bundle.getID() + ",bitstream_id=" + bitstream.getID()));
+                                      "bundle_id=" + bundle.getID() + ",bitstream_id=" + bitstream.getID()));
 
 
         context.addEvent(new Event(Event.REMOVE, Constants.BUNDLE, bundle.getID(),
-                Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
-                getIdentifiers(context, bundle)));
+                                   Constants.BITSTREAM, bitstream.getID(), String.valueOf(bitstream.getSequenceID()),
+                                   getIdentifiers(context, bundle)));
 
         //Ensure that the last modified from the item is triggered !
         Item owningItem = (Item) getParentObject(context, bundle);
-        if(owningItem != null)
-        {
+        if (owningItem != null) {
             itemService.updateLastModified(context, owningItem);
             itemService.update(context, owningItem);
         }
@@ -185,45 +180,42 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         // In the event that the bitstream to remove is actually
         // the primary bitstream, be sure to unset the primary
         // bitstream.
-        if (bitstream.equals(bundle.getPrimaryBitstream()))
-        {
+        if (bitstream.equals(bundle.getPrimaryBitstream())) {
             bundle.unsetPrimaryBitstreamID();
         }
 
-        // Check if our bitstream is part of a single or no bundle. 
-        // Bitstream.getBundles() may be empty (the delete() method clears 
+        // Check if our bitstream is part of a single or no bundle.
+        // Bitstream.getBundles() may be empty (the delete() method clears
         // the bundles). We should not delete the bitstream, if it is used
         // in another bundle, instead we just remove the link between bitstream
         // and this bundle.
-        if(bitstream.getBundles().size() <= 1)
-        {
-            // We don't need to remove the link between bundle & bitstream, 
+        if (bitstream.getBundles().size() <= 1) {
+            // We don't need to remove the link between bundle & bitstream,
             // this will be handled in the delete() method.
             bitstreamService.delete(context, bitstream);
-        }else{
+        } else {
             bundle.removeBitstream(bitstream);
             bitstream.getBundles().remove(bundle);
         }
     }
 
     @Override
-    public void inheritCollectionDefaultPolicies(Context context, Bundle bundle, Collection collection) throws SQLException, AuthorizeException {
+    public void inheritCollectionDefaultPolicies(Context context, Bundle bundle, Collection collection)
+        throws SQLException, AuthorizeException {
         List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, collection,
-                Constants.DEFAULT_BITSTREAM_READ);
+                                                                                 Constants.DEFAULT_BITSTREAM_READ);
 
         // change the action to just READ
         // just don't call update on the resourcepolicies!!!
         Iterator<ResourcePolicy> i = policies.iterator();
 
-        if (!i.hasNext())
-        {
+        if (!i.hasNext()) {
             throw new java.sql.SQLException("Collection " + collection.getID()
-                    + " has no default bitstream READ policies");
+                                                + " has no default bitstream READ policies");
         }
 
         List<ResourcePolicy> newPolicies = new ArrayList<ResourcePolicy>();
-        while (i.hasNext())
-        {
+        while (i.hasNext()) {
             ResourcePolicy rp = resourcePolicyService.clone(context, i.next());
             rp.setAction(Constants.READ);
             newPolicies.add(rp);
@@ -233,12 +225,11 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     }
 
     @Override
-    public void replaceAllBitstreamPolicies(Context context, Bundle bundle, List<ResourcePolicy> newpolicies) throws SQLException, AuthorizeException {
+    public void replaceAllBitstreamPolicies(Context context, Bundle bundle, List<ResourcePolicy> newpolicies)
+        throws SQLException, AuthorizeException {
         List<Bitstream> bitstreams = bundle.getBitstreams();
-        if (CollectionUtils.isNotEmpty(bitstreams))
-        {
-            for (Bitstream bs : bitstreams)
-            {
+        if (CollectionUtils.isNotEmpty(bitstreams)) {
+            for (Bitstream bs : bitstreams) {
                 // change bitstream policies
                 authorizeService.removeAllPolicies(context, bs);
                 authorizeService.addPolicies(context, newpolicies, bs);
@@ -253,10 +244,8 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     public List<ResourcePolicy> getBitstreamPolicies(Context context, Bundle bundle) throws SQLException {
         List<ResourcePolicy> list = new ArrayList<ResourcePolicy>();
         List<Bitstream> bitstreams = bundle.getBitstreams();
-        if (CollectionUtils.isNotEmpty(bitstreams))
-        {
-            for (Bitstream bs : bitstreams)
-            {
+        if (CollectionUtils.isNotEmpty(bitstreams)) {
+            for (Bitstream bs : bitstreams) {
                 list.addAll(authorizeService.getPolicies(context, bs));
             }
         }
@@ -281,37 +270,40 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
             Bitstream bitstream = bitstreamService.find(context, bitstreamId);
 
             // If we have an invalid Bitstream ID, just ignore it, but log a warning
-            if(bitstream == null) {
+            if (bitstream == null) {
                 //This should never occur but just in case
-                log.warn(LogManager.getHeader(context, "Invalid bitstream id while changing bitstream order", "Bundle: " + bundle.getID() + ", bitstream id: " + bitstreamId));
+                log.warn(LogManager.getHeader(context, "Invalid bitstream id while changing bitstream order",
+                                              "Bundle: " + bundle.getID() + ", bitstream id: " + bitstreamId));
                 continue;
             }
 
             // If we have a Bitstream not in the current list, log a warning & exit immediately
-            if(!currentBitstreams.contains(bitstream))
-            {
-                log.warn(LogManager.getHeader(context, "Encountered a bitstream not in this bundle while changing bitstream order. Bitstream order will not be changed.", "Bundle: " + bundle.getID() + ", bitstream id: " + bitstreamId));
+            if (!currentBitstreams.contains(bitstream)) {
+                log.warn(LogManager.getHeader(context,
+                                              "Encountered a bitstream not in this bundle while changing bitstream " +
+                                                  "order. Bitstream order will not be changed.",
+                                              "Bundle: " + bundle.getID() + ", bitstream id: " + bitstreamId));
                 return;
             }
             updatedBitstreams.add(bitstream);
         }
 
         // If our lists are different sizes, exit immediately
-        if(updatedBitstreams.size()!=currentBitstreams.size())
-        {
-            log.warn(LogManager.getHeader(context, "Size of old list and new list do not match. Bitstream order will not be changed.", "Bundle: " + bundle.getID()));
+        if (updatedBitstreams.size() != currentBitstreams.size()) {
+            log.warn(LogManager.getHeader(context,
+                                          "Size of old list and new list do not match. Bitstream order will not be " +
+                                              "changed.",
+                                          "Bundle: " + bundle.getID()));
             return;
         }
 
         // As long as the order has changed, update it
-        if(CollectionUtils.isNotEmpty(updatedBitstreams) && !updatedBitstreams.equals(currentBitstreams))
-        {
+        if (CollectionUtils.isNotEmpty(updatedBitstreams) && !updatedBitstreams.equals(currentBitstreams)) {
             //First clear out the existing list of bitstreams
             bundle.clearBitstreams();
 
             // Now add them back in the proper order
-            for (Bitstream bitstream : updatedBitstreams)
-            {
+            for (Bitstream bitstream : updatedBitstreams) {
                 bitstream.getBundles().remove(bundle);
                 bundle.addBitstream(bitstream);
                 bitstream.getBundles().add(bundle);
@@ -320,8 +312,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 
             //The order of the bitstreams has changed, ensure that we update the last modified of our item
             Item owningItem = (Item) getParentObject(context, bundle);
-            if(owningItem != null)
-            {
+            if (owningItem != null) {
                 itemService.updateLastModified(context, owningItem);
                 itemService.update(context, owningItem);
 
@@ -335,51 +326,38 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         Item item = (Item) getParentObject(context, bundle);
         Collection collection = null;
         Community community = null;
-        if (item != null)
-        {
+        if (item != null) {
             collection = item.getOwningCollection();
-            if (collection != null)
-            {
+            if (collection != null) {
                 community = collection.getCommunities().get(0);
             }
         }
-        switch (action)
-        {
-        case Constants.REMOVE:
-            if (AuthorizeConfiguration.canItemAdminPerformBitstreamDeletion())
-            {
-                adminObject = item;
-            }
-            else if (AuthorizeConfiguration.canCollectionAdminPerformBitstreamDeletion())
-            {
-                adminObject = collection;
-            }
-            else if (AuthorizeConfiguration
-                    .canCommunityAdminPerformBitstreamDeletion())
-            {
-                adminObject = community;
-            }
-            break;
-        case Constants.ADD:
-            if (AuthorizeConfiguration.canItemAdminPerformBitstreamCreation())
-            {
-                adminObject = item;
-            }
-            else if (AuthorizeConfiguration
-                    .canCollectionAdminPerformBitstreamCreation())
-            {
-                adminObject = collection;
-            }
-            else if (AuthorizeConfiguration
-                    .canCommunityAdminPerformBitstreamCreation())
-            {
-                adminObject = community;
-            }
-            break;
+        switch (action) {
+            case Constants.REMOVE:
+                if (AuthorizeConfiguration.canItemAdminPerformBitstreamDeletion()) {
+                    adminObject = item;
+                } else if (AuthorizeConfiguration.canCollectionAdminPerformBitstreamDeletion()) {
+                    adminObject = collection;
+                } else if (AuthorizeConfiguration
+                    .canCommunityAdminPerformBitstreamDeletion()) {
+                    adminObject = community;
+                }
+                break;
+            case Constants.ADD:
+                if (AuthorizeConfiguration.canItemAdminPerformBitstreamCreation()) {
+                    adminObject = item;
+                } else if (AuthorizeConfiguration
+                    .canCollectionAdminPerformBitstreamCreation()) {
+                    adminObject = collection;
+                } else if (AuthorizeConfiguration
+                    .canCommunityAdminPerformBitstreamCreation()) {
+                    adminObject = community;
+                }
+                break;
 
-        default:
-            adminObject = bundle;
-            break;
+            default:
+                adminObject = bundle;
+                break;
         }
         return adminObject;
     }
@@ -387,10 +365,9 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     @Override
     public DSpaceObject getParentObject(Context context, Bundle bundle) throws SQLException {
         List<Item> items = bundle.getItems();
-        if(CollectionUtils.isNotEmpty(items))
-        {
+        if (CollectionUtils.isNotEmpty(items)) {
             return items.iterator().next();
-        }else{
+        } else {
             return null;
         }
     }
@@ -402,21 +379,21 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 
     @Override
     public void update(Context context, Bundle bundle) throws SQLException, AuthorizeException {
-                // Check authorisation
+        // Check authorisation
         //AuthorizeManager.authorizeAction(ourContext, this, Constants.WRITE);
         log.info(LogManager.getHeader(context, "update_bundle", "bundle_id="
-                + bundle.getID()));
+            + bundle.getID()));
 
         super.update(context, bundle);
         bundleDAO.save(context, bundle);
 
-        if (bundle.isModified() || bundle.isMetadataModified())
-        {
-            if(bundle.isMetadataModified()){
-                context.addEvent(new Event(Event.MODIFY_METADATA, bundle.getType(), bundle.getID(), bundle.getDetails(), getIdentifiers(context, bundle)));
+        if (bundle.isModified() || bundle.isMetadataModified()) {
+            if (bundle.isMetadataModified()) {
+                context.addEvent(new Event(Event.MODIFY_METADATA, bundle.getType(), bundle.getID(), bundle.getDetails(),
+                                           getIdentifiers(context, bundle)));
             }
             context.addEvent(new Event(Event.MODIFY, Constants.BUNDLE, bundle.getID(),
-                    null, getIdentifiers(context, bundle)));
+                                       null, getIdentifiers(context, bundle)));
             bundle.clearModified();
             bundle.clearDetails();
         }
@@ -425,12 +402,12 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
     @Override
     public void delete(Context context, Bundle bundle) throws SQLException, AuthorizeException, IOException {
         log.info(LogManager.getHeader(context, "delete_bundle", "bundle_id="
-                + bundle.getID()));
+            + bundle.getID()));
 
         authorizeService.authorizeAction(context, bundle, Constants.DELETE);
 
         context.addEvent(new Event(Event.DELETE, Constants.BUNDLE, bundle.getID(),
-                bundle.getName(), getIdentifiers(context, bundle)));
+                                   bundle.getName(), getIdentifiers(context, bundle)));
 
         // Remove bitstreams
         List<Bitstream> bitstreams = bundle.getBitstreams();
@@ -438,7 +415,7 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         for (Bitstream bitstream : bitstreams) {
             removeBitstream(context, bundle, bitstream);
         }
-        
+
         List<Item> items = new LinkedList<>(bundle.getItems());
         bundle.getItems().clear();
         for (Item item : items) {
@@ -456,12 +433,9 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
 
     @Override
     public Bundle findByIdOrLegacyId(Context context, String id) throws SQLException {
-        if(StringUtils.isNumeric(id))
-        {
+        if (StringUtils.isNumeric(id)) {
             return findByLegacyId(context, Integer.parseInt(id));
-        }
-        else
-        {
+        } else {
             return find(context, UUID.fromString(id));
         }
     }
@@ -476,14 +450,17 @@ public class BundleServiceImpl extends DSpaceObjectServiceImpl<Bundle> implement
         return bundleDAO.countRows(context);
     }
 
-	@Override
-	public void addMetadata(Context context, Bundle dso, MetadataField metadataField, String lang, List<String> values,
-			List<String> authorities, List<Integer> confidences) throws SQLException {
-		addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);		
-	}
+    @Override
+    public void addMetadata(Context context, Bundle dso, MetadataField metadataField, String lang, List<String> values,
+                            List<String> authorities, List<Integer> confidences) throws SQLException {
+        addMetadata(context, dso, metadataField, lang, values, authorities, confidences, null);
+    }
 
-	@Override
-	public List<Bundle> getBundlesByBitstream(Context context, Bitstream bitstream) throws SQLException {
-		return bundleDAO.findMany(context, "select bitBundles from Bitstream b join b.bundles bitBundles where b.id = '" + bitstream.getID() + "'");		
-	}
+    @Override
+    public List<Bundle> getBundlesByBitstream(Context context, Bitstream bitstream) throws SQLException {
+        return bundleDAO.findMany(context,
+                                  "select bitBundles from Bitstream b join b.bundles bitBundles where b.id = '" +
+                                      bitstream
+                                      .getID() + "'");
+    }
 }

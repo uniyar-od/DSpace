@@ -7,11 +7,8 @@
  */
 package org.dspace.content.authority;
 
-import java.sql.SQLException;
-
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
-import org.hibernate.Session;
 
 /**
  * This class is the PostgreSQL driver class for reading information about the
@@ -27,111 +24,134 @@ import org.hibernate.Session;
  */
 public class AuthorityDAOPostgres extends AuthorityDAO {
 
-	private static Logger log = Logger.getLogger(AuthorityDAOPostgres.class);
+    private static Logger log = Logger.getLogger(AuthorityDAOPostgres.class);
 
-	private Context context;
+    private Context context;
 
-	// private static final String SQL_NUM_METADATA_GROUP_BY_AUTHKEY_CONFIDENCE
-	// = "select authority, confidence, count(*) as num from item left join
-	// metadatavalue on (item.uuid = metadatavalue.resource_id and
-	// metadatavalue.resource_type_id=2) where in_archive = true and
-	// metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) group by authority,
-	// confidence";
-	private static final String SQL_NUM_METADATA_AUTH_GROUP_BY_CONFIDENCE = "select confidence, count(*) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null group by confidence";
+    // private static final String SQL_NUM_METADATA_GROUP_BY_AUTHKEY_CONFIDENCE
+    // = "select authority, confidence, count(*) as num from item left join
+    // metadatavalue on (item.uuid = metadatavalue.resource_id and
+    // metadatavalue.resource_type_id=2) where in_archive = true and
+    // metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) group by authority,
+    // confidence";
+    private static final String SQL_NUM_METADATA_AUTH_GROUP_BY_CONFIDENCE = "select confidence, count(*) as num from " +
+        "item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and " +
+        "metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null group by confidence";
 
-	private static final String SQL_NUM_AUTHORED_ITEMS = "select count(distinct item.uuid) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
+    private static final String SQL_NUM_AUTHORED_ITEMS = "select count(distinct item.uuid) as num from item left join" +
+        " metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id" +
+        " in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
 
-	private static final String SQL_NUM_ISSUED_ITEMS = "select count(distinct item.uuid) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and confidence <> "
-			+ Choices.CF_ACCEPTED;
+    private static final String SQL_NUM_ISSUED_ITEMS = "select count(distinct item.uuid) as num from item left join " +
+        "metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id " +
+        "in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and confidence <> "
+        + Choices.CF_ACCEPTED;
 
-	// private static final String SQL_NUM_METADATA_GROUP_BY_AUTH_ISSUED =
-	// "select authority is not null as hasauthority, confidence <> "+
-	// Choices.CF_ACCEPTED +" as bissued, count(*) as num from tem ileft join
-	// metadatavalue on (item.uuid = metadatavalue.resource_id and
-	// metadatavalue.resource_type_id=2) where in_archive = true and
-	// metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) group by hasauthority,
-	// bissued";
+    // private static final String SQL_NUM_METADATA_GROUP_BY_AUTH_ISSUED =
+    // "select authority is not null as hasauthority, confidence <> "+
+    // Choices.CF_ACCEPTED +" as bissued, count(*) as num from tem ileft join
+    // metadatavalue on (item.uuid = metadatavalue.resource_id and
+    // metadatavalue.resource_type_id=2) where in_archive = true and
+    // metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) group by hasauthority,
+    // bissued";
 
-	private static final String SQL_NUM_METADATA = "select count(*) as num from metadatavalue where metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER)";
+    private static final String SQL_NUM_METADATA = "select count(*) as num from metadatavalue where metadata_field_id" +
+        " in (QUESTION_ARRAY_PLACE_HOLDER)";
 
-	private static final String SQL_NUM_AUTHKEY = "select count (distinct authority) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
+    private static final String SQL_NUM_AUTHKEY = "select count (distinct authority) as num from item left join " +
+        "metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id " +
+        "in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null";
 
-	private static final String SQL_NUM_AUTHKEY_ISSUED = "select count (distinct authority) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
-			+ Choices.CF_ACCEPTED + " and authority is not null";
+    private static final String SQL_NUM_AUTHKEY_ISSUED = "select count (distinct authority) as num from item left " +
+        "join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and " +
+        "metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
+        + Choices.CF_ACCEPTED + " and authority is not null";
 
-	private static final String SQL_AUTHKEY_ISSUED = "select distinct authority from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and confidence <> "
-			+ Choices.CF_ACCEPTED + " order by authority asc limit :par0 offset :par1";
+    private static final String SQL_AUTHKEY_ISSUED = "select distinct authority from item left join metadatavalue on " +
+        "(item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in " +
+        "(QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and confidence <> "
+        + Choices.CF_ACCEPTED + " order by authority asc limit :par0 offset :par1";
 
-	private static final String SQL_NUM_ITEMSISSUED_BYKEY = "select count (distinct item.uuid) as num from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
-			+ Choices.CF_ACCEPTED + " and authority = :authority";
+    private static final String SQL_NUM_ITEMSISSUED_BYKEY = "select count (distinct item.uuid) as num from item left " +
+        "join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and " +
+        "metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and confidence <> "
+        + Choices.CF_ACCEPTED + " and authority = :authority";
 
-	private static final String SQL_NEXT_ISSUED_AUTHKEY = "select min(authority) as key from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority > :par0 and confidence <> "
-			+ Choices.CF_ACCEPTED;
+    private static final String SQL_NEXT_ISSUED_AUTHKEY = "select min(authority) as key from item left join " +
+        "metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and metadata_field_id " +
+        "in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority > :par0 and confidence <> "
+        + Choices.CF_ACCEPTED;
 
-	private static final String SQL_PREV_ISSUED_AUTHKEY = "select max(authority) as key from item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and  metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority < :par0 and confidence <> "
-			+ Choices.CF_ACCEPTED;
+    private static final String SQL_PREV_ISSUED_AUTHKEY = "select max(authority) as key from item left join " +
+        "metadatavalue on (item.uuid = metadatavalue.dspace_object_id) where in_archive = true and  metadata_field_id" +
+        " in (QUESTION_ARRAY_PLACE_HOLDER) and authority is not null and authority < :par0 and confidence <> "
+        + Choices.CF_ACCEPTED;
 
-	private static final String SQL_ITEMSISSUED_BYKEY_AND_CONFIDENCE = "SELECT item.* FROM item left join metadatavalue on (item.uuid = metadatavalue.dspace_object_id) WHERE in_archive=true AND metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND confidence = :par1";
+    private static final String SQL_ITEMSISSUED_BYKEY_AND_CONFIDENCE = "SELECT item.* FROM item left join " +
+        "metadatavalue on (item.uuid = metadatavalue.dspace_object_id) WHERE in_archive=true AND metadata_field_id in" +
+        " (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND confidence = :par1";
 
-	private static final String SQL_FINDISSUEDBYAUTHORITYVALUEANDFIELDID = "SELECT item.* FROM item left join metadatavalue "
-			+ "on (item.uuid = metadatavalue.dspace_object_id) "
-			+ "WHERE in_archive=1 AND metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND confidence <> "
-			+ Choices.CF_ACCEPTED;
-	
-	public AuthorityDAOPostgres(Context context) {
-		this.context = context;
-	}
+    private static final String SQL_FINDISSUEDBYAUTHORITYVALUEANDFIELDID = "SELECT item.* FROM item left join " +
+        "metadatavalue "
+        + "on (item.uuid = metadatavalue.dspace_object_id) "
+        + "WHERE in_archive=1 AND metadata_field_id in (QUESTION_ARRAY_PLACE_HOLDER) AND authority = :par0 AND " +
+        "confidence <> "
+        + Choices.CF_ACCEPTED;
 
-	public String getSqlFindissuedbyauthorityvalueandfieldid() {
-		return SQL_FINDISSUEDBYAUTHORITYVALUEANDFIELDID;
-	}
-	
-	public String getSqlNumMetadataAuthGroupByConfidence() {
-		return SQL_NUM_METADATA_AUTH_GROUP_BY_CONFIDENCE;
-	}
+    public AuthorityDAOPostgres(Context context) {
+        this.context = context;
+    }
 
-	public String getSqlNumAuthoredItems() {
-		return SQL_NUM_AUTHORED_ITEMS;
-	}
+    public String getSqlFindissuedbyauthorityvalueandfieldid() {
+        return SQL_FINDISSUEDBYAUTHORITYVALUEANDFIELDID;
+    }
 
-	public String getSqlNumIssuedItems() {
-		return SQL_NUM_ISSUED_ITEMS;
-	}
+    public String getSqlNumMetadataAuthGroupByConfidence() {
+        return SQL_NUM_METADATA_AUTH_GROUP_BY_CONFIDENCE;
+    }
 
-	public String getSqlNumMetadata() {
-		return SQL_NUM_METADATA;
-	}
+    public String getSqlNumAuthoredItems() {
+        return SQL_NUM_AUTHORED_ITEMS;
+    }
 
-	public String getSqlNumAuthkey() {
-		return SQL_NUM_AUTHKEY;
-	}
+    public String getSqlNumIssuedItems() {
+        return SQL_NUM_ISSUED_ITEMS;
+    }
 
-	public String getSqlNumAuthkeyIssued() {
-		return SQL_NUM_AUTHKEY_ISSUED;
-	}
+    public String getSqlNumMetadata() {
+        return SQL_NUM_METADATA;
+    }
 
-	public String getSqlAuthkeyIssued() {
-		return SQL_AUTHKEY_ISSUED;
-	}
+    public String getSqlNumAuthkey() {
+        return SQL_NUM_AUTHKEY;
+    }
 
-	public String getSqlNumItemsissuedBykey() {
-		return SQL_NUM_ITEMSISSUED_BYKEY;
-	}
+    public String getSqlNumAuthkeyIssued() {
+        return SQL_NUM_AUTHKEY_ISSUED;
+    }
 
-	public String getSqlNextIssuedAuthkey() {
-		return SQL_NEXT_ISSUED_AUTHKEY;
-	}
+    public String getSqlAuthkeyIssued() {
+        return SQL_AUTHKEY_ISSUED;
+    }
 
-	public String getSqlPrevIssuedAuthkey() {
-		return SQL_PREV_ISSUED_AUTHKEY;
-	}
+    public String getSqlNumItemsissuedBykey() {
+        return SQL_NUM_ITEMSISSUED_BYKEY;
+    }
 
-	public String getSqlItemsissuedBykeyAndConfidence() {
-		return SQL_ITEMSISSUED_BYKEY_AND_CONFIDENCE;
-	}
+    public String getSqlNextIssuedAuthkey() {
+        return SQL_NEXT_ISSUED_AUTHKEY;
+    }
 
-	@Override
-	Context getContext() {
-		return context;
-	}
+    public String getSqlPrevIssuedAuthkey() {
+        return SQL_PREV_ISSUED_AUTHKEY;
+    }
+
+    public String getSqlItemsissuedBykeyAndConfidence() {
+        return SQL_ITEMSISSUED_BYKEY_AND_CONFIDENCE;
+    }
+
+    @Override
+    Context getContext() {
+        return context;
+    }
 }

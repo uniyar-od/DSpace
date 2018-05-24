@@ -33,22 +33,23 @@ public class OptimizeSelectCollection {
 
     private static ArrayList<EPerson> brokenPeople;
     private static Long timeSavedMS = 0L;
-    private static final CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
+    private static final CollectionService collectionService = ContentServiceFactory.getInstance()
+                                                                                    .getCollectionService();
     private static final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
-    public static void main(String[] argv) throws Exception
-    {
+    public static void main(String[] argv) throws Exception {
         System.out.println("OptimizeSelectCollection tool.");
-        System.out.println("We want to verify that the optimized version of select collection logic produces the same " +
-                "values as the legacy select-collection logic.");
+        System.out
+            .println("We want to verify that the optimized version of select collection logic produces the same " +
+                         "values as the legacy select-collection logic.");
 
         context = new Context();
         brokenPeople = new ArrayList<EPerson>();
         int peopleChecked = 0;
         timeSavedMS = 0L;
 
-        if(argv != null && argv.length > 0) {
-            for(String email : argv) {
+        if (argv != null && argv.length > 0) {
+            for (String email : argv) {
                 EPerson person = ePersonService.findByEmail(context, email);
                 checkSelectCollectionForUser(person);
                 peopleChecked++;
@@ -56,19 +57,21 @@ public class OptimizeSelectCollection {
         } else {
             //default case, run as specific user, or run all...
             List<EPerson> people = ePersonService.findAll(context, EPerson.EMAIL);
-            for(EPerson person : people) {
+            for (EPerson person : people) {
                 checkSelectCollectionForUser(person);
                 peopleChecked++;
             }
         }
 
-        if(brokenPeople.size() > 0) {
+        if (brokenPeople.size() > 0) {
             System.out.println("NOT DONE YET!!! Some people don't have all their collections.");
-            for(EPerson person : brokenPeople) {
+            for (EPerson person : brokenPeople) {
                 System.out.println("-- " + person.getEmail());
             }
         } else {
-            System.out.println("All Good: " + peopleChecked + " people have been checked, with same submission powers. TimeSaved(ms): " + timeSavedMS);
+            System.out.println(
+                "All Good: " + peopleChecked + " people have been checked, with same submission powers. TimeSaved(ms)" +
+                    ": " + timeSavedMS);
         }
 
     }
@@ -115,7 +118,7 @@ public class OptimizeSelectCollection {
         System.out.println("====================================");
         System.out.println("This user is permitted to submit to the following collections.");
 
-        for(Collection collection : collections) {
+        for (Collection collection : collections) {
             System.out.println(" - " + collection.getHandle() + " -- " + collection.getName());
         }
         System.out.println("Total: " + collections.size());

@@ -12,30 +12,26 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 /**
  * Bitstream home processor
- * 
- * @author Pascarelli Luigi Andrea
  *
+ * @author Pascarelli Luigi Andrea
  */
-public interface BitstreamHomeProcessor
-{
-	/**
-	 * execute the process
-	 * 
-	 * @param context       the DSpace context
-	 * @param request	    the HTTP request
-	 * @param response	    the HTTP response
-	 * @param bitstream
-	 * 
-	 * @throws PluginException	any particular problem with the plugin execution
-	 * @throws AuthorizeException	Authorisation errors during plugin execution
-	 */
-	void process(Context context, HttpServletRequest request,
-    		HttpServletResponse response, Bitstream item)
-		throws PluginException, AuthorizeException;
-	
+public interface BitstreamHomeProcessor {
+    /**
+     * execute the process
+     *
+     * @param context   the DSpace context
+     * @param request   the HTTP request
+     * @param response  the HTTP response
+     * @param bitstream
+     * @throws PluginException    any particular problem with the plugin execution
+     * @throws AuthorizeException Authorisation errors during plugin execution
+     */
+    void process(Context context, HttpServletRequest request,
+                 HttpServletResponse response, Bitstream item)
+        throws PluginException, AuthorizeException;
+
 }

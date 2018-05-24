@@ -7,19 +7,18 @@
  */
 package org.dspace.app.rest.matcher;
 
-import org.hamcrest.Matcher;
-
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
+
+import org.hamcrest.Matcher;
 
 public class DSpaceObjectMatcher {
 
+    private DSpaceObjectMatcher() { }
+
     public static Matcher<? super Object> match() {
-        return allOf(
-                hasJsonPath("$.uuid", notNullValue())
-        );
+        return allOf(hasJsonPath("$.uuid", notNullValue()));
     }
 
 }

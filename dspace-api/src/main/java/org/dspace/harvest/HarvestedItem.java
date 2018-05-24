@@ -8,7 +8,6 @@
 package org.dspace.harvest;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -30,20 +29,19 @@ import org.dspace.core.ReloadableEntity;
  * @author Alexey Maslov
  */
 @Entity
-@Table(name="harvested_item")
-public class HarvestedItem implements ReloadableEntity<Integer>
-{
+@Table(name = "harvested_item")
+public class HarvestedItem implements ReloadableEntity<Integer> {
     @Id
-    @Column(name="id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="harvested_item_seq")
-    @SequenceGenerator(name="harvested_item_seq", sequenceName="harvested_item_seq", allocationSize = 1)
+    @Column(name = "id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "harvested_item_seq")
+    @SequenceGenerator(name = "harvested_item_seq", sequenceName = "harvested_item_seq", allocationSize = 1)
     private Integer id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="item_id", unique = true)
+    @JoinColumn(name = "item_id", unique = true)
     private Item item;
 
-    @Column(name = "last_harvested", columnDefinition="timestamp with time zone")
+    @Column(name = "last_harvested", columnDefinition = "timestamp with time zone")
     @Temporal(TemporalType.TIMESTAMP)
     private Date lastHarvested;
 
@@ -54,10 +52,8 @@ public class HarvestedItem implements ReloadableEntity<Integer>
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.harvest.service.HarvestedItemService#create(Context, Item, String)}
-     *
      */
-    protected HarvestedItem()
-    {
+    protected HarvestedItem() {
     }
 
     public Integer getID() {
@@ -68,8 +64,7 @@ public class HarvestedItem implements ReloadableEntity<Integer>
         this.item = item;
     }
 
-    public Item getItem()
-    {
+    public Item getItem() {
         return item;
     }
 
@@ -79,36 +74,34 @@ public class HarvestedItem implements ReloadableEntity<Integer>
     }
 
     /**
-     * Get the oai_id associated with this item 
+     * Get the oai_id associated with this item
      *
      * @return itemOaiID item's OAI identifier
      */
-    public String getOaiID()
-    {
+    public String getOaiID() {
         return oaiId;
     }
-    
+
     /**
-     * Set the oai_id associated with this item 
+     * Set the oai_id associated with this item
      *
      * @param itemOaiID item's OAI identifier
      */
-    public void setOaiID(String itemOaiID)
-    {
-    	this.oaiId = itemOaiID;
+    public void setOaiID(String itemOaiID) {
+        this.oaiId = itemOaiID;
         return;
     }
-    
-    
+
+
     public void setHarvestDate(Date date) {
-    	if (date == null) {    	
-    		date = new Date();
-    	}
-    	lastHarvested = date;
+        if (date == null) {
+            date = new Date();
+        }
+        lastHarvested = date;
     }
-    
+
     public Date getHarvestDate() {
-    	return lastHarvested;
+        return lastHarvested;
     }
 
 }

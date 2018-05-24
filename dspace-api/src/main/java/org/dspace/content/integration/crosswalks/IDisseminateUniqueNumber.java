@@ -19,6 +19,6 @@ import org.dspace.core.Context;
 public interface IDisseminateUniqueNumber {
 
     public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out, Integer index)
-            throws CrosswalkException, IOException, SQLException, AuthorizeException;
-    
+        throws CrosswalkException, IOException, SQLException, AuthorizeException;
+
 }

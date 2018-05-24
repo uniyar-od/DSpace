@@ -14,7 +14,6 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.webAppC
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.servlet.Filter;
 
 import org.apache.commons.io.Charsets;
@@ -51,9 +50,9 @@ import org.springframework.web.context.WebApplicationContext;
  * @author Tom Desair (tom dot desair at atmire dot com)
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringBootTest(classes = {Application.class, ApplicationConfig.class, WebSecurityConfiguration.class})
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class,
-        TransactionalTestExecutionListener.class})
+@SpringBootTest(classes = { Application.class, ApplicationConfig.class, WebSecurityConfiguration.class })
+@TestExecutionListeners( { DependencyInjectionTestExecutionListener.class, DirtiesContextTestExecutionListener.class,
+    TransactionalTestExecutionListener.class })
 @DirtiesContext
 @WebAppConfiguration
 public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWithDatabase {
@@ -63,8 +62,8 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
 
     public static final String REST_SERVER_URL = "http://localhost/api/";
 
-    protected MediaType contentType = new MediaType(MediaTypes.HAL_JSON.getType(),
-            MediaTypes.HAL_JSON.getSubtype(), Charsets.UTF_8);
+    protected MediaType contentType =
+        new MediaType(MediaTypes.HAL_JSON.getType(), MediaTypes.HAL_JSON.getSubtype(), Charsets.UTF_8);
 
 
     protected HttpMessageConverter mappingJackson2HttpMessageConverter;
@@ -78,11 +77,11 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
     @Autowired
     void setConverters(HttpMessageConverter<?>[] converters) {
 
-        this.mappingJackson2HttpMessageConverter = Arrays.asList(converters).stream().filter(
-                hmc -> hmc instanceof MappingJackson2HttpMessageConverter).findAny().get();
+        this.mappingJackson2HttpMessageConverter =
+            Arrays.asList(converters).stream().filter(hmc -> hmc instanceof MappingJackson2HttpMessageConverter)
+                .findAny().get();
 
-        Assert.assertNotNull("the JSON message converter must not be null",
-                this.mappingJackson2HttpMessageConverter);
+        Assert.assertNotNull("the JSON message converter must not be null", this.mappingJackson2HttpMessageConverter);
     }
 
     public MockMvc getClient() throws SQLException {
@@ -90,30 +89,26 @@ public class AbstractControllerIntegrationTest extends AbstractIntegrationTestWi
     }
 
     public MockMvc getClient(String authToken) throws SQLException {
-        if(context != null && context.isValid()) {
+        if (context != null && context.isValid()) {
             context.commit();
         }
 
         DefaultMockMvcBuilder mockMvcBuilder = webAppContextSetup(webApplicationContext)
-                //Always log the response to debug
-                .alwaysDo(MockMvcResultHandlers.log())
-                //Add all filter implementations
-                .addFilters(new ErrorPageFilter())
-                .addFilters(requestFilters.toArray(new Filter[requestFilters.size()]));
+            //Always log the response to debug
+            .alwaysDo(MockMvcResultHandlers.log())
+            //Add all filter implementations
+            .addFilters(new ErrorPageFilter()).addFilters(requestFilters.toArray(new Filter[requestFilters.size()]));
 
-        if(StringUtils.isNotBlank(authToken)) {
+        if (StringUtils.isNotBlank(authToken)) {
             mockMvcBuilder.defaultRequest(get("").header(AUTHORIZATION_HEADER, AUTHORIZATION_TYPE + " " + authToken));
         }
 
-        return mockMvcBuilder
-                .build();
+        return mockMvcBuilder.build();
     }
 
     public MockHttpServletResponse getAuthResponse(String user, String password) throws Exception {
-        return getClient().perform(post("/api/authn/login")
-            .param("user", user)
-            .param("password", password))
-            .andReturn().getResponse();
+        return getClient().perform(post("/api/authn/login").param("user", user).param("password", password)).andReturn()
+            .getResponse();
     }
 
     public String getAuthToken(String user, String password) throws Exception {

@@ -7,6 +7,11 @@
  */
 package org.dspace.xmlworkflow.state.actions.processingaction;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
+
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
@@ -19,11 +24,6 @@ import org.dspace.xmlworkflow.state.Step;
 import org.dspace.xmlworkflow.state.actions.ActionResult;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-
 /**
  * Processing class for the score evaluation action
  * This action will allow multiple users to rate a certain item
@@ -35,21 +35,24 @@ import java.util.List;
  * @author Ben Bosman (ben at atmire dot com)
  * @author Mark Diggory (markd at atmire dot com)
  */
-public class ScoreEvaluationAction extends ProcessingAction{
+public class ScoreEvaluationAction extends ProcessingAction {
 
     private int minimumAcceptanceScore;
 
     @Override
-    public void activate(Context c, XmlWorkflowItem wf) throws SQLException, IOException, AuthorizeException, WorkflowException {
+    public void activate(Context c, XmlWorkflowItem wf)
+        throws SQLException, IOException, AuthorizeException, WorkflowException {
 
     }
 
     @Override
-    public ActionResult execute(Context c, XmlWorkflowItem wfi, Step step, HttpServletRequest request) throws SQLException, AuthorizeException, IOException, WorkflowException {
+    public ActionResult execute(Context c, XmlWorkflowItem wfi, Step step, HttpServletRequest request)
+        throws SQLException, AuthorizeException, IOException, WorkflowException {
         boolean hasPassed = false;
         //Retrieve all our scores from the metadata & add em up
-        List<IMetadataValue> scores = itemService.getMetadata(wfi.getItem(), WorkflowRequirementsService.WORKFLOW_SCHEMA, "score", null, Item.ANY);
-        if(0 < scores.size()){
+        List<IMetadataValue> scores = itemService
+            .getMetadata(wfi.getItem(), WorkflowRequirementsService.WORKFLOW_SCHEMA, "score", null, Item.ANY);
+        if (0 < scores.size()) {
             int totalScoreCount = 0;
             for (IMetadataValue score : scores) {
                 totalScoreCount += Integer.parseInt(score.getValue());
@@ -58,17 +61,23 @@ public class ScoreEvaluationAction extends ProcessingAction{
             //We have passed if we have at least gained our minimum score
             hasPassed = getMinimumAcceptanceScore() <= scoreMean;
             //Wether or not we have passed, clear our score information
-            itemService.clearMetadata(c, wfi.getItem(), WorkflowRequirementsService.WORKFLOW_SCHEMA, "score", null, Item.ANY);
+            itemService
+                .clearMetadata(c, wfi.getItem(), WorkflowRequirementsService.WORKFLOW_SCHEMA, "score", null, Item.ANY);
 
-            String provDescription = getProvenanceStartId() + " Approved for entry into archive with a score of: " + scoreMean;
-            itemService.addMetadata(c, wfi.getItem(), MetadataSchema.DC_SCHEMA, "description", "provenance", "en", provDescription);
+            String provDescription = getProvenanceStartId() + " Approved for entry into archive with a score of: " +
+                scoreMean;
+            itemService.addMetadata(c, wfi.getItem(), MetadataSchema.DC_SCHEMA, "description", "provenance", "en",
+                                    provDescription);
             itemService.update(c, wfi.getItem());
         }
-        if(hasPassed){
+        if (hasPassed) {
             return new ActionResult(ActionResult.TYPE.TYPE_OUTCOME, ActionResult.OUTCOME_COMPLETE);
-        }else{
+        } else {
             //We haven't passed, reject our item
-            XmlWorkflowServiceFactory.getInstance().getXmlWorkflowService().sendWorkflowItemBackSubmission(c, wfi, c.getCurrentUser(), this.getProvenanceStartId(), "The item was reject due to a bad review score.");
+            XmlWorkflowServiceFactory.getInstance().getXmlWorkflowService()
+                                     .sendWorkflowItemBackSubmission(c, wfi, c.getCurrentUser(),
+                                                                     this.getProvenanceStartId(),
+                                                                     "The item was reject due to a bad review score.");
             return new ActionResult(ActionResult.TYPE.TYPE_SUBMISSION_PAGE);
         }
     }

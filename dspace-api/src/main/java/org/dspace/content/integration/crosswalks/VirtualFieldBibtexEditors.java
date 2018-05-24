@@ -17,44 +17,44 @@ import org.dspace.content.Item;
 
 /**
  * Costruisce i singoli curatori a partire dalla stringa degli editor
- * 
+ *
  * @author bollini
  */
 public class VirtualFieldBibtexEditors implements VirtualFieldDisseminator, VirtualFieldIngester {
-	private static Logger log = Logger.getLogger(VirtualFieldBibtexEditors.class);
+    private static Logger log = Logger.getLogger(VirtualFieldBibtexEditors.class);
 
-	public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName) {
+    public String[] getMetadata(Item item, Map<String, String> fieldCache, String fieldName) {
 
-		String metadata = "dc.contributor.editor";
+        String metadata = "dc.contributor.editor";
 
-		// Get the citation from the item
-		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
+        // Get the citation from the item
+        List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(metadata);
 
-		if (dcvs != null && dcvs.size() > 0) {
-			StringBuffer sb = new StringBuffer();
-			for (IMetadataValue a : dcvs) {
-				String[] split = a.getValue().split(", ");
-				int splitLength = split.length;
-				String str = (splitLength > 1) ? split[1] : "";
-				String str2 = split[0];
-				if (StringUtils.isNotBlank(str2)) {
-					sb.append(str).append(" ");
-				}
-				sb.append(str2).append(" and ");
-			}
-			return new String[] { sb.substring(0, sb.length() - 5) };
-		}
+        if (dcvs != null && dcvs.size() > 0) {
+            StringBuffer sb = new StringBuffer();
+            for (IMetadataValue a : dcvs) {
+                String[] split = a.getValue().split(", ");
+                int splitLength = split.length;
+                String str = (splitLength > 1) ? split[1] : "";
+                String str2 = split[0];
+                if (StringUtils.isNotBlank(str2)) {
+                    sb.append(str).append(" ");
+                }
+                sb.append(str2).append(" and ");
+            }
+            return new String[] { sb.substring(0, sb.length() - 5) };
+        }
 
-		return null;
-	}
+        return null;
+    }
 
-	public boolean addMetadata(Item item, Map<String, String> fieldCache, String fieldName, String value) {
-		// NOOP - we won't add any metadata yet, we'll pick it up when we
-		// finalise the item
-		return true;
-	}
+    public boolean addMetadata(Item item, Map<String, String> fieldCache, String fieldName, String value) {
+        // NOOP - we won't add any metadata yet, we'll pick it up when we
+        // finalise the item
+        return true;
+    }
 
-	public boolean finalizeItem(Item item, Map<String, String> fieldCache) {
-		return false;
-	}
+    public boolean finalizeItem(Item item, Map<String, String> fieldCache) {
+        return false;
+    }
 }

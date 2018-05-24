@@ -12,12 +12,11 @@ import org.dspace.core.Context;
 
 /**
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
- *
  */
 public interface ListenerProcessingStep {
 
-	public void doPreProcessing(Context context, InProgressSubmission wsi);
-	
-	public void doPostProcessing(Context context, InProgressSubmission wsi);
-	
+    public void doPreProcessing(Context context, InProgressSubmission wsi);
+
+    public void doPostProcessing(Context context, InProgressSubmission wsi);
+
 }

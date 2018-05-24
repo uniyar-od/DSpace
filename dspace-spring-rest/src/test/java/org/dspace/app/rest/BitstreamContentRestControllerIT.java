@@ -13,7 +13,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.head;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -87,52 +89,43 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
 
         //** GIVEN **
         //1. A community-collection structure with one parent community and one collections.
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
         //2. A public item with a bitstream
         String bitstreamContent = "0123456789";
 
-        try(InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
 
-            Item publicItem1 = ItemBuilder.createItem(context, col1)
-                    .withTitle("Public item 1")
-                    .withIssueDate("2017-10-17")
-                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                    .build();
+            Item publicItem1 =
+                ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2017-10-17")
+                    .withAuthor("Smith, Donald").withAuthor("Doe, John").build();
 
-            Bitstream bitstream = BitstreamBuilder
-                    .createBitstream(context, publicItem1, is)
-                    .withName("Test bitstream")
-                    .withDescription("This is a bitstream to test range requests")
-                    .withMimeType("text/plain")
-                    .build();
+            Bitstream bitstream = BitstreamBuilder.createBitstream(context, publicItem1, is).withName("Test bitstream")
+                .withDescription("This is a bitstream to test range requests").withMimeType("text/plain").build();
 
             //** WHEN **
             //We download the bitstream
             getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
 
-                    //** THEN **
-                    .andExpect(status().isOk())
+                //** THEN **
+                .andExpect(status().isOk())
 
-                    //The Content Length must match the full length
-                    .andExpect(header().longValue("Content-Length", bitstreamContent.getBytes().length))
-                    //The server should indicate we support Range requests
-                    .andExpect(header().string("Accept-Ranges", "bytes"))
-                    //The ETag has to be based on the checksum
-                    .andExpect(header().string("ETag", bitstream.getChecksum()))
-                    //We expect the content type to match the bitstream mime type
-                    .andExpect(content().contentType("text/plain"))
-                    //THe bytes of the content must match the original content
-                    .andExpect(content().bytes(bitstreamContent.getBytes()));
+                //The Content Length must match the full length
+                .andExpect(header().longValue("Content-Length", bitstreamContent.getBytes().length))
+                //The server should indicate we support Range requests
+                .andExpect(header().string("Accept-Ranges", "bytes"))
+                //The ETag has to be based on the checksum
+                .andExpect(header().string("ETag", bitstream.getChecksum()))
+                //We expect the content type to match the bitstream mime type
+                .andExpect(content().contentType("text/plain"))
+                //THe bytes of the content must match the original content
+                .andExpect(content().bytes(bitstreamContent.getBytes()));
 
             //A If-None-Match HEAD request on the ETag must tell is the bitstream is not modified
             getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                    .header("If-None-Match", bitstream.getChecksum()))
-                    .andExpect(status().isNotModified());
+                .header("If-None-Match", bitstream.getChecksum())).andExpect(status().isNotModified());
 
             //The download and head request should also be logged as a statistics record
             checkNumberOfStatsRecords(bitstream, 2);
@@ -145,71 +138,63 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
 
         //** GIVEN **
         //1. A community-collection structure with one parent community and one collections.
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
         //2. A public item with a bitstream
         String bitstreamContent = "0123456789";
 
-        try(InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
 
-            Item publicItem1 = ItemBuilder.createItem(context, col1)
-                    .withTitle("Public item 1")
-                    .withIssueDate("2017-10-17")
-                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                    .build();
+            Item publicItem1 =
+                ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2017-10-17")
+                    .withAuthor("Smith, Donald").withAuthor("Doe, John").build();
 
-            Bitstream bitstream = BitstreamBuilder
-                    .createBitstream(context, publicItem1, is)
-                    .withName("Test bitstream")
-                    .withDescription("This is a bitstream to test range requests")
-                    .withMimeType("text/plain")
-                    .build();
+            Bitstream bitstream = BitstreamBuilder.createBitstream(context, publicItem1, is).withName("Test bitstream")
+                .withDescription("This is a bitstream to test range requests").withMimeType("text/plain").build();
 
             //** WHEN **
             //We download only a specific byte range of the bitstream
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                    .header("Range", "bytes=1-3"))
+            getClient()
+                .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content").header("Range", "bytes=1-3"))
 
-                    //** THEN **
-                    .andExpect(status().is(206))
+                //** THEN **
+                .andExpect(status().is(206))
 
-                    //The Content Length must match the requested range
-                    .andExpect(header().longValue("Content-Length", 3))
-                    //The server should indicate we support Range requests
-                    .andExpect(header().string("Accept-Ranges", "bytes"))
-                    //The ETag has to be based on the checksum
-                    .andExpect(header().string("ETag", bitstream.getChecksum()))
-                    //The response should give us details about the range
-                    .andExpect(header().string("Content-Range", "bytes 1-3/10"))
-                    //We expect the content type to match the bitstream mime type
-                    .andExpect(content().contentType("text/plain"))
-                    //We only expect the bytes 1, 2 and 3
-                    .andExpect(content().bytes("123".getBytes()));
+                //The Content Length must match the requested range
+                .andExpect(header().longValue("Content-Length", 3))
+                //The server should indicate we support Range requests
+                .andExpect(header().string("Accept-Ranges", "bytes"))
+                //The ETag has to be based on the checksum
+                .andExpect(header().string("ETag", bitstream.getChecksum()))
+                //The response should give us details about the range
+                .andExpect(header().string("Content-Range", "bytes 1-3/10"))
+                //We expect the content type to match the bitstream mime type
+                .andExpect(content().contentType("text/plain"))
+                //We only expect the bytes 1, 2 and 3
+                .andExpect(content().bytes("123".getBytes()));
 
             //** WHEN **
             //We download the rest of the range
-            getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                    .header("Range", "bytes=4-"))
+            getClient()
+                .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content").header("Range", "bytes=4-"))
 
-                    //** THEN **
-                    .andExpect(status().is(206))
+                //** THEN **
+                .andExpect(status().is(206))
 
-                    //The Content Length must match the requested range
-                    .andExpect(header().longValue("Content-Length", 6))
-                    //The server should indicate we support Range requests
-                    .andExpect(header().string("Accept-Ranges", "bytes"))
-                    //The ETag has to be based on the checksum
-                    .andExpect(header().string("ETag", bitstream.getChecksum()))
-                    //The response should give us details about the range
-                    .andExpect(header().string("Content-Range", "bytes 4-9/10"))
-                    //We expect the content type to match the bitstream mime type
-                    .andExpect(content().contentType("text/plain"))
-                    //We all remaining bytes, starting at byte 4
-                    .andExpect(content().bytes("456789".getBytes()));
+                //The Content Length must match the requested range
+                .andExpect(header().longValue("Content-Length", 6))
+                //The server should indicate we support Range requests
+                .andExpect(header().string("Accept-Ranges", "bytes"))
+                //The ETag has to be based on the checksum
+                .andExpect(header().string("ETag", bitstream.getChecksum()))
+                //The response should give us details about the range
+                .andExpect(header().string("Content-Range", "bytes 4-9/10"))
+                //We expect the content type to match the bitstream mime type
+                .andExpect(content().contentType("text/plain"))
+                //We all remaining bytes, starting at byte 4
+                .andExpect(content().bytes("456789".getBytes()));
 
             //Check that NO statistics record was logged for the Range requests
             checkNumberOfStatsRecords(bitstream, 0);
@@ -219,7 +204,7 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
     @Test
     public void testBitstreamNotFound() throws Exception {
         getClient().perform(get("/api/core/bitstreams/" + UUID.randomUUID() + "/content"))
-                .andExpect(status().isNotFound());
+            .andExpect(status().isNotFound());
     }
 
     @Test
@@ -228,37 +213,30 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
 
         //** GIVEN **
         //1. A community-collection structure with one parent community and one collections.
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
         //2. A public item with an embargoed bitstream
         String bitstreamContent = "Embargoed!";
 
-        try(InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
 
-            Item publicItem1 = ItemBuilder.createItem(context, col1)
-                    .withTitle("Public item 1")
-                    .withIssueDate("2017-10-17")
-                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                    .build();
+            Item publicItem1 =
+                ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2017-10-17")
+                    .withAuthor("Smith, Donald").withAuthor("Doe, John").build();
 
-            Bitstream bitstream = BitstreamBuilder
-                    .createBitstream(context, publicItem1, is)
-                    .withName("Test Embargoed Bitstream")
-                    .withDescription("This bitstream is embargoed")
-                    .withMimeType("text/plain")
-                    .withEmbargoPeriod("6 months")
-                    .build();
+            Bitstream bitstream =
+                BitstreamBuilder.createBitstream(context, publicItem1, is).withName("Test Embargoed Bitstream")
+                    .withDescription("This bitstream is embargoed").withMimeType("text/plain")
+                    .withEmbargoPeriod("6 months").build();
 
             //** WHEN **
             //We download the bitstream
             getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
 
-                    //** THEN **
-                    .andExpect(status().isUnauthorized());
+                //** THEN **
+                .andExpect(status().isUnauthorized());
 
             //An unauthorized request should not log statistics
             checkNumberOfStatsRecords(bitstream, 0);
@@ -271,40 +249,30 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
 
         //** GIVEN **
         //1. A community-collection structure with one parent community and one collections.
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
         //2. A public item with a private bitstream
-        Item publicItem1 = ItemBuilder.createItem(context, col1)
-                .withTitle("Public item 1")
-                .withIssueDate("2017-10-17")
-                .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                .build();
+        Item publicItem1 = ItemBuilder.createItem(context, col1).withTitle("Public item 1").withIssueDate("2017-10-17")
+            .withAuthor("Smith, Donald").withAuthor("Doe, John").build();
 
-        Group internalGroup = GroupBuilder.createGroup(context)
-                .withName("Internal Group")
-                .build();
+        Group internalGroup = GroupBuilder.createGroup(context).withName("Internal Group").build();
 
         String bitstreamContent = "Private!";
-        try(InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
+        try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
 
-            Bitstream bitstream = BitstreamBuilder
-                    .createBitstream(context, publicItem1, is)
-                    .withName("Test Embargoed Bitstream")
-                    .withDescription("This bitstream is embargoed")
-                    .withMimeType("text/plain")
-                    .withReaderGroup(internalGroup)
-                    .build();
+            Bitstream bitstream =
+                BitstreamBuilder.createBitstream(context, publicItem1, is).withName("Test Embargoed Bitstream")
+                    .withDescription("This bitstream is embargoed").withMimeType("text/plain")
+                    .withReaderGroup(internalGroup).build();
 
             //** WHEN **
             //We download the bitstream
             getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
 
-                    //** THEN **
-                    .andExpect(status().isUnauthorized());
+                //** THEN **
+                .andExpect(status().isUnauthorized());
 
             //An unauthorized request should not log statistics
             checkNumberOfStatsRecords(bitstream, 0);
@@ -312,12 +280,11 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
         }
     }
 
-    private void checkNumberOfStatsRecords(Bitstream bitstream, int expectedNumberOfStatsRecords) throws SolrServerException, IOException {
+    private void checkNumberOfStatsRecords(Bitstream bitstream, int expectedNumberOfStatsRecords)
+        throws SolrServerException, IOException {
         mockSolrServer.getSolrServer().commit();
 
-        SolrQuery query = new SolrQuery("id:\"" + bitstream.getID() + "\"")
-                .setRows(0)
-                .setStart(0);
+        SolrQuery query = new SolrQuery("id:\"" + bitstream.getID() + "\"").setRows(0).setStart(0);
         QueryResponse queryResponse = mockSolrServer.getSolrServer().query(query);
         assertEquals(expectedNumberOfStatsRecords, queryResponse.getResults().getNumFound());
     }
@@ -330,9 +297,7 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
 
         //** GIVEN **
         //1. A community-collection structure with one parent community and one collections.
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
@@ -340,51 +305,46 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
         File originalPdf = new File(testProps.getProperty("test.bitstream"));
 
 
-        try(InputStream is = new FileInputStream(originalPdf)) {
+        try (InputStream is = new FileInputStream(originalPdf)) {
 
-            Item publicItem1 = ItemBuilder.createItem(context, col1)
-                    .withTitle("Public item citation cover page test 1")
-                    .withIssueDate("2017-10-17")
-                    .withAuthor("Smith, Donald").withAuthor("Doe, John")
-                    .build();
+            Item publicItem1 = ItemBuilder.createItem(context, col1).withTitle("Public item citation cover page test 1")
+                .withIssueDate("2017-10-17").withAuthor("Smith, Donald").withAuthor("Doe, John").build();
 
-            Bitstream bitstream = BitstreamBuilder
-                    .createBitstream(context, publicItem1, is)
-                    .withName("Test bitstream")
-                    .withDescription("This is a bitstream to test the citation cover page.")
-                    .withMimeType("application/pdf")
-                    .build();
+            Bitstream bitstream = BitstreamBuilder.createBitstream(context, publicItem1, is).withName("Test bitstream")
+                .withDescription("This is a bitstream to test the citation cover page.").withMimeType("application/pdf")
+                .build();
 
             //** WHEN **
             //We download the bitstream
             byte[] content = getClient().perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
 
-                    //** THEN **
-                    .andExpect(status().isOk())
+                //** THEN **
+                .andExpect(status().isOk())
 
-                    //The Content Length must match the full length
-                    .andExpect(header().string("Content-Length", not(nullValue())))
-                    //The server should indicate we support Range requests
-                    .andExpect(header().string("Accept-Ranges", "bytes"))
-                    //The ETag has to be based on the checksum
-                    .andExpect(header().string("ETag", bitstream.getChecksum()))
-                    //We expect the content type to match the bitstream mime type
-                    .andExpect(content().contentType("application/pdf"))
-                    //THe bytes of the content must match the original content
-                    .andReturn().getResponse().getContentAsByteArray();
+                //The Content Length must match the full length
+                .andExpect(header().string("Content-Length", not(nullValue())))
+                //The server should indicate we support Range requests
+                .andExpect(header().string("Accept-Ranges", "bytes"))
+                //The ETag has to be based on the checksum
+                .andExpect(header().string("ETag", bitstream.getChecksum()))
+                //We expect the content type to match the bitstream mime type
+                .andExpect(content().contentType("application/pdf"))
+                //THe bytes of the content must match the original content
+                .andReturn().getResponse().getContentAsByteArray();
 
-            // The citation cover page contains the item title. We will now verify that the pdf text contains this title.
+            // The citation cover page contains the item title. We will now verify that the pdf text contains this
+            // title.
             String pdfText = extractPDFText(content);
             System.out.println(pdfText);
-            assertTrue(StringUtils.contains(pdfText,"Public item citation cover page test 1"));
+            assertTrue(StringUtils.contains(pdfText, "Public item citation cover page test 1"));
 
-            // The dspace-api/src/test/data/dspaceFolder/assetstore/ConstitutionofIreland.pdf file contains 64 pages, manually counted + 1 citation cover page
-            assertEquals(65,getNumberOfPdfPages(content));
+            // The dspace-api/src/test/data/dspaceFolder/assetstore/ConstitutionofIreland.pdf file contains 64 pages,
+            // manually counted + 1 citation cover page
+            assertEquals(65, getNumberOfPdfPages(content));
 
             //A If-None-Match HEAD request on the ETag must tell is the bitstream is not modified
             getClient().perform(head("/api/core/bitstreams/" + bitstream.getID() + "/content")
-                    .header("If-None-Match", bitstream.getChecksum()))
-                    .andExpect(status().isNotModified());
+                .header("If-None-Match", bitstream.getChecksum())).andExpect(status().isNotModified());
 
             //The download and head request should also be logged as a statistics record
             checkNumberOfStatsRecords(bitstream, 2);
@@ -396,8 +356,8 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
         pts.setSortByPosition(true);
 
         try (ByteArrayInputStream source = new ByteArrayInputStream(content);
-            Writer writer = new StringWriter();
-            PDDocument pdfDoc = PDDocument.load(source)){
+             Writer writer = new StringWriter();
+             PDDocument pdfDoc = PDDocument.load(source)) {
 
             pts.writeText(pdfDoc, writer);
             return writer.toString();
@@ -406,7 +366,7 @@ public class BitstreamContentRestControllerIT extends AbstractControllerIntegrat
 
     private int getNumberOfPdfPages(byte[] content) throws IOException {
         try (ByteArrayInputStream source = new ByteArrayInputStream(content);
-             PDDocument pdfDoc = PDDocument.load(source)){
+             PDDocument pdfDoc = PDDocument.load(source)) {
             return pdfDoc.getNumberOfPages();
         }
     }

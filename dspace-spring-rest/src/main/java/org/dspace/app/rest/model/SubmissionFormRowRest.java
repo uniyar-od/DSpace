@@ -13,17 +13,16 @@ import java.util.List;
 /**
  * The InputFormRow REST Resource. It is not addressable directly, only used
  * as inline object in the InputForm resource
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 public class SubmissionFormRowRest {
     private List<SubmissionFormFieldRest> fields;
-    
+
     public List<SubmissionFormFieldRest> getFields() {
         return fields;
     }
-    
+
     public void setFields(List<SubmissionFormFieldRest> fields) {
         this.fields = fields;
     }

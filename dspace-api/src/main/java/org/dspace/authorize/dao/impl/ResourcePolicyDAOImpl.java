@@ -30,12 +30,10 @@ import org.hibernate.criterion.Restrictions;
  *
  * @author kevinvandevelde at atmire.com
  */
-public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> implements ResourcePolicyDAO
-{
-	private static final Logger log = Logger.getLogger(ResourcePolicyDAOImpl.class);
-	
-    protected ResourcePolicyDAOImpl()
-    {
+public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> implements ResourcePolicyDAO {
+    private static final Logger log = Logger.getLogger(ResourcePolicyDAOImpl.class);
+
+    protected ResourcePolicyDAOImpl() {
         super();
     }
 
@@ -43,18 +41,18 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     public List<ResourcePolicy> findByDso(Context context, AuthorizableEntity dso) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
-                Restrictions.eq("dSpaceObject", dso)
+            Restrictions.eq("dSpaceObject", dso)
         ));
         return list(criteria);
     }
 
     @Override
-    public List<ResourcePolicy> findByDsoAndType(Context context, AuthorizableEntity dso, String type) throws SQLException
-    {
+    public List<ResourcePolicy> findByDsoAndType(Context context, AuthorizableEntity dso, String type)
+        throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
-                Restrictions.eq("dSpaceObject", dso),
-                Restrictions.eq("rptype", type)
+            Restrictions.eq("dSpaceObject", dso),
+            Restrictions.eq("rptype", type)
         ));
         return list(criteria);
     }
@@ -67,61 +65,62 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public List<ResourcePolicy> findByDSoAndAction(Context context, AuthorizableEntity dso, int actionId) throws SQLException
-    {
+    public List<ResourcePolicy> findByDSoAndAction(Context context, AuthorizableEntity dso, int actionId)
+        throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         try {
-			criteria.add(Restrictions.and(
-			        Restrictions.eq("dSpaceObject", DSpaceObject.unwrapProxy(dso)),
-			        Restrictions.eq("actionId", actionId)
-			));
-		} catch (Exception e) {
-			log.error(e.getMessage(), e);
-		}
+            criteria.add(Restrictions.and(
+                Restrictions.eq("dSpaceObject", DSpaceObject.unwrapProxy(dso)),
+                Restrictions.eq("actionId", actionId)
+            ));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
         return list(criteria);
     }
 
     @Override
-    public List<ResourcePolicy> findByTypeGroupAction(Context context, AuthorizableEntity dso, Group group, int action) throws SQLException {
+    public List<ResourcePolicy> findByTypeGroupAction(Context context, AuthorizableEntity dso, Group group, int action)
+        throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
-                Restrictions.eq("dSpaceObject", dso),
-                Restrictions.eq("epersonGroup", group),
-                Restrictions.eq("actionId", action)
+            Restrictions.eq("dSpaceObject", dso),
+            Restrictions.eq("epersonGroup", group),
+            Restrictions.eq("actionId", action)
         ));
         criteria.setMaxResults(1);
         return list(criteria);
     }
-    
+
     @Override
-    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, AuthorizableEntity dso, Group group, int action, int notPolicyID) throws SQLException {
+    public List<ResourcePolicy> findByTypeGroupActionExceptId(Context context, AuthorizableEntity dso, Group group,
+                                                              int action, int notPolicyID) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
-                Restrictions.eq("dSpaceObject", dso),
-                Restrictions.eq("epersonGroup", group),
-                Restrictions.eq("actionId", action)
+            Restrictions.eq("dSpaceObject", dso),
+            Restrictions.eq("epersonGroup", group),
+            Restrictions.eq("actionId", action)
         ));
         criteria.add(Restrictions.and(Restrictions.not(Restrictions.eq("id", notPolicyID))));
         return list(criteria);
     }
-    
-     public List<ResourcePolicy> findByEPersonGroupTypeIdAction(Context context, EPerson e, List<Group> groups, int action, int type_id) throws SQLException
-     {
-         Criteria criteria = createCriteria(context, ResourcePolicy.class);
-         criteria.add(Restrictions.and(
-                  Restrictions.eq("resourceTypeId", type_id),
-                  Restrictions.eq("actionId", action),
-                  (Restrictions.or(
-                    Restrictions.eq("eperson", e),
-                    Restrictions.in("epersonGroup", groups)
-                    ))
-                 ));
-         return list(criteria);
-     }
+
+    public List<ResourcePolicy> findByEPersonGroupTypeIdAction(Context context, EPerson e, List<Group> groups,
+                                                               int action, int type_id) throws SQLException {
+        Criteria criteria = createCriteria(context, ResourcePolicy.class);
+        criteria.add(Restrictions.and(
+            Restrictions.eq("resourceTypeId", type_id),
+            Restrictions.eq("actionId", action),
+            (Restrictions.or(
+                Restrictions.eq("eperson", e),
+                Restrictions.in("epersonGroup", groups)
+            ))
+        ));
+        return list(criteria);
+    }
 
     @Override
-    public void deleteByDso(Context context, AuthorizableEntity dso) throws SQLException
-    {
+    public void deleteByDso(Context context, AuthorizableEntity dso) throws SQLException {
         String queryString = "delete from ResourcePolicy where dSpaceObject= :dSpaceObject";
         Query query = createQuery(context, queryString);
         query.setParameter("dSpaceObject", dso);
@@ -165,7 +164,8 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoEPersonPolicies(Context context, AuthorizableEntity dso, EPerson ePerson) throws SQLException {
+    public void deleteByDsoEPersonPolicies(Context context, AuthorizableEntity dso, EPerson ePerson)
+        throws SQLException {
         String queryString = "delete from ResourcePolicy where dSpaceObject= :dso AND eperson= :eperson";
         Query query = createQuery(context, queryString);
         query.setParameter("dso", dso);
@@ -175,7 +175,8 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
     }
 
     @Override
-    public void deleteByDsoAndTypeNotEqualsTo(Context context, AuthorizableEntity dso, String type) throws SQLException {
+    public void deleteByDsoAndTypeNotEqualsTo(Context context, AuthorizableEntity dso, String type)
+        throws SQLException {
 
         String queryString = "delete from ResourcePolicy where dSpaceObject=:dso AND rptype <> :rptype";
         Query query = createQuery(context, queryString);
@@ -186,11 +187,11 @@ public class ResourcePolicyDAOImpl extends AbstractHibernateDAO<ResourcePolicy> 
 
     @Override
     public List<ResourcePolicy> findByDSoAndActionExceptRpType(Context context, AuthorizableEntity dso, int action,
-            String rpType) throws SQLException {
+                                                               String rpType) throws SQLException {
         Criteria criteria = createCriteria(context, ResourcePolicy.class);
         criteria.add(Restrictions.and(
-                Restrictions.eq("dSpaceObject", dso),
-                Restrictions.eq("actionId", action)
+            Restrictions.eq("dSpaceObject", dso),
+            Restrictions.eq("actionId", action)
         ));
         criteria.add(Restrictions.and(Restrictions.not(Restrictions.eq("rptype", rpType))));
         return list(criteria);

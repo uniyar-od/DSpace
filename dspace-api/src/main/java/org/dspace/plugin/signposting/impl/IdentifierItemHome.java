@@ -9,7 +9,6 @@ package org.dspace.plugin.signposting.impl;
 
 import java.text.MessageFormat;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -26,10 +25,11 @@ import org.dspace.plugin.signposting.ItemSignPostingProcessor;
 /**
  * @author Pascarelli Luigi Andrea
  */
-public class IdentifierItemHome implements ItemSignPostingProcessor
-{
+public class IdentifierItemHome implements ItemSignPostingProcessor {
 
-    /** log4j category */
+    /**
+     * log4j category
+     */
     private static Logger log = Logger.getLogger(IdentifierItemHome.class);
 
     private String relation = "cite-as";
@@ -40,70 +40,54 @@ public class IdentifierItemHome implements ItemSignPostingProcessor
 
     @Override
     public void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, Item item)
-            throws PluginException, AuthorizeException
-    {
+                        HttpServletResponse response, Item item)
+        throws PluginException, AuthorizeException {
 
-        try
-        {
-            if (item != null)
-            {
+        try {
+            if (item != null) {
                 List<String> mm = item.getMetadataValue(getMetadataField());
-                for (String metadata : mm)
-                {
-                    if (StringUtils.isNotBlank(metadata))
-                    {
+                for (String metadata : mm) {
+                    if (StringUtils.isNotBlank(metadata)) {
                         String value = Util.encodeBitstreamName(metadata,
-                                Constants.DEFAULT_ENCODING);
-                        if (StringUtils.isNotBlank(pattern))
-                        {
+                                                                Constants.DEFAULT_ENCODING);
+                        if (StringUtils.isNotBlank(pattern)) {
                             response.addHeader("Link",
-                                    MessageFormat.format(getPattern(), value)
-                                            + "; rel=\"" + getRelation()
-                                            + "\"");
-                        }
-                        else
-                        {
+                                               MessageFormat.format(getPattern(), value)
+                                                   + "; rel=\"" + getRelation()
+                                                   + "\"");
+                        } else {
                             response.addHeader("Link",
-                                    value + "; rel=\"" + getRelation() + "\"");
+                                               value + "; rel=\"" + getRelation() + "\"");
                         }
                     }
                 }
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             log.error("Problem to add signposting pattern", ex);
         }
     }
 
-    public String getRelation()
-    {
+    public String getRelation() {
         return relation;
     }
 
-    public void setRelation(String relation)
-    {
+    public void setRelation(String relation) {
         this.relation = relation;
     }
 
-    public String getMetadataField()
-    {
+    public String getMetadataField() {
         return metadataField;
     }
 
-    public void setMetadataField(String metadataField)
-    {
+    public void setMetadataField(String metadataField) {
         this.metadataField = metadataField;
     }
 
-    public String getPattern()
-    {
+    public String getPattern() {
         return pattern;
     }
 
-    public void setPattern(String pattern)
-    {
+    public void setPattern(String pattern) {
         this.pattern = pattern;
     }
 }

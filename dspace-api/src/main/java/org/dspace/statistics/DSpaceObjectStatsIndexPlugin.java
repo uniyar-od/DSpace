@@ -8,7 +8,6 @@
 package org.dspace.statistics;
 
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -16,42 +15,36 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.utils.DSpace;
 
-public class DSpaceObjectStatsIndexPlugin implements SolrStatsIndexPlugin
-{
+public class DSpaceObjectStatsIndexPlugin implements SolrStatsIndexPlugin {
 
     private static Logger log = Logger
-            .getLogger(DSpaceObjectStatsIndexPlugin.class);
+        .getLogger(DSpaceObjectStatsIndexPlugin.class);
 
     private List<StatisticsMetadataGenerator> generators;
-    
+
 
     @Override
     public void additionalIndex(HttpServletRequest request, BrowsableDSpaceObject dso,
-            SolrInputDocument document)
-    {
+                                SolrInputDocument document) {
         storeAdditionalMetadata(dso, request, document);
     }
 
     private void storeAdditionalMetadata(BrowsableDSpaceObject dspaceObject,
-            HttpServletRequest request, SolrInputDocument doc1)
-    {
-        if (getGenerators() != null)
-        {
-            for (StatisticsMetadataGenerator generator : generators)
-            {
+                                         HttpServletRequest request, SolrInputDocument doc1) {
+        if (getGenerators() != null) {
+            for (StatisticsMetadataGenerator generator : generators) {
                 generator.addMetadata(doc1, request, dspaceObject);
             }
         }
     }
 
-    public List<StatisticsMetadataGenerator> getGenerators()
-    {
-        if(generators==null) {
+    public List<StatisticsMetadataGenerator> getGenerators() {
+        if (generators == null) {
             DSpace dspace = new DSpace();
             generators = dspace.getServiceManager().getServicesByType(StatisticsMetadataGenerator.class);
         }
         return generators;
     }
-   
+
 
 }

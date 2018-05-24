@@ -14,18 +14,18 @@ import org.dspace.content.IMetadataValue;
 
 public interface IGlobalSearchResult<PK extends Serializable> {
 
-	public String getHandle();
-	
-	public List<String> getMetadataValue(String mdString);
-	
-	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString);
-	
-	public String getTypeText();
-	
-	public int getType();
-	
-	public PK getID();
-	
-	public boolean isWithdrawn();
+    public String getHandle();
+
+    public List<String> getMetadataValue(String mdString);
+
+    public List<IMetadataValue> getMetadataValueInDCFormat(String mdString);
+
+    public String getTypeText();
+
+    public int getType();
+
+    public PK getID();
+
+    public boolean isWithdrawn();
 
 }

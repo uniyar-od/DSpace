@@ -13,42 +13,40 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.dspace.app.rest.RestResourceController;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.dspace.app.rest.RestResourceController;
 
 /**
  * The EditItem REST Resource
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 public class EditItemRest extends BaseObjectRest<UUID> {
-    
+
     public static final String NAME = "edititem";
     public static final String CATEGORY = RestAddressableModel.SUBMISSION;
 
     private Date lastModified = new Date();
 
     private Map<String, Serializable> sections;
-    
+
     @JsonIgnore
     private CollectionRest collection;
-    
+
     @JsonIgnore
     private ItemRest item;
-    
+
     @JsonIgnore
     private SubmissionDefinitionRest submissionDefinition;
-    
+
     @JsonIgnore
     private EPersonRest submitter;
-    
+
     @Override
     public String getCategory() {
         return CATEGORY;
     }
-    
+
     @Override
     public String getType() {
         return NAME;
@@ -57,8 +55,8 @@ public class EditItemRest extends BaseObjectRest<UUID> {
     public Date getLastModified() {
         return lastModified;
     }
-    
-    public void setLastModified(Date lastModified){
+
+    public void setLastModified(Date lastModified) {
         this.lastModified = lastModified;
     }
 
@@ -85,14 +83,14 @@ public class EditItemRest extends BaseObjectRest<UUID> {
     public void setSubmitter(EPersonRest submitter) {
         this.submitter = submitter;
     }
-    
+
     @Override
     public Class getController() {
         return RestResourceController.class;
     }
-    
+
     public Map<String, Serializable> getSections() {
-        if(sections==null) {
+        if (sections == null) {
             sections = new HashMap<String, Serializable>();
         }
         return sections;

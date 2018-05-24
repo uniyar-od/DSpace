@@ -37,15 +37,20 @@ import org.dspace.workflow.WorkflowItem;
  * @author Ben Bosman (ben at atmire dot com)
  */
 public class SearchUtils {
-    /** Cached search service **/
+    /**
+     * Cached search service
+     **/
     private static SearchService searchService;
 
+    /**
+     * Default constructor
+     */
+    private SearchUtils() { }
 
-    public static SearchService getSearchService()
-    {
-        if (searchService ==  null) {
+    public static SearchService getSearchService() {
+        if (searchService == null) {
             org.dspace.kernel.ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
-            searchService = manager.getServiceByName(SearchService.class.getName(),SearchService.class);
+            searchService = manager.getServiceByName(SearchService.class.getName(), SearchService.class);
         }
         return searchService;
     }
@@ -54,21 +59,20 @@ public class SearchUtils {
         return getDiscoveryConfiguration(null, null);
     }
 
-    public static DiscoveryConfiguration getDiscoveryConfiguration(BrowsableDSpaceObject dso){
-    	return getDiscoveryConfiguration(null, dso);
+    public static DiscoveryConfiguration getDiscoveryConfiguration(BrowsableDSpaceObject dso) {
+        return getDiscoveryConfiguration(null, dso);
     }
-    public static DiscoveryConfiguration getDiscoveryConfiguration(String prefix, BrowsableDSpaceObject dso){
+
+    public static DiscoveryConfiguration getDiscoveryConfiguration(String prefix, BrowsableDSpaceObject dso) {
         if (prefix != null) {
-        	return getDiscoveryConfigurationByName(dso!=null?prefix + "." + dso.getHandle():prefix);
-        }
-        else {
-        	return getDiscoveryConfigurationByName(dso!=null?dso.getHandle():null);
+            return getDiscoveryConfigurationByName(dso != null ? prefix + "." + dso.getHandle() : prefix);
+        } else {
+            return getDiscoveryConfigurationByName(dso != null ? dso.getHandle() : null);
         }
     }
 
     public static DiscoveryConfiguration getDiscoveryConfigurationByName(
-            String configurationName)
-    {
+        String configurationName) {
         DiscoveryConfigurationService configurationService = getConfigurationService();
 
         return configurationService.getDiscoveryConfiguration(configurationName);
@@ -76,11 +80,11 @@ public class SearchUtils {
 
     public static DiscoveryConfigurationService getConfigurationService() {
         ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
-        return manager.getServiceByName(DiscoveryConfigurationService.class.getName(), DiscoveryConfigurationService.class);
+        return manager
+            .getServiceByName(DiscoveryConfigurationService.class.getName(), DiscoveryConfigurationService.class);
     }
 
-    public static List<String> getIgnoredMetadataFields(int type)
-    {
+    public static List<String> getIgnoredMetadataFields(int type) {
         return getConfigurationService().getToIgnoreMetadataFields().get(type);
     }
 
@@ -90,26 +94,28 @@ public class SearchUtils {
      *
      * @param item the DSpace item
      * @return a list of configuration objects
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
+     * @throws SQLException An exception that provides information on a database access error or other errors.
      */
     public static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(Item item) throws SQLException {
-    	List<Collection> collections = item.getCollections();
-    	return getAllDiscoveryConfigurations(null, collections, item);
+        List<Collection> collections = item.getCollections();
+        return getAllDiscoveryConfigurations(null, collections, item);
     }
-    
+
     public static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(WorkspaceItem witem) throws SQLException {
-    	List<Collection> collections = new ArrayList<Collection>();
-    	collections.add(witem.getCollection());
-    	return getAllDiscoveryConfigurations("workspace", collections, witem.getItem());
+        List<Collection> collections = new ArrayList<Collection>();
+        collections.add(witem.getCollection());
+        return getAllDiscoveryConfigurations("workspace", collections, witem.getItem());
     }
 
     public static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(WorkflowItem witem) throws SQLException {
-    	List<Collection> collections = new ArrayList<Collection>();
-    	collections.add(witem.getCollection());
-    	return getAllDiscoveryConfigurations("workflow", collections, witem.getItem());
+        List<Collection> collections = new ArrayList<Collection>();
+        collections.add(witem.getCollection());
+        return getAllDiscoveryConfigurations("workflow", collections, witem.getItem());
     }
-    private static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(String prefix, List<Collection> collections, Item item) throws SQLException {
+
+    private static List<DiscoveryConfiguration> getAllDiscoveryConfigurations(String prefix,
+                                                                              List<Collection> collections, Item item)
+        throws SQLException {
         Map<String, DiscoveryConfiguration> result = new HashMap<String, DiscoveryConfiguration>();
 
         for (Collection collection : collections) {
@@ -121,63 +127,64 @@ public class SearchUtils {
 
         //Also add one for the default
         addConfigurationIfExists(result, prefix);
-        
+
         //Add special dspacebasic discoveryConfiguration
-        addConfigurationIfExists(result, prefix != null? prefix + ".dspacebasic" : "dspacebasic");
+        addConfigurationIfExists(result, prefix != null ? prefix + ".dspacebasic" : "dspacebasic");
 
         String typeText = item.getTypeText();
         String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
-                "cris", "facet.type." + typeText);
-        
+            "cris", "facet.type." + typeText);
+
         String extra = null;
         if (StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
             extra = isDefinedAsSystemEntity.split("###")[1];
-            addConfigurationIfExists(result, prefix != null? prefix + "." + extra : extra);
+            addConfigurationIfExists(result, prefix != null ? prefix + "." + extra : extra);
         }
 
-        addConfigurationIfExists(result, prefix != null? prefix + ".dspace"+typeText : "dspace"+typeText);
-        
+        addConfigurationIfExists(result, prefix != null ? prefix + ".dspace" + typeText : "dspace" + typeText);
+
         //Add special global discoveryConfiguration
-        addConfigurationIfExists(result, prefix != null? prefix + "." + DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME : DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
+        addConfigurationIfExists(result,
+                                 prefix != null ? prefix + "." + DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME :
+                                     DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
         return Arrays.asList(result.values().toArray(new DiscoveryConfiguration[result.size()]));
     }
 
     private static void addConfigurationIfExists(Map<String, DiscoveryConfiguration> result, String confName) {
         DiscoveryConfiguration configurationExtra = getDiscoveryConfigurationByName(confName);
-        if(!result.containsKey(configurationExtra.getId())){
+        if (!result.containsKey(configurationExtra.getId())) {
             result.put(configurationExtra.getId(), configurationExtra);
         }
     }
-    
-    public static DiscoveryViewAndHighlightConfiguration getDiscoveryViewAndHighlightConfigurationByName(
-            String configurationName)
-    {
-        return DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(configurationName, DiscoveryViewAndHighlightConfiguration.class);
-    }
-    
-	public static DiscoveryConfiguration getGlobalConfiguration() {
-		boolean globalConfiguration = false;
-        DiscoveryConfiguration configuration = SearchUtils.getDiscoveryConfigurationByName(DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
-        
-        if(DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME.equals(configuration.getId())) {
-        	globalConfiguration = true;
-        }
-		return globalConfiguration?configuration:null;
-	}
 
-	public static boolean isGlobalConfiguration(DiscoveryConfiguration configuration) {
-		return StringUtils.equals(configuration.getId(), DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
-	}
+    public static DiscoveryViewAndHighlightConfiguration getDiscoveryViewAndHighlightConfigurationByName(
+        String configurationName) {
+        return DSpaceServicesFactory.getInstance().getServiceManager()
+                                    .getServiceByName(configurationName, DiscoveryViewAndHighlightConfiguration.class);
+    }
+
+    public static DiscoveryConfiguration getGlobalConfiguration() {
+        boolean globalConfiguration = false;
+        DiscoveryConfiguration configuration = SearchUtils
+            .getDiscoveryConfigurationByName(DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
+
+        if (DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME.equals(configuration.getId())) {
+            globalConfiguration = true;
+        }
+        return globalConfiguration ? configuration : null;
+    }
+
+    public static boolean isGlobalConfiguration(DiscoveryConfiguration configuration) {
+        return StringUtils.equals(configuration.getId(), DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
+    }
 
     public static DiscoveryRecentSubmissionsConfiguration getRecentSubmissionConfiguration(
-            String configurationName)
-    {
+        String configurationName) {
         return getDiscoveryConfigurationByName(configurationName).getRecentSubmissionConfiguration();
     }
 
     public static DiscoveryMostViewedConfiguration getMostViewedConfiguration(
-            String configurationName)
-    {
+        String configurationName) {
         return getDiscoveryConfigurationByName(configurationName).getMostViewConfiguration();
     }
 }

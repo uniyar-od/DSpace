@@ -32,59 +32,58 @@ import org.springframework.stereotype.Component;
 
 /**
  * This is the repository responsible to manage MetadataField Rest object
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 @Component(SubmissionDefinitionRest.CATEGORY + "." + SubmissionDefinitionRest.NAME)
 public class SubmissionDefinitionRestRepository extends DSpaceRestRepository<SubmissionDefinitionRest, String> {
-	private SubmissionConfigReader submissionConfigReader;
+    private SubmissionConfigReader submissionConfigReader;
 
-	private CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
+    private CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
 
-	@Autowired
-	private SubmissionDefinitionConverter converter;
+    @Autowired
+    private SubmissionDefinitionConverter converter;
 
-	public SubmissionDefinitionRestRepository() throws SubmissionConfigReaderException {
-		submissionConfigReader = new SubmissionConfigReader();
-	}
+    public SubmissionDefinitionRestRepository() throws SubmissionConfigReaderException {
+        submissionConfigReader = new SubmissionConfigReader();
+    }
 
-	@Override
-	public SubmissionDefinitionRest findOne(Context context, String submitName) {
-		SubmissionConfig subConfig = submissionConfigReader.getSubmissionConfigByName(submitName);
-		if (subConfig == null) {
-			return null;
-		}
-		return converter.convert(subConfig);
-	}
+    @Override
+    public SubmissionDefinitionRest findOne(Context context, String submitName) {
+        SubmissionConfig subConfig = submissionConfigReader.getSubmissionConfigByName(submitName);
+        if (subConfig == null) {
+            return null;
+        }
+        return converter.convert(subConfig);
+    }
 
-	@Override
-	public Page<SubmissionDefinitionRest> findAll(Context context, Pageable pageable) {
-		List<SubmissionConfig> subConfs = new ArrayList<SubmissionConfig>();
-		int total = submissionConfigReader.countSubmissionConfigs();
-		subConfs = submissionConfigReader.getAllSubmissionConfigs(pageable.getPageSize(), pageable.getOffset());
-		Page<SubmissionDefinitionRest> page = new PageImpl<SubmissionConfig>(subConfs, pageable, total).map(converter);
-		return page;
-	}
+    @Override
+    public Page<SubmissionDefinitionRest> findAll(Context context, Pageable pageable) {
+        List<SubmissionConfig> subConfs = new ArrayList<SubmissionConfig>();
+        int total = submissionConfigReader.countSubmissionConfigs();
+        subConfs = submissionConfigReader.getAllSubmissionConfigs(pageable.getPageSize(), pageable.getOffset());
+        Page<SubmissionDefinitionRest> page = new PageImpl<SubmissionConfig>(subConfs, pageable, total).map(converter);
+        return page;
+    }
 
-	@SearchRestMethod(name = "findByCollection")
-	public SubmissionDefinitionRest findByCollection(@Param(value = "uuid") UUID collectionUuid) throws SQLException {
-		Collection col = collectionService.find(obtainContext(), collectionUuid);
-		if (col == null) {
-			return null;
-		}
-		SubmissionDefinitionRest def = converter
-				.convert(submissionConfigReader.getSubmissionConfigByCollection(col.getHandle()));
-		return def;
-	}
+    @SearchRestMethod(name = "findByCollection")
+    public SubmissionDefinitionRest findByCollection(@Param(value = "uuid") UUID collectionUuid) throws SQLException {
+        Collection col = collectionService.find(obtainContext(), collectionUuid);
+        if (col == null) {
+            return null;
+        }
+        SubmissionDefinitionRest def =
+            converter.convert(submissionConfigReader.getSubmissionConfigByCollection(col.getHandle()));
+        return def;
+    }
 
-	@Override
-	public Class<SubmissionDefinitionRest> getDomainClass() {
-		return SubmissionDefinitionRest.class;
-	}
+    @Override
+    public Class<SubmissionDefinitionRest> getDomainClass() {
+        return SubmissionDefinitionRest.class;
+    }
 
-	@Override
-	public SubmissionDefinitionResource wrapResource(SubmissionDefinitionRest sd, String... rels) {
-		return new SubmissionDefinitionResource(sd, utils, rels);
-	}
+    @Override
+    public SubmissionDefinitionResource wrapResource(SubmissionDefinitionRest sd, String... rels) {
+        return new SubmissionDefinitionResource(sd, utils, rels);
+    }
 }

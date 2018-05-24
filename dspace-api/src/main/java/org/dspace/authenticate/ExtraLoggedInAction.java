@@ -14,6 +14,6 @@ import org.dspace.eperson.EPerson;
 
 public interface ExtraLoggedInAction {
 
-	public void loggedIn(Context context, HttpServletRequest request,
-			EPerson eperson);
+    public void loggedIn(Context context, HttpServletRequest request,
+                         EPerson eperson);
 }

@@ -16,18 +16,19 @@
      http://commons.apache.org/proper/commons-configuration/userguide_v1.10/howto_configurationbuilder.html 
 -->
 <configuration>
-    <!-- Configurations in this section override one another. 
-         Earlier values take precedence, and override any values in later config files -->
-    <override>
-        <!-- NOTE: Optionally, you could just use Variable Interpolation instead 
-             of directly loading these System/Env properties: 
-             http://commons.apache.org/proper/commons-configuration/userguide_v1.10/howto_basicfeatures.html#Variable_Interpolation -->
-        <!-- Load System properties -->
-        <system/>
-        <!-- Load Environment variables -->
-        <env/>
+  <!-- Configurations in this section override one another.
+       Earlier values take precedence, and override any values in later config files -->
+  <override>
+    <!-- NOTE: Optionally, you could just use Variable Interpolation instead
+         of directly loading these System/Env properties:
+         http://commons.apache.org/proper/commons-configuration/userguide_v1.10/howto_basicfeatures
+         .html#Variable_Interpolation -->
+    <!-- Load System properties -->
+    <system/>
+    <!-- Load Environment variables -->
+    <env/>
 
-        <!-- Load test local.properties (for unit testing)-->
-        <properties fileName="local.properties" throwExceptionOnMissing="true"/>
-    </override>
+    <!-- Load test local.properties (for unit testing)-->
+    <properties fileName="local.properties" throwExceptionOnMissing="true"/>
+  </override>
 </configuration>

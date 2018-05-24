@@ -20,6 +20,7 @@ import org.dspace.harvest.service.HarvestedCollectionService;
 
 /**
  * A harvester thread used to execute a single harvest cycle on a collection
+ *
  * @author alexey
  */
 public class HarvestThread extends Thread {
@@ -27,7 +28,8 @@ public class HarvestThread extends Thread {
     private static final Logger log = Logger.getLogger(HarvestThread.class);
     protected UUID collectionId;
     protected CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
-    protected HarvestedCollectionService harvestedCollectionService = HarvestServiceFactory.getInstance().getHarvestedCollectionService();
+    protected HarvestedCollectionService harvestedCollectionService = HarvestServiceFactory.getInstance()
+                                                                                           .getHarvestedCollectionService();
 
 
     protected HarvestThread(UUID collectionId) throws SQLException {
@@ -35,14 +37,12 @@ public class HarvestThread extends Thread {
     }
 
     @Override
-    public void run()
-    {
+    public void run() {
         log.info("Thread for collection " + collectionId + " starts.");
         runHarvest();
     }
 
-    private void runHarvest()
-    {
+    private void runHarvest() {
         Context context;
         Collection dso;
         HarvestedCollection hc = null;

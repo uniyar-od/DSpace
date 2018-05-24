@@ -25,13 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  * @author kevinvandevelde at atmire.com
  */
-public class RegistrationDataServiceImpl implements RegistrationDataService
-{
+public class RegistrationDataServiceImpl implements RegistrationDataService {
     @Autowired(required = true)
     protected RegistrationDataDAO registrationDataDAO;
 
-    protected RegistrationDataServiceImpl()
-    {
+    protected RegistrationDataServiceImpl() {
 
     }
 
@@ -68,8 +66,9 @@ public class RegistrationDataServiceImpl implements RegistrationDataService
     }
 
     @Override
-    public void update(Context context, List<RegistrationData> registrationDataRecords) throws SQLException, AuthorizeException {
-        if(CollectionUtils.isNotEmpty(registrationDataRecords)) {
+    public void update(Context context, List<RegistrationData> registrationDataRecords)
+        throws SQLException, AuthorizeException {
+        if (CollectionUtils.isNotEmpty(registrationDataRecords)) {
             for (RegistrationData registrationData : registrationDataRecords) {
                 registrationDataDAO.save(context, registrationData);
             }

@@ -25,48 +25,42 @@ import org.dspace.plugin.signposting.BitstreamSignPostingProcessor;
  * @author Pascarelli Luigi Andrea
  */
 public class PublicationBundaryBitstreamHome
-        implements BitstreamSignPostingProcessor
-{
+    implements BitstreamSignPostingProcessor {
 
-    /** log4j category */
+    /**
+     * log4j category
+     */
     private static Logger log = Logger
-            .getLogger(PublicationBundaryBitstreamHome.class);
+        .getLogger(PublicationBundaryBitstreamHome.class);
 
     private String relation = "collection";
 
     @Override
     public void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, Bitstream bitstream)
-            throws PluginException, AuthorizeException
-    {
+                        HttpServletResponse response, Bitstream bitstream)
+        throws PluginException, AuthorizeException {
 
-        try
-        {
+        try {
             BrowsableDSpaceObject dso = bitstream.getParentObject();
-            if (dso != null)
-            {
+            if (dso != null) {
                 String value = ConfigurationManager.getProperty("dspace.url");
                 String handle = dso.getHandle();
                 value = value + "/handle/";
                 value = value + Util.encodeBitstreamName(handle,
-                        Constants.DEFAULT_ENCODING);
+                                                         Constants.DEFAULT_ENCODING);
                 response.addHeader("Link", value + "; rel=\"" + getRelation()
-                        + "\"");
+                    + "\"");
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             log.error("Problem to add signposting pattern on bitstream", ex);
         }
     }
 
-    public String getRelation()
-    {
+    public String getRelation() {
         return relation;
     }
 
-    public void setRelation(String relation)
-    {
+    public void setRelation(String relation) {
         this.relation = relation;
     }
 

@@ -17,28 +17,26 @@ import org.dspace.core.Utils;
 
 /**
  * Submission "move" common PATCH operation.
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 public abstract class MetadataValueMovePatchOperation<DSO extends DSpaceObject>
-		extends MovePatchOperation<MetadataValueRest> {
+    extends MovePatchOperation<MetadataValueRest> {
 
-	@Override
-	protected Class<MetadataValueRest[]> getArrayClassForEvaluation() {
-		return MetadataValueRest[].class;
-	}
+    @Override
+    protected Class<MetadataValueRest[]> getArrayClassForEvaluation() {
+        return MetadataValueRest[].class;
+    }
 
-	@Override
-	protected Class<MetadataValueRest> getClassForEvaluation() {
-		return MetadataValueRest.class;
-	}
+    @Override
+    protected Class<MetadataValueRest> getClassForEvaluation() {
+        return MetadataValueRest.class;
+    }
 
-	protected void moveValue(Context context, DSO source, String target, int from, int to) throws SQLException {
-		String[] metadata = Utils.tokenize(target);
-		getDSpaceObjectService().moveMetadata(context, source, metadata[0], metadata[1], metadata[2],
-				from, to);
-	}
+    protected void moveValue(Context context, DSO source, String target, int from, int to) throws SQLException {
+        String[] metadata = Utils.tokenize(target);
+        getDSpaceObjectService().moveMetadata(context, source, metadata[0], metadata[1], metadata[2], from, to);
+    }
 
-	protected abstract DSpaceObjectService<DSO> getDSpaceObjectService();
+    protected abstract DSpaceObjectService<DSO> getDSpaceObjectService();
 }

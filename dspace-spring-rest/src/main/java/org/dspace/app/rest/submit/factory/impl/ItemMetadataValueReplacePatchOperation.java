@@ -22,57 +22,56 @@ import org.springframework.util.Assert;
 
 /**
  * Submission "replace" PATCH operation.
- * 
+ *
  * The replace operation allows to replace existent information with new one.
  * Attempt to use the replace operation to set not yet initialized information
  * must return an error.
- * 
+ *
  * Example: <code>
  * curl -X PATCH http://${dspace.url}/api/submission/workspaceitems/<:id-workspaceitem> -H "
  * Content-Type: application/json" -d '[{ "op": "replace", "path": "
  * /sections/traditionalpageone/dc.title/0", "value": {"value": "Add new
  * title", "language": "en"}}]'
  * </code>
- * 
+ *
  * It is also possible to change only a single attribute of the {@link MetadataValueRest} (except the "place").
- * 
+ *
  * Example: <code>
  * curl -X PATCH http://${dspace.url}/api/submission/workspaceitems/<:id-workspaceitem> -H "
  * Content-Type: application/json" -d '[{ "op": "replace", "path": "
  * /sections/traditionalpageone/dc.title/0/language", "value": "it"}]'
  * </code>
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 public class ItemMetadataValueReplacePatchOperation extends MetadataValueReplacePatchOperation<Item> {
 
-	@Autowired
-	ItemService itemService;
+    @Autowired
+    ItemService itemService;
 
-	@Override
-	void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
-			throws Exception {
-		String[] split = getAbsolutePath(path).split("/");
+    @Override
+    void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
+        throws Exception {
+        String[] split = getAbsolutePath(path).split("/");
 
-		List<IMetadataValue> metadataByMetadataString = itemService.getMetadataByMetadataString(source.getItem(),
-				split[0]);
-		Assert.notEmpty(metadataByMetadataString);
+        List<IMetadataValue> metadataByMetadataString =
+            itemService.getMetadataByMetadataString(source.getItem(), split[0]);
+        Assert.notEmpty(metadataByMetadataString);
 
-		int index = Integer.parseInt(split[1]);
-		// if split size is one so we have a call to initialize or replace
-		if (split.length == 2) {
-			MetadataValueRest obj = evaluateSingleObject((LateObjectEvaluator) value);
-			replaceValue(context, source.getItem(), split[0], metadataByMetadataString, obj, index);
-		} else {
-			if (split.length == 3) {
-				setDeclaredField(context, source.getItem(), value, split[0], split[2], metadataByMetadataString, index);
-			}
-		}
-	}
+        int index = Integer.parseInt(split[1]);
+        // if split size is one so we have a call to initialize or replace
+        if (split.length == 2) {
+            MetadataValueRest obj = evaluateSingleObject((LateObjectEvaluator) value);
+            replaceValue(context, source.getItem(), split[0], metadataByMetadataString, obj, index);
+        } else {
+            if (split.length == 3) {
+                setDeclaredField(context, source.getItem(), value, split[0], split[2], metadataByMetadataString, index);
+            }
+        }
+    }
 
-	@Override
-	protected ItemService getDSpaceObjectService() {
-		return itemService;
-	}
+    @Override
+    protected ItemService getDSpaceObjectService() {
+        return itemService;
+    }
 }

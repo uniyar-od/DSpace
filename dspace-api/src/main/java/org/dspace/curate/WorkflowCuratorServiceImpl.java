@@ -8,6 +8,7 @@
 package org.dspace.curate;
 
 // Warning - static import ahead!
+
 import static javax.xml.stream.XMLStreamConstants.CHARACTERS;
 import static javax.xml.stream.XMLStreamConstants.END_ELEMENT;
 import static javax.xml.stream.XMLStreamConstants.START_ELEMENT;
@@ -20,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -50,17 +50,18 @@ import org.springframework.beans.factory.annotation.Autowired;
  * WorkflowCurator manages interactions between curation and workflow.
  * Specifically, it is invoked in WorkflowManager to allow the
  * performance of curation tasks during workflow.
- * 
+ *
  * @author richardrodgers
  */
-public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
-{
-    
-    /** log4j logger */
+public class WorkflowCuratorServiceImpl implements WorkflowCuratorService {
+
+    /**
+     * log4j logger
+     */
     private Logger log = Logger.getLogger(WorkflowCuratorServiceImpl.class);
-    
+
     protected Map<String, TaskSet> tsMap = new HashMap<String, TaskSet>();
-    
+
     protected final String[] flowSteps = { "step1", "step2", "step3", "archive" };
 
     @Autowired(required = true)
@@ -81,17 +82,16 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
      * Ensures the configurationService is injected, so that we can read the
      * settings from configuration
      * Called by "init-method" in Spring config.
+     *
      * @throws Exception ...
      */
     public void init() throws Exception {
         File cfgFile = new File(configurationService.getProperty("dspace.dir") +
                                     File.separator + "config" + File.separator +
                                     "workflow-curation.xml");
-        try
-        {
+        try {
             loadTaskConfig(cfgFile);
-            if (workflowServiceFactory.getWorkflowService() instanceof BasicWorkflowItemService)
-            {
+            if (workflowServiceFactory.getWorkflowService() instanceof BasicWorkflowItemService) {
                 basicWorkflowService = (BasicWorkflowService) workflowServiceFactory.getWorkflowService();
                 basicWorkflowItemService = (BasicWorkflowItemService) workflowServiceFactory.getWorkflowItemService();
             }
@@ -101,19 +101,18 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         }
     }
 
-    protected WorkflowCuratorServiceImpl()
-    {
+    protected WorkflowCuratorServiceImpl() {
 
     }
 
     @Override
     public boolean needsCuration(BasicWorkflowItem wfi) {
-       return getFlowStep(wfi) != null; 
+        return getFlowStep(wfi) != null;
     }
-  
+
     @Override
     public boolean doCuration(Context c, BasicWorkflowItem wfi)
-            throws AuthorizeException, IOException, SQLException {
+        throws AuthorizeException, IOException, SQLException {
         FlowStep step = getFlowStep(wfi);
         if (step != null) {
             Curator curator = new Curator();
@@ -131,11 +130,11 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         }
         return true;
     }
-    
+
 
     @Override
     public boolean curate(Curator curator, Context c, String wfId)
-            throws AuthorizeException, IOException, SQLException {
+        throws AuthorizeException, IOException, SQLException {
         BasicWorkflowItem wfi = basicWorkflowItemService.find(c, Integer.parseInt(wfId));
         if (wfi != null) {
             if (curate(curator, c, wfi)) {
@@ -147,10 +146,10 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         }
         return false;
     }
-    
+
     @Override
     public boolean curate(Curator curator, Context c, BasicWorkflowItem wfi)
-            throws AuthorizeException, IOException, SQLException {
+        throws AuthorizeException, IOException, SQLException {
         FlowStep step = getFlowStep(wfi);
         if (step != null) {
             // assign collection to item in case task needs it
@@ -171,7 +170,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
                     // if task so empowered, reject submission and terminate
                     if ("reject".equals(action)) {
                         basicWorkflowService.sendWorkflowItemBackSubmission(c, wfi, c.getCurrentUser(),
-                                null, task.name + ": " + result);
+                                                                            null, task.name + ": " + result);
                         return false;
                     }
                 } else if (status == Curator.CURATE_SUCCESS) {
@@ -191,19 +190,19 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         }
         return true;
     }
-    
+
     protected void notifyContacts(Context c, BasicWorkflowItem wfi, Task task,
-                                       String status, String action, String message)
-            throws AuthorizeException, IOException, SQLException  {
+                                  String status, String action, String message)
+        throws AuthorizeException, IOException, SQLException {
         List<EPerson> epa = resolveContacts(c, task.getContacts(status), wfi);
         if (epa.size() > 0) {
             basicWorkflowService.notifyOfCuration(c, wfi, epa, task.name, action, message);
         }
     }
-    
+
     protected List<EPerson> resolveContacts(Context c, List<String> contacts,
-                                             BasicWorkflowItem wfi)
-                    throws AuthorizeException, IOException, SQLException {
+                                            BasicWorkflowItem wfi)
+        throws AuthorizeException, IOException, SQLException {
         List<EPerson> epList = new ArrayList<EPerson>();
         for (String contact : contacts) {
             // decode contacts
@@ -224,7 +223,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
                 }
             } else if ("$siteadmin".equals(contact)) {
                 EPerson siteEp = ePersonService.findByEmail(c,
-                        configurationService.getProperty("mail.admin"));
+                                                            configurationService.getProperty("mail.admin"));
                 if (siteEp != null) {
                     epList.add(siteEp);
                 }
@@ -239,12 +238,12 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
                 Group group = groupService.findByName(c, contact);
                 if (group != null) {
                     epList.addAll(groupService.allMembers(c, group));
-                } 
+                }
             }
         }
         return epList;
     }
-    
+
     protected FlowStep getFlowStep(BasicWorkflowItem wfi) {
         Collection coll = wfi.getCollection();
         String key = tsMap.containsKey(coll.getHandle()) ? coll.getHandle() : "default";
@@ -259,23 +258,20 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         }
         return null;
     }
-    
+
     protected int state2step(int state) {
-        if (state <= BasicWorkflowServiceImpl.WFSTATE_STEP1POOL)
-        {
+        if (state <= BasicWorkflowServiceImpl.WFSTATE_STEP1POOL) {
             return 1;
         }
-        if (state <= BasicWorkflowServiceImpl.WFSTATE_STEP2POOL)
-        {
+        if (state <= BasicWorkflowServiceImpl.WFSTATE_STEP2POOL) {
             return 2;
         }
-        if (state <= BasicWorkflowServiceImpl.WFSTATE_STEP3POOL)
-        {
+        if (state <= BasicWorkflowServiceImpl.WFSTATE_STEP3POOL) {
             return 3;
         }
         return 4;
     }
-    
+
     protected int stepName2step(String name) {
         for (int i = 0; i < flowSteps.length; i++) {
             if (flowSteps[i].equals(name)) {
@@ -286,7 +282,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         log.warn("Invalid step: '" + name + "' provided");
         return -1;
     }
-    
+
     protected void loadTaskConfig(File cfgFile) throws IOException {
         Map<String, String> collMap = new HashMap<String, String>();
         Map<String, TaskSet> setMap = new HashMap<String, TaskSet>();
@@ -297,7 +293,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
         try {
             XMLInputFactory factory = XMLInputFactory.newInstance();
             XMLStreamReader reader = factory.createXMLStreamReader(
-                                     new FileInputStream(cfgFile), "UTF-8");
+                new FileInputStream(cfgFile), "UTF-8");
             while (reader.hasNext()) {
                 int event = reader.next();
                 if (event == START_ELEMENT) {
@@ -310,8 +306,8 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
                     } else if ("flowstep".equals(eName)) {
                         int count = reader.getAttributeCount();
                         String queue = (count == 2) ?
-                                       reader.getAttributeValue(1) : null;
-                        flowStep = new FlowStep(reader.getAttributeValue(0), queue);       
+                            reader.getAttributeValue(1) : null;
+                        flowStep = new FlowStep(reader.getAttributeValue(0), queue);
                     } else if ("task".equals(eName)) {
                         task = new Task(reader.getAttributeValue(0));
                     } else if ("workflow".equals(eName)) {
@@ -322,7 +318,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
                 } else if (event == CHARACTERS) {
                     if (task != null) {
                         if ("power".equals(type)) {
-                            task.addPower(reader.getText()); 
+                            task.addPower(reader.getText());
                         } else {
                             task.addContact(type, reader.getText());
                         }
@@ -342,7 +338,7 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
             reader.close();
             // stitch maps together
             for (Map.Entry<String, String> collEntry : collMap.entrySet()) {
-                if (! "none".equals(collEntry.getValue()) && setMap.containsKey(collEntry.getValue())) {
+                if (!"none".equals(collEntry.getValue()) && setMap.containsKey(collEntry.getValue())) {
                     tsMap.put(collEntry.getKey(), setMap.get(collEntry.getValue()));
                 }
             }
@@ -354,55 +350,55 @@ public class WorkflowCuratorServiceImpl implements WorkflowCuratorService
     protected class TaskSet {
         public String setName = null;
         public List<FlowStep> steps = null;
-        
+
         public TaskSet(String setName) {
             this.setName = setName;
             steps = new ArrayList<FlowStep>();
         }
-        
+
         public void addStep(FlowStep step) {
             steps.add(step);
         }
     }
-    
+
     protected class FlowStep {
         public int step = -1;
         public String queue = null;
         public List<Task> tasks = null;
-        
+
         public FlowStep(String stepStr, String queueStr) {
             this.step = stepName2step(stepStr);
             this.queue = queueStr;
             tasks = new ArrayList<Task>();
         }
-        
+
         public void addTask(Task task) {
             tasks.add(task);
         }
     }
-    
+
     protected class Task {
         public String name = null;
         public List<String> powers = new ArrayList<String>();
         public Map<String, List<String>> contacts = new HashMap<String, List<String>>();
-        
+
         public Task(String name) {
             this.name = name;
         }
-        
+
         public void addPower(String power) {
             powers.add(power);
         }
-        
+
         public void addContact(String status, String contact) {
             List<String> sContacts = contacts.get(status);
             if (sContacts == null) {
                 sContacts = new ArrayList<String>();
                 contacts.put(status, sContacts);
-            }  
+            }
             sContacts.add(contact);
         }
-        
+
         public List<String> getContacts(String status) {
             List<String> ret = contacts.get(status);
             return (ret != null) ? ret : new ArrayList<String>();

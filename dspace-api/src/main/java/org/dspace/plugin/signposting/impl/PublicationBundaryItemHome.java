@@ -26,52 +26,48 @@ import org.dspace.plugin.signposting.ItemSignPostingProcessor;
 /**
  * @author Pascarelli Luigi Andrea
  */
-public class PublicationBundaryItemHome implements ItemSignPostingProcessor
-{
+public class PublicationBundaryItemHome implements ItemSignPostingProcessor {
 
-    /** log4j category */
+    /**
+     * log4j category
+     */
     private static Logger log = Logger.getLogger(PublicationBundaryItemHome.class);
-    
+
     private String relation = "item";
-    
+
     @Override
     public void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, Item item)
-            throws PluginException, AuthorizeException
-    {
-        
+                        HttpServletResponse response, Item item)
+        throws PluginException, AuthorizeException {
+
         String handle = item.getHandle();
-        try
-        {
-            for(Bundle bundle : ContentServiceFactory.getInstance().getItemService().getBundles(item, Constants.CONTENT_BUNDLE_NAME)) {
-                for(Bitstream bit : bundle.getBitstreams()) {
+        try {
+            for (Bundle bundle : ContentServiceFactory.getInstance().getItemService()
+                                                      .getBundles(item, Constants.CONTENT_BUNDLE_NAME)) {
+                for (Bitstream bit : bundle.getBitstreams()) {
                     String value = ConfigurationManager.getProperty("dspace.url");
                     String mime = bit.getFormat().getMIMEType();
-                    
+
                     if ((handle != null) && (bit.getSequenceID() > 0)) {
                         value = value + "/bitstream/" + handle + "/" + bit.getSequenceID() + "/";
                     } else {
                         value = value + "/retrieve/" + bit.getID() + "/";
                     }
-            
-                    value = value + Util.encodeBitstreamName(bit.getName(), Constants.DEFAULT_ENCODING);                    
-                    response.addHeader("Link", value + "; rel=\"" + getRelation() +"\"" + "; type=\"" + mime + "\"");    
-                }                
+
+                    value = value + Util.encodeBitstreamName(bit.getName(), Constants.DEFAULT_ENCODING);
+                    response.addHeader("Link", value + "; rel=\"" + getRelation() + "\"" + "; type=\"" + mime + "\"");
+                }
             }
-        }
-        catch (Exception ex)
-        {
+        } catch (Exception ex) {
             log.error("Problem to add signposting pattern", ex);
         }
     }
 
-    public String getRelation()
-    {
+    public String getRelation() {
         return relation;
     }
 
-    public void setRelation(String relation)
-    {
+    public void setRelation(String relation) {
         this.relation = relation;
     }
 

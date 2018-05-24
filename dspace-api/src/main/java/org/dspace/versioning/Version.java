@@ -8,7 +8,6 @@
 package org.dspace.versioning;
 
 import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -29,20 +28,18 @@ import org.dspace.eperson.EPerson;
 import org.hibernate.proxy.HibernateProxyHelper;
 
 /**
- *
- *
  * @author Fabio Bolognesi (fabio at atmire dot com)
  * @author Mark Diggory (markd at atmire dot com)
  * @author Ben Bosman (ben at atmire dot com)
  */
 @Entity
-@Table(name="versionitem")
+@Table(name = "versionitem")
 public class Version implements ReloadableEntity<Integer> {
 
     @Id
-    @Column(name="versionitem_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="versionitem_seq")
-    @SequenceGenerator(name="versionitem_seq", sequenceName="versionitem_seq", allocationSize = 1)
+    @Column(name = "versionitem_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "versionitem_seq")
+    @SequenceGenerator(name = "versionitem_seq", sequenceName = "versionitem_seq", allocationSize = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -74,10 +71,8 @@ public class Version implements ReloadableEntity<Integer> {
      * {@link org.dspace.versioning.service.VersioningService#createNewVersion(Context, Item, String)}
      * or
      * {@link org.dspace.versioning.service.VersioningService#createNewVersion(Context, VersionHistory, Item, String, Date, int)}
-     *
      */
-    protected Version()
-    {
+    protected Version() {
 
     }
 
@@ -135,19 +130,16 @@ public class Version implements ReloadableEntity<Integer> {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-        {
+        if (this == o) {
             return true;
         }
         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(o);
-        if (getClass() != objClass)
-        {
+        if (getClass() != objClass) {
             return false;
         }
 
-        final Version that = (Version)o;
-        if (this.getID() != that.getID())
-        {
+        final Version that = (Version) o;
+        if (this.getID() != that.getID()) {
             return false;
         }
 
@@ -156,8 +148,8 @@ public class Version implements ReloadableEntity<Integer> {
 
     @Override
     public int hashCode() {
-        int hash=7;
-        hash=79*hash+ this.getID();
+        int hash = 7;
+        hash = 79 * hash + this.getID();
         return hash;
     }
 }

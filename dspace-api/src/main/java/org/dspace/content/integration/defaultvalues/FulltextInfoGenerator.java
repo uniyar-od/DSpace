@@ -16,13 +16,11 @@ import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.I18nUtil;
 
-public class FulltextInfoGenerator implements EnhancedValuesGenerator
-{
+public class FulltextInfoGenerator implements EnhancedValuesGenerator {
 
     @Override
     public DefaultValuesBean generateValues(Item item, String schema,
-            String element, String qualifier, String value)
-    {
+                                            String element, String qualifier, String value) {
         DefaultValuesBean result = new DefaultValuesBean();
         result.setLanguage("en");
         result.setMetadataSchema(schema);
@@ -30,23 +28,20 @@ public class FulltextInfoGenerator implements EnhancedValuesGenerator
         result.setMetadataQualifier(qualifier);
 
         String values = I18nUtil
-                .getMessage("defaultvalue.fulltextdescription.nofulltext");
+            .getMessage("defaultvalue.fulltextdescription.nofulltext");
         List<Bundle> bnds;
-        try
-        {
+        try {
             bnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
-        }
-        catch (SQLException e)
-        {
+        } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-        external: for (Bundle bnd : bnds)
-        {
-            internal: for (Bitstream b : bnd.getBitstreams())
-            {
+        external:
+        for (Bundle bnd : bnds) {
+            internal:
+            for (Bitstream b : bnd.getBitstreams()) {
                 // stop on the first bitstream
                 values = I18nUtil.getMessage(
-                        "defaultvalue.fulltextdescription.fulltext");
+                    "defaultvalue.fulltextdescription.fulltext");
                 break external;
             }
         }

@@ -39,7 +39,9 @@ public class IndexEventConsumer implements Consumer {
     // unique search IDs to delete
     private Set<String> uniqueIdsToDelete = null;
 
-    IndexingService indexer = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(IndexingService.class.getName(),IndexingService.class);
+    IndexingService indexer = DSpaceServicesFactory.getInstance().getServiceManager()
+                                                   .getServiceByName(IndexingService.class.getName(),
+                                                                     IndexingService.class);
 
     @Override
     public void initialize() throws Exception {
@@ -63,10 +65,10 @@ public class IndexEventConsumer implements Consumer {
 
         int st = event.getSubjectType();
         if (!(st == Constants.ITEM || st == Constants.BUNDLE
-                || st == Constants.COLLECTION || st == Constants.COMMUNITY)) {
+            || st == Constants.COLLECTION || st == Constants.COMMUNITY)) {
             log
-                    .warn("IndexConsumer should not have been given this kind of Subject in an event, skipping: "
-                            + event.toString());
+                .warn("IndexConsumer should not have been given this kind of Subject in an event, skipping: "
+                          + event.toString());
             return;
         }
 
@@ -82,17 +84,15 @@ public class IndexEventConsumer implements Consumer {
         int et = event.getEventType();
         if (st == Constants.BUNDLE) {
             if ((et == Event.ADD || et == Event.REMOVE) && subject != null
-                    && ((Bundle) subject).getName().equals("TEXT")) {
+                && ((Bundle) subject).getName().equals("TEXT")) {
                 st = Constants.ITEM;
                 et = Event.MODIFY;
                 subject = ((Bundle) subject).getItems().get(0);
-                if (log.isDebugEnabled())
-                {
+                if (log.isDebugEnabled()) {
                     log.debug("Transforming Bundle event into MODIFY of Item "
-                            + subject.getHandle());
+                                  + subject.getHandle());
                 }
-            } else
-            {
+            } else {
                 return;
             }
         }
@@ -101,14 +101,12 @@ public class IndexEventConsumer implements Consumer {
             case Event.CREATE:
             case Event.MODIFY:
             case Event.MODIFY_METADATA:
-                if (subject == null)
-                {
+                if (subject == null) {
                     log.warn(event.getEventTypeAsString() + " event, could not get object for "
-                            + event.getSubjectTypeAsString() + " id="
-                            + String.valueOf(event.getSubjectID())
-                            + ", perhaps it has been deleted.");
-                }
-                else {
+                                 + event.getSubjectTypeAsString() + " id="
+                                 + String.valueOf(event.getSubjectID())
+                                 + ", perhaps it has been deleted.");
+                } else {
                     log.debug("consume() adding event to update queue: " + event.toString());
                     objectsToUpdate.add(subject);
                 }
@@ -116,25 +114,21 @@ public class IndexEventConsumer implements Consumer {
 
             case Event.REMOVE:
             case Event.ADD:
-                if (object == null)
-                {
+                if (object == null) {
                     log.warn(event.getEventTypeAsString() + " event, could not get object for "
-                            + event.getObjectTypeAsString() + " id="
-                            + String.valueOf(event.getObjectID())
-                            + ", perhaps it has been deleted.");
-                }
-                else {
+                                 + event.getObjectTypeAsString() + " id="
+                                 + String.valueOf(event.getObjectID())
+                                 + ", perhaps it has been deleted.");
+                } else {
                     log.debug("consume() adding event to update queue: " + event.toString());
                     objectsToUpdate.add(object);
                 }
                 break;
 
             case Event.DELETE:
-                if (event.getSubjectType() == -1 || event.getSubjectID() == null)
-                {
+                if (event.getSubjectType() == -1 || event.getSubjectID() == null) {
                     log.warn("got null subject type and/or ID on DELETE event, skipping it.");
-                }
-                else {
+                } else {
                     String detail = event.getSubjectType() + "-" + event.getSubjectID().toString();
                     log.debug("consume() adding event to delete queue: " + event.toString());
                     uniqueIdsToDelete.add(detail);
@@ -142,10 +136,10 @@ public class IndexEventConsumer implements Consumer {
                 break;
             default:
                 log
-                        .warn("IndexConsumer should not have been given a event of type="
-                                + event.getEventTypeAsString()
-                                + " on subject="
-                                + event.getSubjectTypeAsString());
+                    .warn("IndexConsumer should not have been given a event of type="
+                              + event.getEventTypeAsString()
+                              + " on subject="
+                              + event.getSubjectTypeAsString());
                 break;
         }
     }
@@ -162,22 +156,22 @@ public class IndexEventConsumer implements Consumer {
 
             // update the changed Items not deleted because they were on create list
             for (UsageEventEntity iu : objectsToUpdate) {
-                /* we let all types through here and 
-                 * allow the search indexer to make 
+                /* we let all types through here and
+                 * allow the search indexer to make
                  * decisions on indexing and/or removal
                  */
-            	//if there are problem with lazy during indexing uncomment follow line and check DS-3660: Fix discovery reindex on metadata change
-            	//iu = ctx.reloadEntity(iu);
+                //if there are problem with lazy during indexing uncomment follow line and check DS-3660: Fix
+                // discovery reindex on metadata change
+                //iu = ctx.reloadEntity(iu);
                 String hdl = iu.getHandle();
                 if (!uniqueIdsToDelete.contains(hdl)) {
                     try {
-                        indexer.indexContent(ctx, (BrowsableDSpaceObject)iu, true, true);
+                        indexer.indexContent(ctx, (BrowsableDSpaceObject) iu, true, true);
                         log.debug("Indexed "
-                                + Constants.typeText[iu.getType()]
-                                + ", id=" + String.valueOf(iu.getID())
-                                + ", handle=" + hdl);
-                    }
-                    catch (Exception e) {
+                                      + Constants.typeText[iu.getType()]
+                                      + ", id=" + String.valueOf(iu.getID())
+                                      + ", handle=" + hdl);
+                    } catch (Exception e) {
                         log.error("Failed while indexing object: ", e);
                     }
                 }
@@ -186,12 +180,10 @@ public class IndexEventConsumer implements Consumer {
             for (String hdl : uniqueIdsToDelete) {
                 try {
                     indexer.unIndexContent(ctx, hdl, true);
-                    if (log.isDebugEnabled())
-                    {
+                    if (log.isDebugEnabled()) {
                         log.debug("UN-Indexed Item, handle=" + hdl);
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     log.error("Failed while UN-indexing object: " + hdl, e);
                 }
 

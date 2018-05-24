@@ -38,10 +38,9 @@ import org.dspace.core.Context;
 import org.dspace.core.SelfNamedPlugin;
 
 public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
-        implements StreamGenericDisseminationCrosswalk, FileNameDisseminator
-{
+    implements StreamGenericDisseminationCrosswalk, FileNameDisseminator {
     private static Logger log = Logger
-            .getLogger(ExcelDisseminationCrosswalk.class);
+        .getLogger(ExcelDisseminationCrosswalk.class);
 
     public static final String CHECK_CONFIGURATION_EXPORT_EXCEL = "excel.exports.extended.flag";
 
@@ -54,27 +53,21 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
     public static final String EXCEL_ID_LABEL = "id";
 
     @Override
-    public boolean canDisseminate(Context context, DSpaceObject dso)
-    {
+    public boolean canDisseminate(Context context, DSpaceObject dso) {
         return (dso.getType() == Constants.ITEM);
     }
 
     @Override
     public void disseminate(Context context, List<BrowsableDSpaceObject> dso,
-            OutputStream out) throws CrosswalkException, IOException,
-                    SQLException, AuthorizeException
-    {
+                            OutputStream out) throws CrosswalkException, IOException,
+        SQLException, AuthorizeException {
 
         // Process each item
         DSpaceCSV csv = new DSpaceCSV(false);
-        for (BrowsableDSpaceObject toExport : dso)
-        {
-            try
-            {
+        for (BrowsableDSpaceObject toExport : dso) {
+            try {
                 csv.addItem((Item) toExport);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
@@ -82,8 +75,7 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
         buildExcel(out, csv);
     }
 
-    private void buildExcel(OutputStream out, DSpaceCSV csv)
-    {
+    private void buildExcel(OutputStream out, DSpaceCSV csv) {
         int rowNum = 0;
 
         HSSFWorkbook wb = new HSSFWorkbook();
@@ -109,8 +101,7 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
         cellCol.setCellValue(new HSSFRichTextString(EXCEL_TYPE_LABEL));
 
         int i = 2;
-        for (String heading : csv.getHeadings())
-        {
+        for (String heading : csv.getHeadings()) {
             cell = xlsRow.createCell(i);
             cell.setCellStyle(headerStyle);
             cell.setCellValue(new HSSFRichTextString(heading));
@@ -119,8 +110,7 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
 
         int exportCounter = 0;
 
-        for (DSpaceCSVLine line : csv.getCSVLines())
-        {
+        for (DSpaceCSVLine line : csv.getCSVLines()) {
             xlsRow = sheet.createRow(++rowNum);
             cell = xlsRow.createCell(0, HSSFCell.CELL_TYPE_NUMERIC);
             writeCell(line.getID(), cell);
@@ -128,14 +118,13 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
             writeCell(line.get("collection"), cell);
 
             i = 2;
-            for (String heading : csv.getHeadings())
-            {
-                List<String> values = line.get(heading);           
+            for (String heading : csv.getHeadings()) {
+                List<String> values = line.get(heading);
                 if (values != null && !"collection".equals(heading)) {
                     cell = xlsRow.createCell(i, HSSFCell.CELL_TYPE_STRING);
                     String value = valueToCell(values,
-                            getValueSeparator());
-                    writeCell(value, cell);                
+                                               getValueSeparator());
+                    writeCell(value, cell);
                 }
                 i++;
             }
@@ -144,73 +133,56 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
 
         log.info("INFO: items exported: " + exportCounter);
 
-        try
-        {
+        try {
             wb.write(out);
-        }
-        catch (IOException ex)
-        {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
 
-    private String getValueSeparator()
-    {
+    private String getValueSeparator() {
         // Get the value separator
         String valueSeparator = ConfigurationManager.getProperty("bulkedit", "valueseparator");
-        if ((valueSeparator != null) && (!"".equals(valueSeparator.trim())))
-        {
+        if ((valueSeparator != null) && (!"".equals(valueSeparator.trim()))) {
             valueSeparator = valueSeparator.trim();
-        }
-        else
-        {
+        } else {
             valueSeparator = "||";
         }
         return valueSeparator;
     }
 
     @Override
-    public String getMIMEType()
-    {
+    public String getMIMEType() {
         return "application/vnd.ms-excel";
     }
 
-    protected static void writeCell(Object value, HSSFCell cell)
-    {
-        if (value instanceof Number)
-        {
+    protected static void writeCell(Object value, HSSFCell cell) {
+        if (value instanceof Number) {
             Number num = (Number) value;
             cell.setCellValue(num.doubleValue());
-        }
-        else if (value instanceof Date)
+        } else if (value instanceof Date) {
             cell.setCellValue((Date) value);
-        else if (value instanceof Calendar)
+        } else if (value instanceof Calendar) {
             cell.setCellValue((Calendar) value);
-        else
-        {
-            if (value.toString().length() > 32750)
-            {
+        } else {
+            if (value.toString().length() > 32750) {
                 value = value.toString().substring(0, 32750);
             }
             cell.setCellValue(new HSSFRichTextString(escapeColumnValue(value)));
         }
     }
 
-    protected static String escapeColumnValue(Object rawValue)
-    {
-        if (rawValue == null)
-        {
+    protected static String escapeColumnValue(Object rawValue) {
+        if (rawValue == null) {
             return null;
-        }
-        else
-        {
+        } else {
             String returnString = ObjectUtils.toString(rawValue);
             returnString = StringEscapeUtils
-                    .escapeJava(StringUtils.trimToEmpty(returnString));
+                .escapeJava(StringUtils.trimToEmpty(returnString));
             returnString = StringUtils.replace(StringUtils.trim(returnString),
-                    "\\t", " ");
+                                               "\\t", " ");
             returnString = StringUtils.replace(StringUtils.trim(returnString),
-                    "\\r", " ");
+                                               "\\r", " ");
             returnString = StringEscapeUtils.unescapeJava(returnString);
             return returnString;
         }
@@ -218,17 +190,13 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
 
     @Override
     public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
-            throws CrosswalkException, IOException, SQLException,
-            AuthorizeException
-    {
+        throws CrosswalkException, IOException, SQLException,
+        AuthorizeException {
         // Process each item
         DSpaceCSV csv = new DSpaceCSV(false);
-        try
-        {
+        try {
             csv.addItem((Item) dso);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
 
@@ -236,38 +204,31 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
     }
 
     @Override
-    public String getFileName()
-    {
+    public String getFileName() {
         String result = ConfigurationManager
-                .getProperty(FILE_NAME_EXPORT_EXCEL);
-        if (StringUtils.isNotEmpty(result))
+            .getProperty(FILE_NAME_EXPORT_EXCEL);
+        if (StringUtils.isNotEmpty(result)) {
             return result;
+        }
         return "export.xls";
     }
 
-    protected String valueToCell(List<String> values, String valueSeparator)
-    {
+    protected String valueToCell(List<String> values, String valueSeparator) {
         // Check there is some content
-        if (values == null)
-        {
+        if (values == null) {
             return "";
         }
 
         // Get on with the work
         String s;
-        if (values.size() == 1)
-        {
+        if (values.size() == 1) {
             s = values.get(0);
-        }
-        else
-        {
+        } else {
             // Concatenate any fields together
             StringBuilder str = new StringBuilder();
 
-            for (String value : values)
-            {
-                if (str.length() > 0)
-                {
+            for (String value : values) {
+                if (str.length() > 0) {
                     str.append(valueSeparator);
                 }
 
@@ -280,8 +241,8 @@ public class ExcelDisseminationCrosswalk extends SelfNamedPlugin
         return s;
     }
 
-	@Override
-	public boolean assignUniqueNumber() {
-		return false;
-	}
+    @Override
+    public boolean assignUniqueNumber() {
+        return false;
+    }
 }

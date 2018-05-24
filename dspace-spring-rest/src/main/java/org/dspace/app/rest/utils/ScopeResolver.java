@@ -13,7 +13,6 @@ import java.util.UUID;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.core.Context;
@@ -35,7 +34,7 @@ public class ScopeResolver {
     CommunityService communityService;
 
     public BrowsableDSpaceObject resolveScope(Context context, String scope) {
-    	BrowsableDSpaceObject scopeObj = null;
+        BrowsableDSpaceObject scopeObj = null;
         if (StringUtils.isNotBlank(scope)) {
             try {
                 UUID uuid = UUID.fromString(scope);
@@ -46,7 +45,9 @@ public class ScopeResolver {
             } catch (IllegalArgumentException ex) {
                 log.warn("The given scope string " + StringUtils.trimToEmpty(scope) + " is not a UUID", ex);
             } catch (SQLException ex) {
-                log.warn("Unable to retrieve DSpace Object with ID " + StringUtils.trimToEmpty(scope) + " from the database", ex);
+                log.warn(
+                    "Unable to retrieve DSpace Object with ID " + StringUtils.trimToEmpty(scope) + " from the database",
+                    ex);
             }
         }
 

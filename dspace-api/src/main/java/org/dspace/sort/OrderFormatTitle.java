@@ -14,14 +14,13 @@ import org.dspace.text.filter.TextFilter;
 
 /**
  * Standard title ordering delegate implementation
- * 
+ *
  * @author Graham Triggs
  */
-public class OrderFormatTitle extends AbstractTextFilterOFD
-{
-	{
-		filters = new TextFilter[] { new StandardInitialArticleWord(),
-									 new DecomposeDiactritics(),
-									 new LowerCaseAndTrim() };
-	}
+public class OrderFormatTitle extends AbstractTextFilterOFD {
+    {
+        filters = new TextFilter[] { new StandardInitialArticleWord(),
+            new DecomposeDiactritics(),
+            new LowerCaseAndTrim() };
+    }
 }

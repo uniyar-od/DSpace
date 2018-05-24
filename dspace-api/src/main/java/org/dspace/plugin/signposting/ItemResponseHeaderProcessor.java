@@ -8,7 +8,6 @@
 package org.dspace.plugin.signposting;
 
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,18 +21,17 @@ import org.dspace.utils.DSpace;
 /**
  * @author Pascarelli Luigi Andrea
  */
-public class ItemResponseHeaderProcessor implements ItemHomeProcessor
-{
+public class ItemResponseHeaderProcessor implements ItemHomeProcessor {
 
     private DSpace dspace = new DSpace();
-    
+
     @Override
     public void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, Item item)
-            throws PluginException, AuthorizeException
-    {
-        List<ItemSignPostingProcessor> spp = dspace.getServiceManager().getServicesByType(ItemSignPostingProcessor.class);
-        for(ItemSignPostingProcessor sp : spp) {
+                        HttpServletResponse response, Item item)
+        throws PluginException, AuthorizeException {
+        List<ItemSignPostingProcessor> spp = dspace.getServiceManager()
+                                                   .getServicesByType(ItemSignPostingProcessor.class);
+        for (ItemSignPostingProcessor sp : spp) {
             sp.process(context, request, response, item);
         }
     }

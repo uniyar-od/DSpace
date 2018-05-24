@@ -9,11 +9,9 @@ package org.dspace.content.integration.crosswalks;
 
 /**
  * Define interface to get file name to showed on download view by configuration.
- * 
- * @author pascarelli
  *
+ * @author pascarelli
  */
-public interface FileNameDisseminator
-{    
-    public String getFileName();  
+public interface FileNameDisseminator {
+    public String getFileName();
 }

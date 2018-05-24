@@ -7,6 +7,24 @@
  */
 package org.dspace.xmlworkflow.storedcomponents;
 
+import java.sql.SQLException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.core.Constants;
@@ -14,13 +32,6 @@ import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-
-import javax.persistence.*;
-import java.sql.SQLException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Pool task representing the database representation of a pool task for a step and an eperson
@@ -31,39 +42,39 @@ import java.util.Map;
  * @author Mark Diggory (markd at atmire dot com)
  */
 @Entity
-@Table(name="cwf_pooltask")
+@Table(name = "cwf_pooltask")
 public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
 
     @Transient
     public transient Map<String, Object> extraInfo = new HashMap<String, Object>();
-    
+
     @Id
-    @Column(name="pooltask_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="cwf_pooltask_seq")
-    @SequenceGenerator(name="cwf_pooltask_seq", sequenceName="cwf_pooltask_seq", allocationSize = 1)
+    @Column(name = "pooltask_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cwf_pooltask_seq")
+    @SequenceGenerator(name = "cwf_pooltask_seq", sequenceName = "cwf_pooltask_seq", allocationSize = 1)
     private Integer id;
 
     @OneToOne
     @JoinColumn(name = "workflowitem_id")
     private XmlWorkflowItem workflowItem;
 
-//    @Column(name = "workflow_id")
+    //    @Column(name = "workflow_id")
 //    @Lob
-    @Column(name="workflow_id", columnDefinition = "text")
+    @Column(name = "workflow_id", columnDefinition = "text")
     private String workflowId;
 
-//    @Column(name = "step_id")
+    //    @Column(name = "step_id")
 //    @Lob
-    @Column(name="step_id", columnDefinition = "text")
+    @Column(name = "step_id", columnDefinition = "text")
     private String stepId;
 
-//    @Column(name = "action_id")
+    //    @Column(name = "action_id")
 //    @Lob
-    @Column(name="action_id", columnDefinition = "text")
+    @Column(name = "action_id", columnDefinition = "text")
     private String actionId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="eperson_id")
+    @JoinColumn(name = "eperson_id")
     private EPerson ePerson;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -74,10 +85,8 @@ public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObjec
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService#create(Context)}
-     *
      */
-    protected PoolTask()
-    {
+    protected PoolTask() {
 
     }
 
@@ -85,39 +94,39 @@ public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObjec
         return id;
     }
 
-    public void setEperson(EPerson eperson){
+    public void setEperson(EPerson eperson) {
         this.ePerson = eperson;
     }
 
-    public EPerson getEperson(){
+    public EPerson getEperson() {
         return ePerson;
     }
 
-    public void setGroup(Group group){
+    public void setGroup(Group group) {
         this.group = group;
     }
 
-    public Group getGroup(){
+    public Group getGroup() {
         return this.group;
     }
 
-    public void setWorkflowID(String id){
+    public void setWorkflowID(String id) {
         this.workflowId = id;
     }
 
-    public String getWorkflowID(){
+    public String getWorkflowID() {
         return workflowId;
     }
 
-    public void setWorkflowItem(XmlWorkflowItem xmlWorkflowItem){
+    public void setWorkflowItem(XmlWorkflowItem xmlWorkflowItem) {
         this.workflowItem = xmlWorkflowItem;
     }
 
-    public XmlWorkflowItem getWorkflowItem(){
+    public XmlWorkflowItem getWorkflowItem() {
         return this.workflowItem;
     }
 
-    public void setStepID(String stepID){
+    public void setStepID(String stepID) {
         this.stepId = stepID;
     }
 
@@ -125,103 +134,103 @@ public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObjec
         return stepId;
     }
 
-    public void setActionID(String actionID){
+    public void setActionID(String actionID) {
         this.actionId = actionID;
     }
 
-    public String getActionID(){
+    public String getActionID() {
         return this.actionId;
     }
 
-	@Override
-	public String getHandle() {
-		return null;
-	}
+    @Override
+    public String getHandle() {
+        return null;
+    }
 
-	@Override
-	public List<String> getMetadataValue(String mdString) {
-		return workflowItem.getItem().getMetadataValue(mdString);
-	}
+    @Override
+    public List<String> getMetadataValue(String mdString) {
+        return workflowItem.getItem().getMetadataValue(mdString);
+    }
 
-	@Override
-	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
-		return workflowItem.getItem().getMetadataValueInDCFormat(mdString);
-	}
+    @Override
+    public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+        return workflowItem.getItem().getMetadataValueInDCFormat(mdString);
+    }
 
-	@Override
-	public String getTypeText() {
-		return "pooltask";
-	}
+    @Override
+    public String getTypeText() {
+        return "pooltask";
+    }
 
-	@Override
-	public int getType() {
-		return Constants.WORKFLOW_POOL;
-	}
+    @Override
+    public int getType() {
+        return Constants.WORKFLOW_POOL;
+    }
 
-	@Override
-	public boolean isWithdrawn() {
-		return false;
-	}
+    @Override
+    public boolean isWithdrawn() {
+        return false;
+    }
 
-	@Override
-	public Map<String, Object> getExtraInfo() {
-		return extraInfo;
-	}
+    @Override
+    public Map<String, Object> getExtraInfo() {
+        return extraInfo;
+    }
 
-	@Override
-	public boolean isArchived() {
-		return false;
-	}
+    @Override
+    public boolean isArchived() {
+        return false;
+    }
 
-	@Override
-	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
-		return workflowItem.getItem().getMetadata(schema, element, qualifier, lang);
-	}
+    @Override
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+        return workflowItem.getItem().getMetadata(schema, element, qualifier, lang);
+    }
 
-	@Override
-	public List<IMetadataValue> getMetadata() {
-		return workflowItem.getItem().getMetadata();
-	}
+    @Override
+    public List<IMetadataValue> getMetadata() {
+        return workflowItem.getItem().getMetadata();
+    }
 
-	@Override
-	public String getMetadata(String field) {
-		return workflowItem.getItem().getMetadata(field);
-	}
+    @Override
+    public String getMetadata(String field) {
+        return workflowItem.getItem().getMetadata(field);
+    }
 
-	@Override
-	public boolean isDiscoverable() {
-		return false;
-	}
+    @Override
+    public boolean isDiscoverable() {
+        return false;
+    }
 
-	@Override
-	public String getName() {
-		return workflowItem.getItem().getName();
-	}
+    @Override
+    public String getName() {
+        return workflowItem.getItem().getName();
+    }
 
-	@Override
-	public String findHandle(Context context) throws SQLException {
-		return null;
-	}
+    @Override
+    public String findHandle(Context context) throws SQLException {
+        return null;
+    }
 
-	@Override
-	public boolean haveHierarchy() {
-		return false;
-	}
+    @Override
+    public boolean haveHierarchy() {
+        return false;
+    }
 
-	@Override
-	public BrowsableDSpaceObject getParentObject() {
-		return getWorkflowItem();
-	}
+    @Override
+    public BrowsableDSpaceObject getParentObject() {
+        return getWorkflowItem();
+    }
 
-	@Override
-	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
-		return workflowItem.getItem().getMetadataFirstValue(schema, element, qualifier, language);
-	}
+    @Override
+    public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+        return workflowItem.getItem().getMetadataFirstValue(schema, element, qualifier, language);
+    }
 
-	@Override
-	public Date getLastModified() {
-		return workflowItem.getItem().getLastModified();
-	}
-    
-    
+    @Override
+    public Date getLastModified() {
+        return workflowItem.getItem().getLastModified();
+    }
+
+
 }

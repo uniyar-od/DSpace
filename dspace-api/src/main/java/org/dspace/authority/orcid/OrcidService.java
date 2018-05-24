@@ -8,11 +8,9 @@
 package org.dspace.authority.orcid;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -27,6 +25,8 @@ import javax.ws.rs.core.Response.Status.Family;
 import javax.ws.rs.core.Response.StatusType;
 import javax.xml.bind.JAXBException;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -44,7 +44,6 @@ import org.dspace.authority.orcid.jaxb.activities.Works;
 import org.dspace.authority.orcid.jaxb.address.Address;
 import org.dspace.authority.orcid.jaxb.address.Addresses;
 import org.dspace.authority.orcid.jaxb.bulk.Bulk;
-import org.dspace.authority.orcid.jaxb.common.SourceType;
 import org.dspace.authority.orcid.jaxb.education.Education;
 import org.dspace.authority.orcid.jaxb.education.EducationSummary;
 import org.dspace.authority.orcid.jaxb.email.Emails;
@@ -65,7 +64,6 @@ import org.dspace.authority.orcid.jaxb.work.Work;
 import org.dspace.authority.orcid.jaxb.work.WorkSummary;
 import org.dspace.authority.rest.RestSource;
 import org.dspace.content.DCPersonName;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.utils.DSpace;
 import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
@@ -73,19 +71,14 @@ import org.orcid.ns.record.Record;
 import org.orcid.ns.search.Result;
 import org.orcid.ns.search.Search;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * Based on works provided by TomDemeranville
- * 
- * https://github.com/TomDemeranville/orcid-java-client
- * 
- * @author l.pascarelli
  *
+ * https://github.com/TomDemeranville/orcid-java-client
+ *
+ * @author l.pascarelli
  */
-public class OrcidService extends RestSource
-{
+public class OrcidService extends RestSource {
 
     /**
      * log4j logger
@@ -93,7 +86,7 @@ public class OrcidService extends RestSource
     private static Logger log = Logger.getLogger(OrcidService.class);
 
     public static final Integer CONSTANT_PART_OF_RESEARCHER_TYPE = 9;
-    
+
     public static final String CONSTANT_OTHERNAME_UUID = "OTHERNAME";
     public static final String CONSTANT_RESEARCHERURL_UUID = "RESEARCHERURL";
     public static final String CONSTANT_EXTERNALIDENTIFIER_UUID = "EXTERNALIDENTIFIER";
@@ -101,7 +94,7 @@ public class OrcidService extends RestSource
     public static final String CONSTANT_KEYWORD_UUID = "KEYWORD";
     public static final String CONSTANT_EMPLOYMENT_UUID = "EMPLOYMENT";
     public static final String CONSTANT_EDUCATION_UUID = "EDUCATION";
-    
+
     public static final String RECORD_ENDPOINT = "/record";
 
     public static final String ACTIVITIES_ENDPOINT = "/activities";
@@ -177,7 +170,7 @@ public class OrcidService extends RestSource
     private static String sourceClientName;
 
     private final MediaType APPLICATION_ORCID_XML = new MediaType("application",
-            "orcid+xml");
+                                                                  "orcid+xml");
 
     private String clientID;
 
@@ -187,21 +180,18 @@ public class OrcidService extends RestSource
 
     private String baseURL;
 
-    public static OrcidService getOrcid()
-    {
-        if (orcid == null)
-        {
+    public static OrcidService getOrcid() {
+        if (orcid == null) {
             orcid = new DSpace().getServiceManager()
-                    .getServiceByName("OrcidSource", OrcidService.class);
+                                .getServiceByName("OrcidSource", OrcidService.class);
             sourceClientName = ConfigurationManager.getProperty(
-                    "authentication-oauth", "application-client-name");
+                "authentication-oauth", "application-client-name");
         }
         return orcid;
     }
 
     private OrcidService(String url, String clientID, String clientSecretKey,
-            String tokenURL) throws JAXBException
-    {
+                         String tokenURL) throws JAXBException {
         super(url);
         this.clientID = clientID;
         this.clientSecretKey = clientSecretKey;
@@ -213,27 +203,22 @@ public class OrcidService extends RestSource
      * "Public" in the ORCID Record for the scholar represented by the specified
      * orcid_id. When used with the Member API, limited-access data is also
      * returned if permissions were grant by the user.
-     * 
+     *
      * Public API
-     * 
+     *
      * @param id
      * @return
      */
-    public Record getRecord(String id)
-    {
+    public Record getRecord(String id) {
 
         OrcidAccessToken token = null;
-        try
-        {
+        try {
             token = getMemberSearchToken();
-        }
-        catch (IOException e)
-        {
+        } catch (IOException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
         String access_token = null;
-        if (token != null)
-        {
+        if (token != null) {
             access_token = token.getAccess_token();
         }
         return getRecord(id, access_token);
@@ -244,130 +229,101 @@ public class OrcidService extends RestSource
      * "Public" in the ORCID Record for the scholar represented by the specified
      * orcid_id. When used with an access token and the Member API,
      * limited-access data is also returned.
-     * 
+     *
      * Member API
-     * 
+     *
      * @param id
      * @param token
      * @return
      */
-    public Record getRecord(String id, String token)
-    {
+    public Record getRecord(String id, String token) {
 
         String endpoint = id + RECORD_ENDPOINT;
         return get(endpoint, token, null).readEntity(Record.class);
 
     }
 
-    public Works getWorks(String id, String token)
-    {
+    public Works getWorks(String id, String token) {
 
         String endpoint = id + WORKS_ENDPOINT;
         Works message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, null).readEntity(Works.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
     }
 
-    public WorkSummary getWorkSummary(String id, String token, String putCode)
-    {
+    public WorkSummary getWorkSummary(String id, String token, String putCode) {
 
         String endpoint = id + WORK_SUMMARY_ENDPOINT;
         WorkSummary message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, putCode)
-                    .readEntity(WorkSummary.class);
-        }
-        catch (Exception e)
-        {
+                .readEntity(WorkSummary.class);
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
     }
 
-    public Work getWork(String id, String token, String putCode)
-    {
+    public Work getWork(String id, String token, String putCode) {
 
         String endpoint = id + WORK_ENDPOINT;
         Work message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, putCode).readEntity(Work.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
     }
 
-    public Fundings getFundings(String id, String token)
-    {
+    public Fundings getFundings(String id, String token) {
 
         String endpoint = id + FUNDINGS_ENDPOINT;
         Fundings message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, null).readEntity(Fundings.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
     }
 
-    public Emails getEmails(String id, String token)
-    {
+    public Emails getEmails(String id, String token) {
 
         String endpoint = id + EMAIL_ENDPOINT;
         Emails message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, null).readEntity(Emails.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
     }
 
-    public PersonalDetails getPersonalDetails(String id, String token)
-    {
+    public PersonalDetails getPersonalDetails(String id, String token) {
 
         String endpoint = id + PERSONAL_DETAILS_ENDPOINT;
         PersonalDetails message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, null)
-                    .readEntity(PersonalDetails.class);
-        }
-        catch (Exception e)
-        {
+                .readEntity(PersonalDetails.class);
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
     }
 
-    public Person getPerson(String id, String token)
-    {
+    public Person getPerson(String id, String token) {
 
         String endpoint = id + PERSON_ENDPOINT;
         Person message = null;
-        try
-        {
+        try {
             message = get(endpoint, token, null).readEntity(Person.class);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e);
         }
         return message;
@@ -375,22 +331,21 @@ public class OrcidService extends RestSource
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * Internally call getProfile - will be use with the Public API
-     * 
+     *
      * @see
      * org.dspace.authority.rest.RestSource#queryAuthorityID(java.lang.String)
      */
     @Override
-    public AuthorityValue queryAuthorityID(String id)
-    {
+    public AuthorityValue queryAuthorityID(String id) {
         Record bio = getRecord(id);
         return OrcidAuthorityValue.create(bio);
     }
 
     /**
      * Used to retrieve Orcid Profile
-     * 
+     *
      * @param text
      * @param start
      * @param max
@@ -398,24 +353,21 @@ public class OrcidService extends RestSource
      * @throws IOException
      */
     public List<AuthorityValue> queryOrcidBioByFamilyNameAndGivenName(
-            String text, int start, int max) throws IOException
-    {
+        String text, int start, int max) throws IOException {
         DCPersonName tmpPersonName = new DCPersonName(text);
 
         String query = "";
-        if (StringUtils.isNotBlank(tmpPersonName.getLastName()))
-        {
+        if (StringUtils.isNotBlank(tmpPersonName.getLastName())) {
             query += "family-name:(" + tmpPersonName.getLastName().trim()
-                    + (StringUtils.isNotBlank(tmpPersonName.getFirstNames())
-                            ? "" : "*")
-                    + ")";
+                + (StringUtils.isNotBlank(tmpPersonName.getFirstNames())
+                ? "" : "*")
+                + ")";
         }
 
-        if (StringUtils.isNotBlank(tmpPersonName.getFirstNames()))
-        {
+        if (StringUtils.isNotBlank(tmpPersonName.getFirstNames())) {
             query += (query.length() > 0 ? " AND given-names:("
-                    : "given-names:(") + tmpPersonName.getFirstNames().trim()
-                    + "*)";
+                : "given-names:(") + tmpPersonName.getFirstNames().trim()
+                + "*)";
         }
 
         query += " OR other-names:(" + text + ")";
@@ -426,9 +378,8 @@ public class OrcidService extends RestSource
     }
 
     /**
-     * 
      * Perform a search against the Public API or Member API
-     * 
+     *
      * @param query
      * @param page
      * @param pagesize
@@ -436,38 +387,29 @@ public class OrcidService extends RestSource
      * @throws IOException
      */
     public List<Result> search(String query, int page, int pagesize)
-            throws IOException
-    {
-        if (query == null || query.isEmpty())
-        {
+        throws IOException {
+        if (query == null || query.isEmpty()) {
             throw new IllegalArgumentException();
         }
 
         WebTarget target = restConnector.getClientRest(SEARCH_ENDPOINT);
         target = target.queryParam("q", query);
-        if (pagesize >= 0)
-        {
+        if (pagesize >= 0) {
             target = target.queryParam("rows", Integer.toString(pagesize));
         }
-        if (page >= 0)
-        {
+        if (page >= 0) {
             target = target.queryParam("start", Integer.toString(page));
         }
 
         Builder builder = target.request().accept(APPLICATION_ORCID_XML);
         List<Result> reader = null;
-        try
-        {
+        try {
             reader = builder.get().readEntity(Search.class).getResult();
-        }
-        catch (ForbiddenException | MessageBodyProviderNotFoundException e1)
-        {
+        } catch (ForbiddenException | MessageBodyProviderNotFoundException e1) {
             builder = builder.header(HttpHeaders.AUTHORIZATION,
-                    "Bearer " + getMemberSearchToken().getAccess_token());
+                                     "Bearer " + getMemberSearchToken().getAccess_token());
             reader = builder.get().readEntity(Search.class).getResult();
-        }
-        catch (Exception e2)
-        {
+        } catch (Exception e2) {
             log.info("Problem unmarshalling return value " + e2);
             throw new IOException(e2);
         }
@@ -475,29 +417,25 @@ public class OrcidService extends RestSource
     }
 
     /**
-     * 
      * Allows an ORCID client to obtain an OAuth Access Token to make Public API
      * calls using the Member API (and its service level agreement).
-     * 
+     *
      * @return
      * @throws IOException
      */
-    public OrcidAccessToken getMemberSearchToken() throws IOException
-    {
+    public OrcidAccessToken getMemberSearchToken() throws IOException {
         String code = READ_PUBLIC_SCOPE;
         return getAccessToken(code, "scope", "client_credentials");
     }
 
     /**
-     * 
      * Allows an ORCID client to obtain an OAuth Access Token to create new
      * ORCID iDs and Records
-     * 
+     *
      * @return
      * @throws IOException
      */
-    public OrcidAccessToken getMemberProfileCreateToken() throws IOException
-    {
+    public OrcidAccessToken getMemberProfileCreateToken() throws IOException {
         String code = PROFILE_CREATE_SCOPE;
         return getAccessToken(code, "scope", "client_credentials");
     }
@@ -505,36 +443,33 @@ public class OrcidService extends RestSource
     /**
      * Allows an ORCID member client to exchange an OAuth Authorization Code for
      * an OAuth Access Token.
-     * 
+     *
      * @return
      * @throws IOException
      */
     public OrcidAccessToken getAuthorizationAccessToken(String code)
-            throws IOException
-    {
+        throws IOException {
         return getAccessToken(code, "code", "authorization_code");
     }
 
     /**
      * Allows an ORCID client to exchange an OAuth Authorization Code for an
      * OAuth Access Token for a specific access scope.
-     * 
+     *
      * @param code
      * @return
      * @throws IOException
      * @throws JsonProcessingException
      */
     private OrcidAccessToken getAccessToken(String code, String codeOrScope,
-            String grantType) throws IOException, JsonProcessingException
-    {
+                                            String grantType) throws IOException, JsonProcessingException {
         if (StringUtils.isBlank(clientID)
-                || StringUtils.isBlank(clientSecretKey))
-        {
+            || StringUtils.isBlank(clientSecretKey)) {
             return null;
         }
 
         Client client = ClientBuilder
-                .newClient(restConnector.getClientConfig());
+            .newClient(restConnector.getClientConfig());
         WebTarget target = client.target(tokenURL);
         Form form = new Form();
         form.param("client_id", clientID);
@@ -544,83 +479,75 @@ public class OrcidService extends RestSource
         Builder builder = target.request().accept(MediaType.APPLICATION_JSON);
         String response = builder.post(Entity.form(form), String.class);
         return new ObjectMapper().reader(OrcidAccessToken.class)
-                .readValue(response);
+                                 .readValue(response);
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * Internal call "search" method, this will be use by Public API and Member
      * API
-     * 
+     *
      * @see
      * org.dspace.authority.rest.RestSource#queryAuthorities(java.lang.String,
      * java.lang.String, int, int)
      */
     @Override
     public List<AuthorityValue> queryAuthorities(String field, String text,
-            int start, int max) throws IOException
-    {
+                                                 int start, int max) throws IOException {
         List<Result> results = search(field + ":" + URLEncoder.encode(text),
-                start, max);
+                                      start, max);
 
         return getAuthorityValuesFromOrcidResults(results);
     }
 
     /**
      * From JAXB OrcidSearchResults to AuthorityValue
-     * 
+     *
      * @param results
      * @return
      */
     private List<AuthorityValue> getAuthorityValuesFromOrcidResults(
-            List<Result> results)
-    {
+        List<Result> results) {
         List<AuthorityValue> authorities = new ArrayList<AuthorityValue>();
-        for (Result result : results)
-        {
+        for (Result result : results) {
             authorities.add(OrcidAuthorityValue.create(
-                    get(result.getOrcidIdentifier().getUriPath(), null, null)
-                            .readEntity(Record.class)));
+                get(result.getOrcidIdentifier().getUriPath(), null, null)
+                    .readEntity(Record.class)));
         }
         return authorities;
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * Internal call "search" method, this will be use by Public API and Member
      * API
-     * 
+     *
      * @see
      * org.dspace.authority.rest.RestSource#queryAuthorities(java.lang.String,
      * int)
      */
     @Override
     public List<AuthorityValue> queryAuthorities(String text, int max)
-            throws IOException
-    {
+        throws IOException {
         List<Result> results = search(URLEncoder.encode(text), 0, max);
 
         return getAuthorityValuesFromOrcidResults(results);
     }
 
-    public String getBaseURL()
-    {
+    public String getBaseURL() {
         return baseURL;
     }
 
-    public void setBaseURL(String baseURL)
-    {
+    public void setBaseURL(String baseURL) {
         this.baseURL = baseURL;
     }
 
-    public static String getSourceClientName()
-    {
-        if (sourceClientName == null)
-        {
+    public static String getSourceClientName() {
+        if (sourceClientName == null) {
             sourceClientName = ConfigurationManager.getProperty(
-                    "authentication-oauth", "application-client-name");
+                "authentication-oauth", "application-client-name");
         }
         return sourceClientName;
     }
@@ -631,10 +558,9 @@ public class OrcidService extends RestSource
 
     /**
      * Adds work
-     * 
+     *
      * Member API, require '/activities/update' scope.
-     * 
-     * 
+     *
      * @param id
      * @param token
      * @param work
@@ -642,44 +568,32 @@ public class OrcidService extends RestSource
      * @throws JAXBException
      */
     public String appendWork(String id, String token, Work work)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + WORK_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(work, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(work, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     /* Bulks */
-    public Bulk appendWorks(String id, String token, Bulk bulk)
-    {
+    public Bulk appendWorks(String id, String token, Bulk bulk) {
         String endpoint = id + WORKS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(bulk, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(bulk, MediaType.APPLICATION_XML_TYPE));
             return response.readEntity(Bulk.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
@@ -687,10 +601,9 @@ public class OrcidService extends RestSource
 
     /**
      * Update work
-     * 
+     *
      * Member API, require '/activities/update' scope.
-     * 
-     * 
+     *
      * @param id
      * @param token
      * @param work
@@ -698,50 +611,40 @@ public class OrcidService extends RestSource
      * @throws JAXBException
      */
     public StatusType putWork(String id, String token, String putCode,
-            Work work) throws IOException, JAXBException
-    {
+                              Work work) throws IOException, JAXBException {
         String endpoint = id + WORK_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(work, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(work, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteWork(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + WORK_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
-    
+
     // Fundings
+
     /**
      * Add funding
-     * 
+     *
      * Member API, require '/activities/update' scope.
-     * 
-     * 
+     *
      * @param id
      * @param token
      * @param work
@@ -749,42 +652,30 @@ public class OrcidService extends RestSource
      * @throws JAXBException
      */
     public String appendFunding(String id, String token, Funding funding)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + FUNDING_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(funding, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(funding, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
-    
+
     public void deleteFunding(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + FUNDING_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
@@ -792,10 +683,9 @@ public class OrcidService extends RestSource
 
     /**
      * Update funding
-     * 
+     *
      * Member API, require '/activities/update' scope.
-     * 
-     * 
+     *
      * @param id
      * @param token
      * @param work
@@ -803,89 +693,68 @@ public class OrcidService extends RestSource
      * @throws JAXBException
      */
     public StatusType putFunding(String id, String token, String putCode,
-            Funding funding) throws IOException, JAXBException
-    {
+                                 Funding funding) throws IOException, JAXBException {
         String endpoint = id + FUNDING_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(funding, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(funding, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public Employments getEmployments(String id, final String token)
-    {
+    public Employments getEmployments(String id, final String token) {
         String endpoint = id + EMPLOYMENTS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(Employments.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public Employment getEmployment(String id, final String token, final String putCode)
-    {
+    public Employment getEmployment(String id, final String token, final String putCode) {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(Employment.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public EmploymentSummary getEmploymentSummary(String id, final String token,
-            final String putCode)
-    {
+                                                  final String putCode) {
         String endpoint = id + EMPLOYMENT_SUMMARY_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(EmploymentSummary.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     /**
-     * 
      * Employment Update
-     * 
+     *
      * Member API
-     * 
+     *
      * @param id
      * @param token
      * @param profile
@@ -894,707 +763,519 @@ public class OrcidService extends RestSource
      * @throws JAXBException
      */
     public StatusType putEmployment(String id, String token, String putCode,
-            Employment employment) throws IOException, JAXBException
-    {
+                                    Employment employment) throws IOException, JAXBException {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(employment, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(employment, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteEmployment(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendEmployment(String id, String token,
-            Employment employment) throws IOException, JAXBException
-    {
+                                   Employment employment) throws IOException, JAXBException {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(employment, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(employment, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }        
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public Educations getEducations(String id, final String token)
-    {
+    public Educations getEducations(String id, final String token) {
         String endpoint = id + EDUCATIONS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(Educations.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public Education getEducation(String id, final String token, final String putCode)
-    {
+    public Education getEducation(String id, final String token, final String putCode) {
         String endpoint = id + EDUCATION_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(Education.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public EducationSummary getEducationSummary(String id, final String token,
-            final String putCode)
-    {
+                                                final String putCode) {
         String endpoint = id + EDUCATION_SUMMARY_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(EducationSummary.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public StatusType putEducation(String id, String token, String putCode,
-            Education education) throws IOException, JAXBException
-    {
+                                   Education education) throws IOException, JAXBException {
         String endpoint = id + EDUCATION_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(education, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(education, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteEducation(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + EDUCATION_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendEducation(String id, String token, Education education)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + EDUCATION_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(education, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(education, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }        
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public OtherNames getOtherNames(String id, final String token)
-    {
+    public OtherNames getOtherNames(String id, final String token) {
         String endpoint = id + OTHER_NAMES_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(OtherNames.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public OtherName getOtherName(String id, final String token, final String putCode)
-    {
+    public OtherName getOtherName(String id, final String token, final String putCode) {
         String endpoint = id + OTHER_NAMES_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(OtherName.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    
+
     public StatusType putOtherName(String id, String token, String putCode,
-            OtherName otherName) throws IOException, JAXBException
-    {
+                                   OtherName otherName) throws IOException, JAXBException {
         String endpoint = id + OTHER_NAMES_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(otherName, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(otherName, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteOtherName(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + OTHER_NAMES_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendOtherName(String id, String token, OtherName otherName)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + OTHER_NAMES_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(otherName, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(otherName, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }        
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
-    
+
     //EXTIDS
-    public ExternalIdentifiers getExternalIdentifiers(String id, final String token)
-    {
+    public ExternalIdentifiers getExternalIdentifiers(String id, final String token) {
         String endpoint = id + EXTERNAL_IDENTIFIERS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(ExternalIdentifiers.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public ExternalIdentifier getExternalIdentifier(String id, final String token, final String putCode)
-    {
+    public ExternalIdentifier getExternalIdentifier(String id, final String token, final String putCode) {
         String endpoint = id + EXTERNAL_IDENTIFIERS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(ExternalIdentifier.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    
+
     public StatusType putExternalIdentifier(String id, String token, String putCode,
-            ExternalIdentifier externalIdentifier) throws IOException, JAXBException
-    {
+                                            ExternalIdentifier externalIdentifier) throws IOException, JAXBException {
         String endpoint = id + EXTERNAL_IDENTIFIERS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(externalIdentifier, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(externalIdentifier, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteExternalIdentifier(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + EXTERNAL_IDENTIFIERS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendExternalIdentifier(String id, String token, ExternalIdentifier externalIdentifier)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + EXTERNAL_IDENTIFIERS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(externalIdentifier, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(externalIdentifier, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }        
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
-    
-    //RESEARCHER URL    
-    public ResearcherUrls getResearcherUrls(String id, final String token)
-    {
+
+    //RESEARCHER URL
+    public ResearcherUrls getResearcherUrls(String id, final String token) {
         String endpoint = id + RESEARCHER_URLS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(ResearcherUrls.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public ResearcherUrl getResearcherUrl(String id, final String token, final String putCode)
-    {
+    public ResearcherUrl getResearcherUrl(String id, final String token, final String putCode) {
         String endpoint = id + RESEARCHER_URLS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(ResearcherUrl.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    
+
     public StatusType putResearcherUrl(String id, String token, String putCode,
-            ResearcherUrl researcherUrl) throws IOException, JAXBException
-    {
+                                       ResearcherUrl researcherUrl) throws IOException, JAXBException {
         String endpoint = id + RESEARCHER_URLS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(researcherUrl, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(researcherUrl, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteResearcherUrl(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + RESEARCHER_URLS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendResearcherUrl(String id, String token, ResearcherUrl researcherUrl)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + RESEARCHER_URLS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(researcherUrl, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(researcherUrl, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }        
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
-    
+
     //ADDRESS
-    public Addresses getAddresses(String id, final String token)
-    {
+    public Addresses getAddresses(String id, final String token) {
         String endpoint = id + ADDRESS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(Addresses.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public Address getAddress(String id, final String token, final String putCode)
-    {
+    public Address getAddress(String id, final String token, final String putCode) {
         String endpoint = id + ADDRESS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(Address.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    
+
     public StatusType putAddress(String id, String token, String putCode,
-            Address address) throws IOException, JAXBException
-    {
+                                 Address address) throws IOException, JAXBException {
         String endpoint = id + ADDRESS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(address, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(address, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteAddress(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + ADDRESS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendAddress(String id, String token, Address address)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + ADDRESS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(address, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(address, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
-    } 
+    }
 
     // KEYWORD
-    public Keywords getKeywords(String id, final String token)
-    {
+    public Keywords getKeywords(String id, final String token) {
         String endpoint = id + KEYWORDS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, null);
 
             return response.readEntity(Keywords.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    public Keyword getKeyword(String id, final String token, final String putCode)
-    {
+    public Keyword getKeyword(String id, final String token, final String putCode) {
         String endpoint = id + KEYWORDS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = get(endpoint, token, putCode);
 
             return response.readEntity(Keyword.class);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
-    
+
     public StatusType putKeyword(String id, String token, String putCode,
-            Keyword keyword) throws IOException, JAXBException
-    {
+                                 Keyword keyword) throws IOException, JAXBException {
         String endpoint = id + KEYWORDS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = put(endpoint, token, putCode,
-                    Entity.entity(keyword, MediaType.APPLICATION_XML_TYPE));
+                           Entity.entity(keyword, MediaType.APPLICATION_XML_TYPE));
             return response.getStatusInfo();
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public void deleteKeyword(String id, String token, String putCode)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + KEYWORDS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = delete(endpoint, token, putCode);
-        }
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
     }
 
     public String appendKeyword(String id, String token, Keyword keyword)
-            throws IOException, JAXBException
-    {
+        throws IOException, JAXBException {
         String endpoint = id + KEYWORDS_ENDPOINT;
         Response response = null;
-        try
-        {
+        try {
             response = post(endpoint, token,
-                    Entity.entity(keyword, MediaType.APPLICATION_XML_TYPE));
+                            Entity.entity(keyword, MediaType.APPLICATION_XML_TYPE));
             return retrievePutCode(response);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             throw new RuntimeException(e);
-        }        
-        finally
-        {
-            if (response != null)
-            {
+        } finally {
+            if (response != null) {
                 response.close();
             }
         }
-    }    
-    
+    }
+
     // Utility call
-    public int higherDisplayIndex(WorkGroup orcidGroup)
-    {
+    public int higherDisplayIndex(WorkGroup orcidGroup) {
         int higher = 0;
-        for (WorkSummary orcidSummary : orcidGroup.getWorkSummary())
-        {
-            if (StringUtils.isNotBlank(orcidSummary.getDisplayIndex()))
-            {
+        for (WorkSummary orcidSummary : orcidGroup.getWorkSummary()) {
+            if (StringUtils.isNotBlank(orcidSummary.getDisplayIndex())) {
                 int current = Integer.parseInt(orcidSummary.getDisplayIndex());
-                if (current > higher)
-                {
+                if (current > higher) {
                     higher = current;
                 }
             }
@@ -1603,43 +1284,36 @@ public class OrcidService extends RestSource
     }
 
     // Higher level call
+
     /**
      * HTTP GET method using to read resources from WS-REST
-     * 
+     *
      * @param endpoint
      * @param token
      * @param putCode
      * @return
      */
     private <T> Response get(String endpoint, final String token,
-            final String putCode)
-    {
+                             final String putCode) {
         Response response = null;
-        if (StringUtils.isNotBlank(putCode))
-        {
+        if (StringUtils.isNotBlank(putCode)) {
             endpoint = endpoint + "/" + putCode;
         }
         WebTarget target = restConnector.getClientRest(endpoint);
 
-        if (token != null)
-        {
+        if (token != null) {
             response = target.request()
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .accept(APPLICATION_ORCID_XML).acceptEncoding("UTF-8")
-                    .get();
-        }
-        else
-        {
-            try
-            {
+                             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                             .accept(APPLICATION_ORCID_XML).acceptEncoding("UTF-8")
+                             .get();
+        } else {
+            try {
                 response = target.request().header(HttpHeaders.AUTHORIZATION,
-                        "Bearer " + getAccessToken(READ_PUBLIC_SCOPE, "scope",
-                                "client_credentials").getAccess_token())
-                        .accept(APPLICATION_ORCID_XML).acceptEncoding("UTF-8")
-                        .get();
-            }
-            catch (IOException e)
-            {
+                                                   "Bearer " + getAccessToken(READ_PUBLIC_SCOPE, "scope",
+                                                                              "client_credentials").getAccess_token())
+                                 .accept(APPLICATION_ORCID_XML).acceptEncoding("UTF-8")
+                                 .get();
+            } catch (IOException e) {
 
             }
         }
@@ -1652,20 +1326,19 @@ public class OrcidService extends RestSource
 
     /**
      * HTTP POST method used to add resource
-     * 
+     *
      * @param endpoint
      * @param token
      * @param entity
      * @return
      */
     private <T> Response post(String endpoint, final String token,
-            final Entity<T> entity)
-    {
+                              final Entity<T> entity) {
         Response response = null;
         WebTarget target = restConnector.getClientRest(endpoint);
         Builder builder = target.request().accept(APPLICATION_ORCID_XML)
-                .acceptEncoding("UTF-8")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                                .acceptEncoding("UTF-8")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         response = builder.post(entity);
         log.debug("[POST] " + response.getStatus());
         log.debug("[POST] " + response.getStatusInfo().getReasonPhrase());
@@ -1675,7 +1348,7 @@ public class OrcidService extends RestSource
 
     /**
      * HTTP PUT method used to update resource by putCode
-     * 
+     *
      * @param endpoint
      * @param token
      * @param putCode
@@ -1683,14 +1356,13 @@ public class OrcidService extends RestSource
      * @return
      */
     private <T> Response put(String endpoint, final String token,
-            final String putCode, final Entity<T> entity)
-    {
+                             final String putCode, final Entity<T> entity) {
         Response response;
         WebTarget target = restConnector
-                .getClientRest(endpoint + "/" + putCode);
+            .getClientRest(endpoint + "/" + putCode);
         Builder builder = target.request().accept(APPLICATION_ORCID_XML)
-                .acceptEncoding("UTF-8")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                                .acceptEncoding("UTF-8")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         response = builder.put(entity);
         log.debug("[PUT] " + response.getStatus());
         log.debug("[PUT] " + response.getStatusInfo().getReasonPhrase());
@@ -1700,21 +1372,20 @@ public class OrcidService extends RestSource
 
     /**
      * HTTP DELETE method used to delete resource by putCode
-     * 
+     *
      * @param endpoint
      * @param token
      * @param putCode
      * @return
      */
     private <T> Response delete(String endpoint, final String token,
-            final String putCode)
-    {
+                                final String putCode) {
         Response response;
         WebTarget target = restConnector.getClientRest(endpoint
-                + (StringUtils.isNotBlank(putCode) ? ("/" + putCode) : ""));
+                                                           + (StringUtils.isNotBlank(putCode) ? ("/" + putCode) : ""));
         Builder builder = target.request().accept(APPLICATION_ORCID_XML)
-                .acceptEncoding("UTF-8")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
+                                .acceptEncoding("UTF-8")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
         response = builder.delete();
         log.debug("[DELETE] " + response.getStatus());
         log.debug("[DELETE] " + response.getStatusInfo().getReasonPhrase());
@@ -1722,40 +1393,35 @@ public class OrcidService extends RestSource
         return response;
     }
 
-    public String retrievePutCode(Response response) throws Exception
-    {
+    public String retrievePutCode(Response response) throws Exception {
         StatusType status = response.getStatusInfo();
-        if (status != null)
-        {
-            if (!Family.SUCCESSFUL.equals(status.getFamily()))
-            {
+        if (status != null) {
+            if (!Family.SUCCESSFUL.equals(status.getFamily())) {
                 log.error("[REASON]" + status.getStatusCode() + ":"
-                        + status.getReasonPhrase());
+                              + status.getReasonPhrase());
                 throw new Exception(status.getStatusCode() + ":"
-                        + status.getReasonPhrase());
+                                        + status.getReasonPhrase());
             }
         }
         String location = response.getLocation().toString();
-        if (location != null && !"".equals(location))
-        {
+        if (location != null && !"".equals(location)) {
             String putCode = location.substring(location.lastIndexOf("/") + 1,
-                    location.length());
-            if (putCode.matches("\\d+"))
+                                                location.length());
+            if (putCode.matches("\\d+")) {
                 return putCode;
+            }
         }
 
         return null;
     }
 
-    public static boolean isValid(final String orcid)
-    {
+    public static boolean isValid(final String orcid) {
         return orcid.matches(
-                "([0-9]{4})-([0-9]{4})-([0-9]{4})-([0-9]{3})(?:[0-9X]{1})");
+            "([0-9]{4})-([0-9]{4})-([0-9]{4})-([0-9]{3})(?:[0-9X]{1})");
     }
 
     public static void main(String[] args)
-            throws JAXBException, IOException, ParseException
-    {
+        throws JAXBException, IOException, ParseException {
         CommandLineParser parser = new PosixParser();
 
         Options options = new Options();
@@ -1765,45 +1431,39 @@ public class OrcidService extends RestSource
 
         CommandLine line = parser.parse(options, args);
 
-        if (line.hasOption('h'))
-        {
+        if (line.hasOption('h')) {
             HelpFormatter myhelp = new HelpFormatter();
             myhelp.printHelp("OrcidService \n", options);
             System.out.println(
-                    "\n\nUSAGE:\n OrcidService -i <yourclientid> -s <yourclientsecret>\n");
+                "\n\nUSAGE:\n OrcidService -i <yourclientid> -s <yourclientsecret>\n");
             System.out.println(
-                    "\n\nEXAMPLE:\n OrcidService -i XACASCASCSACASAC -s d0adf2-3232-3223-3232\n");
+                "\n\nEXAMPLE:\n OrcidService -i XACASCASCSACASAC -s d0adf2-3232-3223-3232\n");
             System.exit(0);
         }
 
-        if (line.hasOption('i') && line.hasOption('s'))
-        {
+        if (line.hasOption('i') && line.hasOption('s')) {
             String clientid = line.getOptionValue("i");
             String secretid = line.getOptionValue("s");
             System.out.println(
-                    "Try to validate against ORCID MEMBER API 'https://api.orcid.org/v2.0' and ORCID MEMBER TOKEN URL 'https://orcid.org/oauth/token'");
+                "Try to validate against ORCID MEMBER API 'https://api.orcid.org/v2.0' and ORCID MEMBER TOKEN URL " +
+                    "'https://orcid.org/oauth/token'");
             System.out.println("Your Production Credentials:");
             System.out.println("Client iD:'" + clientid + "'");
             System.out.println("Client Secret:'" + secretid + "'");
 
             OrcidService orcidService = new OrcidService(
-                    "https://api.orcid.org/v2.0", clientid, secretid,
-                    "https://orcid.org/oauth/token");
-            try
-            {
+                "https://api.orcid.org/v2.0", clientid, secretid,
+                "https://orcid.org/oauth/token");
+            try {
                 orcidService.search("test", 1, 1);
                 System.out.println("OK!");
-            }
-            catch (Exception ex)
-            {
+            } catch (Exception ex) {
                 System.out.println("ERROR MESSAGE:" + ex.getMessage());
                 System.out.println("FAILED!");
             }
-        }
-        else
-        {
+        } else {
             System.out.println(
-                    "\n\nUSAGE:\n OrcidService -i <yourclientid> -s <yourclientsecret>\n");
+                "\n\nUSAGE:\n OrcidService -i <yourclientid> -s <yourclientsecret>\n");
             System.out.println("Insert i and s parameters");
             System.out.println("use -h for help");
             System.exit(1);

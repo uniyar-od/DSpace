@@ -28,8 +28,7 @@ public class HarvestedItemServiceImpl implements HarvestedItemService {
     @Autowired(required = true)
     protected HarvestedItemDAO harvestedItemDAO;
 
-    protected HarvestedItemServiceImpl()
-    {
+    protected HarvestedItemServiceImpl() {
 
     }
 
@@ -41,12 +40,9 @@ public class HarvestedItemServiceImpl implements HarvestedItemService {
     @Override
     public Item getItemByOAIId(Context context, String itemOaiID, Collection collection) throws SQLException {
         HarvestedItem harvestedItem = harvestedItemDAO.findByOAIId(context, itemOaiID, collection);
-        if(harvestedItem != null)
-        {
+        if (harvestedItem != null) {
             return harvestedItem.getItem();
-        }
-        else
-        {
+        } else {
             return null;
         }
     }

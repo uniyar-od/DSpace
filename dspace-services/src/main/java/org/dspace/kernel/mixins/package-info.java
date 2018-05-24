@@ -4,9 +4,12 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Interfaces for interacting with the startup, shutdown, or
+ * reconfiguration of the framework.
  */
 /**
- * Interfaces for interacting with the startup, shutdown, or 
+ * Interfaces for interacting with the startup, shutdown, or
  * reconfiguration of the framework.
  */
 

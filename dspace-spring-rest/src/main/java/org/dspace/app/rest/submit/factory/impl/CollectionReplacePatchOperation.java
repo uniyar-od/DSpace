@@ -23,41 +23,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Submission "replace" patch operation
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 public class CollectionReplacePatchOperation extends ReplacePatchOperation<String> {
 
-	@Autowired
-	CollectionService collectionService;
-	@Autowired
-	ItemService itemService;
-	@Autowired
-	WorkspaceItemService workspaceItemService;
+    @Autowired
+    CollectionService collectionService;
+    @Autowired
+    ItemService itemService;
+    @Autowired
+    WorkspaceItemService workspaceItemService;
 
-	@Override
-	void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
-			throws SQLException, DCInputsReaderException {
-		if (!(source instanceof WorkspaceItem)) {
-			throw new IllegalArgumentException("the replace operation is only supported on workspaceitem");
-		}
-		WorkspaceItem wsi = (WorkspaceItem) source;
-		String uuid = (String) value;
-		Collection fromCollection = source.getCollection();
-		Collection toCollection = collectionService.find(context, UUIDUtils.fromString(uuid));
-		workspaceItemService.move(context, wsi, fromCollection, toCollection);
+    @Override
+    void replace(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
+        throws SQLException, DCInputsReaderException {
+        if (!(source instanceof WorkspaceItem)) {
+            throw new IllegalArgumentException("the replace operation is only supported on workspaceitem");
+        }
+        WorkspaceItem wsi = (WorkspaceItem) source;
+        String uuid = (String) value;
+        Collection fromCollection = source.getCollection();
+        Collection toCollection = collectionService.find(context, UUIDUtils.fromString(uuid));
+        workspaceItemService.move(context, wsi, fromCollection, toCollection);
 
-	}
+    }
 
-	@Override
-	protected Class<String[]> getArrayClassForEvaluation() {
-		return String[].class;
-	}
+    @Override
+    protected Class<String[]> getArrayClassForEvaluation() {
+        return String[].class;
+    }
 
-	@Override
-	protected Class<String> getClassForEvaluation() {
-		return String.class;
-	}
-	
+    @Override
+    protected Class<String> getClassForEvaluation() {
+        return String.class;
+    }
+
 }

@@ -18,16 +18,15 @@ import org.dspace.eperson.EPerson;
 
 /**
  * Service interface class for the Item object.
- * The implementation of this class is responsible for all business logic calls for the Item object and is autowired by spring
- * 
- * @author Pascarelli Luigi Andrea (luigiandrea.pascarelli at 4science dot it)
+ * The implementation of this class is responsible for all business logic calls for the Item object and is autowired
+ * by spring
  *
+ * @author Pascarelli Luigi Andrea (luigiandrea.pascarelli at 4science dot it)
  */
-public interface EditItemService extends InProgressSubmissionService<EditItem, UUID>
-{
+public interface EditItemService extends InProgressSubmissionService<EditItem, UUID> {
 
     ItemService getItemService();
-    
+
     int countTotal(Context context) throws SQLException;
 
     Iterator<EditItem> findAll(Context context, int pageSize, int offset) throws SQLException;
@@ -35,5 +34,5 @@ public interface EditItemService extends InProgressSubmissionService<EditItem, U
     List<EditItem> findBySubmitter(Context context, EPerson ep, int pageSize, int offset) throws SQLException;
 
     int countBySubmitter(Context context, EPerson ep) throws SQLException;
-    
+
 }

@@ -9,7 +9,6 @@ package org.dspace.eperson;
 
 import java.util.Date;
 import java.util.UUID;
-
 import javax.mail.MessagingException;
 
 import org.apache.log4j.Logger;
@@ -29,13 +28,13 @@ import org.dspace.event.Event;
  *
  * Recommended filter:  EPerson+Create
  *
- * @version $Revision$
- *
  * @author Stuart Lewis
+ * @version $Revision$
  */
-public class EPersonConsumer implements Consumer
-{
-    /** log4j logger */
+public class EPersonConsumer implements Consumer {
+    /**
+     * log4j logger
+     */
     private static Logger log = Logger.getLogger(EPersonConsumer.class);
 
     protected EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
@@ -47,34 +46,28 @@ public class EPersonConsumer implements Consumer
      */
     @Override
     public void initialize()
-        throws Exception
-    {
+        throws Exception {
 
     }
 
     /**
      * Consume the event
      *
-     * @param context
-     *     The relevant DSpace Context.
-     * @param event
-     *     Which Event to consume
+     * @param context The relevant DSpace Context.
+     * @param event   Which Event to consume
      * @throws Exception if error
      */
     @Override
     public void consume(Context context, Event event)
-        throws Exception
-    {
+        throws Exception {
         int st = event.getSubjectType();
         int et = event.getEventType();
         UUID id = event.getSubjectID();
 
-        switch (st)
-        {
+        switch (st) {
             // If an EPerson is changed
             case Constants.EPERSON:
-                if (et == Event.CREATE)
-                {
+                if (et == Event.CREATE) {
                     // Notify of new user registration
                     String notifyRecipient = ConfigurationManager.getProperty("registration.notify");
                     if (notifyRecipient == null) {
@@ -82,12 +75,11 @@ public class EPersonConsumer implements Consumer
                     }
                     notifyRecipient = notifyRecipient.trim();
 
-                    if(!notifyRecipient.equals(""))
-                    {
-                        try
-                        {
+                    if (!notifyRecipient.equals("")) {
+                        try {
                             EPerson eperson = ePersonService.find(context, id);
-                            Email adminEmail = Email.getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(), "registration_notify"));
+                            Email adminEmail = Email
+                                .getEmail(I18nUtil.getEmailFilename(context.getCurrentLocale(), "registration_notify"));
                             adminEmail.addRecipient(notifyRecipient);
 
                             adminEmail.addArgument(ConfigurationManager.getProperty("dspace.name"));
@@ -101,16 +93,13 @@ public class EPersonConsumer implements Consumer
                             adminEmail.send();
 
                             log.info(LogManager.getHeader(context, "registerion_alert", "user="
-                                    + eperson.getEmail()));
-                        }
-                        catch (MessagingException me)
-                        {
+                                + eperson.getEmail()));
+                        } catch (MessagingException me) {
                             log.warn(LogManager.getHeader(context,
-                                "error_emailing_administrator", ""), me);
+                                                          "error_emailing_administrator", ""), me);
                         }
                     }
-                } else if (et == Event.DELETE)
-                {
+                } else if (et == Event.DELETE) {
                     // TODO: Implement this if required
                 }
                 break;
@@ -123,26 +112,22 @@ public class EPersonConsumer implements Consumer
     /**
      * Handle the end of the event
      *
-     * @param ctx
-     *     The relevant DSpace Context.
+     * @param ctx The relevant DSpace Context.
      * @throws Exception if error
      */
     @Override
     public void end(Context ctx)
-        throws Exception
-    {
+        throws Exception {
 
     }
 
     /**
      * Finish the event
      *
-     * @param ctx
-     *     The relevant DSpace Context.
+     * @param ctx The relevant DSpace Context.
      */
     @Override
-    public void finish(Context ctx)
-    {
+    public void finish(Context ctx) {
 
     }
 }

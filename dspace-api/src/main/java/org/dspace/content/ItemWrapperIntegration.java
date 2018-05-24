@@ -9,12 +9,11 @@ package org.dspace.content;
 
 import java.util.List;
 
-public interface ItemWrapperIntegration
-{
-	public List<IMetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang);
+public interface ItemWrapperIntegration {
+    public List<IMetadataValue> getMetadata(Item item, String schema, String element, String qualifier, String lang);
 
-	public String getMetadata(Item item, String field);
+    public String getMetadata(Item item, String field);
 
-	public String getTypeText(Item item);
+    public String getTypeText(Item item);
 
 }

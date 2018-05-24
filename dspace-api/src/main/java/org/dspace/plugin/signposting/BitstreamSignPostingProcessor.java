@@ -18,9 +18,8 @@ import org.dspace.plugin.PluginException;
 /**
  * @author Pascarelli Luigi Andrea
  */
-public interface BitstreamSignPostingProcessor
-{
+public interface BitstreamSignPostingProcessor {
     void process(Context context, HttpServletRequest request,
-            HttpServletResponse response, Bitstream bitstream)
+                 HttpServletResponse response, Bitstream bitstream)
         throws PluginException, AuthorizeException;
 }

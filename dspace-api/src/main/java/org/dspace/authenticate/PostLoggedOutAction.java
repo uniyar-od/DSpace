@@ -14,6 +14,6 @@ import org.dspace.eperson.EPerson;
 
 public interface PostLoggedOutAction {
 
-	public void loggedOut(Context context, HttpServletRequest request,
-			EPerson eperson);
+    public void loggedOut(Context context, HttpServletRequest request,
+                          EPerson eperson);
 }

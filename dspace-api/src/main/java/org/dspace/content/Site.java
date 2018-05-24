@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.persistence.Cacheable;
 import javax.persistence.Entity;
 import javax.persistence.Table;
@@ -36,8 +35,7 @@ import org.hibernate.annotations.CacheConcurrencyStrategy;
 @Cacheable
 @org.hibernate.annotations.Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
 @Table(name = "site")
-public class Site extends DSpaceObject implements BrowsableDSpaceObject<UUID>
-{
+public class Site extends DSpaceObject implements BrowsableDSpaceObject<UUID> {
 
     @Transient
     private transient SiteService siteService;
@@ -45,10 +43,8 @@ public class Site extends DSpaceObject implements BrowsableDSpaceObject<UUID>
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.SiteService#createSite(Context)}
-     *
      */
-    protected Site()
-    {
+    protected Site() {
 
     }
 
@@ -58,103 +54,99 @@ public class Site extends DSpaceObject implements BrowsableDSpaceObject<UUID>
      * @return type of the object
      */
     @Override
-    public int getType()
-    {
+    public int getType() {
         return Constants.SITE;
     }
 
     @Override
-    public String getName()
-    {
+    public String getName() {
         return getSiteService().getName(this);
     }
 
-    public String getURL()
-    {
+    public String getURL() {
         return ConfigurationManager.getProperty("dspace.url");
     }
 
     private SiteService getSiteService() {
-        if(siteService == null)
-        {
+        if (siteService == null) {
             siteService = ContentServiceFactory.getInstance().getSiteService();
         }
         return siteService;
     }
 
-	@Override
-	public List<String> getMetadataValue(String mdString) {
-		return siteService.getAllMetadata(this, mdString);
-	}
+    @Override
+    public List<String> getMetadataValue(String mdString) {
+        return siteService.getAllMetadata(this, mdString);
+    }
 
-	@Override
-	public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
-		return siteService.getMetadataByMetadataString(this, mdString);
-	}
+    @Override
+    public List<IMetadataValue> getMetadataValueInDCFormat(String mdString) {
+        return siteService.getMetadataByMetadataString(this, mdString);
+    }
 
-	@Override
-	public String getTypeText() {
-		// TODO Auto-generated method stub
-		return Constants.typeText[getType()];
-	}
+    @Override
+    public String getTypeText() {
+        // TODO Auto-generated method stub
+        return Constants.typeText[getType()];
+    }
 
-	@Override
-	public UUID getID() {
-		return id;
-	}
+    @Override
+    public UUID getID() {
+        return id;
+    }
 
-	@Override
-	public boolean haveHierarchy() {
-		return false;
-	}
+    @Override
+    public boolean haveHierarchy() {
+        return false;
+    }
 
-	@Override
-	public Integer getLegacyId() {		
-		return -1;
-	}
+    @Override
+    public Integer getLegacyId() {
+        return -1;
+    }
 
-	@Override
-	public Map<String, Object> getExtraInfo() {
-		return new HashMap<String, Object>();
-	}
+    @Override
+    public Map<String, Object> getExtraInfo() {
+        return new HashMap<String, Object>();
+    }
 
-	@Override
-	public boolean isArchived() {
-		return false;
-	}
+    @Override
+    public boolean isArchived() {
+        return false;
+    }
 
-	@Override
-	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
-		return siteService.getMetadata(this, schema, element, qualifier, lang);
-	}
+    @Override
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+        return siteService.getMetadata(this, schema, element, qualifier, lang);
+    }
 
-	@Override
-	public String getMetadata(String field) {
-		return siteService.getMetadata(this, field); 
-	}
+    @Override
+    public String getMetadata(String field) {
+        return siteService.getMetadata(this, field);
+    }
 
-	@Override
-	public boolean isDiscoverable() {
-		return false;
-	}
+    @Override
+    public boolean isDiscoverable() {
+        return false;
+    }
 
-	@Override
-	public String findHandle(Context context) throws SQLException {		
-		return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
-	}
+    @Override
+    public String findHandle(Context context) throws SQLException {
+        return HandleServiceFactory.getInstance().getHandleService().findHandle(context, this);
+    }
 
-	@Override
-	public BrowsableDSpaceObject getParentObject() {
-		return null;
-	}
+    @Override
+    public BrowsableDSpaceObject getParentObject() {
+        return null;
+    }
 
-	@Override
-	public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
-		return siteService.getMetadataFirstValue(this, schema, element, qualifier, language);
-	}
+    @Override
+    public String getMetadataFirstValue(String schema, String element, String qualifier, String language) {
+        return siteService.getMetadataFirstValue(this, schema, element, qualifier, language);
+    }
 
-	@Override
-	public Date getLastModified() {
-		return new Date();
-	}
+    @Override
+    public Date getLastModified() {
+        return new Date();
+    }
 }

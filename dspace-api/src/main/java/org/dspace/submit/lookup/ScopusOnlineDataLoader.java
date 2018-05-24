@@ -7,19 +7,17 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.http.HttpException;
 
+import gr.ekt.bte.core.Record;
+import org.apache.http.HttpException;
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
-import org.dspace.core.LogManager;
 
 /**
  * @author Andrea Bollini
@@ -27,78 +25,64 @@ import org.dspace.core.LogManager;
  * @author Luigi Andrea Pascarelli
  * @author Panagiotis Koutsourakis
  */
-public class ScopusOnlineDataLoader extends NetworkSubmissionLookupDataLoader
-{
+public class ScopusOnlineDataLoader extends NetworkSubmissionLookupDataLoader {
     private boolean searchProvider = true;
 
     private static final Logger log = Logger.getLogger(ScopusOnlineDataLoader.class);
 
     private ScopusService scopusService = new ScopusService();
 
-    public void setScopusService(ScopusService scopusService)
-    {
+    public void setScopusService(ScopusService scopusService) {
         this.scopusService = scopusService;
     }
-    
-    
+
 
     @Override
-    public List<String> getSupportedIdentifiers()
-    {
+    public List<String> getSupportedIdentifiers() {
         return Arrays.asList(new String[] { PUBMED, DOI, SCOPUSEID });
     }
 
-    public void setSearchProvider(boolean searchProvider)
-    {
+    public void setSearchProvider(boolean searchProvider) {
         this.searchProvider = searchProvider;
     }
 
     @Override
-    public boolean isSearchProvider()
-    {
+    public boolean isSearchProvider() {
         return searchProvider;
     }
 
     @Override
     public List<Record> getByIdentifier(Context context,
-            Map<String, Set<String>> keys) throws HttpException, IOException
-    {
+                                        Map<String, Set<String>> keys) throws HttpException, IOException {
         Set<String> eids = keys != null ? keys.get(SCOPUSEID) : null;
         Set<String> dois = keys != null ? keys.get(DOI) : null;
-        Set<String> pmids = keys != null ? keys.get(PUBMED) : null;        
+        Set<String> pmids = keys != null ? keys.get(PUBMED) : null;
         Set<String> orcids = keys != null ? keys.get(ORCID) : null;
         List<Record> results = new ArrayList<Record>();
         StringBuffer query = new StringBuffer();
 
-        if (eids != null && eids.size() > 0 )
-        {
+        if (eids != null && eids.size() > 0) {
             String eidQuery = queryBuilder("EID", eids);
             query.append(eidQuery);
-        	
+
         }
-        if (dois != null && dois.size() > 0)
-        {
-            if (query.length() > 0)
-            {
+        if (dois != null && dois.size() > 0) {
+            if (query.length() > 0) {
                 query.append(" OR ");
             }
             String doiQuery = queryBuilder("DOI", dois);
             query.append(doiQuery);
         }
-        if (pmids != null && pmids.size() > 0)
-        {
-            if (query.length() > 0)
-            {
+        if (pmids != null && pmids.size() > 0) {
+            if (query.length() > 0) {
                 query.append(" OR ");
             }
             String pmidQuery = queryBuilder("PMID", pmids);
             query.append(pmidQuery);
         }
-        
-        if (orcids != null && orcids.size() > 0)
-        {
-            if (query.length() > 0)
-            {
+
+        if (orcids != null && orcids.size() > 0) {
+            if (query.length() > 0) {
                 query.append(" OR ");
             }
             String orcidQuery = queryBuilder("ORCID", orcids);
@@ -106,47 +90,41 @@ public class ScopusOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         }
 
         List<Record> scopusResults = scopusService.search(query.toString());
-        for (Record p : scopusResults)
-        {
+        for (Record p : scopusResults) {
             results.add(convertFields(p));
         }
 
         return results;
     }
 
-	private String queryBuilder(String param,Set<String> ids){
+    private String queryBuilder(String param, Set<String> ids) {
 
-		String query="";
-    	int x=0;
-    	for (String d : ids)
-        {
-            if(x>0){
-                query+=" OR ";
+        String query = "";
+        int x = 0;
+        for (String d : ids) {
+            if (x > 0) {
+                query += " OR ";
             }
-    		query+=param+"("+d+")";
-    		x++;
+            query += param + "(" + d + ")";
+            x++;
         }
-		return query;
-	}
+        return query;
+    }
 
     @Override
     public List<Record> search(Context context, String title, String author,
-            int year) throws HttpException, IOException
-    {
+                               int year) throws HttpException, IOException {
         List<Record> scopusResults = scopusService.search(title, author, year);
         List<Record> results = new ArrayList<Record>();
-        if (scopusResults != null)
-        {
-            for (Record p : scopusResults)
-            {
+        if (scopusResults != null) {
+            for (Record p : scopusResults) {
                 results.add(convertFields(p));
             }
         }
         return results;
     }
-    
-    public List<Record> search(String query) throws HttpException, IOException
-    {
+
+    public List<Record> search(String query) throws HttpException, IOException {
         List<Record> results = new ArrayList<Record>();
         if (query != null) {
             List<Record> search = scopusService.search(query);

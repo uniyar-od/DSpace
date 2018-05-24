@@ -18,24 +18,25 @@ import org.springframework.stereotype.Component;
 @Component
 public class SearchFilterToAppliedFilterConverter {
 
-//    @Autowired
-//    private AuthorityValueService authorityValueService;
+    //    @Autowired
+    //    private AuthorityValueService authorityValueService;
 
     public SearchResultsRest.AppliedFilter convertSearchFilter(Context context, SearchFilter searchFilter) {
-//        TODO         
-//        AuthorityValue authorityValue = null;
-//        if(searchFilter.hasAuthorityOperator()) {
-//            authorityValue = authorityValueService.findByUID(context, searchFilter.getValue());
-//        }
+        //        TODO
+        //        AuthorityValue authorityValue = null;
+        //        if(searchFilter.hasAuthorityOperator()) {
+        //            authorityValue = authorityValueService.findByUID(context, searchFilter.getValue());
+        //        }
 
         SearchResultsRest.AppliedFilter appliedFilter;
-//        if (authorityValue == null) {
-            appliedFilter = new SearchResultsRest.AppliedFilter(searchFilter.getName(), searchFilter.getOperator(),
-                    searchFilter.getValue(), searchFilter.getValue());
-//        } else {
-//            appliedFilter = new SearchResultsRest.AppliedFilter(searchFilter.getName(), searchFilter.getOperator(),
-//                    searchFilter.getValue(), authorityValue.getValue());
-//        }
+        //        if (authorityValue == null) {
+        appliedFilter = new SearchResultsRest.AppliedFilter(searchFilter.getName(), searchFilter.getOperator(),
+            searchFilter.getValue(), searchFilter.getValue());
+        //        } else {
+        //            appliedFilter = new SearchResultsRest.AppliedFilter(searchFilter.getName(), searchFilter
+        // .getOperator(),
+        //                    searchFilter.getValue(), authorityValue.getValue());
+        //        }
 
         return appliedFilter;
     }

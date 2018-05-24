@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Required;
 
 /**
  * @author l.pascarelli
- *
  */
 public class DiscoveryMostViewedConfiguration {
 
@@ -20,8 +19,8 @@ public class DiscoveryMostViewedConfiguration {
     private int max = 5;
     private boolean useAsHomePage;
 
-    private DiscoveryViewConfiguration metadataFields; 
-    
+    private DiscoveryViewConfiguration metadataFields;
+
 
     public int getMax() {
         return max;
@@ -48,13 +47,11 @@ public class DiscoveryMostViewedConfiguration {
         return useAsHomePage;
     }
 
-    public DiscoveryViewConfiguration getMetadataFields()
-    {
+    public DiscoveryViewConfiguration getMetadataFields() {
         return metadataFields;
     }
 
-    public void setMetadataFields(DiscoveryViewConfiguration metadataFields)
-    {
+    public void setMetadataFields(DiscoveryViewConfiguration metadataFields) {
         this.metadataFields = metadataFields;
     }
 }

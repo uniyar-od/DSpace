@@ -20,9 +20,10 @@ import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-
 import javax.annotation.Nullable;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Iterables;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.Charsets;
 import org.apache.commons.lang3.StringUtils;
@@ -37,14 +38,10 @@ import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.core.Context;
 
-import com.google.common.base.Function;
-import com.google.common.collect.Iterables;
-
 /**
  * Construct a <code>ContentStream</code> from a <code>File</code>
  */
-public class FullTextContentStreams extends ContentStreamBase
-{
+public class FullTextContentStreams extends ContentStreamBase {
     private static final Logger log = Logger.getLogger(FullTextContentStreams.class);
 
     public static final String FULLTEXT_BUNDLE = "TEXT";
@@ -61,7 +58,7 @@ public class FullTextContentStreams extends ContentStreamBase
     protected void init(Item parentItem) {
         fullTextStreams = new LinkedList<>();
 
-        if(parentItem != null) {
+        if (parentItem != null) {
             sourceInfo = parentItem.getHandle();
 
             //extracted full text is always extracted as plain text
@@ -85,9 +82,9 @@ public class FullTextContentStreams extends ContentStreamBase
                     fullTextStreams.add(new FullTextBitstream(sourceInfo, fulltextBitstream));
 
                     log.debug("Added BitStream: "
-                            + fulltextBitstream.getStoreNumber() + " "
-                            + fulltextBitstream.getSequenceID() + " "
-                            + fulltextBitstream.getName());
+                                  + fulltextBitstream.getStoreNumber() + " "
+                                  + fulltextBitstream.getSequenceID() + " "
+                                  + fulltextBitstream.getName());
                 }
             }
         }
@@ -108,14 +105,15 @@ public class FullTextContentStreams extends ContentStreamBase
     public Long getSize() {
         long result = 0;
 
-        if(CollectionUtils.isNotEmpty(fullTextStreams)) {
-            Iterable<Long> individualSizes = Iterables.transform(fullTextStreams, new Function<FullTextBitstream, Long>() {
-                @Nullable
-                @Override
-                public Long apply(@Nullable FullTextBitstream input) {
-                    return input == null ? 0L : input.getSize();
-                }
-            });
+        if (CollectionUtils.isNotEmpty(fullTextStreams)) {
+            Iterable<Long> individualSizes = Iterables
+                .transform(fullTextStreams, new Function<FullTextBitstream, Long>() {
+                    @Nullable
+                    @Override
+                    public Long apply(@Nullable FullTextBitstream input) {
+                        return input == null ? 0L : input.getSize();
+                    }
+                });
 
             for (Long size : individualSizes) {
                 result += size;
@@ -145,7 +143,7 @@ public class FullTextContentStreams extends ContentStreamBase
     }
 
     private BitstreamService getBitstreamService() {
-        if(bitstreamService == null) {
+        if (bitstreamService == null) {
             bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
         }
         return bitstreamService;
@@ -203,14 +201,15 @@ public class FullTextContentStreams extends ContentStreamBase
                 inputStream = bitstream.getInputStream();
             } catch (Exception e) {
                 log.warn("Unable to add full text bitstream " + (bitstream == null ? "NULL" :
-                        bitstream.getFileName() + " for item " + bitstream.getItemHandle())
-                        + " to SOLR:" + e.getMessage(), e);
+                    bitstream.getFileName() + " for item " + bitstream.getItemHandle())
+                             + " to SOLR:" + e.getMessage(), e);
 
-                inputStream = new ByteArrayInputStream((e.getClass() + ": " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
+                inputStream = new ByteArrayInputStream(
+                    (e.getClass() + ": " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
             }
 
             return inputStream == null ? null : new SequenceInputStream(
-                    new ByteArrayInputStream("\n".getBytes(Charsets.UTF_8)), inputStream);
+                new ByteArrayInputStream("\n".getBytes(Charsets.UTF_8)), inputStream);
         }
     }
 

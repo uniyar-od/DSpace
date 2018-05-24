@@ -21,10 +21,11 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
  *
  * @author Kevin Van de Velde (kevin at atmire dot com)
  */
-public class SolrServiceIndexOutputPlugin implements SolrServiceIndexPlugin{
+public class SolrServiceIndexOutputPlugin implements SolrServiceIndexPlugin {
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document,
+                                Map<String, List<DiscoverySearchFilter>> searchFilters) {
         System.out.println("Currently indexing: " + dso.getHandle());
     }
 }

@@ -38,39 +38,40 @@ import org.dspace.license.service.CreativeCommonsService;
 
 @Mutative
 @Distributive
-public class CCLicenseLookup extends AbstractCurationTask
-{
-    /** log4j category */
+public class CCLicenseLookup extends AbstractCurationTask {
+    /**
+     * log4j category
+     */
     private static final Logger log = Logger.getLogger(CCLicenseLookup.class);
     // CC Web service interface
     private final CCLookup ccl = new CCLookup();
-     // field configured for license URI
+    // field configured for license URI
     private LicenseMetadataValue uriField;
     // field configured for license name
     private LicenseMetadataValue nameField;
     // update configuration flags
     private boolean updateName = false;
     private boolean updateBitstream = false;
-     // task status
+    // task status
     private int status = CURATE_UNSET;
-    
+
     private CreativeCommonsService creativeCommons = LicenseServiceFactory.getInstance().getCreativeCommonsService();
 
     /**
      * Initializes task
      *
-     * @param curator  Curator object performing this task
-     * @param taskId the configured local name of the task 
+     * @param curator Curator object performing this task
+     * @param taskId  the configured local name of the task
      */
     @Override
     public void init(Curator curator, String taskId) throws IOException {
         super.init(curator, taskId);
         updateName = taskBooleanProperty("update.name", true);
         updateBitstream = taskBooleanProperty("update.bitstream", true);
-        uriField = creativeCommons.getCCField("uri");        
+        uriField = creativeCommons.getCCField("uri");
         nameField = creativeCommons.getCCField("name");
     }
-    
+
     /**
      * Perform the curation task upon passed DSO
      *
@@ -78,14 +79,14 @@ public class CCLicenseLookup extends AbstractCurationTask
      * @throws IOException
      */
     @Override
-    public int perform(DSpaceObject dso) throws IOException  {
+    public int perform(DSpaceObject dso) throws IOException {
         distribute(dso);
         return status;
     }
 
     /**
-     * Perform curation on a DSpace Item 
-     * 
+     * Perform curation on a DSpace Item
+     *
      * @param item - the DSpace Item
      * @throws IOException, SQLException
      */
@@ -102,7 +103,7 @@ public class CCLicenseLookup extends AbstractCurationTask
                     // this means that if a name is present and different, replace it
                     String oldName = nameField.ccItemValue(item);
                     String newName = ccl.getLicenseName();
-                    if (oldName == null || ! oldName.equals(newName)) {
+                    if (oldName == null || !oldName.equals(newName)) {
                         if (oldName != null) {
                             nameField.removeItemValue(Curator.curationContext(), item, oldName);
                             resultSb.append(" removed name: '").append(oldName).append("'");
@@ -113,9 +114,9 @@ public class CCLicenseLookup extends AbstractCurationTask
                 }
                 if (updateBitstream) {
                     // simliar considerations apply for the license itself
-                    String oldLicense = creativeCommons.getLicenseRDF(Curator.curationContext(),item);
+                    String oldLicense = creativeCommons.getLicenseRDF(Curator.curationContext(), item);
                     String newLicense = ccl.getRdf();
-                    if (oldLicense == null || ! oldLicense.equals(newLicense)) {
+                    if (oldLicense == null || !oldLicense.equals(newLicense)) {
                         if (oldLicense != null) {
                             // remove the whole bundle - this will also wipe out
                             // any other bitstream license representations

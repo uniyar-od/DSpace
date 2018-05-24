@@ -28,88 +28,76 @@ import org.dspace.core.Context;
 import org.dspace.core.SelfNamedPlugin;
 
 public class CSVDisseminationCrosswalk extends SelfNamedPlugin
-        implements StreamGenericDisseminationCrosswalk, FileNameDisseminator
-{
+    implements StreamGenericDisseminationCrosswalk, FileNameDisseminator {
     private static Logger log = Logger
-            .getLogger(CSVDisseminationCrosswalk.class);
-    
+        .getLogger(CSVDisseminationCrosswalk.class);
+
     public static final String FILE_NAME_EXPORT_CSV = "csv.export.filename";
-    
+
     @Override
-    public boolean canDisseminate(Context context, DSpaceObject dso)
-    {
+    public boolean canDisseminate(Context context, DSpaceObject dso) {
         return (dso.getType() == Constants.ITEM);
     }
 
     @Override
     public void disseminate(Context context, List<BrowsableDSpaceObject> dso,
-            OutputStream out) throws CrosswalkException, IOException,
-                    SQLException, AuthorizeException
-    {
+                            OutputStream out) throws CrosswalkException, IOException,
+        SQLException, AuthorizeException {
 
         // Process each item
         DSpaceCSV csv = new DSpaceCSV(false);
-        for (BrowsableDSpaceObject toExport : dso)
-        {
-            try
-            {
+        for (BrowsableDSpaceObject toExport : dso) {
+            try {
                 csv.addItem((Item) toExport);
-            }
-            catch (Exception e)
-            {
+            } catch (Exception e) {
                 log.error(e.getMessage(), e);
             }
         }
-        
+
         // Return the csv file
-        BufferedWriter writer = new BufferedWriter( new OutputStreamWriter(out, "UTF-8") );
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
         writer.write(csv.toString());
-        writer.flush();        
+        writer.flush();
         writer.close();
     }
 
     @Override
-    public String getMIMEType()
-    {
+    public String getMIMEType() {
         return "text/csv";
     }
 
     @Override
     public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
-            throws CrosswalkException, IOException, SQLException,
-            AuthorizeException
-    {
+        throws CrosswalkException, IOException, SQLException,
+        AuthorizeException {
         // Process each item
         DSpaceCSV csv = new DSpaceCSV(false);
-        try
-        {
+        try {
             csv.addItem((Item) dso);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
 
         // Return the csv file
-        BufferedWriter writer = new BufferedWriter( new OutputStreamWriter(out, "UTF-8") );
+        BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, "UTF-8"));
         writer.write(csv.toString());
-        writer.flush();        
-        writer.close();        
+        writer.flush();
+        writer.close();
     }
 
     @Override
-    public String getFileName()
-    {
+    public String getFileName() {
         String result = ConfigurationManager
-                .getProperty(FILE_NAME_EXPORT_CSV);
-        if (StringUtils.isNotEmpty(result))
+            .getProperty(FILE_NAME_EXPORT_CSV);
+        if (StringUtils.isNotEmpty(result)) {
             return result;
+        }
         return "export.csv";
     }
 
-	@Override
-	public boolean assignUniqueNumber() {
-		return false;
-	}
+    @Override
+    public boolean assignUniqueNumber() {
+        return false;
+    }
 
 }

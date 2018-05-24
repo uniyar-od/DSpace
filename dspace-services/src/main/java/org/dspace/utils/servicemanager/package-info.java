@@ -4,6 +4,8 @@
  * tree and available online at
  *
  * http://www.dspace.org/license/
+ *
+ * Handy types to support ServiceManagers.
  */
 /**
  * Handy types to support ServiceManagers.

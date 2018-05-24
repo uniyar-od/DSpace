@@ -18,52 +18,42 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class CustomClasspathEntityResolver implements EntityResolver
-{
-	private Class clazz;
+public class CustomClasspathEntityResolver implements EntityResolver {
+    private Class clazz;
 
-	public CustomClasspathEntityResolver(Class clazz) {
-		this.clazz = clazz;
-	}
+    public CustomClasspathEntityResolver(Class clazz) {
+        this.clazz = clazz;
+    }
+
     @Override
     public InputSource resolveEntity(String publicId, String systemId)
-            throws SAXException, IOException
-    {
+        throws SAXException, IOException {
         InputSource inputSource = null;
         InputStream inputStream = null;
 
         DefaultResourceLoader loader = new DefaultResourceLoader();
 
-        try
-        {
+        try {
             inputStream = loader.getResource(systemId).getInputStream();
-        }
-        catch (Exception ex)
-        {
-            if (systemId.startsWith("classpath://"))
-            {
-                try
-                {
-                	inputStream = clazz.getResourceAsStream(systemId.replaceFirst("classpath://", "/"));
+        } catch (Exception ex) {
+            if (systemId.startsWith("classpath://")) {
+                try {
+                    inputStream = clazz.getResourceAsStream(systemId.replaceFirst("classpath://", "/"));
 
-                    if (inputStream == null)
-                    {
+                    if (inputStream == null) {
                         throw new FileNotFoundException();
                     }
-                }
-                catch (Exception ex1)
-                {
-                    
+                } catch (Exception ex1) {
+
                     String basePath = ConfigurationManager.getProperty("dspace.dir") + "/config/";
                     try {
-						inputStream = new FileInputStream(basePath + systemId.substring(systemId.lastIndexOf("/") + 1));
+                        inputStream = new FileInputStream(basePath + systemId.substring(systemId.lastIndexOf("/") + 1));
+                    } catch (Exception ex2) {
+                        // No action; just let the null InputSource pass through
+                        throw new SAXException("The entity " + publicId + " "
+                                                   + systemId + " was not found in the classpath");
                     }
-                    catch(Exception ex2) {
-                    // No action; just let the null InputSource pass through
-                    throw new SAXException("The entity " + publicId + " "
-                            + systemId + " was not found in the classpath");
                 }
-            }
             }
         }
         inputSource = new InputSource(inputStream);

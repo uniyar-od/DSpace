@@ -28,7 +28,6 @@ import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 
 /**
- *
  * @author Antoine Snyers (antoine at atmire.com)
  * @author Kevin Van de Velde (kevin at atmire dot com)
  * @author Ben Bosman (ben at atmire dot com)
@@ -145,6 +144,7 @@ public class AuthorityValue {
 
     /**
      * Generate a solr record from this instance
+     *
      * @return SolrInputDocument
      */
     public SolrInputDocument getSolrInputDocument() {
@@ -162,6 +162,7 @@ public class AuthorityValue {
 
     /**
      * Initialize this instance based on a solr record
+     *
      * @param document SolrDocument
      */
     public void setValues(SolrDocument document) {
@@ -175,13 +176,15 @@ public class AuthorityValue {
 
     /**
      * Replace an item's DCValue with this authority
-     * @param context context
-     * @param value metadata value
+     *
+     * @param context     context
+     * @param value       metadata value
      * @param currentItem item
-     * @throws SQLException if database error
+     * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public void updateItem(Context context, Item currentItem, MetadataValue value) throws SQLException, AuthorizeException {
+    public void updateItem(Context context, Item currentItem, MetadataValue value)
+        throws SQLException, AuthorizeException {
         value.setValue(getValue());
         value.setAuthority(getId());
         ContentServiceFactory.getInstance().getMetadataValueService().update(context, value, true);
@@ -189,6 +192,7 @@ public class AuthorityValue {
 
     /**
      * Information that can be used the choice ui
+     *
      * @return map
      */
     public Map<String, String> choiceSelectMap() {
@@ -209,7 +213,7 @@ public class AuthorityValue {
             List<DateTimeFormatter> dateFormatters = getDateFormatters();
             boolean converted = false;
             int formatter = 0;
-            while(!converted) {
+            while (!converted) {
                 try {
                     DateTimeFormatter dateTimeFormatter = dateFormatters.get(formatter);
                     DateTime dateTime = dateTimeFormatter.parseDateTime(date);
@@ -220,7 +224,7 @@ public class AuthorityValue {
                     if (formatter > dateFormatters.size()) {
                         converted = true;
                     }
-                    log.error("Could not find a valid date format for: \""+date+"\"", e);
+                    log.error("Could not find a valid date format for: \"" + date + "\"", e);
                 }
             }
         }
@@ -235,19 +239,21 @@ public class AuthorityValue {
     @Override
     public String toString() {
         return "AuthorityValue{" +
-                "id='" + id + '\'' +
-                ", field='" + field + '\'' +
-                ", value='" + value + '\'' +
-                ", creationDate=" + creationDate +
-                ", deleted=" + deleted +
-                ", lastModified=" + lastModified +
-                '}';
+            "id='" + id + '\'' +
+            ", field='" + field + '\'' +
+            ", value='" + value + '\'' +
+            ", creationDate=" + creationDate +
+            ", deleted=" + deleted +
+            ", lastModified=" + lastModified +
+            '}';
     }
 
     /**
      * Provides a string that will allow this AuthorityType to be recognized and
      * provides information to create a new instance to be created using {@link #newInstance(String)}.
-     * See the implementation of {@link org.dspace.authority.AuthorityValueServiceImpl#generateRaw(java.lang.String, java.lang.String, java.lang.String)} for more details.
+     * See the implementation of
+     * {@link org.dspace.authority.AuthorityValueServiceImpl#generateRaw(java.lang.String, java.lang.String, java.lang.String)} for more details.
+     *
      * @return see {@link org.dspace.authority.service.AuthorityValueService#GENERATE AuthorityValueService.GENERATE}
      */
     public String generateString() {
@@ -256,6 +262,7 @@ public class AuthorityValue {
 
     /**
      * Makes an instance of the AuthorityValue with the given information.
+     *
      * @param info string info
      * @return AuthorityValue
      */
@@ -271,6 +278,7 @@ public class AuthorityValue {
      * The regular equals() only checks if both AuthorityValues describe the same authority.
      * This method checks if the AuthorityValues have different information
      * E.g. it is used to decide when lastModified should be updated.
+     *
      * @param o object
      * @return true or false
      */

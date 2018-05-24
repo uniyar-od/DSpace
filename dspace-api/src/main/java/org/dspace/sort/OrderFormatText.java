@@ -13,13 +13,12 @@ import org.dspace.text.filter.TextFilter;
 
 /**
  * Standard text ordering delegate implementation
- * 
+ *
  * @author Graham Triggs
  */
-public class OrderFormatText extends AbstractTextFilterOFD
-{
-	{
-		filters = new TextFilter[] { new DecomposeDiactritics(),
-				                     new LowerCaseAndTrim() };
-	}
+public class OrderFormatText extends AbstractTextFilterOFD {
+    {
+        filters = new TextFilter[] { new DecomposeDiactritics(),
+            new LowerCaseAndTrim() };
+    }
 }

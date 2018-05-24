@@ -21,11 +21,9 @@ import org.dspace.core.Context;
  * @author Larry Stone
  * @author Richard Rodgers
  */
-public class DefaultEmbargoLifter implements EmbargoLifter
-{
+public class DefaultEmbargoLifter implements EmbargoLifter {
 
-    public DefaultEmbargoLifter()
-    {
+    public DefaultEmbargoLifter() {
         super();
     }
 
@@ -38,10 +36,10 @@ public class DefaultEmbargoLifter implements EmbargoLifter
      */
     @Override
     public void liftEmbargo(Context context, Item item)
-            throws SQLException, AuthorizeException, IOException
-    {
+        throws SQLException, AuthorizeException, IOException {
         // remove the item's policies and replace them with
         // the defaults from the collection
-        ContentServiceFactory.getInstance().getItemService().inheritCollectionDefaultPolicies(context, item, item.getOwningCollection());
+        ContentServiceFactory.getInstance().getItemService()
+                             .inheritCollectionDefaultPolicies(context, item, item.getOwningCollection());
     }
 }

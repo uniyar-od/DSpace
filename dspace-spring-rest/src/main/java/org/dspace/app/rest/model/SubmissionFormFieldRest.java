@@ -11,132 +11,130 @@ package org.dspace.app.rest.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.dspace.submit.model.LanguageFormField;
-import org.dspace.submit.model.SelectableMetadata;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import org.dspace.submit.model.LanguageFormField;
+import org.dspace.submit.model.SelectableMetadata;
 
 /**
  * The InputFormField REST Resource. It is not addressable directly, only used
  * as inline object in the InputForm resource
- * 
- * @author Andrea Bollini (andrea.bollini at 4science.it)
  *
+ * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 @JsonInclude(value = Include.NON_NULL)
 public class SubmissionFormFieldRest {
-	
-	private SubmissionFormInputTypeRest input;
-	private ScopeEnum scope;
-	private SubmissionVisibilityRest visibility;
-	
-	@JsonInclude(Include.NON_NULL)
-	@JsonIgnoreProperties({"name", "type", "id"})
-	@JsonUnwrapped
-	private SubmissionFormRest rows;
-	
-	private String label;
-	private boolean mandatory;
-	private boolean repeatable;
-	private String mandatoryMessage;
-	private String hints;
 
-	private List<SelectableMetadata> selectableMetadata;
-	private List<LanguageFormField> languageCodes;
-	
-	public List<SelectableMetadata> getSelectableMetadata() {
-		return selectableMetadata;
-	}
+    private SubmissionFormInputTypeRest input;
+    private ScopeEnum scope;
+    private SubmissionVisibilityRest visibility;
 
-	public void setSelectableMetadata(List<SelectableMetadata> selectableMetadata) {
-		this.selectableMetadata = selectableMetadata;
-	}
-	
-	public String getLabel() {
-		return label;
-	}
+    @JsonInclude(Include.NON_NULL)
+    @JsonIgnoreProperties( { "name", "type", "id" })
+    @JsonUnwrapped
+    private SubmissionFormRest rows;
 
-	public void setLabel(String label) {
-		this.label = label;
-	}
+    private String label;
+    private boolean mandatory;
+    private boolean repeatable;
+    private String mandatoryMessage;
+    private String hints;
 
-	public boolean isMandatory() {
-		return mandatory;
-	}
+    private List<SelectableMetadata> selectableMetadata;
+    private List<LanguageFormField> languageCodes;
 
-	public void setMandatory(boolean mandatory) {
-		this.mandatory = mandatory;
-	}
+    public List<SelectableMetadata> getSelectableMetadata() {
+        return selectableMetadata;
+    }
 
-	public boolean isRepeatable() {
-		return repeatable;
-	}
+    public void setSelectableMetadata(List<SelectableMetadata> selectableMetadata) {
+        this.selectableMetadata = selectableMetadata;
+    }
 
-	public void setRepeatable(boolean repeatable) {
-		this.repeatable = repeatable;
-	}
+    public String getLabel() {
+        return label;
+    }
 
-	public String getMandatoryMessage() {
-		return mandatoryMessage;
-	}
+    public void setLabel(String label) {
+        this.label = label;
+    }
 
-	public void setMandatoryMessage(String mandatoryMessage) {
-		this.mandatoryMessage = mandatoryMessage;
-	}
+    public boolean isMandatory() {
+        return mandatory;
+    }
 
-	public String getHints() {
-		return hints;
-	}
+    public void setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
+    }
 
-	public void setHints(String hints) {
-		this.hints = hints;
-	}
+    public boolean isRepeatable() {
+        return repeatable;
+    }
 
-	public List<LanguageFormField> getLanguageCodes() {
-		if(languageCodes==null) {
-			languageCodes = new ArrayList<LanguageFormField>();
-		}
-		return languageCodes;
-	}
+    public void setRepeatable(boolean repeatable) {
+        this.repeatable = repeatable;
+    }
 
-	public void setLanguageCodes(List<LanguageFormField> languageCodes) {
-		this.languageCodes = languageCodes;
-	}
-	
-	public SubmissionFormInputTypeRest getInput() {
-		return input;
-	}
+    public String getMandatoryMessage() {
+        return mandatoryMessage;
+    }
 
-	public void setInput(SubmissionFormInputTypeRest input) {
-		this.input = input;
-	}
+    public void setMandatoryMessage(String mandatoryMessage) {
+        this.mandatoryMessage = mandatoryMessage;
+    }
 
-	public ScopeEnum getScope() {
-		return scope;
-	}
+    public String getHints() {
+        return hints;
+    }
 
-	public void setScope(ScopeEnum scope) {
-		this.scope = scope;
-	}
+    public void setHints(String hints) {
+        this.hints = hints;
+    }
 
-	public SubmissionVisibilityRest getVisibility() {
-		return visibility;
-	}
+    public List<LanguageFormField> getLanguageCodes() {
+        if (languageCodes == null) {
+            languageCodes = new ArrayList<LanguageFormField>();
+        }
+        return languageCodes;
+    }
 
-	public void setVisibility(SubmissionVisibilityRest visibility) {
-		if (visibility != null && (visibility.getMain() != null || visibility.getOther() != null)) {
-			this.visibility = visibility;
-		}
-	}
+    public void setLanguageCodes(List<LanguageFormField> languageCodes) {
+        this.languageCodes = languageCodes;
+    }
 
-	public SubmissionFormRest getRows() {
-		return rows;
-	}
+    public SubmissionFormInputTypeRest getInput() {
+        return input;
+    }
 
-	public void setRows(SubmissionFormRest rows) {
-		this.rows = rows;
-	}
+    public void setInput(SubmissionFormInputTypeRest input) {
+        this.input = input;
+    }
+
+    public ScopeEnum getScope() {
+        return scope;
+    }
+
+    public void setScope(ScopeEnum scope) {
+        this.scope = scope;
+    }
+
+    public SubmissionVisibilityRest getVisibility() {
+        return visibility;
+    }
+
+    public void setVisibility(SubmissionVisibilityRest visibility) {
+        if (visibility != null && (visibility.getMain() != null || visibility.getOther() != null)) {
+            this.visibility = visibility;
+        }
+    }
+
+    public SubmissionFormRest getRows() {
+        return rows;
+    }
+
+    public void setRows(SubmissionFormRest rows) {
+        this.rows = rows;
+    }
 }

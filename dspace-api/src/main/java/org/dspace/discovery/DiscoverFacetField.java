@@ -17,15 +17,16 @@ import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 public class DiscoverFacetField {
     private String field;
     private int limit;
-    private int offset=-1;
+    private int offset = -1;
     /* The facet prefix, all facet values will have to start with the given prefix */
     private String prefix;
     private String type;
     private boolean exclude;
-    
+
     private DiscoveryConfigurationParameters.SORT sortOrder;
 
-    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder, boolean exclude) {
+    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder,
+                              boolean exclude) {
         this.field = field;
         this.type = type;
         this.limit = limit;
@@ -33,7 +34,8 @@ public class DiscoverFacetField {
         this.exclude = exclude;
     }
 
-    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder, int offset, boolean exclude) {
+    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder,
+                              int offset, boolean exclude) {
         this.field = field;
         this.type = type;
         this.limit = limit;
@@ -42,7 +44,8 @@ public class DiscoverFacetField {
         this.exclude = exclude;
     }
 
-    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder, String prefix, boolean exclude) {
+    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder,
+                              String prefix, boolean exclude) {
         this.prefix = prefix;
         this.limit = limit;
         this.type = type;
@@ -51,7 +54,8 @@ public class DiscoverFacetField {
         this.exclude = exclude;
     }
 
-    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder, String prefix, int offset, boolean exclude) {
+    public DiscoverFacetField(String field, String type, int limit, DiscoveryConfigurationParameters.SORT sortOrder,
+                              String prefix, int offset, boolean exclude) {
         this.prefix = prefix;
         this.limit = limit;
         this.type = type;
@@ -59,8 +63,8 @@ public class DiscoverFacetField {
         this.field = field;
         this.offset = offset;
         this.exclude = exclude;
-    }    
-    
+    }
+
     public String getField() {
         return field;
     }
@@ -80,27 +84,24 @@ public class DiscoverFacetField {
     public DiscoveryConfigurationParameters.SORT getSortOrder() {
         return sortOrder;
     }
-    
-    public int getOffset()
-    {
+
+    public int getOffset() {
         return offset;
     }
-    
-    public void setOffset(int offset)
-    {
+
+    public void setOffset(int offset) {
         this.offset = offset;
     }
 
-	public boolean isExclude() {
-		return exclude;
-	}
+    public boolean isExclude() {
+        return exclude;
+    }
 
-	public void setExclude(boolean exclude) {
-		this.exclude = exclude;
-	}
+    public void setExclude(boolean exclude) {
+        this.exclude = exclude;
+    }
 
-    public void setLimit(int limit)
-    {
+    public void setLimit(int limit) {
         this.limit = limit;
     }
 }

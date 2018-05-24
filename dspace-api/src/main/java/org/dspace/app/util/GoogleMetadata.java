@@ -8,48 +8,25 @@
 package org.dspace.app.util;
 
 import java.sql.SQLException;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
-import org.apache.log4j.Logger;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
-import org.dspace.content.*;
-import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.service.ItemService;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.jdom.Element;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.ListMultimap;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.jdom.Element;
 
 /**
  * Configuration and mapping for Google Scholar output metadata
+ *
  * @author Sands Fish
- * 
  */
 
 @SuppressWarnings("deprecation")
-public class GoogleMetadata extends MappingMetadata
-{
+public class GoogleMetadata extends MappingMetadata {
 
     private final static Logger log = Logger.getLogger(GoogleMetadata.class);
 
@@ -109,19 +86,18 @@ public class GoogleMetadata extends MappingMetadata
 
     protected final String TECH_REPORT_NUMBER = "citation_technical_report_number";
 
-    protected final String TECH_REPORT_INSTITUTION = "citation_technical_report_institution";    
+    protected final String TECH_REPORT_INSTITUTION = "citation_technical_report_institution";
 
     /**
      * Wrap the item, parse all configured fields and generate metadata field
      * values.
-     * 
+     *
      * @param context context
-     * @param item The item being viewed to extract metadata from
+     * @param item    The item being viewed to extract metadata from
      * @throws SQLException if database error
      */
-    public GoogleMetadata(Context context, Item item) throws SQLException
-    {
-    	init("google-metadata.config");
+    public GoogleMetadata(Context context, Item item) throws SQLException {
+        init("google-metadata.config");
         // Hold onto the item in case we need to refresh a stale parse
         this.item = item;
         itemURL = HandleServiceFactory.getInstance().getHandleService().resolveToURL(context, item.getHandle());
@@ -133,10 +109,8 @@ public class GoogleMetadata extends MappingMetadata
      * Using metadata field mappings contained in the loaded configuration,
      * parse through configured metadata fields, building valid Google metadata
      * value strings. Field names and values contained in metadataMappings.
-     * 
      */
-    protected void parseItem()
-    {
+    protected void parseItem() {
 
         // TITLE
         addSingleField(TITLE);
@@ -193,8 +167,7 @@ public class GoogleMetadata extends MappingMetadata
         addSingleField(CONFERENCE);
 
         // Dissertations
-        if (itemIsDissertation())
-        {
+        if (itemIsDissertation()) {
             if (log.isDebugEnabled()) {
                 log.debug("ITEM TYPE:  DISSERTATION");
             }
@@ -204,8 +177,7 @@ public class GoogleMetadata extends MappingMetadata
         }
 
         // Patents
-        if (itemIsPatent())
-        {
+        if (itemIsPatent()) {
             if (log.isDebugEnabled()) {
                 log.debug("ITEM TYPE:  PATENT");
             }
@@ -214,8 +186,7 @@ public class GoogleMetadata extends MappingMetadata
 
             // Use config value for patent country. Should be a literal.
             String countryConfig = configuredFields.get(PATENT_COUNTRY);
-            if (null != countryConfig && !countryConfig.trim().equals(""))
-            {
+            if (null != countryConfig && !countryConfig.trim().equals("")) {
                 metadataMappings.put(PATENT_COUNTRY, countryConfig.trim());
             }
 
@@ -223,8 +194,7 @@ public class GoogleMetadata extends MappingMetadata
         }
 
         // Tech Reports
-        if (itemIsTechReport())
-        {
+        if (itemIsTechReport()) {
             if (log.isDebugEnabled()) {
                 log.debug("ITEM TYPE:  TECH REPORT");
             }
@@ -245,24 +215,22 @@ public class GoogleMetadata extends MappingMetadata
      *
      * Usage: {@code GoogleMetadata gmd = new GoogleMetadata(item); for(Entry<String,
      * String> mapping : googlemd.getMappings()) ...}
-     * 
+     *
      * @return Iterable of metadata fields mapped to Google-formatted values
      */
-    public Collection<Entry<String, String>> getMappings()
-    {
+    public Collection<Entry<String, String>> getMappings() {
         return metadataMappings.entries();
     }
 
     /**
      * Produce meta elements that can easily be put into the head.
+     *
      * @return List of elements
      */
-    public List<Element> disseminateList()
-    {
+    public List<Element> disseminateList() {
         List<Element> metas = new ArrayList<Element>();
 
-        for (Entry<String, String> m : getMappings())
-        {
+        for (Entry<String, String> m : getMappings()) {
             Element e = new Element("meta");
             e.setNamespace(null);
             e.setAttribute("name", m.getKey());
@@ -277,264 +245,227 @@ public class GoogleMetadata extends MappingMetadata
     /**
      * @return the citation_title
      */
-    public List<String> getTitle()
-    {
+    public List<String> getTitle() {
         return metadataMappings.get(TITLE);
     }
 
     /**
      * @return the citation_journal_title
      */
-    public List<String> getJournalTitle()
-    {
+    public List<String> getJournalTitle() {
         return metadataMappings.get(JOURNAL_TITLE);
     }
 
     /**
      * @return the citation_publisher
      */
-    public List<String> getPublisher()
-    {
+    public List<String> getPublisher() {
         return metadataMappings.get(PUBLISHER);
     }
 
     /**
      * @return the citation_authors
      */
-    public List<String> getAuthors()
-    {
+    public List<String> getAuthors() {
         return metadataMappings.get(AUTHORS);
     }
 
     /**
      * @return the citation_date
      */
-    public List<String> getDate()
-    {
+    public List<String> getDate() {
         return metadataMappings.get(DATE);
     }
 
     /**
      * @return the citation_volume
      */
-    public List<String> getVolume()
-    {
+    public List<String> getVolume() {
         return metadataMappings.get(VOLUME);
     }
 
     /**
      * @return the citation_issue
      */
-    public List<String> getIssue()
-    {
+    public List<String> getIssue() {
         return metadataMappings.get(ISSUE);
     }
 
     /**
      * @return the citation_firstpage
      */
-    public List<String> getFirstpage()
-    {
+    public List<String> getFirstpage() {
         return metadataMappings.get(FIRSTPAGE);
     }
 
     /**
      * @return the citation_lastpage
      */
-    public List<String> getLastpage()
-    {
+    public List<String> getLastpage() {
         return metadataMappings.get(LASTPAGE);
     }
 
     /**
      * @return the citation_doi
      */
-    public List<String> getDOI()
-    {
+    public List<String> getDOI() {
         return metadataMappings.get(DOI);
     }
 
     /**
      * @return the citation_pmid
      */
-    public List<String> getPmid()
-    {
+    public List<String> getPmid() {
         return metadataMappings.get(PMID);
     }
 
     /**
      * @return the citation_abstract_html_url
      */
-    public List<String> getAbstractHTMLURL()
-    {
+    public List<String> getAbstractHTMLURL() {
         return metadataMappings.get(ABSTRACT);
     }
 
     /**
      * @return the citation_fulltext_html_url
      */
-    public List<String> getFulltextHTMLURL()
-    {
+    public List<String> getFulltextHTMLURL() {
         return metadataMappings.get(FULLTEXT);
     }
 
     /**
      * @return the citation_pdf_url
      */
-    public List<String> getPDFURL()
-    {
+    public List<String> getPDFURL() {
         return metadataMappings.get(PDF);
     }
 
     /**
      * @return the citation_issn
      */
-    public List<String> getISSN()
-    {
+    public List<String> getISSN() {
         return metadataMappings.get(ISSN);
     }
 
     /**
      * @return the citation_isbn
      */
-    public List<String> getISBN()
-    {
+    public List<String> getISBN() {
         return metadataMappings.get(ISBN);
     }
 
     /**
      * @return the citation_language
      */
-    public List<String> getLanguage()
-    {
+    public List<String> getLanguage() {
         return metadataMappings.get(LANGUAGE);
     }
 
     /**
      * @return the citation_keywords
      */
-    public List<String> getKeywords()
-    {
+    public List<String> getKeywords() {
         return metadataMappings.get(KEYWORDS);
     }
 
     /**
      * @return the citation_conference
      */
-    public List<String> getConference()
-    {
+    public List<String> getConference() {
         return metadataMappings.get(CONFERENCE);
     }
 
     /**
      * @return the citation_dissertation_name
      */
-    public List<String> getDissertationName()
-    {
+    public List<String> getDissertationName() {
         return metadataMappings.get(DISSERTATION_NAME);
     }
 
     /**
      * @return the citation_dissertation_institution
      */
-    public List<String> getDissertationInstitution()
-    {
+    public List<String> getDissertationInstitution() {
         return metadataMappings.get(DISSERTATION_INSTITUTION);
     }
 
     /**
      * @return the citation_patent_number
      */
-    public List<String> getPatentNumber()
-    {
+    public List<String> getPatentNumber() {
         return metadataMappings.get(PATENT_NUMBER);
     }
 
     /**
      * @return the citation_patent_country
      */
-    public List<String> getPatentCountry()
-    {
+    public List<String> getPatentCountry() {
         return metadataMappings.get(PATENT_COUNTRY);
     }
 
     /**
      * @return the citation_technical_report_number
      */
-    public List<String> getTechnicalReportNumber()
-    {
+    public List<String> getTechnicalReportNumber() {
         return metadataMappings.get(TECH_REPORT_NUMBER);
     }
 
     /**
      * @return the citation_technical_report_institution
      */
-    public List<String> getTechnicalReportInstitution()
-    {
+    public List<String> getTechnicalReportInstitution() {
         return metadataMappings.get(TECH_REPORT_INSTITUTION);
     }
 
-    
+
     /**
      * Determine, based on config values, if this item is a dissertation.
-     * 
+     *
      * @return boolean
      */
-    protected boolean itemIsDissertation()
-    {
+    protected boolean itemIsDissertation() {
 
         String dConfig = configuredFields.get(DISSERTATION_ID);
-        if (null == dConfig || dConfig.trim().equals(""))
-        {
+        if (null == dConfig || dConfig.trim().equals("")) {
             return false;
-        }
-        else
-        {
+        } else {
             return identifyItemType(dConfig);
         }
     }
 
     /**
      * Determine, based on config values, if this item is a patent.
-     * 
+     *
      * @return boolean
      */
-    protected boolean itemIsPatent()
-    {
+    protected boolean itemIsPatent() {
 
         String dConfig = configuredFields.get(PATENT_ID);
-        if (null == dConfig || dConfig.trim().equals(""))
-        {
+        if (null == dConfig || dConfig.trim().equals("")) {
             return false;
-        }
-        else
-        {
+        } else {
             return identifyItemType(dConfig);
         }
     }
 
     /**
      * Determine, based on config values, if this item is a tech report.
-     * 
+     *
      * @return boolean
      */
-    protected boolean itemIsTechReport()
-    {
+    protected boolean itemIsTechReport() {
 
         String dConfig = configuredFields.get(TECH_REPORT_ID);
-        if (null == dConfig || dConfig.trim().equals(""))
-        {
+        if (null == dConfig || dConfig.trim().equals("")) {
             return false;
-        }
-        else
-        {
+        } else {
             return identifyItemType(dConfig);
         }
     }
 
-	@Override
-	protected String getPrefix() {
-		return GOOGLE_PREFIX;
-	}
+    @Override
+    protected String getPrefix() {
+        return GOOGLE_PREFIX;
+    }
 
 }

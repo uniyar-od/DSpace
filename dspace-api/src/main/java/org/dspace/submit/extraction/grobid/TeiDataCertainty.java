@@ -15,7 +15,7 @@ import javax.xml.bind.annotation.XmlType;
 
 /**
  * <p>Java class for tei_data.certainty.
- * 
+ *
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
@@ -28,7 +28,6 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/restriction&gt;
  * &lt;/simpleType&gt;
  * </pre>
- * 
  */
 @XmlType(name = "tei_data.certainty")
 @XmlEnum
@@ -53,7 +52,7 @@ public enum TeiDataCertainty {
     }
 
     public static TeiDataCertainty fromValue(String v) {
-        for (TeiDataCertainty c: TeiDataCertainty.values()) {
+        for (TeiDataCertainty c : TeiDataCertainty.values()) {
             if (c.value.equals(v)) {
                 return c;
             }

@@ -9,10 +9,11 @@ package org.dspace.content.generator;
 
 import java.util.List;
 
-import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 public interface TemplateValueGenerator {
-	List<IMetadataValue> generator(Context context, Item targetItem, Item templateItem, IMetadataValue m, String extraParams);
+    List<IMetadataValue> generator(Context context, Item targetItem, Item templateItem, IMetadataValue m,
+                                   String extraParams);
 }

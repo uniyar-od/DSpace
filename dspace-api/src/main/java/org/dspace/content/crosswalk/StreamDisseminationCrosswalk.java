@@ -28,16 +28,15 @@ import org.dspace.core.Context;
  * are equipped to call these crosswalks as well as the XML-based ones,
  * just refer to the desired crosswalk by its plugin name.
  *
- * @author  Larry Stone
+ * @author Larry Stone
  * @version $Revision$
  */
-public interface StreamDisseminationCrosswalk
-{
+public interface StreamDisseminationCrosswalk {
     /**
      * Predicate: Can this disseminator crosswalk the given object.
      *
      * @param context context
-     * @param dso  dspace object, e.g. an <code>Item</code>.
+     * @param dso     dspace object, e.g. an <code>Item</code>.
      * @return true when disseminator is capable of producing metadata.
      */
     public boolean canDisseminate(Context context, DSpaceObject dso);
@@ -46,19 +45,19 @@ public interface StreamDisseminationCrosswalk
      * Execute crosswalk on the given object, sending output to the stream.
      *
      * @param context the DSpace context
-     * @param dso the  DSpace Object whose metadata to export.
-     * @param out output stream to write to
-     *
-     * @throws CrosswalkInternalException (<code>CrosswalkException</code>) failure of the crosswalk itself.
-     * @throws CrosswalkObjectNotSupported (<code>CrosswalkException</code>) Cannot crosswalk this kind of DSpace object.
-     * @throws IOException  I/O failure in services this calls
-     * @throws SQLException  Database failure in services this calls
-     * @throws AuthorizeException current user not authorized for this operation.
+     * @param dso     the  DSpace Object whose metadata to export.
+     * @param out     output stream to write to
+     * @throws CrosswalkInternalException  (<code>CrosswalkException</code>) failure of the crosswalk itself.
+     * @throws CrosswalkObjectNotSupported (<code>CrosswalkException</code>) Cannot crosswalk this kind of DSpace
+     *                                     object.
+     * @throws IOException                 I/O failure in services this calls
+     * @throws SQLException                Database failure in services this calls
+     * @throws AuthorizeException          current user not authorized for this operation.
      */
     public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException;
 
     public String getMIMEType();
 
-	public boolean assignUniqueNumber();
+    public boolean assignUniqueNumber();
 }

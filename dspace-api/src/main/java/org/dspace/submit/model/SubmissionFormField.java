@@ -15,77 +15,76 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
- *
  */
 public class SubmissionFormField {
-	private String label;
-	private boolean mandatory;
-	private boolean repeatable;
-	private String mandatoryMessage;
-	private String hints;
+    private String label;
+    private boolean mandatory;
+    private boolean repeatable;
+    private String mandatoryMessage;
+    private String hints;
 
-	private List<SelectableMetadata> selectableMetadata;
-	
-	@JsonInclude(Include.NON_EMPTY)
-	private List<LanguageFormField> languageCodes;
-	
-	public List<SelectableMetadata> getSelectableMetadata() {
-		return selectableMetadata;
-	}
+    private List<SelectableMetadata> selectableMetadata;
 
-	public void setSelectableMetadata(List<SelectableMetadata> selectableMetadata) {
-		this.selectableMetadata = selectableMetadata;
-	}
-	
-	public String getLabel() {
-		return label;
-	}
+    @JsonInclude(Include.NON_EMPTY)
+    private List<LanguageFormField> languageCodes;
 
-	public void setLabel(String label) {
-		this.label = label;
-	}
+    public List<SelectableMetadata> getSelectableMetadata() {
+        return selectableMetadata;
+    }
 
-	public boolean isMandatory() {
-		return mandatory;
-	}
+    public void setSelectableMetadata(List<SelectableMetadata> selectableMetadata) {
+        this.selectableMetadata = selectableMetadata;
+    }
 
-	public void setMandatory(boolean mandatory) {
-		this.mandatory = mandatory;
-	}
+    public String getLabel() {
+        return label;
+    }
 
-	public boolean isRepeatable() {
-		return repeatable;
-	}
+    public void setLabel(String label) {
+        this.label = label;
+    }
 
-	public void setRepeatable(boolean repeatable) {
-		this.repeatable = repeatable;
-	}
+    public boolean isMandatory() {
+        return mandatory;
+    }
 
-	public String getMandatoryMessage() {
-		return mandatoryMessage;
-	}
+    public void setMandatory(boolean mandatory) {
+        this.mandatory = mandatory;
+    }
 
-	public void setMandatoryMessage(String mandatoryMessage) {
-		this.mandatoryMessage = mandatoryMessage;
-	}
+    public boolean isRepeatable() {
+        return repeatable;
+    }
 
-	public String getHints() {
-		return hints;
-	}
+    public void setRepeatable(boolean repeatable) {
+        this.repeatable = repeatable;
+    }
 
-	public void setHints(String hints) {
-		this.hints = hints;
-	}
+    public String getMandatoryMessage() {
+        return mandatoryMessage;
+    }
 
-	public List<LanguageFormField> getLanguageCodes() {
-		if(languageCodes==null) {
-			languageCodes = new ArrayList<LanguageFormField>();
-		}
-		return languageCodes;
-	}
+    public void setMandatoryMessage(String mandatoryMessage) {
+        this.mandatoryMessage = mandatoryMessage;
+    }
 
-	public void setLanguageCodes(List<LanguageFormField> languageCodes) {
-		this.languageCodes = languageCodes;
-	}
+    public String getHints() {
+        return hints;
+    }
+
+    public void setHints(String hints) {
+        this.hints = hints;
+    }
+
+    public List<LanguageFormField> getLanguageCodes() {
+        if (languageCodes == null) {
+            languageCodes = new ArrayList<LanguageFormField>();
+        }
+        return languageCodes;
+    }
+
+    public void setLanguageCodes(List<LanguageFormField> languageCodes) {
+        this.languageCodes = languageCodes;
+    }
 
 }

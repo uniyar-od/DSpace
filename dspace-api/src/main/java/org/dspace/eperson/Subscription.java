@@ -34,8 +34,8 @@ public class Subscription implements ReloadableEntity<Integer> {
 
     @Id
     @Column(name = "subscription_id", unique = true, nullable = false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="subscription_seq")
-    @SequenceGenerator(name="subscription_seq", sequenceName="subscription_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "subscription_seq")
+    @SequenceGenerator(name = "subscription_seq", sequenceName = "subscription_seq", allocationSize = 1)
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -45,7 +45,7 @@ public class Subscription implements ReloadableEntity<Integer> {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "community_id")
     private Community community;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "eperson_id")
     private EPerson ePerson;
@@ -53,10 +53,8 @@ public class Subscription implements ReloadableEntity<Integer> {
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.eperson.service.SubscribeService#subscribe(Context, EPerson, Collection)}
-     *
      */
-    protected Subscription()
-    {
+    protected Subscription() {
 
     }
 
@@ -80,11 +78,11 @@ public class Subscription implements ReloadableEntity<Integer> {
         this.ePerson = ePerson;
     }
 
-	public Community getCommunity() {
-		return community;
-	}
+    public Community getCommunity() {
+        return community;
+    }
 
-	public void setCommunity(Community community) {
-		this.community = community;
-	}
+    public void setCommunity(Community community) {
+        this.community = community;
+    }
 }

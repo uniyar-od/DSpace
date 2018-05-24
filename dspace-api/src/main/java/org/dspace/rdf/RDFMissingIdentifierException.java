@@ -14,16 +14,16 @@ import org.dspace.core.Constants;
 
 /**
  * RDFConverter Exception
+ *
  * @author Pascal-Nicolas Becker (dspace -at- pascal -hyphen- becker -dot- de)
  */
 class RDFMissingIdentifierException extends Exception {
-    public RDFMissingIdentifierException()
-    {
+    public RDFMissingIdentifierException() {
         super("Coudln't generate a necessary RDF Identifier.");
     }
 
     RDFMissingIdentifierException(int type, UUID id) {
-        super("Couldn't generate a necessary RDF Identifier for " 
-                + Constants.typeText[type] + " " + id.toString() + ".");
+        super("Couldn't generate a necessary RDF Identifier for "
+                  + Constants.typeText[type] + " " + id.toString() + ".");
     }
 }

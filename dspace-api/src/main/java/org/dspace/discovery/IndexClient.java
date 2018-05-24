@@ -50,14 +50,17 @@ public class IndexClient {
     private static final Logger log = Logger.getLogger(IndexClient.class);
 
     /**
+     * Default constructor
+     */
+    private IndexClient() { }
+
+    /**
      * When invoked as a command-line tool, creates, updates, removes content
      * from the whole index
      *
      * @param args the command-line arguments, none used
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
-     * @throws IOException
-     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @throws SQLException           An exception that provides information on a database access error or other errors.
+     * @throws IOException            A general class of exceptions produced by failed or interrupted I/O operations.
      * @throws SearchServiceException if something went wrong with querying the solr server
      */
     public static void main(String[] args) throws SQLException, IOException, SearchServiceException {
@@ -65,76 +68,78 @@ public class IndexClient {
         Context context = new Context(Context.Mode.READ_ONLY);
         context.turnOffAuthorisationSystem();
 
-        String usage = "org.dspace.discovery.IndexClient [-cbhf] | [-r <handle>] | [-i <handle>] | [-item_uuid <uuid>] or nothing to update/clean an existing index.";
+        String usage = "org.dspace.discovery.IndexClient [-cbhf] | [-r <handle>] | [-i <handle>] | [-item_uuid " +
+            "<uuid>] or nothing to update/clean an existing index.";
         Options options = new Options();
         HelpFormatter formatter = new HelpFormatter();
         CommandLine line = null;
 
         options.addOption(OptionBuilder
-            .withArgName("handle to remove")
-            .hasArg(true)
-            .withDescription(
-                "remove an Item, Collection or Community from index based on its handle")
-            .create("r"));
-        
-        options.addOption(OptionBuilder
-                .withArgName("item uuid to index")
-                .hasArg(true)
-                .withDescription(
-                    "add an Item based on its uuid")
-                .create("item_uuid"));
+                              .withArgName("handle to remove")
+                              .hasArg(true)
+                              .withDescription(
+                                  "remove an Item, Collection or Community from index based on its handle")
+                              .create("r"));
 
         options.addOption(OptionBuilder
-            .withArgName("handle to add or update")
-            .hasArg(true)
-            .withDescription(
-                "add or update an Item, Collection or Community based on its handle")
-            .create("i"));
+                              .withArgName("item uuid to index")
+                              .hasArg(true)
+                              .withDescription(
+                                  "add an Item based on its uuid")
+                              .create("item_uuid"));
 
         options.addOption(OptionBuilder
-            .isRequired(false)
-            .withDescription(
-                "clean existing index removing any documents that no longer exist in the db")
-            .create("c"));
+                              .withArgName("handle to add or update")
+                              .hasArg(true)
+                              .withDescription(
+                                  "add or update an Item, Collection or Community based on its handle")
+                              .create("i"));
+
+        options.addOption(OptionBuilder
+                              .isRequired(false)
+                              .withDescription(
+                                  "clean existing index removing any documents that no longer exist in the db")
+                              .create("c"));
 
         options.addOption(OptionBuilder.isRequired(false).withDescription(
-                "(re)build index [incremental mode]").create(
-                "b"));
+            "(re)build index [incremental mode]").create(
+            "b"));
 
         options.addOption(OptionBuilder
-            .isRequired(false)
-            .withDescription(
-                "Rebuild the spellchecker, can be combined with -b and -f.")
-            .create("s"));
+                              .isRequired(false)
+                              .withDescription(
+                                  "Rebuild the spellchecker, can be combined with -b and -f.")
+                              .create("s"));
 
         options.addOption(OptionBuilder
-            .isRequired(false)
-            .withDescription(
-                "if updating existing index, force each handle to be reindexed even if uptodate")
-            .create("f"));
+                              .isRequired(false)
+                              .withDescription(
+                                  "if updating existing index, force each handle to be reindexed even if uptodate")
+                              .create("f"));
 
         options
-        .addOption(OptionBuilder
-                .isRequired(false)
-                .hasArg(true)
-                .withDescription(
-                        "update a specific class of objects based on its type")
-                .create("t"));
+            .addOption(OptionBuilder
+                           .isRequired(false)
+                           .hasArg(true)
+                           .withDescription(
+                               "update a specific class of objects based on its type")
+                           .create("t"));
 
         options
-        .addOption(OptionBuilder
-                .isRequired(false)
-                .hasArg(true)
-                .withDescription(
-                "update an Item, Collection or Community from index based on its handle, use with -f to force clean")
-                .create("u"));
-        
-        options.addOption(OptionBuilder.isRequired(false).withDescription(
-                "print this help message").create("h"));
+            .addOption(OptionBuilder
+                           .isRequired(false)
+                           .hasArg(true)
+                           .withDescription(
+                               "update an Item, Collection or Community from index based on its handle, use with -f " +
+                                   "to force clean")
+                           .create("u"));
 
         options.addOption(OptionBuilder.isRequired(false).withDescription(
-                "optimize search core").create("o"));
-        
+            "print this help message").create("h"));
+
+        options.addOption(OptionBuilder.isRequired(false).withDescription(
+            "optimize search core").create("o"));
+
         options.addOption("e", "readfile", true, "Read the identifier from a file");
 
         try {
@@ -174,29 +179,33 @@ public class IndexClient {
         } else if (line.hasOption("o")) {
             log.info("Optimizing search core.");
             indexer.optimize();
- 		} else if(line.hasOption('s')) {
-            checkRebuildSpellCheck(line, indexer);           
+        } else if (line.hasOption('s')) {
+            checkRebuildSpellCheck(line, indexer);
         } else if (line.hasOption("t")) {
-        	log.info("Updating and Cleaning a specific Index");
-            String optionValue = line.getOptionValue("t");			
+            log.info("Updating and Cleaning a specific Index");
+            String optionValue = line.getOptionValue("t");
             indexer.updateIndex(context, true, Integer.valueOf(optionValue));
-        } else if (line.hasOption("item_uuid")) {         	
-        	String itemUUID = line.getOptionValue("item_uuid");
-        	Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(itemUUID));
-        	indexer.indexContent(context, item, line.hasOption("f"));
-        } else if (line.hasOption("u")) {         	
-        	String optionValue = line.getOptionValue("u");
-			String[] identifiers = optionValue.split("\\s*,\\s*");
-			for (String id : identifiers) {
-				BrowsableDSpaceObject dso;
-				if (id.startsWith(ConfigurationManager.getProperty("handle.prefix")) || id.startsWith("123456789/")) {
-					dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, id);
-				} else {
+        } else if (line.hasOption("item_uuid")) {
+            String itemUUID = line.getOptionValue("item_uuid");
+            Item item = ContentServiceFactory.getInstance().getItemService().find(context, UUID.fromString(itemUUID));
+            indexer.indexContent(context, item, line.hasOption("f"));
+        } else if (line.hasOption("u")) {
+            String optionValue = line.getOptionValue("u");
+            String[] identifiers = optionValue.split("\\s*,\\s*");
+            for (String id : identifiers) {
+                BrowsableDSpaceObject dso;
+                if (id.startsWith(ConfigurationManager.getProperty("handle.prefix")) || id.startsWith("123456789/")) {
+                    dso = (BrowsableDSpaceObject) HandleServiceFactory.getInstance().getHandleService()
+                                                                      .resolveToObject(context, id);
+                } else {
 
-					dso = (BrowsableDSpaceObject)DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(ExternalService.class.getName(), ExternalService.class).getObject(id);
-				}
-				indexer.indexContent(context, dso, line.hasOption("f"));
-			}
+                    dso = (BrowsableDSpaceObject) DSpaceServicesFactory.getInstance().getServiceManager()
+                                                                       .getServiceByName(
+                                                                           ExternalService.class.getName(),
+                                                                           ExternalService.class).getObject(id);
+                }
+                indexer.indexContent(context, dso, line.hasOption("f"));
+            }
         } else if (line.hasOption('e')) {
             try {
                 String filename = line.getOptionValue('e');
@@ -230,14 +239,17 @@ public class IndexClient {
             }
         } else if (line.hasOption('i')) {
             final String handle = line.getOptionValue('i');
-            final BrowsableDSpaceObject dso = (BrowsableDSpaceObject)HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, handle);
+            final BrowsableDSpaceObject dso = (BrowsableDSpaceObject) HandleServiceFactory.getInstance()
+                                                                                          .getHandleService()
+                                                                                          .resolveToObject(context,
+                                                                                                           handle);
             if (dso == null) {
                 throw new IllegalArgumentException("Cannot resolve " + handle + " to a DSpace object");
             }
             log.info("Forcibly Indexing " + handle);
             final long startTimeMillis = System.currentTimeMillis();
-            final long count = indexAll(indexer,  ContentServiceFactory.getInstance().getItemService(), context, dso);
-            final long seconds = (System.currentTimeMillis() - startTimeMillis ) / 1000;
+            final long count = indexAll(indexer, ContentServiceFactory.getInstance().getItemService(), context, dso);
+            final long seconds = (System.currentTimeMillis() - startTimeMillis) / 1000;
             log.info("Indexed " + count + " DSpace object" + (count > 1 ? "s" : "") + " in " + seconds + " seconds");
         } else {
             log.info("Updating and Cleaning Index");
@@ -253,23 +265,18 @@ public class IndexClient {
      * Indexes the given object and all children, if applicable.
      *
      * @param indexingService
-     *     
      * @param itemService
-     *     
-     * @param context
-     *     The relevant DSpace Context.
-     * @param dso
-     *     DSpace object to index recursively
-     * @throws IOException
-     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @param context         The relevant DSpace Context.
+     * @param dso             DSpace object to index recursively
+     * @throws IOException            A general class of exceptions produced by failed or interrupted I/O operations.
      * @throws SearchServiceException in case of a solr exception
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
+     * @throws SQLException           An exception that provides information on a database access error or other errors.
      */
     private static long indexAll(final IndexingService indexingService,
                                  final ItemService itemService,
                                  final Context context,
-                                 final BrowsableDSpaceObject dso) throws IOException, SearchServiceException, SQLException {
+                                 final BrowsableDSpaceObject dso)
+        throws IOException, SearchServiceException, SQLException {
         long count = 0;
 
         indexingService.indexContent(context, dso, true, true);
@@ -282,7 +289,9 @@ public class IndexClient {
                 //To prevent memory issues, discard an object from the cache after processing
                 context.uncacheEntity(subcommunity);
             }
-            final Community reloadedCommunity = (Community) HandleServiceFactory.getInstance().getHandleService().resolveToObject(context, communityHandle);
+            final Community reloadedCommunity = (Community) HandleServiceFactory.getInstance().getHandleService()
+                                                                                .resolveToObject(context,
+                                                                                                 communityHandle);
             for (final Collection collection : reloadedCommunity.getCollections()) {
                 count++;
                 indexingService.indexContent(context, collection, true, true);
@@ -301,25 +310,18 @@ public class IndexClient {
      * Indexes all items in the given collection.
      *
      * @param indexingService
-     *     
      * @param itemService
-     *     
-     * @param context
-     *     The relevant DSpace Context.
-     * @param collection
-     *     collection to index
-     * @throws IOException
-     *     A general class of exceptions produced by failed or interrupted I/O operations.
+     * @param context         The relevant DSpace Context.
+     * @param collection      collection to index
+     * @throws IOException            A general class of exceptions produced by failed or interrupted I/O operations.
      * @throws SearchServiceException in case of a solr exception
-     * @throws SQLException
-     *     An exception that provides information on a database access error or other errors.
+     * @throws SQLException           An exception that provides information on a database access error or other errors.
      */
     private static long indexItems(final IndexingService indexingService,
                                    final ItemService itemService,
                                    final Context context,
                                    final Collection collection)
-    throws IOException, SearchServiceException, SQLException
-    {
+        throws IOException, SearchServiceException, SQLException {
         long count = 0;
 
         final Iterator<Item> itemIterator = itemService.findByCollection(context, collection);
@@ -337,13 +339,13 @@ public class IndexClient {
 
     /**
      * Check the command line options and rebuild the spell check if active.
-     * @param line the command line options
+     *
+     * @param line    the command line options
      * @param indexer the solr indexer
      * @throws SearchServiceException in case of a solr exception
      */
     protected static void checkRebuildSpellCheck(CommandLine line, IndexingService indexer)
-    throws SearchServiceException
-    {
+        throws SearchServiceException {
         if (line.hasOption("s")) {
             log.info("Rebuilding spell checker.");
             indexer.buildSpellCheck();

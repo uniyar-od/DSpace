@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -82,9 +81,9 @@ public class PubMedToImport {
             SAXParser saxParser = factory.newSAXParser();
 
             saxParser.parse(source, new PubMedHandler());
-            
+
         } catch (Exception e) {
-            
+
         }
     }
 
@@ -115,8 +114,8 @@ public class PubMedToImport {
         }
 
         @Override
-        public void startElement(String uri, String localName, String qName, Attributes attributes) throws SAXException
-        {
+        public void startElement(String uri, String localName, String qName, Attributes attributes)
+            throws SAXException {
             if ("PubmedArticle".equals(qName)) {
                 System.out.println("Starting record " + recordCount);
             } else if ("CommensCorrectionsList".equals(qName)) {
@@ -135,8 +134,7 @@ public class PubMedToImport {
         }
 
         @Override
-        public void endElement(String uri, String localName, String qName) throws SAXException
-        {
+        public void endElement(String uri, String localName, String qName) throws SAXException {
             if (!isCorrection) {
                 if ("PMID".equals(qName)) {
                     addDCValue("identifier", null, value.toString());
@@ -170,13 +168,12 @@ public class PubMedToImport {
             }
 
             isFirstName = false;
-            isLastName  = false;
+            isLastName = false;
             super.endElement(uri, localName, qName);
         }
 
         @Override
-        public void characters(char[] chars, int start, int length) throws SAXException
-        {
+        public void characters(char[] chars, int start, int length) throws SAXException {
             if (isFirstName) {
                 firstName.append(chars, start, length);
 //                firstName = String.copyValueOf(chars, start, length);
@@ -191,26 +188,23 @@ public class PubMedToImport {
             super.characters(chars, start, length);
         }
 
-        private void writeItem() throws IOException
-        {
+        private void writeItem() throws IOException {
             File itemDir = new File(outputDir, String.valueOf(recordCount));
             itemDir.mkdirs();
 
             new File(itemDir, "contents").createNewFile();
-            
+
             Document doc = new Document();
             Element root = new Element("dublin_core");
 
             doc.setRootElement(root);
 
-            for (MockMetadataValue dcValue : dcValues)
-            {
+            for (MockMetadataValue dcValue : dcValues) {
                 Element dcNode = new Element("dcvalue");
 
                 dcNode.setAttribute("element", dcValue.element);
 
-                if (!StringUtils.isEmpty(dcValue.qualifier))
-                {
+                if (!StringUtils.isEmpty(dcValue.qualifier)) {
                     dcNode.setAttribute("qualifier", dcValue.qualifier);
                 }
 
@@ -237,8 +231,7 @@ public class PubMedToImport {
     }
 
 
-    protected static class MockMetadataValue
-    {
+    protected static class MockMetadataValue {
         public String schema;
         public String element;
         public String qualifier;

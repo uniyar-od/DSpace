@@ -23,10 +23,10 @@ import org.dspace.utils.DSpace;
 public class InfoCheck extends Check {
 
     @Override
-    public String run( ReportInfo ri ) {
+    public String run(ReportInfo ri) {
         StringBuilder sb = new StringBuilder();
         ConfigurationService configurationService
-                = new DSpace().getConfigurationService();
+            = new DSpace().getConfigurationService();
         sb.append("Generated: ").append(
             new Date().toString()
         ).append("\n");
@@ -42,32 +42,31 @@ public class InfoCheck extends Check {
         ).append("\n");
         sb.append("\n");
 
-        DSBitStoreService localStore = new DSpace().getServiceManager().getServicesByType(DSBitStoreService.class).get(0);
+        DSBitStoreService localStore = new DSpace().getServiceManager().getServicesByType(DSBitStoreService.class)
+                                                   .get(0);
         for (String[] ss : new String[][] {
             new String[] {
                 localStore.getBaseDir().toString(),
                 "Assetstore size", },
             new String[] {
-                    configurationService.getProperty("log.report.dir"),
-                "Log dir size", }, })
-        {
-            if (ss[0] != null) {   
+                configurationService.getProperty("log.report.dir"),
+                "Log dir size", }, }) {
+            if (ss[0] != null) {
                 try {
                     File dir = new File(ss[0]);
                     if (dir.exists()) {
                         long dir_size = FileUtils.sizeOfDirectory(dir);
                         sb.append(String.format("%-20s: %s\n", ss[1],
-                                FileUtils.byteCountToDisplaySize(dir_size))
+                                                FileUtils.byteCountToDisplaySize(dir_size))
                         );
                     } else {
                         sb.append(String.format("Directory [%s] does not exist!\n", ss[0]));
                     }
-                } catch(Exception e) {
+                } catch (Exception e) {
                     error(e, "directory - " + ss[0]);
                 }
-            }
-            else { // cannot read property for some reason
-                    sb.append(String.format("Could not get information for %s!\n", ss[1]));
+            } else { // cannot read property for some reason
+                sb.append(String.format("Could not get information for %s!\n", ss[1]));
             }
         }
 

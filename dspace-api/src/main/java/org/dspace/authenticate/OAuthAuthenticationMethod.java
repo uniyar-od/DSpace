@@ -10,7 +10,6 @@ package org.dspace.authenticate;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -32,12 +31,13 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 
 /**
- *
  * @author mdiggory at atmire.com
  */
-public class OAuthAuthenticationMethod implements AuthenticationMethod{
+public class OAuthAuthenticationMethod implements AuthenticationMethod {
 
-    /** log4j category */
+    /**
+     * log4j category
+     */
     private static Logger log = Logger.getLogger(OAuthAuthenticationMethod.class);
 
     @Override
@@ -66,52 +66,47 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
     }
 
     @Override
-    public int authenticate(Context context, String username, String password, String realm, HttpServletRequest request) throws SQLException {
+    public int authenticate(Context context, String username, String password, String realm, HttpServletRequest request)
+        throws SQLException {
 
 
         String email = null;
         EPerson eperson = null;
-        
+
         String orcid = (String) request.getAttribute("orcid");
         String token = (String) request.getAttribute("access_token");
         String scope = (String) request.getAttribute("scope");
 //        String refreshToken = (String) request.getAttribute("refresh_token");
-        if (request == null||orcid==null)
-        {
+        if (request == null || orcid == null) {
             return BAD_ARGS;
         }
-        
+
         EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
         List<EPerson> epersons = ePersonService.search(context, orcid);
-        
-        if(epersons != null && epersons.size() > 1) {
-            log.error("Fail to authorize user with orcid: "+orcid + " email:" + email + " - Multiple Users found");
+
+        if (epersons != null && epersons.size() > 1) {
+            log.error("Fail to authorize user with orcid: " + orcid + " email:" + email + " - Multiple Users found");
             return AuthenticationMethod.NO_SUCH_USER;
         }
         // No email address, perhaps the eperson has been setup, better check it
-        if (epersons == null || epersons.isEmpty())
-        {
-        	eperson = context.getCurrentUser();
-            if (eperson != null)
-            {
+        if (epersons == null || epersons.isEmpty()) {
+            eperson = context.getCurrentUser();
+            if (eperson != null) {
                 //if eperson exists then get ORCID Profile and binding data to Eperson Account
                 email = eperson.getEmail();
             }
-        }
-        else {
+        } else {
             eperson = epersons.get(0);
         }
-        
+
         //get email from orcid
         OrcidService orcidObject = OrcidService.getOrcid();
-        if (orcid != null && email == null)
-        {
+        if (orcid != null && email == null) {
             Emails emails = orcidObject.getEmails(orcid, token);
-            if (emails != null)
-            {
-                if(emails.getEmail() != null && !emails.getEmail().isEmpty()) {
-                    for(EmailCtype emailCType : emails.getEmail()) {
-                        if(emailCType.isVerified()) {
+            if (emails != null) {
+                if (emails.getEmail() != null && !emails.getEmail().isEmpty()) {
+                    for (EmailCtype emailCType : emails.getEmail()) {
+                        if (emailCType.isVerified()) {
                             email = emailCType.getEmail();
                         }
                     }
@@ -129,118 +124,101 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
         if (email != null) {
             email = email.toLowerCase();
         }
-        
+
         // never logged in! Use verified email from ORCID Registry if exist
         if (eperson == null && email != null) {
-	        try
-	        {
-	            eperson = ePersonService.findByEmail(context, email);
-	        }
-	        catch (SQLException e)
-	        {
-	            log.warn("Fail to locate user with email:" + email, e);
-	            eperson = null;
-	        }
+            try {
+                eperson = ePersonService.findByEmail(context, email);
+            } catch (SQLException e) {
+                log.warn("Fail to locate user with email:" + email, e);
+                eperson = null;
+            }
         }
-        
-        try
-        {
-        	// TEMPORARILY turn off authorisation
+
+        try {
+            // TEMPORARILY turn off authorisation
             context.turnOffAuthorisationSystem();
-	        // auto create user if needed
-	        if (eperson == null
-	                && ConfigurationManager
-	                .getBooleanProperty("authentication-oauth", "autoregister"))
-	        {
-	            log.info(LogManager.getHeader(context, "autoregister", "orcid="
-	                    + orcid));
+            // auto create user if needed
+            if (eperson == null
+                && ConfigurationManager
+                .getBooleanProperty("authentication-oauth", "autoregister")) {
+                log.info(LogManager.getHeader(context, "autoregister", "orcid="
+                    + orcid));
 
-	            String fname = "";
-	            String lname = "";
-	            
-	            PersonalDetails personalDetails = orcidObject.getPersonalDetails(orcid, token);
-	            if (personalDetails != null)
-	            {
-	                if (personalDetails.getName() != null) {
-	                    // try to grab name from the orcid profile
-	                    fname = personalDetails.getName().getGivenNames().getValue();
+                String fname = "";
+                String lname = "";
 
-	                    // try to grab name from the orcid profile
-	                    lname = personalDetails.getName().getFamilyName().getValue();
-	                }
-	            }
-	            
-	            eperson = ePersonService.create(context);
-                eperson.setEmail(email!=null?email:orcid);
+                PersonalDetails personalDetails = orcidObject.getPersonalDetails(orcid, token);
+                if (personalDetails != null) {
+                    if (personalDetails.getName() != null) {
+                        // try to grab name from the orcid profile
+                        fname = personalDetails.getName().getGivenNames().getValue();
+
+                        // try to grab name from the orcid profile
+                        lname = personalDetails.getName().getFamilyName().getValue();
+                    }
+                }
+
+                eperson = ePersonService.create(context);
+                eperson.setEmail(email != null ? email : orcid);
                 eperson.setFirstName(context, fname);
                 eperson.setLastName(context, lname);
                 eperson.setCanLogIn(true);
 
-                AuthenticateServiceFactory.getInstance().getAuthenticationService().initEPerson(context, request, eperson);
+                AuthenticateServiceFactory.getInstance().getAuthenticationService()
+                                          .initEPerson(context, request, eperson);
                 ePersonService.addMetadata(context, eperson, "eperson", "orcid", null, null, orcid);
                 ePersonService.addMetadata(context, eperson, "eperson", "orcid", "accesstoken", null, token);
                 ePersonService.update(context, eperson);
                 context.commit();
                 context.setCurrentUser(eperson);
-	        }
-	        else if(eperson!=null)
-	        {
-	            //found the eperson , update the eperson record with orcid id
+            } else if (eperson != null) {
+                //found the eperson , update the eperson record with orcid id
                 //eperson.setNetid(orcid);
                 if (eperson.getEmail() == null) {
-                	eperson.setEmail(email!=null?email:orcid);
-                } 
+                    eperson.setEmail(email != null ? email : orcid);
+                }
                 //eperson.setMetadata("access_token",token);
                 List<IMetadataValue> md = ePersonService.getMetadata(eperson, "eperson", "orcid", null, null);
                 boolean found = false;
-                for (IMetadataValue m : md)
-                {
-                    if (StringUtils.equals(m.getValue(), orcid))
-                    {
+                for (IMetadataValue m : md) {
+                    if (StringUtils.equals(m.getValue(), orcid)) {
                         found = true;
                         break;
                     }
                 }
                 if (!found) {
-                	ePersonService.addMetadata(context, eperson, "eperson", "orcid", null, null, orcid);
+                    ePersonService.addMetadata(context, eperson, "eperson", "orcid", null, null, orcid);
                 }
                 ePersonService.addMetadata(context, eperson, "eperson", "orcid", "accesstoken", null, token);
                 ePersonService.update(context, eperson);
                 context.commit();
-	        }
-        }
-        catch (AuthorizeException e)
-        {
-            log.warn("Fail to authorize user with orcid: "+orcid + " email:" + email, e);
+            }
+        } catch (AuthorizeException e) {
+            log.warn("Fail to authorize user with orcid: " + orcid + " email:" + email, e);
             eperson = null;
-        }
-        finally
-        {
+        } finally {
             context.restoreAuthSystemState();
         }
 
-        if (eperson == null)
-        {
+        if (eperson == null) {
             return AuthenticationMethod.NO_SUCH_USER;
-        }
-        else
-        {
+        } else {
             // the person exists, just return ok
             context.setCurrentUser(eperson);
             request.getSession().setAttribute("oauth.authenticated",
-                    Boolean.TRUE);
+                                              Boolean.TRUE);
         }
 
         return AuthenticationMethod.SUCCESS;
     }
+
     @Override
     public String loginPageURL(Context context, HttpServletRequest request, HttpServletResponse response) {
-        if(ConfigurationManager.getBooleanProperty("authentication-oauth","choice-page")){
+        if (ConfigurationManager.getBooleanProperty("authentication-oauth", "choice-page")) {
             return response.encodeRedirectURL(request.getContextPath()
-                + "/oauth-login");
-        }
-        else
-        {
+                                                  + "/oauth-login");
+        } else {
             return null;
         }
     }

@@ -8,11 +8,9 @@
 package org.dspace.content.authority;
 
 /**
- * 
  * @author bollini
  */
-public class AuthorityInfo
-{
+public class AuthorityInfo {
 
     /**
      * The authority name or the metadata field which the info belongs to
@@ -63,9 +61,8 @@ public class AuthorityInfo
     private long numIssuedItems;
 
     public AuthorityInfo(String metadataField, long[] numMetadataWithKey,
-            long numTotMetadata, long numAuthorityKey, long numAuthorityIssued,
-            long numItems, long numIssuedItems)
-    {
+                         long numTotMetadata, long numAuthorityKey, long numAuthorityIssued,
+                         long numItems, long numIssuedItems) {
         this.scope = metadataField;
         this.numMetadataWithKey = numMetadataWithKey;
         this.numTotMetadata = numTotMetadata;
@@ -77,10 +74,9 @@ public class AuthorityInfo
     }
 
     public AuthorityInfo(String metadataField, boolean singleMetadata,
-            long[] numMetadataWithKey, long numTotMetadata,
-            long numAuthorityKey, long numAuthorityIssued, long numItems,
-            long numIssuedItems)
-    {
+                         long[] numMetadataWithKey, long numTotMetadata,
+                         long numAuthorityKey, long numAuthorityIssued, long numItems,
+                         long numIssuedItems) {
         this.scope = metadataField;
         this.numMetadataWithKey = numMetadataWithKey;
         this.numTotMetadata = numTotMetadata;
@@ -91,43 +87,35 @@ public class AuthorityInfo
         this.singleMetadata = singleMetadata;
     }
 
-    public String getScope()
-    {
+    public String getScope() {
         return scope;
     }
 
-    public boolean isSingleMetadata()
-    {
+    public boolean isSingleMetadata() {
         return singleMetadata;
     }
 
-    public long getNumAuthorityIssued()
-    {
+    public long getNumAuthorityIssued() {
         return numAuthorityIssued;
     }
 
-    public long getNumAuthorityKey()
-    {
+    public long getNumAuthorityKey() {
         return numAuthorityKey;
     }
 
-    public long getNumItems()
-    {
+    public long getNumItems() {
         return numItems;
     }
 
-    public long getNumIssuedItems()
-    {
+    public long getNumIssuedItems() {
         return numIssuedItems;
     }
 
-    public long[] getNumMetadataWithKey()
-    {
+    public long[] getNumMetadataWithKey() {
         return numMetadataWithKey;
     }
 
-    public long getNumTotMetadata()
-    {
+    public long getNumTotMetadata() {
         return numTotMetadata;
     }
 }

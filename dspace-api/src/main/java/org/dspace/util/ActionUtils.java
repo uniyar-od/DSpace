@@ -13,9 +13,8 @@ import java.util.Map;
 
 import org.dspace.core.I18nUtil;
 
-public class ActionUtils
-{
-    
+public class ActionUtils {
+
     public static final String ACTION_FAKE_WS = "fake_ws";
     public static final String ACTION_IGNORE_WS = "ignore_ws";
     public static final String ACTION_FAKE_WF1 = "fake_wf1";
@@ -23,8 +22,7 @@ public class ActionUtils
     public static final String ACTION_IGNORE_WF1 = "ignore_wf1";
     public static final String ACTION_IGNORE_WF2 = "ignore_wf2";
 
-    public static Map<String, String> createActionsLabel(Locale locale)
-    {
+    public static Map<String, String> createActionsLabel(Locale locale) {
         Map<String, String> actionsLabel = new HashMap<String, String>();
         //dedup
         actionsLabel.put(ACTION_FAKE_WF1, I18nUtil.getMessage("jsp.dedup.table.actions.fakewf1", locale));

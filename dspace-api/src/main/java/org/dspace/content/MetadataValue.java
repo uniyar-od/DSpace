@@ -37,65 +37,75 @@ import org.hibernate.proxy.HibernateProxyHelper;
  * @see org.dspace.content.MetadataField
  */
 @Entity
-@Table(name="metadatavalue")
-public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
-{
-	public static final String PARENT_PLACEHOLDER_VALUE ="#PLACEHOLDER_PARENT_METADATA_VALUE#";
-    /** The reference to the metadata field */
+@Table(name = "metadatavalue")
+public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue {
+    public static final String PARENT_PLACEHOLDER_VALUE = "#PLACEHOLDER_PARENT_METADATA_VALUE#";
+    /**
+     * The reference to the metadata field
+     */
     @Id
-    @Column(name="metadata_value_id")
-    @GeneratedValue(strategy = GenerationType.SEQUENCE ,generator="metadatavalue_seq")
-    @SequenceGenerator(name="metadatavalue_seq", sequenceName="metadatavalue_seq", allocationSize = 1)
+    @Column(name = "metadata_value_id")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "metadatavalue_seq")
+    @SequenceGenerator(name = "metadatavalue_seq", sequenceName = "metadatavalue_seq", allocationSize = 1)
     private Integer id;
 
-    /** The primary key for the metadata value */
+    /**
+     * The primary key for the metadata value
+     */
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "metadata_field_id")
     private MetadataField metadataField = null;
 
-    /** The value of the field */
+    /**
+     * The value of the field
+     */
     @Lob
-    @Type(type="org.hibernate.type.MaterializedClobType")
-    @Column(name="text_value")
+    @Type(type = "org.hibernate.type.MaterializedClobType")
+    @Column(name = "text_value")
     private String value;
 
-    /** The language of the field, may be <code>null</code> */
+    /**
+     * The language of the field, may be <code>null</code>
+     */
     @Column(name = "text_lang", length = 24)
     private String language;
 
-    /** The position of the record. */
+    /**
+     * The position of the record.
+     */
     @Column(name = "place")
     private int place = 1;
 
-    /** Authority key, if any */
+    /**
+     * Authority key, if any
+     */
     @Column(name = "authority", length = 100)
     private String authority = null;
 
-    /** Authority confidence value -- see Choices class for values */
+    /**
+     * Authority confidence value -- see Choices class for values
+     */
     @Column(name = "confidence")
     private int confidence = -1;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade={CascadeType.PERSIST})
-    @JoinColumn(name="dspace_object_id")
+    @ManyToOne(fetch = FetchType.LAZY, cascade = { CascadeType.PERSIST })
+    @JoinColumn(name = "dspace_object_id")
     protected DSpaceObject dSpaceObject;
 
     /**
      * Protected constructor, create object using:
      * {@link org.dspace.content.service.MetadataValueService#create(Context, DSpaceObject, MetadataField)}
-     *
      */
-    protected MetadataValue()
-    {
+    protected MetadataValue() {
         id = 0;
     }
 
-	/**
+    /**
      * Get the field ID the metadata value represents.
      *
      * @return metadata value ID
      */
-    public Integer getID()
-    {
+    public Integer getID() {
         return id;
     }
 
@@ -104,8 +114,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @return dspaceObject
      */
-    public DSpaceObject getDSpaceObject()
-    {
+    public DSpaceObject getDSpaceObject() {
         return dSpaceObject;
     }
 
@@ -114,8 +123,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @param dso new dspaceObject ID
      */
-    public void setDSpaceObject(DSpaceObject dso)
-    {
+    public void setDSpaceObject(DSpaceObject dso) {
         this.dSpaceObject = dso;
     }
 
@@ -124,8 +132,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @return language
      */
-    public String getLanguage()
-    {
+    public String getLanguage() {
         return language;
     }
 
@@ -134,8 +141,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @param language new language
      */
-    public void setLanguage(String language)
-    {
+    public void setLanguage(String language) {
         this.language = language;
     }
 
@@ -144,8 +150,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @return place ordering
      */
-    public int getPlace()
-    {
+    public int getPlace() {
         return place;
     }
 
@@ -154,8 +159,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @param place new place (relative order in series of values)
      */
-    public void setPlace(int place)
-    {
+    public void setPlace(int place) {
         this.place = place;
     }
 
@@ -172,8 +176,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @return metadata value
      */
-    public String getValue()
-    {
+    public String getValue() {
         return value;
     }
 
@@ -182,8 +185,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @param value new metadata value
      */
-    public void setValue(String value)
-    {
+    public void setValue(String value) {
         this.value = value;
     }
 
@@ -192,9 +194,8 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @return metadata authority
      */
-    public String getAuthority ()
-    {
-        return authority ;
+    public String getAuthority() {
+        return authority;
     }
 
     /**
@@ -202,9 +203,8 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @param value new metadata authority
      */
-    public void setAuthority (String value)
-    {
-        this.authority  = value;
+    public void setAuthority(String value) {
+        this.authority = value;
     }
 
     /**
@@ -212,8 +212,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @return metadata confidence
      */
-    public int getConfidence()
-    {
+    public int getConfidence() {
         return confidence;
     }
 
@@ -222,8 +221,7 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      *
      * @param value new metadata confidence
      */
-    public void setConfidence(int value)
-    {
+    public void setConfidence(int value) {
         this.confidence = value;
     }
 
@@ -232,43 +230,34 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
      * Return <code>true</code> if <code>other</code> is the same IMetadataValue
      * as this object, <code>false</code> otherwise
      *
-     * @param obj
-     *            object to compare to
-     *
+     * @param obj object to compare to
      * @return <code>true</code> if object passed in represents the same
-     *         IMetadataValue as this object
+     * IMetadataValue as this object
      */
     @Override
-    public boolean equals(Object obj)
-    {
-        if (obj == null)
-        {
+    public boolean equals(Object obj) {
+        if (obj == null) {
             return false;
         }
         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
-        if (getClass() != objClass)
-        {
+        if (getClass() != objClass) {
             return false;
         }
         final MetadataValue other = (MetadataValue) obj;
-        if (this.id != other.id)
-        {
+        if (this.id != other.id) {
             return false;
         }
-        if (this.getID() != other.getID())
-        {
+        if (this.getID() != other.getID()) {
             return false;
         }
-        if (this.getDSpaceObject().getID() != other.getDSpaceObject().getID())
-        {
+        if (this.getDSpaceObject().getID() != other.getDSpaceObject().getID()) {
             return false;
         }
         return true;
     }
 
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         int hash = 7;
         hash = 47 * hash + this.id;
         hash = 47 * hash + this.getID();
@@ -276,20 +265,20 @@ public class MetadataValue implements ReloadableEntity<Integer>, IMetadataValue
         return hash;
     }
 
-	@Override
-	public String getSchema() {
-		return getMetadataField().getMetadataSchema().getName();
-	}
+    @Override
+    public String getSchema() {
+        return getMetadataField().getMetadataSchema().getName();
+    }
 
-	@Override
-	public String getElement() {
-		return getMetadataField().getElement();
-	}
+    @Override
+    public String getElement() {
+        return getMetadataField().getElement();
+    }
 
-	@Override
-	public String getQualifier() {
-		return getMetadataField().getQualifier();
-	}
+    @Override
+    public String getQualifier() {
+        return getMetadataField().getQualifier();
+    }
 
 
 }

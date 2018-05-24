@@ -9,7 +9,6 @@ package org.dspace.app.rest;
 
 import java.io.File;
 import java.util.List;
-
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.servlet.Filter;
@@ -82,8 +81,7 @@ public class Application extends SpringBootServletInitializer {
      */
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        return application.sources(Application.class)
-                .initializers(new DSpaceKernelInitializer());
+        return application.sources(Application.class).initializers(new DSpaceKernelInitializer());
     }
 
     @Bean
@@ -146,10 +144,11 @@ public class Application extends SpringBootServletInitializer {
             public void addCorsMappings(CorsRegistry registry) {
                 String[] corsAllowedOrigins = configuration.getCorsAllowedOrigins();
                 if (corsAllowedOrigins != null) {
-					registry.addMapping("/api/**").allowedMethods(CorsConfiguration.ALL)
-							.allowedOrigins(corsAllowedOrigins).allowedHeaders("Authorization", "Content-Type", "X-Requested-With", "accept", "Origin", "Access-Control-Request-Method",
-			                        "Access-Control-Request-Headers")
-			                .exposedHeaders("Access-Control-Allow-Origin", "Authorization");
+                    registry.addMapping("/api/**").allowedMethods(CorsConfiguration.ALL)
+                        .allowedOrigins(corsAllowedOrigins)
+                        .allowedHeaders("Authorization", "Content-Type", "X-Requested-With", "accept", "Origin",
+                            "Access-Control-Request-Method", "Access-Control-Request-Headers")
+                        .exposedHeaders("Access-Control-Allow-Origin", "Authorization");
                 }
             }
 
@@ -160,7 +159,9 @@ public class Application extends SpringBootServletInitializer {
         };
     }
 
-    /** Utility class that will destroy the DSpace Kernel on Spring Boot shutdown */
+    /**
+     * Utility class that will destroy the DSpace Kernel on Spring Boot shutdown
+     */
     private class DSpaceKernelDestroyer implements ApplicationListener<ContextClosedEvent> {
         private DSpaceKernel kernel;
 
@@ -176,7 +177,9 @@ public class Application extends SpringBootServletInitializer {
         }
     }
 
-    /** Utility class that will initialize the DSpace Kernel on Spring Boot startup */
+    /**
+     * Utility class that will initialize the DSpace Kernel on Spring Boot startup
+     */
     private class DSpaceKernelInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
         private transient DSpaceKernel dspaceKernel;
@@ -237,7 +240,7 @@ public class Application extends SpringBootServletInitializer {
 
             if (providedHome == null) {
                 if (dspaceHome != null && !dspaceHome.equals("") &&
-                        !dspaceHome.equals("${" + DSpaceConfigurationService.DSPACE_HOME + "}")) {
+                    !dspaceHome.equals("${" + DSpaceConfigurationService.DSPACE_HOME + "}")) {
                     File test = new File(dspaceHome);
                     if (test.exists() && new File(test, DSpaceConfigurationService.DSPACE_CONFIG_PATH).exists()) {
                         providedHome = dspaceHome;

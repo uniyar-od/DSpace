@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
@@ -48,9 +47,8 @@ import org.springframework.web.multipart.MultipartFile;
 
 /**
  * This is the repository responsible to manage EditItem Rest object
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 
 @Component(EditItemRest.CATEGORY + "." + EditItemRest.NAME)
@@ -74,7 +72,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
 
     @Autowired
     AuthorizeService authorizeService;
-    
+
     private SubmissionConfigReader submissionConfigReader;
 
     public EditItemRestRepository() throws SubmissionConfigReaderException {
@@ -142,20 +140,19 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
 
     @Override
     public EditItemRest upload(HttpServletRequest request, String apiCategory, String model, UUID id, String extraField,
-            MultipartFile file) throws Exception {
+                               MultipartFile file) throws Exception {
 
         Context context = obtainContext();
         EditItem source = is.find(context, id);
-        if (!authorizeService.isAdmin(context)
-                && !is.getItemService().canEdit(context, source.getItem())) {
+        if (!authorizeService.isAdmin(context) && !is.getItemService().canEdit(context, source.getItem())) {
             throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
         }
         context.turnOffAuthorisationSystem();
 
         EditItemRest wsi = findOne(id);
         List<ErrorRest> errors = new ArrayList<ErrorRest>();
-        SubmissionConfig submissionConfig = submissionConfigReader
-                .getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
+        SubmissionConfig submissionConfig =
+            submissionConfigReader.getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
         for (int i = 0; i < submissionConfig.getNumberOfSteps(); i++) {
             SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
 
@@ -171,8 +168,8 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
                 if (UploadableStep.class.isAssignableFrom(stepClass)) {
                     UploadableStep uploadableStep = (UploadableStep) stepInstance;
                     uploadableStep.doPreProcessing(context, source);
-                    ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, source, file,
-                            extraField);
+                    ErrorRest err =
+                        uploadableStep.upload(context, submissionService, stepConfig, source, file, extraField);
                     uploadableStep.doPostProcessing(context, source);
                     if (err != null) {
                         errors.add(err);
@@ -199,16 +196,15 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
 
     @Override
     public void patch(Context context, HttpServletRequest request, String apiCategory, String model, UUID id,
-            Patch patch) throws SQLException, AuthorizeException {
+                      Patch patch) throws SQLException, AuthorizeException {
         List<Operation> operations = patch.getOperations();
-        
+
         EditItem source = is.find(context, id);
-        if (!authorizeService.isAdmin(context)
-                && !is.getItemService().canEdit(context, source.getItem())) {
+        if (!authorizeService.isAdmin(context) && !is.getItemService().canEdit(context, source.getItem())) {
             throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
         }
         context.turnOffAuthorisationSystem();
-        
+
         EditItemRest wsi = findOne(id);
         for (Operation op : operations) {
             // the value in the position 0 is a null value
@@ -218,16 +214,16 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
                 evaluatePatch(context, request, source, wsi, section, op);
             } else {
                 throw new PatchBadRequestException(
-                        "Patch path operation need to starts with '" + OPERATION_PATH_SECTIONS + "'");
+                    "Patch path operation need to starts with '" + OPERATION_PATH_SECTIONS + "'");
             }
         }
         is.update(context, source);
     }
 
     private void evaluatePatch(Context context, HttpServletRequest request, EditItem source, EditItemRest wsi,
-            String section, Operation op) {
-        SubmissionConfig submissionConfig = submissionConfigReader
-                .getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
+                               String section, Operation op) {
+        SubmissionConfig submissionConfig =
+            submissionConfigReader.getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
         for (int stepNum = 0; stepNum < submissionConfig.getNumberOfSteps(); stepNum++) {
 
             SubmissionStepConfig stepConfig = submissionConfig.getStep(stepNum);
@@ -245,16 +241,16 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
 
                     if (stepInstance instanceof AbstractRestProcessingStep) {
                         // load the JSPStep interface for this step
-                        AbstractRestProcessingStep stepProcessing = (AbstractRestProcessingStep) stepClass
-                                .newInstance();
+                        AbstractRestProcessingStep stepProcessing =
+                            (AbstractRestProcessingStep) stepClass.newInstance();
                         stepProcessing.doPreProcessing(context, source);
                         stepProcessing.doPatchProcessing(context, getRequestService().getCurrentRequest(), source, op);
                         stepProcessing.doPostProcessing(context, source);
                     } else {
-                        throw new PatchBadRequestException("The submission step class specified by '"
-                                + stepConfig.getProcessingClassName()
-                                + "' does not extend the class org.dspace.submit.AbstractProcessingStep!"
-                                + " Therefore it cannot be used by the Configurable Submission as the <processing-class>!");
+                        throw new PatchBadRequestException(
+                            "The submission step class specified by '" + stepConfig.getProcessingClassName() +
+                            "' does not extend the class org.dspace.submit.AbstractProcessingStep!" +
+                            " Therefore it cannot be used by the Configurable Submission as the <processing-class>!");
                     }
 
                 } catch (Exception e) {
@@ -269,8 +265,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, U
         EditItem source = null;
         try {
             source = is.find(context, id);
-            if (!authorizeService.isAdmin(context)
-                    && !is.getItemService().canEdit(context, source.getItem())) {
+            if (!authorizeService.isAdmin(context) && !is.getItemService().canEdit(context, source.getItem())) {
                 throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
             }
             context.turnOffAuthorisationSystem();

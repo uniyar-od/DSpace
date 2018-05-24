@@ -24,39 +24,38 @@ import org.dspace.curate.Distributive;
 @Distributive
 public class MediaFilterCurationTask extends AbstractCurationTask {
 
-	protected Logger log = Logger.getLogger(MediaFilterCurationTask.class);
+    protected Logger log = Logger.getLogger(MediaFilterCurationTask.class);
 
-	@Override
-	public void init(Curator curator, String taskId) throws IOException {
-		super.init(curator, taskId);
-	}
-	
-	@Override
-	public int perform(DSpaceObject dso) throws IOException {
-		distribute(dso);
+    @Override
+    public void init(Curator curator, String taskId) throws IOException {
+        super.init(curator, taskId);
+    }
+
+    @Override
+    public int perform(DSpaceObject dso) throws IOException {
+        distribute(dso);
         return Curator.CURATE_SUCCESS;
-	}
-	
-	@Override
-    protected void performItem(Item item) throws SQLException, IOException
-    {
-		Context context = Curator.curationContext();
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-	    PrintStream ps = new PrintStream(baos);
-		try {
-			PrintStream out = System.out;
-			System.setOut(ps);
-			MediaFilterServiceFactory.getInstance().getMediaFilterService().applyFiltersItem(context, item);
-			System.out.flush();
-			System.setOut(out);
-		} catch (Exception e) {
-			setResult(e.getMessage());
-			report(e.getMessage());
-			throw new RuntimeException(e.getMessage(), e);
-		}
-		context.commit();
-		setResult(baos.toString());
-		report(baos.toString());
-		ps.close();
-	}
+    }
+
+    @Override
+    protected void performItem(Item item) throws SQLException, IOException {
+        Context context = Curator.curationContext();
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        PrintStream ps = new PrintStream(baos);
+        try {
+            PrintStream out = System.out;
+            System.setOut(ps);
+            MediaFilterServiceFactory.getInstance().getMediaFilterService().applyFiltersItem(context, item);
+            System.out.flush();
+            System.setOut(out);
+        } catch (Exception e) {
+            setResult(e.getMessage());
+            report(e.getMessage());
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        context.commit();
+        setResult(baos.toString());
+        report(baos.toString());
+        ps.close();
+    }
 }

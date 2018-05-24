@@ -8,20 +8,18 @@
 package org.dspace.app.rest.model.hateoas;
 
 import org.dspace.app.rest.model.EditItemRest;
-import org.dspace.app.rest.model.WorkflowItemRest;
 import org.dspace.app.rest.model.hateoas.annotations.RelNameDSpaceResource;
 import org.dspace.app.rest.utils.Utils;
 
 /**
  * EditItem Rest HAL Resource. The HAL Resource wraps the REST Resource
  * adding support for the links and embedded resources
- * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  *
+ * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 @RelNameDSpaceResource(EditItemRest.NAME)
 public class EditItemResource extends DSpaceResource<EditItemRest> {
-	public EditItemResource(EditItemRest witem, Utils utils, String... rels) {
-		super(witem, utils, rels);
-	}
+    public EditItemResource(EditItemRest witem, Utils utils, String... rels) {
+        super(witem, utils, rels);
+    }
 }

@@ -49,8 +49,8 @@ public class EPersonRestAuthenticationProviderTest {
 
         List<GrantedAuthority> authorities = ePersonRestAuthenticationProvider.getGrantedAuthorities(context, ePerson);
 
-        assertThat(authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toList()), containsInAnyOrder(
-                WebSecurityConfiguration.ADMIN_GRANT, WebSecurityConfiguration.EPERSON_GRANT));
+        assertThat(authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toList()),
+            containsInAnyOrder(WebSecurityConfiguration.ADMIN_GRANT, WebSecurityConfiguration.EPERSON_GRANT));
 
     }
 
@@ -60,8 +60,8 @@ public class EPersonRestAuthenticationProviderTest {
 
         List<GrantedAuthority> authorities = ePersonRestAuthenticationProvider.getGrantedAuthorities(context, ePerson);
 
-        assertThat(authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toList()), containsInAnyOrder(
-                WebSecurityConfiguration.EPERSON_GRANT));
+        assertThat(authorities.stream().map(a -> a.getAuthority()).collect(Collectors.toList()),
+            containsInAnyOrder(WebSecurityConfiguration.EPERSON_GRANT));
 
     }
 

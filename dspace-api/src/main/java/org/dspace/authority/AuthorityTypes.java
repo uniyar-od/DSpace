@@ -39,7 +39,6 @@ public class AuthorityTypes {
     protected Map<String, AuthorityValue> fieldDefaults = new HashMap<String, AuthorityValue>();
 
 
-
     public List<AuthorityValue> getTypes() {
         return types;
     }

@@ -29,143 +29,150 @@ import org.dspace.core.Context;
 import org.dspace.core.Utils;
 
 public class CrossrefDisseminationCrosswalk extends ReferCrosswalk {
-	/** log4j category */
-	private static Logger log = Logger
-			.getLogger(CrossrefDisseminationCrosswalk.class);
+    /**
+     * log4j category
+     */
+    private static Logger log = Logger
+        .getLogger(CrossrefDisseminationCrosswalk.class);
 
-	protected final static String CONFIG_VERSION = "crosswalk.crossref.version";
+    protected final static String CONFIG_VERSION = "crosswalk.crossref.version";
 
-	protected final static String CONFIG_NAMESPACE = "crosswalk.crossref.namespace";
-	
-	protected final static String CONFIG_SCHEMA = "crosswalk.crossref.schemaLocation";
-	
-	@Override
-	public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
-			throws CrosswalkException, IOException, SQLException,
-			AuthorizeException {
+    protected final static String CONFIG_NAMESPACE = "crosswalk.crossref.namespace";
 
-		// see header template file and footer template file, arrays elements
-		// will go to fill on template
-		// TODO manage configurable array...
-		String[] HEADER_PARAMETERS = {
-				ConfigurationManager
-				.getProperty(CONFIG_NAMESPACE),
-				ConfigurationManager
-				.getProperty(CONFIG_SCHEMA),
-				ConfigurationManager
-				.getProperty(CONFIG_VERSION),
-				""+dso.getID(),
-				DateFormatUtils.format(new Date(),"yyyyMMddHHMMSS"),
-				ConfigurationManager
-						.getProperty("crosswalk.crossref.depositor"),
-				ConfigurationManager.getProperty("mail.admin"),
-				ConfigurationManager
-						.getProperty("crosswalk.crossref.registrant") };
-		String[] FOOTER_PARAMETERS = {};
+    protected final static String CONFIG_SCHEMA = "crosswalk.crossref.schemaLocation";
 
-		// write header
-		String myName = getPluginInstanceName();
-		if (myName == null)
-			throw new CrosswalkInternalException(
-					"Cannot determine plugin name, "
-							+ "You must use PluginManager to instantiate ReferCrosswalk so the instance knows its name.");
+    @Override
+    public void disseminate(Context context, BrowsableDSpaceObject dso, OutputStream out)
+        throws CrosswalkException, IOException, SQLException,
+        AuthorizeException {
 
-		String templatePropNameHeader = CONFIG_PREFIX + ".template." + myName
-				+ ".header";
+        // see header template file and footer template file, arrays elements
+        // will go to fill on template
+        // TODO manage configurable array...
+        String[] HEADER_PARAMETERS = {
+            ConfigurationManager
+                .getProperty(CONFIG_NAMESPACE),
+            ConfigurationManager
+                .getProperty(CONFIG_SCHEMA),
+            ConfigurationManager
+                .getProperty(CONFIG_VERSION),
+            "" + dso.getID(),
+            DateFormatUtils.format(new Date(), "yyyyMMddHHMMSS"),
+            ConfigurationManager
+                .getProperty("crosswalk.crossref.depositor"),
+            ConfigurationManager.getProperty("mail.admin"),
+            ConfigurationManager
+                .getProperty("crosswalk.crossref.registrant") };
+        String[] FOOTER_PARAMETERS = {};
 
-		String templateFileNameHeader = ConfigurationManager
-				.getProperty(templatePropNameHeader);
+        // write header
+        String myName = getPluginInstanceName();
+        if (myName == null) {
+            throw new CrosswalkInternalException(
+                "Cannot determine plugin name, "
+                    + "You must use PluginManager to instantiate ReferCrosswalk so the instance knows its name.");
+        }
 
-		if (templateFileNameHeader == null)
-			throw new CrosswalkInternalException(
-					"Configuration error: "
-							+ "No template header file configured for Refer crosswalk named \""
-							+ myName + "\"");
+        String templatePropNameHeader = CONFIG_PREFIX + ".template." + myName
+            + ".header";
 
-		String parent = ConfigurationManager.getProperty("dspace.dir")
-				+ File.separator + "config" + File.separator;
-		File templateFile = new File(parent, templateFileNameHeader);
-		FileInputStream sourceHeader = new FileInputStream(templateFile);
-		InputStream headerFinalStream = null;
-		try {
-			byte[] buffer = new byte[(int) templateFile.length()];
-			BufferedInputStream f = null;
-			try {
-				f = new BufferedInputStream(sourceHeader);
-				f.read(buffer);
-			} finally {
-				if (f != null)
-					try {
-						f.close();
-					} catch (IOException ignored) {
-						throw new CrosswalkInternalException(
-								"Error to read header file "
-										+ templateFileNameHeader);
-					}
-			}
+        String templateFileNameHeader = ConfigurationManager
+            .getProperty(templatePropNameHeader);
 
-			String header = MessageFormat.format(new String(buffer),
-					HEADER_PARAMETERS);
-			headerFinalStream = new ByteArrayInputStream(
-					header.getBytes("UTF-8"));
-			Utils.bufferedCopy(headerFinalStream, out);
-		} finally {
-			sourceHeader.close();
-			if (headerFinalStream != null) {
-				headerFinalStream.close();
-			}
-		}
+        if (templateFileNameHeader == null) {
+            throw new CrosswalkInternalException(
+                "Configuration error: "
+                    + "No template header file configured for Refer crosswalk named \""
+                    + myName + "\"");
+        }
 
-		
-		super.disseminate(context, dso, out);
-		
+        String parent = ConfigurationManager.getProperty("dspace.dir")
+            + File.separator + "config" + File.separator;
+        File templateFile = new File(parent, templateFileNameHeader);
+        FileInputStream sourceHeader = new FileInputStream(templateFile);
+        InputStream headerFinalStream = null;
+        try {
+            byte[] buffer = new byte[(int) templateFile.length()];
+            BufferedInputStream f = null;
+            try {
+                f = new BufferedInputStream(sourceHeader);
+                f.read(buffer);
+            } finally {
+                if (f != null) {
+                    try {
+                        f.close();
+                    } catch (IOException ignored) {
+                        throw new CrosswalkInternalException(
+                            "Error to read header file "
+                                + templateFileNameHeader);
+                    }
+                }
+            }
 
-		// write footer
-		String templatePropNameFooter = CONFIG_PREFIX + ".template." + myName
-				+ ".footer";
+            String header = MessageFormat.format(new String(buffer),
+                                                 HEADER_PARAMETERS);
+            headerFinalStream = new ByteArrayInputStream(
+                header.getBytes("UTF-8"));
+            Utils.bufferedCopy(headerFinalStream, out);
+        } finally {
+            sourceHeader.close();
+            if (headerFinalStream != null) {
+                headerFinalStream.close();
+            }
+        }
 
-		String templateFileNameFooter = ConfigurationManager
-				.getProperty(templatePropNameFooter);
 
-		if (templateFileNameFooter == null)
-			throw new CrosswalkInternalException(
-					"Configuration error: "
-							+ "No template footer file configured for Refer crosswalk named \""
-							+ myName + "\"");
+        super.disseminate(context, dso, out);
 
-		String parentfooter = ConfigurationManager.getProperty("dspace.dir")
-				+ File.separator + "config" + File.separator;
-		File templateFileFooter = new File(parentfooter, templateFileNameFooter);
-		FileInputStream sourceFooter = new FileInputStream(templateFileFooter);
-		InputStream footerFinalStream = null;
-		try {
-			byte[] buffer = new byte[(int) templateFileFooter.length()];
-			BufferedInputStream f = null;
-			try {
-				f = new BufferedInputStream(sourceFooter);
-				f.read(buffer);
-			} finally {
-				if (f != null)
-					try {
-						f.close();
-					} catch (IOException ignored) {
-						throw new CrosswalkInternalException(
-								"Error to read header file "
-										+ templateFileNameFooter);
-					}
-			}
 
-			String footer = MessageFormat.format(new String(buffer),
-					FOOTER_PARAMETERS);
-			footerFinalStream = new ByteArrayInputStream(
-					footer.getBytes("UTF-8"));
-			Utils.bufferedCopy(footerFinalStream, out);
-		} finally {
-			sourceFooter.close();
-			if (footerFinalStream != null) {
-				footerFinalStream.close();
-			}
-		}
-	}
-	
+        // write footer
+        String templatePropNameFooter = CONFIG_PREFIX + ".template." + myName
+            + ".footer";
+
+        String templateFileNameFooter = ConfigurationManager
+            .getProperty(templatePropNameFooter);
+
+        if (templateFileNameFooter == null) {
+            throw new CrosswalkInternalException(
+                "Configuration error: "
+                    + "No template footer file configured for Refer crosswalk named \""
+                    + myName + "\"");
+        }
+
+        String parentfooter = ConfigurationManager.getProperty("dspace.dir")
+            + File.separator + "config" + File.separator;
+        File templateFileFooter = new File(parentfooter, templateFileNameFooter);
+        FileInputStream sourceFooter = new FileInputStream(templateFileFooter);
+        InputStream footerFinalStream = null;
+        try {
+            byte[] buffer = new byte[(int) templateFileFooter.length()];
+            BufferedInputStream f = null;
+            try {
+                f = new BufferedInputStream(sourceFooter);
+                f.read(buffer);
+            } finally {
+                if (f != null) {
+                    try {
+                        f.close();
+                    } catch (IOException ignored) {
+                        throw new CrosswalkInternalException(
+                            "Error to read header file "
+                                + templateFileNameFooter);
+                    }
+                }
+            }
+
+            String footer = MessageFormat.format(new String(buffer),
+                                                 FOOTER_PARAMETERS);
+            footerFinalStream = new ByteArrayInputStream(
+                footer.getBytes("UTF-8"));
+            Utils.bufferedCopy(footerFinalStream, out);
+        } finally {
+            sourceFooter.close();
+            if (footerFinalStream != null) {
+                footerFinalStream.close();
+            }
+        }
+    }
+
 }
