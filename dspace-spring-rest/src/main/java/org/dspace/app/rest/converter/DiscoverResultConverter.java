@@ -105,8 +105,6 @@ public class DiscoverResultConverter {
             Sort.Order order = page.getSort().iterator().next();
             resultsRest.setSort(order.getProperty(), order.getDirection().name());
         }
-        SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter =
-            new SearchFilterToAppliedFilterConverter();
         for (SearchFilter searchFilter : CollectionUtils.emptyIfNull(searchFilters)) {
 
             resultsRest
