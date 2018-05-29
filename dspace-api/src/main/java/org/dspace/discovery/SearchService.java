@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryMoreLikeThisConfiguration;
@@ -49,7 +50,7 @@ public interface SearchService {
      * @return discovery search result object
      * @throws SearchServiceException if search error
      */
-    DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query)
+    DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query)
         throws SearchServiceException;
 
     /**
@@ -73,7 +74,7 @@ public interface SearchService {
      * @return discovery search result object
      * @throws SearchServiceException if search error
      */
-    DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn)
+    DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn)
         throws SearchServiceException;
 
     List<BrowsableDSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset,
@@ -129,6 +130,6 @@ public interface SearchService {
      */
     String escapeQueryChars(String query);
 
-    FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope, DiscoverySearchFilterFacet facet,
+    FacetYearRange getFacetYearRange(Context context, DSpaceObject scope, DiscoverySearchFilterFacet facet,
                                      List<String> filterQueries) throws SearchServiceException;
 }

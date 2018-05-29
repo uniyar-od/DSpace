@@ -24,6 +24,7 @@ import javax.persistence.Table;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.workflow.WorkflowItem;
@@ -199,5 +200,15 @@ public class BasicWorkflowItem implements WorkflowItem {
                 context.abort();
             }
         }
+    }
+
+    @Override
+    public String getTypeText() {
+        return "workflowitem";
+    }
+
+    @Override
+    public int getType() {
+        return Constants.WORKFLOWITEM;
     }
 }
