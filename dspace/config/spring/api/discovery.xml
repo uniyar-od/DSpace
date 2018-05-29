@@ -24,7 +24,7 @@
     <bean id="hasContentInOriginalBundle" class="org.dspace.discovery.SolrServiceContentInOriginalBundleFilterPlugin"/>
 
 	<!-- Additional indexing plugin to add resource type in human format readable to item SOLR document -->
-	<bean id="resourceTypeIndexer" class="org.dspace.app.cris.discovery.ResourceTypeSolrIndexer"></bean>
+	<bean id="resourceTypeIndexer" class="org.dspace.discovery.ResourceTypeSolrIndexer"></bean>
 	
     <!--Bean that is used for mapping communities/collections to certain discovery configurations.-->
     <bean id="org.dspace.discovery.configuration.DiscoveryConfigurationService" class="org.dspace.discovery.configuration.DiscoveryConfigurationService">
