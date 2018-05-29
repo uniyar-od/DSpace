@@ -89,9 +89,11 @@ public class SubmissionService {
         String collectionUUID = request.getHttpServletRequest().getParameter("collection");
         if (StringUtils.isBlank(collectionUUID)) {
             String uuid = configurationService.getProperty("submission.default.collection");
+        }
+
         Collection collection = null;
-        if (StringUtils.isNotBlank(uuid)) {
-            collection = collectionService.find(context, UUID.fromString(uuid));
+        if (StringUtils.isNotBlank(collectionUUID)) {
+            collection = collectionService.find(context, UUID.fromString(collectionUUID));
         } else {
             collection = collectionService.findAll(context, 1, 0).get(0);
         }
