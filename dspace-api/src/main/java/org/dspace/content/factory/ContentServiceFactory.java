@@ -42,8 +42,7 @@ import org.dspace.workflow.factory.WorkflowServiceFactory;
  */
 public abstract class ContentServiceFactory {
 
-    public abstract List<BrowsableObjectService<? extends BrowsableDSpaceObject<? extends Serializable>, Serializable>>
-        getBrowsableDSpaceObjectServices();
+    public abstract List<BrowsableObjectService> getBrowsableDSpaceObjectServices();
 
     public abstract List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices();
 

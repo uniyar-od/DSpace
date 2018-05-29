@@ -7,10 +7,8 @@
  */
 package org.dspace.content.factory;
 
-import java.io.Serializable;
 import java.util.List;
 
-import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
@@ -28,6 +26,7 @@ import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -38,9 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class ContentServiceFactoryImpl extends ContentServiceFactory {
 
-    @Autowired(required = true)
-    private List<BrowsableObjectService<? extends BrowsableDSpaceObject<? extends Serializable>, Serializable>>
-        browsableDSpaceObjectServices;
+//    @Autowired(required = true)
+//    private List<BrowsableObjectService<? extends BrowsableDSpaceObject<? extends Serializable>, Serializable>>
+//        browsableDSpaceObjectServices;
     @Autowired(required = true)
     private List<DSpaceObjectService<? extends DSpaceObject>> dSpaceObjectServices;
     @Autowired(required = true)
@@ -74,9 +73,8 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private SiteService siteService;
 
     @Override
-    public List<BrowsableObjectService<? extends BrowsableDSpaceObject<? extends Serializable>, Serializable>>
-        getBrowsableDSpaceObjectServices() {
-        return browsableDSpaceObjectServices;
+    public List<BrowsableObjectService> getBrowsableDSpaceObjectServices() {
+        return new DSpace().getServiceManager().getServicesByType(BrowsableObjectService.class);
     }
 
     @Override
