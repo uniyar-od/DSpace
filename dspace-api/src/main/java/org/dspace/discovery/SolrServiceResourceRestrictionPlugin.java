@@ -17,6 +17,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
+import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
@@ -53,7 +54,11 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
     protected ResourcePolicyService resourcePolicyService;
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+    public void additionalIndex(Context context, BrowsableDSpaceObject bdso, SolrInputDocument document) {
+        if (!(bdso instanceof DSpaceObject)) {
+            return;
+        }
+        DSpaceObject dso = (DSpaceObject) bdso;
         try {
             List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, dso, Constants.READ);
             for (ResourcePolicy resourcePolicy : policies) {
