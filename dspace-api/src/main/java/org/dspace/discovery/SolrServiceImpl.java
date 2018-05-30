@@ -2151,6 +2151,8 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         Serializable uid = null;
         if (type != null && id != null) {
             switch (type) {
+                case Constants.WORKSPACEITEM:
+                case Constants.WORKFLOWITEM:
                 case Constants.WORKFLOW_POOL:
                 case Constants.WORKFLOW_CLAIMED:
                     uid = Integer.parseInt((String) id);
@@ -2211,7 +2213,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 SolrDocument doc = (SolrDocument) iter.next();
 
                 BrowsableDSpaceObject o = (BrowsableDSpaceObject)contentServiceFactory
-                    .getDSpaceObjectService((Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD))
+                    .getBrowsableDSpaceObjectService((Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD))
                     .find(context, UUID.fromString((String) doc.getFirstValue(RESOURCE_ID_FIELD)));
 
                 if (o != null) {

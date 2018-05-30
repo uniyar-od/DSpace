@@ -106,7 +106,7 @@ public abstract class ContentServiceFactory {
     public <T extends BrowsableDSpaceObject<PK>, PK extends Serializable> BrowsableObjectService<T, PK>
         getBrowsableDSpaceObjectService(int type) {
         for (int i = 0; i < getBrowsableDSpaceObjectServices().size(); i++) {
-            BrowsableObjectService objectService = getDSpaceObjectServices().get(i);
+            BrowsableObjectService objectService = getBrowsableDSpaceObjectServices().get(i);
             if (objectService.getSupportsTypeConstant() == type) {
                 return (BrowsableObjectService<T, PK>) objectService;
             }
