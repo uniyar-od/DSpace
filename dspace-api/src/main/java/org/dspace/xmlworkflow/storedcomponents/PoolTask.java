@@ -159,4 +159,8 @@ public class PoolTask implements ReloadableEntity<Integer>, BrowsableDSpaceObjec
         return false;
     }
 
+    @Override
+    public String getHandle() {
+        return getType() + "-" + getID();
+    }
 }

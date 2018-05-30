@@ -179,4 +179,9 @@ public class XmlWorkflowItem implements WorkflowItem, ReloadableEntity<Integer>,
         return false;
     }
 
+    @Override
+    public String getHandle() {
+        return getType() + "-" + getID();
+    }
+
 }

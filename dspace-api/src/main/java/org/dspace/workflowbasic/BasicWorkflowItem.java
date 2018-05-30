@@ -211,4 +211,9 @@ public class BasicWorkflowItem implements WorkflowItem {
     public int getType() {
         return Constants.WORKFLOWITEM;
     }
+
+    @Override
+    public String getHandle() {
+        return getType() + "-" + getID();
+    }
 }

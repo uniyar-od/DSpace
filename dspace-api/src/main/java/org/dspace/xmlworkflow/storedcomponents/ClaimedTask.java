@@ -144,4 +144,8 @@ public class ClaimedTask implements ReloadableEntity<Integer>, BrowsableDSpaceOb
         return false;
     }
 
+    @Override
+    public String getHandle() {
+        return getType() + "-" + getID();
+    }
 }

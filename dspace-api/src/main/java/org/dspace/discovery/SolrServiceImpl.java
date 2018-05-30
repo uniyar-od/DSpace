@@ -1808,14 +1808,14 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     @Override
-    public DiscoverResult search(Context context, DSpaceObject dso,
+    public DiscoverResult search(Context context, BrowsableDSpaceObject dso,
                                  DiscoverQuery query)
         throws SearchServiceException {
         return search(context, dso, query, false);
     }
 
     @Override
-    public DiscoverResult search(Context context, DSpaceObject dso, DiscoverQuery discoveryQuery,
+    public DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery discoveryQuery,
                                  boolean includeUnDiscoverable) throws SearchServiceException {
         if (dso != null) {
             if (dso instanceof Community) {
@@ -2503,7 +2503,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     @Override
-    public FacetYearRange getFacetYearRange(Context context, DSpaceObject scope,
+    public FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope,
             DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException {
         FacetYearRange result = new FacetYearRange(facet);
         result.calculateRange(context, filterQueries, scope, this);

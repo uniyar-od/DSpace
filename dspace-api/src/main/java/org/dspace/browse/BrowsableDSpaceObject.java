@@ -40,4 +40,5 @@ public interface BrowsableDSpaceObject<PK extends Serializable> {
         return Constants.typeText[getType()];
     };
 
+    public String getHandle();
 }
