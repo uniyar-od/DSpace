@@ -20,24 +20,25 @@ import org.springframework.web.util.UriComponentsBuilder;
 public abstract class DiscoveryRestHalLinkFactory<T> extends HalLinkFactory<T, DiscoveryRestController> {
 
     protected UriComponentsBuilder buildSearchBaseLink(final DiscoveryResultsRest data) throws Exception {
-        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()
-            .getSearchObjects(data.getQuery(), data.getDsoType(), data.getScope(), data.getConfiguration(), null,
-                null));
+        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()            
+                                                         .getSearchObjects(data.getQuery(), data.getDsoType(),
+                                                                           data.getScope(), data.getConfiguration(),
+                                                                          null, null));
 
         return addFilterParams(uriBuilder, data);
     }
 
     protected UriComponentsBuilder buildFacetBaseLink(final FacetResultsRest data) throws Exception {
-        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()
-            .getFacetValues(data.getFacetEntry().getName(), data.getQuery(), data.getDsoType(), data.getScope(), null,
-                null));
+        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn().getFacetValues(data.getFacetEntry().getName(),
+                data.getQuery(), data.getDsoType(), data.getScope(), data.getConfiguration(), null, null));
 
         return addFilterParams(uriBuilder, data);
     }
 
     protected UriComponentsBuilder buildSearchFacetsBaseLink(final SearchResultsRest data) throws Exception {
-        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()
-            .getFacets(data.getQuery(), data.getDsoType(), data.getScope(), data.getConfiguration(), null));
+        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()            
+                                                         .getFacets(data.getQuery(), data.getDsoType(), data.getScope(),
+                                                                    data.getConfiguration(), null));
 
         uriBuilder = addSortingParms(uriBuilder, data);
 

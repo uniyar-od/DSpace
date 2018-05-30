@@ -40,16 +40,19 @@ public class SearchFacetEntryHalLinkFactory extends DiscoveryRestHalLinkFactory<
         String query = searchData == null ? null : searchData.getQuery();
         String dsoType = searchData == null ? null : searchData.getDsoType();
         String scope = searchData == null ? null : searchData.getScope();
+        String configuration = searchData == null ? null : searchData.getConfiguration();
 
-        UriComponentsBuilder uriBuilder =
-            uriBuilder(getMethodOn().getFacetValues(facetData.getName(), query, dsoType, scope, null, null));
+        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()
+                                                         .getFacetValues(facetData.getName(), query, dsoType, scope,
+                                                                         configuration, null, null));
 
         addFilterParams(uriBuilder, searchData);
 
         //If our rest data contains a list of values, construct the page links. Otherwise, only add a self link
         if (CollectionUtils.isNotEmpty(facetData.getValues())) {
             PageImpl page = new PageImpl<>(facetData.getValues(), new PageRequest(0, facetData.getFacetLimit()),
-                facetData.getValues().size() + (BooleanUtils.isTrue(facetData.isHasMore()) ? 1 : 0));
+                                           facetData.getValues().size() + (BooleanUtils
+                                               .isTrue(facetData.isHasMore()) ? 1 : 0));
 
             halResource.setPageHeader(new EmbeddedPageHeader(uriBuilder, page, false));
 
