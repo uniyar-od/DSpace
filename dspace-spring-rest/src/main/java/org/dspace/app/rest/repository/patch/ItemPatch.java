@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.exception.PatchBadRequestException;
-import org.dspace.app.rest.exception.PatchUnprocessableEntityException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
@@ -48,14 +48,14 @@ public class ItemPatch extends AbstractResourcePatch {
      * @param id
      * @param patch
      * @param operation
-     * @throws PatchUnprocessableEntityException
+     * @throws UnprocessableEntityException
      * @throws PatchBadRequestException
      * @throws SQLException
      * @throws AuthorizeException
      */
     @Override
     protected void replace(Context context, String apiCategory, String model, UUID id, Patch patch, Operation operation)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
 
         Item item;
         try {
@@ -73,7 +73,7 @@ public class ItemPatch extends AbstractResourcePatch {
                 discoverable(item, (Boolean) operation.getValue());
                 break;
             default:
-                throw new PatchUnprocessableEntityException(
+                throw new UnprocessableEntityException(
                     "Unrecognized patch operation path: " + operation.getPath()
                 );
         }

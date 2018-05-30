@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.dspace.app.rest.exception.PatchBadRequestException;
-import org.dspace.app.rest.exception.PatchUnprocessableEntityException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.authorize.AuthorizeException;
@@ -34,13 +34,13 @@ public abstract class AbstractResourcePatch {
      * @param model
      * @param uuid
      * @param patch
-     * @throws PatchUnprocessableEntityException
+     * @throws UnprocessableEntityException
      * @throws PatchBadRequestException
      * @throws SQLException
      * @throws AuthorizeException
      */
     public void patch(Context context, String apiCategory, String model, UUID uuid, Patch patch)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
 
         List<Operation> operations = patch.getOperations();
 
@@ -72,40 +72,40 @@ public abstract class AbstractResourcePatch {
     // The default patch methods throw an error when no sub-class implementation is provided.
 
     protected void add(Context context, String apiCategory, String model, UUID uuid, Patch patch, Operation operation)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
-        throw new PatchUnprocessableEntityException(
-            "The add operation is not supported for " + apiCategory + "/" + model
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throw new UnprocessableEntityException(
+            "The add operation is not supported for " + apiCategory + "." + model
         );
     }
 
     protected void replace(Context context, String apiCategory, String model,
                            UUID uuid, Patch patch, Operation operation)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
-        throw new PatchUnprocessableEntityException(
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throw new UnprocessableEntityException(
             "The replace operation is not supported for " + apiCategory + "." + model
         );
     }
 
     protected void remove(Context context, String apiCategory, String model,
                           UUID uuid, Patch patch, Operation operation)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
-        throw new PatchUnprocessableEntityException(
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throw new UnprocessableEntityException(
             "The remove operation is not supported for " + apiCategory + "." + model
         );
     }
 
     protected void copy(Context context, String apiCategory, String model,
                           UUID uuid, Patch patch, Operation operation)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
-        throw new PatchUnprocessableEntityException(
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throw new UnprocessableEntityException(
             "The copy operation is not supported for " + apiCategory + "." + model
         );
     }
 
     protected void move(Context context, String apiCategory, String model,
                         UUID uuid, Patch patch, Operation operation)
-        throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
-        throw new PatchUnprocessableEntityException(
+        throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+        throw new UnprocessableEntityException(
             "The move operation is not supported for " + apiCategory + "." + model
         );
     }

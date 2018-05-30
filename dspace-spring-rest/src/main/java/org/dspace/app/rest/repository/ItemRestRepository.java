@@ -16,7 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.exception.PatchBadRequestException;
-import org.dspace.app.rest.exception.PatchUnprocessableEntityException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.hateoas.ItemResource;
 import org.dspace.app.rest.model.patch.Patch;
@@ -46,6 +46,9 @@ public class ItemRestRepository extends DSpaceRestRepository<ItemRest, UUID> {
     @Autowired
     ItemConverter converter;
 
+    /**
+     * Proposed helper class for Item patches.
+     */
     @Autowired
     ItemPatch itemPatch;
 
@@ -89,7 +92,7 @@ public class ItemRestRepository extends DSpaceRestRepository<ItemRest, UUID> {
     @Override
     public void patch(Context context, HttpServletRequest request, String apiCategory, String model, UUID uuid, Patch
             patch)
-            throws PatchUnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+            throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
 
         itemPatch.patch(context, apiCategory, model, uuid, patch);
         // Return the updated item.
