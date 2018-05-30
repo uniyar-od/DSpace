@@ -18,17 +18,21 @@ import java.util.UUID;
 import org.dspace.app.rest.builder.EPersonBuilder;
 import org.dspace.app.rest.matcher.EPersonMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.eperson.EPerson;
 import org.hamcrest.Matchers;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
+    @Autowired
+    AuthorizeService AuthorizeService;
 
     @Test
     public void findAllTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EPerson ePerson = EPersonBuilder.createEPerson(context)
+        EPerson newUser = EPersonBuilder.createEPerson(context)
                                         .withNameInMetadata("John", "Doe")
                                         .withEmail("Johndoe@gmail.com")
                                         .build();
@@ -37,11 +41,12 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
                    .andExpect(jsonPath("$._embedded.epersons", Matchers.containsInAnyOrder(
-                       EPersonMatcher.matchEPersonEntry(ePerson),
+                       EPersonMatcher.matchEPersonEntry(newUser),
+                       EPersonMatcher.matchDefaultTestEPerson(),
                        EPersonMatcher.matchDefaultTestEPerson()
                    )))
                    .andExpect(jsonPath("$.page.size", is(20)))
-                   .andExpect(jsonPath("$.page.totalElements", is(2)))
+                   .andExpect(jsonPath("$.page.totalElements", is(3)))
         ;
     }
 
@@ -54,32 +59,35 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
                                         .withEmail("Johndoe@gmail.com")
                                         .build();
 
+        // using size = 2 the first page will contains our test user and admin
         getClient().perform(get("/api/eperson/eperson")
-                                .param("size", "1"))
+                                .param("size", "2"))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$._embedded.epersons", Matchers.contains(
-                       EPersonMatcher.matchDefaultTestEPerson()
+                   .andExpect(jsonPath("$._embedded.epersons", Matchers.containsInAnyOrder(
+                           EPersonMatcher.matchDefaultTestEPerson(),
+                           EPersonMatcher.matchDefaultTestEPerson()
                    )))
                    .andExpect(jsonPath("$._embedded.epersons", Matchers.not(
                        Matchers.contains(
                            EPersonMatcher.matchEPersonEntry(ePerson)
                        )
                    )))
-                   .andExpect(jsonPath("$.page.size", is(1)))
-                   .andExpect(jsonPath("$.page.totalElements", is(2)))
+                   .andExpect(jsonPath("$.page.size", is(2)))
+                   .andExpect(jsonPath("$.page.totalElements", is(3)))
         ;
 
+        // using size = 2 the first page will contains our test user and admin
         getClient().perform(get("/api/eperson/eperson")
-                                .param("size", "1")
+                                .param("size", "2")
                                 .param("page", "1"))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
                    .andExpect(jsonPath("$._embedded.epersons", Matchers.contains(
                        EPersonMatcher.matchEPersonEntry(ePerson)
                    )))
-                   .andExpect(jsonPath("$.page.size", is(1)))
-                   .andExpect(jsonPath("$.page.totalElements", is(2)))
+                   .andExpect(jsonPath("$.page.size", is(2)))
+                   .andExpect(jsonPath("$.page.totalElements", is(3)))
         ;
     }
 
