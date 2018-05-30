@@ -2157,54 +2157,24 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         Integer type = (Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD);
         Object id = doc.getFirstValue(RESOURCE_ID_FIELD);
         String handle = (String) doc.getFirstValue(HANDLE_FIELD);
-        // Follow piece of code don't works well need to investigate use workaround
-        // BrowsableDSpaceObject o = null;
-        // Serializable uid = null;
-        // if (type != null && id != null) {
-        // switch (type) {
-        // case Constants.WORKSPACEITEM:
-        // case Constants.WORKFLOWITEM:
-        // case Constants.WORKFLOW_POOL:
-        // case Constants.WORKFLOW_CLAIMED:
-        // uid = Integer.parseInt((String) id);
-        // break;
-        // default:
-        // uid = UUID.fromString((String) id);
-        // break;
-        // }
-        // }
-        //
-        // if (uid != null) {
-        // o = (BrowsableDSpaceObject) contentServiceFactory.getBrowsableDSpaceObjectService(type).find(context, uid);
-        // }
-
-//        workaround
         BrowsableDSpaceObject o = null;
+        Serializable uid = null;
         if (type != null && id != null) {
             switch (type) {
                 case Constants.WORKSPACEITEM:
-                    Integer wsiId = Integer.parseInt((String) id);
-                    o = (BrowsableDSpaceObject) workspaceItemService.find(context, wsiId);
-                    break;
                 case Constants.WORKFLOWITEM:
-                    Integer wfiId = Integer.parseInt((String) id);
-                    o = (BrowsableDSpaceObject) workflowItemService.find(context, wfiId);
-                    break;
                 case Constants.WORKFLOW_POOL:
-                    Integer wfpId = Integer.parseInt((String) id);
-                    o = poolTaskService.find(context, wfpId);
-                    break;
                 case Constants.WORKFLOW_CLAIMED:
-                    Integer wfcId = Integer.parseInt((String) id);
-                    o = claimedTaskService.find(context, wfcId);
+                    uid = Integer.parseInt((String) id);
                     break;
                 default:
-                    UUID uid = UUID.fromString((String) id);
-                    o = (BrowsableDSpaceObject) contentServiceFactory.getDSpaceObjectService(type).find(context, uid);
+                    uid = UUID.fromString((String) id);
                     break;
             }
-        } else if (handle != null) {
-            o = (BrowsableDSpaceObject) handleService.resolveToObject(context, handle);
+        }
+
+        if (uid != null) {
+            o = (BrowsableDSpaceObject) contentServiceFactory.getBrowsableDSpaceObjectService(type).find(context, uid);
         }
 
         if (o != null) {
@@ -2546,9 +2516,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     @Override
     public FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope,
-            DiscoverySearchFilterFacet facet, List<String> filterQueries) throws SearchServiceException {
+                                            DiscoverySearchFilterFacet facet, List<String> filterQueries,
+                                            DiscoverQuery parentQuery) throws SearchServiceException {
         FacetYearRange result = new FacetYearRange(facet);
-        result.calculateRange(context, filterQueries, scope, this);
+        result.calculateRange(context, filterQueries, scope, this, parentQuery);
         return result;
     }
 
