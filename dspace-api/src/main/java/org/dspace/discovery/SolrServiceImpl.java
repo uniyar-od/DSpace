@@ -786,6 +786,19 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         return locations;
     }
 
+    protected List<String> getCommunityLocations(Community target) throws SQLException {
+        List<String> locations = new Vector<String>();
+        // build list of community ids
+        List<Community> communities = target.getParentCommunities();
+
+        // now put those into strings
+        for (Community community : communities) {
+            locations.add("m" + community.getID());
+        }
+
+        return locations;
+    }
+
     @Override
     public String createLocationQueryForAdministrableItems(Context context)
         throws SQLException {
@@ -901,9 +914,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      */
     protected void buildDocument(Context context, Community community)
         throws SQLException, IOException {
+
+        List<String> locations = getCommunityLocations(community);
+
         // Create Document
         SolrInputDocument doc = buildDocument(Constants.COMMUNITY, community.getID(),
-                                              community.getHandle(), null);
+                                              community.getHandle(), locations);
 
         DiscoveryConfiguration discoveryConfiguration = SearchUtils.getDiscoveryConfiguration(community);
         DiscoveryHitHighlightingConfiguration highlightingConfiguration = discoveryConfiguration
