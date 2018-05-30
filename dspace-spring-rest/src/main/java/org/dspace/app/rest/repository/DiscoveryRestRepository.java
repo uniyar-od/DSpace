@@ -135,14 +135,15 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
         Context context = obtainContext();
 
         BrowsableDSpaceObject scopeObject = scopeResolver.resolveScope(context, dsoScope);
-        DiscoveryConfiguration configuration =
-            searchConfigurationService.getDiscoveryConfigurationByNameOrDso(facetName, scopeObject);
+        DiscoveryConfiguration discoveryConfiguration = searchConfigurationService
+            .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
 
         DiscoverResult searchResult = null;
         DiscoverQuery discoverQuery = null;
         try {
             discoverQuery = queryBuilder
-                .buildFacetQuery(context, scopeObject, configuration, query, searchFilters, dsoType, page, facetName);
+                    .buildFacetQuery(context, scopeObject, discoveryConfiguration, query, searchFilters, dsoType, page,
+                            facetName);
             searchResult = searchService.search(context, scopeObject, discoverQuery);
 
         } catch (SearchServiceException e) {
@@ -150,8 +151,8 @@ public class DiscoveryRestRepository extends AbstractDSpaceRestRepository {
             //TODO TOM handle search exception
         }
 
-        FacetResultsRest facetResultsRest = discoverFacetResultsConverter
-            .convert(context, facetName, query, dsoType, dsoScope, searchFilters, searchResult, configuration, page);
+        FacetResultsRest facetResultsRest = discoverFacetResultsConverter.convert(context, facetName, query, dsoType,
+                dsoScope, searchFilters, searchResult, discoveryConfiguration, page);
         return facetResultsRest;
     }
 

@@ -164,19 +164,19 @@ public class DiscoveryRestController implements InitializingBean {
 
     @RequestMapping(method = RequestMethod.GET, value = "/facets/{name}")
     public ResourceSupport getFacetValues(@PathVariable("name") String facetName,
-                                          @RequestParam(name = "query", required = false) String query,
-                                          @RequestParam(name = "dsoType", required = false) String dsoType,
-                                          @RequestParam(name = "scope", required = false) String dsoScope,
-                                          List<SearchFilter> searchFilters, Pageable page) throws Exception {
+            @RequestParam(name = "query", required = false) String query,
+            @RequestParam(name = "dsoType", required = false) String dsoType,
+            @RequestParam(name = "scope", required = false) String dsoScope,
+            @RequestParam(name = "configuration", required = false) String configuration,
+            List<SearchFilter> searchFilters, Pageable page) throws Exception {
         if (log.isTraceEnabled()) {
-            log.trace("Facetting on facet " + facetName + " with scope: " + StringUtils.trimToEmpty(dsoScope) +
-                      ", dsoType: " + StringUtils.trimToEmpty(dsoType) + ", query: " +
-                      StringUtils.trimToEmpty(dsoType) + ", filters: " + Objects.toString(searchFilters) + ", page: " +
-                      Objects.toString(page));
+            log.trace("Facetting on facet " + facetName + " with scope: " + StringUtils.trimToEmpty(dsoScope)
+                    + ", dsoType: " + StringUtils.trimToEmpty(dsoType) + ", query: " + StringUtils.trimToEmpty(dsoType)
+                    + ", filters: " + Objects.toString(searchFilters) + ", page: " + Objects.toString(page));
         }
 
-        FacetResultsRest facetResultsRest =
-            discoveryRestRepository.getFacetObjects(facetName, query, dsoType, dsoScope, searchFilters, page);
+        FacetResultsRest facetResultsRest = discoveryRestRepository.getFacetObjects(facetName, query, dsoType, dsoScope,
+                configuration, searchFilters, page);
 
         FacetResultsResource facetResultsResource = new FacetResultsResource(facetResultsRest);
 
