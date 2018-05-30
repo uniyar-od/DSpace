@@ -1080,6 +1080,16 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
         addDiscoveryFields(doc, context, item, discoveryConfigurations);
 
+        //mandatory facet to show status on mydspace
+        final String typeText = StringUtils.deleteWhitespace(item.getTypeText().toLowerCase());
+        String acvalue = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+                "discovery.facet.namedtype." + typeText,
+                typeText + SolrServiceImpl.AUTHORITY_SEPARATOR + typeText);
+        if (StringUtils.isNotBlank(acvalue)) {
+            String fvalue = acvalue;
+            addNamedResourceTypeIndex(doc, acvalue, fvalue);
+        }
+
         // write the index and close the inputstreamreaders
         try {
             writeDocument(doc, new FullTextContentStreams(context, item));
@@ -2147,24 +2157,54 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         Integer type = (Integer) doc.getFirstValue(RESOURCE_TYPE_FIELD);
         Object id = doc.getFirstValue(RESOURCE_ID_FIELD);
         String handle = (String) doc.getFirstValue(HANDLE_FIELD);
+        // Follow piece of code don't works well need to investigate use workaround
+        // BrowsableDSpaceObject o = null;
+        // Serializable uid = null;
+        // if (type != null && id != null) {
+        // switch (type) {
+        // case Constants.WORKSPACEITEM:
+        // case Constants.WORKFLOWITEM:
+        // case Constants.WORKFLOW_POOL:
+        // case Constants.WORKFLOW_CLAIMED:
+        // uid = Integer.parseInt((String) id);
+        // break;
+        // default:
+        // uid = UUID.fromString((String) id);
+        // break;
+        // }
+        // }
+        //
+        // if (uid != null) {
+        // o = (BrowsableDSpaceObject) contentServiceFactory.getBrowsableDSpaceObjectService(type).find(context, uid);
+        // }
+
+//        workaround
         BrowsableDSpaceObject o = null;
-        Serializable uid = null;
         if (type != null && id != null) {
             switch (type) {
                 case Constants.WORKSPACEITEM:
+                    Integer wsiId = Integer.parseInt((String) id);
+                    o = (BrowsableDSpaceObject) workspaceItemService.find(context, wsiId);
+                    break;
                 case Constants.WORKFLOWITEM:
+                    Integer wfiId = Integer.parseInt((String) id);
+                    o = (BrowsableDSpaceObject) workflowItemService.find(context, wfiId);
+                    break;
                 case Constants.WORKFLOW_POOL:
+                    Integer wfpId = Integer.parseInt((String) id);
+                    o = poolTaskService.find(context, wfpId);
+                    break;
                 case Constants.WORKFLOW_CLAIMED:
-                    uid = Integer.parseInt((String) id);
+                    Integer wfcId = Integer.parseInt((String) id);
+                    o = claimedTaskService.find(context, wfcId);
                     break;
                 default:
-                    uid = UUID.fromString((String) id);
+                    UUID uid = UUID.fromString((String) id);
+                    o = (BrowsableDSpaceObject) contentServiceFactory.getDSpaceObjectService(type).find(context, uid);
                     break;
             }
-        }
-
-        if (uid != null) {
-            o = (BrowsableDSpaceObject) contentServiceFactory.getBrowsableDSpaceObjectService(type).find(context, uid);
+        } else if (handle != null) {
+            o = (BrowsableDSpaceObject) handleService.resolveToObject(context, handle);
         }
 
         if (o != null) {
