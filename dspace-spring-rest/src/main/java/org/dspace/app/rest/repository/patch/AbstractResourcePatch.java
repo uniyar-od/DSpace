@@ -72,6 +72,7 @@ public abstract class AbstractResourcePatch {
     // The default patch methods throw an error when no sub-class implementation is provided.
 
     protected void add(Context context, String apiCategory, String model, UUID uuid, Patch patch, Operation operation)
+
         throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
         throw new UnprocessableEntityException(
             "The add operation is not supported for " + apiCategory + "." + model
@@ -80,6 +81,7 @@ public abstract class AbstractResourcePatch {
 
     protected void replace(Context context, String apiCategory, String model,
                            UUID uuid, Patch patch, Operation operation)
+
         throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
         throw new UnprocessableEntityException(
             "The replace operation is not supported for " + apiCategory + "." + model
@@ -88,6 +90,7 @@ public abstract class AbstractResourcePatch {
 
     protected void remove(Context context, String apiCategory, String model,
                           UUID uuid, Patch patch, Operation operation)
+
         throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
         throw new UnprocessableEntityException(
             "The remove operation is not supported for " + apiCategory + "." + model
@@ -96,6 +99,7 @@ public abstract class AbstractResourcePatch {
 
     protected void copy(Context context, String apiCategory, String model,
                           UUID uuid, Patch patch, Operation operation)
+
         throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
         throw new UnprocessableEntityException(
             "The copy operation is not supported for " + apiCategory + "." + model
