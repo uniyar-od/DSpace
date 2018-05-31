@@ -59,11 +59,4 @@ public class WorkflowActionConfig {
         return step;
     }
 
-    public ActionInterface getActionUI() {
-        return actionUI;
-    }
-
-    public void setActionUI(ActionInterface actionUI) {
-        this.actionUI = actionUI;
-    }
 }
