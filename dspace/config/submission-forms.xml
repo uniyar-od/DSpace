@@ -43,7 +43,7 @@
 				<dc-element>contributor</dc-element>
 				<dc-qualifier>author</dc-qualifier>
 				<repeatable>false</repeatable>
-				<label>Authors</label>
+				<label>Author</label>
 				<input-type>onebox</input-type>
 				<hint>Enter the name of the author.</hint>
 				<required>Required field!</required>
