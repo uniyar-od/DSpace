@@ -54,8 +54,8 @@ public class SearchConfigurationRest extends BaseObjectRest<String> {
         return configuration;
     }
 
-    public void setConfiguration(String configuration) {
-        this.configuration = configuration;
+    public void setConfiguration(String configurationName) {
+        this.configuration = configurationName;
     }
 
     public void addFilter(Filter filter) {
@@ -77,20 +77,28 @@ public class SearchConfigurationRest extends BaseObjectRest<String> {
     @Override
     public boolean equals(Object object) {
         return (object instanceof SearchConfigurationRest &&
-                new EqualsBuilder().append(this.getCategory(), ((SearchConfigurationRest) object).getCategory())
-                    .append(this.getType(), ((SearchConfigurationRest) object).getType())
-                    .append(this.getController(), ((SearchConfigurationRest) object).getController())
-                    .append(this.getScope(), ((SearchConfigurationRest) object).getScope())
-                    .append(this.getConfiguration(), ((SearchConfigurationRest) object).getConfiguration())
-                    .append(this.getFilters(), ((SearchConfigurationRest) object).getFilters())
-                    .append(this.getSortOptions(), ((SearchConfigurationRest) object).getSortOptions()).isEquals());
+            new EqualsBuilder().append(this.getCategory(), ((SearchConfigurationRest) object).getCategory())
+                               .append(this.getType(), ((SearchConfigurationRest) object).getType())
+                               .append(this.getController(), ((SearchConfigurationRest) object).getController())
+                               .append(this.getScope(), ((SearchConfigurationRest) object).getScope())
+                               .append(this.getConfiguration(),
+                                       ((SearchConfigurationRest) object).getConfiguration())
+                               .append(this.getFilters(), ((SearchConfigurationRest) object).getFilters())
+                               .append(this.getSortOptions(), ((SearchConfigurationRest) object).getSortOptions())
+                               .isEquals());
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(this.getCategory()).append(this.getType())
-            .append(this.getController()).append(this.getScope()).append(this.getConfiguration())
-            .append(this.getFilters()).append(this.getSortOptions()).toHashCode();
+        return new HashCodeBuilder(17, 37)
+            .append(this.getCategory())
+            .append(this.getType())
+            .append(this.getController())
+            .append(this.getScope())
+            .append(this.getConfiguration())
+            .append(this.getFilters())
+            .append(this.getSortOptions())
+            .toHashCode();
     }
 
 
@@ -134,13 +142,17 @@ public class SearchConfigurationRest extends BaseObjectRest<String> {
         @Override
         public boolean equals(Object object) {
             return (object instanceof SearchConfigurationRest.Filter &&
-                    new EqualsBuilder().append(this.filter, ((Filter) object).filter)
-                        .append(this.getOperators(), ((Filter) object).getOperators()).isEquals());
+                new EqualsBuilder().append(this.filter, ((Filter) object).filter)
+                                   .append(this.getOperators(), ((Filter) object).getOperators())
+                                   .isEquals());
         }
 
         @Override
         public int hashCode() {
-            return new HashCodeBuilder(17, 37).append(filter).append(operators).toHashCode();
+            return new HashCodeBuilder(17, 37)
+                .append(filter)
+                .append(operators)
+                .toHashCode();
         }
 
         public static class Operator {
@@ -157,12 +169,14 @@ public class SearchConfigurationRest extends BaseObjectRest<String> {
             @Override
             public boolean equals(Object object) {
                 return (object instanceof SearchConfigurationRest.Filter.Operator &&
-                        new EqualsBuilder().append(this.getOperator(), ((Operator) object).getOperator()).isEquals());
+                    new EqualsBuilder().append(this.getOperator(), ((Operator) object).getOperator()).isEquals());
             }
 
             @Override
             public int hashCode() {
-                return new HashCodeBuilder(17, 37).append(operator).toHashCode();
+                return new HashCodeBuilder(17, 37)
+                    .append(operator)
+                    .toHashCode();
             }
         }
     }
@@ -193,13 +207,17 @@ public class SearchConfigurationRest extends BaseObjectRest<String> {
         @Override
         public boolean equals(Object object) {
             return (object instanceof SearchConfigurationRest.SortOption &&
-                    new EqualsBuilder().append(this.getName(), ((SortOption) object).getName())
-                        .append(this.getActualName(), ((SortOption) object).getActualName()).isEquals());
+                new EqualsBuilder().append(this.getName(), ((SortOption) object).getName())
+                                   .append(this.getActualName(), ((SortOption) object).getActualName())
+                                   .isEquals());
         }
 
         @Override
         public int hashCode() {
-            return new HashCodeBuilder(17, 37).append(actualName).append(name).toHashCode();
+            return new HashCodeBuilder(17, 37)
+                .append(actualName)
+                .append(name)
+                .toHashCode();
         }
     }
 }

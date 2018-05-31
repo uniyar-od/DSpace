@@ -31,8 +31,8 @@ public class FacetConfigurationResourceHalLinkFactory extends DiscoveryRestHalLi
         FacetConfigurationRest data = halResource.getContent();
 
         if (data != null) {
-            list.add(buildLink(Link.REL_SELF,
-                getMethodOn().getFacetsConfiguration(data.getScope(), data.getConfiguration())));
+            list.add(buildLink(Link.REL_SELF, getMethodOn()
+                .getFacetsConfiguration(data.getScope(), data.getConfiguration())));
         }
     }
 
