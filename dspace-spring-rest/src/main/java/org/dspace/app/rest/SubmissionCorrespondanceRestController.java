@@ -127,8 +127,8 @@ public class SubmissionCorrespondanceRestController implements InitializingBean 
             .addMetadata(context, bitMessage, "dc", "date", "issued", null, new DCDate(new Date()).toString());
 
         Set<EPerson> toSet = new HashSet<EPerson>();
-        Group controllers = groupService.findByName(context, "Controllers");
-        Group administrators = groupService.findByName(context, "Administrators");
+        Group controllers = groupService.findByName(context, Group.CONTROLLERS);
+        Group administrators = groupService.findByName(context, Group.ADMIN);
         if (isSubmitter(context, item)) {
             bitstreamService.addMetadata(context, bitMessage, "dc", "type", null, null, "inbound");
             toSet.add(item.getSubmitter());
@@ -221,7 +221,7 @@ public class SubmissionCorrespondanceRestController implements InitializingBean 
         if (context.getCurrentUser() == null) {
             return false;
         }
-        if (groupService.isMember(context, "Controllers") || authorizeService.isAdmin(context)) {
+        if (groupService.isMember(context, Group.CONTROLLERS) || authorizeService.isAdmin(context)) {
             return true;
         } else {
             return false;
