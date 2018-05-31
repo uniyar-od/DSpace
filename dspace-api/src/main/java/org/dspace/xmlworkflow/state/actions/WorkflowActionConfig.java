@@ -24,10 +24,6 @@ public class WorkflowActionConfig {
     private Step step;
     private boolean requiresUI;
 
-
-    private ActionInterface actionUI;
-
-
     public WorkflowActionConfig(String id) {
         this.id = id;
     }
