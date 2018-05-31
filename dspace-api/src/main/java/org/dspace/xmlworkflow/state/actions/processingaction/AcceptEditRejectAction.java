@@ -74,9 +74,7 @@ public class AcceptEditRejectAction extends ProcessingAction {
         // We have pressed reject, so remove the task the user has & put it back
         // to a workspace item
         XmlWorkflowServiceFactory.getInstance().getXmlWorkflowService().sendWorkflowItemBackSubmission(c, wfi,
-                                                                                                       c.getCurrentUser(),
-                                                                                                       this.getProvenanceStartId(),
-                                                                                                       reason);
+                c.getCurrentUser(), this.getProvenanceStartId(), reason);
 
         return new ActionResult(ActionResult.TYPE.TYPE_SUBMISSION_PAGE);
     }
