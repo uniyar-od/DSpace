@@ -414,20 +414,14 @@ public class RestResourceController implements InitializingBean {
      * @throws SQLException
      */
     public <ID extends Serializable> ResponseEntity<ResourceSupport> postInternal(HttpServletRequest request,
-                                                                                  String apiCategory,
-                                                                                  String model)
-            throws HttpRequestMethodNotSupportedException, SQLException, AuthorizeException {
+                                                                                  String apiCategory, String model)
+        throws HttpRequestMethodNotSupportedException, SQLException, AuthorizeException {
         checkModelPluralForm(apiCategory, model);
         DSpaceRestRepository<RestAddressableModel, ID> repository = utils.getResourceRepository(apiCategory, model);
         RestAddressableModel modelObject = null;
-        try {
-            modelObject = repository.createAndReturn();
-        } catch (ClassCastException e) {
-            log.error(e.getMessage(), e);
-            return ControllerUtils.toEmptyResponse(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        modelObject = repository.createAndReturn();
         if (modelObject == null) {
-            throw new HttpRequestMethodNotSupportedException(RequestMethod.POST.toString());
+            return ControllerUtils.toEmptyResponse(HttpStatus.NO_CONTENT);
         }
         DSpaceResource result = repository.wrapResource(modelObject);
         linkService.addLinks(result);
