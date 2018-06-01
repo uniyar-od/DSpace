@@ -88,7 +88,7 @@ public class SubmissionService {
         WorkspaceItem wsi = null;
         String collectionUUID = request.getHttpServletRequest().getParameter("collection");
         if (StringUtils.isBlank(collectionUUID)) {
-            String uuid = configurationService.getProperty("submission.default.collection");
+            collectionUUID = configurationService.getProperty("submission.default.collection");
         }
 
         Collection collection = null;
