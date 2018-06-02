@@ -19,12 +19,15 @@ import org.apache.commons.lang.StringUtils;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.EPersonConverter;
+import org.dspace.app.rest.exception.PatchBadRequestException;
 import org.dspace.app.rest.exception.RESTAuthorizationException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.EPersonRest;
 import org.dspace.app.rest.model.MetadataEntryRest;
 import org.dspace.app.rest.model.hateoas.EPersonResource;
+import org.dspace.app.rest.model.patch.Patch;
+import org.dspace.app.rest.repository.patch.EPersonPatch;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
@@ -53,6 +56,9 @@ public class EPersonRestRepository extends DSpaceRestRepository<EPersonRest, UUI
 
     @Autowired
     EPersonConverter converter;
+
+    @Autowired
+    EPersonPatch epersonPatch;
 
     @Override
     protected EPersonRest createAndReturn(Context context)
@@ -92,6 +98,16 @@ public class EPersonRestRepository extends DSpaceRestRepository<EPersonRest, UUI
         }
 
         return converter.convert(eperson);
+    }
+
+    @Override
+    public void patch(Context context, HttpServletRequest request, String apiCategory, String model, UUID uuid, Patch
+            patch)
+            throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+
+        epersonPatch.patch(context, apiCategory, model, uuid, patch);
+        // Return the updated item.
+        findOne(context, uuid);
     }
 
     @Override
