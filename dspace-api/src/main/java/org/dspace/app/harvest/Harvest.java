@@ -45,11 +45,11 @@ import org.dspace.harvest.service.HarvestedCollectionService;
 public class Harvest {
     private static Context context;
 
-    private static final HarvestedCollectionService harvestedCollectionService = HarvestServiceFactory.getInstance()
-                                                                                                      .getHarvestedCollectionService();
+    private static final HarvestedCollectionService harvestedCollectionService =
+        HarvestServiceFactory.getInstance().getHarvestedCollectionService();
     private static final EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
-    private static final CollectionService collectionService = ContentServiceFactory.getInstance()
-                                                                                    .getCollectionService();
+    private static final CollectionService collectionService =
+        ContentServiceFactory.getInstance().getCollectionService();
 
     public static void main(String[] argv) throws Exception {
         // create an options object and populate it
@@ -171,9 +171,8 @@ public class Harvest {
             System.out
                 .println("Error - no parameters specified (run with -h flag for details)");
             System.exit(1);
-        }
-        // Run a single harvest cycle on a collection using saved settings.
-        else if ("run".equals(command)) {
+        } else if ("run".equals(command)) {
+            // Run a single harvest cycle on a collection using saved settings.
             if (collection == null || eperson == null) {
                 System.out
                     .println("Error - a target collection and eperson must be provided");
@@ -182,17 +181,14 @@ public class Harvest {
             }
 
             harvester.runHarvest(collection, eperson);
-        }
-        // start the harvest loop
-        else if ("start".equals(command)) {
+        } else if ("start".equals(command)) {
+            // start the harvest loop
             startHarvester();
-        }
-        // reset harvesting status
-        else if ("reset".equals(command)) {
+        } else if ("reset".equals(command)) {
+            // reset harvesting status
             resetHarvesting();
-        }
-        // purge all collections that are set up for harvesting (obviously for testing purposes only)
-        else if ("purgeAll".equals(command)) {
+        } else if ("purgeAll".equals(command)) {
+            // purge all collections that are set up for harvesting (obviously for testing purposes only)
             if (eperson == null) {
                 System.out
                     .println("Error - an eperson must be provided");
@@ -209,9 +205,8 @@ public class Harvest {
                 harvester.purgeCollection(harvestedCollection.getCollection().getID().toString(), eperson);
             }
             context.complete();
-        }
-        // Delete all items in a collection. Useful for testing fresh harvests.
-        else if ("purge".equals(command)) {
+        } else if ("purge".equals(command)) {
+            // Delete all items in a collection. Useful for testing fresh harvests.
             if (collection == null || eperson == null) {
                 System.out
                     .println("Error - a target collection and eperson must be provided");
@@ -223,9 +218,8 @@ public class Harvest {
             context.complete();
 
             //TODO: implement this... remove all items and remember to unset "last-harvested" settings
-        }
-        // Configure a collection with the three main settings
-        else if ("config".equals(command)) {
+        } else if ("config".equals(command)) {
+            // Configure a collection with the three main settings
             if (collection == null) {
                 System.out.println("Error -  a target collection must be provided");
                 System.out.println(" (run with -h flag for details)");
@@ -277,10 +271,8 @@ public class Harvest {
                     } else {
                         targetCollection = (Collection) dso;
                     }
-                }
-                // not a handle, try and treat it as an integer collection
-                // database ID
-                else {
+                } else {
+                    // not a handle, try and treat it as an integer collection database ID
                     System.out.println("Looking up by id: " + collectionID + ", parsed as '" + Integer
                         .parseInt(collectionID) + "', " + "in context: " + context);
                     targetCollection = collectionService.find(context, UUID.fromString(collectionID));

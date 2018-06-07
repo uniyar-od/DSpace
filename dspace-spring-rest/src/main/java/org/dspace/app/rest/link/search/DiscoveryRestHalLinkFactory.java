@@ -20,7 +20,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 public abstract class DiscoveryRestHalLinkFactory<T> extends HalLinkFactory<T, DiscoveryRestController> {
 
     protected UriComponentsBuilder buildSearchBaseLink(final DiscoveryResultsRest data) throws Exception {
-        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()            
+        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()
                                                          .getSearchObjects(data.getQuery(), data.getDsoType(),
                                                                            data.getScope(), data.getConfiguration(),
                                                                           null, null));
@@ -36,7 +36,7 @@ public abstract class DiscoveryRestHalLinkFactory<T> extends HalLinkFactory<T, D
     }
 
     protected UriComponentsBuilder buildSearchFacetsBaseLink(final SearchResultsRest data) throws Exception {
-        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()            
+        UriComponentsBuilder uriBuilder = uriBuilder(getMethodOn()
                                                          .getFacets(data.getQuery(), data.getDsoType(), data.getScope(),
                                                                     data.getConfiguration(), null));
 

@@ -53,6 +53,11 @@ public class RegistryLoader {
                                                                                           .getBitstreamFormatService();
 
     /**
+     * Default constructor
+     */
+    private RegistryLoader() { }
+
+    /**
      * For invoking via the command line
      *
      * @param argv the command line arguments given

@@ -85,6 +85,11 @@ public class StructBuilder {
     protected static EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     /**
+     * Default constructor
+     */
+    private StructBuilder() { }
+
+    /**
      * Main method to be run from the command line to import a structure into
      * DSpace
      *

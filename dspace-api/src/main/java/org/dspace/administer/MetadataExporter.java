@@ -56,6 +56,11 @@ public class MetadataExporter {
                                                                                       .getMetadataFieldService();
 
     /**
+     * Default constructor
+     */
+    private MetadataExporter() { }
+
+    /**
      * @param args commandline arguments
      * @throws ParseException          if parser error
      * @throws SAXException            if XML parse error

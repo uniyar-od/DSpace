@@ -104,12 +104,12 @@ public class DSpaceCSV implements Serializable {
     protected String escapedAuthoritySeparator;
 
     protected transient final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    protected transient final MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
-                                                                                                 .getMetadataSchemaService();
-    protected transient final MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance()
-                                                                                               .getMetadataFieldService();
-    protected transient final AuthorityValueService authorityValueService = AuthorityServiceFactory.getInstance()
-                                                                                                   .getAuthorityValueService();
+    protected transient final MetadataSchemaService metadataSchemaService =
+        ContentServiceFactory.getInstance().getMetadataSchemaService();
+    protected transient final MetadataFieldService metadataFieldService =
+        ContentServiceFactory.getInstance().getMetadataFieldService();
+    protected transient final AuthorityValueService authorityValueService =
+        AuthorityServiceFactory.getInstance().getAuthorityValueService();
 
 
     /**
@@ -168,9 +168,7 @@ public class DSpaceCSV implements Serializable {
                 if ("collection".equals(element)) {
                     // Store the heading
                     headings.add(element);
-                }
-                // Store the action
-                else if ("action".equals(element)) {
+                } else if ("action".equals(element)) { // Store the action
                     // Store the heading
                     headings.add(element);
                 } else if (!"id".equals(element)) {
@@ -297,10 +295,14 @@ public class DSpaceCSV implements Serializable {
         ignore = new HashMap<>();
 
         // Specify default values
-        String[] defaultValues = new String[] { "dc.date.accessioned, dc.date.available, " +
-            "dc.date.updated, dc.description.provenance" };
-        String[] toIgnoreArray = DSpaceServicesFactory.getInstance().getConfigurationService()
-                                                      .getArrayProperty("bulkedit.ignore-on-export", defaultValues);
+        String[] defaultValues =
+            new String[] {
+                "dc.date.accessioned, dc.date.available, dc.date.updated, dc.description.provenance"
+            };
+        String[] toIgnoreArray =
+            DSpaceServicesFactory.getInstance()
+                                 .getConfigurationService()
+                                 .getArrayProperty("bulkedit.ignore-on-export", defaultValues);
         for (String toIgnoreString : toIgnoreArray) {
             if (!"".equals(toIgnoreString.trim())) {
                 ignore.put(toIgnoreString.trim(), toIgnoreString.trim());

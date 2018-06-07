@@ -526,12 +526,11 @@ public class MetadataImport {
                 dcv.setConfidence((parts.length > 2 ? Integer.valueOf(parts[2]) : Choices.CF_ACCEPTED));
             }
 
-            if ((value != null) && (!"".equals(value)) && (!contains(value, fromCSV)) && fromAuthority == null)
             // fromAuthority==null: with the current implementation metadata values from external authority sources
             // can only be used to add metadata, not to change or remove them
             // because e.g. an author that is not in the column "ORCID:dc.contributor.author" could still be in the
             // column "dc.contributor.author" so don't remove it
-            {
+            if ((value != null) && (!"".equals(value)) && (!contains(value, fromCSV)) && fromAuthority == null) {
                 // Remove it
                 log.debug(LogManager.getHeader(c, "metadata_import",
                                                "item_id=" + item.getID() + ",fromCSV=" + all +

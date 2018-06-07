@@ -68,6 +68,11 @@ public class MetadataImporter {
     private static final Logger log = LoggerFactory.getLogger(MetadataImporter.class);
 
     /**
+     * Default constructor
+     */
+    private MetadataImporter() { }
+
+    /**
      * main method for reading user input from the command line
      *
      * @param args the command line arguments given

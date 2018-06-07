@@ -89,13 +89,11 @@ public class CommunityFiliator {
             command = "remove";
         }
 
-        if (line.hasOption('p')) // parent
-        {
+        if (line.hasOption('p')) { // parent
             parentID = line.getOptionValue('p');
         }
 
-        if (line.hasOption('c')) // child
-        {
+        if (line.hasOption('c')) { // child
             childID = line.getOptionValue('c');
         }
 

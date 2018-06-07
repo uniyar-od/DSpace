@@ -29,6 +29,12 @@ import org.xml.sax.SAXException;
  * classes
  */
 public class RegistryImporter {
+
+    /**
+     * Default constructor
+     */
+    private RegistryImporter() { }
+
     /**
      * Load in the XML from file.
      *
