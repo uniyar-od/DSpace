@@ -10,7 +10,6 @@ package org.dspace.content.factory;
 import java.util.List;
 
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.RootObject;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -28,6 +27,7 @@ import org.dspace.content.service.RootEntityService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -37,10 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author kevinvandevelde at atmire.com
  */
 public class ContentServiceFactoryImpl extends ContentServiceFactory {
-
-
-    @Autowired(required = true)
-    private List<RootEntityService<? extends RootObject>> rootObjectServices;
 
     @Autowired(required = true)
     private List<DSpaceObjectService<? extends DSpaceObject>> dSpaceObjectServices;
@@ -75,6 +71,11 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private SiteService siteService;
     @Autowired(required = true)
     private EditItemService editItemService;
+
+    @Override
+    public List<RootEntityService> getRootObjectServices() {
+        return new DSpace().getServiceManager().getServicesByType(RootEntityService.class);
+    }
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -156,8 +157,4 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
         return siteService;
     }
 
-    @Override
-    public List<RootEntityService<? extends RootObject>> getRootObjectServices() {
-        return rootObjectServices;
-    }
 }

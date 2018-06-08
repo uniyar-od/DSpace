@@ -36,7 +36,7 @@ public class DiscoverFacetResultsConverter {
         FacetResultsRest facetResultsRest = new FacetResultsRest();
 
         setRequestInformation(context, facetName, query, dsoType, dsoScope, searchFilters, searchResult, configuration,
-            facetResultsRest, page);
+                              facetResultsRest, page);
 
         addToFacetResultList(facetName, searchResult, facetResultsRest, configuration, page);
 
@@ -79,8 +79,8 @@ public class DiscoverFacetResultsConverter {
 
         facetResultsRest.setSearchFilters(searchFilters);
 
-        SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter =
-            new SearchFilterToAppliedFilterConverter();
+        SearchFilterToAppliedFilterConverter searchFilterToAppliedFilterConverter = new
+            SearchFilterToAppliedFilterConverter();
         for (SearchFilter searchFilter : CollectionUtils.emptyIfNull(searchFilters)) {
             facetResultsRest
                 .addAppliedFilter(searchFilterToAppliedFilterConverter.convertSearchFilter(context, searchFilter));

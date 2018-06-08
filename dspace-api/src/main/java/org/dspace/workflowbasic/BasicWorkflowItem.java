@@ -199,4 +199,19 @@ public class BasicWorkflowItem implements WorkflowItem {
             }
         }
     }
+
+    @Override
+    public int getType() {
+        return item.getType();
+    }
+
+    @Override
+    public String getName() {
+        return item.getName();
+    }
+
+    @Override
+    public String getHandle() {
+        return item.getHandle();
+    }
 }

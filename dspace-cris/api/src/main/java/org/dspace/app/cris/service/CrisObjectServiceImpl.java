@@ -4,14 +4,12 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.RootEntityService;
 import org.dspace.core.Context;
-import org.springframework.beans.factory.annotation.Autowired;
 
-public abstract class CrisObjectServiceImpl<T extends ACrisObject> implements RootEntityService<T> {
+public abstract class CrisObjectServiceImpl<T extends ACrisObject> implements RootEntityService<T, UUID> {
 	
 	private ApplicationService applicationService;
 	

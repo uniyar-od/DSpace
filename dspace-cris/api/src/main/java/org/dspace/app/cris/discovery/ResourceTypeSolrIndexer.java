@@ -87,16 +87,6 @@ public class ResourceTypeSolrIndexer implements CrisServiceIndexPlugin,
 		String fvalue = acvalue;
 		addResourceTypeIndex(document, acvalue, fvalue);
 		
-        if (dso instanceof Item) {
-            Item item = (Item) dso;
-            if (item.isArchived()) {
-                acvalue = ConfigurationManager.getProperty(CrisConstants.CFG_MODULE, "facet.namedtype.item");
-                if (StringUtils.isNotBlank(acvalue)) {
-                    fvalue = acvalue;
-                    addNamedResourceTypeIndex(document, acvalue, fvalue);
-                }
-            }
-        }
 	}
 
 	private void addResourceTypeIndex(SolrInputDocument document,
@@ -121,27 +111,6 @@ public class ResourceTypeSolrIndexer implements CrisServiceIndexPlugin,
 		document.addField("resourcetype_keyword", fvalue);
 	}
 
-    private void addNamedResourceTypeIndex(SolrInputDocument document, String acvalue, String fvalue) {
-
-        document.addField("namedresourcetype_filter", acvalue);
-
-        String[] avalues = acvalue.split(SolrServiceImpl.AUTHORITY_SEPARATOR);
-        acvalue = avalues[0];
-
-        String avalue = avalues[1];
-        document.addField("namedresourcetype_authority", avalue);
-        document.addField("namedresourcetype_group", avalue);
-        document.addField("namedresourcetype_ac", acvalue);
-
-        Pattern pattern = Pattern.compile(REGEX);
-        Matcher matcher = pattern.matcher(acvalue);
-        if (matcher.matches()) {
-            fvalue = matcher.group(1);
-        }
-
-        document.addField("namedresourcetype_keyword", fvalue);
-    }
-	   
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
 			ACNO dso, SolrInputDocument sorlDoc, Map<String, List<DiscoverySearchFilter>> searchFilters) {

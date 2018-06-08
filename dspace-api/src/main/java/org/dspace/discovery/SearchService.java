@@ -7,7 +7,6 @@
  */
 package org.dspace.discovery;
 
-import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -33,10 +32,8 @@ public interface SearchService {
      * DiscoverQuery) with a null DSpace Object as scope (i.e. all the
      * repository)
      *
-     * @param context DSpace Context object
-     * @param dso     a DSpace Object to use as scope of the search (only results
-     *                within this object)
-     * @param query   the discovery query object
+     * @param context DSpace Context object.
+     * @param query   the discovery query object.
      * @return discovery search result object
      * @throws SearchServiceException if search error
      */
@@ -58,11 +55,10 @@ public interface SearchService {
         throws SearchServiceException;
 
     /**
-     * @param context          DSpace Context object
-     * @param dso              a DSpace Object to use as scope of the search (only results
-     *                         within this object)
+     * @param context          DSpace Context object.
+     * @param query            the discovery query object.
      * @param includeWithdrawn use <code>true</code> to include in the results also withdrawn
-     *                         items that match the query
+     *                         items that match the query.
      * @return discovery search result object
      * @throws SearchServiceException if search error
      */
@@ -82,16 +78,8 @@ public interface SearchService {
     DiscoverResult search(Context context, BrowsableDSpaceObject dso, DiscoverQuery query, boolean includeWithdrawn)
         throws SearchServiceException;
 
-
-    InputStream searchJSON(Context context, DiscoverQuery query, String jsonIdentifier) throws SearchServiceException;
-
-    InputStream searchJSON(Context context, DiscoverQuery query, BrowsableDSpaceObject dso, String jsonIdentifier)
-        throws SearchServiceException;
-
-
     List<BrowsableDSpaceObject> search(Context context, String query, String orderfield, boolean ascending, int offset,
-                                       int max, String... filterquery);
-
+            int max, String... filterquery);
 
     /**
      * Transforms the given string field and value into a filter query
@@ -143,9 +131,9 @@ public interface SearchService {
      */
     String escapeQueryChars(String query);
 
-    QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
-
     FacetYearRange getFacetYearRange(Context context, BrowsableDSpaceObject scope, DiscoverySearchFilterFacet facet,
-                                     List<String> filterQueries, DiscoverQuery parentQuery)
-        throws SearchServiceException;
+            List<String> filterQueries, DiscoverQuery parentQuery)
+                    throws SearchServiceException;
+
+    QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
 }

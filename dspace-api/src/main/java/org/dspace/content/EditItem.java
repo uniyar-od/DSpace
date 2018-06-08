@@ -81,4 +81,19 @@ public class EditItem implements InProgressSubmission<UUID> {
     public void setPublishedBefore(boolean b) {
     }
 
+    @Override
+    public int getType() {
+        return item.getType();
+    }
+
+    @Override
+    public String getName() {
+        return item.getName();
+    }
+
+    @Override
+    public String getHandle() {
+        return item.getHandle();
+    }
+
 }

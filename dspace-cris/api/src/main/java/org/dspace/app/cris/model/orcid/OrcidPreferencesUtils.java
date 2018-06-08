@@ -101,7 +101,7 @@ public class OrcidPreferencesUtils
 
     private static final int ORCID_PREFS_VISIBLE = 3;
 
-    public void prepareOrcidQueue(String crisId, RootObject obj)
+    public void prepareOrcidQueue(String crisId, RootObject<UUID> obj)
     {
         OrcidQueue orcidQueue = getApplicationService()
                 .uniqueOrcidQueueByEntityIdAndTypeIdAndOwnerId(obj.getID(),

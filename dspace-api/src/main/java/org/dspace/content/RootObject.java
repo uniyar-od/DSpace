@@ -7,15 +7,15 @@
  */
 package org.dspace.content;
 
-import java.util.UUID;
+import java.io.Serializable;
 
-public interface RootObject {
+public interface RootObject<PK extends Serializable> {
 
     int getType();
 
     String getName();
 
-    UUID getID();
+    PK getID();
 
     String getHandle();
 }

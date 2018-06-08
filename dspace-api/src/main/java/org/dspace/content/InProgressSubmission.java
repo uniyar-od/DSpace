@@ -20,7 +20,7 @@ import org.dspace.eperson.EPerson;
  * @author Robert Tansley
  * @version $Revision$
  */
-public interface InProgressSubmission<ID extends Serializable> {
+public interface InProgressSubmission<ID extends Serializable> extends RootObject<ID> {
     /**
      * Get the internal ID of this submission
      *

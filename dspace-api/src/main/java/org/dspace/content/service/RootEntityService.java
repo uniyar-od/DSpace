@@ -7,14 +7,14 @@
  */
 package org.dspace.content.service;
 
+import java.io.Serializable;
 import java.sql.SQLException;
-import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.RootObject;
 import org.dspace.core.Context;
 
-public interface RootEntityService<T extends RootObject> {
+public interface RootEntityService<T extends RootObject, PK extends Serializable> {
 
     void updateLastModified(Context context, T dSpaceObject) throws SQLException, AuthorizeException;
 
@@ -29,5 +29,5 @@ public interface RootEntityService<T extends RootObject> {
      * @return the object found, or null if it does not exist.
      * @throws SQLException only upon failure accessing the database.
      */
-    public T find(Context context, UUID id) throws SQLException;
+    public T find(Context context, PK id) throws SQLException;
 }

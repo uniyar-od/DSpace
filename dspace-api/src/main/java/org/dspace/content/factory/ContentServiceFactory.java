@@ -7,6 +7,7 @@
  */
 package org.dspace.content.factory;
 
+import java.io.Serializable;
 import java.util.List;
 
 import org.dspace.content.DSpaceObject;
@@ -46,10 +47,10 @@ public abstract class ContentServiceFactory {
 
     public abstract List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices();
 
-    public abstract List<RootEntityService<? extends RootObject>> getRootObjectServices();
+    public abstract List<RootEntityService> getRootObjectServices();
 
     public abstract List<DSpaceObjectLegacySupportService<? extends DSpaceObject>>
-    getDSpaceObjectLegacySupportServices();
+        getDSpaceObjectLegacySupportServices();
 
     public abstract BitstreamFormatService getBitstreamFormatService();
 
@@ -101,22 +102,12 @@ public abstract class ContentServiceFactory {
         }
     }
 
-    public <T extends RootObject> RootEntityService<T> getRootObjectService(T dso) {
+    public <T extends RootObject, PK extends Serializable> RootEntityService<T, PK> getRootObjectService(T dso) {
         // No need to worry when supressing, as long as our "getDSpaceObjectManager" method is properly implemented
         // no casting issues should occur
         @SuppressWarnings("unchecked")
-        RootEntityService<T> manager = getRootObjectService(dso.getType());
+        RootEntityService<T, PK> manager = getRootObjectService(dso.getType());
         return manager;
-    }
-
-    public RootEntityService getRootObjectService(int type) {
-        for (int i = 0; i < getRootObjectServices().size(); i++) {
-            RootEntityService objectService = getRootObjectServices().get(i);
-            if (objectService.isSupportsTypeConstant(type)) {
-                return objectService;
-            }
-        }
-        throw new UnsupportedOperationException("Unknown DSpace type: " + type);
     }
 
     public <T extends DSpaceObject> DSpaceObjectService<T> getDSpaceObjectService(T dso) {
@@ -135,6 +126,18 @@ public abstract class ContentServiceFactory {
             }
         }
         throw new UnsupportedOperationException("Unknown DSpace type: " + type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends RootObject<PK>, PK extends Serializable> RootEntityService<T, PK>
+        getRootObjectService(int type) {
+        for (int i = 0; i < getRootObjectServices().size(); i++) {
+            RootEntityService objectService = getRootObjectServices().get(i);
+            if (objectService.isSupportsTypeConstant(type)) {
+                return (RootEntityService<T, PK>) objectService;
+            }
+        }
+        throw new UnsupportedOperationException("Unknown Browsable DSpace type: " + type);
     }
 
     public DSpaceObjectLegacySupportService<? extends DSpaceObject> getDSpaceLegacyObjectService(int type) {
