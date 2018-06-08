@@ -78,8 +78,8 @@ public class Constants {
     /**
      * lets you look up type names from the type IDs
      */
-    public static final String[] typeText = { "BITSTREAM", "BUNDLE", "ITEM",
-        "COLLECTION", "COMMUNITY", "SITE", "GROUP", "EPERSON" };
+    public static final String[] typeText = { "BITSTREAM", "BUNDLE", "ITEM", "COLLECTION", "COMMUNITY", "SITE", "GROUP",
+        "EPERSON", "WORKSPACEITEM", "WORKFLOWITEM", "WORKFLOW POOL", "WORKFLOW CLAIMED" };
 
     /**
      * Special Bundle and Bitstream Names:
@@ -243,6 +243,11 @@ public class Constants {
     };
 
     public static final String DEFAULT_ENCODING = "UTF-8";
+
+    /**
+     * Default constructor
+     */
+    private Constants() { }
 
     /**
      * If you know the type string, look up the corresponding type ID constant.

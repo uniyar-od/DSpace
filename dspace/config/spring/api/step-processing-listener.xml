@@ -9,7 +9,10 @@
         <property name="metadata">
 	        <map>
                 <entry key="dc.identifier.doi" value="doi"/>
-	        </map>            
+                <entry key="dc.identifier.arxiv" value="arxiv"/>
+                <entry key="dc.identifier.pmid" value="pubmed"/>
+                <entry key="dc.identifier.cinii" value="cinii"/>
+            </map>            
         </property>
         <property name="dataloadersMap">
 	        <map>

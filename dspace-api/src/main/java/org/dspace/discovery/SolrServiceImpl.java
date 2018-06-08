@@ -1573,7 +1573,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             addDiscoveryFields(doc, context, item, discoveryConfigurations);
             addBasicInfoToDocument(doc, Constants.WORKSPACEITEM, workspaceItem.getID(), null, locations);
 
-            String acvalue = ConfigurationManager.getProperty("cris", "facet.namedtype.workspace");
+            String acvalue = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+                    "discovery.facet.namedtype.workspace",
+                    "Workspace" + SolrServiceImpl.AUTHORITY_SEPARATOR + "workspace");
             if (StringUtils.isBlank(acvalue)) {
                 acvalue = workspaceItem.getTypeText();
             }
@@ -1617,7 +1619,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     addFacetIndex(claimDoc, "task", claimedTask.getStepID(), claimedTask.getStepID());
 
 
-                    String acvalue = ConfigurationManager.getProperty("cris", "facet.namedtype.workflow.claimed");
+                    String acvalue = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+                            "discovery.facet.namedtype.workflow.claimed",
+                            "Validation" + SolrServiceImpl.AUTHORITY_SEPARATOR + "validation");
                     if (StringUtils.isBlank(acvalue)) {
                         acvalue = claimedTask.getTypeText();
                     }
@@ -1646,7 +1650,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         claimDoc.addField("read", "wg" + poolTask.getGroup().getID().toString());
                     }
 
-                    String acvalue = ConfigurationManager.getProperty("cris", "facet.namedtype.workflow.pooled");
+                    String acvalue = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+                            "discovery.facet.namedtype.workflow.pooled",
+                            "Waiting for Controller" + SolrServiceImpl.AUTHORITY_SEPARATOR + "waitingforcontroller");
                     if (StringUtils.isBlank(acvalue)) {
                         acvalue = poolTask.getTypeText();
                     }
@@ -1657,7 +1663,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             }
 
 
-            String acvalue = ConfigurationManager.getProperty("cris", "facet.namedtype.workflow.item");
+            String acvalue = DSpaceServicesFactory.getInstance().getConfigurationService().getProperty(
+                    "discovery.facet.namedtype.workflow.item",
+                    "Workflow" + SolrServiceImpl.AUTHORITY_SEPARATOR + "workflow");
             if (StringUtils.isBlank(acvalue)) {
                 acvalue = workflowItem.getTypeText();
             }
