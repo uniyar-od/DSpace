@@ -20,6 +20,7 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.service.EditItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,6 +88,16 @@ public class EditItemServiceImpl implements EditItemService {
     @Override
     public int countBySubmitter(Context context, EPerson ep) throws SQLException {
         return itemService.countBySubmitter(context, ep);
+    }
+
+    @Override
+    public void updateLastModified(Context context, EditItem dSpaceObject) throws SQLException, AuthorizeException {
+        itemService.updateLastModified(context, dSpaceObject.getItem());
+    }
+
+    @Override
+    public boolean isSupportsTypeConstant(int type) {
+        return itemService.isSupportsTypeConstant(type);
     }
 
 }

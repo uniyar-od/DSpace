@@ -26,6 +26,7 @@ import javax.persistence.Transient;
 
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.RootObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.ReloadableEntity;
@@ -41,7 +42,7 @@ import org.dspace.eperson.EPerson;
  */
 @Entity
 @Table(name = "cwf_claimtask")
-public class ClaimedTask implements ReloadableEntity<Integer>, BrowsableDSpaceObject<Integer> {
+public class ClaimedTask implements ReloadableEntity<Integer>, RootObject<Integer>, BrowsableDSpaceObject<Integer> {
 
     @Transient
     public transient Map<String, Object> extraInfo = new HashMap<String, Object>();

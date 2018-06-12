@@ -54,7 +54,6 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     @Autowired(required = true)
     protected WorkflowService workflowService;
 
-
     protected WorkspaceItemServiceImpl() {
 
     }
@@ -267,22 +266,23 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
     }
 
     @Override
-    public void move(Context context, WorkspaceItem source, Collection fromCollection, Collection toCollection)
-        throws DCInputsReaderException {
-        source.setCollection(toCollection);
+    public void updateLastModified(Context context, WorkspaceItem dSpaceObject)
+            throws SQLException, AuthorizeException {
+        // nothing
+    }
 
-        List<IMetadataValue> remove = new ArrayList<>();
-        List<String> diff = Util.differenceInSubmissionFields(fromCollection, toCollection);
-        for (String toRemove : diff) {
-            for (IMetadataValue value : source.getItem().getMetadata()) {
-                if (value.getMetadataField().toString('.').equals(toRemove)) {
-                    remove.add(value);
-                }
-            }
+    @Override
+    public boolean isSupportsTypeConstant(int type) {
+        if (Constants.WORKSPACEITEM == type) {
+            return true;
         }
+        return false;
+    }
 
-        source.getItem().removeMetadata(remove);
-
+    @Override
+    public void move(Context context, WorkspaceItem inProgressSubmission, Collection fromCollection,
+            Collection toCollection) throws DCInputsReaderException {
+        // TODO Auto-generated method stub
     }
 
 }

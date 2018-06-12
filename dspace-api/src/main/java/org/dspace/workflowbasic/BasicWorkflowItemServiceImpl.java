@@ -17,6 +17,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
@@ -167,5 +168,19 @@ public class BasicWorkflowItemServiceImpl implements BasicWorkflowItemService {
                      Collection toCollection) {
         // TODO not implemented yet
 
+    }
+
+    @Override
+    public boolean isSupportsTypeConstant(int type) {
+        if (Constants.WORKSPACEITEM == type) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void updateLastModified(Context context, BasicWorkflowItem dSpaceObject)
+            throws SQLException, AuthorizeException {
+        // nothing
     }
 }

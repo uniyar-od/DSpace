@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.xmlworkflow.storedcomponents.dao.ClaimedTaskDAO;
@@ -44,6 +45,14 @@ public class ClaimedTaskServiceImpl implements ClaimedTaskService {
     @Override
     public ClaimedTask find(Context context, int id) throws SQLException {
         return claimedTaskDAO.findByID(context, ClaimedTask.class, id);
+    }
+
+    @Override
+    public ClaimedTask find(Context context, Integer id) throws SQLException {
+        if (id == null) {
+            return null;
+        }
+        return find(context, id.intValue());
     }
 
     @Override
@@ -121,4 +130,18 @@ public class ClaimedTaskServiceImpl implements ClaimedTaskService {
             delete(context, claimedTask);
         }
     }
+
+    @Override
+    public void updateLastModified(Context context, ClaimedTask dSpaceObject) throws SQLException, AuthorizeException {
+        // nothing
+    }
+
+    @Override
+    public boolean isSupportsTypeConstant(int type) {
+        if (Constants.WORKFLOW_CLAIMED == type) {
+            return true;
+        }
+        return false;
+    }
+
 }

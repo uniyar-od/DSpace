@@ -17,6 +17,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
@@ -186,5 +187,19 @@ public class XmlWorkflowItemServiceImpl implements XmlWorkflowItemService {
     public void move(Context context, XmlWorkflowItem inProgressSubmission, Collection fromCollection,
                      Collection toCollection) {
         // TODO not implemented yet
+    }
+
+    @Override
+    public void updateLastModified(Context context, XmlWorkflowItem dSpaceObject)
+            throws SQLException, AuthorizeException {
+        // nothing
+    }
+
+    @Override
+    public boolean isSupportsTypeConstant(int type) {
+        if (Constants.WORKFLOWITEM == type) {
+            return true;
+        }
+        return false;
     }
 }

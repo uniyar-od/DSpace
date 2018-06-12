@@ -16,7 +16,7 @@ public class ResearchObjectServiceImpl extends CrisObjectServiceImpl<ResearchObj
 
 	@Override
 	public boolean isSupportsTypeConstant(int type) {
-		if(CrisConstants.CRIS_DYNAMIC_TYPE_ID_START >= type) {
+		if(type >= CrisConstants.CRIS_DYNAMIC_TYPE_ID_START) {
 			return true;
 		}
 		return false;
