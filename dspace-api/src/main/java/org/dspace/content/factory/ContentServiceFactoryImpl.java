@@ -27,7 +27,6 @@ import org.dspace.content.service.RootEntityService;
 import org.dspace.content.service.SiteService;
 import org.dspace.content.service.SupervisedItemService;
 import org.dspace.content.service.WorkspaceItemService;
-import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -37,6 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author kevinvandevelde at atmire.com
  */
 public class ContentServiceFactoryImpl extends ContentServiceFactory {
+
+
+    @Autowired(required = true)
+    private List<RootEntityService> rootObjectServices;
 
     @Autowired(required = true)
     private List<DSpaceObjectService<? extends DSpaceObject>> dSpaceObjectServices;
@@ -71,11 +74,6 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     private SiteService siteService;
     @Autowired(required = true)
     private EditItemService editItemService;
-
-    @Override
-    public List<RootEntityService> getRootObjectServices() {
-        return new DSpace().getServiceManager().getServicesByType(RootEntityService.class);
-    }
 
     @Override
     public List<DSpaceObjectService<? extends DSpaceObject>> getDSpaceObjectServices() {
@@ -155,6 +153,11 @@ public class ContentServiceFactoryImpl extends ContentServiceFactory {
     @Override
     public SiteService getSiteService() {
         return siteService;
+    }
+
+    @Override
+    public List<RootEntityService> getRootObjectServices() {
+        return rootObjectServices;
     }
 
 }
