@@ -13,6 +13,7 @@ import java.util.List;
 import org.dspace.app.rest.model.MetadataEntryRest;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
+import org.dspace.content.Item;
 
 /**
  * This is the base converter from/to objects in the DSpace API data model and
@@ -34,7 +35,8 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
         }
         resource.setName(obj.getName());
         List<MetadataEntryRest> metadata = new ArrayList<MetadataEntryRest>();
-        for (IMetadataValue mv : obj.getMetadata()) {
+        List<IMetadataValue> values = obj.getMetadataWithoutPlaceholder(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (IMetadataValue mv : values) {
             MetadataEntryRest me = new MetadataEntryRest();
             me.setKey(mv.getMetadataField().toString('.'));
             me.setValue(mv.getValue());
