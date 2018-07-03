@@ -169,12 +169,12 @@ public abstract class DSpaceObject
         this.metadata = metadata;
     }
 
-    protected void removeMetadata(IMetadataValue metadataValue) {
+    public void removeMetadata(IMetadataValue metadataValue) {
         setMetadataModified();
         getMetadata().remove(metadataValue);
     }
 
-    protected void removeMetadata(List<IMetadataValue> metadataValues) {
+    public void removeMetadata(List<IMetadataValue> metadataValues) {
         setMetadataModified();
         getMetadata().removeAll(metadataValues);
     }

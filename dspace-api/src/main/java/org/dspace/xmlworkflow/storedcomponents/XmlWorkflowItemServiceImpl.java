@@ -182,13 +182,6 @@ public class XmlWorkflowItemServiceImpl implements XmlWorkflowItemService {
         xmlWorkflowItemDAO.delete(context, workflowItem);
     }
 
-
-    @Override
-    public void move(Context context, XmlWorkflowItem inProgressSubmission, Collection fromCollection,
-                     Collection toCollection) {
-        // TODO not implemented yet
-    }
-
     @Override
     public void updateLastModified(Context context, XmlWorkflowItem dSpaceObject)
             throws SQLException, AuthorizeException {

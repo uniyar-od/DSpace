@@ -96,4 +96,8 @@ public class EditItem implements InProgressSubmission<UUID> {
         return item.getHandle();
     }
 
+    @Override
+    public void setCollection(Collection collection) {
+        item.setOwningCollection(collection);
+    }
 }

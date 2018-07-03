@@ -9,13 +9,10 @@ package org.dspace.content;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
-import org.dspace.app.util.DCInputsReaderException;
-import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
@@ -277,12 +274,6 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void move(Context context, WorkspaceItem inProgressSubmission, Collection fromCollection,
-            Collection toCollection) throws DCInputsReaderException {
-        // TODO Auto-generated method stub
     }
 
 }

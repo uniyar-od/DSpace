@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections.ListUtils;
@@ -45,6 +46,10 @@ public class Util {
     private static String sourceVersion = null;
 
     private static Logger log = Logger.getLogger(Util.class);
+
+    protected Util() {
+
+    }
 
     /**
      * Utility method to convert spaces in a string to HTML non-break space

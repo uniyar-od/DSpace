@@ -48,6 +48,13 @@ public interface InProgressSubmission<ID extends Serializable> extends RootObjec
     Collection getCollection();
 
     /**
+     * Set collection
+     * 
+     * @param collection
+     */
+    void setCollection(Collection collection);
+
+    /**
      * Get the submitter
      *
      * @return the submitting e-person

@@ -9,10 +9,14 @@ package org.dspace.content.service;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.core.Context;
 
@@ -48,7 +52,22 @@ public interface InProgressSubmissionService<T extends InProgressSubmission, ID 
      */
     public void update(Context context, T inProgressSubmission) throws SQLException, AuthorizeException;
 
-    public void move(Context context, T inProgressSubmission, Collection fromCollection, Collection toCollection)
-        throws DCInputsReaderException;
+    default void move(Context context, T inProgressSubmission, Collection fromCollection, Collection toCollection)
+            throws DCInputsReaderException {
+        inProgressSubmission.setCollection(toCollection);
+
+        List<IMetadataValue> remove = new ArrayList<>();
+        List<String> diff = Util.differenceInSubmissionFields(fromCollection, toCollection);
+        for (String toRemove : diff) {
+            for (IMetadataValue value : inProgressSubmission.getItem().getMetadata()) {
+                if (value.getMetadataField().toString('.').equals(toRemove)) {
+                    remove.add(value);
+                }
+            }
+        }
+
+        inProgressSubmission.getItem().removeMetadata(remove);
+
+    }
 
 }
