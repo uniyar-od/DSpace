@@ -191,7 +191,95 @@
 			</list>
 		</property>
 	</bean>
-	
+
 	<bean name="enhancerFulltext" class="org.dspace.content.integration.defaultvalues.FulltextInfoGenerator"/>
 	<bean name="enhancerPermissionFulltext" class="org.dspace.content.integration.defaultvalues.FulltextPermissionGenerator"/>
+		
+<!-- ADVANCED EXAMPLE: Expose virtual metadata on the Item retrieving values from a CRIS nested object -->  	
+<!--	
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="journalimpactfactor" />
+		<property name="metadata">
+			<list>
+				<value>dc.relation.ispartof</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>				
+			    <ref bean="enhancerJournalImpactFactor"/>
+			</list>
+		</property>
+	</bean>	
+
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="journalpercentile" />
+		<property name="metadata">
+			<list>
+				<value>dc.relation.ispartof</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>				
+			    <ref bean="enhancerJournalPercentile"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="journalquartile" />
+		<property name="metadata">
+			<list>
+				<value>dc.relation.ispartof</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>				
+			    <ref bean="enhancerJournalQuartile"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="journalyear" />
+		<property name="metadata">
+			<list>
+				<value>dc.relation.ispartof</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>				
+			    <ref bean="enhancerJournalYear"/>
+			</list>
+		</property>
+	</bean>
+
+	<bean name="enhancerJournalYear" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+		<property name="applicationService" ref="applicationService" />	
+		<property name="metadataItemToCheckYear" value="dc.date.issued" />
+		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
+		<property name="metadataIndicatorNested" value="journalsbibliometricsnested" />
+		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedyear" />
+	</bean>
+	
+	<bean name="enhancerJournalImpactFactor" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+		<property name="applicationService" ref="applicationService" />	
+		<property name="metadataItemToCheckYear" value="dc.date.issued" />
+		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
+		<property name="metadataIndicatorNested" value="journalsbibliometricsnested" />
+		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedimpactfactor" />
+	</bean>
+	<bean name="enhancerJournalQuartile" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+		<property name="applicationService" ref="applicationService" />	
+		<property name="metadataItemToCheckYear" value="dc.date.issued" />
+		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
+		<property name="metadataIndicatorNested" value="journalsbibliometricsnested" />
+		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedquartile" />		
+	</bean>
+	<bean name="enhancerJournalPercentile" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+		<property name="applicationService" ref="applicationService" />	
+		<property name="metadataItemToCheckYear" value="dc.date.issued" />
+		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
+		<property name="metadataIndicatorNested" value="journalsbibliometricsnested" />
+		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedpercentile" />
+	</bean> -->
 </beans>
