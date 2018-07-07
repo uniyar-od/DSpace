@@ -43,7 +43,7 @@ public class MetadataStep extends AbstractProcessingStep {
     private static Logger log = Logger.getLogger(MetadataStep.class);
 
     protected List<MetadataListener> listeners = DSpaceServicesFactory.getInstance().getServiceManager()
-                                                                      .getServicesByType(MetadataListener.class);
+            .getServicesByType(MetadataListener.class);
 
     protected Map<String, List<IMetadataValue>> metadataMap = new HashMap<String, List<IMetadataValue>>();
     private Map<String, Set<String>> results = new HashMap<String, Set<String>>();
@@ -55,7 +55,7 @@ public class MetadataStep extends AbstractProcessingStep {
             for (String metadata : listener.getMetadata().keySet()) {
                 String[] tokenized = Utils.tokenize(metadata);
                 List<IMetadataValue> mm = itemService.getMetadata(wsi.getItem(), tokenized[0], tokenized[1],
-                                                                  tokenized[2], Item.ANY);
+                        tokenized[2], Item.ANY);
                 if (mm != null && !mm.isEmpty()) {
                     metadataMap.put(metadata, mm);
                 } else {
@@ -68,19 +68,17 @@ public class MetadataStep extends AbstractProcessingStep {
 
     @Override
     public void doPostProcessing(Context context, InProgressSubmission wsi) {
-        external:
-        for (String metadata : metadataMap.keySet()) {
+        external: for (String metadata : metadataMap.keySet()) {
             String[] tokenized = Utils.tokenize(metadata);
             List<IMetadataValue> currents = itemService.getMetadata(wsi.getItem(), tokenized[0], tokenized[1],
-                                                                    tokenized[2], Item.ANY);
+                    tokenized[2], Item.ANY);
             if (currents != null && !currents.isEmpty()) {
                 List<IMetadataValue> olds = metadataMap.get(metadata);
                 if (olds.isEmpty()) {
                     process(context, metadata, currents);
                     continue external;
                 }
-                internal:
-                for (IMetadataValue current : currents) {
+                internal: for (IMetadataValue current : currents) {
 
                     boolean found = false;
                     for (IMetadataValue old : olds) {
@@ -115,28 +113,31 @@ public class MetadataStep extends AbstractProcessingStep {
         for (Record record : rset) {
             for (String field : record.getFields()) {
                 try {
-                    String[] tfield = Utils.tokenize(field);
-                    List<IMetadataValue> mdvs = itemService
-                        .getMetadata(item, tfield[0], tfield[1], tfield[2], Item.ANY);
-                    if (mdvs == null || mdvs.isEmpty()) {
-                        for (Value value : record.getValues(field)) {
+                    if (StringUtils.isNotBlank(field)) {
+                        String[] tfield = Utils.tokenize(field);
+                        List<IMetadataValue> mdvs = itemService.getMetadata(item, tfield[0], tfield[1], tfield[2],
+                                Item.ANY);
+                        if (record.hasField(field)) {
+                            if (mdvs == null || mdvs.isEmpty()) {
+                                for (Value value : record.getValues(field)) {
 
-                            itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-                                                    value.getAsString());
-                        }
-                    } else {
-                        external:
-                        for (Value value : record.getValues(field)) {
-                            boolean found = false;
-                            for (IMetadataValue mdv : mdvs) {
-                                if (mdv.getValue().equals(value.getAsString())) {
-                                    found = true;
-                                    continue external;
+                                    itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
+                                            value.getAsString());
                                 }
-                            }
-                            if (!found) {
-                                itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-                                                        value.getAsString());
+                            } else {
+                                external: for (Value value : record.getValues(field)) {
+                                    boolean found = false;
+                                    for (IMetadataValue mdv : mdvs) {
+                                        if (mdv.getValue().equals(value.getAsString())) {
+                                            found = true;
+                                            continue external;
+                                        }
+                                    }
+                                    if (!found) {
+                                        itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
+                                                value.getAsString());
+                                    }
+                                }
                             }
                         }
                     }

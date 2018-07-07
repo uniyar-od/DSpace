@@ -24,6 +24,7 @@ import gr.ekt.bte.exceptions.MalformedSourceException;
 import gr.ekt.bte.record.MapRecord;
 import gr.ekt.bteio.loaders.EndnoteDataLoader;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 /**
@@ -68,13 +69,13 @@ public class WOSRISDataLoader extends FileDataLoader {
                 return ret;
             }
             if (!line.startsWith("FN")) {
-                throw new MalformedSourceException(
-                        "File " + filename + " is not a valid Endnote file: First line does not contain \"FN\" tag.");
+                throw new MalformedSourceException("File " + filename
+                        + " is not a valid RIS custom file: First line does not contain \"FN\" tag.");
             }
             line = reader_.readLine();
             if (!line.startsWith("VR")) {
-                throw new MalformedSourceException(
-                        "File " + filename + " is not a valid Endnote file: Second line does not contain \"VR\" tag.");
+                throw new MalformedSourceException("File " + filename
+                        + " is not a valid RIS custom file: Second line does not contain \"VR\" tag.");
             }
 
             MapRecord current_record = new MapRecord();
@@ -125,7 +126,7 @@ public class WOSRISDataLoader extends FileDataLoader {
                     logger_.debug("Parse error on line " + line_no + ": Value expected.");
                     throw new MalformedSourceException("Parse error on line " + line_no + ": Value expected.");
                 }
-                if (current_field != null) {
+                if (StringUtils.isNotBlank(current_field)) {
                     current_record.addValue(current_field, new StringValue(current_value));
                 }
             }
