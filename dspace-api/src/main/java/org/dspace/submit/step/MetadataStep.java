@@ -124,21 +124,27 @@ public class MetadataStep extends AbstractProcessingStep {
                                     itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
                                             value.getAsString());
                                 }
-                            } else {
-                                external: for (Value value : record.getValues(field)) {
-                                    boolean found = false;
-                                    for (IMetadataValue mdv : mdvs) {
-                                        if (mdv.getValue().equals(value.getAsString())) {
-                                            found = true;
-                                            continue external;
-                                        }
-                                    }
-                                    if (!found) {
-                                        itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-                                                value.getAsString());
-                                    }
-                                }
                             }
+                            // TODO disabled add dynamically new value founded when there are already values in the
+                            // fields
+                            // TODO how to manage this case?
+                            // TODO maybe DSpace-CRIS can be managed similarity guessing in Solr the authority for the
+                            // value of the bte record
+                            // } else {
+                            // external: for (Value value : record.getValues(field)) {
+                            // boolean found = false;
+                            // for (IMetadataValue mdv : mdvs) {
+                            // if (mdv.getValue().equalsIgnoreCase(value.getAsString())) {
+                            // found = true;
+                            // continue external;
+                            // }
+                            // }
+                            // if (!found) {
+                            // itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
+                            // value.getAsString());
+                            // }
+                            // }
+                            // }
                         }
                     }
                 } catch (SQLException e) {
