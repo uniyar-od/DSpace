@@ -12,6 +12,8 @@
                 <entry key="dc.identifier.arxiv" value="arxiv"/>
                 <entry key="dc.identifier.pmid" value="pubmed"/>
                 <entry key="dc.identifier.cinii" value="cinii"/>
+                <!-- Example to add wos online dataloader for isi metadata --> 
+                <!-- <entry key="dc.identifier.isi" value="isiid"/> -->
             </map>            
         </property>
         <property name="dataloadersMap">
@@ -20,6 +22,8 @@
 	            <entry key="crossref" value-ref="crossRefOnlineDataLoader"/>
 	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
 	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
+				<!-- Example to add wos online dataloader for isi metadata -->	            
+	            <!-- <entry key="wos" value-ref="wosOnlineDataLoader"/> -->
 	        </map>
 	    </property>
     </bean>
