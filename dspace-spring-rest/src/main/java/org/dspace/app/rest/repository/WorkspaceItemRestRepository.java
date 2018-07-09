@@ -454,9 +454,11 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
                                 Object stepInstance = stepClass.newInstance();
                                 if (UploadableStep.class.isAssignableFrom(stepClass)) {
                                     UploadableStep uploadableStep = (UploadableStep) stepInstance;
+                                    uploadableStep.doPreProcessing(context, wi);
                                     ErrorRest err = uploadableStep
                                         .upload(context, submissionService, stepConfig, wi, uploadfile,
                                             file.getAbsolutePath());
+                                    uploadableStep.doPostProcessing(context, wi);
                                     if (err != null) {
                                         errors.add(err);
                                     }
