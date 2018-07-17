@@ -21,7 +21,7 @@ import org.dspace.content.integration.defaultvalues.DefaultValuesBean;
 import org.dspace.content.integration.defaultvalues.EnhancedValuesGenerator;
 import org.dspace.content.integration.defaultvalues.FulltextPermissionGenerator;
 
-public class BibliometricsJournalsIndicatorGenerator implements EnhancedValuesGenerator {
+public class YearBasedNestedDataGenerator implements EnhancedValuesGenerator {
 
     /**
      * log4j logger
@@ -35,7 +35,8 @@ public class BibliometricsJournalsIndicatorGenerator implements EnhancedValuesGe
     private String metadataIndicatorValue;
     private String metadataIndicatorNested;
     private ApplicationService applicationService;
-
+    private boolean permitsNoneValue = false;
+    
     @Override
     public DefaultValuesBean generateValues(Item item, String schema, String element, String qualifier, String value) {
         DefaultValuesBean result = new DefaultValuesBean();
@@ -43,14 +44,21 @@ public class BibliometricsJournalsIndicatorGenerator implements EnhancedValuesGe
         try {
             result.setLanguage("en");
             result.setMetadataSchema("item");
-            result.setMetadataElement("journals");
+            result.setMetadataElement(getMetadataIndicatorNested());
             result.setMetadataQualifier(getMetadataIndicatorValue());
             List<IMetadataValue> journals = item.getMetadata(schema, element, qualifier, Item.ANY);
             values = buildIndicatorsFromNested(values, journals, item.getMetadata(getMetadataItemToCheckYear()));
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
         }
-        result.setValues(values);
+        if(permitsNoneValue) {
+            result.setValues(values);
+        }
+        else {
+            if(!StringUtils.equals(values, "none")) {
+                result.setValues(values);    
+            }
+        }
         return result;
     }
 

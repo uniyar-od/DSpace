@@ -253,7 +253,7 @@
 		</property>
 	</bean>
 
-	<bean name="enhancerJournalYear" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+	<bean name="enhancerJournalYear" class="org.dspace.app.cris.integration.YearBasedNestedDataGenerator">
 		<property name="applicationService" ref="applicationService" />	
 		<property name="metadataItemToCheckYear" value="dc.date.issued" />
 		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
@@ -261,21 +261,21 @@
 		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedyear" />
 	</bean>
 	
-	<bean name="enhancerJournalImpactFactor" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+	<bean name="enhancerJournalImpactFactor" class="org.dspace.app.cris.integration.YearBasedNestedDataGenerator">
 		<property name="applicationService" ref="applicationService" />	
 		<property name="metadataItemToCheckYear" value="dc.date.issued" />
 		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
 		<property name="metadataIndicatorNested" value="journalsbibliometricsnested" />
 		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedimpactfactor" />
 	</bean>
-	<bean name="enhancerJournalQuartile" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+	<bean name="enhancerJournalQuartile" class="org.dspace.app.cris.integration.YearBasedNestedDataGenerator">
 		<property name="applicationService" ref="applicationService" />	
 		<property name="metadataItemToCheckYear" value="dc.date.issued" />
 		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
 		<property name="metadataIndicatorNested" value="journalsbibliometricsnested" />
 		<property name="metadataIndicatorValue" value="journalsbibliometricsnestedquartile" />		
 	</bean>
-	<bean name="enhancerJournalPercentile" class="org.dspace.app.cris.integration.BibliometricsJournalsIndicatorGenerator">
+	<bean name="enhancerJournalPercentile" class="org.dspace.app.cris.integration.YearBasedNestedDataGenerator">
 		<property name="applicationService" ref="applicationService" />	
 		<property name="metadataItemToCheckYear" value="dc.date.issued" />
 		<property name="metadataNestedToCheckYear" value="journalsbibliometricsnestedyear" />
