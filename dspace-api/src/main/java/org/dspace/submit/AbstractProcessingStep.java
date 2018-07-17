@@ -7,7 +7,6 @@
  */
 package org.dspace.submit;
 
-import org.dspace.app.itemimport.BTEBatchImportService;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.InProgressSubmission;
@@ -22,6 +21,7 @@ import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.submit.lookup.SubmissionLookupService;
 
 /**
  * Abstract processing class for DSpace Submission Steps. This defines the base
@@ -38,11 +38,16 @@ public abstract class AbstractProcessingStep {
     protected MetadataFieldService metadataFieldService = ContentServiceFactory.getInstance().getMetadataFieldService();
     protected ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
     protected WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
-    protected BTEBatchImportService bteBatchImportService = DSpaceServicesFactory.getInstance().getServiceManager()
-                                                                                 .getServiceByName(
-                                                                                     "org.dspace.app.itemimport" +
-                                                                                         ".BTEBatchImportService",
-                                                                                     BTEBatchImportService.class);
+
+    protected SubmissionLookupService metadataExtractorSubmissionLookupService =
+            DSpaceServicesFactory.getInstance().getServiceManager()
+            .getServiceByName("metadataExtractorSubmissionLookupService",
+                    SubmissionLookupService.class);
+
+    protected SubmissionLookupService identifierSubmissionLookupService =
+            DSpaceServicesFactory.getInstance().getServiceManager()
+            .getServiceByName("identifierSubmissionLookupService",
+                    SubmissionLookupService.class);
 
     public abstract void doPreProcessing(Context context, InProgressSubmission wsi);
 

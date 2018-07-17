@@ -9,9 +9,6 @@ package org.dspace.submit.extraction;
 
 import java.util.List;
 
-import gr.ekt.bte.dataloader.FileDataLoader;
-import org.dspace.services.ConfigurationService;
-
 /**
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
@@ -19,9 +16,7 @@ public class MetadataExtractor {
 
     private List<String> extensions;
 
-    private FileDataLoader dataLoader;
-
-    private ConfigurationService configurationService;
+    private String dataloadersKeyMap;
 
     public List<String> getExtensions() {
         return extensions;
@@ -31,20 +26,13 @@ public class MetadataExtractor {
         this.extensions = mime;
     }
 
-    public FileDataLoader getDataLoader() {
-        return dataLoader;
+    public String getDataloadersKeyMap() {
+        return dataloadersKeyMap;
     }
 
-    public void setDataLoader(FileDataLoader dataLoader) {
-        this.dataLoader = dataLoader;
+    public void setDataloadersKeyMap(String dataloadersKeyMap) {
+        this.dataloadersKeyMap = dataloadersKeyMap;
     }
 
-    public ConfigurationService getConfigurationService() {
-        return configurationService;
-    }
-
-    public void setConfigurationService(ConfigurationService configurationService) {
-        this.configurationService = configurationService;
-    }
 
 }

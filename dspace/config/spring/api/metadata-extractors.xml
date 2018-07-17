@@ -5,8 +5,7 @@
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
 	<bean id="bibtex" class="org.dspace.submit.extraction.MetadataExtractor">
-		<property name="dataLoader" ref="bibTeXDataLoader"/>	
-		<property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+		<property name="dataloadersKeyMap" value="bibtex"/>	
         <property name="extensions">
             <list>
             	<value>bibtex</value>
@@ -16,8 +15,7 @@
     </bean>
 	
 <!-- 	<bean id="grobid" class="org.dspace.submit.extraction.MetadataExtractor">
-		<property name="dataLoader" ref="grobidDataLoader"/>
-		<property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+		<property name="dataloadersKeyMap" value="grobid"/>
         <property name="extensions">
             <list>
             	<value>pdf</value>

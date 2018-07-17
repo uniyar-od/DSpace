@@ -53,13 +53,90 @@
 			</list>
 		</property>
 	</bean>
-
+	
 	<!-- **************************************************************************************************** -->
-	<!-- Submission Lookup Service 																			  -->
+	<!-- In Submission Lookup Service 																			  -->
 	<!-- **************************************************************************************************** -->
-
 	<bean class="org.dspace.submit.lookup.SubmissionLookupService"
-		name="org.dspace.submit.lookup.SubmissionLookupService" scope="prototype">
+		id="identifierSubmissionLookupService" name="identifierSubmissionLookupService" scope="prototype">
+		<property name="phase1TransformationEngine" ref="phase1MultiTransformationEngine" />
+		<property name="phase2TransformationEngine" ref="phase2SingleItemTransformationEngine" />
+		<!-- Uncomment the following property if you want specific fields to appear in the detail presentation
+			 of a publication. Default values are the ones shown below -->
+		<!-- 
+		<property name="detailFields">
+	        <list>
+	        	<value>title</value>
+                <value>authors</value>
+                <value>editors</value>
+                <value>translators</value>
+                <value>chairs</value>
+                <value>issued</value>
+                <value>abstract</value>
+                <value>doi</value>
+                <value>journal</value>
+                <value>volume</value>
+                <value>issue</value>
+                <value>publisher</value>
+                <value>jissn</value>
+                <value>jeissn</value>
+                <value>pisbn</value>
+                <value>eisbn</value>
+                <value>arxivCategory</value>
+                <value>keywords</value>
+                <value>mesh</value>
+                <value>language</value>
+                <value>subtype</value>
+                <value>translators</value>
+	        </list>
+	    </property>
+	    -->
+	</bean>
+	
+	<!-- **************************************************************************************************** -->
+	<!-- In Submission Lookup Service 																			  -->
+	<!-- **************************************************************************************************** -->
+	<bean class="org.dspace.submit.lookup.SubmissionLookupService"
+		id="metadataExtractorSubmissionLookupService" name="metadataExtractorSubmissionLookupService" scope="prototype">
+		<property name="phase1TransformationEngine" ref="phase1TransformationEngine" />
+		<property name="phase2TransformationEngine" ref="phase2SingleItemTransformationEngine" />
+		<!-- Uncomment the following property if you want specific fields to appear in the detail presentation
+			 of a publication. Default values are the ones shown below -->
+		<!-- 
+		<property name="detailFields">
+	        <list>
+	        	<value>title</value>
+                <value>authors</value>
+                <value>editors</value>
+                <value>translators</value>
+                <value>chairs</value>
+                <value>issued</value>
+                <value>abstract</value>
+                <value>doi</value>
+                <value>journal</value>
+                <value>volume</value>
+                <value>issue</value>
+                <value>publisher</value>
+                <value>jissn</value>
+                <value>jeissn</value>
+                <value>pisbn</value>
+                <value>eisbn</value>
+                <value>arxivCategory</value>
+                <value>keywords</value>
+                <value>mesh</value>
+                <value>language</value>
+                <value>subtype</value>
+                <value>translators</value>
+	        </list>
+	    </property>
+	    -->
+	</bean>
+
+	<!-- **************************************************************************************************** -->
+	<!-- Outside Submission Lookup Service 																			  -->
+	<!-- **************************************************************************************************** -->
+	<bean class="org.dspace.submit.lookup.SubmissionLookupService"
+		id="submissionLookupService" name="submissionLookupService" scope="prototype">
 		<property name="phase1TransformationEngine" ref="phase1TransformationEngine" />
 		<property name="phase2TransformationEngine" ref="phase2TransformationEngine" />
 		<!-- Uncomment the following property if you want specific fields to appear in the detail presentation
@@ -97,14 +174,51 @@
 	<!-- **************************************************************************************************** -->
 	<!-- Submission Lookup Transformation Engine (phase 1) 												      -->
 	<!-- **************************************************************************************************** -->
+
+	<bean name="phase1MultiTransformationEngine" class="gr.ekt.bte.core.TransformationEngine" scope="prototype">
+	    <property name="dataLoader" ref="multiDataLoader"/>
+    	<property name="workflow" ref="phase1LinearWorkflow"/>
+    	<property name="outputGenerator" ref="org.dspace.submit.lookup.SubmissionLookupOutputGenerator"/>
+  	</bean>
 	
 	<bean name="phase1TransformationEngine" class="gr.ekt.bte.core.TransformationEngine" scope="prototype">
-	    <property name="dataLoader" ref="multipleDataLoader"/>
+	    <property name="dataLoader" ref="singleDataLoader"/>
     	<property name="workflow" ref="phase1LinearWorkflow"/>
     	<property name="outputGenerator" ref="org.dspace.submit.lookup.SubmissionLookupOutputGenerator"/>
   	</bean>
 
-	<bean name="multipleDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader" scope="prototype">
+	<bean name="multiDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader" scope="prototype">
+	    <property name="dataloadersMap">
+	        <map>
+	            <!-- Specify here any data loaders you want to include in the submission lookup process.
+	            	Dataloaders must either extend the "NetworkSubmissionLookupDataLoader" abstract class
+	            	or conform to "FileDataLoader" interface of BTE -->
+	            <entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
+	            <!-- <entry key="pubmedEurope" value-ref="pubmedEuropeOnlineDataLoader"/> -->	            
+	            <entry key="crossref" value-ref="crossRefOnlineDataLoader"/>
+	            <entry key="orcid" value-ref="orcidOnlineDataLoader"/>
+	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
+	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
+<!-- 	            depending on your apiKey you should use scopusOnlineDataLoader or scivalOnlineDataLoader
+		    <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
+	            <entry key="wos" value-ref="wosOnlineDataLoader"/> -->
+	            <entry key="pubmedXML" value-ref="pubmedFileDataLoader"/>
+	            <!-- <entry key="pubmedEuropeXML" value-ref="pubmedEuropeFileDataLoader"/> -->
+	            <entry key="crossRefXML" value-ref="crossRefFileDataLoader"/>
+	            <entry key="arXivXML" value-ref="arXivFileDataLoader"/>
+	            <entry key="ciniiXML" value-ref="ciniiFileDataLoader"/>
+	            <entry key="bibtex" value-ref="bibTeXDataLoader"/>
+	            <entry key="ris" value-ref="risDataLoader"/>
+	            <entry key="wosris" value-ref="wosRISDataLoader"/>
+	            <entry key="endnote" value-ref="endnoteDataLoader"/>
+	            <entry key="csv" value-ref="csvDataLoader"/>
+	            <entry key="tsv" value-ref="tsvDataLoader"/>
+	            <!-- <entry key="grobid" value-ref="grobidDataLoader" /> -->
+			</map>
+	    </property>
+	</bean>
+
+	<bean name="singleDataLoader" class="org.dspace.submit.lookup.SingleSubmissionLookupDataLoader" scope="prototype">
 	    <property name="dataloadersMap">
 	        <map>
 	            <!-- Specify here any data loaders you want to include in the submission lookup process.
@@ -250,6 +364,12 @@
     	<property name="outputGenerator" ref="org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator"/>
   	</bean>
   	
+	<bean name="phase2SingleItemTransformationEngine" class="gr.ekt.bte.core.TransformationEngine">
+	    <property name="dataLoader" ref="submissionItemDataLoader"/>
+    	<property name="workflow" ref="phase2linearWorkflow"/>
+    	<property name="outputGenerator" ref="org.dspace.submit.lookup.DSpaceSingleItemOutputGenerator"/>
+  	</bean>  	
+  	
 	<bean name="submissionItemDataLoader" class="org.dspace.submit.lookup.SubmissionItemDataLoader"/>
 	
 	<!-- Specify here any filters or modifiers to run before the output -->
@@ -358,6 +478,22 @@
 			</list>
 		</property>		 
 	</bean>
+
+	<bean name="org.dspace.submit.lookup.DSpaceSingleItemOutputGenerator" class="org.dspace.submit.lookup.DSpaceSingleItemOutputGenerator" scope="prototype">
+	    <property name="outputMap" ref="outputMap"/>
+
+	    <property name="extraMetadataToKeep">
+			<list>
+				<value>dc.import.contributorauthor</value>
+				<value>dc.import.contributoreditor</value>
+				<value>dc.import.contributortranslator</value>
+				<!-- <value>dc.description.scopusurl</value>
+				<value>dc.description.scopuscitationcount</value>
+				<value>dc.description.scopuscitationurl</value>-->
+			</list>
+		</property>		 
+	</bean>
+
 	
 	<!-- **************************************************************************************************** -->
 	<!-- DataLoader beans 																					  -->
@@ -455,10 +591,29 @@
 		<property name="fieldMap">
 			<map>
 				<entry key="TI" value="title" />
-				<entry key="AU" value="authors" />
+				<entry key="AF" value="authors" />
 				<entry key="AB" value="abstract" />
 				<entry key="PY" value="issued" />
 				<entry key="SO" value="journal" />
+				<entry key="DT" value="subtype" />				
+				<entry key="DE" value="allkeywords" />	
+				<entry key="ID" value="allkeywords" />	
+				<entry key="C1" value="notes" />	
+				<entry key="RP" value="notes" />	
+				<entry key="EM" value="notes" />	
+				<entry key="OI" value="orcid" />	
+				<entry key="PU" value="publisher" />	
+				<entry key="PA" value="publisherPlace" />	
+				<entry key="SN" value="jissn" />	
+				<entry key="PY" value="issued" />	
+				<entry key="VL" value="volume" />	
+				<entry key="IS" value="issue" />	
+				<entry key="BP" value="firstpage" />	
+				<entry key="EP" value="lastpage" />	
+				<entry key="DI" value="doi" />	
+				<entry key="UT" value="isiID" />
+				<entry key="EI" value="eissn" />
+				<entry key="BN" value="pisbn" />
 			</map>
 		</property>
 	</bean>

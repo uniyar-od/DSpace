@@ -14,12 +14,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.servlet.http.HttpServletRequest;
 
 import gr.ekt.bte.core.TransformationEngine;
 import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
 import gr.ekt.bte.exceptions.MalformedSourceException;
+
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.SearchRestMethod;
@@ -53,14 +56,17 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.EPersonServiceImpl;
 import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.AbstractProcessingStep;
+import org.dspace.submit.extraction.MetadataExtractor;
+import org.dspace.submit.lookup.ASubmissionLookupDataLoader;
 import org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator;
-import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
 import org.dspace.submit.lookup.SubmissionLookupService;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -97,10 +103,12 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     @Autowired
     SubmissionService submissionService;
+
     @Autowired
     EPersonServiceImpl epersonService;
 
     @Autowired
+    @Qualifier(value = "submissionLookupService")
     SubmissionLookupService submissionLookupService;
 
     @Autowired
@@ -164,15 +172,14 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     @Override
     protected WorkspaceItemRest save(Context context, WorkspaceItemRest wsi) {
-        SubmissionConfig submissionConfig =
-            submissionConfigReader.getSubmissionConfigByName(submissionConfigReader.getDefaultSubmissionConfigName());
+        SubmissionConfig submissionConfig = submissionConfigReader
+                .getSubmissionConfigByName(submissionConfigReader.getDefaultSubmissionConfigName());
         WorkspaceItem source = converter.toModel(wsi);
         for (int stepNum = 0; stepNum < submissionConfig.getNumberOfSteps(); stepNum++) {
 
             SubmissionStepConfig stepConfig = submissionConfig.getStep(stepNum);
             /*
-             * First, load the step processing class (using the current
-             * class loader)
+             * First, load the step processing class (using the current class loader)
              */
             ClassLoader loader = this.getClass().getClassLoader();
             Class stepClass;
@@ -186,11 +193,10 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
                     AbstractProcessingStep stepProcessing = (AbstractProcessingStep) stepClass.newInstance();
                     stepProcessing.doPreProcessing(context, source);
                 } else {
-                    throw new Exception("The submission step class specified by '"
-                                            + stepConfig.getProcessingClassName()
-                                            + "' does not extend the class org.dspace.submit.AbstractProcessingStep!"
-                                            + " Therefore it cannot be used by the Configurable Submission as the " +
-                                            "<processing-class>!");
+                    throw new Exception("The submission step class specified by '" + stepConfig.getProcessingClassName()
+                            + "' does not extend the class org.dspace.submit.AbstractProcessingStep!"
+                            + " Therefore it cannot be used by the Configurable Submission as the "
+                            + "<processing-class>!");
                 }
 
             } catch (Exception e) {
@@ -213,20 +219,19 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     @Override
     public WorkspaceItemRest upload(HttpServletRequest request, String apiCategory, String model, Integer id,
-                                    String extraField, MultipartFile file) throws Exception {
+            String extraField, MultipartFile file) throws Exception {
 
         Context context = obtainContext();
         WorkspaceItemRest wsi = findOne(id);
         WorkspaceItem source = wis.find(context, id);
         List<ErrorRest> errors = new ArrayList<ErrorRest>();
-        SubmissionConfig submissionConfig =
-            submissionConfigReader.getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
+        SubmissionConfig submissionConfig = submissionConfigReader
+                .getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
         for (int i = 0; i < submissionConfig.getNumberOfSteps(); i++) {
             SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
 
             /*
-             * First, load the step processing class (using the current
-             * class loader)
+             * First, load the step processing class (using the current class loader)
              */
             ClassLoader loader = this.getClass().getClassLoader();
             Class stepClass;
@@ -237,8 +242,8 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
                 if (UploadableStep.class.isAssignableFrom(stepClass)) {
                     UploadableStep uploadableStep = (UploadableStep) stepInstance;
                     uploadableStep.doPreProcessing(context, source);
-                    ErrorRest err =
-                        uploadableStep.upload(context, submissionService, stepConfig, source, file, extraField);
+                    ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, source, file,
+                            extraField);
                     uploadableStep.doPostProcessing(context, source);
                     if (err != null) {
                         errors.add(err);
@@ -265,36 +270,35 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
     @Override
     public void patch(Context context, HttpServletRequest request, String apiCategory, String model, Integer id,
-                      Patch patch) throws SQLException, AuthorizeException {
+            Patch patch) throws SQLException, AuthorizeException {
         List<Operation> operations = patch.getOperations();
         WorkspaceItemRest wsi = findOne(id);
         WorkspaceItem source = wis.find(context, id);
         for (Operation op : operations) {
-            //the value in the position 0 is a null value
+            // the value in the position 0 is a null value
             String[] path = op.getPath().substring(1).split("/", 3);
             if (OPERATION_PATH_SECTIONS.equals(path[0])) {
                 String section = path[1];
                 evaluatePatch(context, request, source, wsi, section, op);
             } else {
                 throw new PatchBadRequestException(
-                    "Patch path operation need to starts with '" + OPERATION_PATH_SECTIONS + "'");
+                        "Patch path operation need to starts with '" + OPERATION_PATH_SECTIONS + "'");
             }
         }
         wis.update(context, source);
     }
 
     private void evaluatePatch(Context context, HttpServletRequest request, WorkspaceItem source, WorkspaceItemRest wsi,
-                               String section, Operation op) {
-        SubmissionConfig submissionConfig =
-            submissionConfigReader.getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
+            String section, Operation op) {
+        SubmissionConfig submissionConfig = submissionConfigReader
+                .getSubmissionConfigByName(wsi.getSubmissionDefinition().getName());
         for (int stepNum = 0; stepNum < submissionConfig.getNumberOfSteps(); stepNum++) {
 
             SubmissionStepConfig stepConfig = submissionConfig.getStep(stepNum);
 
             if (section.equals(stepConfig.getId())) {
                 /*
-                 * First, load the step processing class (using the current
-                 * class loader)
+                 * First, load the step processing class (using the current class loader)
                  */
                 ClassLoader loader = this.getClass().getClassLoader();
                 Class stepClass;
@@ -305,16 +309,17 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
 
                     if (stepInstance instanceof AbstractRestProcessingStep) {
                         // load the JSPStep interface for this step
-                        AbstractRestProcessingStep stepProcessing =
-                            (AbstractRestProcessingStep) stepClass.newInstance();
+                        AbstractRestProcessingStep stepProcessing = (AbstractRestProcessingStep) stepClass
+                                .newInstance();
                         stepProcessing.doPreProcessing(context, source);
                         stepProcessing.doPatchProcessing(context, getRequestService().getCurrentRequest(), source, op);
                         stepProcessing.doPostProcessing(context, source);
                     } else {
-                        throw new PatchBadRequestException(
-                            "The submission step class specified by '" + stepConfig.getProcessingClassName() +
-                            "' does not extend the class org.dspace.submit.AbstractProcessingStep!" +
-                            " Therefore it cannot be used by the Configurable Submission as the <processing-class>!");
+                        throw new PatchBadRequestException("The submission step class specified by '"
+                                + stepConfig.getProcessingClassName()
+                                + "' does not extend the class org.dspace.submit.AbstractProcessingStep!"
+                                + " Therefore it cannot be used by the Configurable Submission as the "
+                                + "<processing-class>!");
                     }
 
                 } catch (Exception e) {
@@ -335,16 +340,15 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
         try {
             wis.deleteAll(context, witem);
             context.addEvent(new Event(Event.DELETE, Constants.ITEM, witem.getItem().getID(), null,
-                itemService.getIdentifiers(context, witem.getItem())));
+                    itemService.getIdentifiers(context, witem.getItem())));
         } catch (SQLException | AuthorizeException | IOException e) {
             log.error(e.getMessage(), e);
         }
     }
 
-
     @Override
     public Iterable<WorkspaceItemRest> upload(Context context, HttpServletRequest request, MultipartFile uploadfile)
-        throws SQLException, FileNotFoundException, IOException, AuthorizeException {
+            throws SQLException, FileNotFoundException, IOException, AuthorizeException {
         File file = Utils.getFile(uploadfile, "upload-loader", "filedataloader");
         List<WorkspaceItemRest> results = new ArrayList<>();
 
@@ -361,124 +365,139 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
                 collection = collectionService.findAll(context, 1, 0).get(0);
             }
 
-            SubmissionConfig submissionConfig =
-                submissionConfigReader.getSubmissionConfigByCollection(collection.getHandle());
+            SubmissionConfig submissionConfig = submissionConfigReader
+                    .getSubmissionConfigByCollection(collection.getHandle());
 
+            // check prerequisite... if file estension is allowed
+            List<MetadataExtractor> extractors = DSpaceServicesFactory.getInstance().getServiceManager()
+                    .getServicesByType(MetadataExtractor.class);
+            String dataloaderKey = null;
+            for (MetadataExtractor extractor : extractors) {
+                if (extractor.getExtensions().contains(FilenameUtils.getExtension(uploadfile.getOriginalFilename()))) {
+                    dataloaderKey = extractor.getDataloadersKeyMap();
+                }
+            }
 
             List<ItemSubmissionLookupDTO> tmpResult = new ArrayList<ItemSubmissionLookupDTO>();
 
-            TransformationEngine transformationEngine1 = submissionLookupService.getPhase1TransformationEngine();
-            if (transformationEngine1 != null) {
-                MultipleSubmissionLookupDataLoader dataLoader =
-                    (MultipleSubmissionLookupDataLoader) transformationEngine1.getDataLoader();
+            if (StringUtils.isNotBlank(dataloaderKey)) {
+                TransformationEngine transformationEngine1 = submissionLookupService.getPhase1TransformationEngine();
+                if (transformationEngine1 != null) {
+                    ASubmissionLookupDataLoader dataLoader =
+                            (ASubmissionLookupDataLoader) transformationEngine1.getDataLoader();
 
-                List<String> fileDataLoaders = submissionLookupService.getFileProviders();
-                for (String fileDataLoader : fileDataLoaders) {
-                    dataLoader.setFile(file.getAbsolutePath(), fileDataLoader);
-
-                    try {
-                        SubmissionLookupOutputGenerator outputGenerator =
-                            (SubmissionLookupOutputGenerator) transformationEngine1.getOutputGenerator();
-                        outputGenerator.setDtoList(new ArrayList<ItemSubmissionLookupDTO>());
-                        log.debug("BTE transformation is about to start!");
-                        transformationEngine1.transform(new TransformationSpec());
-                        log.debug("BTE transformation finished!");
-                        tmpResult.addAll(outputGenerator.getDtoList());
-                        if (!tmpResult.isEmpty()) {
-                            //exit with the results founded on the first data provided
-                            break;
+                    List<String> fileDataLoaders = submissionLookupService.getFileProviders();
+                    for (String fileDataLoader : fileDataLoaders) {
+                        //Check if dataloader is configured
+                        if (!dataloaderKey.equals(fileDataLoader)) {
+                            continue;
                         }
-                    } catch (BadTransformationSpec e1) {
-                        log.error(e1.getMessage(), e1);
-                    } catch (MalformedSourceException e1) {
-                        log.error(e1.getMessage(), e1);
+                        dataLoader.setFile(file.getAbsolutePath(), fileDataLoader);
+
+                        try {
+                            SubmissionLookupOutputGenerator outputGenerator =
+                                    (SubmissionLookupOutputGenerator) transformationEngine1.getOutputGenerator();
+                            outputGenerator.setDtoList(new ArrayList<ItemSubmissionLookupDTO>());
+                            log.debug("BTE transformation is about to start!");
+                            transformationEngine1.transform(new TransformationSpec());
+                            log.debug("BTE transformation finished!");
+                            tmpResult.addAll(outputGenerator.getDtoList());
+                            if (!tmpResult.isEmpty()) {
+                                // exit with the results founded on the first data provided
+                                break;
+                            }
+                        } catch (BadTransformationSpec e1) {
+                            log.error(e1.getMessage(), e1);
+                        } catch (MalformedSourceException e1) {
+                            log.error(e1.getMessage(), e1);
+                        }
                     }
                 }
-            }
 
-            List<WorkspaceItem> result = null;
+                List<WorkspaceItem> result = null;
 
-            //try to ingest workspaceitems
-            if (!tmpResult.isEmpty()) {
-                TransformationEngine transformationEngine2 = submissionLookupService.getPhase2TransformationEngine();
-                if (transformationEngine2 != null) {
-                    SubmissionItemDataLoader dataLoader =
-                        (SubmissionItemDataLoader) transformationEngine2.getDataLoader();
-                    dataLoader.setDtoList(tmpResult);
-                    // dataLoader.setProviders()
+                // try to ingest workspaceitems
+                if (!tmpResult.isEmpty()) {
+                    TransformationEngine transformationEngine2 = submissionLookupService
+                            .getPhase2TransformationEngine();
+                    if (transformationEngine2 != null) {
+                        SubmissionItemDataLoader dataLoader = (SubmissionItemDataLoader) transformationEngine2
+                                .getDataLoader();
+                        dataLoader.setDtoList(tmpResult);
+                        // dataLoader.setProviders()
 
-                    DSpaceWorkspaceItemOutputGenerator outputGenerator =
-                        (DSpaceWorkspaceItemOutputGenerator) transformationEngine2.getOutputGenerator();
-                    outputGenerator.setCollection(collection);
-                    outputGenerator.setContext(context);
-                    outputGenerator.setFormName(submissionConfig.getSubmissionName());
-                    outputGenerator.setDto(tmpResult.get(0));
+                        DSpaceWorkspaceItemOutputGenerator outputGenerator =
+                                (DSpaceWorkspaceItemOutputGenerator) transformationEngine2.getOutputGenerator();
+                        outputGenerator.setCollection(collection);
+                        outputGenerator.setContext(context);
+                        outputGenerator.setFormName(submissionConfig.getSubmissionName());
+                        outputGenerator.setDto(tmpResult.get(0));
 
-                    try {
-                        transformationEngine2.transform(new TransformationSpec());
-                        result = outputGenerator.getWitems();
-                    } catch (BadTransformationSpec e1) {
-                        e1.printStackTrace();
-                    } catch (MalformedSourceException e1) {
-                        e1.printStackTrace();
+                        try {
+                            transformationEngine2.transform(new TransformationSpec());
+                            result = outputGenerator.getWitems();
+                        } catch (BadTransformationSpec e1) {
+                            e1.printStackTrace();
+                        } catch (MalformedSourceException e1) {
+                            e1.printStackTrace();
+                        }
                     }
                 }
-            }
 
-            //we have to create the workspaceitem to push the file also if nothing found before
-            if (result == null) {
-                WorkspaceItem source =
-                    submissionService.createWorkspaceItem(context, getRequestService().getCurrentRequest());
-                result = new ArrayList<>();
-                result.add(source);
-            }
+                // we have to create the workspaceitem to push the file also if nothing found before
+                if (result == null) {
+                    WorkspaceItem source = submissionService.createWorkspaceItem(context,
+                            getRequestService().getCurrentRequest());
+                    result = new ArrayList<>();
+                    result.add(source);
+                }
 
-            //perform upload of bitstream if there is exact one result and convert workspaceitem to entity rest
-            if (result != null && !result.isEmpty()) {
-                for (WorkspaceItem wi : result) {
+                // perform upload of bitstream if there is exact one result and convert workspaceitem to entity rest
+                if (result != null && !result.isEmpty()) {
+                    for (WorkspaceItem wi : result) {
 
-                    List<ErrorRest> errors = new ArrayList<ErrorRest>();
+                        List<ErrorRest> errors = new ArrayList<ErrorRest>();
 
-                    //load bitstream into bundle ORIGINAL only if there is one result (approximately this is the
-                    // right behaviour for pdf file but not for other bibliographic format e.g. bibtex)
-                    if (result.size() == 1) {
+                        // load bitstream into bundle ORIGINAL only if there is one result (approximately this is the
+                        // right behaviour for pdf file but not for other bibliographic format e.g. bibtex)
+                        if (result.size() == 1) {
 
-                        for (int i = 0; i < submissionConfig.getNumberOfSteps(); i++) {
-                            SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
+                            for (int i = 0; i < submissionConfig.getNumberOfSteps(); i++) {
+                                SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
 
-                            ClassLoader loader = this.getClass().getClassLoader();
-                            Class stepClass;
-                            try {
-                                stepClass = loader.loadClass(stepConfig.getProcessingClassName());
+                                ClassLoader loader = this.getClass().getClassLoader();
+                                Class stepClass;
+                                try {
+                                    stepClass = loader.loadClass(stepConfig.getProcessingClassName());
 
-                                Object stepInstance = stepClass.newInstance();
-                                if (UploadableStep.class.isAssignableFrom(stepClass)) {
-                                    UploadableStep uploadableStep = (UploadableStep) stepInstance;
-                                    uploadableStep.doPreProcessing(context, wi);
-                                    ErrorRest err = uploadableStep
-                                        .upload(context, submissionService, stepConfig, wi, uploadfile,
-                                            file.getAbsolutePath());
-                                    uploadableStep.doPostProcessing(context, wi);
-                                    if (err != null) {
-                                        errors.add(err);
+                                    Object stepInstance = stepClass.newInstance();
+                                    if (UploadableStep.class.isAssignableFrom(stepClass)) {
+                                        UploadableStep uploadableStep = (UploadableStep) stepInstance;
+                                        uploadableStep.doPreProcessing(context, wi);
+                                        ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig,
+                                                wi, uploadfile, file.getAbsolutePath());
+                                        uploadableStep.doPostProcessing(context, wi);
+                                        if (err != null) {
+                                            errors.add(err);
+                                        }
                                     }
-                                }
 
-                            } catch (Exception e) {
-                                log.error(e.getMessage(), e);
+                                } catch (Exception e) {
+                                    log.error(e.getMessage(), e);
+                                }
                             }
                         }
-                    }
-                    WorkspaceItemRest wsi = converter.convert(wi);
-                    if (result.size() == 1) {
-                        if (errors.isEmpty()) {
-                            wsi.setStatus(true);
-                        } else {
-                            wsi.setStatus(false);
-                            wsi.getErrors().addAll(errors);
+                        WorkspaceItemRest wsi = converter.convert(wi);
+                        if (result.size() == 1) {
+                            if (errors.isEmpty()) {
+                                wsi.setStatus(true);
+                            } else {
+                                wsi.setStatus(false);
+                                wsi.getErrors().addAll(errors);
+                            }
                         }
+                        results.add(wsi);
                     }
-                    results.add(wsi);
                 }
             }
         } finally {

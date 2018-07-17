@@ -64,7 +64,7 @@ public class SubmissionLookupService {
         TransformationEngine phase1TransformationEngine) {
         this.phase1TransformationEngine = phase1TransformationEngine;
 
-        MultipleSubmissionLookupDataLoader dataLoader = (MultipleSubmissionLookupDataLoader) phase1TransformationEngine
+        ASubmissionLookupDataLoader dataLoader = (ASubmissionLookupDataLoader) phase1TransformationEngine
             .getDataLoader();
 
         this.idents2provs = new HashMap<String, List<String>>();
@@ -118,7 +118,7 @@ public class SubmissionLookupService {
     public List<String> getIdentifiers() {
 
         List<String> allSupportedIdentifiers = new ArrayList<String>();
-        MultipleSubmissionLookupDataLoader dataLoader = (MultipleSubmissionLookupDataLoader) phase1TransformationEngine
+        ASubmissionLookupDataLoader dataLoader = (ASubmissionLookupDataLoader) phase1TransformationEngine
             .getDataLoader();
         for (String providerName : dataLoader.getProvidersMap().keySet()) {
             DataLoader provider = dataLoader.getProvidersMap()

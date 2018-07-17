@@ -21,6 +21,7 @@ import gr.ekt.bte.core.OutputGenerator;
 import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.core.Value;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.DCInput;
@@ -29,18 +30,15 @@ import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.AdditionalMetadataUpdateProcessPlugin;
-import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -49,20 +47,15 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Luigi Andrea Pascarelli
  * @author Panagiotis Koutsourakis
  */
-public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
+public class DSpaceSingleItemOutputGenerator implements OutputGenerator {
 
-    private static Logger log = Logger
-        .getLogger(DSpaceWorkspaceItemOutputGenerator.class);
+    private static Logger log = Logger.getLogger(DSpaceSingleItemOutputGenerator.class);
 
     protected Context context;
 
     protected String formName;
 
-    protected List<WorkspaceItem> witems;
-
-    protected ItemSubmissionLookupDTO dto;
-
-    protected Collection collection;
+    protected Item item;
 
     Map<String, String> outputMap;
 
@@ -80,32 +73,17 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
     @Override
     public List<String> generateOutput(RecordSet recordSet) {
 
-        log.info("BTE OutputGenerator started. Records to output: "
-                     + recordSet.getRecords().size());
+        log.info("BTE OutputGenerator started. Records to output: " + recordSet.getRecords().size());
 
         // Printing debug message
         String totalString = "";
         for (Record record : recordSet.getRecords()) {
-            totalString += SubmissionLookupUtils.getPrintableString(record)
-                + "\n";
+            totalString += SubmissionLookupUtils.getPrintableString(record) + "\n";
         }
         log.debug("Records to output:\n" + totalString);
 
-        witems = new ArrayList<WorkspaceItem>();
-
         for (Record rec : recordSet.getRecords()) {
-            try {
-                WorkspaceItem wi = workspaceItemService.create(context, collection,
-                                                               true);
-                merge(formName, wi.getItem(), rec);
-
-                witems.add(wi);
-
-            } catch (AuthorizeException e) {
-                log.error(e.getMessage(), e);
-            } catch (SQLException e) {
-                log.error(e.getMessage(), e);
-            }
+            merge(formName, getItem(), rec);
 
         }
 
@@ -117,10 +95,6 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
         return generateOutput(records);
     }
 
-    public List<WorkspaceItem> getWitems() {
-        return witems;
-    }
-
     public void setContext(Context context) {
         this.context = context;
     }
@@ -129,20 +103,12 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
         this.formName = formName;
     }
 
-    public void setDto(ItemSubmissionLookupDTO dto) {
-        this.dto = dto;
-    }
-
     public void setOutputMap(Map<String, String> outputMap) {
         // Reverse the key-value pairs
         this.outputMap = new HashMap<String, String>();
         for (String key : outputMap.keySet()) {
             this.outputMap.put(outputMap.get(key), key);
         }
-    }
-
-    public void setCollection(Collection collection) {
-        this.collection = collection;
     }
 
     public void setExtraMetadataToKeep(List<String> extraMetadataToKeep) {
@@ -161,7 +127,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
                     continue;
                 }
                 if (itemService.getMetadataByMetadataString(item, metadata).size() == 0
-                    || addedMetadata.contains(metadata)) {
+                        || addedMetadata.contains(metadata)) {
                     addedMetadata.add(metadata);
                     String[] md = splitMetadata(metadata);
                     if (isValidMetadata(formName, md)) { // if in extra metadata or in the spefific form
@@ -169,29 +135,23 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
                         if (values != null && values.size() > 0) {
                             if (isRepeatableMetadata(formName, md)) { // if metadata is repeatable in form
                                 for (Value value : values) {
-                                    String[] splitValue = splitValue(value
-                                                                         .getAsString());
+                                    String[] splitValue = splitValue(value.getAsString());
                                     if (splitValue[3] != null) {
-                                        itemService.addMetadata(context, item, md[0], md[1], md[2],
-                                                                md[3], splitValue[0],
-                                                                splitValue[1],
-                                                                Integer.parseInt(splitValue[2]));
+                                        itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
+                                                splitValue[0], splitValue[1], Integer.parseInt(splitValue[2]));
                                     } else {
-                                        itemService.addMetadata(context, item, md[0], md[1], md[2],
-                                                                md[3], value.getAsString());
+                                        itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
+                                                value.getAsString());
                                     }
                                 }
                             } else {
-                                String value = values.iterator().next()
-                                                     .getAsString();
+                                String value = values.iterator().next().getAsString();
                                 String[] splitValue = splitValue(value);
                                 if (splitValue[3] != null) {
-                                    itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
-                                                            splitValue[0], splitValue[1],
-                                                            Integer.parseInt(splitValue[2]));
+                                    itemService.addMetadata(context, item, md[0], md[1], md[2], md[3], splitValue[0],
+                                            splitValue[1], Integer.parseInt(splitValue[2]));
                                 } else {
-                                    itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
-                                                            value);
+                                    itemService.addMetadata(context, item, md[0], md[1], md[2], md[3], value);
                                 }
                             }
                         }
@@ -206,11 +166,10 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
                 providerName = providerNames.get(0).getAsString();
             }
             List<AdditionalMetadataUpdateProcessPlugin> additionalMetadataUpdateProcessPlugins =
-                (List<AdditionalMetadataUpdateProcessPlugin>) DSpaceServicesFactory
-                    .getInstance()
-                    .getServiceManager().getServicesByType(AdditionalMetadataUpdateProcessPlugin.class);
-            for (AdditionalMetadataUpdateProcessPlugin additionalMetadataUpdateProcessPlugin :
-                additionalMetadataUpdateProcessPlugins) {
+                    (List<AdditionalMetadataUpdateProcessPlugin>) DSpaceServicesFactory
+                    .getInstance().getServiceManager().getServicesByType(AdditionalMetadataUpdateProcessPlugin.class);
+            for (AdditionalMetadataUpdateProcessPlugin
+                    additionalMetadataUpdateProcessPlugin : additionalMetadataUpdateProcessPlugins) {
                 additionalMetadataUpdateProcessPlugin.process(this.context, item, providerName);
             }
 
@@ -278,8 +237,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
     protected boolean isValidMetadata(String formName, String[] md) {
         try {
             if (extraMetadataToKeep != null
-                && extraMetadataToKeep.contains(StringUtils.join(
-                Arrays.copyOfRange(md, 0, 3), "."))) {
+                    && extraMetadataToKeep.contains(StringUtils.join(Arrays.copyOfRange(md, 0, 3), "."))) {
                 return true;
             }
             return getDCInput(formName, md[0], md[1], md[2]) != null;
@@ -289,17 +247,15 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
         return false;
     }
 
-    protected DCInput getDCInput(String formName, String schema, String element,
-                                 String qualifier) throws DCInputsReaderException {
+    protected DCInput getDCInput(String formName, String schema, String element, String qualifier)
+            throws DCInputsReaderException {
         List<DCInputSet> dcinputsets = new DCInputsReader().getInputsBySubmissionName(formName);
         for (DCInputSet dcinputset : dcinputsets) {
             for (DCInput[] dcrow : dcinputset.getFields()) {
                 for (DCInput dcinput : dcrow) {
-                    if (dcinput.getSchema().equals(schema)
-                        && dcinput.getElement().equals(element)
-                        && ((dcinput.getQualifier() != null && dcinput
-                        .getQualifier().equals(qualifier))
-                        || (dcinput.getQualifier() == null && qualifier == null))) {
+                    if (dcinput.getSchema().equals(schema) && dcinput.getElement().equals(element)
+                            && ((dcinput.getQualifier() != null && dcinput.getQualifier().equals(qualifier))
+                                    || (dcinput.getQualifier() == null && qualifier == null))) {
                         return dcinput;
                     }
                 }
@@ -322,8 +278,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
     }
 
     protected String[] splitValue(String value) {
-        String[] splitted = value
-            .split(SubmissionLookupService.SEPARATOR_VALUE_REGEX);
+        String[] splitted = value.split(SubmissionLookupService.SEPARATOR_VALUE_REGEX);
         String[] result = new String[6];
         result[0] = splitted[0];
         result[2] = "-1";
@@ -339,8 +294,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
                 if (splitted.length > 3) {
                     result[3] = String.valueOf(Integer.parseInt(splitted[3]));
                     if (splitted.length > 4) {
-                        result[4] = String.valueOf(Integer
-                                                       .parseInt(splitted[4]));
+                        result[4] = String.valueOf(Integer.parseInt(splitted[4]));
                     }
                 }
             }
@@ -348,8 +302,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
         return result;
     }
 
-    protected void makeSureMetadataExist(Context context, String schema,
-                                         String element, String qualifier) {
+    protected void makeSureMetadataExist(Context context, String schema, String element, String qualifier) {
         try {
             context.turnOffAuthorisationSystem();
             boolean create = false;
@@ -357,18 +310,15 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
             MetadataField mdfield = null;
             if (mdschema == null) {
                 mdschema = metadataSchemaService.create(context, schema,
-                                                        SubmissionLookupService.SL_NAMESPACE_PREFIX + schema
-                );
+                        SubmissionLookupService.SL_NAMESPACE_PREFIX + schema);
                 create = true;
             } else {
-                mdfield = metadataFieldService.findByElement(context,
-                                                             mdschema, element, qualifier);
+                mdfield = metadataFieldService.findByElement(context, mdschema, element, qualifier);
             }
 
             if (mdfield == null) {
                 metadataFieldService.create(context, mdschema, element, qualifier,
-                                            "Field used for cache provider of submission-lookup: "
-                                                + schema);
+                        "Field used for cache provider of submission-lookup: " + schema);
                 create = true;
             }
             if (create) {
@@ -378,5 +328,13 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public Item getItem() {
+        return item;
+    }
+
+    public void setItem(Item item) {
+        this.item = item;
     }
 }

@@ -23,6 +23,7 @@ import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.InProgressSubmission;
@@ -41,7 +42,8 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
 
     private DCInputsReader inputReader;
 
-    public DescribeStep() throws DCInputsReaderException {
+    public DescribeStep() throws DCInputsReaderException, SubmissionConfigReaderException {
+        super();
         inputReader = new DCInputsReader();
     }
 

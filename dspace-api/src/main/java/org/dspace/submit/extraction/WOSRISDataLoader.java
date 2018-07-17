@@ -8,9 +8,11 @@
 package org.dspace.submit.extraction;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,6 +26,7 @@ import gr.ekt.bte.exceptions.MalformedSourceException;
 import gr.ekt.bte.record.MapRecord;
 import gr.ekt.bteio.loaders.EndnoteDataLoader;
 
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
@@ -160,7 +163,9 @@ public class WOSRISDataLoader extends FileDataLoader {
 
     private void openReader() throws EmptySourceException {
         try {
-            reader_ = new BufferedReader(new FileReader(filename));
+            BOMInputStream is = new BOMInputStream(new FileInputStream(filename));
+            Reader reader = new InputStreamReader(is);
+            reader_ = new BufferedReader(reader);
         } catch (FileNotFoundException e) {
             throw new EmptySourceException("File " + filename + " not found");
         }

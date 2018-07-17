@@ -15,12 +15,12 @@ import java.util.Map;
 import java.util.Set;
 
 import gr.ekt.bte.core.DataLoader;
-import gr.ekt.bte.core.DataLoadingSpec;
 import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.core.StringValue;
 import gr.ekt.bte.dataloader.FileDataLoader;
 import gr.ekt.bte.exceptions.MalformedSourceException;
+
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 
@@ -30,26 +30,10 @@ import org.dspace.core.Context;
  * @author Luigi Andrea Pascarelli
  * @author Panagiotis Koutsourakis
  */
-public class MultipleSubmissionLookupDataLoader implements DataLoader {
+public class MultipleSubmissionLookupDataLoader extends ASubmissionLookupDataLoader {
 
     private static Logger log = Logger
         .getLogger(MultipleSubmissionLookupDataLoader.class);
-
-    protected final String NOT_FOUND_DOI = "NOT-FOUND-DOI";
-
-    Map<String, DataLoader> dataloadersMap;
-
-    // Depending on these values, the multiple data loader loads data from the
-    // appropriate providers
-    Map<String, Set<String>> identifiers = null; // Searching by identifiers
-    // (DOI ...)
-
-    Map<String, Set<String>> searchTerms = null; // Searching by author, title,
-    // date
-
-    String filename = null; // Uploading file
-
-    String type = null; // the type of the upload file (bibtex, etc.)
 
     /*
      * (non-Javadoc)
@@ -187,81 +171,6 @@ public class MultipleSubmissionLookupDataLoader implements DataLoader {
         return recordSet;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see
-     * gr.ekt.bte.core.DataLoader#getRecords(gr.ekt.bte.core.DataLoadingSpec)
-     */
-    @Override
-    public RecordSet getRecords(DataLoadingSpec loadingSpec)
-        throws MalformedSourceException {
-
-        if (loadingSpec.getOffset() > 0) // Identify the end of loading
-        {
-            return new RecordSet();
-        }
-
-        return getRecords();
-    }
-
-    public Map<String, DataLoader> getProvidersMap() {
-        return dataloadersMap;
-    }
-
-    public void setDataloadersMap(Map<String, DataLoader> providersMap) {
-        this.dataloadersMap = providersMap;
-    }
-
-    public void setIdentifiers(Map<String, Set<String>> identifiers) {
-        this.identifiers = identifiers;
-        this.filename = null;
-        this.searchTerms = null;
-
-        if (dataloadersMap != null) {
-            for (String providerName : dataloadersMap.keySet()) {
-                DataLoader provider = dataloadersMap.get(providerName);
-                if (provider instanceof NetworkSubmissionLookupDataLoader) {
-                    ((NetworkSubmissionLookupDataLoader) provider)
-                        .setIdentifiers(identifiers);
-                }
-
-            }
-        }
-    }
-
-    public void setSearchTerms(Map<String, Set<String>> searchTerms) {
-        this.searchTerms = searchTerms;
-        this.identifiers = null;
-        this.filename = null;
-
-        if (dataloadersMap != null) {
-            for (String providerName : dataloadersMap.keySet()) {
-                DataLoader provider = dataloadersMap.get(providerName);
-                if (provider instanceof NetworkSubmissionLookupDataLoader) {
-                    ((NetworkSubmissionLookupDataLoader) provider)
-                        .setSearchTerms(searchTerms);
-                }
-            }
-        }
-    }
-
-    public void setFile(String filename, String type) {
-        this.filename = filename;
-        this.type = type;
-        this.identifiers = null;
-        this.searchTerms = null;
-
-        if (dataloadersMap != null) {
-            for (String providerName : dataloadersMap.keySet()) {
-                DataLoader provider = dataloadersMap.get(providerName);
-                if (provider instanceof FileDataLoader) {
-                    ((FileDataLoader) provider).setFilename(filename);
-                }
-            }
-        }
-    }
-
     public Map<String, DataLoader> filterProviders() {
         Map<String, DataLoader> result = new HashMap<String, DataLoader>();
         for (String providerName : dataloadersMap.keySet()) {
@@ -280,9 +189,8 @@ public class MultipleSubmissionLookupDataLoader implements DataLoader {
             } else if (searchTerms == null && identifiers == null
                 && filename != null) {
                 if (dataLoader instanceof FileDataLoader) {
-                    if (providerName.endsWith(type)) // add only the one that we
-                    // are interested in
-                    {
+                    // add only the one that we are interested in
+                    if (providerName.endsWith(type)) {
                         result.put(providerName, dataLoader);
                     }
                 }

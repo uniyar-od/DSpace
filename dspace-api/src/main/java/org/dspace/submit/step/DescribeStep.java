@@ -8,14 +8,19 @@
 package org.dspace.submit.step;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.util.SubmissionConfigReaderException;
 
 /**
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
 public class DescribeStep extends MetadataStep {
+
     /**
      * log4j logger
      */
     private static Logger log = Logger.getLogger(DescribeStep.class);
 
+    public DescribeStep() throws SubmissionConfigReaderException {
+        super();
+    }
 }
