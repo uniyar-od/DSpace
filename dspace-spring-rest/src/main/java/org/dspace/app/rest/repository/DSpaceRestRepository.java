@@ -107,7 +107,7 @@ public abstract class DSpaceRestRepository<T extends RestAddressableModel, ID ex
         }
     }
 
-    protected void delete(Context context, ID id) throws RepositoryMethodNotImplementedException {
+    protected void delete(Context context, ID id) throws AuthorizeException, RepositoryMethodNotImplementedException {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");
     }
 

@@ -27,6 +27,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     private WorkspaceItem workspaceItem;
     private Item item;
     private Group readerGroup = null;
+    private boolean writePermission = false;
 
     protected ItemBuilder(Context context) {
         super(context);
@@ -71,6 +72,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return this;
     }
 
+    public ItemBuilder withWritePermission(boolean writePermission) {
+        this.writePermission = writePermission;
+        return this;
+    }
+
     public ItemBuilder withEmbargoPeriod(String embargoPeriod) {
         return setEmbargo(embargoPeriod, item);
     }
@@ -89,6 +95,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
             //Check if we need to make this item private. This has to be done after item install.
             if (readerGroup != null) {
                 setOnlyReadPermission(workspaceItem.getItem(), readerGroup, null);
+            }
+
+            // Add write permission so tests can update the item.
+            if (writePermission) {
+                setWritePermissionForEperson(workspaceItem.getItem(), context.getCurrentUser(), null);
             }
 
             context.dispatchEvents();

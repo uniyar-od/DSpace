@@ -13,10 +13,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.ItemConverter;
+import org.dspace.app.rest.exception.PatchBadRequestException;
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.hateoas.ItemResource;
+import org.dspace.app.rest.model.patch.Patch;
+import org.dspace.app.rest.repository.patch.ItemPatch;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -43,6 +50,12 @@ public class ItemRestRepository extends DSpaceRestRepository<ItemRest, UUID> {
 
     @Autowired
     ItemConverter converter;
+
+    /**
+     * Proposed helper class for Item patches.
+     */
+    @Autowired
+    ItemPatch itemPatch;
 
     @Autowired
     EPersonServiceImpl epersonService;
@@ -82,6 +95,16 @@ public class ItemRestRepository extends DSpaceRestRepository<ItemRest, UUID> {
         }
         Page<ItemRest> page = new PageImpl<Item>(items, pageable, total).map(converter);
         return page;
+    }
+
+    @Override
+    public void patch(Context context, HttpServletRequest request, String apiCategory, String model, UUID uuid, Patch
+            patch)
+            throws UnprocessableEntityException, PatchBadRequestException, SQLException, AuthorizeException {
+
+        itemPatch.patch(context, apiCategory, model, uuid, patch);
+        // Return the updated item.
+        findOne(context, uuid);
     }
 
     @SearchRestMethod(name = "findBySubmitter")
