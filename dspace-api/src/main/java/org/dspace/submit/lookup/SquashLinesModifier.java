@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class SquashLinesModifier extends AbstractModifier {
 
-    private String fieldKeys;
+    private List<String> fieldKeys;
 
     public SquashLinesModifier(String name) {
         super(name);
@@ -31,26 +31,27 @@ public class SquashLinesModifier extends AbstractModifier {
 
     @Override
     public Record modify(MutableRecord rec) {
-        List<Value> values = rec.getValues(fieldKeys);
-        if (values != null) {
-            List<String> converted_values = new ArrayList<String>();
-            for (Value val : values) {
-                converted_values.add(val.getAsString());
+        for (String fieldKey : fieldKeys) {
+            List<Value> values = rec.getValues(fieldKey);
+            if (values != null) {
+                List<String> converted_values = new ArrayList<String>();
+                for (Value val : values) {
+                    converted_values.add(val.getAsString());
+                }
+                List<Value> final_value = new ArrayList<Value>();
+                String v = StringUtils.join(converted_values.iterator()," ");
+                final_value.add(new StringValue(v));
+                rec.updateField(fieldKey, final_value);
             }
-            List<Value> final_value = new ArrayList<Value>();
-            String v = StringUtils.join(converted_values.iterator()," ");
-            final_value.add(new StringValue(v));
-            rec.updateField(fieldKeys, final_value);
         }
-
         return rec;
     }
 
-    public String getFieldKeys() {
+    public List<String> getFieldKeys() {
         return fieldKeys;
     }
 
-    public void setFieldKeys(String fieldKeys) {
+    public void setFieldKeys(List<String> fieldKeys) {
         this.fieldKeys = fieldKeys;
     }
 
