@@ -260,7 +260,8 @@
 				<ref bean="mapConverter_classificationASJC" />
 			    <ref bean="mapConverter_scopusType"/>
 			    <ref bean="mapConverter_wosType"/>			    			    
-			    <ref bean="splitValue"/>							    
+			    <ref bean="splitValue"/>
+			    <ref bean="squashValue"/>							    
 			    <ref bean="removeLastDot"/>
 			</list>
 		</property>

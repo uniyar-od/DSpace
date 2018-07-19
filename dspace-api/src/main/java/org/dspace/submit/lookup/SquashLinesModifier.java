@@ -19,17 +19,14 @@ import gr.ekt.bte.core.Value;
 import org.apache.commons.lang.StringUtils;
 
 /**
- * @author Andrea Bollini
- * @author Kostas Stamatis
  * @author Luigi Andrea Pascarelli
- * @author Panagiotis Koutsourakis
  */
 public class SquashLinesModifier extends AbstractModifier {
 
     private String field;
 
-    public SquashLinesModifier() {
-        super("SquashLinesModifier");
+    public SquashLinesModifier(String name) {
+        super(name);
     }
 
     @Override
