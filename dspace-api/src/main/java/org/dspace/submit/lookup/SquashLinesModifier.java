@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class SquashLinesModifier extends AbstractModifier {
 
-    private String field;
+    private String fieldKeys;
 
     public SquashLinesModifier(String name) {
         super(name);
@@ -31,7 +31,7 @@ public class SquashLinesModifier extends AbstractModifier {
 
     @Override
     public Record modify(MutableRecord rec) {
-        List<Value> values = rec.getValues(field);
+        List<Value> values = rec.getValues(fieldKeys);
         if (values != null) {
             List<String> converted_values = new ArrayList<String>();
             for (Value val : values) {
@@ -40,23 +40,18 @@ public class SquashLinesModifier extends AbstractModifier {
             List<Value> final_value = new ArrayList<Value>();
             String v = StringUtils.join(converted_values.iterator()," ");
             final_value.add(new StringValue(v));
-            rec.updateField(field, final_value);
+            rec.updateField(fieldKeys, final_value);
         }
 
         return rec;
     }
 
-    /**
-     * @return the field
-     */
-    public String getField() {
-        return field;
+    public String getFieldKeys() {
+        return fieldKeys;
     }
 
-    /**
-     * @param field the field to set
-     */
-    public void setField(String field) {
-        this.field = field;
+    public void setFieldKeys(String fieldKeys) {
+        this.fieldKeys = fieldKeys;
     }
+
 }
