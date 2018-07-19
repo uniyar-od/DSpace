@@ -82,7 +82,7 @@ public class WOSRISDataLoader extends FileDataLoader {
             }
 
             MapRecord current_record = new MapRecord();
-            Pattern endnote_pattern = Pattern.compile("(^[A-Z]{2}) ?(.*)$");
+            Pattern endnote_pattern = Pattern.compile("(^([A-Z][A-Z0-9]) ?(.*)$");
             String current_value = null;
             String current_tag = null;
             String current_field = null;
