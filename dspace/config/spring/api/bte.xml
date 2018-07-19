@@ -353,6 +353,17 @@
 	    </property>
 	    <property name="separator" value="|" />
 	</bean>	
+
+	<!-- Squash multi rows in a single line -->
+	<bean name="squashValue" class="org.dspace.submit.lookup.SquashLinesModifier">
+	    <constructor-arg value="SquashValue Modifier"/>
+	    <property name="fieldKeys">
+	        <list>
+	        	<value>wosristitle</value>
+	        	<value>wosrisabstract</value>
+	        </list>
+	    </property>
+	</bean>	
 	
 	<!-- **************************************************************************************************** -->
 	<!-- Submission Lookup Transformation Engine (phase 2) 													  -->
@@ -590,9 +601,9 @@
 	<bean id="wosRISDataLoader" class="org.dspace.submit.extraction.WOSRISDataLoader">
 		<property name="fieldMap">
 			<map>
-				<entry key="TI" value="title" />
+				<entry key="TI" value="wosristitle" />
 				<entry key="AF" value="authors" />
-				<entry key="AB" value="abstract" />
+				<entry key="AB" value="wosrisabstract" />
 				<entry key="PY" value="issued" />
 				<entry key="SO" value="journal" />
 				<entry key="DT" value="subtype" />				
@@ -862,6 +873,7 @@
 				<entry value="journal" key="dc.relation.ispartof" />				
 				<entry value="proceedingsPaper.journal" key="dc.relation.ispartofbook" />				
 				<entry value="title" key="dc.title" />
+				<entry value="wosristitle" key="dc.title" />
 				<entry value="issued" key="dc.date.issued" />
 				<entry value="language" key="dc.language.iso" />
 				<entry value="subtype" key="dc.type" />
@@ -871,6 +883,7 @@
 				<entry value="investigators" key="dc.contributor.other" />
 				<entry value="chairs" key="dc.contributor.other" />
 				<entry value="abstract" key="dc.description.abstract" />
+				<entry value="wosrisabstract" key="dc.description.abstract" />
 				<entry value="description" key="dc.description" />
 				<entry value="allkeywords" key="dc.subject" />
 				<entry value="arxivCategory" key="dc.subject" />
