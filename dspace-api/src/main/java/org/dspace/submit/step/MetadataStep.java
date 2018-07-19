@@ -7,7 +7,6 @@
  */
 package org.dspace.submit.step;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,19 +14,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.TransformationEngine;
 import gr.ekt.bte.core.TransformationSpec;
-import gr.ekt.bte.core.Value;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
 import gr.ekt.bte.exceptions.MalformedSourceException;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
@@ -163,53 +158,6 @@ public class MetadataStep extends AbstractProcessingStep {
 
     }
 
-    protected void enrichItem(Context context, List<Record> rset, Item item) throws SQLException, AuthorizeException {
-        for (Record record : rset) {
-            for (String field : record.getFields()) {
-                try {
-                    if (StringUtils.isNotBlank(field)) {
-                        String[] tfield = Utils.tokenize(field);
-                        List<IMetadataValue> mdvs = itemService.getMetadata(item, tfield[0], tfield[1], tfield[2],
-                                Item.ANY);
-                        if (record.hasField(field)) {
-                            if (mdvs == null || mdvs.isEmpty()) {
-                                for (Value value : record.getValues(field)) {
-
-                                    itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-                                            value.getAsString());
-                                }
-                            }
-                            // TODO disabled add dynamically new value founded when there are already values in the
-                            // fields
-                            // TODO how to manage this case?
-                            // TODO maybe DSpace-CRIS can be managed similarity guessing in Solr the authority for the
-                            // value of the bte record
-                            // } else {
-                            // external: for (Value value : record.getValues(field)) {
-                            // boolean found = false;
-                            // for (IMetadataValue mdv : mdvs) {
-                            // if (mdv.getValue().equalsIgnoreCase(value.getAsString())) {
-                            // found = true;
-                            // continue external;
-                            // }
-                            // }
-                            // if (!found) {
-                            // itemService.addMetadata(context, item, tfield[0], tfield[1], tfield[2], null,
-                            // value.getAsString());
-                            // }
-                            // }
-                            // }
-                        }
-                    }
-                } catch (SQLException e) {
-                    log.error(e.getMessage(), e);
-                }
-            }
-        }
-        itemService.update(context, item);
-
-    }
-
     private void process(Context context, String metadata, List<IMetadataValue> currents) {
         for (IMetadataValue current : currents) {
             process(context, metadata, current);
@@ -226,32 +174,5 @@ public class MetadataStep extends AbstractProcessingStep {
         }
         identifiers.add(current.getValue());
         results.put(key, identifiers);
-    }
-
-    public List<Record> convertFields(List<Record> recordSet, Map<String, String> fieldMap) {
-        List<Record> result = new ArrayList<Record>();
-        for (Record publication : recordSet) {
-            for (String fieldName : fieldMap.keySet()) {
-                String md = null;
-                if (fieldMap != null) {
-                    md = fieldMap.get(fieldName);
-                }
-
-                if (StringUtils.isBlank(md)) {
-                    continue;
-                } else {
-                    md = md.trim();
-                }
-
-                if (publication.isMutable()) {
-                    List<Value> values = publication.getValues(md);
-                    publication.makeMutable().removeField(md);
-                    publication.makeMutable().addField(fieldName, values);
-                }
-            }
-
-            result.add(publication);
-        }
-        return result;
     }
 }

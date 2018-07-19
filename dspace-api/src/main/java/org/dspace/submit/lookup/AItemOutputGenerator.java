@@ -113,11 +113,16 @@ public abstract class AItemOutputGenerator implements OutputGenerator {
                     if (values != null && values.size() > 0) {
                         for (Value value : values) {
                             String[] splitValue = splitValue(value.getAsString());
-                            if (splitValue[3] != null) {
-                                itemService.addMetadata(context, item, md[0], md[1], md[2], md[3], splitValue[0],
-                                        splitValue[1], Integer.parseInt(splitValue[2]));
-                            } else {
-                                itemService.addMetadata(context, item, md[0], md[1], md[2], md[3], value.getAsString());
+                            try {
+                                if (splitValue[3] != null) {
+                                    itemService.addMetadata(context, item, md[0], md[1], md[2], md[3], splitValue[0],
+                                            splitValue[1], Integer.parseInt(splitValue[2]));
+                                } else {
+                                    itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
+                                            value.getAsString());
+                                }
+                            } catch (SQLException ex) {
+                                log.warn(ex.getMessage(), ex);
                             }
                         }
                     }
