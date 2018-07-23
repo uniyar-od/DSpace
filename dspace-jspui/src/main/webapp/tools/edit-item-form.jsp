@@ -193,13 +193,8 @@
                  .append(contextPath).append("/tools/lookup.jsp','")
                  .append(fieldName).append("','edit_metadata','")
                  .append(fieldNameIdx).append("','").append(authorityName).append("','")
-<<<<<<< HEAD
-                 .append(confidenceIndicator).append("',")
-                 .append("'"+String.valueOf(collection.getID())).append("',")
-=======
                  .append(confidenceIndicator).append("','")
                  .append(String.valueOf(collection.getID())).append("',")
->>>>>>> refs/heads/dspace-6-rs
                  .append("false").append(",false);\"")
                  .append(" title=\"")
                  .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.lookup"))
