@@ -17,6 +17,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.core.Context.Mode;
 
 /**
  * This is the base converter from/to objects in the DSpace API data model and
@@ -37,7 +38,7 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
         R resource = newInstance();
         Context context = null;
         try {
-            context = new Context();
+            context = new Context(Mode.READ_ONLY);
             resource.setHandle(obj.getHandle());
             if (obj.getID() != null) {
                 resource.setUuid(obj.getID().toString());
@@ -64,10 +65,6 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
             resource.setMetadata(metadata);
         } catch (Exception ex) {
             log.error(ex.getMessage(), ex);
-        } finally {
-            if (context != null && context.isValid()) {
-                context.abort();
-            }
         }
         return resource;
     }
