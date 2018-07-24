@@ -85,9 +85,7 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
         if (qualifier == null) {
             Set<String> elts = hiddenElementSets.get(schema);
             hidden = elts != null && elts.contains(element);
-        }
-        // for schema.element.qualifier, just schema->eltMap->qualSet
-        else {
+        } else { // for schema.element.qualifier, just schema->eltMap->qualSet
             Map<String, Set<String>> elts = hiddenElementMaps.get(schema);
             if (elts == null) {
                 return false;
@@ -144,18 +142,14 @@ public class MetadataExposureServiceImpl implements MetadataExposureService {
                             eltMap.put(segment[1], new HashSet<String>());
                         }
                         eltMap.get(segment[1]).add(segment[2]);
-                    }
-
-                    // got schema.element
-                    else if (segment.length == 2) {
+                    } else if (segment.length == 2) {
+                        // got schema.element
                         if (!hiddenElementSets.containsKey(segment[0])) {
                             hiddenElementSets.put(segment[0], new HashSet<String>());
                         }
                         hiddenElementSets.get(segment[0]).add(segment[1]);
-                    }
-
-                    // oops..
-                    else {
+                    } else {
+                        // oops..
                         log.warn(
                             "Bad format in hidden metadata directive, field=\"" + mdField + "\", config property=" +
                                 key);

@@ -202,8 +202,8 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
                 //special group is a subgroup of the provided group.
                 //Note that special groups should only be checked if the current user == the ePerson.
                 //This also works for anonymous users (ePerson == null) if IP authentication used
-                if (!isMember && CollectionUtils.isNotEmpty(context.getSpecialGroups()) && isAuthenticatedUser(context,
-                                                                                                               ePerson)) {
+                if (!isMember && CollectionUtils.isNotEmpty(context.getSpecialGroups())
+                        && isAuthenticatedUser(context, ePerson)) {
                     Iterator<Group> it = context.getSpecialGroups().iterator();
 
                     while (it.hasNext() && !isMember) {
@@ -637,10 +637,8 @@ public class GroupServiceImpl extends DSpaceObjectServiceImpl<Group> implements 
                         return collectionService.getParentObject(context, collection);
                     }
                 }
-            }
-            // is the group related to a community and community administrator allowed
-            // to manage it?
-            else if (AuthorizeConfiguration.canCommunityAdminManageAdminGroup()) {
+            } else if (AuthorizeConfiguration.canCommunityAdminManageAdminGroup()) {
+                // is the group related to a community and community administrator allowed to manage it?
                 return communityService.findByAdminGroup(context, group);
             }
         }
