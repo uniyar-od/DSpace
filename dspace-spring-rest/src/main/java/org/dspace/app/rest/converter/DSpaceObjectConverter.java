@@ -10,14 +10,18 @@ package org.dspace.app.rest.converter;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.MetadataEntryRest;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.core.Context.Mode;
+import org.dspace.services.RequestService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * This is the base converter from/to objects in the DSpace API data model and
@@ -31,14 +35,18 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
     .DSpaceObjectRest>
     extends DSpaceConverter<M, R> implements BrowsableDSpaceObjectConverter<M, R> {
 
+    @Autowired
+    private RequestService requestService;
+
     private static final Logger log = Logger.getLogger(DSpaceObjectConverter.class);
 
     @Override
     public R fromModel(M obj) {
         R resource = newInstance();
+        HttpServletRequest request = requestService.getCurrentRequest().getHttpServletRequest();
         Context context = null;
         try {
-            context = new Context(Mode.READ_ONLY);
+            context = ContextUtil.obtainContext(request);
             resource.setHandle(obj.getHandle());
             if (obj.getID() != null) {
                 resource.setUuid(obj.getID().toString());
