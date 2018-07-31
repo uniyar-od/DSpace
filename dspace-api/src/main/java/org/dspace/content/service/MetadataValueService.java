@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
@@ -24,7 +25,7 @@ import org.dspace.core.Context;
  *
  * @author kevinvandevelde at atmire.com
  */
-public interface MetadataValueService {
+public interface MetadataValueService<U extends IMetadataValue> {
 
     /**
      * Creates a new metadata value.
@@ -70,18 +71,18 @@ public interface MetadataValueService {
      * @param metadataValue metadata value
      * @throws SQLException if database error
      */
-    public void update(Context context, MetadataValue metadataValue) throws SQLException;
+    public void update(Context context, U metadataValue) throws SQLException;
 
-    public void update(Context context, MetadataValue metadataValue, boolean modifyParentObject) throws SQLException, AuthorizeException;
+    public void update(Context context, U metadataValue, boolean modifyParentObject) throws SQLException, AuthorizeException;
 
     /**
      * Delete the metadata field.
      *
      * @param context dspace context
-     * @param metadataValue metadata value
+     * @param U metadata value
      * @throws SQLException if database error
      */
-    public void delete(Context context, MetadataValue metadataValue) throws SQLException;
+    public void delete(Context context, U metadataValue) throws SQLException;
 
     public Iterator<MetadataValue> findByValueLike(Context context, String value) throws SQLException;
 

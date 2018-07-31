@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -181,7 +182,7 @@ public class AuthorityValue {
      * @throws SQLException if database error
      * @throws AuthorizeException if authorization error
      */
-    public void updateItem(Context context, Item currentItem, MetadataValue value) throws SQLException, AuthorizeException {
+    public <U extends IMetadataValue> void updateItem(Context context, Item currentItem, U value) throws SQLException, AuthorizeException {
         value.setValue(getValue());
         value.setAuthority(getId());
         ContentServiceFactory.getInstance().getMetadataValueService().update(context, value, true);

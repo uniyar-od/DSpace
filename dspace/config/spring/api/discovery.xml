@@ -29,8 +29,6 @@
 	<bean id="crisSolrServiceResourceIndexPlugin"
 		class="org.dspace.app.cris.discovery.CrisSolrServiceResourceRestrictionPlugin"
 		scope="prototype" />
-
-	<alias name="solrServiceResourceIndexPlugin" alias="org.dspace.discovery.SolrServiceResourceRestrictionPlugin"/>
 	
 	<bean id="SolrServiceSpellIndexingPlugin" class="org.dspace.discovery.SolrServiceSpellIndexingPlugin" scope="prototype"/>
     

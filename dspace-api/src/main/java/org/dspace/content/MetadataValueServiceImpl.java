@@ -25,13 +25,13 @@ import org.dspace.core.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Service implementation for the IMetadataValue object.
- * This class is responsible for all business logic calls for the IMetadataValue object and is autowired by spring.
+ * Service implementation for the MetadataValue object.
+ * This class is responsible for all business logic calls for the MetadataValue object and is autowired by spring.
  * This class should never be accessed directly.
  *
  * @author kevinvandevelde at atmire.com
  */
-public class MetadataValueServiceImpl implements MetadataValueService {
+public class MetadataValueServiceImpl implements MetadataValueService<MetadataValue> {
 
     private static final Logger log = Logger.getLogger(MetadataValueServiceImpl.class);
 

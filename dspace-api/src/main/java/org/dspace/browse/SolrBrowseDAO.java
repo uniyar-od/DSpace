@@ -166,7 +166,7 @@ public class SolrBrowseDAO implements BrowseDAO
                 if (StringUtils.isNotBlank(startsWith)) {
                     dff = new DiscoverFacetField(facetField,
                         DiscoveryConfigurationParameters.TYPE_TEXT, -1,
-                            DiscoveryConfigurationParameters.SORT.VALUE, startsWith);
+                            DiscoveryConfigurationParameters.SORT.VALUE, startsWith, false);
                 } else {
                     dff = new DiscoverFacetField(facetField,
                             DiscoveryConfigurationParameters.TYPE_TEXT, -1,
