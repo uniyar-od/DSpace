@@ -59,7 +59,12 @@ public class MetadataUtilities {
     protected static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     /**
-     * Working around Item API to delete a value-specific IMetadataValue
+     * Default constructor
+     */
+    private MetadataUtilities() { }
+
+    /**
+     * Working around Item API to delete a value-specific Metadatum
      * For a given element/qualifier/lang:
      * get all DCValues
      * clear (i.e. delete) all of these DCValues
@@ -94,8 +99,7 @@ public class MetadataUtilities {
             }
         }
 
-        if (found)  //remove all for given type  ??synchronize this block??
-        {
+        if (found) {  //remove all for given type  ??synchronize this block??
             if (isLanguageStrict) {
                 itemService.clearMetadata(context, item, dtom.schema, dtom.element, dtom.qualifier, dtom.language);
             } else {
@@ -124,8 +128,7 @@ public class MetadataUtilities {
         List<IMetadataValue> ar = null;
 
         // get all values for given element/qualifier
-        if (isLanguageStrict)  // get all for given element/qualifier
-        {
+        if (isLanguageStrict) { // get all for given element/qualifier
             ar = itemService.getMetadata(item, dtom.schema, dtom.element, dtom.qualifier, dtom.language);
         } else {
             ar = itemService.getMetadata(item, dtom.schema, dtom.element, dtom.qualifier, Item.ANY);
@@ -136,8 +139,7 @@ public class MetadataUtilities {
         }
 
         int idx = 0;  //index of field to change
-        if (ar.size() > 1)  //need to pick one, can't be sure it's the last one
-        {
+        if (ar.size() > 1) { //need to pick one, can't be sure it's the last one
             // TODO maybe get highest id ?
         }
 

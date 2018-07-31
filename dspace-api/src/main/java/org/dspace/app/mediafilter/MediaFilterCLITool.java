@@ -56,6 +56,11 @@ public class MediaFilterCLITool {
     //suffix (in dspace.cfg) for input formats supported by each filter
     private static final String INPUT_FORMATS_SUFFIX = "inputFormats";
 
+    /**
+     * Default constructor
+     */
+    private MediaFilterCLITool() { }
+
     public static void main(String[] argv) throws Exception {
         // set headless for non-gui workstations
         System.setProperty("java.awt.headless", "true");
@@ -226,8 +231,8 @@ public class MediaFilterCLITool {
                                               pluginName : ""),
                                       Arrays.asList(formats));
                 }
-            }//end if filter!=null
-        }//end for
+            } //end if filter!=null
+        } //end for
 
         //If verbose, print out loaded mediafilter info
         if (isVerbose) {
@@ -283,8 +288,8 @@ public class MediaFilterCLITool {
             // now apply the filters
             if (identifier == null) {
                 mediaFilterService.applyFiltersAllItems(c);
-            } else  // restrict application scope to identifier
-            {
+            } else {
+                // restrict application scope to identifier
                 DSpaceObject dso = HandleServiceFactory.getInstance().getHandleService().resolveToObject(c, identifier);
                 if (dso == null) {
                     throw new IllegalArgumentException("Cannot resolve "
@@ -300,6 +305,8 @@ public class MediaFilterCLITool {
                         break;
                     case Constants.ITEM:
                         mediaFilterService.applyFiltersItem(c, (Item) dso);
+                        break;
+                    default:
                         break;
                 }
             }

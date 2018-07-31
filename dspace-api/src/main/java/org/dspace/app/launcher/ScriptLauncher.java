@@ -33,6 +33,11 @@ public class ScriptLauncher {
     private static transient DSpaceKernelImpl kernelImpl;
 
     /**
+     * Default constructor
+     */
+    private ScriptLauncher() { }
+
+    /**
      * Execute the DSpace script launcher
      *
      * @param args Any parameters required to be passed to the scripts it executes
@@ -90,7 +95,7 @@ public class ScriptLauncher {
     /**
      * Recognize and execute a single command.
      *
-     * @param doc  Document
+     * @param commandConfigs  Document
      * @param args the command line arguments given
      */
     public static int runOneCommand(Document commandConfigs, String[] args, DSpaceKernelImpl kernelImpl) {
@@ -141,7 +146,7 @@ public class ScriptLauncher {
             // Strip the leading argument from the args, and add the arguments
             // Set <passargs>false</passargs> if the arguments should not be passed on
             String[] useargs = args.clone();
-            Class[] argTypes = { useargs.getClass() };
+            Class[] argTypes = {useargs.getClass()};
             boolean passargs = true;
             if ((step.getAttribute("passuserargs") != null) &&
                 ("false".equalsIgnoreCase(step.getAttribute("passuserargs").getValue()))) {
@@ -191,7 +196,7 @@ public class ScriptLauncher {
 
             // Run the main() method
             try {
-                Object[] arguments = { useargs };
+                Object[] arguments = {useargs};
 
                 // Useful for debugging, so left in the code...
                 /**System.out.print("About to execute: " + className);

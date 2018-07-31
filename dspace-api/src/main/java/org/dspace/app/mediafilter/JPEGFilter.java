@@ -209,9 +209,8 @@ public class JPEGFilter extends MediaFilter implements SelfRegisterInputFormats 
     public BufferedImage getNormalizedInstance(BufferedImage buf) {
         int type = (buf.getTransparency() == Transparency.OPAQUE) ?
             BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB_PRE;
-        int w, h;
-        w = buf.getWidth();
-        h = buf.getHeight();
+        int w = buf.getWidth();
+        int h = buf.getHeight();
         BufferedImage normal = new BufferedImage(w, h, type);
         Graphics2D g2d = normal.createGraphics();
         g2d.drawImage(buf, 0, 0, w, h, Color.WHITE, null);
@@ -272,7 +271,8 @@ public class JPEGFilter extends MediaFilter implements SelfRegisterInputFormats 
         int type = (buf.getTransparency() == Transparency.OPAQUE) ?
             BufferedImage.TYPE_INT_RGB : BufferedImage.TYPE_INT_ARGB;
         BufferedImage scalebuf = (BufferedImage) buf;
-        int w, h;
+        int w;
+        int h;
         if (higherQuality) {
             // Use multi-step technique: start with original size, then
             // scale down in multiple passes with drawImage()

@@ -447,9 +447,7 @@ public class ItemExportServiceImpl implements ItemExportService {
     public void exportAsZip(Context context, Iterator<Item> items,
                             String destDirName, String zipFileName,
                             int seqStart, boolean migrate,
-                            boolean excludeBitstreams) throws Exception
-
-    {
+                            boolean excludeBitstreams) throws Exception {
         String workDir = getExportWorkDirectory() +
             System.getProperty("file.separator") +
             zipFileName;
@@ -549,7 +547,7 @@ public class ItemExportServiceImpl implements ItemExportService {
                                 List<Bitstream> bitstreams = bundle.getBitstreams();
                                 for (Bitstream bitstream : bitstreams) {
                                     // add up the size
-                                    size += bitstream.getSize();
+                                    size += bitstream.getSizeBytes();
                                 }
                             }
                             items.add(item.getID());
@@ -576,7 +574,7 @@ public class ItemExportServiceImpl implements ItemExportService {
                             List<Bitstream> bitstreams = bundle.getBitstreams();
                             for (Bitstream bitstream : bitstreams) {
                                 // add up the size
-                                size += bitstream.getSize();
+                                size += bitstream.getSizeBytes();
                             }
                         }
                         items.add(item.getID());
@@ -595,7 +593,7 @@ public class ItemExportServiceImpl implements ItemExportService {
                     List<Bitstream> bitstreams = bundle.getBitstreams();
                     for (Bitstream bitstream : bitstreams) {
                         // add up the size
-                        size += bitstream.getSize();
+                        size += bitstream.getSizeBytes();
                     }
                 }
                 ArrayList<UUID> items = new ArrayList<>();

@@ -59,6 +59,10 @@ public class ItemExportCLITool {
     protected static ItemService itemService = ContentServiceFactory.getInstance().getItemService();
     protected static CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
 
+    /**
+     * Default constructor
+     */
+    private ItemExportCLITool() { }
 
     /*
      *
@@ -106,8 +110,7 @@ public class ItemExportCLITool {
             System.exit(0);
         }
 
-        if (line.hasOption('t')) // type
-        {
+        if (line.hasOption('t')) { // type
             typeString = line.getOptionValue('t');
 
             if ("ITEM".equals(typeString)) {
@@ -117,24 +120,20 @@ public class ItemExportCLITool {
             }
         }
 
-        if (line.hasOption('i')) // id
-        {
+        if (line.hasOption('i')) { // id
             myIDString = line.getOptionValue('i');
         }
 
-        if (line.hasOption('d')) // dest
-        {
+        if (line.hasOption('d')) { // dest
             destDirName = line.getOptionValue('d');
         }
 
-        if (line.hasOption('n')) // number
-        {
+        if (line.hasOption('n')) { // number
             seqStart = Integer.parseInt(line.getOptionValue('n'));
         }
 
         boolean migrate = false;
-        if (line.hasOption('m')) // number
-        {
+        if (line.hasOption('m')) { // number
             migrate = true;
         }
 

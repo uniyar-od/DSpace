@@ -36,8 +36,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
-import org.dspace.handle.factory.HandleServiceFactory;
-import org.dspace.handle.service.HandleService;
 
 /**
  * Provides some batch editing capabilities for items in DSpace:
@@ -80,7 +78,6 @@ public class ItemUpdate {
 
     protected static final EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
     protected static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    protected static final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
 
     static {
         filterAliases.put("ORIGINAL", "org.dspace.app.itemupdate.OriginalBitstreamFilter");
@@ -190,15 +187,13 @@ public class ItemUpdate {
 
             iu.eperson = line.getOptionValue('e'); // db ID or email
 
-            if (!line.hasOption('s')) // item specific changes from archive dir
-            {
+            if (!line.hasOption('s')) { // item specific changes from archive dir
                 pr("Missing source archive option");
                 System.exit(1);
             }
             String sourcedir = line.getOptionValue('s');
 
-            if (line.hasOption('t'))  //test
-            {
+            if (line.hasOption('t')) { //test
                 isTest = true;
                 pr("**Test Run** - not actually updating items.");
 
@@ -248,8 +243,7 @@ public class ItemUpdate {
                 }
             }
 
-            if (line.hasOption('D'))  // undo not supported
-            {
+            if (line.hasOption('D')) { // undo not supported
                 pr("Delete bitstreams ");
 
                 String[] filterNames = line.getOptionValues('D');
@@ -261,8 +255,7 @@ public class ItemUpdate {
                 String filterName = line.getOptionValue('D');
                 pr("Filter argument: " + filterName);
 
-                if (filterName == null)  // indicates using delete_contents files
-                {
+                if (filterName == null) { // indicates using delete_contents files
                     DeleteBitstreamsAction delAction = (DeleteBitstreamsAction) iu.actionMgr
                         .getUpdateAction(DeleteBitstreamsAction.class);
                     delAction.setAlterProvenance(alterProvenance);
@@ -287,8 +280,7 @@ public class ItemUpdate {
                     }
 
                     String filterPropertiesName = line.getOptionValue('F');
-                    if (filterPropertiesName != null)  //not always required
-                    {
+                    if (filterPropertiesName != null) { //not always required
                         try {
                             // TODO try multiple relative locations, e.g. source dir
                             if (!filterPropertiesName.startsWith("/")) {

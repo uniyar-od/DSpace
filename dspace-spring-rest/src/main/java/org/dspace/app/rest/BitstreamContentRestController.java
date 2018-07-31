@@ -135,7 +135,7 @@ public class BitstreamContentRestController implements InitializingBean {
         if (citationDocumentService.isCitationEnabledForBitstream(bit, context)) {
             return generateBitstreamWithCitation(context, bit);
         } else {
-            return Pair.of(bitstreamService.retrieve(context, bit), bit.getSize());
+            return Pair.of(bitstreamService.retrieve(context, bit), bit.getSizeBytes());
         }
     }
 

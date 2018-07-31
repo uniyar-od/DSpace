@@ -31,7 +31,7 @@ public class BitstreamMatcher {
             hasJsonPath("$.bundleName", is("ORIGINAL")), hasJsonPath("$.metadata",
                 containsInAnyOrder(BitstreamMetadataMatcher.matchTitle(bitstream.getName()),
                     BitstreamMetadataMatcher.matchDescription(bitstream.getDescription()))),
-            hasJsonPath("$.sizeBytes", is((int) bitstream.getSize())), hasJsonPath("$.checkSum", matchChecksum()),
+            hasJsonPath("$.sizeBytes", is((int) bitstream.getSizeBytes())), hasJsonPath("$.checkSum", matchChecksum()),
             hasJsonPath("$._embedded.format", matchFormat()),
             //Check links
             matchBitstreamLinks(bitstream.getID()));

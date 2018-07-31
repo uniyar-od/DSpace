@@ -104,10 +104,9 @@ public class SimpleReporterServiceImpl implements SimpleReporterService {
     public int getChangedChecksumReport(Context context, Date startDate, Date endDate,
                                         OutputStreamWriter osw) throws IOException, SQLException {
         // get all the bitstreams marked deleted for today
-        List<MostRecentChecksum> history = mostRecentChecksumService.findBitstreamResultTypeReport(context, startDate,
-                                                                                                   endDate,
-                                                                                                   ChecksumResultCode
-                                                                                                       .CHECKSUM_NO_MATCH);
+        List<MostRecentChecksum> history =
+            mostRecentChecksumService.findBitstreamResultTypeReport(context, startDate, endDate,
+                                                                    ChecksumResultCode.CHECKSUM_NO_MATCH);
 
         osw.write("\n");
         osw.write(msg("checksum-did-not-match"));
@@ -147,10 +146,9 @@ public class SimpleReporterServiceImpl implements SimpleReporterService {
     public int getBitstreamNotFoundReport(Context context, Date startDate, Date endDate,
                                           OutputStreamWriter osw) throws IOException, SQLException {
         // get all the bitstreams marked deleted for today
-        List<MostRecentChecksum> history = mostRecentChecksumService.findBitstreamResultTypeReport(context, startDate,
-                                                                                                   endDate,
-                                                                                                   ChecksumResultCode
-                                                                                                       .BITSTREAM_NOT_FOUND);
+        List<MostRecentChecksum> history =
+            mostRecentChecksumService.findBitstreamResultTypeReport(context, startDate, endDate,
+                                                                    ChecksumResultCode.BITSTREAM_NOT_FOUND);
 
         osw.write("\n");
         osw.write(msg("bitstream-not-found-report"));
@@ -308,7 +306,7 @@ public class SimpleReporterServiceImpl implements SimpleReporterService {
                 info.getInternalId()).append("\n");
             buf.append(msg("name")).append(" = ").append(info.getName())
                .append("\n");
-            buf.append(msg("size")).append(" = ").append(info.getSize())
+            buf.append(msg("size")).append(" = ").append(info.getSizeBytes())
                .append("\n");
             buf.append(msg("source")).append(" = ").append(info.getSource())
                .append("\n");

@@ -361,7 +361,7 @@ public class SyndicationFeed {
                                 if (ArrayUtils.contains(podcastableMIMETypes, mime)) {
                                     SyndEnclosure enc = new SyndEnclosureImpl();
                                     enc.setType(bit.getFormat(context).getMIMEType());
-                                    enc.setLength(bit.getSize());
+                                    enc.setLength(bit.getSizeBytes());
                                     enc.setUrl(urlOfBitstream(request, bit));
                                     enclosures.add(enc);
                                 } else {

@@ -140,8 +140,7 @@ public class AddBitstreamsAction extends UpdateBitstreamsAction {
         Bitstream bs = null;
         String newBundleName = ce.bundlename;
 
-        if (ce.bundlename == null)  // should be required but default convention established
-        {
+        if (ce.bundlename == null) { // should be required but default convention established
             if (ce.filename.equals("license.txt")) {
                 newBundleName = "LICENSE";
             } else {

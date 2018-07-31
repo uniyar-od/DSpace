@@ -22,6 +22,12 @@ import org.jdom.Document;
  * @author mwood
  */
 public class CommandRunner {
+
+    /**
+     * Default constructor
+     */
+    private CommandRunner() { }
+
     /**
      * @param args the command line arguments given
      * @throws IOException           if IO error

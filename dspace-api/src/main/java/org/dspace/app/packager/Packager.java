@@ -221,8 +221,8 @@ public class Packager {
                         .println("\nNo valid Dissemination plugin found for " + line.getOptionValue('t') + " type.");
                 }
 
-            } else  //otherwise, display list of valid packager types
-            {
+            } else {
+                //otherwise, display list of valid packager types
                 System.out.println("\nAvailable Submission Package (SIP) types:");
                 String pn[] = pluginService
                     .getAllPluginNames(PackageIngester.class);
@@ -373,9 +373,8 @@ public class Packager {
                 }
             }
 
-        }
-        //else if normal SUBMIT mode (or basic RESTORE mode -- which is a special type of submission)
-        else if (myPackager.submit || pkgParams.restoreModeEnabled()) {
+        } else if (myPackager.submit || pkgParams.restoreModeEnabled()) {
+            //else if normal SUBMIT mode (or basic RESTORE mode -- which is a special type of submission)
             context.setMode(Context.Mode.BATCH_EDIT);
 
             PackageIngester sip = (PackageIngester) pluginService
@@ -419,8 +418,8 @@ public class Packager {
                 System.out.println(e);
                 System.exit(1);
             }
-        }// else, if DISSEMINATE mode
-        else {
+        } else {
+            // else, if DISSEMINATE mode
             context.setMode(Context.Mode.READ_ONLY);
 
             //retrieve specified package disseminator
@@ -556,9 +555,9 @@ public class Packager {
                         System.out.println(
                             "\nSKIPPED processing package '" + pkgFile + "', as an Object already exists with this " +
                                 "handle.");
-                    } else // Pass this exception on -- which essentially causes a full rollback of all changes (this
-                    // is the default)
-                    {
+                    } else {
+                        // Pass this exception on -- which essentially causes a full rollback of all changes (this
+                        // is the default)
                         throw ie;
                     }
                 }

@@ -63,22 +63,19 @@ public class Brand {
             new BufferedImage(brandWidth, brandHeight, BufferedImage.TYPE_INT_RGB);
 
         if (brandWidth >= 350) {
-            allBrandText = new BrandText[]
-                {
-                    new BrandText(BrandText.BL, brandLeftText),
-                    new BrandText(BrandText.BR, brandRightText)
-                };
+            allBrandText = new BrandText[] {
+                new BrandText(BrandText.BL, brandLeftText),
+                new BrandText(BrandText.BR, brandRightText)
+            };
         } else if (brandWidth >= 190) {
-            allBrandText = new BrandText[]
-                {
-                    new BrandText(BrandText.BL, shortLeftText),
-                    new BrandText(BrandText.BR, brandRightText)
-                };
+            allBrandText = new BrandText[] {
+                new BrandText(BrandText.BL, shortLeftText),
+                new BrandText(BrandText.BR, brandRightText)
+            };
         } else {
-            allBrandText = new BrandText[]
-                {
-                    new BrandText(BrandText.BR, brandRightText)
-                };
+            allBrandText = new BrandText[] {
+                new BrandText(BrandText.BR, brandRightText)
+            };
         }
 
         if (allBrandText != null && allBrandText.length > 0) {
@@ -103,18 +100,15 @@ public class Brand {
         int imgWidth = brandImage.getWidth();
         int imgHeight = brandImage.getHeight();
 
-        int bx, by, tx, ty, bWidth, bHeight;
-
         Graphics2D g2 = brandImage.createGraphics();
         g2.setFont(font);
         FontMetrics fm = g2.getFontMetrics();
 
+        int bWidth = fm.stringWidth(brandText.getText()) + xOffset * 2 + 1;
+        int bHeight = fm.getHeight();
 
-        bWidth = fm.stringWidth(brandText.getText()) + xOffset * 2 + 1;
-        bHeight = fm.getHeight();
-
-        bx = 0;
-        by = 0;
+        int bx = 0;
+        int by = 0;
 
         if (brandText.getLocation().equals(BrandText.TL)) {
             bx = 0;
@@ -131,8 +125,8 @@ public class Brand {
         }
 
         Rectangle box = new Rectangle(bx, by, bWidth, bHeight);
-        tx = bx + xOffset;
-        ty = by + fm.getAscent();
+        int tx = bx + xOffset;
+        int ty = by + fm.getAscent();
 
         g2.setColor(Color.black);
         g2.fill(box);

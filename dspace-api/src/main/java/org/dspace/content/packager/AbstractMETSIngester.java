@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -170,7 +170,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             return AbstractMETSIngester.getFileInputStream(packageFile, params,
                                                            path);
         }
-    }// end MdrefManager class
+    } // end MdrefManager class
 
     /**
      * Create a new DSpace object out of a METS content package. All contents
@@ -278,7 +278,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                         addPackageReference(dso, childFilePaths[i]);
                     }
                 }
-            }//end if dso not null
+            } //end if dso not null
 
             return dso;
         } catch (SQLException se) {
@@ -392,8 +392,8 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                                                       "object will be created as soon as its parent is created."));
                     //return a null object (nothing ingested as parent was missing)
                     return null;
-                } else //else, throw exception upward to display to user
-                {
+                } else {
+                    //else, throw exception upward to display to user
                     throw e;
                 }
             }
@@ -494,8 +494,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                 PackageUtils.finishCreateItem(context, wsi, handle, params);
             }
 
-        } // end if ITEM
-        else if (type == Constants.COLLECTION || type == Constants.COMMUNITY) {
+        } else if (type == Constants.COLLECTION || type == Constants.COMMUNITY) {
             // Add logo if one is referenced from manifest
             addContainerLogo(context, dso, manifest, pkgFile, params);
 
@@ -508,8 +507,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             // (this allows subclasses to do some final validation / changes as
             // necessary)
             finishObject(context, dso, params);
-        }// end if Community/Collection
-        else if (type == Constants.SITE) {
+        } else if (type == Constants.SITE) {
             // Do nothing by default -- Crosswalks will handle anything necessary to ingest at Site-level
 
             // Subclass hook for final checks and rearrangements
@@ -641,13 +639,10 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             // should set lastModifiedTime e.g. when ingesting AIP.
             // maybe only do it in the finishObject() callback for AIP.
 
-        } // end if ITEM
-        else if (dso.getType() == Constants.COLLECTION
-            || dso.getType() == Constants.COMMUNITY) {
+        } else if (dso.getType() == Constants.COLLECTION || dso.getType() == Constants.COMMUNITY) {
             // Add logo if one is referenced from manifest
             addContainerLogo(context, dso, manifest, pkgFile, params);
-        } // end if Community/Collection
-        else if (dso.getType() == Constants.SITE) {
+        } else if (dso.getType() == Constants.SITE) {
             // Do nothing -- Crosswalks will handle anything necessary to replace at Site-level
         }
 
@@ -791,7 +786,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                 bitstreamService.setFormat(context, bitstream, bf);
             }
             bitstreamService.update(context, bitstream);
-        }// end for each manifest file
+        } // end for each manifest file
 
         for (Iterator<Element> mi = manifestBundleFiles.iterator(); mi
             .hasNext(); ) {
@@ -817,7 +812,7 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             }
 
             bundleService.update(context, bundle);
-        }// end for each manifest file
+        } // end for each manifest file
 
         // Step 3 -- Sanity checks
         // sanity check for primary bitstream
@@ -916,8 +911,8 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
 
                     break;
                 }
-            }// end for each file in manifest
-        }// end if logo reference found
+            } // end for each file in manifest
+        } // end if logo reference found
     }
 
     /**
@@ -1086,10 +1081,9 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
                                                       + ", handle=" + dso.getHandle() + ", dbID="
                                                       + String.valueOf(dso.getID())));
                 }
-            } else
-            // otherwise, we found the DSpaceObject to replace -- so, replace
-            // it!
-            {
+            } else {
+                // otherwise, we found the DSpaceObject to replace -- so, replace it!
+
                 // Actually replace the object described by the METS Manifest.
                 // NOTE: This will perform an in-place replace of all metadata
                 // and files currently associated with the object.
@@ -1202,6 +1196,8 @@ public abstract class AbstractMETSIngester extends AbstractPackageIngester {
             case Constants.COMMUNITY:
                 // Just remove the Community entirely
                 communityService.delete(context, (Community) dso);
+                break;
+            default:
                 break;
         }
 

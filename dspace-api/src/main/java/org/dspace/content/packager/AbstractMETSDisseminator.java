@@ -53,7 +53,6 @@ import edu.harvard.hul.ois.mets.helper.MetsException;
 import edu.harvard.hul.ois.mets.helper.MetsValidator;
 import edu.harvard.hul.ois.mets.helper.MetsWriter;
 import edu.harvard.hul.ois.mets.helper.PreformedXML;
-import org.apache.log4j.Logger;
 import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
@@ -87,6 +86,8 @@ import org.jdom.Element;
 import org.jdom.Namespace;
 import org.jdom.output.Format;
 import org.jdom.output.XMLOutputter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Base class for disseminator of
@@ -125,7 +126,7 @@ public abstract class AbstractMETSDisseminator
     /**
      * log4j category
      */
-    private static Logger log = Logger.getLogger(AbstractMETSDisseminator.class);
+    private static final Logger log = LoggerFactory.getLogger(AbstractMETSDisseminator.class);
 
     // JDOM xml output writer - indented format for readability.
     protected static XMLOutputter outputter = new XMLOutputter(Format.getPrettyFormat());
@@ -262,7 +263,7 @@ public abstract class AbstractMETSDisseminator
             } else {
                 // make a Zip-based package
                 writeZipPackage(context, dso, params, outStream);
-            }//end if/else
+            } //end if/else
 
             // Assuming no errors, log this dissemination
             log.info(LogManager.getHeader(context, "package_disseminate",
@@ -271,8 +272,7 @@ public abstract class AbstractMETSDisseminator
                                               + Constants.typeText[dso.getType()] + ", handle="
                                               + dso.getHandle() + ", dbID="
                                               + String.valueOf(dso.getID())));
-        }//end try
-        catch (MetsException e) {
+        } catch (MetsException e) {
             String errorMsg = "Error exporting METS for DSpace Object, type="
                 + Constants.typeText[dso.getType()] + ", handle="
                 + dso.getHandle() + ", dbID="
@@ -349,9 +349,9 @@ public abstract class AbstractMETSDisseminator
                     ZipEntry ze = new ZipEntry(fname);
                     if (lmTime != 0) {
                         ze.setTime(lmTime);
-                    } else //Set a default modified date so that checksum of Zip doesn't change if Zip contents are
-                    // unchanged
-                    {
+                    } else {
+                        // Set a default modified date so that checksum of Zip doesn't change if Zip contents are
+                        // unchanged
                         ze.setTime(DEFAULT_MODIFIED_DATE);
                     }
                     zip.putNextEntry(ze);
@@ -367,8 +367,8 @@ public abstract class AbstractMETSDisseminator
         ZipEntry me = new ZipEntry(METSManifest.MANIFEST_FILE);
         if (lmTime != 0) {
             me.setTime(lmTime);
-        } else //Set a default modified date so that checksum of Zip doesn't change if Zip contents are unchanged
-        {
+        } else {
+            // Set a default modified date so that checksum of Zip doesn't change if Zip contents are unchanged
             me.setTime(DEFAULT_MODIFIED_DATE);
         }
 
@@ -444,16 +444,16 @@ public abstract class AbstractMETSDisseminator
                                 log.debug(new StringBuilder().append("Writing CONTENT stream of bitstream(")
                                                              .append(bitstream.getID()).append(") to Zip: ")
                                                              .append(zname).append(", size=")
-                                                             .append(bitstream.getSize()).toString());
+                                                             .append(bitstream.getSizeBytes()).toString());
                             }
                             if (lmTime != 0) {
                                 ze.setTime(lmTime);
-                            } else //Set a default modified date so that checksum of Zip doesn't change if Zip
-                            // contents are unchanged
-                            {
+                            } else {
+                                // Set a default modified date so that checksum of Zip doesn't change if Zip
+                                // contents are unchanged
                                 ze.setTime(DEFAULT_MODIFIED_DATE);
                             }
-                            ze.setSize(auth ? bitstream.getSize() : 0);
+                            ze.setSize(auth ? bitstream.getSizeBytes() : 0);
                             zip.putNextEntry(ze);
                             if (auth) {
                                 InputStream input = bitstreamService.retrieve(context, bitstream);
@@ -465,8 +465,7 @@ public abstract class AbstractMETSDisseminator
                                              + ", not authorized for READ.");
                             }
                             zip.closeEntry();
-                        } else if (unauth != null &&
-                            unauth.equalsIgnoreCase("skip")) {
+                        } else if (unauth != null && unauth.equalsIgnoreCase("skip")) {
                             log.warn("Skipping Bitstream, SID=" + String
                                 .valueOf(bitstream.getSequenceID()) + ", not authorized for READ.");
                         } else {
@@ -476,11 +475,9 @@ public abstract class AbstractMETSDisseminator
                     }
                 }
             }
-        }
+        } else if (dso.getType() == Constants.COLLECTION || dso.getType() == Constants.COMMUNITY) {
+            // Coll, Comm just add logo bitstream to content if there is one
 
-        // Coll, Comm just add logo bitstream to content if there is one
-        else if (dso.getType() == Constants.COLLECTION ||
-            dso.getType() == Constants.COMMUNITY) {
             Bitstream logoBs = dso.getType() == Constants.COLLECTION ?
                 ((Collection) dso).getLogo() :
                 ((Community) dso).getLogo();
@@ -488,10 +485,12 @@ public abstract class AbstractMETSDisseminator
                 String zname = makeBitstreamURL(context, logoBs, params);
                 ZipEntry ze = new ZipEntry(zname);
                 if (log.isDebugEnabled()) {
-                    log.debug("Writing CONTENT stream of bitstream(" + String
-                        .valueOf(logoBs.getID()) + ") to Zip: " + zname + ", size=" + String.valueOf(logoBs.getSize()));
+                    log.debug("Writing CONTENT stream of bitstream({}) to Zip: {}, size={}",
+                            String.valueOf(logoBs.getID()),
+                            zname,
+                            String.valueOf(logoBs.getSizeBytes()));
                 }
-                ze.setSize(logoBs.getSize());
+                ze.setSize(logoBs.getSizeBytes());
                 //Set a default modified date so that checksum of Zip doesn't change if Zip contents are unchanged
                 ze.setTime(DEFAULT_MODIFIED_DATE);
                 zip.putNextEntry(ze);
@@ -553,7 +552,8 @@ public abstract class AbstractMETSDisseminator
             MdSec mdSec = (MdSec) mdSecClass.newInstance();
             mdSec.setID(gensym(mdSec.getLocalName()));
             String parts[] = typeSpec.split(":", 2);
-            String xwalkName, metsName;
+            String xwalkName;
+            String metsName;
 
             //determine the name of the crosswalk to use to generate metadata
             // for dmdSecs this is the part *after* the colon in the 'type' (see getDmdTypes())
@@ -600,10 +600,10 @@ public abstract class AbstractMETSDisseminator
                 } else {
                     return null;
                 }
-            }
-            // If we didn't find the correct crosswalk, we will check to see if this is
-            // a StreamDisseminationCrosswalk -- a Stream crosswalk disseminates to an OutputStream
-            else {
+            } else {
+                // If we didn't find the correct crosswalk, we will check to see if this is
+                // a StreamDisseminationCrosswalk -- a Stream crosswalk disseminates to an OutputStream
+
                 StreamDisseminationCrosswalk sxwalk = (StreamDisseminationCrosswalk)
                     pluginService.getNamedPlugin(StreamDisseminationCrosswalk.class, xwalkName);
                 if (sxwalk != null) {
@@ -752,9 +752,8 @@ public abstract class AbstractMETSDisseminator
                                 PackageParameters params,
                                 MdStreamCache extraStreams)
         throws MetsException, PackageValidationException, CrosswalkException, AuthorizeException, SQLException,
-        IOException
+        IOException {
 
-    {
         // Create the METS manifest in memory
         Mets mets = new Mets();
 
@@ -926,7 +925,7 @@ public abstract class AbstractMETSDisseminator
                     }
                     file.setGROUPID(groupID);
                     file.setMIMETYPE(bitstream.getFormat(context).getMIMEType());
-                    file.setSIZE(auth ? bitstream.getSize() : 0);
+                    file.setSIZE(auth ? bitstream.getSizeBytes() : 0);
 
                     // Translate checksum and type to METS
                     String csType = bitstream.getChecksumAlgorithm();
@@ -1082,7 +1081,7 @@ public abstract class AbstractMETSDisseminator
         String fileID = gensym("logo");
         file.setID(fileID);
         file.setMIMETYPE(logoBs.getFormat(context).getMIMEType());
-        file.setSIZE(logoBs.getSize());
+        file.setSIZE(logoBs.getSizeBytes());
 
         // Translate checksum and type to METS
         String csType = logoBs.getChecksumAlgorithm();
@@ -1302,10 +1301,10 @@ public abstract class AbstractMETSDisseminator
                 Bitstream licenseBs = PackageUtils.findDepositLicense(context, (Item) dso);
                 mdRef.setXlinkHref(makeBitstreamURL(context, licenseBs, params));
             }
-        }
-        //If this <mdRef> is a reference to a Creative Commons Textual License
-        else if (mdRef.getMDTYPE() != null && mdRef.getMDTYPE() == Mdtype.OTHER &&
+        } else if (mdRef.getMDTYPE() != null && mdRef.getMDTYPE() == Mdtype.OTHER &&
             mdRef.getOTHERMDTYPE() != null && mdRef.getOTHERMDTYPE().equals("CreativeCommonsText")) {
+            //If this <mdRef> is a reference to a Creative Commons Textual License
+
             //Locate the CC-LICENSE bundle
             Item i = (Item) dso;
             List<Bundle> license = itemService.getBundles(i, CreativeCommonsService.CC_BUNDLE_NAME);
@@ -1317,10 +1316,10 @@ public abstract class AbstractMETSDisseminator
                 Bitstream ccText = creativeCommonsService.getLicenseTextBitstream(i);
                 mdRef.setXlinkHref(makeBitstreamURL(context, ccText, params));
             }
-        }
-        //If this <mdRef> is a reference to a Creative Commons RDF License
-        else if (mdRef.getMDTYPE() != null && mdRef.getMDTYPE() == Mdtype.OTHER &&
+        } else if (mdRef.getMDTYPE() != null && mdRef.getMDTYPE() == Mdtype.OTHER &&
             mdRef.getOTHERMDTYPE() != null && mdRef.getOTHERMDTYPE().equals("CreativeCommonsRDF")) {
+            //If this <mdRef> is a reference to a Creative Commons RDF License
+
             //Locate the CC-LICENSE bundle
             Item i = (Item) dso;
             List<Bundle> license = itemService.getBundles(i, CreativeCommonsService.CC_BUNDLE_NAME);

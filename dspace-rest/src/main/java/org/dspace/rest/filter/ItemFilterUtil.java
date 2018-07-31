@@ -158,7 +158,7 @@ public class ItemFilterUtil {
                     {
                         if (bit.getFormat(context).getMIMEType().equals(mime.trim()))
                         {
-                            if (bit.getSize() < size)
+                            if (bit.getSizeBytes() < size)
                             {
                                 count++;
                             }
@@ -189,7 +189,7 @@ public class ItemFilterUtil {
                     {
                         if (bit.getFormat(context).getMIMEType().equals(mime.trim()))
                         {
-                            if (bit.getSize() > size)
+                            if (bit.getSizeBytes() > size)
                             {
                                 count++;
                             }

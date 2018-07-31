@@ -56,6 +56,11 @@ public class ItemImportCLITool {
     private static final EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
     private static final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
 
+    /**
+     * Default constructor
+     */
+    private ItemImportCLITool() { }
+
     public static void main(String[] argv) throws Exception {
         Date startTime = new Date();
         int status = 0;
@@ -163,23 +168,19 @@ public class ItemImportCLITool {
                 template = true;
             }
 
-            if (line.hasOption('s')) // source
-            {
+            if (line.hasOption('s')) { // source
                 sourcedir = line.getOptionValue('s');
             }
 
-            if (line.hasOption('m')) // mapfile
-            {
+            if (line.hasOption('m')) { // mapfile
                 mapfile = line.getOptionValue('m');
             }
 
-            if (line.hasOption('e')) // eperson
-            {
+            if (line.hasOption('e')) { // eperson
                 eperson = line.getOptionValue('e');
             }
 
-            if (line.hasOption('c')) // collections
-            {
+            if (line.hasOption('c')) { // collections
                 collections = line.getOptionValues('c');
             }
 
@@ -348,10 +349,8 @@ public class ItemImportCLITool {
                             || (mycollections.get(i).getType() != Constants.COLLECTION)) {
                             mycollections.set(i, null);
                         }
-                    }
-                    // not a handle, try and treat it as an integer collection
-                    // database ID
-                    else if (collections[i] != null) {
+                    } else if (collections[i] != null) {
+                        // not a handle, try and treat it as an integer collection database ID
                         mycollections.set(i, collectionService.find(c, UUID.fromString(collections[i])));
                     }
 

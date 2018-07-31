@@ -52,7 +52,7 @@ import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.dataloader.FileDataLoader;
 import gr.ekt.bteio.generators.DSpaceOutputGenerator;
 import gr.ekt.bteio.loaders.OAIPMHDataLoader;
-import org.apache.commons.collections.ComparatorUtils;
+import org.apache.commons.collections4.ComparatorUtils;
 import org.apache.commons.io.FileDeleteStrategy;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -724,7 +724,7 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         if ("none".equals(qualifier) || "".equals(qualifier)) {
             qualifier = null;
         }
-        // only add metadata if it is no test and there is a real value
+        // only add metadata if it is no test and there is an actual value
         if (!isTest && !value.equals("")) {
             itemService.addMetadata(c, i, schema, element, qualifier, language, value);
         } else {
@@ -888,16 +888,16 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
                         continue;
                     }
 
-                    //	1) registered into dspace (leading -r)
+                    //  1) registered into dspace (leading -r)
                     //  2) imported conventionally into dspace (no -r)
                     if (line.trim().startsWith("-r ")) {
                         // line should be one of these two:
                         // -r -s n -f filepath
                         // -r -s n -f filepath\tbundle:bundlename
                         // where
-                        //		n is the assetstore number
-                        //  	filepath is the path of the file to be registered
-                        //  	bundlename is an optional bundle name
+                        //    n is the assetstore number
+                        //    filepath is the path of the file to be registered
+                        //    bundlename is an optional bundle name
                         String sRegistrationLine = line.trim();
                         int iAssetstore = -1;
                         String sFilePath = null;

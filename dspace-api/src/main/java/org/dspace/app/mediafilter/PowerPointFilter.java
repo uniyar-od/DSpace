@@ -84,10 +84,7 @@ public class PowerPointFilter extends MediaFilter {
                 // the slides and the notes is desired
                 extractedText = ((XSLFPowerPointExtractor) pptExtractor)
                     .getText(true, true);
-            }
-
-            // Legacy PowerPoint files
-            else if (pptExtractor instanceof PowerPointExtractor) {
+            } else if (pptExtractor instanceof PowerPointExtractor) { // Legacy PowerPoint files
 
                 extractedText = ((PowerPointExtractor) pptExtractor).getText()
                     + " " + ((PowerPointExtractor) pptExtractor).getNotes();

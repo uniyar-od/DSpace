@@ -55,11 +55,16 @@ public class GenerateSitemaps {
     private static Logger log = Logger.getLogger(GenerateSitemaps.class);
 
     private static final CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
-    private static final CollectionService collectionService = ContentServiceFactory.getInstance()
-                                                                                    .getCollectionService();
+    private static final CollectionService collectionService =
+        ContentServiceFactory.getInstance().getCollectionService();
     private static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-    private static final ConfigurationService configurationService = DSpaceServicesFactory.getInstance()
-                                                                                          .getConfigurationService();
+    private static final ConfigurationService configurationService =
+        DSpaceServicesFactory.getInstance().getConfigurationService();
+
+    /**
+     * Default constructor
+     */
+    private GenerateSitemaps() { }
 
     public static void main(String[] args) throws Exception {
         final String usage = GenerateSitemaps.class.getCanonicalName();
