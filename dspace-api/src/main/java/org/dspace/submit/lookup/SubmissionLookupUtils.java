@@ -46,9 +46,14 @@ public class SubmissionLookupUtils {
     private static final Pattern converterPattern = Pattern
         .compile(".*\\((.*)\\)");
 
-    protected static final MetadataSchemaService metadataSchemaService = ContentServiceFactory.getInstance()
-                                                                                              .getMetadataSchemaService();
+    protected static final MetadataSchemaService metadataSchemaService =
+            ContentServiceFactory.getInstance().getMetadataSchemaService();
+
     protected static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+    protected SubmissionLookupUtils() {
+        // TODO Auto-generated constructor stub
+    }
 
     public static LookupProvidersCheck getProvidersCheck(Context context,
                                                          Item item, String dcSchema, String dcElement,
