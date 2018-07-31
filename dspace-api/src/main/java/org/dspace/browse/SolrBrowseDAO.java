@@ -92,6 +92,8 @@ public class SolrBrowseDAO implements BrowseDAO
     /** value to start browse from in focus field */
     private String focusValue = null;
 
+    private String startsWith = null;
+
     /** field to look for value in */
     private String valueField = null;
 
@@ -160,9 +162,16 @@ public class SolrBrowseDAO implements BrowseDAO
             addExtraFilter(table, query);
             if (distinct)
             {
-                DiscoverFacetField dff = new DiscoverFacetField(facetField,
+                DiscoverFacetField dff;
+                if (StringUtils.isNotBlank(startsWith)) {
+                    dff = new DiscoverFacetField(facetField,
                         DiscoveryConfigurationParameters.TYPE_TEXT, -1,
+                            DiscoveryConfigurationParameters.SORT.VALUE, startsWith);
+                } else {
+                    dff = new DiscoverFacetField(facetField,
+                            DiscoveryConfigurationParameters.TYPE_TEXT, -1,
                         DiscoveryConfigurationParameters.SORT.VALUE, false);
+                }
                 query.addFacetField(dff);
                 query.setFacetMinCount(1);
                 query.setMaxResults(0);
@@ -511,6 +520,16 @@ public class SolrBrowseDAO implements BrowseDAO
     public String getJumpToValue()
     {
         return focusValue;
+    }
+
+    @Override
+    public void setStartsWith(String startsWith) {
+        this.startsWith = startsWith;
+    }
+
+    @Override
+    public String getStartsWith() {
+        return startsWith;
     }
 
     /*

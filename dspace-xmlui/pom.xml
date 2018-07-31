@@ -94,10 +94,11 @@
                 </exclusion>
             </exclusions>
         </dependency>
-       <dependency>
+        <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-services</artifactId>
-       </dependency>
+        </dependency>
+
         <!-- Custom build DSpace cocoon -->
         <dependency>
             <groupId>org.jdom</groupId>

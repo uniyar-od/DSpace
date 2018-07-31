@@ -38,7 +38,7 @@
                     <groupId>com.soebes.maven.plugins</groupId>
                     <artifactId>iterator-maven-plugin</artifactId>
                     <version>0.3</version>
-                </plugin>     
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>

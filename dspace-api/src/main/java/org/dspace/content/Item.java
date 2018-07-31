@@ -319,6 +319,31 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
     }
 
     /**
+     * Get the bundles matching a bundle name (name corresponds roughly to type)
+     *
+     * @param name
+     *            name of bundle (ORIGINAL/TEXT/THUMBNAIL)
+     *
+     * @return the bundles in an unordered array
+     */
+    public List<Bundle> getBundles(String name)
+    {
+        List<Bundle> matchingBundles = new ArrayList<Bundle>();
+
+        // now only keep bundles with matching names
+        List<Bundle> bunds = getBundles();
+        for (Bundle bundle : bunds)
+        {
+            if (name.equals(bundle.getName()))
+            {
+                matchingBundles.add(bundle);
+            }
+        }
+
+        return matchingBundles;
+    }
+    
+    /**
      * Add a bundle to the item, should not be made public since we don't want to skip business logic
      * @param bundle the bundle to be added
      */
@@ -337,32 +362,9 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
     }
 
     /**
-     * Return <code>true</code> if <code>other</code> is the same Item as this
-     * object, <code>false</code> otherwise
+     * Return <code>true</code> if <code>other</code> is the same Item as
+     * this object, <code>false</code> otherwise
      *
-     * NOTE:
-     * There is a problem invoking equals() method on CGLIB proxies that are
-     * created by Spring AOP. (the problem is not in CGLIB itself).
-     * 
-     * The problem is, that all calls to equals() on a proxy are filtered by a
-     * special interceptor, which checks for equality of interfaces, advisors
-     * and targets, instead of just checking the targets for equality. (It
-     * invokes AopProxyUtils.equalsInProxy())
-     * 
-     * This can be a problem, when you have the same Object wrapped by different
-     * proxies, and you want the application to identify this as the same
-     * Object. This happens for example, then the same Object is retrieved from
-     * a DB twice by two different calls. Assuming these two Objects are
-     * equals() , they end up being wrapped by different proxies because these
-     * are different calls.
-     * 
-     * workaround:
-     * 
-     * Make the equals() method final. This works, but has 2 problems: You
-     * cannot reference any members inside the method because this refers to the
-     * proxy and not the target (you must use getId() instead of this.id ). You
-     * can never override equals() on extending classes.
-     * 
      * @param obj
      *            object to compare to
      * @return <code>true</code> if object passed in represents the same item as
@@ -371,35 +373,35 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
      * 
      * 
      */
-     @Override
-     public final boolean equals(Object obj)
-     {
-         if (obj == null)
-         {
-             return false;
-         }
-         Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
-         if (this.getClass() != objClass)
-         {
-             return false;
-         }
-         final Item otherItem = (Item) obj;
-         if (!this.getID().equals(otherItem.getID()))
-         {
-             return false;
-         }
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null)
+        {
+            return false;
+        }
+        Class<?> objClass = HibernateProxyHelper.getClassWithoutInitializingProxy(obj);
+        if (this.getClass() != objClass)
+        {
+            return false;
+        }
+        final Item otherItem = (Item) obj;
+        if (!this.getID().equals(otherItem.getID()))
+        {
+            return false;
+        }
 
-         return true;
-     }
+        return true;
+    }
 
-     @Override
-     public int hashCode()
-     {
-         int hash = 5;
-         hash += 71 * hash + getType();
-         hash += 71 * hash + getID().hashCode();
-         return hash;
-     }
+    @Override
+    public int hashCode()
+    {
+        int hash = 5;
+        hash += 71 * hash + getType();
+        hash += 71 * hash + getID().hashCode();
+        return hash;
+    }
 
     /**
      * return type found in Constants
@@ -412,6 +414,7 @@ public class Item extends DSpaceObject implements DSpaceObjectLegacySupport, Bro
         return Constants.ITEM;
     }
 
+    @Override
     public String getName()
     {
         return getItemService().getMetadataFirstValue(this, MetadataSchema.DC_SCHEMA, "title", null, Item.ANY);

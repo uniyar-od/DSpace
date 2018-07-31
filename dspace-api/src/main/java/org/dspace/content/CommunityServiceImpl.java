@@ -460,12 +460,9 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
         ArrayList<String> removedIdentifiers = getIdentifiers(context, childCommunity);
         String removedHandle = childCommunity.getHandle();
         UUID removedId = childCommunity.getID();
-
+        
         rawDelete(context, childCommunity);
-
-        childCommunity.removeParentCommunity(parentCommunity);
-        parentCommunity.removeSubCommunity(childCommunity);
-
+        
         log.info(LogManager.getHeader(context, "remove_subcommunity",
                 "parent_comm_id=" + parentCommunity.getID() + ",child_comm_id=" + childCommunity.getID()));
 
@@ -561,9 +558,16 @@ public class CommunityServiceImpl extends DSpaceObjectServiceImpl<Community> imp
 
         // Remove any Handle
         handleService.unbindHandle(context, community);
+        
+        // Remove the parent-child relationship for the community we want ot delete
+        Community parent = (Community) getParentObject(context, community);
+        if (parent != null) {
+            community.removeParentCommunity(parent);
+            parent.removeSubCommunity(community);
+        }
 
         Group g = community.getAdministrators();
-
+        
         // Delete community row
         communityDAO.delete(context, community);
 

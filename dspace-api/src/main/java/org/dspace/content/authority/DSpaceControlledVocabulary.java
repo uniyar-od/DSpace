@@ -7,25 +7,27 @@
  */
 package org.dspace.content.authority;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.io.File;
 
+import org.apache.commons.lang.ArrayUtils;
+import org.dspace.content.Collection;
+import org.dspace.services.factory.DSpaceServicesFactory;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.xml.sax.InputSource;
+
 import org.apache.log4j.Logger;
-import org.dspace.content.Collection;
+
 import org.dspace.core.SelfNamedPlugin;
 import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.InputSource;
 
 /**
  * ChoiceAuthority source that reads the JSPUI-style hierarchical vocabularies
@@ -60,7 +62,6 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Choic
 
     private static Logger log = Logger.getLogger(DSpaceControlledVocabulary.class);
     protected static String xpathTemplate = "//node[contains(translate(@label,'ABCDEFGHIJKLMNOPQRSTUVWXYZ','abcdefghijklmnopqrstuvwxyz'),'%s')]";
-    protected final static String xpathTemplate_ALL = "//node";               
     protected static String idTemplate = "//node[@id = '%s']";
     protected static String pluginNames[] = null;
 
@@ -167,14 +168,11 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Choic
     {
     	init();
     	log.debug("Getting matches for '" + text + "'");
-    	String xpathExpression;
-    	
-    	if (text != null) {
-    		xpathExpression = String.format(xpathTemplate, text.replaceAll("'", "&apos;").toLowerCase());
-    	}
-    	else {
-    		xpathExpression = xpathTemplate_ALL;
-    	}
+        String xpathExpression = "";
+        String[] textHierarchy = text.split(hierarchyDelimiter, -1);
+        for (int i = 0; i < textHierarchy.length; i++) {
+            xpathExpression += String.format(xpathTemplate, textHierarchy[i].replaceAll("'", "&apos;").toLowerCase());
+        }
     	XPath xpath = XPathFactory.newInstance().newXPath();
     	Choice[] choices;
     	try {

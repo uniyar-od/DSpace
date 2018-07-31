@@ -1,10 +1,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<groupId>org.dspace.modules</groupId>
-	<artifactId>jspui</artifactId>
-	<packaging>war</packaging>
-	<name>DSpace JSP-UI :: Local Customizations</name>
-	<description>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.dspace.modules</groupId>
+    <artifactId>jspui</artifactId>
+    <packaging>war</packaging>
+    <name>DSpace JSP-UI :: Local Customizations</name>
+    <description>
         This project allows you to overlay your own local JSP-UI customizations
         on top of the default JSP-UI web application provided with DSpace.
     </description>
@@ -21,7 +21,7 @@
         <root.basedir>${basedir}/../../..</root.basedir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>		
     </properties>
-	
+
     <profiles>
         <profile>
             <id>oracle-support</id>

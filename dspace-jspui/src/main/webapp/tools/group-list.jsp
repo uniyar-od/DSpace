@@ -27,7 +27,8 @@
 
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="org.dspace.eperson.Group" %>
-group-<%@ page import="java.util.List" %>
+<%@ page import="org.dspace.core.Utils" %>
+<%@ page import="java.util.List" %>
 
 <%
     List<Group> groups =
@@ -114,7 +115,7 @@ group-<%@ page import="java.util.List" %>
             <tr>
                 <td class="<%= row %>RowOddCol"><%= groups.get(i).getID() %></td>
                 <td class="<%= row %>RowEvenCol">
-                    <%= groups.get(i).getName() %>
+                    <%= Utils.addEntities(groups.get(i).getName()) %>
                 </td>
                 <td class="<%= row %>RowOddCol">
 <%
