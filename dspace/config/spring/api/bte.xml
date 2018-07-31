@@ -623,7 +623,7 @@
 				<entry key="BP" value="firstpage" />	
 				<entry key="EP" value="lastpage" />	
 				<entry key="DI" value="doi" />	
-				<entry key="UT" value="isiID" />
+				<entry key="UT" value="isiId" />
 				<entry key="EI" value="eissn" />
 				<entry key="BN" value="pisbn" />
 			</map>
