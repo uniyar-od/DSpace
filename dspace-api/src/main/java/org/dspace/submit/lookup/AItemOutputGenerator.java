@@ -8,7 +8,6 @@
 package org.dspace.submit.lookup;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
