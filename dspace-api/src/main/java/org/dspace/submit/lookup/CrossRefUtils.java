@@ -144,7 +144,7 @@ public class CrossRefUtils {
         }
 
         String publicationType = XMLUtils.getElementValue(dataRoot,
-                                                          "pubblication_type");
+                                                          "publication_type");
         if (publicationType != null) {
             record.addValue("publicationType", new StringValue(publicationType));
         }

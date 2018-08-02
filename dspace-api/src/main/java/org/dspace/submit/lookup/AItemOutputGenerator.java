@@ -82,11 +82,7 @@ public abstract class AItemOutputGenerator implements OutputGenerator {
     }
 
     public void setOutputMap(Map<String, String> outputMap) {
-        // Reverse the key-value pairs
-        this.outputMap = new HashMap<String, String>();
-        for (String key : outputMap.keySet()) {
-            this.outputMap.put(outputMap.get(key), key);
-        }
+        this.outputMap = outputMap;
     }
 
     public void setExtraMetadataToKeep(List<String> extraMetadataToKeep) {
