@@ -347,6 +347,7 @@ public class XOAI {
 
     private SolrInputDocument index(Item item)
             throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
+    	item.setWrapperEnabled(true);
         SolrInputDocument doc = new SolrInputDocument();
         doc.addField("item.id", item.getID());
 
