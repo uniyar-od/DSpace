@@ -27,6 +27,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.*;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
@@ -89,6 +90,7 @@ public class XSLTDisseminationCrosswalk
     protected static final CommunityService communityService = ContentServiceFactory.getInstance().getCommunityService();
     protected static final CollectionService collectionService = ContentServiceFactory.getInstance().getCollectionService();
     protected static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    protected static final BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
 
     private static final String aliases[] = makeAliases(DIRECTION);
 
@@ -418,7 +420,22 @@ public class XSLTDisseminationCrosswalk
                 dim.addContent(createField("dc","identifier","uri",null,url));
                 dim.addContent(createField("dc","title",null,null,title));
             }
-            // XXX FIXME: Nothing to crosswalk for bitstream?
+            else if (dso.getType() == Constants.BITSTREAM)
+            {
+            	List<MetadataValue> dcvs = bitstreamService.getMetadata((Bitstream) dso, Item.ANY, Item.ANY, Item.ANY,
+                        Item.ANY);
+                for (MetadataValue metadataValue : dcvs) {
+					MetadataField metadataField = metadataValue.getMetadataField();
+					MetadataSchema metadataSchema = metadataField.getMetadataSchema();
+					dim.addContent(createField(metadataSchema.getName(), 
+							metadataField.getElement(),
+							metadataField.getQualifier(), 
+							metadataValue.getLanguage(), 
+							metadataValue.getValue(),
+							metadataValue.getAuthority(), 
+							metadataValue.getConfidence()));
+                }
+            }
             return dim;
         }
     }

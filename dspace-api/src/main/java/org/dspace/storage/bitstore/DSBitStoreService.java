@@ -361,4 +361,9 @@ public class DSBitStoreService implements BitStoreService
     public void setBaseDir(File baseDir) {
         this.baseDir = baseDir;
     }
+
+	@Override
+	public String path(Bitstream bitstream) throws IOException {
+		return getFile(bitstream).getAbsolutePath();
+	}
 }
