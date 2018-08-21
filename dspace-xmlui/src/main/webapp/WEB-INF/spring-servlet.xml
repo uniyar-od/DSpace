@@ -68,6 +68,12 @@ Map standard URLs to Spring WebMVC Controllers.
         <property name="defaultHandler" ref="cocoonForwardController"/>
     </bean>
 
+	<bean id="messageSource"
+		class="org.springframework.context.support.ResourceBundleMessageSource">
+		<property name="basename">
+			<value>Messages</value>
+		</property>
+	</bean>
 
 
 

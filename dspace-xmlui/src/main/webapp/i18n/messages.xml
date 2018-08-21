@@ -2504,4 +2504,7 @@
     <message key="xmlui.Submission.submit.progressbar.lookup">Lookup</message>
 
 
+	<!-- Image viewer button label - See online -->
+	<message key="xmlui.itemviewer.iiif-image">See online</message>
+	
 </catalogue>

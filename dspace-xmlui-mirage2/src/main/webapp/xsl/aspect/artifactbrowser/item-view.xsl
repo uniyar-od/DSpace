@@ -332,9 +332,9 @@
     <xsl:template name="itemSummaryView-DIM-file-section">
         <xsl:choose>
             <xsl:when test="//mets:fileSec/mets:fileGrp[@USE='CONTENT' or @USE='ORIGINAL' or @USE='LICENSE']/mets:file">
-                <div class="item-page-field-wrapper table word-break">
+                <div class="item-page-field-wrapper table word-break dropdown">
                     <h5>
-                        <i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
+                        <i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-file</i18n:text>
                     </h5>
 
                     <xsl:variable name="label-1">
@@ -360,7 +360,7 @@
                     </xsl:variable>
 
                     <xsl:for-each select="//mets:fileSec/mets:fileGrp[@USE='CONTENT' or @USE='ORIGINAL' or @USE='LICENSE']/mets:file">
-                        <xsl:call-template name="itemSummaryView-DIM-file-section-entry">
+                    	<xsl:call-template name="itemSummaryView-DIM-file-section-entry">
                             <xsl:with-param name="href" select="mets:FLocat[@LOCTYPE='URL']/@xlink:href" />
                             <xsl:with-param name="mimetype" select="@MIMETYPE" />
                             <xsl:with-param name="label-1" select="$label-1" />
@@ -387,70 +387,324 @@
         <xsl:param name="title" />
         <xsl:param name="label" />
         <xsl:param name="size" />
-        <div>
-            <a>
-                <xsl:attribute name="href">
-                    <xsl:value-of select="$href"/>
-                </xsl:attribute>
-                <xsl:call-template name="getFileIcon">
-                    <xsl:with-param name="mimetype">
-                        <xsl:value-of select="substring-before($mimetype,'/')"/>
-                        <xsl:text>/</xsl:text>
-                        <xsl:value-of select="substring-after($mimetype,'/')"/>
-                    </xsl:with-param>
-                </xsl:call-template>
-                <xsl:choose>
-                    <xsl:when test="contains($label-1, 'label') and string-length($label)!=0">
-                        <xsl:value-of select="$label"/>
-                    </xsl:when>
-                    <xsl:when test="contains($label-1, 'title') and string-length($title)!=0">
-                        <xsl:value-of select="$title"/>
-                    </xsl:when>
-                    <xsl:when test="contains($label-2, 'label') and string-length($label)!=0">
-                        <xsl:value-of select="$label"/>
-                    </xsl:when>
-                    <xsl:when test="contains($label-2, 'title') and string-length($title)!=0">
-                        <xsl:value-of select="$title"/>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:call-template name="getFileTypeDesc">
-                            <xsl:with-param name="mimetype">
-                                <xsl:value-of select="substring-before($mimetype,'/')"/>
-                                <xsl:text>/</xsl:text>
-                                <xsl:choose>
-                                    <xsl:when test="contains($mimetype,';')">
-                                        <xsl:value-of select="substring-before(substring-after($mimetype,'/'),';')"/>
-                                    </xsl:when>
-                                    <xsl:otherwise>
-                                        <xsl:value-of select="substring-after($mimetype,'/')"/>
-                                    </xsl:otherwise>
-                                </xsl:choose>
-                            </xsl:with-param>
-                        </xsl:call-template>
-                    </xsl:otherwise>
-                </xsl:choose>
-                <xsl:text> (</xsl:text>
-                <xsl:choose>
-                    <xsl:when test="$size &lt; 1024">
-                        <xsl:value-of select="$size"/>
-                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-bytes</i18n:text>
-                    </xsl:when>
-                    <xsl:when test="$size &lt; 1024 * 1024">
-                        <xsl:value-of select="substring(string($size div 1024),1,5)"/>
-                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-kilobytes</i18n:text>
-                    </xsl:when>
-                    <xsl:when test="$size &lt; 1024 * 1024 * 1024">
-                        <xsl:value-of select="substring(string($size div (1024 * 1024)),1,5)"/>
-                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-megabytes</i18n:text>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <xsl:value-of select="substring(string($size div (1024 * 1024 * 1024)),1,5)"/>
-                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-gigabytes</i18n:text>
-                    </xsl:otherwise>
-                </xsl:choose>
-                <xsl:text>)</xsl:text>
-            </a>
-        </div>
+        
+        <xsl:variable name="dspace-path" select="concat(substring-before(//mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/dim:dim[@dspaceType='ITEM']/dim:field[@element='identifier' and @qualifier='uri'],'/handle'),$context-path)" />
+        <xsl:variable name="handle" select="substring-after(//mets:METS/@ID, 'hdl:')" />
+        
+        <xsl:variable name="admid" select="./@ADMID" />
+        <xsl:for-each select="//mets:amdSec/mets:techMD">
+        	<xsl:if test="current()[@ID=$admid]">
+        		
+        		<!-- Creating bitstream ID -->
+        		<xsl:variable name="bitstream-id" select="substring-before(substring-after(./@ID,'techMD_file_'),'_DIM')" />
+        		
+        		<!-- Checking variables -->
+        		<xsl:variable name="count-provider" select="count(./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider'])" />
+			    <xsl:variable name="nodownload-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']='nodownload'" />
+		    	
+        		<div class="row center-block">
+        			<xsl:if test="$count-provider>=1">
+        				<!-- Show label -->
+        				<div>
+	        				<xsl:attribute name="class">
+	        					<xsl:text>row center-block</xsl:text>
+	        				</xsl:attribute>
+							
+							<xsl:call-template name="getFileIcon">
+			                    <xsl:with-param name="mimetype">
+			                        <xsl:value-of select="substring-before($mimetype,'/')"/>
+			                        <xsl:text>/</xsl:text>
+			                        <xsl:value-of select="substring-after($mimetype,'/')"/>
+			                    </xsl:with-param>
+			                </xsl:call-template>
+			                <xsl:choose>
+			                    <xsl:when test="contains($label-1, 'label') and string-length($label)!=0">
+			                        <xsl:value-of select="$label"/>
+			                    </xsl:when>
+			                    <xsl:when test="contains($label-1, 'title') and string-length($title)!=0">
+			                        <xsl:value-of select="$title"/>
+			                    </xsl:when>
+			                    <xsl:when test="contains($label-2, 'label') and string-length($label)!=0">
+			                        <xsl:value-of select="$label"/>
+			                    </xsl:when>
+			                    <xsl:when test="contains($label-2, 'title') and string-length($title)!=0">
+			                        <xsl:value-of select="$title"/>
+			                    </xsl:when>
+			                    
+			                    <xsl:otherwise>
+			                        <xsl:call-template name="getFileTypeDesc">
+			                            <xsl:with-param name="mimetype">
+			                                <xsl:value-of select="substring-before($mimetype,'/')"/>
+			                                <xsl:text>/</xsl:text>
+			                                <xsl:choose>
+			                                    <xsl:when test="contains($mimetype,';')">
+			                                        <xsl:value-of select="substring-before(substring-after($mimetype,'/'),';')"/>
+			                                    </xsl:when>
+			                                    <xsl:otherwise>
+			                                        <xsl:value-of select="substring-after($mimetype,'/')"/>
+			                                    </xsl:otherwise>
+			                                </xsl:choose>
+			                            </xsl:with-param>
+			                        </xsl:call-template>
+			                    </xsl:otherwise>
+			                </xsl:choose>
+			                <xsl:text> (</xsl:text>
+			                <xsl:choose>
+			                    <xsl:when test="$size &lt; 1024">
+			                        <xsl:value-of select="$size"/>
+			                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-bytes</i18n:text>
+			                    </xsl:when>
+			                    <xsl:when test="$size &lt; 1024 * 1024">
+			                        <xsl:value-of select="substring(string($size div 1024),1,5)"/>
+			                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-kilobytes</i18n:text>
+			                    </xsl:when>
+			                    <xsl:when test="$size &lt; 1024 * 1024 * 1024">
+			                        <xsl:value-of select="substring(string($size div (1024 * 1024)),1,5)"/>
+			                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-megabytes</i18n:text>
+			                    </xsl:when>
+			                    <xsl:otherwise>
+			                        <xsl:value-of select="substring(string($size div (1024 * 1024 * 1024)),1,5)"/>
+			                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-gigabytes</i18n:text>
+			                    </xsl:otherwise>
+			                </xsl:choose>
+			                <xsl:text>)</xsl:text>
+						</div>
+   					</xsl:if>
+   					
+   					<div class="row center-block">
+			    		<xsl:choose>
+				    		<xsl:when test="$count-provider>=1 and $nodownload-provider!='true'">
+				    			<!-- Show dropdown -->
+				    			<xsl:variable name="first-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']" />
+
+								<div class="btn-group">
+								  <a class="btn btn-primary">
+										<xsl:attribute name="href">
+								    		<xsl:value-of select="$dspace-path" />
+							    			<xsl:text>/explore?bitstream_id=</xsl:text>
+							    			<xsl:value-of select="$bitstream-id" />
+							    			<xsl:text>&amp;handle=</xsl:text>
+							    			<xsl:value-of select="$handle" />
+							    			<xsl:text>&amp;provider=</xsl:text>
+							    			<xsl:value-of select="$first-provider" />
+						    			</xsl:attribute>						    		
+						    		<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>  
+								  </a>
+								  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								    <span class="caret"></span>
+								    <span class="sr-only">Toggle Dropdown</span>
+								  </button>
+								  <ul class="dropdown-menu">
+								    <li>
+								    	<a>
+						    		<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>						    		
+						    		<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>    	
+								    	</a>
+								    </li>
+									<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+							  			<xsl:if test="not(contains(., $first-provider))">
+							  				<li>
+								  				<a>
+								  					<xsl:attribute name="href">
+											    		<xsl:value-of select="$dspace-path" />
+										    			<xsl:text>/explore?bitstream_id=</xsl:text>
+										    			<xsl:value-of select="$bitstream-id" />
+										    			<xsl:text>&amp;handle=</xsl:text>
+										    			<xsl:value-of select="$handle" />
+										    			<xsl:text>&amp;provider=</xsl:text>
+										    			<xsl:value-of select="." />
+								  					</xsl:attribute>
+								  					<i18n:text>xmlui.itemviewer.<xsl:value-of select="."/></i18n:text>
+								  				</a>
+								  			</li>
+								  		</xsl:if>
+							  		</xsl:for-each>
+								  	<li>
+								  		<a>
+								  			<xsl:attribute name="href">
+									    		<xsl:value-of select="$href" />
+						  					</xsl:attribute>
+						  					<i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
+								  		</a>
+								  	</li>								    
+								    
+								  </ul>
+								</div>
+				    		</xsl:when>
+				    		
+				    		<xsl:when test="$count-provider>2">
+				    			<!-- Show dropdown -->
+				    			<xsl:variable name="list-provider">
+					    			<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+					    				<xsl:if test=".!='nodownload'">
+					    					<xsl:value-of select='.' />
+					    					<xsl:text>/</xsl:text>
+					    				</xsl:if>
+					    			</xsl:for-each>
+					    		</xsl:variable>
+					    		
+					    		<xsl:variable name="first-provider" select="substring-before($list-provider,'/')" />
+					    		
+								<div class="btn-group">								  
+								  <a class="btn btn-primary">
+									<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>						    		
+						    		<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>								  
+								  </a>
+								  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								    <span class="caret"></span>
+								    <span class="sr-only">Toggle Dropdown</span>
+								  </button>
+								  <ul class="dropdown-menu">
+								    <li>
+								    	<a>
+						    		<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>						    		
+						    		<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>    	
+								    	</a>
+								    </li>
+						  			<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+							  			<xsl:if test="not(contains(., $first-provider)) and .!='nodownload'">
+							  				<li>
+								  				<a>
+								  					<xsl:attribute name="href">
+											    		<xsl:value-of select="$dspace-path" />
+										    			<xsl:text>/explore?bitstream_id=</xsl:text>
+										    			<xsl:value-of select="$bitstream-id" />
+										    			<xsl:text>&amp;handle=</xsl:text>
+										    			<xsl:value-of select="$handle" />
+										    			<xsl:text>&amp;provider=</xsl:text>
+										    			<xsl:value-of select="." />
+								  					</xsl:attribute>
+								  					<i18n:text>xmlui.itemviewer.<xsl:value-of select="."/></i18n:text>
+								  				</a>
+								  			</li>
+								  		</xsl:if>
+								  	</xsl:for-each>							    
+								    
+								  </ul>
+								</div>
+								
+				    		</xsl:when>
+				    		
+				    		<xsl:when test="$count-provider=2 and $nodownload-provider='true'">
+				    			<!-- Show button -->
+				    			<xsl:variable name="first-provider">
+					    			<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+					    				<xsl:if test=".!='nodownload'">
+					    					<xsl:value-of select='.' />
+					    				</xsl:if>
+					    			</xsl:for-each>
+					    		</xsl:variable>
+					    		
+					    		<a class="btn btn-primary">
+						    		<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>
+						    		<xsl:attribute name="class">
+						    			<xsl:text>btn-sm btn btn-primary mr-2</xsl:text>
+						    		</xsl:attribute>
+									<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>
+								</a>
+				    		</xsl:when>
+				    		
+				    		<xsl:when test="$nodownload-provider!='true'">
+				    			<a>
+					                <xsl:attribute name="href">
+					                    <xsl:value-of select="$href"/>
+					                </xsl:attribute>
+					                <xsl:call-template name="getFileIcon">
+					                    <xsl:with-param name="mimetype">
+					                        <xsl:value-of select="substring-before($mimetype,'/')"/>
+					                        <xsl:text>/</xsl:text>
+					                        <xsl:value-of select="substring-after($mimetype,'/')"/>
+					                    </xsl:with-param>
+					                </xsl:call-template>
+					                <xsl:choose>
+					                    <xsl:when test="contains($label-1, 'label') and string-length($label)!=0">
+					                        <xsl:value-of select="$label"/>
+					                    </xsl:when>
+					                    <xsl:when test="contains($label-1, 'title') and string-length($title)!=0">
+					                        <xsl:value-of select="$title"/>
+					                    </xsl:when>
+					                    <xsl:when test="contains($label-2, 'label') and string-length($label)!=0">
+					                        <xsl:value-of select="$label"/>
+					                    </xsl:when>
+					                    <xsl:when test="contains($label-2, 'title') and string-length($title)!=0">
+					                        <xsl:value-of select="$title"/>
+					                    </xsl:when>
+					                    <xsl:otherwise>
+					                        <xsl:call-template name="getFileTypeDesc">
+					                            <xsl:with-param name="mimetype">
+					                                <xsl:value-of select="substring-before($mimetype,'/')"/>
+					                                <xsl:text>/</xsl:text>
+					                                <xsl:choose>
+					                                    <xsl:when test="contains($mimetype,';')">
+					                                        <xsl:value-of select="substring-before(substring-after($mimetype,'/'),';')"/>
+					                                    </xsl:when>
+					                                    <xsl:otherwise>
+					                                        <xsl:value-of select="substring-after($mimetype,'/')"/>
+					                                    </xsl:otherwise>
+					                                </xsl:choose>
+					                            </xsl:with-param>
+					                        </xsl:call-template>
+					                    </xsl:otherwise>
+					                </xsl:choose>
+					                <xsl:text> (</xsl:text>
+					                <xsl:choose>
+					                    <xsl:when test="$size &lt; 1024">
+					                        <xsl:value-of select="$size"/>
+					                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-bytes</i18n:text>
+					                    </xsl:when>
+					                    <xsl:when test="$size &lt; 1024 * 1024">
+					                        <xsl:value-of select="substring(string($size div 1024),1,5)"/>
+					                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-kilobytes</i18n:text>
+					                    </xsl:when>
+					                    <xsl:when test="$size &lt; 1024 * 1024 * 1024">
+					                        <xsl:value-of select="substring(string($size div (1024 * 1024)),1,5)"/>
+					                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-megabytes</i18n:text>
+					                    </xsl:when>
+					                    <xsl:when test="$count-provider=0">
+					                        <xsl:value-of select="substring(string($size div (1024 * 1024 * 1024)),1,5)"/>
+					                        <i18n:text>xmlui.dri2xhtml.METS-1.0.size-gigabytes</i18n:text>
+					                    </xsl:when>
+					                </xsl:choose>
+					                <xsl:text>)</xsl:text>
+					            </a>
+				    		</xsl:when>
+				    	</xsl:choose>
+				    </div>
+			    </div>
+		    </xsl:if>
+		</xsl:for-each>
     </xsl:template>
 
     <xsl:template match="dim:dim" mode="itemDetailView-DIM">
@@ -532,13 +786,12 @@
 
     <xsl:template match="mets:file">
         <xsl:param name="context" select="."/>
+			                        
         <div class="file-wrapper row">
-            <div class="col-xs-6 col-sm-3">
+            <div class="col-xs-6 col-sm-2">
                 <div class="thumbnail">
-                    <a class="image-link">
-                        <xsl:attribute name="href">
-                            <xsl:value-of select="mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
-                        </xsl:attribute>
+
+				<xsl:variable name="thumbnailvar">                
                         <xsl:choose>
                             <xsl:when test="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
                         mets:file[@GROUPID=current()/@GROUPID]">
@@ -559,7 +812,53 @@
                                 </img>
                             </xsl:otherwise>
                         </xsl:choose>
-                    </a>
+                </xsl:variable>
+               	
+                <xsl:variable name="dspace-path" select="concat(substring-before(//mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/dim:dim[@dspaceType='ITEM']/dim:field[@element='identifier' and @qualifier='uri'],'/handle'),$context-path)" />
+				<xsl:variable name="handle" select="substring-after(//mets:METS/@ID, 'hdl:')" />
+        
+				<xsl:variable name="admid" select="./@ADMID" />
+        		<xsl:for-each select="//mets:amdSec/mets:techMD">
+        	    <xsl:if test="current()[@ID=$admid]">
+        		
+        		<!-- Creating bitstream ID -->
+        		<xsl:variable name="bitstream-id" select="substring-before(substring-after(./@ID,'techMD_file_'),'_DIM')" />
+        		
+        		<!-- Checking variables -->
+        		<xsl:variable name="count-provider" select="count(./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider'])" />
+			    <xsl:variable name="nodownload-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']='nodownload'" />
+		    	
+			    		<xsl:choose>
+				    		<xsl:when test="$count-provider>=1">
+				    			<!-- Show dropdown -->
+				    			<xsl:variable name="first-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']" />
+					    		<a class="image-link">
+									<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>			                        
+									<xsl:copy-of select="$thumbnailvar"/>
+			                    </a>
+				    		</xsl:when>
+				    		<xsl:otherwise>				    		
+										<a class="image-link">
+					                        <xsl:attribute name="href">
+					                            <xsl:value-of select="mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
+					                        </xsl:attribute>
+					                        <xsl:copy-of select="$thumbnailvar"/>
+					                    </a>				    		
+				    		</xsl:otherwise>
+				    	</xsl:choose>
+
+		    </xsl:if>
+		</xsl:for-each>
+                
+
                 </div>
             </div>
 
@@ -641,13 +940,15 @@
                 </dl>
             </div>
 
-            <div class="file-link col-xs-6 col-xs-offset-6 col-sm-2 col-sm-offset-0">
+            <div class="file-link col-xs-6 col-xs-offset-6 col-sm-3 col-sm-offset-0">
                 <xsl:choose>
                     <xsl:when test="@ADMID">
                         <xsl:call-template name="display-rights"/>
                     </xsl:when>
                     <xsl:otherwise>
-                        <xsl:call-template name="view-open"/>
+                        <xsl:call-template name="view-open">
+                        	<xsl:with-param name="href" select="mets:FLocat[@LOCTYPE='URL']/@xlink:href" />
+                        </xsl:call-template>
                     </xsl:otherwise>
                 </xsl:choose>
             </div>
@@ -656,12 +957,202 @@
 </xsl:template>
 
     <xsl:template name="view-open">
-        <a>
-            <xsl:attribute name="href">
-                <xsl:value-of select="mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
-            </xsl:attribute>
-            <i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
-        </a>
+        <xsl:param name="href"/>
+        
+        <xsl:variable name="dspace-path" select="concat(substring-before(//mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/dim:dim[@dspaceType='ITEM']/dim:field[@element='identifier' and @qualifier='uri'],'/handle'),$context-path)" />
+        <xsl:variable name="handle" select="substring-after(//mets:METS/@ID, 'hdl:')" />
+        
+        <xsl:variable name="admid" select="./@ADMID" />
+        <xsl:for-each select="//mets:amdSec/mets:techMD">
+        	<xsl:if test="current()[@ID=$admid]">
+        		
+        		<!-- Creating bitstream ID -->
+        		<xsl:variable name="bitstream-id" select="substring-before(substring-after(./@ID,'techMD_file_'),'_DIM')" />
+        		
+        		<!-- Checking variables -->
+        		<xsl:variable name="count-provider" select="count(./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider'])" />
+			    <xsl:variable name="nodownload-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']='nodownload'" />
+		    	
+        		<div class="row center-block">
+   					
+   					<div class="row center-block">
+			    		<xsl:choose>
+				    		<xsl:when test="$count-provider>=1 and $nodownload-provider!='true'">
+				    			<!-- Show dropdown -->
+				    			<xsl:variable name="first-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']" />
+
+								<div class="btn-group">
+								  <a class="btn btn-primary">
+										<xsl:attribute name="href">
+								    		<xsl:value-of select="$dspace-path" />
+							    			<xsl:text>/explore?bitstream_id=</xsl:text>
+							    			<xsl:value-of select="$bitstream-id" />
+							    			<xsl:text>&amp;handle=</xsl:text>
+							    			<xsl:value-of select="$handle" />
+							    			<xsl:text>&amp;provider=</xsl:text>
+							    			<xsl:value-of select="$first-provider" />
+						    			</xsl:attribute>						    		
+						    			<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>  
+								  </a>								  
+								  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								    <span class="caret"></span>
+								    <span class="sr-only">Toggle Dropdown</span>
+								  </button>
+								  <ul class="dropdown-menu">
+								    <li>
+								    	<a>
+								    		<xsl:attribute name="href">
+									    		<xsl:value-of select="$dspace-path" />
+								    			<xsl:text>/explore?bitstream_id=</xsl:text>
+								    			<xsl:value-of select="$bitstream-id" />
+								    			<xsl:text>&amp;handle=</xsl:text>
+								    			<xsl:value-of select="$handle" />
+								    			<xsl:text>&amp;provider=</xsl:text>
+								    			<xsl:value-of select="$first-provider" />
+								    		</xsl:attribute>						    		
+								    		<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>    	
+								    	</a>
+								    </li>
+									<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+							  			<xsl:if test="not(contains(., $first-provider))">
+							  				<li>
+								  				<a>
+								  					<xsl:attribute name="href">
+											    		<xsl:value-of select="$dspace-path" />
+										    			<xsl:text>/explore?bitstream_id=</xsl:text>
+										    			<xsl:value-of select="$bitstream-id" />
+										    			<xsl:text>&amp;handle=</xsl:text>
+										    			<xsl:value-of select="$handle" />
+										    			<xsl:text>&amp;provider=</xsl:text>
+										    			<xsl:value-of select="." />
+								  					</xsl:attribute>
+								  					<i18n:text>xmlui.itemviewer.<xsl:value-of select="."/></i18n:text>
+								  				</a>
+								  			</li>
+								  		</xsl:if>
+							  		</xsl:for-each>
+								  	<li>
+								  		<a>
+								  			<xsl:attribute name="href">
+									    		<xsl:value-of select="$href" />
+						  					</xsl:attribute>
+						  					<i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
+								  		</a>
+								  	</li>								    
+								    
+								  </ul>
+								</div>
+				    		</xsl:when>
+				    		
+				    		<xsl:when test="$count-provider>2">
+				    			<!-- Show dropdown -->
+				    			<xsl:variable name="list-provider">
+					    			<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+					    				<xsl:if test=".!='nodownload'">
+					    					<xsl:value-of select='.' />
+					    					<xsl:text>/</xsl:text>
+					    				</xsl:if>
+					    			</xsl:for-each>
+					    		</xsl:variable>
+					    		
+					    		<xsl:variable name="first-provider" select="substring-before($list-provider,'/')" />
+					    		
+								<div class="btn-group">
+								  <a class="btn btn-primary">
+										<xsl:attribute name="href">
+								    		<xsl:value-of select="$dspace-path" />
+							    			<xsl:text>/explore?bitstream_id=</xsl:text>
+							    			<xsl:value-of select="$bitstream-id" />
+							    			<xsl:text>&amp;handle=</xsl:text>
+							    			<xsl:value-of select="$handle" />
+							    			<xsl:text>&amp;provider=</xsl:text>
+							    			<xsl:value-of select="$first-provider" />
+						    			</xsl:attribute>						    		
+						    			<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>  
+								  </a>
+								  <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+								    <span class="caret"></span>
+								    <span class="sr-only">Toggle Dropdown</span>
+								  </button>
+								  <ul class="dropdown-menu">
+								    <li>
+								    	<a>
+						    		<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>						    		
+						    		<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>    	
+								    	</a>
+								    </li>
+						  			<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+							  			<xsl:if test="not(contains(., $first-provider)) and .!='nodownload'">
+							  				<li>
+								  				<a>
+								  					<xsl:attribute name="href">
+											    		<xsl:value-of select="$dspace-path" />
+										    			<xsl:text>/explore?bitstream_id=</xsl:text>
+										    			<xsl:value-of select="$bitstream-id" />
+										    			<xsl:text>&amp;handle=</xsl:text>
+										    			<xsl:value-of select="$handle" />
+										    			<xsl:text>&amp;provider=</xsl:text>
+										    			<xsl:value-of select="." />
+								  					</xsl:attribute>
+								  					<i18n:text>xmlui.itemviewer.<xsl:value-of select="."/></i18n:text>
+								  				</a>
+								  			</li>
+								  		</xsl:if>
+								  	</xsl:for-each>							    
+								    
+								  </ul>
+								</div>
+								
+				    		</xsl:when>
+				    		
+				    		<xsl:when test="$count-provider=2 and $nodownload-provider='true'">
+				    			<!-- Show button -->
+				    			<xsl:variable name="first-provider">
+					    			<xsl:for-each select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']">
+					    				<xsl:if test=".!='nodownload'">
+					    					<xsl:value-of select='.' />
+					    				</xsl:if>
+					    			</xsl:for-each>
+					    		</xsl:variable>
+					    		
+					    		<a class="btn btn-primary">
+						    		<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>
+						    		<xsl:attribute name="class">
+						    			<xsl:text>btn-sm btn btn-primary mr-2</xsl:text>
+						    		</xsl:attribute>
+									<i18n:text>xmlui.itemviewer.<xsl:value-of select="$first-provider"/></i18n:text>
+								</a>
+				    		</xsl:when>
+
+				    		<xsl:when test="$count-provider=0">
+								  		<a>
+								  			<xsl:attribute name="href">
+									    		<xsl:value-of select="$href" />
+						  					</xsl:attribute>
+						  					<i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
+								  		</a>
+				    		</xsl:when>				    		
+				    	</xsl:choose>
+				    </div>
+			    </div>
+		    </xsl:if>
+		</xsl:for-each>
     </xsl:template>
 
     <xsl:template name="display-rights">

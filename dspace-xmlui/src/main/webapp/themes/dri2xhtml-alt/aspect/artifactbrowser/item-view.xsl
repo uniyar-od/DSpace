@@ -511,30 +511,72 @@
               </xsl:call-template>
             </td>
             <td>
-                <xsl:choose>
-                    <xsl:when test="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
+                				<xsl:variable name="thumbnailvar">                
+                        <xsl:choose>
+                            <xsl:when test="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
                         mets:file[@GROUPID=current()/@GROUPID]">
-                        <a class="image-link">
-                            <xsl:attribute name="href">
-                                <xsl:value-of select="mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
-                            </xsl:attribute>
-                            <img alt="Thumbnail">
-                                <xsl:attribute name="src">
-                                    <xsl:value-of select="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
-                                        mets:file[@GROUPID=current()/@GROUPID]/mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
-                                </xsl:attribute>
-                            </img>
-                        </a>
-                    </xsl:when>
-                    <xsl:otherwise>
-                        <a>
-                            <xsl:attribute name="href">
-                                <xsl:value-of select="mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
-                            </xsl:attribute>
-                            <i18n:text>xmlui.dri2xhtml.METS-1.0.item-files-viewOpen</i18n:text>
-                        </a>
-                    </xsl:otherwise>
-                </xsl:choose>
+                                <img class="img-thumbnail" alt="Thumbnail">
+                                    <xsl:attribute name="src">
+                                        <xsl:value-of select="$context/mets:fileSec/mets:fileGrp[@USE='THUMBNAIL']/
+                                    mets:file[@GROUPID=current()/@GROUPID]/mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
+                                    </xsl:attribute>
+                                </img>
+                            </xsl:when>
+                            <xsl:otherwise>
+                                <img class="img-thumbnail" alt="Thumbnail">
+                                    <xsl:attribute name="data-src">
+                                        <xsl:text>holder.js/100%x</xsl:text>
+                                        <xsl:value-of select="$thumbnail.maxheight"/>
+                                        <xsl:text>/text:No Thumbnail</xsl:text>
+                                    </xsl:attribute>
+                                </img>
+                            </xsl:otherwise>
+                        </xsl:choose>
+                </xsl:variable>
+               	
+                <xsl:variable name="dspace-path" select="concat(substring-before(//mets:amdSec/mets:techMD/mets:mdWrap/mets:xmlData/dim:dim[@dspaceType='ITEM']/dim:field[@element='identifier' and @qualifier='uri'],'/handle'),$context-path)" />
+				<xsl:variable name="handle" select="substring-after(//mets:METS/@ID, 'hdl:')" />
+        
+				<xsl:variable name="admid" select="./@ADMID" />
+        		<xsl:for-each select="//mets:amdSec/mets:techMD">
+        	    <xsl:if test="current()[@ID=$admid]">
+        		
+        		<!-- Creating bitstream ID -->
+        		<xsl:variable name="bitstream-id" select="substring-before(substring-after(./@ID,'techMD_file_'),'_DIM')" />
+        		
+        		<!-- Checking variables -->
+        		<xsl:variable name="count-provider" select="count(./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider'])" />
+			    <xsl:variable name="nodownload-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']='nodownload'" />
+		    	
+			    		<xsl:choose>
+				    		<xsl:when test="$count-provider>=1">
+				    			<!-- Show dropdown -->
+				    			<xsl:variable name="first-provider" select="./mets:mdWrap/mets:xmlData/dim:dim/dim:field[@element='viewer' and @qualifier='provider']" />
+					    		<a class="image-link">
+									<xsl:attribute name="href">
+							    		<xsl:value-of select="$dspace-path" />
+						    			<xsl:text>/explore?bitstream_id=</xsl:text>
+						    			<xsl:value-of select="$bitstream-id" />
+						    			<xsl:text>&amp;handle=</xsl:text>
+						    			<xsl:value-of select="$handle" />
+						    			<xsl:text>&amp;provider=</xsl:text>
+						    			<xsl:value-of select="$first-provider" />
+						    		</xsl:attribute>			                        
+									<xsl:copy-of select="$thumbnailvar"/>
+			                    </a>
+				    		</xsl:when>
+				    		<xsl:otherwise>				    		
+										<a class="image-link">
+					                        <xsl:attribute name="href">
+					                            <xsl:value-of select="mets:FLocat[@LOCTYPE='URL']/@xlink:href"/>
+					                        </xsl:attribute>
+					                        <xsl:copy-of select="$thumbnailvar"/>
+					                    </a>				    		
+				    		</xsl:otherwise>
+				    	</xsl:choose>
+
+		    </xsl:if>
+		</xsl:for-each>
             </td>
 	    <!-- Display the contents of 'Description' as long as at least one bitstream contains a description -->
 	    <xsl:if test="$context/mets:fileSec/mets:fileGrp[@USE='CONTENT']/mets:file/mets:FLocat/@xlink:label != ''">

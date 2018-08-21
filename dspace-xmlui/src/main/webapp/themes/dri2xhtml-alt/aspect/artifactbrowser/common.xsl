@@ -193,11 +193,12 @@
         <xsl:variable name="externalMetadataURL">
             <xsl:text>cocoon:/</xsl:text>
             <xsl:value-of select="@url"/>
+            <xsl:text>?techMDTypes=DIM</xsl:text>
             <!-- If this is an Item, display the METSRIGHTS section, so we
                  know which files have access restrictions.
                  This requires the METSRightsCrosswalk to be enabled! -->
             <xsl:if test="@type='DSpace Item' and $METSRIGHTS-enabled">
-                <xsl:text>?rightsMDTypes=METSRIGHTS</xsl:text>
+                <xsl:text>&amp;rightsMDTypes=METSRIGHTS</xsl:text>
             </xsl:if>
         </xsl:variable>
         <!-- This comment just displays the full URL in an HTML comment, for easy reference. -->
@@ -207,11 +208,18 @@
     </xsl:template>
 
     <xsl:template match="dri:reference" mode="detailView">
+    	<xsl:variable name='METSRIGHTS-enabled' select="contains(confman:getProperty('plugin.named.org.dspace.content.crosswalk.DisseminationCrosswalk'), 'METSRIGHTS')" />
         <xsl:variable name="externalMetadataURL">
             <xsl:text>cocoon:/</xsl:text>
             <xsl:value-of select="@url"/>
-            <!-- No options selected, render the full METS document -->
-        </xsl:variable>
+            <xsl:text>?techMDTypes=DIM</xsl:text>
+            <!-- If this is an Item, display the METSRIGHTS section, so we
+                 know which files have access restrictions.
+                 This requires the METSRightsCrosswalk to be enabled! -->
+            <xsl:if test="@type='DSpace Item' and $METSRIGHTS-enabled">
+                <xsl:text>&amp;rightsMDTypes=METSRIGHTS</xsl:text>
+            </xsl:if>
+        </xsl:variable>    
         <xsl:comment> External Metadata URL: <xsl:value-of select="$externalMetadataURL"/> </xsl:comment>
         <xsl:apply-templates select="document($externalMetadataURL)" mode="detailView"/>
         <xsl:apply-templates />
