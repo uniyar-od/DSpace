@@ -256,6 +256,17 @@
             <scope>provided</scope>
         </dependency>
 
+	<!-- 4Science Addons -->
+         <dependency>
+             <groupId>it.4science.dspace</groupId>
+			 <artifactId>addon-iiif-api</artifactId>
+			 <type>jar</type>
+        </dependency>
+        <dependency>
+             <groupId>it.4science.dspace</groupId>
+			 <artifactId>addon-iiif-xmlui</artifactId>
+			 <type>war</type>
+        </dependency>
     </dependencies>
 
 </project>

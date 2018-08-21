@@ -41,6 +41,8 @@
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
+        <!-- 4Science Addons' versions -->
+        <iiif.addon.modules>6.0-SNAPSHOT</iiif.addon.modules>
     </properties>
 
     <build>
@@ -1435,6 +1437,26 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+            
+            <!-- 4Science Addons -->
+	        <dependency>
+	             <groupId>it.4science.dspace</groupId>
+				 <artifactId>addon-iiif-api</artifactId>
+				 <version>${iiif.addon.modules}</version>
+				 <type>jar</type>
+	        </dependency>
+	        <dependency>
+	             <groupId>it.4science.dspace</groupId>
+				 <artifactId>addon-iiif-jspui</artifactId>
+				 <version>${iiif.addon.modules}</version>
+				 <type>war</type>
+	        </dependency>
+            <dependency>
+	             <groupId>it.4science.dspace</groupId>
+				 <artifactId>addon-iiif-xmlui</artifactId>
+				 <version>${iiif.addon.modules}</version>
+				 <type>war</type>
+	        </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -1540,7 +1562,6 @@
         <tag>HEAD</tag>
     </scm>
 
-
     <!-- Configure our release repositories to use Sonatype.
          See: http://central.sonatype.org/pages/apache-maven.html -->
     <distributionManagement>
@@ -1556,6 +1577,33 @@
 
     <!-- Enable access to artifacts in Sonatype's snapshot repo for Snapshots ONLY -->
     <repositories>
+       <repository>
+			<id>4science-repo</id>
+			<name>4Science Maven Repository</name>
+			<url>https://github.com/4Science/mvn-repo/raw/master/releases</url>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</snapshots>
+		</repository>
+		
+		<repository>
+			<id>4science-repo-snapshot</id>
+			<name>4Science Maven Repository</name>
+			<url>https://github.com/4Science/mvn-repo/raw/master/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</snapshots>
+		</repository>    
         <repository>
           <id>maven-snapshots</id>
           <url>http://oss.sonatype.org/content/repositories/snapshots</url>
