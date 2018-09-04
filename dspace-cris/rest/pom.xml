@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>org.dspace</groupId>
+	<artifactId>dspace-cris-spring-rest</artifactId>	
+	<name>DSpace CRIS :: Spring REST</name>
+	<packaging>war</packaging>
+	<parent>
+		<groupId>org.dspace</groupId>
+		<artifactId>dspace-cris</artifactId>
+		<version>CRIS-7.0.0-SNAPSHOT</version>
+		<relativePath>..</relativePath>
+	</parent>
+   
+   <!--Force UTF-8 encoding during build on all platforms-->
+   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <root.basedir>${basedir}/../..</root.basedir>
+   </properties>
+   
+	<dependencies>
+
+<!-- 		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-api</artifactId>
+			<exclusions>
+		        <exclusion>
+		          <groupId>com.fasterxml.jackson.core</groupId>
+		          <artifactId>jackson-core</artifactId>
+		        </exclusion>
+		      </exclusions>						
+		</dependency> -->
+
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-api</artifactId>
+			 <exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+          			<groupId>com.fasterxml</groupId>
+          			<artifactId>classmate</artifactId>
+        		</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-spring-rest</artifactId>
+			<type>jar</type>
+			<classifier>classes</classifier>
+						<exclusions>
+				<exclusion>
+					<groupId>org.springframework</groupId>
+					<artifactId>spring-expression</artifactId>
+				</exclusion>
+				<exclusion>
+          			<groupId>com.fasterxml</groupId>
+          			<artifactId>classmate</artifactId>
+        		</exclusion>
+			</exclusions>
+			
+		</dependency>
+	</dependencies>
+	
+</project>

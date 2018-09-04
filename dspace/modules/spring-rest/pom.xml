@@ -276,7 +276,21 @@ just adding new jar in the classloader</description>
             <artifactId>dspace-spring-rest</artifactId>            
 			<type>jar</type>
             <classifier>classes</classifier>
-        </dependency>        
+        </dependency>
+
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-cris-spring-rest</artifactId>
+            <type>war</type>
+        </dependency>
+
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-cris-spring-rest</artifactId>
+            <type>jar</type>
+            <classifier>classes</classifier>
+        </dependency>
+
 	</dependencies>
 
 </project>

@@ -1597,6 +1597,19 @@
 			<artifactId>dspace-cris-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-spring-rest</artifactId>
+			<version>${project.version}</version>
+			<type>jar</type>
+			<classifier>classes</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.dspace</groupId>
+			<artifactId>dspace-cris-spring-rest</artifactId>
+			<version>${project.version}</version>
+			<type>war</type>
+		</dependency>
 		 <dependency>
              <groupId>org.dspace</groupId>
 			 <artifactId>metrics-retrieve</artifactId>
