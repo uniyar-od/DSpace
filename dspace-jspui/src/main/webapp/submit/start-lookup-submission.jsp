@@ -27,6 +27,9 @@
 <%@ page import="java.lang.Boolean" %>
 <%@ page import="java.util.*" %>
 
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="org.dspace.core.Context" %>
+
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core"
     prefix="c" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
@@ -35,13 +38,17 @@
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
 <%
+
+	// Obtain DSpace context
+	Context context = UIUtil.obtainContext(request);
+
     String contextPath = "/dspace-jspui";
 	request.setAttribute("LanguageSwitch", "hide");
 
     //get collections to choose from
     List<Collection> collections =
         (List<Collection>) request.getAttribute("collections");
-    CollectionsTree tree= CollectionUtils.getCollectionsTree(collections, false);
+    CollectionsTree tree= CollectionUtils.getCollectionsTree(context, collections, false);
 
     //get collection id from the collection home
 	Object collection_id_object = request.getAttribute("collection_id");
