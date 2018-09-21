@@ -29,8 +29,6 @@
 	<bean id="crisSolrServiceResourceIndexPlugin"
 		class="org.dspace.app.cris.discovery.CrisSolrServiceResourceRestrictionPlugin"
 		scope="prototype" />
-	
-	<bean id="SolrServiceSpellIndexingPlugin" class="org.dspace.discovery.SolrServiceSpellIndexingPlugin" scope="prototype"/>
     
     <!-- Additional indexing plugin make filtering by has content in original bundle (like pdf's, images) posible via SOLR -->
     <bean id="hasContentInOriginalBundle" class="org.dspace.discovery.SolrServiceContentInOriginalBundleFilterPlugin"/>
