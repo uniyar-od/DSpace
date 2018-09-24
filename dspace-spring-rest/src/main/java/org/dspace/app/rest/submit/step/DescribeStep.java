@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.step.DataDescribe;
@@ -48,7 +49,7 @@ public class DescribeStep extends org.dspace.submit.step.DescribeStep implements
     }
 
     @Override
-    public DataDescribe getData(SubmissionService submissionService, InProgressSubmission obj,
+    public DataDescribe getData(Context context, ItemConverter converter, SubmissionService submissionService, InProgressSubmission obj,
                                 SubmissionStepConfig config) {
         DataDescribe data = new DataDescribe();
         try {

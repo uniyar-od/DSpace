@@ -10,6 +10,8 @@ package org.dspace.app.rest.converter;
 import java.sql.SQLException;
 import java.util.List;
 
+import javax.servlet.ServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.model.EditItemRest;
@@ -18,13 +20,16 @@ import org.dspace.app.rest.model.SubmissionDefinitionRest;
 import org.dspace.app.rest.model.SubmissionSectionRest;
 import org.dspace.app.rest.submit.AbstractRestProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.Collection;
 import org.dspace.content.EditItem;
 import org.dspace.content.Item;
+import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,6 +63,9 @@ public class EditItemConverter extends DSpaceConverter<EditItem, EditItemRest>
 
     @Autowired
     SubmissionService submissionService;
+    
+    @Autowired
+    RequestService requestService;
 
     public EditItemConverter() throws SubmissionConfigReaderException {
         submissionConfigReader = new SubmissionConfigReader();
@@ -110,8 +118,9 @@ public class EditItemConverter extends DSpaceConverter<EditItem, EditItemRest>
                         for (ErrorRest error : stepProcessing.validate(submissionService, obj, stepConfig)) {
                             addError(witem.getErrors(), error);
                         }
+                        Context context = ContextUtil.obtainContext((ServletRequest) requestService.getCurrentRequest());
                         witem.getSections()
-                            .put(sections.getId(), stepProcessing.getData(submissionService, obj, stepConfig));
+                            .put(sections.getId(), stepProcessing.getData(context, itemConverter, submissionService, obj, stepConfig));
                     } else {
                         log.warn("The submission step class specified by '" + stepConfig.getProcessingClassName() +
                                  "' does not extend the class org.dspace.app.rest.submit.AbstractRestProcessingStep!" +

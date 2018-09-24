@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.step.DataUpload;
@@ -45,7 +46,7 @@ public class UploadStep extends org.dspace.submit.step.UploadStep
     private static final Logger log = Logger.getLogger(UploadStep.class);
 
     @Override
-    public DataUpload getData(SubmissionService submissionService, InProgressSubmission obj,
+    public DataUpload getData(Context context, ItemConverter converter, SubmissionService submissionService, InProgressSubmission obj,
                               SubmissionStepConfig config) throws Exception {
 
         DataUpload result = new DataUpload();

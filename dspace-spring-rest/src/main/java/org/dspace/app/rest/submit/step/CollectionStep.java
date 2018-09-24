@@ -9,6 +9,7 @@ package org.dspace.app.rest.submit.step;
 
 import java.util.UUID;
 
+import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.submit.AbstractRestProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
@@ -28,7 +29,7 @@ import org.dspace.services.model.Request;
 public class CollectionStep extends org.dspace.submit.step.SelectCollectionStep implements AbstractRestProcessingStep {
 
     @Override
-    public UUID getData(SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) {
+    public UUID getData(Context context, ItemConverter converter, SubmissionService submissionService, InProgressSubmission obj, SubmissionStepConfig config) {
         if (obj.getCollection() != null) {
             return obj.getCollection().getID();
         }

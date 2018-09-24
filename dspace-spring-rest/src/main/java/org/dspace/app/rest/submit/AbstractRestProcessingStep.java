@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.submit.step.validation.Validation;
@@ -37,7 +38,7 @@ public interface AbstractRestProcessingStep extends ListenerProcessingStep {
 
     public static final String UPLOAD_STEP_METADATA_PATH = "metadata";
 
-    public <T extends Serializable> T getData(SubmissionService submissionService, InProgressSubmission obj,
+    public <T extends Serializable> T getData(Context context, ItemConverter converter, SubmissionService submissionService, InProgressSubmission obj,
                                               SubmissionStepConfig config) throws Exception;
 
     default public List<ErrorRest> validate(SubmissionService submissionService, InProgressSubmission obj,

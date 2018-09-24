@@ -123,6 +123,20 @@ public class SolrDedupServiceImpl implements DedupService
             + RESOURCE_FLAG_FIELD + ":verify*) OR " + "-({!join from="
             + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
             + RESOURCE_FLAG_FIELD + ":reject*)";
+    public static final String SUBQUERY_MATCH_NOT_IN_REJECTED_OR_VERIFY = "(-({!join from="
+            + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
+            + RESOURCE_FLAG_FIELD + ":verify*) OR " + "-({!join from="
+            + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
+            + RESOURCE_FLAG_FIELD + ":reject*) OR dedup.flag:match)";
+    /*
+     * (({!join from=dedup.id to=dedup.id}dedup.flag:verify* AND -dedup.flag:match) OR 
+({!join from=dedup.id to=dedup.id}dedup.flag:reject* AND -dedup.flag:match))
+     */
+    public static final String SUBQUERY_IN_REJECTED_OR_VERIFY = "(({!join from="
+            + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
+            + RESOURCE_FLAG_FIELD + ":verify* AND -dedup.flag:match) OR " + "({!join from="
+            + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
+            + RESOURCE_FLAG_FIELD + ":reject* AND -dedup.flag:match))";
     
     public static final String SUBQUERY_NOT_IN_REJECTED_OR_VERIFYWF = "-({!join from="
             + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"

@@ -44,7 +44,11 @@
 						<entry key="accessConditions">
 							<bean
 								class="org.dspace.app.rest.submit.factory.impl.ResourcePolicyAddPatchOperation" />
-						</entry>						
+						</entry>	
+						<entry key="detectduplicateadd">
+							<bean
+								class="org.dspace.app.rest.submit.factory.impl.DetectDuplicateAddPatchOperation" />
+						</entry>					
 					</map>
 				</entry>
 				<entry key="remove">
