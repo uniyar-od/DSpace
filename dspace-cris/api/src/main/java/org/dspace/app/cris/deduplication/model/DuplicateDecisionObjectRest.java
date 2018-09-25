@@ -70,6 +70,9 @@ public class DuplicateDecisionObjectRest {
 	private DeduplicationFlag getVerifyDecisionFlagByType(DuplicateDecisionType type) {
 		DeduplicationFlag flag = null;
         switch (getType()) {
+        case ADMIN:
+            flag = null;
+            break;
 	        case WORKSPACE:
 	            flag = DeduplicationFlag.VERIFYWS;
 	            break;
