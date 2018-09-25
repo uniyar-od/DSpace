@@ -15,6 +15,7 @@ import java.util.UUID;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
+import org.dspace.app.cris.deduplication.model.DuplicateDecisionType;
 import org.dspace.app.cris.deduplication.service.impl.SolrDedupServiceImpl.DeduplicationFlag;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
@@ -50,9 +51,13 @@ public interface DedupService
     
     public QueryResponse search(SolrQuery solrQuery) throws SearchServiceException;
 
-    public void buildReject(Context context, String firstId, String secondId, Integer type,
+    public void buildDecision(Context context, String firstId, String secondId, Integer type,
             DeduplicationFlag flag, String note);
 
     public void commit();
+
+	public void removeStoredDecision(UUID firstId, UUID secondId, DuplicateDecisionType type) throws SearchServiceException;
+
+	public QueryResponse findDecisions(UUID firstItemID, UUID secondItemID, DuplicateDecisionType type) throws SearchServiceException;
 
 }

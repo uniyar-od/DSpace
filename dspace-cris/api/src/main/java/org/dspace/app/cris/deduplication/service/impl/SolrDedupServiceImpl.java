@@ -32,6 +32,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.dao.ApplicationDao;
+import org.dspace.app.cris.deduplication.model.DuplicateDecisionType;
 import org.dspace.app.cris.deduplication.service.DedupService;
 import org.dspace.app.cris.deduplication.service.SearchDeduplication;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
@@ -123,6 +124,7 @@ public class SolrDedupServiceImpl implements DedupService
             + RESOURCE_FLAG_FIELD + ":verify*) OR " + "-({!join from="
             + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
             + RESOURCE_FLAG_FIELD + ":reject*)";
+
     public static final String SUBQUERY_MATCH_NOT_IN_REJECTED_OR_VERIFY = "(-({!join from="
             + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
             + RESOURCE_FLAG_FIELD + ":verify*) OR " + "-({!join from="
@@ -145,6 +147,10 @@ public class SolrDedupServiceImpl implements DedupService
             + RESOURCE_FLAG_FIELD + ":reject_wf) OR " + "-({!join from="
             + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
             + RESOURCE_FLAG_FIELD + ":reject_admin)";
+
+    public static final String SUBQUERY_STORED_DECISION = UNIQUE_ID_FIELD
+            + ":{0}-*_{1}" + " AND "
+            + "-(" + UNIQUE_ID_FIELD + "{0}-match)";
     
     public static final String QUERY_REMOVE = RESOURCE_IDS_FIELD + ":{0}" + " AND " + RESOURCE_RESOURCETYPE_FIELD + ":{1}";
 
@@ -424,12 +430,26 @@ public class SolrDedupServiceImpl implements DedupService
     private void removeMatch(UUID id, Integer type)
             throws SearchServiceException
     {
-        // remove all MATCH related this deduplication item
+        // remove all MATCH related to deduplication item
         String queryDeleteMatch = RESOURCE_RESOURCETYPE_FIELD + ":" + type
                 + " AND " + RESOURCE_FLAG_FIELD + ":"
                 + DeduplicationFlag.MATCH.description + " AND "
                 + RESOURCE_IDS_FIELD + ":" + id;
         delete(queryDeleteMatch);
+    }
+    
+    @Override
+    public void removeStoredDecision(UUID firstId, UUID secondId, DuplicateDecisionType type)
+            throws SearchServiceException
+    {
+    	QueryResponse response = findDecisions(firstId, secondId, type);
+    	
+        SolrDocumentList solrDocumentList = response.getResults();
+        for (SolrDocument solrDocument : solrDocumentList) {
+        	String duplicateID = solrDocument.getFieldValue(UNIQUE_ID_FIELD).toString();
+        	String queryDelete = UNIQUE_ID_FIELD + ":" + duplicateID;
+        	delete(queryDelete);
+        }
     }
 
     public void build(Context ctx, String firstId, String secondId,
@@ -546,6 +566,37 @@ public class SolrDedupServiceImpl implements DedupService
         }
     }
 
+    @Override
+    public QueryResponse findDecisions(UUID firstItemID, UUID secondItemID, DuplicateDecisionType type)
+    	throws SearchServiceException {
+
+    	String append = "";
+    	switch (type) {
+    		case WORKSPACE:
+    			append = "ws";
+    			break;
+    		case WORKFLOW:
+    			append = "ws";
+    			break;
+    		case ADMIN:
+    			append = "admin";
+    			break;
+    	}
+        String[] sortedIds = new String[] { firstItemID.toString(), secondItemID.toString() };
+        Arrays.sort(sortedIds);
+        
+        String dedupID = sortedIds[0] + "-" + sortedIds[1];
+
+    	String findQuery = MessageFormat.format(
+    			SolrDedupServiceImpl.SUBQUERY_STORED_DECISION,
+    			dedupID,
+    			append);
+
+    	QueryResponse response = find(findQuery);
+    	
+    	return response;
+    }
+    
     @Override
     public QueryResponse find(String query, String... filters)
             throws SearchServiceException
@@ -966,19 +1017,19 @@ public class SolrDedupServiceImpl implements DedupService
                 String secondId = row.getSecondItemId();
                 int resourceTypeId = row.getResource_type_id();
                 if(StringUtils.isNotBlank(submitterDecision)) {
-                    buildReject(ctx, firstId,
+                    buildDecision(ctx, firstId,
                             secondId,
                             resourceTypeId, DeduplicationFlag.getEnum(submitterDecision), readerNote);                    
                 }
                 
                 if(StringUtils.isNotBlank(workflowDecision)) {
-                    buildReject(ctx, firstId,
+                    buildDecision(ctx, firstId,
                             secondId,
                             resourceTypeId, DeduplicationFlag.getEnum(workflowDecision), readerNote);                    
                 }
                 
                 if(StringUtils.isNotBlank(adminDecision)) {
-                    buildReject(ctx, firstId,
+                    buildDecision(ctx, firstId,
                             secondId,
                             resourceTypeId, DeduplicationFlag.getEnum(adminDecision), adminNote);                    
                 }
@@ -992,7 +1043,7 @@ public class SolrDedupServiceImpl implements DedupService
     }
 
     @Override
-    public void buildReject(Context context, String firstId, String secondId,
+    public void buildDecision(Context context, String firstId, String secondId,
             Integer type, DeduplicationFlag flag, String note)
     {
         build(context, firstId, secondId, flag, type, null, null, note);

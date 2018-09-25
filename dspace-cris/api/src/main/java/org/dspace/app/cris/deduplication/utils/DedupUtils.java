@@ -9,6 +9,7 @@ package org.dspace.app.cris.deduplication.utils;
 
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -197,15 +198,13 @@ public class DedupUtils
         {
             findDuplicateBySignature.addFilterQuery("-"+SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD+":true");
         }
-        String print;
+
 		try {
-			print = java.net.URLDecoder.decode(findDuplicateBySignature.toString(), "UTF-8");
-			System.out.println(print);
+			System.out.println(java.net.URLDecoder.decode(findDuplicateBySignature.toString(), "UTF-8"));
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-
         ItemService itemService = ContentServiceFactory.getInstance().getItemService();
         List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();  
         QueryResponse response = dedupService
@@ -263,6 +262,15 @@ public class DedupUtils
         return dupsInfo;
     }
 
+    private boolean hasStoredDecision(UUID firstItemID, UUID secondItemID, DuplicateDecisionType decisionType)
+    		throws SQLException, SearchServiceException {
+
+    	QueryResponse response = dedupService
+                .findDecisions(firstItemID, secondItemID, decisionType);
+
+        return !response.getResults().isEmpty();
+    }
+
     public boolean matchExist(Context context, UUID itemID, UUID targetItemID,
             Integer resourceType, String signatureType, Boolean isInWorkflow)
                     throws SQLException, SearchServiceException
@@ -270,7 +278,9 @@ public class DedupUtils
     	boolean exist = false;
         List<DuplicateItemInfo> potentialDuplicates = findDuplicate(context, itemID, resourceType, null, isInWorkflow);
         for (DuplicateItemInfo match : potentialDuplicates) {
-        	if (match.getDuplicateItem().getID() == targetItemID) {
+        	System.out.println(match.getDuplicateItem().getID());
+        	System.out.println(targetItemID.toString());
+        	if (match.getDuplicateItem().getID().toString().equals(targetItemID.toString())) {
         		exist = true;
         		break;
         	}
@@ -317,7 +327,7 @@ public class DedupUtils
                 row.setAdmin_decision(DeduplicationFlag.REJECTADMIN.getDescription());
             }
             applicationService.saveOrUpdate(CrisDeduplication.class, row);
-            dedupService.buildReject(context, firstId.toString(), secondId.toString(), type, DeduplicationFlag.REJECTADMIN, null);
+            dedupService.buildDecision(context, firstId.toString(), secondId.toString(), type, DeduplicationFlag.REJECTADMIN, null);
             return true;
         }
         catch (Exception ex)
@@ -430,7 +440,7 @@ public class DedupUtils
             }
 
             applicationService.saveOrUpdate(CrisDeduplication.class, row);
-            dedupService.buildReject(context, firstId.toString(), secondId.toString(), type, check?DeduplicationFlag.VERIFYWF:DeduplicationFlag.VERIFYWS, note);
+            dedupService.buildDecision(context, firstId.toString(), secondId.toString(), type, check?DeduplicationFlag.VERIFYWF:DeduplicationFlag.VERIFYWS, note);
         }
         else
         {
@@ -470,43 +480,60 @@ public class DedupUtils
     }
 
     public void setDuplicateDecision(Context context, UUID firstId,
-            UUID secondId, Integer type, DuplicateDecisionObjectRest decisionObject) throws AuthorizeException {
+            UUID secondId, Integer type, DuplicateDecisionObjectRest decisionObject)
+            throws AuthorizeException, SQLException, SearchServiceException {
     	
     	if (hasAuthorization(context, firstId, secondId)) {
     		CrisDeduplication row = retrieveDuplicationRow(context, firstId, secondId);
-    		boolean toFix = false;
-    		boolean fake = false;
+    		boolean toFix = false, fake = false;
     		boolean isWorkflow = decisionObject.getType() == DuplicateDecisionType.WORKFLOW;
     		DeduplicationFlag decisionFlag = decisionObject.getDecisionFlag();
-    		String note = decisionObject.getNote();
+    		String decisionDesc = decisionFlag.getDescription();
+    		String readerNote = null, epersonNote = null;
+    		UUID readerId = null, epersonId = null;
+    		Date readerTime = null, epersonTime = null;
 
 			if (decisionObject.getValue() == DuplicateDecisionValue.REJECT) {
 				fake = isWorkflow ? false : true;
-				row.setEperson_id(context.getCurrentUser().getID());
-				row.setReject_time(new Date());
-				row.setNote(note);
-			} else {
+				epersonNote = decisionObject.getNote();
+				epersonId = context.getCurrentUser().getID();
+				epersonTime = new Date();
+			} else if (decisionObject.getValue() == DuplicateDecisionValue.VERIFY) {
 				toFix = true;
-	            row.setReader_id(context.getCurrentUser().getID());
-	            row.setReader_time(new Date());
-	            row.setReader_note(note);
+				readerNote = decisionObject.getNote();
+				readerId = context.getCurrentUser().getID();
+				readerTime = new Date();
+			} else {
+				decisionDesc = null;
 			}
-    		
+
             row.setFirstItemId(firstId.toString());
             row.setSecondItemId(secondId.toString());
             row.setResource_type_id(type);     
             row.setTofix(toFix);
             row.setFake(fake);
+			row.setEperson_id(epersonId);
+			row.setReject_time(epersonTime);
+			row.setNote(epersonNote);
+            row.setReader_id(readerId);
+            row.setReader_time(readerTime);
+            row.setReader_note(readerNote);
             if(isWorkflow) {
-            	row.setWorkflow_decision(decisionFlag.toString());
+            	row.setWorkflow_decision(decisionDesc);
             }
             else {
-            	row.setSubmitter_decision(decisionFlag.toString());
+            	row.setSubmitter_decision(decisionDesc);
             }
             
             applicationService.saveOrUpdate(CrisDeduplication.class, row);
-            dedupService.buildReject(context, firstId.toString(), secondId.toString(), type,
-            		decisionFlag, note);
+            
+            if (hasStoredDecision(firstId, secondId, decisionObject.getType())) {
+            	dedupService.removeStoredDecision(firstId, secondId, decisionObject.getType());
+            }
+
+            dedupService.buildDecision(context, firstId.toString(), secondId.toString(), type,
+            		decisionFlag, decisionObject.getNote());
+            dedupService.commit();
     	} else {
     		throw new AuthorizeException(
                     "Only authorize users can access to the deduplication");
@@ -580,7 +607,7 @@ public class DedupUtils
                             DeduplicationFlag.REJECTWS.getDescription());
                 }
                 applicationService.saveOrUpdate(CrisDeduplication.class, row);
-                dedupService.buildReject(context, firstId.toString(), secondId.toString(), type,
+                dedupService.buildDecision(context, firstId.toString(), secondId.toString(), type,
                         check ? DeduplicationFlag.REJECTWF
                                 : DeduplicationFlag.REJECTWS,
                         note);

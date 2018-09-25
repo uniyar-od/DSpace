@@ -68,7 +68,7 @@ public class DetectDuplicateAddPatchOperation extends AddPatchOperation<Duplicat
         }
         
         if (!dedupUtils.matchExist(context, currentItemID, duplicateItemID, resourceType, null, isInWorkflow)) {
-        	throw new PatchUnprocessableEntityException(String.format("Cannot find any duplicate match relato to Item %s", duplicateItemID));
+        	throw new PatchUnprocessableEntityException(String.format("Cannot find any duplicate match related to Item %s", duplicateItemID));
         }
         // PatchUnprocessableEntityException
         dedupUtils.setDuplicateDecision(context, source.getItem().getID(), duplicateItemID, source.getItem().getType(), decisionObject);

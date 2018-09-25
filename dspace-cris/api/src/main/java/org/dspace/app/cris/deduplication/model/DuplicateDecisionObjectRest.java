@@ -11,7 +11,7 @@ public class DuplicateDecisionObjectRest {
 	String note;
 
     public DuplicateDecisionValue getValue() {
-        return DuplicateDecisionValue.fromString(value);
+    	return (value !=  null) ? DuplicateDecisionValue.fromString(value) : null;
     }
 
     public void setValue(String value) {
@@ -35,16 +35,18 @@ public class DuplicateDecisionObjectRest {
 	}
 	
 	public DeduplicationFlag getDecisionFlag() {
-		DeduplicationFlag flag = null;
-        switch (getValue()) {
-        case REJECT:
-        	flag = getRejectDecisionFlagByType(getType());
-        	break;
-        case VERIFY:
-        	flag = getVerifyDecisionFlagByType(getType());
-        	break;
-
-        }
+		DeduplicationFlag flag = DeduplicationFlag.MATCH;
+		if (getValue() != null) {
+	        switch (getValue()) {
+		        case REJECT:
+		        	flag = getRejectDecisionFlagByType(getType());
+		        	break;
+		        case VERIFY:
+		        	flag = getVerifyDecisionFlagByType(getType());
+		        	break;        	
+	
+	        }
+		}
         return flag;
 	}
 	
