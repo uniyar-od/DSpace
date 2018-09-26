@@ -58,8 +58,8 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
 
         Map<UUID, DuplicateMatch> matches = processPotentialDuplicates(context, converter, itemID, check, potentialDuplicates);
         DataDetectDuplicate result = new DataDetectDuplicate();
-        if (matches.size() != 0) {
-        	result.setMatches(processPotentialDuplicates(context, converter, itemID, check, potentialDuplicates));
+        if (!matches.isEmpty()) {
+        	result.setMatches(matches);
         }
         
         return result;
@@ -70,7 +70,7 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
         DedupUtils dedupUtils = new DSpace().getServiceManager()
                 .getServiceByName("dedupUtils", DedupUtils.class);
         Map<UUID, DuplicateMatch> matches = new HashMap<UUID, DuplicateMatch>();
-        System.out.println("lenght " + potentialDuplicates.toArray().length);
+//        System.out.println("lenght " + potentialDuplicates.toArray().length);
 		for (DuplicateItemInfo itemInfo : potentialDuplicates) {
 			DuplicateMatch match = new DuplicateMatch();
 			BrowsableDSpaceObject duplicateItem = itemInfo.getDuplicateItem();
@@ -79,12 +79,15 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
 			match.setMatchObject(converter.convert((Item) duplicateItem));
 			match.setSubmitterDecision(itemInfo.getDecision(DuplicateDecisionType.WORKSPACE));
 			match.setWorkflowDecision(itemInfo.getDecision(DuplicateDecisionType.WORKFLOW));
+			match.setAdminDecision(itemInfo.getDecision(DuplicateDecisionType.ADMIN));
+			match.setSubmitterNote(itemInfo.getNote(DuplicateDecisionType.WORKSPACE));
+			match.setWorkflowNote(itemInfo.getNote(DuplicateDecisionType.WORKFLOW));
 			
 			matches.put((UUID) duplicateItem.getID(), match);
 
-			System.out.println(itemInfo.getDuplicateItemType());
-			System.out.println(duplicateItem.getID());
-			System.out.println(itemInfo.getDecision(DuplicateDecisionType.WORKSPACE));
+//			System.out.println(itemInfo.getDuplicateItemType());
+//			System.out.println(duplicateItem.getID());
+//			System.out.println(itemInfo.getDecision(DuplicateDecisionType.WORKSPACE));
 //			System.out.println(itemInfo.isNotDuplicate());
 //			System.out.println(itemInfo.isRejected());
 //			System.out.println(itemInfo.isToFix());

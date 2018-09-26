@@ -32,8 +32,7 @@ public class DuplicateItemInfo
     
     private int duplicateItemType;
 
-    private String note;
-
+    private Map<DuplicateDecisionType, String> notes = new HashMap<DuplicateDecisionType, String>();
 //    private EPerson eperson;
 //
 //    private boolean notDuplicate;
@@ -101,16 +100,6 @@ public class DuplicateItemInfo
 //    {
 //        return rejected;
 //    }
-
-    public String getNote()
-    {
-        return note;
-    }
-
-    public void setNote(String note)
-    {
-        this.note = note;
-    }
 
 //    public boolean isNotDuplicate()
 //    {
@@ -188,5 +177,13 @@ public class DuplicateItemInfo
 
 	public void setDecision(DuplicateDecisionType type, DuplicateDecisionValue decision) {
 		this.decisions.put(type, decision);
+	}
+	
+    public String getNote(DuplicateDecisionType type) {
+		return notes.get(type);
+	}
+
+	public void setNote(DuplicateDecisionType type, String note) {
+		this.notes.put(type, note);
 	}
 }

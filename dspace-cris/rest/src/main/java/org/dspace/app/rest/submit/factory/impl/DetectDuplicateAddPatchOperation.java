@@ -34,9 +34,9 @@ public class DetectDuplicateAddPatchOperation extends AddPatchOperation<Duplicat
 	void add(Context context, Request currentRequest, InProgressSubmission source, String path, Object value)
 			throws Exception {
 		String[] split = getAbsolutePath(path).split("/");
-        if (split.length == 1) {
-            throw new IllegalArgumentException(
-            		"The specified path is not valid");
+        if ((split.length != 3) || (split[0].compareTo("matches") != 0)) {
+            throw new IllegalArgumentException(String.format(
+            		"The specified path '%s' is not valid", getAbsolutePath(path)));
         }
 
         DedupUtils dedupUtils = new DSpace().getServiceManager()
@@ -44,9 +44,9 @@ public class DetectDuplicateAddPatchOperation extends AddPatchOperation<Duplicat
         
         DuplicateDecisionObjectRest decisionObject = evaluateSingleObject((LateObjectEvaluator) value);
         UUID currentItemID = source.getItem().getID();
-        UUID duplicateItemID = UUID.fromString(split[0]);
+        UUID duplicateItemID = UUID.fromString(split[1]);
         boolean isInWorkflow = !(source instanceof WorkspaceItem);
-        String subPath = split[1];
+        String subPath = split[2];
         Integer resourceType = source.getItem().getType();
         
         switch (subPath) {

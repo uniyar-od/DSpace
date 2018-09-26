@@ -227,7 +227,7 @@ public class DedupUtils
                         if (SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription().equals(flag)) {
 //                            verify.put(parseInt, (String)solrDocument.getFieldValue("dedup.note"));
 //                        	info.setToFix(true);
-                            info.setNote((String)solrDocument.getFieldValue("dedup.note"));
+                            info.setNote(DuplicateDecisionType.WORKSPACE, (String)solrDocument.getFieldValue("dedup.note"));
                             info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.VERIFY);
                         }
                         else if (SolrDedupServiceImpl.DeduplicationFlag.REJECTWS.getDescription().equals(flag)){
