@@ -1,12 +1,7 @@
 package org.dspace.app.rest.model.step;
 
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import org.dspace.app.cris.deduplication.model.DuplicateDecisionType;
-import org.dspace.app.cris.deduplication.model.DuplicateDecisionValue;
 
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
@@ -17,8 +12,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
  */
 public class DataDetectDuplicate implements SectionData {
     @JsonUnwrapped
-//    private List<DuplicateMatch> matches;
-    private Map<UUID, DuplicateMatch> matches = new HashMap<UUID, DuplicateMatch>();
+    private Map<UUID, DuplicateMatch> matches = null;
 
     public Map<UUID, DuplicateMatch> getMatches() {
 		return matches;

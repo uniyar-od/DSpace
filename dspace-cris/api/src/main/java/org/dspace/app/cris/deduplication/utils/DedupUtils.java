@@ -146,20 +146,20 @@ public class DedupUtils
 
         return results;
     }
-    
-    /**
-     * @param context
-     * @param targetItemID
-     * @param resourceType
-     * @param signatureType
-     * @param isInWorkflow set null to retrieve all (ADMIN) 
-     * @return
-     * @throws SQLException
-     * @throws SearchServiceException
-     */
-    private List<DuplicateItemInfo> findDuplicate(Context context, UUID targetItemID,
-            Integer resourceType, String signatureType, Boolean isInWorkflow)
-                    throws SQLException, SearchServiceException
+
+	/**
+	 * @param context
+	 * @param targetItemID
+	 * @param resourceType
+	 * @param signatureType
+	 * @param isInWorkflow set null to retrieve all (ADMIN) 
+	 * @return
+	 * @throws SQLException
+	 * @throws SearchServiceException
+	 */
+	private List<DuplicateItemInfo> findDuplicate(Context context, UUID targetItemID,
+         Integer resourceType, String signatureType, Boolean isInWorkflow)
+                 throws SQLException, SearchServiceException
     {
         ViewResolver resolver = dspace.getServiceManager().getServiceByName(CrisConstants.getEntityTypeText(resourceType) + "ViewResolver", ViewResolver.class);
     
@@ -167,28 +167,26 @@ public class DedupUtils
         Map<UUID, String> verify = new HashMap<UUID,String>();
 
         SolrQuery findDuplicateBySignature = new SolrQuery();
-//            findDuplicateBySignature.setQuery((isInWorkflow == null?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED:(isInWorkflow?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFYWF:SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFY)));
-        findDuplicateBySignature.setQuery(SolrDedupServiceImpl.SUBQUERY_IN_REJECTED_OR_VERIFY + " OR " +
-        		SolrDedupServiceImpl.SUBQUERY_MATCH_NOT_IN_REJECTED_OR_VERIFY);
+        findDuplicateBySignature.setQuery((isInWorkflow == null?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED:(isInWorkflow?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFYWF:SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFY)));
         findDuplicateBySignature
                 .addFilterQuery(SolrDedupServiceImpl.RESOURCE_IDS_FIELD + ":"
                         + targetItemID);
         findDuplicateBySignature.addFilterQuery(SolrDedupServiceImpl.RESOURCE_RESOURCETYPE_FIELD + ":"
                 + resourceType);
-//            String filter = "";
-//            if(isInWorkflow==null) {            
-//                filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
-//                        + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription();            }
-//            else if(isInWorkflow) {
-//                filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":("
-//                    + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription() +" OR "+ SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription() + ")";
-//            }
-//            else {
-//                filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
-//                        + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription();
-//            }
-//
-//            findDuplicateBySignature.addFilterQuery(filter);
+        String filter = "";
+        if(isInWorkflow==null) {            
+            filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
+                    + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription();            }
+        else if(isInWorkflow) {
+            filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":("
+                + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription() +" OR "+ SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription() + ")";
+        }
+        else {
+            filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
+                    + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription();
+        }
+
+        findDuplicateBySignature.addFilterQuery(filter);
 
         findDuplicateBySignature
                 .setFields("dedup.ids", "dedup.note", "dedup.flag");
@@ -198,69 +196,184 @@ public class DedupUtils
         {
             findDuplicateBySignature.addFilterQuery("-"+SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD+":true");
         }
-
 		try {
 			System.out.println(java.net.URLDecoder.decode(findDuplicateBySignature.toString(), "UTF-8"));
-		} catch (UnsupportedEncodingException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-        List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();  
-        QueryResponse response = dedupService
-                .search(findDuplicateBySignature);
-        SolrDocumentList solrDocumentList = response.getResults();
-        for (SolrDocument solrDocument : solrDocumentList)
-        {
-            Collection<Object> match = (Collection<Object>) solrDocument.getFieldValues("dedup.ids");
-            System.out.println("coll: " + match.toString());
-            if (match!=null && !match.isEmpty()) {
-                for (Object matchItem : match) {
-                    UUID itemID = UUID.fromString((String)matchItem);
-                    if(!itemID.equals(targetItemID)) {
-                    	DuplicateItemInfo info = new DuplicateItemInfo();
-                        Item duplicateItem = itemService.find(context, itemID);
-                        info.setDuplicateItem(duplicateItem);
-                        info.setDuplicateItemType(ItemUtils.getItemStatus(context, duplicateItem));
+          ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+          List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();  
+          QueryResponse response = dedupService
+                  .search(findDuplicateBySignature);
+          SolrDocumentList solrDocumentList = response.getResults();
+          for (SolrDocument solrDocument : solrDocumentList)
+          {
+              Collection<Object> match = (Collection<Object>) solrDocument.getFieldValues("dedup.ids");
+              System.out.println("coll: " + match.toString());
+              if (match!=null && !match.isEmpty()) {
+                  for (Object matchItem : match) {
+                      UUID itemID = UUID.fromString((String)matchItem);
+                      if(!itemID.equals(targetItemID)) {
+                      	DuplicateItemInfo info = new DuplicateItemInfo();
+                          Item duplicateItem = itemService.find(context, itemID);
+                          info.setDuplicateItem(duplicateItem);
+                          info.setDuplicateItemType(ItemUtils.getItemStatus(context, duplicateItem));
+  
+                          String flag = (String)solrDocument.getFieldValue("dedup.flag");
+                          if (SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription().equals(flag)) {
+//                              verify.put(parseInt, (String)solrDocument.getFieldValue("dedup.note"));
+//                          	info.setToFix(true);
+                              info.setNote(DuplicateDecisionType.WORKSPACE, (String)solrDocument.getFieldValue("dedup.note"));
+                              info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.VERIFY);
+                          }
+                          else if (SolrDedupServiceImpl.DeduplicationFlag.REJECTWS.getDescription().equals(flag)){
+//                              result.add(itemID);
+//                          	info.setRejected(true);
+                          	info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.REJECT);
+                          } else {
+//                          	info.setRejected(false);
+                          }
+  
+                          dupsInfo.add(info);
+                          break;
+                      }
+                  }
+              }
+          }
+          
+//          ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+//          List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();        
+//          for (UUID idResult : result) {
+//              DuplicateItemInfo info = new DuplicateItemInfo();            
+//              info.setRejected(false);
+//              Item duplicateItem = itemService.find(context, idResult);
+//              info.setDuplicateItem(duplicateItem);
+//              info.setDuplicateItemType(ItemUtils.getItemStatus(context, duplicateItem));
+//              if(verify.containsKey(idResult)) {
+//                  info.setNote(verify.get(idResult));
+//              }
+//              dupsInfo.add(info);
+//          }
+          
+          return dupsInfo;
 
-                        String flag = (String)solrDocument.getFieldValue("dedup.flag");
-                        if (SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription().equals(flag)) {
-//                            verify.put(parseInt, (String)solrDocument.getFieldValue("dedup.note"));
-//                        	info.setToFix(true);
-                            info.setNote(DuplicateDecisionType.WORKSPACE, (String)solrDocument.getFieldValue("dedup.note"));
-                            info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.VERIFY);
-                        }
-                        else if (SolrDedupServiceImpl.DeduplicationFlag.REJECTWS.getDescription().equals(flag)){
-//                            result.add(itemID);
-//                        	info.setRejected(true);
-                        	info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.REJECT);
-                        } else {
-//                        	info.setRejected(false);
-                        }
-
-                        dupsInfo.add(info);
-                        break;
-                    }
-                }
-            }
-        }
-        
-//        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
-//        List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();        
-//        for (UUID idResult : result) {
-//            DuplicateItemInfo info = new DuplicateItemInfo();            
-//            info.setRejected(false);
-//            Item duplicateItem = itemService.find(context, idResult);
-//            info.setDuplicateItem(duplicateItem);
-//            info.setDuplicateItemType(ItemUtils.getItemStatus(context, duplicateItem));
-//            if(verify.containsKey(idResult)) {
-//                info.setNote(verify.get(idResult));
-//            }
-//            dupsInfo.add(info);
-//        }
-        
-        return dupsInfo;
     }
+    
+//    /**
+//     * @param context
+//     * @param targetItemID
+//     * @param resourceType
+//     * @param signatureType
+//     * @param isInWorkflow set null to retrieve all (ADMIN) 
+//     * @return
+//     * @throws SQLException
+//     * @throws SearchServiceException
+//     */
+//    private List<DuplicateItemInfo> findDuplicate(Context context, UUID targetItemID,
+//            Integer resourceType, String signatureType, Boolean isInWorkflow)
+//                    throws SQLException, SearchServiceException
+//    {
+//        ViewResolver resolver = dspace.getServiceManager().getServiceByName(CrisConstants.getEntityTypeText(resourceType) + "ViewResolver", ViewResolver.class);
+//    
+//        List<UUID> result = new ArrayList<UUID>();
+//        Map<UUID, String> verify = new HashMap<UUID,String>();
+//
+//        SolrQuery findDuplicateBySignature = new SolrQuery();
+////            findDuplicateBySignature.setQuery((isInWorkflow == null?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED:(isInWorkflow?SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFYWF:SolrDedupServiceImpl.SUBQUERY_NOT_IN_REJECTED_OR_VERIFY)));
+//        findDuplicateBySignature.setQuery(SolrDedupServiceImpl.SUBQUERY_IN_REJECTED_OR_VERIFY + " OR " +
+//        		SolrDedupServiceImpl.SUBQUERY_MATCH_NOT_IN_REJECTED_OR_VERIFY);
+//        findDuplicateBySignature
+//                .addFilterQuery(SolrDedupServiceImpl.RESOURCE_IDS_FIELD + ":"
+//                        + targetItemID);
+//        findDuplicateBySignature.addFilterQuery(SolrDedupServiceImpl.RESOURCE_RESOURCETYPE_FIELD + ":"
+//                + resourceType);
+////            String filter = "";
+////            if(isInWorkflow==null) {            
+////                filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
+////                        + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription();            }
+////            else if(isInWorkflow) {
+////                filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":("
+////                    + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription() +" OR "+ SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription() + ")";
+////            }
+////            else {
+////                filter = SolrDedupServiceImpl.RESOURCE_FLAG_FIELD + ":"
+////                        + SolrDedupServiceImpl.DeduplicationFlag.MATCH.getDescription();
+////            }
+////
+////            findDuplicateBySignature.addFilterQuery(filter);
+//
+//        findDuplicateBySignature
+//                .setFields("dedup.ids", "dedup.note", "dedup.flag");
+//
+//        if (ConfigurationManager.getBooleanProperty("deduplication",
+//                "tool.duplicatechecker.ignorewithdrawn"))
+//        {
+//            findDuplicateBySignature.addFilterQuery("-"+SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD+":true");
+//        }
+//
+//		try {
+//			System.out.println(java.net.URLDecoder.decode(findDuplicateBySignature.toString(), "UTF-8"));
+//		} catch (UnsupportedEncodingException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
+//        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+//        List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();  
+//        QueryResponse response = dedupService
+//                .search(findDuplicateBySignature);
+//        SolrDocumentList solrDocumentList = response.getResults();
+//        for (SolrDocument solrDocument : solrDocumentList)
+//        {
+//            Collection<Object> match = (Collection<Object>) solrDocument.getFieldValues("dedup.ids");
+//            System.out.println("coll: " + match.toString());
+//            if (match!=null && !match.isEmpty()) {
+//                for (Object matchItem : match) {
+//                    UUID itemID = UUID.fromString((String)matchItem);
+//                    if(!itemID.equals(targetItemID)) {
+//                    	DuplicateItemInfo info = new DuplicateItemInfo();
+//                        Item duplicateItem = itemService.find(context, itemID);
+//                        info.setDuplicateItem(duplicateItem);
+//                        info.setDuplicateItemType(ItemUtils.getItemStatus(context, duplicateItem));
+//
+//                        String flag = (String)solrDocument.getFieldValue("dedup.flag");
+//                        if (SolrDedupServiceImpl.DeduplicationFlag.VERIFYWS.getDescription().equals(flag)) {
+////                            verify.put(parseInt, (String)solrDocument.getFieldValue("dedup.note"));
+////                        	info.setToFix(true);
+//                            info.setNote(DuplicateDecisionType.WORKSPACE, (String)solrDocument.getFieldValue("dedup.note"));
+//                            info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.VERIFY);
+//                        }
+//                        else if (SolrDedupServiceImpl.DeduplicationFlag.REJECTWS.getDescription().equals(flag)){
+////                            result.add(itemID);
+////                        	info.setRejected(true);
+//                        	info.setDecision(DuplicateDecisionType.WORKSPACE, DuplicateDecisionValue.REJECT);
+//                        } else {
+////                        	info.setRejected(false);
+//                        }
+//
+//                        dupsInfo.add(info);
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//        
+////        ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+////        List<DuplicateItemInfo> dupsInfo = new ArrayList<DuplicateItemInfo>();        
+////        for (UUID idResult : result) {
+////            DuplicateItemInfo info = new DuplicateItemInfo();            
+////            info.setRejected(false);
+////            Item duplicateItem = itemService.find(context, idResult);
+////            info.setDuplicateItem(duplicateItem);
+////            info.setDuplicateItemType(ItemUtils.getItemStatus(context, duplicateItem));
+////            if(verify.containsKey(idResult)) {
+////                info.setNote(verify.get(idResult));
+////            }
+////            dupsInfo.add(info);
+////        }
+//        
+//        return dupsInfo;
+//    }
 
     private boolean hasStoredDecision(UUID firstItemID, UUID secondItemID, DuplicateDecisionType decisionType)
     		throws SQLException, SearchServiceException {
