@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -119,7 +120,9 @@ public class WorkflowItemConverter extends DSpaceConverter<XmlWorkflowItem, org.
                         for (ErrorRest error : stepProcessing.validate(submissionService, obj, stepConfig)) {
                             addError(witem.getErrors(), error);
                         }
-                        Context context = ContextUtil.obtainContext((ServletRequest) requestService.getCurrentRequest());
+                        // Context context = ContextUtil.obtainContext((ServletRequest) requestService.getCurrentRequest());
+                        HttpServletRequest request = requestService.getCurrentRequest().getHttpServletRequest();
+                        Context context = ContextUtil.obtainContext(request);
                         witem.getSections()
                             .put(sections.getId(), stepProcessing.getData(context, itemConverter, submissionService, obj, stepConfig));
                     } else {
