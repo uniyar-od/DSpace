@@ -7,9 +7,7 @@
  */
 package org.dspace.app.cris.deduplication.utils;
 
-import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;

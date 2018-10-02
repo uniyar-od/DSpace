@@ -1,5 +1,4 @@
 package org.dspace.app.rest.submit.step;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +35,6 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
 
 	public static final String DETECT_DUPLICATE_STEP_ADD_OPERATION_ENTRY = "detectduplicateadd";
 	
-	ItemConverter converter2 = new DSpace().getServiceManager()
-            .getServiceByName("itemConverter", ItemConverter.class);
-	
 	@Override
     public DataDetectDuplicate getData(Context context, ItemConverter converter, SubmissionService submissionService, InProgressSubmission obj,
                                SubmissionStepConfig config) throws Exception {
@@ -72,7 +68,6 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
 			DuplicateMatch match = new DuplicateMatch();
 			BrowsableDSpaceObject duplicateItem = itemInfo.getDuplicateItem();
 
-//			match.setMatchObject(converter2.convert((Item) duplicateItem));
 			match.setMatchObject(converter.convert((Item) duplicateItem));
 			match.setSubmitterDecision(itemInfo.getDecision(DuplicateDecisionType.WORKSPACE));
 			match.setWorkflowDecision(itemInfo.getDecision(DuplicateDecisionType.WORKFLOW));
