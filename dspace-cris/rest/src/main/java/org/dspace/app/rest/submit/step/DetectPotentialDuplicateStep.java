@@ -49,9 +49,6 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
         UUID itemID = obj.getItem().getID();
         int typeID = obj.getItem().getType();
         boolean check = !(obj instanceof WorkspaceItem);
-
-        System.out.println(obj.getType());
-        System.out.println(itemID);
         
         List<DuplicateItemInfo> potentialDuplicates = dedupUtils
                 .getDuplicateByIDandType(context, itemID, typeID, check);
@@ -70,7 +67,7 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
         DedupUtils dedupUtils = new DSpace().getServiceManager()
                 .getServiceByName("dedupUtils", DedupUtils.class);
         Map<UUID, DuplicateMatch> matches = new HashMap<UUID, DuplicateMatch>();
-//        System.out.println("lenght " + potentialDuplicates.toArray().length);
+
 		for (DuplicateItemInfo itemInfo : potentialDuplicates) {
 			DuplicateMatch match = new DuplicateMatch();
 			BrowsableDSpaceObject duplicateItem = itemInfo.getDuplicateItem();
@@ -84,29 +81,7 @@ public class DetectPotentialDuplicateStep extends AbstractProcessingStep impleme
 			match.setWorkflowNote(itemInfo.getNote(DuplicateDecisionType.WORKFLOW));
 			
 			matches.put((UUID) duplicateItem.getID(), match);
-
-//			System.out.println(itemInfo.getDuplicateItemType());
-//			System.out.println(duplicateItem.getID());
-//			System.out.println(itemInfo.getDecision(DuplicateDecisionType.WORKSPACE));
-//			System.out.println(itemInfo.isNotDuplicate());
-//			System.out.println(itemInfo.isRejected());
-//			System.out.println(itemInfo.isToFix());
-//			System.out.println(itemInfo.getRejectDate());
-//				duplicateItem.put("status", status);
-//				duplicateItem.get;
-//			try {
-//				dedupUtils.rejectDups(context, itemID, duplicateItemID, type, true, null, check);
-//			} catch (SQLException e) {
-//				// TODO Auto-generated catch block
-//				e.printStackTrace();
-//			}
 		}
-		
-//        DuplicateMatch match = new DuplicateMatch();
-//        match.setSubmitterDecision(DuplicateDecisionType.REJECT);
-//        match.setWorkflowDecision(DuplicateDecisionType.VERIFY);
-//        
-//        List<DuplicateMatch> matches = Arrays.asList(match);
         
         return matches;
 	}

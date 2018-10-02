@@ -72,9 +72,6 @@ public class DetectDuplicateAddPatchOperation extends AddPatchOperation<Duplicat
         }
 
         dedupUtils.setDuplicateDecision(context, source.getItem().getID(), duplicateItemID, source.getItem().getType(), decisionObject);
-//		System.out.println("add patch dedup" + source.getItem().getID());
-//		System.out.println("add patch dedup" + split);
-//		System.out.println("add patch dedup" + decisionObject.getValue().toString());
 		
 	}
 	

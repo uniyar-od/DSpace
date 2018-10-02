@@ -15,13 +15,13 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 public class DuplicateMatch implements SectionData {
 
     @JsonProperty(access = Access.READ_ONLY)
-    private DuplicateDecisionValue submitterDecision;
+    private String submitterDecision;
 
 	@JsonProperty(access = Access.READ_ONLY)
-    private DuplicateDecisionValue workflowDecision;
+    private String workflowDecision;
 
 	@JsonProperty(access = Access.READ_ONLY)
-    private DuplicateDecisionValue adminDecision;
+    private String adminDecision;
 
     @JsonProperty(access = Access.READ_ONLY)
     private String submitterNote;
@@ -42,28 +42,34 @@ public class DuplicateMatch implements SectionData {
 		this.matchObject = matchObject;
 	}
 
-	public DuplicateDecisionValue getSubmitterDecision() {
+	public String getSubmitterDecision() {
 		return submitterDecision;
 	}
 
 	public void setSubmitterDecision(DuplicateDecisionValue submitterDecision) {
-		this.submitterDecision = submitterDecision;
+		if (submitterDecision != null) {
+			this.submitterDecision = submitterDecision.toString();
+		}
 	}
 
-	public DuplicateDecisionValue getWorkflowDecision() {
+	public String getWorkflowDecision() {
 		return workflowDecision;
 	}
 
 	public void setWorkflowDecision(DuplicateDecisionValue workflowDecision) {
-		this.workflowDecision = workflowDecision;
+		if (workflowDecision != null) {
+			this.workflowDecision = workflowDecision.toString();
+		}
 	}
 	
-	public DuplicateDecisionValue getAdminDecision() {
+	public String getAdminDecision() {
 		return adminDecision;
 	}
 
 	public void setAdminDecision(DuplicateDecisionValue adminDecision) {
-		this.adminDecision = adminDecision;
+		if (adminDecision != null) {
+			this.adminDecision = adminDecision.toString();
+		}
 	}
 	
 	public String getSubmitterNote() {
