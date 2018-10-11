@@ -8,6 +8,7 @@
 package org.dspace.app.webui.jsptag;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
+import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 import javax.servlet.jsp.tagext.TagSupport;
 import org.apache.commons.lang.ArrayUtils;
@@ -30,6 +32,7 @@ import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.DCInputsReaderException;
+import org.dspace.app.util.IViewer;
 import org.dspace.app.util.Util;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.MetadataExposureService;
@@ -44,13 +47,16 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.DCDate;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.ConfigurationManager;
@@ -261,7 +267,10 @@ public class ItemTag extends TagSupport
     
     private final transient GroupService groupService 
             = EPersonServiceFactory.getInstance().getGroupService();
-
+    
+    private final transient BitstreamService bitstreamService = ContentServiceFactory.getInstance()
+			.getBitstreamService();
+    
     static {
         int i;
 
@@ -989,14 +998,18 @@ public class ItemTag extends TagSupport
             				// Skip internal types
             				if (!b.getFormat(context).isInternal())
             				{
+            					List<ViewOption> viewOptions = getViewOptions(context, request, pageContext, handle, b);
 
                                 // Work out what the bitstream link should be
                                 // (persistent
                                 // ID if item has Handle)
-                                String bsLink = "target=\"_blank\" href=\""
-                                        + request.getContextPath();
+                                String bsLink = "target=\"_blank\" href=\"";
+                                
+                                bsLink = bsLink + viewOptions.get(0).link;
+                                bsLink = bsLink + "\">";
+                                        //+ request.getContextPath();
 
-                                if ((handle != null)
+                                /*if ((handle != null)
                                         && (b.getSequenceID() > 0))
                                 {
                                     bsLink = bsLink + "/bitstream/"
@@ -1012,8 +1025,9 @@ public class ItemTag extends TagSupport
                                 bsLink = bsLink
                                         + UIUtil.encodeBitstreamName(b
                                             .getName(),
-                                            Constants.DEFAULT_ENCODING) + "\">";
+                                            Constants.DEFAULT_ENCODING) + "\">";*/
 
+                                
             					out
                                     .print("<tr><td headers=\"t1\" class=\"standard break-all\">");
                                 out.print("<a ");
@@ -1121,15 +1135,14 @@ public class ItemTag extends TagSupport
 
             						if (tb != null)
             						{
-                                                            if (authorizeService.authorizeActionBoolean(context, tb, Constants.READ))
-                                                            {
-                                                                String myPath = request.getContextPath()
-                                                                    + "/retrieve/"
-                                                                    + tb.getID()
-                                                                    + "/"
-                                                                    + UIUtil.encodeBitstreamName(tb
-                                            			.getName(),
-                                            			Constants.DEFAULT_ENCODING);
+            							if (authorizeService.authorizeActionBoolean(context, tb, Constants.READ))
+            							{
+            								String myPath = request.getContextPath()
+            										+ "/retrieve/"
+                                                    + tb.getID()
+                                                    + "/"
+                                                    + UIUtil.encodeBitstreamName(tb.getName(),
+                                                    		Constants.DEFAULT_ENCODING);
 
             							out.print("<a ");
             							out.print(bsLink);
@@ -1140,41 +1153,68 @@ public class ItemTag extends TagSupport
             						}
             					}
 
-            					out.print("<a class=\"btn btn-primary\" ");
-            					out
-                                    .print(bsLink
-                                            + LocaleSupport
-                                                    .getLocalizedMessage(
-                                                            pageContext,
-                                                            "org.dspace.app.webui.jsptag.ItemTag.view")
-                                            + "</a>");
+            					boolean authorizedToView = authorizeService.authorizeActionBoolean(context,b,Constants.READ);
+            					if (context.getCurrentUser() == null || authorizedToView) {
+            						if (viewOptions.size() == 1) {
+                    					out.print("<a class=\"btn btn-primary\" ");
+                    					out
+                                            .print(bsLink
+                                                    + LocaleSupport
+                                                            .getLocalizedMessage(
+                                                                    pageContext,
+                                                                    "org.dspace.app.webui.jsptag.ItemTag.view")
+                                                    + "</a>");
+            						}
+            						else {
+            							out.println("&nbsp;&nbsp;<div class=\"btn-group\">");
+										out.print("<a class=\"btn btn-primary\" href=\""+ viewOptions.get(0).link + "\">");
+										out.print(viewOptions.get(0).label);
+										out.println("</a>");
+									
+										out.print("<button type=\"button\" class=\"btn btn-primary dropdown-toggle\" data-toggle=\"dropdown\" "
+												+ " aria-haspopup=\"true\" aria-expanded=\"false\"> "
+												+ " <span class=\"caret\"></span> <span class=\"sr-only\">Toggle Dropdown</span> </button>");
+										out.print("<ul class=\"dropdown-menu\"> ");
+										
+										for (int idx = 1; idx < viewOptions.size()-1; idx++) {
+											out.print("<li><a href=\""+ viewOptions.get(idx).link + "\">");
+											out.print(viewOptions.get(0).label);
+											out.print("</a></li>");
+										}
+										
+										if (viewOptions.size() > 2) {
+											out.print("<li role=\"separator\" class=\"divider\"></li> ");
+										}
+										out.print("<li><a href=\""+ viewOptions.get(viewOptions.size()-1).link + "\">");
+										out.print(viewOptions.get(viewOptions.size()-1).label);
+										out.print("</a></li>");
+										out.print("</ul> </div>");
+            						}
+            					}
             					
-								try {
-									if (showRequestCopy && !authorizeService
-											.authorizeActionBoolean(context,
-                                                    b,
-                                                    Constants.READ))
-										out.print("&nbsp;<a class=\"btn btn-success\" href=\""
-												+ request.getContextPath()
-												+ "/request-item?handle="
-												+ handle
-												+ "&bitstream-id="
-												+ b.getID()
-												+ "\">"
-												+ LocaleSupport
-														.getLocalizedMessage(
-																pageContext,
-																"org.dspace.app.webui.jsptag.ItemTag.restrict")
-												+ "</a>");
-								} catch (Exception e) {
+								if (!authorizedToView && showRequestCopy){
+									out.print("&nbsp;<a class=\"btn btn-success\" href=\""
+											+ request.getContextPath()
+											+ "/request-item?handle="
+											+ handle
+											+ "&bitstream-id="
+											+ b.getID()
+											+ "\">"
+											+ LocaleSupport
+													.getLocalizedMessage(
+															pageContext,
+															"org.dspace.app.webui.jsptag.ItemTag.restrict")
+											+ "</a>");
 								}
-								out.print("</td></tr>");
             				}
             			}
+            			out.print("</td></tr>");
+            			
             		}
             	}
 
             	out.println("</table>");
+            	out.println("</div>");
         	}
         }
         catch(SQLException sqle)
@@ -1182,7 +1222,7 @@ public class ItemTag extends TagSupport
         	throw new IOException(sqle.getMessage(), sqle);
         }
 
-        out.println("</div>");
+        //out.println("</div>");
     }
 
     private void getThumbSettings()
@@ -1291,5 +1331,67 @@ public class ItemTag extends TagSupport
             }
         }
         return null;
+    }
+    
+    public class ViewOption {
+    	String label;
+    	String link;
+    }
+    
+    public List<ViewOption> getViewOptions(Context context, HttpServletRequest request, PageContext pageContext,
+			String handle, Bitstream bit) throws UnsupportedEncodingException {
+
+		List<ViewOption> results = new ArrayList<ViewOption>();
+		
+		/*String schema = IViewer.METADATA_STRING_PROVIDER.split(".")[0];
+		String element = IViewer.METADATA_STRING_PROVIDER.split(".")[1];
+		String qualifier = IViewer.METADATA_STRING_PROVIDER.split(".")[2];
+		List<MetadataValue> metadataList = dsoService.getMetadata(bit, schema, element, qualifier, null);
+		List<String> metadataProvider = new ArrayList<String>();
+		for (MetadataValue val : metadataList) {
+			metadataProvider.add(val.getValue());
+		}*/
+		
+		
+		List<MetadataValue> metadataValues = bitstreamService.getMetadataByMetadataString(bit, IViewer.METADATA_STRING_PROVIDER);
+		List<String> externalProviders = new ArrayList<String>();
+		for (MetadataValue val : metadataValues) {
+			externalProviders.add(val.getValue());
+		}
+		
+		boolean showDownload = true;
+		if(externalProviders!=null) {
+			for (String externalProvider : externalProviders) {
+			if (IViewer.STOP_DOWNLOAD.equals(externalProvider)) {
+				showDownload = false;
+				continue;
+			}
+				ViewOption opt = new ViewOption();
+				opt.link = request.getContextPath() + "/explore?bitstream_id=" + bit.getID() + "&handle=" + handle
+						+ "&provider=" + externalProvider;
+				opt.label = LocaleSupport.getLocalizedMessage(pageContext,
+						"org.dspace.app.webui.jsptag.ItemTag.explore." + externalProvider);
+				results.add(opt);
+			}
+		}
+
+		if (showDownload) {
+		ViewOption opt = new ViewOption();
+		opt.link = request.getContextPath();
+
+		if ((handle != null) && (bit.getSequenceID() > 0)) {
+			opt.link = opt.link + "/bitstream/" + handle + "/" + bit.getSequenceID() + "/";
+		} else {
+			opt.link = opt.link + "/retrieve/" + bit.getID() + "/";
+		}
+
+		opt.link = opt.link + UIUtil.encodeBitstreamName(bit.getName(), Constants.DEFAULT_ENCODING);
+		opt.label = LocaleSupport
+                .getLocalizedMessage(
+                        pageContext,
+                        "org.dspace.app.webui.jsptag.ItemTag.view");
+		results.add(opt);
+		}
+		return results;
     }
 }

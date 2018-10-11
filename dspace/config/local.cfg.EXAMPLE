@@ -214,7 +214,7 @@ plugin.named.org.dspace.app.webui.json.JSONRequest = \
         org.dspace.app.webui.json.CreativeCommonsJSONRequest = creativecommons,\
         org.dspace.app.webui.json.IIIFManifestRequest = iiif
 
-iiif.image.server.url =
+iiif.image.server.url = http://localhost:9000/digilib/Scaler/IIIF
 iiif.image.server.valid-formats = JPEG
 iiif.image.server.valid-formats = GIF
 iiif.image.server.valid-formats = image/png
