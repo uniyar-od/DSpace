@@ -4,8 +4,11 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+                           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<!-- **************************************************************************************************** -->
 	<!-- BTE Batch import Service 																			  -->
@@ -330,9 +333,9 @@
 			</map>
 		</property>
 		<property name="mappingAuthorityConfiguration">
-			<map>
-				<entry key="journalname" value="journal" />
-			</map>
+			<list>
+				<value>journal</value>
+			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearchObject" />
 	</bean>
@@ -340,7 +343,9 @@
 	<bean name="authorsModifier"
 		class="org.dspace.submit.lookup.AuthorityLookupModifier">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
-		<property name="resourceTypeID" value="9" />
+		<property name="resourceTypeID">
+			<util:constant static-field="org.dspace.app.cris.model.CrisConstants.RP_TYPE_ID"></util:constant>
+		</property>
 		<property name="metadataInputConfiguration">
 			<map>
 				<entry key="authors" value="crisauthoritylookup" />
@@ -352,9 +357,9 @@
 			</map>
 		</property>
 		<property name="mappingAuthorityConfiguration">
-			<map>
-				<entry key="fullName" value="authors" />
-			</map>
+			<list>
+				<value>authors</value>
+			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearcherPage" />
 	</bean>
