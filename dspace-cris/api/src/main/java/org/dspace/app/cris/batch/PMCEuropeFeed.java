@@ -51,6 +51,7 @@ import org.dspace.app.cris.batch.dao.ImpRecordDAO;
 import org.dspace.app.cris.batch.dao.ImpRecordDAOFactory;
 import org.dspace.app.cris.batch.dto.DTOImpRecord;
 import org.dspace.app.util.XMLUtils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -124,7 +125,7 @@ public class PMCEuropeFeed
                     TransformationEngine.class);
 
     public static void main(String[] args)
-            throws SQLException, BadTransformationSpec, MalformedSourceException
+            throws SQLException, BadTransformationSpec, MalformedSourceException, AuthorizeException
     {
 
         String proxyHost = ConfigurationManager.getProperty("http.proxy.host");
@@ -140,12 +141,6 @@ public class PMCEuropeFeed
         if (!StringUtils.isNotBlank(endpoint))
         {
             endpoint = PMCEUROPE_ENDPOINT_SEARCH;
-        }
-        String queryFixedParam = ConfigurationManager.getProperty("pmceuropefeed",
-                "query.fixed-param");
-        if (!StringUtils.isNotBlank(queryFixedParam))
-        {
-            queryFixedParam = QUERY_FIXED_PARAM;
         }
 
         String queryParam = ConfigurationManager.getProperty("pmceuropefeed",
@@ -214,10 +209,24 @@ public class PMCEuropeFeed
             System.exit(1);
         }
 
-        EPerson eperson = EPerson.find(context,
-                Integer.parseInt(line.getOptionValue("p")));
-        context.setCurrentUser(eperson);
-
+        String person = line.getOptionValue("p");
+    	EPerson eperson = null;
+        if(StringUtils.isNumeric(person)){
+        	eperson = EPerson.find(context,
+                    Integer.parseInt(person));
+        	
+        }else {
+        	eperson = EPerson.findByEmail(context, person);
+        }
+        
+        
+        if(eperson != null){
+        	context.setCurrentUser(eperson);
+        }else{
+            formatter.printHelp(usage, "No user found", options, "");
+            System.exit(1);
+        }
+       
         int collection_id = Integer.parseInt(line.getOptionValue("c"));
 
         String startDate = "";
@@ -261,13 +270,6 @@ public class PMCEuropeFeed
             pagesize = QUERY_PAGESIZE;
         }
 
-        if (line.hasOption("z"))
-        {
-            query = ConfigurationManager.getProperty("pmceuropefeed",
-                    "query.param.scratch");
-        }
-
-        
         if (line.hasOption("m"))
         {
             pmidMetadata = line.getOptionValue("m");

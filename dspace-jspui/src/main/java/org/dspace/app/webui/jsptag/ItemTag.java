@@ -186,6 +186,9 @@ public class ItemTag extends TagSupport
     /** Whether to show preview thumbs on the item page */
     private boolean showThumbs;
 
+    /** Default DC fields to display, in absence of configuration */
+    private static String defaultFields = "dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.publisher.faculty, dc.description.sponsorship, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier";
+
     /** log4j logger */
     private static Logger log = Logger.getLogger(ItemTag.class);
 
@@ -201,7 +204,7 @@ public class ItemTag extends TagSupport
     {
         try
         {
-            if (style.equals("full"))
+            if (style!=null && style.equals("full"))
             {
                 renderFull();
             }

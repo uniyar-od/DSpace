@@ -42,7 +42,7 @@ public class DisplayItemMetadataUtils {
 	private static Logger log = Logger.getLogger(ItemTag.class);
 
 	/** Default DC fields to display, in absence of configuration */
-	private static String defaultFields = "dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier";
+	private static String defaultFields = "dc.title, dc.title.alternative, dc.contributor.*, dc.subject, dc.date.issued(date), dc.publisher.faculty, dc.description.sponsorship, dc.publisher, dc.identifier.citation, dc.relation.ispartofseries, dc.description.abstract, dc.description, dc.identifier.govdoc, dc.identifier.uri(link), dc.identifier.isbn, dc.identifier.issn, dc.identifier.ismn, dc.identifier";
 
 	private static StyleSelection styleSelection = (StyleSelection) PluginManager.getSinglePlugin(StyleSelection.class);
 
@@ -139,8 +139,8 @@ public class DisplayItemMetadataUtils {
 
 		String style = styleSelection.getStyleForItem(item);
 		String configLine = "";
-		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(style + ".iiif")) {
-			configLine = styleSelection.getConfigurationForStyle(style + ".iiif");
+		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(style + "." + postfix)) {
+			configLine = styleSelection.getConfigurationForStyle(style + "." + postfix);
 		} else {
 			configLine = styleSelection.getConfigurationForStyle(style);
 		}

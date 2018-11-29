@@ -256,13 +256,16 @@
     if (locbar)
     {
 %>
+<%-- breadcrumb auskommentiert; A:G., 11.05.2018 
 <div class="container">
 	<div class="row">
 		<div class="col-sm-12">
                 <dspace:include page="/layout/location-bar.jsp" />
         </div>        
     </div>
-</div>                
+</div>
+--%>
+                
 <%
     }
 %>

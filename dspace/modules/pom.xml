@@ -9,7 +9,7 @@
 	<parent>
 		<groupId>org.dspace</groupId>
 		<artifactId>dspace-parent</artifactId>
-		<version>CRIS-5.6.1</version>
+		<version>CRIS-5.6.2-SNAPSHOT</version>
 		<relativePath>../../pom.xml</relativePath>
 	</parent>
 
@@ -172,6 +172,74 @@
 			        </dependency>
             </dependencies>
         </profile>
-        
+
+        <profile>
+            <id>addon-iiif</id>
+            <activation>
+                <property>
+                    <name>iiif.on</name>
+                </property>
+            </activation>
+			<dependencies>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-iiif-api</artifactId>
+					<version>${iiif.addon.modules}</version>
+					<type>jar</type>
+				</dependency>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-iiif-jspui</artifactId>
+					<version>${iiif.addon.modules}</version>
+					<type>war</type>
+				</dependency>
+			</dependencies>		                    
+	    </profile>
+	
+		<profile>
+			<id>addon-ocr</id>
+            <activation>
+                <property>
+                    <name>ocr.on</name>
+                </property>
+            </activation>
+			<dependencies>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-ocr-api</artifactId>
+					<version>${ocr.addon.modules}</version>
+					<type>jar</type>
+				</dependency>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-annoiiif-api</artifactId>
+					<version>${annoiiif.addon.modules}</version>
+					<type>jar</type>
+				</dependency>
+			</dependencies>
+		</profile>
+	
+		<profile>
+			<id>addon-document-viewer</id>
+            <activation>
+                <property>
+                    <name>docviewer.on</name>
+                </property>
+            </activation>
+			<dependencies>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-docviewer-api</artifactId>
+					<version>${docviewer.addon.modules}</version>
+					<type>jar</type>
+				</dependency>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-annoiiif-api</artifactId>
+					<version>${annoiiif.addon.modules}</version>
+					<type>jar</type>
+				</dependency>
+			</dependencies>
+		</profile>                
     </profiles>
 </project>
