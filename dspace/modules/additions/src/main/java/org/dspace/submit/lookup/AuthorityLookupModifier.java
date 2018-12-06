@@ -14,6 +14,8 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 
+import com.sun.tools.internal.xjc.reader.gbind.Choice;
+
 import gr.ekt.bte.core.AbstractModifier;
 import gr.ekt.bte.core.MutableRecord;
 import gr.ekt.bte.core.Record;
@@ -72,7 +74,8 @@ public class AuthorityLookupModifier<T extends ACrisObject>
         try
         {
         	List<T> crisObjects = new ArrayList<T>();
-
+        	List<Integer> confidences = new ArrayList<Integer>();
+        	
             for (String mm : metadataInputConfiguration.keySet())
             {
             	// lookup for the cris object using the preferred field
@@ -96,9 +99,14 @@ public class AuthorityLookupModifier<T extends ACrisObject>
                                 query, true);
 
                         T cris = null;
-                        if (result.getTotalSearchResults() == 1)
+                        if (result.getTotalSearchResults() > 0)
                         {
                             cris = (T) result.getDspaceObjects().get(0);
+							confidences.add(
+									result.getTotalSearchResults() == 1 ? Choices.CF_UNCERTAIN : Choices.CF_AMBIGUOUS);
+                        }
+                        else {
+                        	confidences.add(Choices.CF_UNSET);
                         }
                         if (crisObjects.size() > pos) {
                         	crisObjects.set(pos, cris);
@@ -130,7 +138,7 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 							if (mappingAuthorityConfiguration.contains(bteField)) {
 								newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)
 										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + cris.getCrisID()
-										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + Choices.CF_ACCEPTED));
+										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + confidences.get(pos)));
 							} else {
 								newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)));
 							}
