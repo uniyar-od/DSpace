@@ -77,6 +77,7 @@ public class CollectionBuilder extends AbstractDSpaceObjectBuilder<Collection> {
         for (EPerson e : members) {
             groupService.addMember(context, g, e);
         }
+        groupService.update(context, g);
         return this;
     }
 
