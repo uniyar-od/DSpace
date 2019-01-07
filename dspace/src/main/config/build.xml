@@ -361,6 +361,8 @@ Common usage:
                 <include name="default.context.xml"/>
                 <!-- Filter RDF configs as these are TTL files -->
                 <include name="modules/rdf/*.ttl"/>
+                <!-- Filter authentication-oauth -->
+                <include name="modules/authentication-oauth.cfg" />
             </fileset>
             <fileset dir="solr">
             	<include name="search/conf/database.properties"/>

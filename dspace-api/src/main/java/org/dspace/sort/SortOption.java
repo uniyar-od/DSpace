@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * Class to mediate with the sort configuration
@@ -356,15 +358,12 @@ public class SortOption
         Set<SortOption> options = new HashSet<SortOption>();
         try
         {
-            String sortCfg = ConfigurationManager.getProperty("browse."
+            String[] sorts = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty("browse." 
                     + browseName + ".sort-options");
-            if (sortCfg != null)
+
+            for (String s: sorts)
             {
-                String[] sorts = sortCfg.split(",");
-                for (String s: sorts)
-                {
-                    options.add(SortOption.getSortOption(Integer.parseInt(s.trim())));
-                }
+                options.add(SortOption.getSortOption(Integer.parseInt(s.trim())));
             }
         }
         catch (NumberFormatException e)

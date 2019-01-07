@@ -50,12 +50,6 @@
 						 <version>${ckan.addon.modules}</version>
 						 <type>jar</type>
 			        </dependency>
-			        <dependency>
-			             <groupId>it.4science.dspace</groupId>
-						 <artifactId>addon-ckan-jspui</artifactId>
-						 <version>${ckan.addon.modules}</version>
-						 <type>war</type>
-			        </dependency>
             </dependencies>
         </profile>
 
