@@ -17,26 +17,29 @@ public final class PropertyDefintionI18NWrapper implements MethodInterceptor {
 	private String localeString = null;
 	private String simpleName = null;
 	private String shortName = null;
+	private int priority = 0;
 
-	public PropertyDefintionI18NWrapper(String simpleName, String shortName, String localeString) {
+	public PropertyDefintionI18NWrapper(String simpleName, String shortName, int priority, String localeString) {
 		this.locale = Locale.forLanguageTag(localeString);
+		//this.locale = I18nUtil.makeLocale(localeString);
 		this.localeString = localeString;
 		this.simpleName = simpleName;
 		this.shortName = shortName;
+		this.priority = priority;
 	}
 
 	@Override
 	public Object invoke(MethodInvocation invocation) throws Throwable {
 		if (locale != null) {
-			String name = invocation.getMethod().getName();
-			if (name.equals("getLabel")) {
+			if (invocation.getMethod().getName().equals("getLabel")) {
 				return getLabel(invocation);
-			} else if (name.equals("getReal")) {
+			} else if (invocation.getMethod().getName().equals("getReal")) {
 				return getWrapper((IPropertiesDefinition) invocation.proceed(), localeString);
-			} else if (name.equals("getMask")) {
+			} else if (invocation.getMethod().getName().equals("getMask")) {
 				return getMask(invocation);
+			} else if (invocation.getMethod().getName().equals("getPriority")) {
+				return priority;
 			}
-			
 		}
 		return invocation.proceed();
 	}
@@ -62,7 +65,7 @@ public final class PropertyDefintionI18NWrapper implements MethodInterceptor {
         AspectJProxyFactory pf = new AspectJProxyFactory(pd);
         pf.setProxyTargetClass(true);
         pf.addAdvice(
-                new PropertyDefintionI18NWrapper(pd.getAnagraficaHolderClass().getSimpleName(), pd.getShortName(), locale));
+                new PropertyDefintionI18NWrapper(pd.getAnagraficaHolderClass().getSimpleName(), pd.getShortName(), pd.getPriority(), locale));
         return pf.getProxy();
     }	
 	
