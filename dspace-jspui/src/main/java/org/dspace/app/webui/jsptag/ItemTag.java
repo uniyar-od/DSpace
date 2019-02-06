@@ -24,6 +24,7 @@ import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 import javax.servlet.jsp.tagext.TagSupport;
 
 import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.IViewer;
 import org.dspace.app.util.factory.UtilServiceFactory;
@@ -709,7 +710,13 @@ public class ItemTag extends TagSupport
             		for (Bundle bundle : bundles)
             		{
             			List<Bitstream> bitstreams = bundle.getBitstreams();
-
+            			Bitstream primaryBit = bundle.getPrimaryBitstream();
+            			if(primaryBit != null ) {
+            				if (primaryBit != null && hideNotPrimaryBitstreams(request, pageContext, handle, primaryBit)) {
+                				bitstreams.clear();
+                				bitstreams.add(primaryBit);
+                			}
+            			}
             			for (Bitstream b : bitstreams)
             			{
             				// Skip internal types
@@ -979,6 +986,17 @@ public class ItemTag extends TagSupport
         out.println("</td></tr></table>");
     }
 
+    public static boolean hideNotPrimaryBitstreams(HttpServletRequest request, PageContext pageContext,
+			String handle, Bitstream bit) throws UnsupportedEncodingException {
+
+    	List<String> hideNotPrimary = bit.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
+    	for (String h : hideNotPrimary) {
+    		if (BooleanUtils.toBoolean(h)) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }    
     public static class ViewOption {
     	String label;
     	String link;
