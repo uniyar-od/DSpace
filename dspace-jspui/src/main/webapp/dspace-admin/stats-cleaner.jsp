@@ -43,7 +43,8 @@
 <% } %>
 <div class="col-md-4">
   <h3><fmt:message key="jsp.dspace-admin.stats-cleaner.useragent"/></h3>
-<% for (Term t : terms) { %>
+<%if(terms!= null){ 
+for (Term t : terms) { %>
  <form action="" method="post">
  	<div class="form-group">
 	 <div class="container alert alert-info"> 
@@ -55,11 +56,12 @@
 	</div>
 	</div>
 </form>
-<% } %>
+<% }} %>
 </div>
 <div class="col-md-4">
 <h3><fmt:message key="jsp.dspace-admin.stats-cleaner.dns"/></h3>
-<% for (Term t : dnsTerms) { %>
+<% if(dnsTerms!= null){ 
+for (Term t : dnsTerms) { %>
 <form action="" method="post">
  	<div class="form-group">
 	 <div class="container alert alert-info"> 
@@ -71,11 +73,12 @@
 	</div>
 	</div>
 </form>
-<% } %>
+<% } }%>
 </div>
 <div class="col-md-4">
 <h3><fmt:message key="jsp.dspace-admin.stats-cleaner.domaindns"/></h3>
-<% for (Term t : domainDnsTerms) { %>
+<% if(domainDnsTerms!= null){ 
+for (Term t : domainDnsTerms) { %>
 <form action="" method="post">
  	<div class="form-group">
 	 <div class="container alert alert-info"> 
@@ -87,6 +90,6 @@
 	</div>
 	</div>
 </form>
-<% } %>
+<% } }%>
 </div>
 </dspace:layout>
