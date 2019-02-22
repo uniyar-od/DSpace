@@ -109,8 +109,9 @@ public class DynamicObjectDetailsController
             model.put("isLoggedIn", new Boolean(false));
         }
         
+        boolean isAdmin = CrisAuthorizeManager.isAdmin(context,dyn);
         if ((dyn.getStatus() == null || dyn.getStatus().booleanValue() == false)
-                && !AuthorizeManager.isAdmin(context))
+                && !isAdmin)
         {
             
             if (currUser != null
@@ -132,7 +133,7 @@ public class DynamicObjectDetailsController
             return null;
         }
 
-        if (AuthorizeManager.isAdmin(context))
+        if (isAdmin)
         {
             model.put("do_page_menu", new Boolean(true));
         }
@@ -192,6 +193,7 @@ public class DynamicObjectDetailsController
                         dyn));
         
         mvc.getModel().putAll(model);
+        mvc.getModel().put("isAdmin", isAdmin);
         mvc.getModel().put("entity", dyn);
         return mvc;
     }

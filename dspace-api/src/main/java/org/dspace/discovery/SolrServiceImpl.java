@@ -75,6 +75,7 @@ import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.ItemIterator;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Metadatum;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
@@ -899,7 +900,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         SolrServiceIndexPlugin.class);
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(context, community, doc);
+            solrServiceIndexPlugin.additionalIndex(context, community, doc, null);
         }
 
         writeDocument(doc, null);
@@ -955,7 +956,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         List<SolrServiceIndexPlugin> solrServiceIndexPlugins = new DSpace().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(context, collection, doc);
+            solrServiceIndexPlugin.additionalIndex(context, collection, doc, null);
         }
 
         writeDocument(doc, null);
@@ -1011,15 +1012,18 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         doc.addField("withdrawn", item.isWithdrawn());
         doc.addField("discoverable", item.isDiscoverable());
-
+        doc.addField("lastModified", item.getLastModified());
+        
         //Keep a list of our sort values which we added, sort values can only be added once
         List<String> sortFieldsAdded = new ArrayList<String>();
+        Map<String, List<DiscoverySearchFilter>> searchFilters = null;
+        
         Set<String> hitHighlightingFields = new HashSet<String>();
         try {
             List<DiscoveryConfiguration> discoveryConfigurations = SearchUtils.getAllDiscoveryConfigurations(item);
 
             //A map used to save each sidebarFacet config by the metadata fields
-            Map<String, List<DiscoverySearchFilter>> searchFilters = new HashMap<String, List<DiscoverySearchFilter>>();
+            searchFilters = new HashMap<String, List<DiscoverySearchFilter>>();
             Map<String, DiscoverySortFieldConfiguration> sortFields = new HashMap<String, DiscoverySortFieldConfiguration>();
             Map<String, DiscoveryRecentSubmissionsConfiguration> recentSubmissionsConfigurationMap = new HashMap<String, DiscoveryRecentSubmissionsConfiguration>();
             Set<String> moreLikeThisFields = new HashSet<String>();
@@ -1102,7 +1106,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
                 String value = meta.value;
 
-                if (value == null)
+                if (value == null || StringUtils.equals(value, MetadataValue.PARENT_PLACEHOLDER_VALUE))
                 {
                     continue;
                 }
@@ -1550,7 +1554,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         List<SolrServiceIndexPlugin> solrServiceIndexPlugins = new DSpace().getServiceManager().getServicesByType(SolrServiceIndexPlugin.class);
         for (SolrServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(context, item, doc);
+            solrServiceIndexPlugin.additionalIndex(context, item, doc, searchFilters);
         }
 
         // write the index and close the inputstreamreaders
@@ -1752,10 +1756,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     {
         SolrQuery solrQuery = new SolrQuery();
 
-        if (discoveryQuery.getSearchFields() != null)
-        for (String f : discoveryQuery.getSearchFields()) {
-        	solrQuery.addField(f);
-        }
         String query = "*:*";
         if(discoveryQuery.getQuery() != null)
         {
@@ -1766,9 +1766,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         // Add any search fields to our query. This is the limited list
         // of fields that will be returned in the solr result
-        for(String fieldName : discoveryQuery.getSearchFields())
-        {
-            solrQuery.addField(fieldName);
+        if (discoveryQuery.getSearchFields() != null) {
+            for(String fieldName : discoveryQuery.getSearchFields())
+            {
+                solrQuery.addField(fieldName);
+            }
         }
         // Also ensure a few key obj identifier fields are returned with every query
         solrQuery.addField(HANDLE_FIELD);
@@ -2469,6 +2471,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     	{
             return null;
     	}
+        if(field.equals("location.comm") || field.equals("location.coll"))
+        {
+        	return value;
+        }
     	if (field.endsWith("_filter") || field.endsWith("_ac")
                 || field.endsWith("_acid"))
         {

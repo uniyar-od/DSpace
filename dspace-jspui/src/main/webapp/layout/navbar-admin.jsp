@@ -53,6 +53,8 @@
         navbarEmail = user.getEmail();
     }
 
+	boolean statsCleanerEnabled = ConfigurationManager.getBooleanProperty("usage-statistics","webui.statistics.showCleaner");
+    
 %>
 
        <div class="navbar-header">
@@ -84,7 +86,10 @@
                <li><a href="<%= request.getContextPath() %>/dspace-admin/authority"><fmt:message key="jsp.layout.navbar-admin.authority"/></a></li>
                <% if(mintDoiToolEnabled) { %>
                		<li><a href="<%= request.getContextPath() %>/dspace-admin/doi"><fmt:message key="jsp.layout.navbar-admin.doi"/></a></li>			
-               <% } %>              
+               <% }
+				if(statsCleanerEnabled){ %>
+					<li><a href="<%= request.getContextPath() %>/dspace-admin/stats-cleaner"><fmt:message key="jsp.layout.navbar-admin.stats-cleaner"/></a></li>					
+				<%} %>
             </ul>
           </li>
        <%
@@ -101,7 +106,14 @@
                <li><a href="<%= request.getContextPath() %>/tools/authorize"><fmt:message key="jsp.layout.navbar-admin.authorization"/></a></li>
             </ul>
           </li>
-          <li><a href="<%= request.getContextPath() %>/cris/stats/site.html?handle=<%=handlePrefix%>/0"><fmt:message key="jsp.layout.navbar-admin.statistics"/></a></li>
+          <li class="dropdown">
+          			<a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.statistics"/> <b class="caret"></b></a>
+          			<ul class="dropdown-menu">
+          				<li><a href="<%= request.getContextPath() %>/cris/stats/site.html?handle=<%=handlePrefix%>/0"><fmt:message key="jsp.layout.navbar-admin.sitestatistics"/></a></li>
+          				<li><a href="<%= request.getContextPath() %>/loginstats"><fmt:message key="jsp.layout.navbar-admin.loginstatistics"/></a></li>
+          				<li><a href="<%= request.getContextPath() %>/workflowstats"><fmt:message key="jsp.layout.navbar-admin.workflowstatistics"/></a></li>
+          			</ul>
+			</li>		          			
 		  <li class="dropdown">
              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.settings"/> <b class="caret"></b></a>
              <ul class="dropdown-menu">

@@ -113,7 +113,9 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
     {
         ACrisObject cris = getCrisObject(request);
         // Get the query from the box name
-        String type = getType(request, cris.getId());
+        String opentype = getType(request, cris.getId());
+        String relationName = this.getShortName();        
+        String type = getTypes().containsKey(opentype)?opentype:relationName;
         List<String[]> activeTypes = addActiveTypeInRequest(request, type);
 
         int start = 0;
@@ -311,9 +313,15 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         String uuid = cris.getUuid();
         String query = MessageFormat.format(getRelationConfiguration()
                 .getQuery(), authority, uuid);
+        
         List<String> filters = getFilters(type);
 
         DiscoverQuery discoveryQuery = new DiscoverQuery();
+        if(getCommonFilter()!=null) {            
+            String format = MessageFormat.format(getCommonFilter(), getRelationConfiguration().getRelationName(),
+                    cris.getUuid(), authority);
+            discoveryQuery.addFilterQueries(format);
+        }
         try
         {
             discoveryQuery.addFilterQueries("NOT(withdrawn:true)",
@@ -687,7 +695,9 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         int rpp = UIUtil.getIntParameter(request, "rpp" + type);
         if (rpp == -1)
         {
-            rpp = getTypes().get(type).getRpp();
+            if(getTypes()!=null && getTypes().containsKey(type)) {
+                rpp = getTypes().get(type).getRpp();
+            }
         }
         return rpp;
     }

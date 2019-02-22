@@ -7,74 +7,36 @@
  */
 package org.dspace.app.cris.statistics;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.Properties;
-import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.app.cris.statistics.util.StatsConfig;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.statistics.SolrLogger;
 import org.dspace.statistics.StatisticsMetadataGenerator;
-import org.dspace.utils.DSpace;
+import org.dspace.statistics.util.LocationUtils;
 
-import com.maxmind.geoip.Location;
-import com.maxmind.geoip.LookupService;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
+
 
 public class GeoRefAdditionalStatisticsData implements
         StatisticsMetadataGenerator
 {
-    private LookupService locationService;
+	private DatabaseReader locationService;
 
     private static Logger log = Logger
             .getLogger(GeoRefAdditionalStatisticsData.class);
-
-    private Properties countries2Continent = null;
-
-    public Properties getCountries2Continent()
-    {
-
-        if (countries2Continent == null)
-        {
-            countries2Continent = new Properties();
-            FileInputStream fcc = null;
-            // FileInputStream fcn = null;
-            try
-            {
-                fcc = new FileInputStream(ConfigurationManager
-                        .getProperty("dspace.dir")
-                        + "/config/countries2continent.properties");
-                countries2Continent.load(fcc);
-            }
-            catch (Exception notfound)
-            {
-                throw new IllegalArgumentException(
-                        "Failed to load configuration file for GeoRefAdditionalStatisticsData",
-                        notfound);
-            }
-            finally
-            {
-                if (fcc != null)
-                {
-                    try
-                    {
-                        fcc.close();
-                    }
-                    catch (IOException ioe)
-                    {
-                        log.error(ioe.getMessage(), ioe);
-                    }
-                }
-            }
-        }
-        return countries2Continent;
-    }
 
     @Override
     public void addMetadata(SolrInputDocument doc1, HttpServletRequest request,
@@ -106,42 +68,54 @@ public class GeoRefAdditionalStatisticsData implements
         }
 
         String dnsValue = (String) doc1.getFieldValue("dns");
-        if (dnsValue != null && dnsValue != doc1.getFieldValue("ip"))
-        {
-
-            int lastIndexOf = dnsValue.lastIndexOf(".");
-            if (lastIndexOf != -1)
-            {
-                doc1.addField("topdomain", dnsValue.substring(lastIndexOf));
-            }
+        if (StringUtils.isNotBlank(dnsValue )){
+        	int firstIndexof =  dnsValue.indexOf(".");
+        	if(firstIndexof != -1){
+        		doc1.addField("domaindns", dnsValue.substring(firstIndexof));
+        	}
+        	
+        	if( dnsValue != doc1.getFieldValue("ip")){
+        		int lastIndexOf = dnsValue.lastIndexOf(".");
+        		if (lastIndexOf != -1)
+        		{
+        			doc1.addField("topdomain", dnsValue.substring(lastIndexOf));
+        		}
+       		}
         }
 
-        Location location = getLocationService().getLocation(ip);
-        if (location != null
-                && !("--".equals(location.countryCode)
-                        && location.latitude == -180 && location.longitude == -180))
-        {
+        try {
+            InetAddress ipAddress = InetAddress.getByName(ip);
+            CityResponse location = getLocationService().city(ipAddress);
+            String countryCode = location.getCountry().getIsoCode();
+            double latitude = location.getLocation().getLatitude();
+            double longitude = location.getLocation().getLongitude();
+            if (!(
+                    "--".equals(countryCode)
+                    && latitude == -180
+                    && longitude == -180)
+            ) {
 
-            doc1.addField("countryCode", location.countryCode);
-            doc1.addField("city", location.city);
-            doc1.addField("latitude", location.latitude);
-            doc1.addField("longitude", location.longitude);
-            doc1.addField("location", location.latitude + ","
-                    + location.longitude);
-            if (location.countryCode != null)
-            {
-                String continentCode = getCountries2Continent()
-                        .getProperty(location.countryCode);
-                if (continentCode == null)
+                doc1.addField("countryCode", countryCode);
+                doc1.addField("city", location.getCity().getName());
+                doc1.addField("latitude", latitude);
+                doc1.addField("longitude", longitude);
+                doc1.addField("location", latitude + ","
+                        + longitude);
+                if (countryCode != null)
                 {
-                    continentCode = getCountries2Continent().getProperty("default");
-                }
-                if (continentCode != null)
-                {
-                    doc1.addField("continent", continentCode);
+                    try {
+                        doc1.addField("continent", LocationUtils
+                            .getContinentCode(countryCode));
+                    } catch (Exception e) {
+                        System.out
+                            .println("COUNTRY ERROR: " + countryCode);
+                    }
                 }
             }
+        } catch (IOException | GeoIp2Exception e) {
+            log.error("Unable to get location of request:  {}", e);
         }
+    
     }
 
     private static long getRandomNumberInRange(long min, long max)
@@ -149,31 +123,38 @@ public class GeoRefAdditionalStatisticsData implements
         return min + (long) (Math.random() * ((max - min) + 1));
     }
 
-    public LookupService getLocationService()
+    public DatabaseReader getLocationService()
     {
 
         if (locationService == null)
         {
-            LookupService service = null;
+        	
+            DatabaseReader service = null;
             // Get the db file for the location
-            String dbfile = ConfigurationManager.getProperty(
+            String dbPath = ConfigurationManager.getProperty(
                     SolrLogger.CFG_USAGE_MODULE, "dbfile");
-            if (dbfile != null)
-            {
-                try
-                {
-                    service = new LookupService(dbfile,
-                            LookupService.GEOIP_STANDARD);
-                }
-                catch (IOException e)
-                {
-                    log.error(e.getMessage(), e);
+            if (dbPath != null) {
+                try {
+                    File dbFile = new File(dbPath);
+                    service = new DatabaseReader.Builder(dbFile).build();
+                } catch (FileNotFoundException fe) {
+                    log.error(
+                        "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
+                            "based reports! Please see the DSpace installation instructions for instructions to install " +
+                            "this file.",
+                        fe);
+                } catch (IOException e) {
+                    log.error(
+                        "Unable to load GeoLite Database file (" + dbPath + ")! You may need to reinstall it. See the " +
+                            "DSpace installation instructions for more details.",
+                        e);
                 }
             }
             else
             {
-                log.error("solr.dbfile: " + dbfile + " not found!");
+                log.error("The required 'dbfile' configuration is missing in solr-statistics.cfg!");
             }
+        	        	
             locationService = service;
         }
         return locationService;

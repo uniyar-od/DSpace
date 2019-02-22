@@ -42,8 +42,6 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
     private String field = "author_authority";
 
-    private String queryDefault = "*:*";
-
     private Class<ACO> crisEntityClazz;
 
     private Integer crisEntityTypeId;
@@ -53,7 +51,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
     @Override
     public void buildIndicator(Context context,
             ApplicationService applicationService, CrisSolrLogger statsService,
-            CrisSearchService searchService, String level)
+            CrisSearchService searchService, String filter)
             throws SearchServiceException
     {
         ServiceManager serviceManager = new DSpace().getServiceManager();
@@ -68,9 +66,9 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
             if (crisEntityTypeId > 1000)
             {
+                Integer placeholderTypoID = CrisConstants.CRIS_DYNAMIC_TYPE_ID_START;
                 rs = (List<ACO>) applicationService
-                        .getResearchObjectByShortNameType(CrisConstants
-                                .getEntityTypeText(crisEntityTypeId));
+                        .getResearchObjectByIDType(crisEntityTypeId - placeholderTypoID);
             }
             else
             {
@@ -79,12 +77,12 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
             for (ACO rp : rs)
             {
-                work(context, applicationService, searchService, pService, rp);
+                work(context, applicationService, searchService, pService, rp, filter);
             }
         }
         else // work direct with the solr query
         {
-            work(context, applicationService, searchService, pService, null);
+            work(context, applicationService, searchService, pService, null, filter);
         }
         
         if(isRenewMetricsCache()) {
@@ -94,7 +92,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
     private void work(Context context, ApplicationService applicationService,
             CrisSearchService searchService, MetricsPersistenceService pService,
-            ACO rp) throws SearchServiceException
+            ACO rp, String filter) throws SearchServiceException
     {
         // prepare structure to store each computed value from indicator
         // alghoritm
@@ -104,7 +102,13 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
         Map<String, List<Double>> mapElementsValueComputed = new HashMap<String, List<Double>>();
 
         SolrQuery query = new SolrQuery();
-        query.setQuery(queryDefault);
+        query.setQuery(getQueryDefault());
+        if(StringUtils.isNotBlank(filter)) {
+            query.addFilterQuery(filter);
+        }
+        else if(StringUtils.isNotBlank(getFilterDefault())) {
+            query.addFilterQuery(getFilterDefault());    
+        }
         if (rp != null)
         {
             query.addFilterQuery("{!field f=" + field + "}" + rp.getCrisID(),
@@ -158,7 +162,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
             if (resourceId != null)
             {
-                for (IIndicatorBuilder indicator : indicators)
+                for (IIndicatorBuilder<ACO> indicator : indicators)
                 {
 
                     try
@@ -205,7 +209,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
             Map<String, List<Double>> mapElementsValueComputed,
             Integer resourceType, Integer resourceId, String uuid)
     {
-        for (IIndicatorBuilder indicator : indicators)
+        for (IIndicatorBuilder<ACO> indicator : indicators)
         {
 
             if (mapAdditionalValueComputed.containsKey(indicator.getName()))
@@ -235,11 +239,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
                 }
                 if (mapElementsValueComputed.containsKey(indicator.getName()))
                 {
-                    List<Double> elementsValueComputed = mapElementsValueComputed
-                            .containsKey(this.getName())
-                                    ? mapElementsValueComputed
-                                            .get(this.getName())
-                                    : new ArrayList<Double>();
+                    List<Double> elementsValueComputed = mapElementsValueComputed.get(indicator.getName());
 
                     Double max = Collections.max(elementsValueComputed);
                     Double min = Collections.min(elementsValueComputed);
@@ -278,11 +278,6 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
         }
     }
 
-    public void setQueryDefault(String queryDefault)
-    {
-        this.queryDefault = queryDefault;
-    }
-
     public String getField()
     {
         return field;
@@ -291,11 +286,6 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
     public void setField(String field)
     {
         this.field = field;
-    }
-
-    public String getQueryDefault()
-    {
-        return queryDefault;
     }
 
     public Class<ACO> getCrisEntityClazz()

@@ -15,6 +15,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authenticate.PostLoggedInAction;
@@ -30,7 +31,7 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
 	Logger log = Logger.getLogger(ResearcherLoggedInActionEmail.class);
     private ApplicationService applicationService;
     private static SearchService searcher;
-    private String netidSourceRef;
+    private String typeSourceRef;
 
     @Override
     public void loggedIn(Context context, HttpServletRequest request,
@@ -43,8 +44,9 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
             ResearcherPage rp = applicationService.getResearcherPageByEPersonId(eperson.getID());
             
             if(rp==null) {
-            	if(eperson.getNetid()!=null && 
-            			(rp = applicationService.getEntityBySourceId(netidSourceRef,eperson.getNetid(), ResearcherPage.class))!=null){
+                String key = typeSourceRef.equals("netid")?eperson.getNetid():eperson.getMetadata(typeSourceRef);
+            	if(StringUtils.isNotBlank(key) && 
+            			(rp = applicationService.getEntityBySourceId(typeSourceRef, key, ResearcherPage.class))!=null){
 	                if(rp.getEpersonID()!=null) {
 	                    if (rp.getEpersonID() != eperson.getID())
 	                    {
@@ -64,15 +66,15 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
                     searcher = serviceManager.getServiceByName(
                             SearchService.class.getName(), SearchService.class);
                     SolrQuery query = new SolrQuery();
-                    query.setQuery("search.resourcetype:9");
+                    query.setQuery("search.resourcetype:" + CrisConstants.RP_TYPE_ID);
                     String orcid = (String) request.getAttribute("orcid");
                     String filterQuery = "";
                     if(StringUtils.isNotBlank(eperson.getEmail())){
-                    	filterQuery= "crisrp.email:\""+eperson.getEmail()+"\"";
+                    	filterQuery= "crisrp.email:\""+eperson.getEmail()+"\"" + " OR crisrp.email_private:\""+eperson.getEmail()+"\"";
                     }
                     
                     if(StringUtils.isNotBlank(orcid)){
-                    	filterQuery += (StringUtils.isNotBlank(filterQuery)?" OR ":"")+"crisrp.orcid:\""+orcid+"\"";
+                    	filterQuery += (StringUtils.isNotBlank(filterQuery)?" OR ":"")+"crisrp.orcid:\""+orcid+"\" OR crisrp.orcid_private:\""+orcid+"\"";
                     }
                     query.addFilterQuery(filterQuery);
                     QueryResponse qResp = searcher.search(query);
@@ -117,12 +119,12 @@ public class ResearcherLoggedInActionEmail implements PostLoggedInAction
         this.applicationService = applicationService;
     }
 
-	public String getNetidSourceRef() {
-		return netidSourceRef;
+	public String getTypeSourceRef() {
+		return typeSourceRef;
 	}
 
-	public void setNetidSourceRef(String netidSourceRef) {
-		this.netidSourceRef = netidSourceRef;
+	public void setTypeSourceRef(String netidSourceRef) {
+		this.typeSourceRef = netidSourceRef;
 	}
 
 }

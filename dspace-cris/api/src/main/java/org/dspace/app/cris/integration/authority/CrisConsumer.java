@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -22,9 +23,9 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.integration.DOAuthority;
-import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.service.ApplicationService;
@@ -32,6 +33,7 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authority.AuthorityValueGenerator;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Metadatum;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.ChoiceAuthorityManager;
@@ -117,6 +119,10 @@ public class CrisConsumer implements Consumer
                         for (Metadatum dcval : Metadatums)
                         {
                             dcval.setPlace(idx);
+                            if(StringUtils.equals(dcval.value, MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+                            	idx++;
+                            	continue;
+                            }
                             String authority = dcval.authority;
                             if (StringUtils.isNotBlank(authority))
                             {
@@ -166,8 +172,24 @@ public class CrisConsumer implements Consumer
                                                 "import.submission");
                                 if (activateImportInSubmission)
                                 {
-                                    String valueHashed = HashUtil
-                                            .hashMD5(dcval.value);
+                                    String valueHashed = "";
+
+                                    boolean buildFromUUID = ConfigurationManager
+                                            .getBooleanProperty("cris",
+                                                    "import.submission.strategy.uuid."
+                                                            + metadata,
+                                                    false);
+                                    if (buildFromUUID)
+                                    {
+                                        valueHashed = UUID.randomUUID()
+                                                .toString();
+                                    }
+                                    else
+                                    {
+                                        valueHashed = HashUtil
+                                                .hashMD5(dcval.value);
+                                    }
+                                        
                                     List<Metadatum> list = new ArrayList<Metadatum>();
                                     if (toBuild.containsKey(valueHashed))
                                     {
@@ -246,7 +268,18 @@ public class CrisConsumer implements Consumer
                         }
                         else
                         {
-                            String filterQuery = "cris" + rp.getPublicPath()
+                            String prefix = "";
+                            if (choiceAuthorityObject instanceof DOAuthority)
+                            {
+                                prefix = ConfigurationManager.getProperty("cris",
+                                        "DOAuthority."
+                                                + toBuildMetadata.get(authorityKey)
+                                                + ".new-instances");
+                            }
+                            else {
+                            	prefix = rp.getPublicPath();
+                            }
+                            String filterQuery = "cris" + prefix
                                     + "." + typeAuthority.toLowerCase() + ":\""
                                     + authorityKey + "\"";
                             query.addFilterQuery(filterQuery);
@@ -255,7 +288,7 @@ public class CrisConsumer implements Consumer
 
                     QueryResponse qResp = searcher.search(query);
                     SolrDocumentList docList = qResp.getResults();
-                    if (docList.size() > 1)
+                    if (docList.size() > 0)
                     {
                         SolrDocument doc = docList.get(0);
                         rpKey = (String) doc.getFirstValue("cris"
@@ -346,7 +379,18 @@ public class CrisConsumer implements Consumer
                 {
                     Metadatum newValue = Metadatum.copy();
                     newValue.authority = toBuildAuthority.get(orcid);
-                    newValue.confidence = Choices.CF_ACCEPTED;
+                    boolean bindvalue = false;
+                    int confidence = Metadatum.confidence;
+                    if(confidence != Choices.CF_UNSET) {                    	
+                    	//if binditemtorp script then Choices.CF_AMBIGUOUS, Choices.CF_UNCERTAIN, Choices.CF_NOTFOUND or has CF_REJECTED
+                    	if(confidence==Choices.CF_AMBIGUOUS || confidence==Choices.CF_UNCERTAIN || confidence==Choices.CF_NOTFOUND || confidence==Choices.CF_REJECTED) {
+                    		newValue.confidence = confidence;
+                    		bindvalue = true;
+                    	}
+                    }
+                    if(!bindvalue) {
+                    	newValue.confidence = Choices.CF_ACCEPTED;
+                    }
                     newValue.setPlace(Metadatum.getPlace());
                     item.replaceMetadataValue(Metadatum, newValue);
                 }

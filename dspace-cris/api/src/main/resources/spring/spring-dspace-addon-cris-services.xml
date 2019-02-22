@@ -311,13 +311,15 @@
 						<ref local="CRISIDListener" />
 						<ref local="crisIndexerListener" />
 						<ref local="nestedIndexerListener" />
-						<ref local="ORCIDListener" />								
+						<ref local="ORCIDListener" />
+						<ref local="rpAutoSubscriberListener" />								
 					</list>
 				</property>
 				<property name="listenerOnPostDelete">
 					<list>
 						<ref local="crisIndexerListener" />
-						<ref local="nestedIndexerListener" />		
+						<ref local="nestedIndexerListener" />
+						<ref local="ORCIDListener" />		
 					</list>
 				</property>
 				<property name="listenerOnPreInsert">
@@ -1644,7 +1646,7 @@
 				</entry>				
 				<entry key="post-delete">
 					<list>
-						<ref local="rpResourcePolicyListener" />						
+						<ref local="rpResourcePolicyListener" />
 					</list>
 				</entry>				
 			</map>
@@ -1680,6 +1682,8 @@
 	</bean>
 	
 	<bean id="nestedPositionListener" class="org.dspace.app.cris.model.listener.NestedPositionListener"/>
+	
+	<bean id="rpAutoSubscriberListener" class="org.dspace.app.cris.model.listener.RPOwnerAutoSubscribeListener"/>
 
 	<bean id="visualNetworkSolrService" class="org.dspace.app.cris.network.VisualizationGraphSolrService">
 		<property name="searcher" ref="org.dspace.discovery.SearchService" />

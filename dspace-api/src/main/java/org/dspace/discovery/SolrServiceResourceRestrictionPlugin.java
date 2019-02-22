@@ -16,11 +16,13 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -36,7 +38,7 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
     private static final Logger log = Logger.getLogger(SolrServiceResourceRestrictionPlugin.class);
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
         try {
             List<ResourcePolicy> policies = AuthorizeManager.getPoliciesActionFilter(context, dso, Constants.READ);
             for (ResourcePolicy resourcePolicy : policies) {
@@ -59,9 +61,9 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
 
     @Override
     public void additionalSearchParameters(Context context, DiscoverQuery discoveryQuery, SolrQuery solrQuery) {
-    	try {
-    	    if(context != null && !AuthorizeManager.isAdmin(context)){
-            	StringBuilder resourceQuery = new StringBuilder();
+        try {
+            if(context != null && !AuthorizeManager.isAdmin(context)){
+                StringBuilder resourceQuery = new StringBuilder();
                 //Always add the anonymous group id to the query
                 resourceQuery.append("read:(g0");
                 EPerson currentUser = context.getCurrentUser();

@@ -31,6 +31,7 @@
 <%@ page import="org.dspace.app.util.DCInputsReader" %>
 <%@ page import="org.dspace.app.util.SubmissionInfo" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 
 
 <%
@@ -47,6 +48,10 @@
 
     // Determine whether a file is REQUIRED to be uploaded (default to true)
     boolean fileRequired = ConfigurationManager.getBooleanProperty("webui.submit.upload.required", true);
+   
+    if(StringUtils.isNotBlank(ConfigurationManager.getProperty("webui.submit.upload.required."+subInfo.getCollectionHandle())) ){
+    	fileRequired = ConfigurationManager.getBooleanProperty("webui.submit.upload.required."+subInfo.getCollectionHandle());
+    }
     boolean ajaxProgress = ConfigurationManager.getBooleanProperty("webui.submit.upload.ajax", true);
     boolean html5Upload = ConfigurationManager.getBooleanProperty("webui.submit.upload.html5", true);
 
@@ -343,8 +348,22 @@
         </form>
         <iframe id="uploadFormIFrame" name="uploadFormIFrame" style="display: none"> </iframe>
     <% } %>
-    
-    <form id="uploadForm" <%= bSherpa?"class=\"sherpa col-md-8\"":"" %> method="post" 
+    <% if (bSherpa) { %>
+        <div class="col-md-3">
+            <div id="sherpaBox" class="panel panel-info">
+                <div class="panel-heading">
+                    <span id="ui-id-1"><fmt:message key="jsp.sherpa.title" /></span>
+                </div>
+                <div id="sherpaContent" class="panel-body">
+                    <fmt:message key="jsp.sherpa.loading">
+                          <fmt:param value="<%=request.getContextPath()%>" />
+                    </fmt:message>  
+                </div>
+            </div>
+        </div>
+    <% } %>    
+	<div class="col-md-<%= bSherpa?"9":"12" %>">    
+    <form id="uploadForm" <%= bSherpa?"class=\"sherpa\"":"" %> method="post" 
     	action="<%= request.getContextPath() %>/submit" enctype="multipart/form-data" 
     	onkeydown="return disableEnterKey(event);">
 
@@ -607,20 +626,7 @@
                     %>   
                         <input class="btn btn-primary col-md-<%= 12 / (col + 2) %>" type="submit" name="<%=UploadStep.SUBMIT_UPLOAD_BUTTON%>" value="<fmt:message key="jsp.submit.general.next"/>" />
             </div> 
-        </div>
     </form>
-    <% if (bSherpa) { %>
-        <div class="col-md-4">
-            <div id="sherpaBox" class="panel panel-info">
-                <div class="panel-heading">
-                    <span id="ui-id-1"><fmt:message key="jsp.sherpa.title" /></span>
-                </div>
-                <div id="sherpaContent" class="panel-body">
-                    <fmt:message key="jsp.sherpa.loading">
-                          <fmt:param value="<%=request.getContextPath()%>" />
-                    </fmt:message>  
-                </div>
-            </div>
-        </div>
-    <% } %>
+    </div>
+
 </dspace:layout>

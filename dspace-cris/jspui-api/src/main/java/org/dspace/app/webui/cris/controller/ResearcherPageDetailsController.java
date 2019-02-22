@@ -128,15 +128,58 @@ public class ResearcherPageDetailsController
 
         Context context = UIUtil.obtainContext(request);
         EPerson currUser = context.getCurrentUser();
+        
+        model.put("selfClaimRP", new Boolean(false));
+        model.put("publicationSelfClaimRP", new Boolean(false));
         if(currUser != null) {
-            model.put("isLoggedIn", new Boolean(true));    
+            model.put("isLoggedIn", new Boolean(true));
+            ResearcherPage rp = ((ApplicationService) applicationService).getResearcherPageByEPersonId(currUser.getID());
+        	model.put("userID", currUser.getID());
+            if(rp!=null){
+            	model.put("userHasRP", new Boolean(true));
+
+            }else
+            {
+            	model.put("userHasRP", new Boolean(false));
+                String nameGroupSelfClaim = ConfigurationManager.getProperty("cris",
+                        "rp.claim.group.name");
+                if (StringUtils.isNotBlank(nameGroupSelfClaim))
+                {
+                    Group selfClaimGroup = Group.findByName(context,
+                            nameGroupSelfClaim);
+                    if (selfClaimGroup != null)
+                    {
+                        if (Group.isMember(context, selfClaimGroup.getID()))
+                        {
+                            model.put("selfClaimRP", new Boolean(true));
+                        }
+                    }
+                }
+            }
+            
+            
+            String nameGroupPublicationSelfClaim = ConfigurationManager.getProperty("cris",
+                    "publication.claim.group.name");
+            if (StringUtils.isNotBlank(nameGroupPublicationSelfClaim))
+            {
+                Group selfClaimGroup = Group.findByName(context,
+                		nameGroupPublicationSelfClaim);
+                if (selfClaimGroup != null)
+                {
+                    if (Group.isMember(context, selfClaimGroup.getID()))
+                    {
+                        model.put("publicationSelfClaimRP", new Boolean(true));
+                    }
+                }
+            }
         }
         else {
             model.put("isLoggedIn", new Boolean(false));
         }
         
-        boolean isAdmin = AuthorizeManager.isAdmin(context);
+        boolean isAdmin = CrisAuthorizeManager.isAdmin(context,researcher);
       
+        
         if (isAdmin
                 || (currUser != null && (researcher.getEpersonID() != null && currUser
                         .getID() == researcher.getEpersonID())))
@@ -145,16 +188,10 @@ public class ResearcherPageDetailsController
             model.put("authority_key",
                     ResearcherPageUtils.getPersistentIdentifier(researcher));
 
-            if (isAdmin)
-            {
-                AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
-                long pendingItems = dao
-                        .countIssuedItemsByAuthorityValueInAuthority(
-                                RPAuthority.RP_AUTHORITY_NAME,
-                                ResearcherPageUtils
-                                        .getPersistentIdentifier(researcher));
-                model.put("pendingItems", new Long(pendingItems));
-            }
+			AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
+			long pendingItems = dao.countIssuedItemsByAuthorityValueInAuthority(RPAuthority.RP_AUTHORITY_NAME,
+					ResearcherPageUtils.getPersistentIdentifier(researcher));
+			model.put("pendingItems", new Long(pendingItems));
         }
         
         else if ((researcher.getStatus() == null || researcher.getStatus()
@@ -167,14 +204,14 @@ public class ResearcherPageDetailsController
                 // Log the error
                 log.info(LogManager
                         .getHeader(context, "authorize_error",
-                                "Only system administrator can access to disabled researcher page"));
+                                "Only administrator can access to disabled researcher page"));
 
                 JSPManager
                         .showAuthorizeError(
                                 request,
                                 response,
                                 new AuthorizeException(
-                                        "Only system administrator can access to disabled researcher page"));
+                                        "Only administrator can access to disabled researcher page"));
             }
             return null;
         }
@@ -185,9 +222,15 @@ public class ResearcherPageDetailsController
             boolean subscribed = subscribeService.isSubscribed(currUser,
                     researcher);
             model.put("subscribed", subscribed);
-            EPerson eperson = EPerson.findByNetid(context, researcher.getSourceID());
-            if (eperson != null) {
-            	model.put("subscriptions", subscribeService.getSubscriptions(eperson));
+            if (researcher.getEpersonID() != null)
+            {
+                EPerson eperson = EPerson.find(context,
+                        researcher.getEpersonID());
+                if (eperson != null)
+                {
+                    model.put("subscriptions",
+                            subscribeService.getSubscriptions(eperson));
+                }
             }
         }
 
@@ -238,7 +281,7 @@ public class ResearcherPageDetailsController
                 .put("showStatsOnlyAdmin",
                         ConfigurationManager
                                 .getBooleanProperty(SolrLogger.CFG_STAT_MODULE,"authorization.admin"));
-        
+        mvc.getModel().put("isAdmin", isAdmin);
         
         // Fire usage event.
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);

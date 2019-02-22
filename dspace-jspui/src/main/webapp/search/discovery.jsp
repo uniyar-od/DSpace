@@ -55,6 +55,7 @@
 <%@page import="com.coverity.security.Escape"%>
 <%@page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
+<%@ page import="org.dspace.eperson.EPerson" %>
 <%@page import="java.util.HashMap"%>
 <%@page import="java.util.ArrayList"%>
 <%@page import="org.dspace.discovery.DiscoverFacetField"%>
@@ -67,7 +68,10 @@
 <%@page import="org.dspace.discovery.DiscoverResult"%>
 <%@page import="org.dspace.content.DSpaceObject"%>
 <%@page import="java.util.List"%>
+<%@page import="org.dspace.handle.HandleManager"%>
+
 <%
+	String hdlPrefix = ConfigurationManager.getProperty("handle.prefix");
     // Get the attributes
     DSpaceObject scope = (DSpaceObject) request.getAttribute("scope" );
     String searchScope = (String) request.getParameter("location" );
@@ -90,9 +94,11 @@
     String sortedBy = qArgs.getSortField();
     String order = qArgs.getSortOrder().toString();
     String sortIdx = null;
+    SortOption sortOption = null;
     if (sortedBy != null && sortedBy.startsWith("bi_sort_"))
     {
        sortIdx = sortedBy.substring(8,sortedBy.length()-5);
+       sortOption = SortOption.getSortOption(Integer.valueOf(sortIdx));
     }
     String ascSelected = (SortOption.ASCENDING.equalsIgnoreCase(order)   ? "selected=\"selected\"" : "");
     String descSelected = (SortOption.DESCENDING.equalsIgnoreCase(order) ? "selected=\"selected\"" : "");
@@ -119,11 +125,14 @@
 
     String[] options = new String[]{"equals","contains","authority","notequals","notcontains","notauthority"};
     
+    EPerson user = (EPerson) request.getAttribute("dspace.current.user");
+    
     // Admin user or not
     Boolean admin_b = (Boolean)request.getAttribute("admin_button");
     boolean admin_button = (admin_b == null ? false : admin_b.booleanValue());
     
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
+	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
 	String cfg = ConfigurationManager.getProperty("exportcitation.options");
 
 	DiscoverResult qResults = (DiscoverResult)request.getAttribute("queryresults");
@@ -265,14 +274,22 @@
 </c:set>
 
 <c:set var="searchinKey">
-jsp.search.results.searchin<%= StringUtils.isNotBlank(searchScope)?"."+searchScope:""  %>
+jsp.search.results.searchin<%= StringUtils.isNotBlank(searchScope) && !StringUtils.contains(searchScope, hdlPrefix)?"."+searchScope:""  %>
 </c:set>
+<%
+String dsoName = "";
+if(StringUtils.contains(searchScope, hdlPrefix) ){
+	String hdl = StringUtils.substring(searchScope, 8);
+	DSpaceObject dso = HandleManager.resolveToObject(UIUtil.obtainContext(request),hdl );
+	dsoName = (dso != null) ? dso.getName() :"";
+}
+%>
 <dspace:layout titlekey="${searchinKey}">
 
     <%-- <h1>Search Results</h1> --%>
 
 
-<h2><fmt:message key="${searchinKey}"/></h2>
+<h2><fmt:message key="${searchinKey}"/> <%= dsoName %></h2>
 
 <div class="discovery-search-form">
     <%-- Controls for a repeat search --%>
@@ -645,7 +662,7 @@ else if( qResults != null)
     <div class="panel-heading"><h6><fmt:message key="jsp.search.results.itemhits"/></h6></div>
     
     <%  
-	if (exportBiblioEnabled && admin_button) {
+	if (exportBiblioEnabled && ( exportBiblioAll || user!=null ) ) {
 %>
 
 		<form target="blank" class="form-inline"  id="exportform" action="<%= request.getContextPath() %>/references">
@@ -671,10 +688,10 @@ else if( qResults != null)
 		</label>
 			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" radioButton="false" inputName="item_id"/>
+		<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" radioButton="false" inputName="item_id" order="<%= order %>" sortOption="<%= sortOption %>"/>
 		</form>
 <% } else { %>
-	<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" />
+	<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" order="<%= order %>" sortOption="<%= sortOption %>"/>
 <% } %>
    
     </div>
@@ -797,6 +814,7 @@ else
 	if (brefine) {
 %>
 
+<h3 class="facets"><fmt:message key="jsp.search.facet.refine.local" /></h3>
 <div id="facets" class="facetsBox">
 
 <%

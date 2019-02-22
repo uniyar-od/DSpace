@@ -1,9 +1,9 @@
-*.bak
 ## Ignore the MVN compiled output directories from version tracking
 target/
 
 ## Ignore project files created by Eclipse
 .settings/
+/bin/
 .project
 .classpath
 
@@ -30,5 +30,8 @@ META-INF/
 
 ##Mac noise
 .DS_Store
+
+##Ignored third party configuration files
 rebel.xml
 .externalToolBuilders/
+*.bak

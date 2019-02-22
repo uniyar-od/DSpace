@@ -803,7 +803,9 @@ public class ImportCRISDataModelConfiguration
 				String tmpSN = shortName;
                 if (DynamicTypeNestedObject.class.isAssignableFrom(classATNO))
                 {
-					tmpSN = target + shortName;
+                	if(!shortName.startsWith(target)) {                		
+                		tmpSN = target + shortName;
+                	}
 				}
                 ATNO atno = applicationService.findTypoByShortName(classATNO,
                         tmpSN);
@@ -812,6 +814,32 @@ public class ImportCRISDataModelConfiguration
                     System.out
                             .println("Nested definition already founded - skip "
                                     + target + "/" + tmpSN);
+                    
+                    List<List<String>> nestedPropertiesDefinition = nestedMap
+                            .get(shortName);
+                    if (nestedPropertiesDefinition != null)
+                    {
+                        GenericXmlApplicationContext subctx = new GenericXmlApplicationContext();
+                        for (List<String> nestedSingleRow : nestedPropertiesDefinition)
+                        {
+                            String checkNestedMetadata = nestedSingleRow.get(1);
+                            NPD real =  applicationService.findPropertiesDefinitionByShortName(classNPD, checkNestedMetadata);
+                            if(real!=null) {
+                                System.out
+                                .println("Nested property definition already founded - skip "
+                                        + target + "/" + tmpSN + "/" + checkNestedMetadata);
+                                continue;
+                            }
+                            else {
+                                System.out.println("New nested property definition  " + target + "/" + tmpSN + "/" + checkNestedMetadata);
+                                DNPD decorator = createDecorator(applicationService,
+                                        nestedSingleRow, subctx, classNPD, classDNPD,
+                                        controlledListMap, true);
+                                System.out.println("End write  " + target + "/" + tmpSN + "/" + decorator.getShortName());                                
+                            }
+                        }
+                        subctx.destroy();
+                    }
 					continue;
 				}
             }
@@ -820,7 +848,9 @@ public class ImportCRISDataModelConfiguration
 				String tmpSN = shortName;
                 if (DynamicPropertiesDefinition.class.isAssignableFrom(classPD))
                 {
-					tmpSN = target + shortName;
+                	if(!shortName.startsWith(target)) {                		
+                		tmpSN = target + shortName;
+                	}
 				}
                 PD pdef = applicationService
                         .findPropertiesDefinitionByShortName(classPD, tmpSN);
@@ -878,7 +908,9 @@ public class ImportCRISDataModelConfiguration
 				builderNTP.getBeanDefinition().setAttribute("id", shortName);
                 if (DynamicPropertiesDefinition.class.isAssignableFrom(classPD))
                 {
-					shortName = target + shortName;
+                	if(!shortName.startsWith(target)) {                		
+                		shortName = target + shortName;
+                	}
 				}
 				builderNTP.addPropertyValue("shortName", shortName);
 				builderNTP.addPropertyValue("label", label);
@@ -913,7 +945,7 @@ public class ImportCRISDataModelConfiguration
                 ctx.registerBeanDefinition(decoratorShortName,
                         builderDNTP.getBeanDefinition());
 
-				DATNO dntp = ctx.getBean(classDATNO);
+				DATNO dntp = ctx.getBean(classDATNO);				
 				applicationService.saveOrUpdate(classDATNO, dntp);
 
                 List<List<String>> nestedPropertiesDefinition = nestedMap
@@ -925,10 +957,12 @@ public class ImportCRISDataModelConfiguration
                         DNPD decorator = createDecorator(applicationService,
                                 nestedSingleRow, ctx, classNPD, classDNPD,
                                 controlledListMap, true);
-					dntp.getReal().getMask().add(decorator.getReal());
-					result.getTPtoNOTP().add(dntp.getReal());
-				}
+                        dntp.getReal().getMask().add(decorator.getReal());
+                    }
+				
                 }
+                
+                result.getTPtoNOTP().add(dntp.getReal());
             }
             else
             {
@@ -975,7 +1009,9 @@ public class ImportCRISDataModelConfiguration
 		String pointer = metadata.get(9);
         if (DynamicPropertiesDefinition.class.isAssignableFrom(classPD))
         {
-			shortName = target + shortName;
+        	if(!shortName.startsWith(target)) {
+        		shortName = target + shortName;
+        	}
 		}
 
         String labelSize = "";
@@ -1236,7 +1272,14 @@ public class ImportCRISDataModelConfiguration
         {
 			riga = sheet.getRow(indexRiga);
 			String key = riga[indexKey].getContents().trim();
-
+			if("nesteddefinition".equals(sheetName)) {
+				String prefix = riga[0].getContents().trim();
+				if(!"rp".equals(prefix) && !"ou".equals(prefix) && !"pj".equals(prefix)) {
+					if(!key.startsWith(prefix)) {
+						key = prefix + key;
+					}
+				}
+			}
 			List<String> metadata = new ArrayList<String>();
 			
 			for(int i = 0; i<sheet.getColumns(); i++) {

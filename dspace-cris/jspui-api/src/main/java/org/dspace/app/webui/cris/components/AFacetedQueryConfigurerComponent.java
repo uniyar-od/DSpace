@@ -36,6 +36,8 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.services.RequestService;
+import org.dspace.utils.DSpace;
 
 public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         extends ASolrConfigurerComponent<T, ICrisBeanComponent> implements
@@ -225,7 +227,16 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
 
         try
         {
-            context = new Context();
+            if(request == null) {
+                RequestService requestService = new DSpace().getServiceManager().getServiceByName(RequestService.class.getName(), RequestService.class);
+                if(requestService != null && requestService.getCurrentRequest() != null){
+                	request = requestService.getCurrentRequest().getHttpServletRequest();
+                }else{
+                	return -1;
+                }
+                
+            }
+            context = UIUtil.obtainContext(request);
             ACrisObject cris = getApplicationService().get(getTarget(), id);
             List<FacetResult> facetresults = search(context, request, type, cris, 0, 0, null, true).getFacetQueryResult(type);
             if(facetresults.isEmpty()) {
@@ -233,16 +244,10 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
             }
             return facetresults.get(0).getCount();
         }
-
         catch (Exception ex)
         {
-            log.error(ex.getMessage(), ex);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
+            if(log.isDebugEnabled()) {
+                log.error(ex.getMessage(), ex);
             }
         }
         return -1;

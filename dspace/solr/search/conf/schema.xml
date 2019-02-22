@@ -540,6 +540,7 @@
    <field name="read" type="string" indexed="true" stored="true" omitNorms="true" multiValued="true" docValues="true" />
 
    <!-- CRIS special fields -->
+   <field name="cris-id" type="string" indexed="true" stored="true" omitNorms="true" />
    <field name="cris-uuid" type="string" indexed="true" stored="true" omitNorms="true" />
    <field name="cris-sourceid" type="string" indexed="true" stored="true" omitNorms="true" />
    <field name="cris-sourceref" type="string" indexed="true" stored="true" omitNorms="true" />
@@ -573,6 +574,7 @@
 
     <!-- used by the DSpace Discovery Solr Indexer to track the last time a document was indexed -->
    <field name="SolrIndexer.lastIndexed" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" />
+   <field name="lastModified" type="date" indexed="true" stored="true" default="NOW" multiValued="false" omitNorms="true" />
 
    <!-- Custom Mapping to assure ds.creator is placed into dc.contributor.author by defualt -->
    <!--<copyField source="dc.creator" dest="dc.contributor.author"/>-->
@@ -669,7 +671,7 @@
         is added to the index.  It's used either to index the same field differently,
         or to add multiple fields to the same field for easier/faster searching.  -->
 
-   <copyField source="*" dest="search_text"/>
+   <!-- <copyField source="*" dest="search_text"/> -->
 
    <!-- Above, multiple source fields are copied to the [text] field.
 	  Another way to map multiple source fields to the same

@@ -7,12 +7,17 @@
  */
 package org.dspace.app.cris.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.batch.ImportCRISDataModelConfiguration;
 import org.dspace.app.cris.dao.CrisObjectDao;
 import org.dspace.app.cris.dao.CrisSubscriptionDao;
 import org.dspace.app.cris.dao.DynamicObjectDao;
@@ -40,11 +45,17 @@ import org.dspace.app.cris.model.orcid.OrcidHistory;
 import org.dspace.app.cris.model.orcid.OrcidQueue;
 import org.dspace.app.cris.model.ws.User;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.util.Util;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.discovery.SearchServiceException;
 import org.dspace.services.ConfigurationService;
+import org.dspace.storage.rdbms.DatabaseUtils;
 import org.hibernate.Session;
 
 import it.cilea.osd.common.core.SingleTimeStampInfo;
 import it.cilea.osd.common.model.Identifiable;
+import jxl.read.biff.BiffException;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -573,7 +584,7 @@ public class ApplicationService extends ExtendedTabService
 			Element element = cacheRpByEPerson.getQuiet(id);
 			if (element != null) {
 				ResearcherPage rp = (ResearcherPage) element.getValue();
-				if (!isExpiredCache(ResearcherPage.class, element, id, rp)) {
+				if (!isExpiredCache(ResearcherPage.class, element, rp.getId(), rp)) {
 					return rp;
 				}
 				else if (rp != null) {
@@ -821,14 +832,13 @@ public class ApplicationService extends ExtendedTabService
 		Date now = new Date();
 		if (rp == null) {
 			return true;
-		}
-		SingleTimeStampInfo timestampLastModified = rp.getTimeStampInfo().getTimestampLastModified();
-		long lastModCache = timestampLastModified != null?timestampLastModified.getTimestamp().getTime():-1;
+		}		
+		long lastModCache = element.getLastUpdateTime();
 		
 		if ( now.getTime() - element.getLastAccessTime() > 1000) {
 			Date uniqueLastModifiedTimeStamp = uniqueLastModifiedTimeStamp(model, objectId);
 			long lastModDb = uniqueLastModifiedTimeStamp != null? uniqueLastModifiedTimeStamp.getTime():-1;
-			if (lastModCache == lastModDb) {
+			if (lastModCache >= lastModDb) {
 				element.updateAccessStatistics();
 				return false;
 			}
@@ -836,7 +846,6 @@ public class ApplicationService extends ExtendedTabService
 				return true;
 			}
 		}
-		element.updateAccessStatistics();
 		return false;
 	}
 
@@ -963,6 +972,10 @@ public class ApplicationService extends ExtendedTabService
     	return researchDao.findByShortNameType(shortName);
     }
     
+    public List<ResearchObject> getResearchObjectByIDType(Integer id) {
+        return researchDao.findByIDType(id);
+    }
+    
     @Override
     public <P, PK extends Serializable> void delete(Class<P> model, PK pkey) {    	
     	super.delete(model, pkey);
@@ -975,10 +988,13 @@ public class ApplicationService extends ExtendedTabService
 	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwnerId(Integer entityID, Integer typeId, String ownerId) {
 		return orcidQueueDao.uniqueOrcidQueueByEntityIdAndTypeIdAndOwner(entityID, typeId, ownerId);
 	}
-	public List<OrcidHistory> findOrcidHistoryByEntityIdAndTypeId(Integer entityId, Integer typeId) {	
-		return orcidHistoryDao.findOrcidHistoryByEntityIdAndTypeId(entityId, typeId);
+	public List<OrcidHistory> findOrcidHistoryByOrcidAndTypeId(String orcid, Integer typeId) {	
+		return orcidHistoryDao.findOrcidHistoryByOrcidAndTypeId(orcid, typeId);
 	}
-
+    public List<OrcidHistory> findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(String orcid, String entityUUID, Integer typeId) {  
+        return orcidHistoryDao.findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(orcid, entityUUID, typeId);
+    }
+	
 	public void deleteOrcidQueueByOwnerAndTypeId(String crisID, int typeId) {
 		orcidQueueDao.deleteByOwnerAndTypeId(crisID, typeId);
 	}
@@ -995,17 +1011,68 @@ public class ApplicationService extends ExtendedTabService
 		return orcidHistoryDao.findOrcidHistoryInSuccessByOwnerAndTypeId(crisID, type);
 	}
 	
-	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(String crisID, int entityID, int typeID) {
-		return orcidHistoryDao.uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(crisID, entityID, typeID);
+	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(String crisID, String uuid, int typeID) {
+		return orcidHistoryDao.uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(crisID, uuid, typeID);
 	}
 	
-	public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(String crisID, int entityID, int typeID) {
-		return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(crisID, entityID, typeID);
+	public OrcidHistory uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(String crisID, String orcid, int typeID) {
+		return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(crisID, orcid, typeID);
 	}
+
+    public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
+            String crisID, String entityUUID, int typeID)
+    {
+        return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
+                crisID, entityUUID, typeID);
+    }
 
     public List<DynamicTypeNestedObject> findNestedMaskById(Class<DynamicObjectType> clazz, Integer id)
     {
         DynamicObjectTypeDao dao = (DynamicObjectTypeDao)getDaoByModel(clazz);
         return dao.findNestedMaskById(id);
     }
+    
+    public static synchronized void checkRebuildCrisConfiguration()
+    {
+        // We only do something if the reindexDiscovery flag has been triggered
+        if(DatabaseUtils.getRebuildCrisConfiguration())
+        {
+            // Kick off a custom thread to perform the reindexing in Discovery
+            // (See ReindexerThread nested class below)
+            ConfigurationThread go = new ConfigurationThread();
+            go.start();
+        }
+    }
+    
+	private static class ConfigurationThread extends Thread {
+
+		/**
+		 * Actually perform Rebuild Cris Configuration.
+		 */
+		@Override
+		public void run() {
+			if (DatabaseUtils.getRebuildCrisConfiguration()) {
+				try {
+					log.info("Post database migration, rebuild cris configuration");
+					String sourceVersion = Util.getSourceVersion();
+                    log.info("DSpace version: " + sourceVersion);
+					String file = ConfigurationManager.getProperty("dspace.dir") + File.separator + "etc"
+					        + File.separator + "upgrade" + File.separator + sourceVersion+"__DSpaceCRIS-Upgrade.xls";
+					String[] args = new String[] { "-f", file };
+					ImportCRISDataModelConfiguration.main(args);
+					log.info("Rebuild CRIS Configuration is complete");
+				} catch (SQLException | IOException | BiffException | InstantiationException | IllegalAccessException
+						| ParseException e) {
+					log.error("Error attempting to Rebuild CRIS Configuration", e);
+				} finally {
+					// Reset our flag. Job is done or it threw an error,
+					// Either way, we shouldn't try again.
+					DatabaseUtils.setRebuildCrisConfiguration(false);
+
+				}
+			}
+		}
+	}
+	
+	
 } 

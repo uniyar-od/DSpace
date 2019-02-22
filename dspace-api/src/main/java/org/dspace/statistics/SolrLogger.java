@@ -23,9 +23,12 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,13 +46,17 @@ import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.AbstractUpdateRequest;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
+import org.apache.solr.client.solrj.request.LukeRequest;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.LukeResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
+import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.luke.FieldFlag;
 import org.apache.solr.common.params.CommonParams;
 import org.apache.solr.common.params.FacetParams;
 import org.apache.solr.common.params.MapSolrParams;
@@ -92,6 +99,8 @@ public class SolrLogger
     
     private static final Logger log = Logger.getLogger(SolrLogger.class);
 	
+    private static final String MULTIPLE_VALUES_SPLITTER = "|";
+    
     private HttpSolrServer solr;
 
     public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
@@ -108,7 +117,8 @@ public class SolrLogger
    		VIEW ("view"),
    		SEARCH ("search"),
    		SEARCH_RESULT ("search_result"),
-        WORKFLOW("workflow");
+        WORKFLOW("workflow"),
+    	LOGIN("login");
 
    		private final String text;
 
@@ -143,6 +153,8 @@ public class SolrLogger
             String pcore = ConfigurationManager.getProperty(CFG_STAT_MODULE,
                     "server");
             log.info("solr-statistics.server:" + pcore);
+            log.info("solr-statistics.spidersfile:" + ConfigurationManager.getProperty("solr-statistics", "spidersfile"));
+            log.info("usage-statistics.dbfile:" + ConfigurationManager.getProperty("usage-statistics", "dbfile"));
 
             HttpSolrServer server = null;
 
@@ -187,6 +199,21 @@ public class SolrLogger
         return solr;
     }
 
+    
+    public SolrDocumentList getRawData(int type, int year) throws SolrServerException
+    {
+        SolrQuery query = new SolrQuery();
+        String start = year+"-01-01T00:00:00.000Z";
+        String end = (year+1)+"-01-01T00:00:00.000Z";
+        query.setQuery("time:["+start+" TO "+end+"]");
+        query.setFilterQueries("type:" + type);
+        query.setRows(Integer.MAX_VALUE);
+        query.setFields("ip", "id", "type", "time", "dns", "epersonid",
+                "isBot", "userAgent");
+        QueryResponse resp = getSolr().query(query);
+        return resp.getResults();
+    }
+    
     public SolrDocumentList getRawData(int type) throws SolrServerException
     {
         SolrQuery query = new SolrQuery();
@@ -213,6 +240,43 @@ public class SolrLogger
         postView(dspaceObject, request,  currentUser);
     }
 
+    
+    /**
+     * Store a usage event into Solr.
+     *
+     * @param dspaceObject the object used.
+     * @param request the current request context.
+     * @param currentUser the current session's user.
+     */
+    public void postLogin(DSpaceObject dspaceObject, HttpServletRequest request,
+                                EPerson currentUser)
+    {
+    	if (getSolr() == null)
+        {
+            return;
+        }
+
+        try
+        {
+            SolrInputDocument doc1 = getCommonSolrDocByRequest(dspaceObject, request, currentUser);
+            if (doc1 == null) return;
+
+            doc1.addField("statistics_type", StatisticsType.LOGIN.text());
+
+            solr.add(doc1);
+            //commits are executed automatically using the solr autocommit
+//            solr.commit(false, false);
+
+        }
+        catch (RuntimeException re)
+        {
+            throw re;
+        }
+        catch (Exception e)
+        {
+        	log.error(e.getMessage(), e);
+        }
+    }    
     /**
      * Store a usage event into Solr.
      *
@@ -977,15 +1041,15 @@ public class SolrLogger
      */
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, boolean showTotal) throws SolrServerException
+            String dateEnd, boolean showTotal, Context context) throws SolrServerException
     {
 		return queryFacetDate(query, filterQuery, max, dateType, dateStart,
-				dateEnd, 1, showTotal);
+				dateEnd, 1, showTotal, context);
     }
     
     public ObjectCount[] queryFacetDate(String query,
             String filterQuery, int max, String dateType, String dateStart,
-            String dateEnd, int gap, boolean showTotal) throws SolrServerException
+            String dateEnd, int gap, boolean showTotal, Context context) throws SolrServerException
     {
         QueryResponse queryResponse = query(query, filterQuery, null, 0, max,
                 dateType, dateStart, dateEnd, gap, null, null, false);
@@ -1005,7 +1069,7 @@ public class SolrLogger
             FacetField.Count dateCount = dateFacet.getValues().get(i);
             result[i] = new ObjectCount();
             result[i].setCount(dateCount.getCount());
-            result[i].setValue(getDateView(dateCount.getName(), dateType));
+            result[i].setValue(getDateView(dateCount.getName(), dateType, context));
         }
         if (showTotal)
         {
@@ -1038,7 +1102,7 @@ public class SolrLogger
         return objCount;
     }
 
-    private String getDateView(String name, String type)
+    private String getDateView(String name, String type, Context context)
     {
         if (name != null && name.matches("^[0-9]{4}\\-[0-9]{2}.*"))
         {
@@ -1063,7 +1127,7 @@ public class SolrLogger
                     // We should use the dcdate (the dcdate is used when
                     // generating random data)
                     SimpleDateFormat format = new SimpleDateFormat(
-                            DATE_FORMAT_DCDATE);
+                            DATE_FORMAT_DCDATE, context.getCurrentLocale());
                     date = format.parse(name);
                 }
                 catch (ParseException e1)
@@ -1087,7 +1151,7 @@ public class SolrLogger
                 dateformatString = "yyyy";
             }
             SimpleDateFormat simpleFormat = new SimpleDateFormat(
-                    dateformatString);
+                    dateformatString, context.getCurrentLocale());
             if (date != null)
             {
                 name = simpleFormat.format(date);
@@ -1327,8 +1391,12 @@ public class SolrLogger
             yearQueryParams.put(CommonParams.FQ, filterQuery.toString());
             yearQueryParams.put(CommonParams.WT, "csv");
 
+            //Tell SOLR how to escape and separate the values of multi-valued fields
+            yearQueryParams.put("csv.escape", "\\");
+            yearQueryParams.put("csv.mv.separator", MULTIPLE_VALUES_SPLITTER);
+            
             //Start by creating a new core
-            String coreName = "statistics-" + dcStart.getYear();
+            String coreName = "statistics-" + dcStart.getYearUTC();
             HttpSolrServer statisticsYearServer = createCore(solr, coreName);
 
             System.out.println("Moving: " + totalRecords + " into core " + coreName);
@@ -1343,7 +1411,7 @@ public class SolrLogger
                 HttpResponse response = new DefaultHttpClient().execute(get);
                 InputStream csvInputstream = response.getEntity().getContent();
                 //Write the csv ouput to a file !
-                File csvFile = new File(tempDirectory.getPath() + File.separatorChar + "temp." + dcStart.getYear() + "." + i + ".csv");
+                File csvFile = new File(tempDirectory.getPath() + File.separatorChar + "temp." + dcStart.getYearUTC() + "." + i + ".csv");
                 FileUtils.copyInputStreamToFile(csvInputstream, csvFile);
                 filesToUpload.add(csvFile);
 
@@ -1351,14 +1419,22 @@ public class SolrLogger
                 yearQueryParams.put(CommonParams.START, String.valueOf((i + 10000)));
             }
 
+            Set<String> multivaluedFields = getMultivaluedFieldNames();
+            
             for (File tempCsv : filesToUpload) {
                 //Upload the data in the csv files to our new solr core
                 ContentStreamUpdateRequest contentStreamUpdateRequest = new ContentStreamUpdateRequest("/update/csv");
                 contentStreamUpdateRequest.setParam("stream.contentType", "text/plain;charset=utf-8");
+                contentStreamUpdateRequest.setParam("escape", "\\");
                 contentStreamUpdateRequest.setParam("skip", "_version_");
                 contentStreamUpdateRequest.setAction(AbstractUpdateRequest.ACTION.COMMIT, true, true);
                 contentStreamUpdateRequest.addFile(tempCsv, "text/plain;charset=utf-8");
 
+                //Add parsing directives for the multivalued fields so that they are stored as separate values instead of one value
+                for (String multivaluedField : multivaluedFields) {
+                    contentStreamUpdateRequest.setParam("f." + multivaluedField + ".split", Boolean.TRUE.toString());
+                    contentStreamUpdateRequest.setParam("f." + multivaluedField + ".separator", MULTIPLE_VALUES_SPLITTER);
+                }
                 statisticsYearServer.request(contentStreamUpdateRequest);
             }
             statisticsYearServer.commit(true, true);
@@ -1377,6 +1453,14 @@ public class SolrLogger
     private HttpSolrServer createCore(HttpSolrServer solr, String coreName) throws IOException, SolrServerException {
         String solrDir = ConfigurationManager.getProperty("dspace.dir") + File.separator + "solr" +File.separator;
         String baseSolrUrl = solr.getBaseURL().replace("statistics", "");
+        HttpSolrServer returnServer = new HttpSolrServer(baseSolrUrl + "/" + coreName);
+        try {
+            SolrPingResponse ping = returnServer.ping();
+            log.debug(String.format("Ping of Solr Core [%s] Returned with Status [%d]", coreName, ping.getStatus()));
+            return returnServer;
+        } catch(Exception e) {
+            log.debug(String.format("Ping of Solr Core [%s] Failed with [%s].  New Core Will be Created", coreName, e.getClass().getName()));
+        }
         CoreAdminRequest.Create create = new CoreAdminRequest.Create();
         create.setCoreName(coreName);
         create.setInstanceDir("statistics");
@@ -1384,10 +1468,36 @@ public class SolrLogger
         HttpSolrServer solrServer = new HttpSolrServer(baseSolrUrl);
         create.process(solrServer);
         log.info("Created core with name: " + coreName);
-        return new HttpSolrServer(baseSolrUrl + "/" + coreName);
+        return returnServer;
     }
 
-
+    /**
+     * Retrieves a list of all the multi valued fields in the solr core
+     * @return all fields tagged as multivalued
+     * @throws SolrServerException When getting the schema information from the SOLR core fails
+     * @throws IOException When connection to the SOLR server fails
+     */
+    public Set<String> getMultivaluedFieldNames() throws SolrServerException, IOException {
+        Set<String> multivaluedFields = new HashSet<String>();
+        LukeRequest lukeRequest = new LukeRequest();
+        lukeRequest.setShowSchema(true);
+        LukeResponse process = lukeRequest.process(solr);
+        Map<String, LukeResponse.FieldInfo> fields = process.getFieldInfo();
+        for(String fieldName : fields.keySet())
+        {
+            LukeResponse.FieldInfo fieldInfo = fields.get(fieldName);
+            EnumSet<FieldFlag> flags = fieldInfo.getFlags();
+            for(FieldFlag fieldFlag : flags)
+            {
+                if(fieldFlag.getAbbreviation() == FieldFlag.MULTI_VALUED.getAbbreviation())
+                {
+                    multivaluedFields.add(fieldName);
+                }
+            }
+        }
+        return multivaluedFields;
+    }
+    
     public void reindexBitstreamHits(boolean removeDeletedBitstreams) throws Exception {
         Context context = new Context();
 
@@ -1634,5 +1744,13 @@ public class SolrLogger
     public void deleteByType(int type) throws SolrServerException, IOException
     {
         getSolr().deleteByQuery("type:" + type);
+    }
+    
+    public void deleteByTypeAndYear(int type, int year) throws SolrServerException, IOException
+    {
+        String start = year+"-01-01T00:00:00.000Z";
+        String end = (year+1)+"-01-01T00:00:00.000Z";
+        String query = "type:" + type + " AND " + "time:["+start+" TO "+end+"]";
+        getSolr().deleteByQuery(query);
     }
 }

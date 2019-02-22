@@ -439,7 +439,9 @@ public class BrowseListTag extends TagSupport
 
                 // Output the known column widths
                 out.print("<colgroup>");
-
+    			if (inputName != null) { // cilea, add the checkbox column
+    				out.print("<col width=\"3\" />");
+    			}
                 for (int w = 0; w < widthArr.length; w++)
                 {
                     out.print("<col width=\"");
@@ -479,8 +481,8 @@ public class BrowseListTag extends TagSupport
             if (inputName != null) { // cilea, add the checkbox column
                 out.println("<th>");
                 if (!radioButton) { // add a "checkall" button
-                    out.print("<input name=\""+inputName+"checker\" id=\""+inputName+"checker\" type=\"checkbox\" onclick=\"");
-                    out.print("javascript:changeAll('" + inputName
+                    out.print("<input data-checkboxname=\""+inputName+"\" name=\""+inputName+"checker\" id=\""+inputName+"checker\" type=\"checkbox\" onclick=\"");
+                    out.print("javascript:itemListCheckAll('" + inputName
                             + "', this)\" />");
                 }
                 out.print("</th>");
@@ -721,7 +723,11 @@ public class BrowseListTag extends TagSupport
                     if (schema.equalsIgnoreCase("extra")) {
                     	
                     	String val = null;
-                    	Object obj = items[i].extraInfo.get(element);
+                        String key = element;
+                        if(StringUtils.isNotBlank(qualifier) && !Item.ANY.equals(qualifier)) {
+                            key = element + "." + qualifier;
+                        }
+                        Object obj = items[i].extraInfo.get(key);
 						if (obj != null) {
 							val = String.valueOf(obj);
 						}
@@ -736,17 +742,17 @@ public class BrowseListTag extends TagSupport
                     else {
 	                    if (qualifier.equals("*"))
 	                    {
-	                        metadataArray = items[i].getMetadata(schema, element,
+	                        metadataArray = items[i].getMetadataWithoutPlaceholder(schema, element,
 	                                Item.ANY, Item.ANY);
 	                    }
 	                    else if (qualifier.equals(""))
 	                    {
-	                        metadataArray = items[i].getMetadata(schema, element,
+	                        metadataArray = items[i].getMetadataWithoutPlaceholder(schema, element,
 	                                null, Item.ANY);
 	                    }
 	                    else
 	                    {
-	                        metadataArray = items[i].getMetadata(schema, element,
+	                        metadataArray = items[i].getMetadataWithoutPlaceholder(schema, element,
 	                                qualifier, Item.ANY);
 	                    }
                     }

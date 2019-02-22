@@ -13,6 +13,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
@@ -32,8 +33,6 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
-import com.sun.tools.javac.code.Attribute.Array;
-
 public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
         extends AStatsIndicatorsPlugin
 {
@@ -45,8 +44,6 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
 
     private String type;
 
-    private String queryDefault = "*:*";
-
     private Class<ACO> crisEntityClazz;
 
     private Integer crisEntityTypeId;
@@ -56,7 +53,7 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
     @Override
     public void buildIndicator(Context context,
             ApplicationService applicationService, CrisSolrLogger statsService,
-            CrisSearchService searchService, String level)
+            CrisSearchService searchService, String filter)
                     throws SearchServiceException
     {
         ServiceManager serviceManager = new DSpace().getServiceManager();
@@ -68,7 +65,7 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
 
         if (crisEntityTypeId > 1000)
         {
-            rs = (List<ACO>)applicationService.getResearchObjectByShortNameType(CrisConstants.getEntityTypeText(crisEntityTypeId));
+            rs = (List<ACO>)applicationService.getResearchObjectByIDType(crisEntityTypeId);
         }
         else
         {
@@ -81,7 +78,13 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
             int citations = 0;
             List<Double> elements = new ArrayList<Double>();
             SolrQuery query = new SolrQuery();
-            query.setQuery(queryDefault);
+            query.setQuery(getQueryDefault());
+            if(StringUtils.isNotBlank(filter)) {
+                query.addFilterQuery(filter);
+            }
+            else if(StringUtils.isNotBlank(getFilterDefault())) {
+                query.addFilterQuery(getFilterDefault());    
+            }
             query.addFilterQuery("{!field f=" + field + "}" + rp.getCrisID(),
                     "NOT(withdrawn:true)");
             query.setFields("search.resourceid", "search.resourcetype");
@@ -99,6 +102,7 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
 
                 if (resourceId != null)
                 {
+                    //TODO manage year (passed by filter)
                     CrisMetrics citation = pService
                             .getLastMetricByResourceIDAndResourceTypeAndMetricsType(
                                     resourceId, resourceType, type);
@@ -161,11 +165,6 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
         }   
     }
 
-    public void setQueryDefault(String queryDefault)
-    {
-        this.queryDefault = queryDefault;
-    }
-
     public String getField()
     {
         return field;
@@ -184,11 +183,6 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
     public void setType(String type)
     {
         this.type = type;
-    }
-
-    public String getQueryDefault()
-    {
-        return queryDefault;
     }
 
     public Class<ACO> getCrisEntityClazz()

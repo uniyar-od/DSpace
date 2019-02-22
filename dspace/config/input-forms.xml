@@ -438,6 +438,36 @@ en Sie bitte die Organisationseinheit innerhalb der Fakultät aus, die mit der P
          <required>Bitte geben Sie den Titel der Konferenz an.</required>
          <type-bind>Konferenzveröffentlichung</type-bind>
        </field>
+     </page>
+
+     <page number="3">
+
+<!--
+<field>
+		 <dc-schema>ec</dc-schema>
+         <dc-element>sale</dc-element>
+         <dc-qualifier></dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Sale availability</label>
+		 <input-type value-pairs-name="sale_info">dropdown</input-type>
+         <hint>Enter the appropriate group to sale the item or empty to open access. </hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>ec</dc-schema>
+         <dc-element>product</dc-element>
+         <dc-qualifier>price</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Product price</label>
+		 <input-type >onebox</input-type>
+         <hint>Enter the price of the product. </hint>
+         <required></required>
+         <validation>^[1-9]\d*(\.\d+)?$</validation>
+       </field>
+     </page>
+
+</form>
+      -->
 
         <field>
          <dc-schema>dc</dc-schema>
@@ -1751,6 +1781,102 @@ Liste ist noch nicht vollstaendig; A.G., 31.05.2018  -->
      <stored-value>Sonstige</stored-value>  
     </pair>
 </value-pairs>
+<value-pairs value-pairs-name="sale_info" dc-term="sale">
+ 	<pair>
+ 		<displayed-value>Not for sale</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Anyone can buy</displayed-value>
+       <stored-value>Anonymous</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>First Membership</displayed-value>
+       <stored-value>First Membership</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Second Membership</displayed-value>
+       <stored-value>Second Membership</stored-value>
+     </pair>
+     
+   	</value-pairs>
+   <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
+     <pair>
+       <displayed-value>DOI</displayed-value>
+       <stored-value>doi</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Scopus ID</displayed-value>
+       <stored-value>scopus</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>WOS ID</displayed-value>
+       <stored-value>isi</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Pubmed ID</displayed-value>
+       <stored-value>pmid</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>arXiv ID</displayed-value>
+       <stored-value>arxiv</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>ISSN</displayed-value>
+       <stored-value>issn</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Other</displayed-value>
+       <stored-value>other</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>ISMN</displayed-value>
+       <stored-value>ismn</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Gov't Doc #</displayed-value>
+       <stored-value>govdoc</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>URI</displayed-value>
+       <stored-value>uri</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>ISBN</displayed-value>
+       <stored-value>isbn</stored-value>
+     </pair>
+   </value-pairs>
+   
+   <value-pairs value-pairs-name="common_article_identifiers" dc-term="identifier">
+     <pair>
+       <displayed-value>DOI</displayed-value>
+       <stored-value>doi</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Scopus ID</displayed-value>
+       <stored-value>scopus</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>WOS ID</displayed-value>
+       <stored-value>isi</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Pubmed ID</displayed-value>
+       <stored-value>pmid</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>arXiv ID</displayed-value>
+       <stored-value>arxiv</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Gov't Doc #</displayed-value>
+       <stored-value>govdoc</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>URI</displayed-value>
+       <stored-value>uri</stored-value>
+     </pair>
+   </value-pairs>
 
 
    

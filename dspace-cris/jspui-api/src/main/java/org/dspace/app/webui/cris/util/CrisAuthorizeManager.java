@@ -8,6 +8,7 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -133,4 +134,36 @@ public class CrisAuthorizeManager
         return result;
     }
 
+    
+    public static <T extends ACrisObject> boolean isAdmin(
+            Context context, T crisObject) throws SQLException 
+    {
+        EPerson currUser = context.getCurrentUser();
+        if(currUser==null) 
+        {
+            return false;
+        }
+        
+        // check admin authorization
+        if (AuthorizeManager.isAdmin(context))
+        {
+            return true;
+        }
+
+        String crisObjectTypeText = crisObject.getTypeText();
+        
+        String groupName = ConfigurationManager.getProperty("cris", "admin" + crisObjectTypeText);
+        if(StringUtils.isBlank(groupName)) {
+            groupName = "Administrator "+crisObjectTypeText;
+        }
+        Group group = Group.findByName(context, groupName);
+        if (group != null)
+        {
+            if (Group.isMember(context, group.getID()))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 }

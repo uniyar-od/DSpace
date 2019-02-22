@@ -45,29 +45,30 @@ import org.dspace.eperson.Group;
 import org.dspace.rest.common.Bitstream;
 import org.dspace.rest.common.Item;
 import org.dspace.rest.common.MetadataEntry;
+import org.dspace.rest.common.ResourcePolicy;
 import org.dspace.rest.exceptions.ContextException;
+import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
 import org.dspace.usage.UsageEvent;
 
 /**
  * Class which provide all CRUD methods over items.
- *
+ * 
  * @author Rostislav Novak (Computing and Information Centre, CTU in Prague)
- *
+ * 
  */
 // Every DSpace class used without namespace is from package org.dspace.rest.common.*. Otherwise namespace is defined.
 @SuppressWarnings("deprecation")
 @Path("/items")
 public class ItemsResource extends Resource
 {
-
     private static final Logger log = Logger.getLogger(ItemsResource.class);
 
     /**
      * Return item properties without metadata and bitstreams. You can add
      * additional properties by parameter expand.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param expand
@@ -108,7 +109,7 @@ public class ItemsResource extends Resource
 
             writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers, request, context);
 
-            item = new Item(dspaceItem, servletContext, expand, context);
+            item = new Item(dspaceItem, expand, context, servletContext);
             context.complete();
             log.trace("Item(id=" + itemId + ") was successfully read.");
 
@@ -133,7 +134,7 @@ public class ItemsResource extends Resource
      * It returns an array of items in DSpace. You can define how many items in
      * list will be and from which index will start. Items in list are sorted by
      * handle, not by id.
-     *
+     * 
      * @param limit
      *            How many items in array will be. Default value is 100.
      * @param offset
@@ -182,7 +183,7 @@ public class ItemsResource extends Resource
                 {
                     if (ItemService.isItemListedForUser(context, dspaceItem))
                     {
-                        items.add(new Item(dspaceItem, servletContext, expand, context));
+                        items.add(new Item(dspaceItem, expand, context, servletContext));
                         writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor,
                                 headers, request, context);
                     }
@@ -209,7 +210,7 @@ public class ItemsResource extends Resource
 
     /**
      * Returns item metadata in list.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param headers
@@ -244,7 +245,7 @@ public class ItemsResource extends Resource
 
             writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers, request, context);
 
-            metadata = new org.dspace.rest.common.Item(dspaceItem, servletContext, "metadata", context).getMetadata();
+            metadata = new org.dspace.rest.common.Item(dspaceItem, "metadata", context, servletContext).getMetadata();
             context.complete();
         }
         catch (SQLException e)
@@ -266,7 +267,7 @@ public class ItemsResource extends Resource
 
     /**
      * Return array of bitstreams in item. It can be pagged.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param limit
@@ -303,7 +304,7 @@ public class ItemsResource extends Resource
 
             writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers, request, context);
 
-            List<Bitstream> itemBitstreams = new Item(dspaceItem, servletContext, "bitstreams", context).getBitstreams();
+            List<Bitstream> itemBitstreams = new Item(dspaceItem, "bitstreams", context, servletContext).getBitstreams();
 
             if ((offset + limit) > (itemBitstreams.size() - offset))
             {
@@ -336,7 +337,7 @@ public class ItemsResource extends Resource
     /**
      * Adding metadata fields to item. If metadata key is in item, it will be
      * added, NOT REPLACED!
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param metadata
@@ -411,7 +412,7 @@ public class ItemsResource extends Resource
 
     /**
      * Create bitstream in item.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param inputStream
@@ -551,7 +552,7 @@ public class ItemsResource extends Resource
             }
 
             dspaceBitstream = org.dspace.content.Bitstream.find(context, dspaceBitstream.getID());
-            bitstream = new Bitstream(dspaceBitstream, servletContext, "", context);
+            bitstream = new Bitstream(dspaceBitstream, "", servletContext);
 
             context.complete();
 
@@ -579,13 +580,12 @@ public class ItemsResource extends Resource
         }
 
         log.info("Bitstream(id=" + bitstream.getId() + ") was successfully added into item(id=" + itemId + ").");
-        
         return bitstream;
     }
 
     /**
      * Replace all metadata in item with new passed metadata.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param metadata
@@ -671,7 +671,7 @@ public class ItemsResource extends Resource
 
     /**
      * Delete item from DSpace. It delete bitstreams only from item bundle.
-     *
+     * 
      * @param itemId
      *            Id of item which will be deleted.
      * @param headers
@@ -740,7 +740,7 @@ public class ItemsResource extends Resource
 
     /**
      * Delete all item metadata.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param headers
@@ -818,7 +818,7 @@ public class ItemsResource extends Resource
 
     /**
      * Delete bitstream from item bundle.
-     *
+     * 
      * @param itemId
      *            Id of item in DSpace.
      * @param headers
@@ -914,7 +914,7 @@ public class ItemsResource extends Resource
 
     /**
      * Find items by one metadada field.
-     *
+     * 
      * @param metadataEntry
      *            Metadata field to search by.
      * @param scheme
@@ -967,7 +967,7 @@ public class ItemsResource extends Resource
              *     log.error("Finding failed, bad metadata key.");
              *     throw new WebApplicationException(Response.Status.NOT_FOUND);
              * }
-             *
+             * 
              * if (itemIterator.hasNext()) {
              * item = new Item(itemIterator.next(), "", context);
              * }
@@ -1023,7 +1023,7 @@ public class ItemsResource extends Resource
                 TableRow row = iterator.next();
                 org.dspace.content.Item dspaceItem = this.findItem(context, row.getIntColumn("RESOURCE_ID"),
                         org.dspace.core.Constants.READ);
-                Item item = new Item(dspaceItem, servletContext, expand, context);
+                Item item = new Item(dspaceItem, expand, context, servletContext);
                 writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers,
                         request, context);
                 items.add(item);
@@ -1061,7 +1061,7 @@ public class ItemsResource extends Resource
      * Find item from DSpace database. It is encapsulation of method
      * org.dspace.content.Item.find with checking if item exist and if user
      * logged into context has permission to do passed action.
-     *
+     * 
      * @param context
      *            Context of actual logged user.
      * @param id
@@ -1108,4 +1108,223 @@ public class ItemsResource extends Resource
         }
         return item;
     }
+    
+    /**
+     * Return all item resource policies
+     *
+     * @param itemId
+     *            Id of item in DSpace.
+     * @param headers
+     *            If you want to access the item as the user logged into the context.
+     *            The header "rest-dspace-token" with the token passed
+     *            from the login method must be set.
+     * @return Returns an array of ResourcePolicy objects.
+     */
+    @GET
+    @Path("/{item_id}/policy")
+    @Produces({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    public ResourcePolicy[] getItemPolicies(@PathParam("item_id") Integer itemId, @Context HttpHeaders headers)
+    {
+
+        log.info("Reading item(id=" + itemId + ") policies.");
+        org.dspace.core.Context context = null;
+        ResourcePolicy[] policies = null;
+
+        try
+        {
+            context = createContext(getUser(headers));
+            org.dspace.content.Item dspaceItem = findItem(context, itemId, org.dspace.core.Constants.READ);
+
+            policies = new Item(dspaceItem, "policies", context, servletContext).getPolicies();
+
+            context.complete();
+            log.trace("Policies for item(id=" + itemId + ") was successfully read.");
+
+        }
+        catch (SQLException e)
+        {
+            processException("Someting went wrong while reading policies of item(id=" + itemId
+                    + "), SQLException! Message: " + e, context);
+        }
+        catch (ContextException e)
+        {
+            processException("Someting went wrong while reading policies of item(id=" + itemId
+                    + "), ContextException. Message: " + e.getMessage(), context);
+        }
+        finally
+        {
+            processFinally(context);
+        }
+
+        return policies;
+    }
+
+    /**
+     * Add a policy to the item.
+     *
+     * @param itemId
+     *            Id of item in DSpace.
+     * @param policy
+     *            Policy to be added. The following attributes are not
+     *            applied: epersonId,
+     * @param headers
+     *            If you want to access the item as the user logged into the context.
+     *            The header "rest-dspace-token" with the token passed
+     *            from the login method must be set.
+     * @return Returns ok, if all was ok. Otherwise status code 500.
+     */
+    @POST
+    @Path("/{item_id}/policy")
+    @Consumes({ MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML })
+    public javax.ws.rs.core.Response addItemPolicy(@PathParam("item_id") Integer itemId, ResourcePolicy policy,
+            @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+            throws WebApplicationException
+    {
+
+        log.info("Adding item(id=" + itemId + ") " + policy.getAction() + " policy with permission for group(id=" + policy.getGroupId()
+                + ").");
+        org.dspace.core.Context context = null;
+
+        try
+        {
+            context = createContext(getUser(headers));
+            org.dspace.content.Item dspaceItem = findItem(context, itemId, org.dspace.core.Constants.WRITE);
+
+            writeStats(dspaceItem, UsageEvent.Action.UPDATE, user_ip, user_agent, xforwardedfor, headers,
+                    request, context);
+
+            addPolicyToItem(context, policy, dspaceItem);
+
+            context.complete();
+            log.trace("Policy for item(id=" + itemId + ") was successfully added.");
+
+        }
+        catch (SQLException e)
+        {
+            processException("Someting went wrong while adding policy to item(id=" + itemId
+                    + "), SQLException! Message: " + e, context);
+        }
+        catch (ContextException e)
+        {
+            processException("Someting went wrong while adding policy to item(id=" + itemId
+                    + "), ContextException. Message: " + e.getMessage(), context);
+        }
+        catch (AuthorizeException e)
+        {
+            processException("Someting went wrong while adding policy to item(id=" + itemId
+                    + "), AuthorizeException! Message: " + e, context);
+        }
+        finally
+        {
+            processFinally(context);
+        }
+        return Response.status(Status.OK).build();
+    }
+
+    /**
+     * Delete policy.
+     *
+     * @param itemId
+     *            Id of the DSpace item whose policy will be deleted.
+     * @param policyId
+     *            Id of the policy to delete.
+     * @param headers
+     *            If you want to access the item as the user logged into the context.
+     *            The header "rest-dspace-token" with the token passed
+     *            from the login method must be set.
+     * @return It returns Ok, if was all ok. Otherwise status code 500.
+     */
+    @DELETE
+    @Path("/{item_id}/policy/{policy_id}")
+    public javax.ws.rs.core.Response deleteItemPolicy(@PathParam("item_id") Integer itemId,
+            @PathParam("policy_id") Integer policyId, @QueryParam("userIP") String user_ip, @QueryParam("userAgent") String user_agent,
+            @QueryParam("xforwardedfor") String xforwardedfor, @Context HttpHeaders headers, @Context HttpServletRequest request)
+            throws WebApplicationException
+    {
+        log.info("Deleting  policy(id=" + policyId + ") from item(id=" + itemId + ").");
+        org.dspace.core.Context context = null;
+
+        try
+        {
+            context = createContext(getUser(headers));
+            org.dspace.content.Item dspaceItem = findItem(context, itemId, org.dspace.core.Constants.WRITE);
+
+            writeStats(dspaceItem, UsageEvent.Action.UPDATE, user_ip, user_agent, xforwardedfor, headers,
+                    request, context);
+
+            // Check if resource policy exists in item.
+            boolean found = false;
+            List<org.dspace.authorize.ResourcePolicy> policies =  AuthorizeManager.getPolicies(context, dspaceItem);
+            for(org.dspace.authorize.ResourcePolicy policy : policies) {
+                if(policy.getID() == policyId) {
+                    found = true;
+                    break;
+                }
+            }
+
+            if(found) {
+                removePolicyFromItem(context, policyId, itemId);
+            } else {
+                context.abort();
+                throw new WebApplicationException(Response.Status.NOT_FOUND);
+            }
+
+            context.complete();
+            log.trace("Policy for item(id=" + itemId + ") was successfully removed.");
+
+        }
+        catch (SQLException e)
+        {
+            processException("Someting went wrong while deleting policy(id=" + policyId + ") to item(id=" + itemId
+                    + "), SQLException! Message: " + e, context);
+        }
+        catch (ContextException e)
+        {
+            processException("Someting went wrong while deleting policy(id=" + policyId + ") to item(id=" + itemId
+                    + "), ContextException. Message: " + e.getMessage(), context);
+        }
+        finally
+        {
+            processFinally(context);
+        }
+
+        return Response.status(Status.OK).build();
+    }
+
+    /**
+     * Add policy(org.dspace.rest.common.ResourcePolicy) to item.
+     * @param context Context to create DSpace ResourcePolicy.
+     * @param policy Policy which will be added to item.
+     * @param dspaceItem
+     * @throws SQLException
+     * @throws AuthorizeException
+     */
+    private void addPolicyToItem(org.dspace.core.Context context, ResourcePolicy policy, org.dspace.content.Item dspaceItem) throws SQLException, AuthorizeException {
+        org.dspace.authorize.ResourcePolicy dspacePolicy = org.dspace.authorize.ResourcePolicy.create(context);
+        dspacePolicy.setAction(policy.getActionInt());
+        dspacePolicy.setGroup(Group.find(context, policy.getGroupId()));
+        dspacePolicy.setResourceID(dspaceItem.getID());
+        dspacePolicy.setResource(dspaceItem);
+        dspacePolicy.setResourceType(org.dspace.core.Constants.ITEM);
+        dspacePolicy.setStartDate(policy.getStartDate());
+        dspacePolicy.setEndDate(policy.getEndDate());
+        dspacePolicy.setRpDescription(policy.getRpDescription());
+        dspacePolicy.setRpName(policy.getRpName());
+
+        dspacePolicy.update();
+        dspaceItem.updateLastModified();
+    }
+
+    /**
+     * Remove policy from item. But only if resourceID of policy is same as item_id.
+     * @param context Context to delete policy.
+     * @param policyID Id of resource policy, which will be deleted.
+     * @param itemID Id of item.
+     * @throws SQLException
+     */
+    private void removePolicyFromItem(org.dspace.core.Context context, int policyID, int itemID) throws SQLException {
+        DatabaseManager.updateQuery(context, "DELETE FROM resourcepolicy WHERE POLICY_ID = ? AND RESOURCE_ID = ?", policyID,itemID);
+    }
+
 }

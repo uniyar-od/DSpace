@@ -86,9 +86,9 @@ public class PMCEuropeFeed
 
     private static final Logger log = Logger.getLogger(PMCEuropeFeed.class);
 
-    private static final String PMCEUROPE_ENDPOINT_SEARCH = "http://www.ebi.ac.uk/europepmc/webservices/rest/search";
+    private static final String PMCEUROPE_ENDPOINT_SEARCH = "https://www.ebi.ac.uk/europepmc/webservices/rest/search";
 
-    private static final String PMCEUROPE_ENDPOINT_PDF = "http://europepmc.org/articles/";
+    private static final String PMCEUROPE_ENDPOINT_PDF = "https://europepmc.org/articles/";
 
     private static final String QUERY_FIXED_PARAM = "format=xml&resulttype=idlist";
 
@@ -355,7 +355,8 @@ public class PMCEuropeFeed
                         pmidList.addAll(getPmidList(res));
                         page++;
                     }
-                    else
+
+                    if (res.size() < Integer.parseInt(pagesize))
                     {
                         lastPage = true;
                     }
@@ -598,7 +599,7 @@ public class PMCEuropeFeed
             InputStream is = url.openStream();
 
             impRecord.addBitstream(context, is, null, true, 1, 0, "ORIGINAL",
-                    -1, null, "pubmedEurope-" + pmcID, "application/pdf");
+                    -1, null, "pubmedEurope-" + pmcID + ".pdf", "application/pdf");
         }
         catch (MalformedURLException e)
         {

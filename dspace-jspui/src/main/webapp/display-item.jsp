@@ -46,6 +46,8 @@
 <%@page import="org.dspace.core.Constants"%>
 <%@page import="org.dspace.eperson.EPerson"%>
 <%@page import="org.dspace.versioning.VersionHistory"%>
+<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
+
 <%
     // Attributes
     Boolean displayAllBoolean = (Boolean) request.getAttribute("display.all");
@@ -88,9 +90,18 @@
     boolean pmcEnabled = ConfigurationManager.getBooleanProperty("cris","pmc.enabled",false);
     boolean scopusEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.elsevier.scopus.enabled",false);
     boolean wosEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.thomsonreuters.wos.enabled",false);
-    String doi = item.getMetadata("dc.identifier.doi");
+    String doiMetadata = ConfigurationManager.getProperty("cris","ametrics.identifier.doi");
+    String isbnMetadata = ConfigurationManager.getProperty("cris","ametrics.identifier.isbn");
+    if (doiMetadata == null) {
+    	doiMetadata = "dc.identifier.doi";
+    }
+    if (isbnMetadata == null) {
+    	isbnMetadata = "dc.identifier.isbn";
+    }
+    String doi = item.getMetadata(doiMetadata);
+    String isbn = item.getMetadata(isbnMetadata);
     boolean scholarEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.google.scholar.enabled",false);
-    boolean altMetricEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.enabled",false) && StringUtils.isNotBlank(doi);
+    boolean altMetricEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.enabled",false) && (StringUtils.isNotBlank(doi) || StringUtils.isNotBlank(isbn));
     
     Boolean versioningEnabledBool = (Boolean)request.getAttribute("versioning.enabled");
     boolean versioningEnabled = (versioningEnabledBool!=null && versioningEnabledBool.booleanValue());
@@ -110,10 +121,17 @@
     VersionHistory history = (VersionHistory)request.getAttribute("versioning.history");
     List<Version> historyVersions = (List<Version>)request.getAttribute("versioning.historyversions");
     
+    EPerson user = (EPerson) request.getAttribute("dspace.current.user");
     boolean dedupEnabled = ConfigurationManager.getBooleanProperty("deduplication", "deduplication.admin.feature", false);
+    
+	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.item.enabled", false);
+	boolean exportBiblioAll =  ConfigurationManager.getBooleanProperty("exportcitation.show.all", false);
+	String cfg = ConfigurationManager.getProperty("exportcitation.options");
+	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","core-aggregator.enabled");
+	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "core-aggregator.credentials");
+	
+	String crisID = (String)request.getAttribute("crisID");
 %>
-
-<%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 
 <% if(pmcEnabled || scopusEnabled || wosEnabled || scholarEnabled || altMetricEnabled) { %>
 <c:set var="dspace.layout.head.last" scope="request">
@@ -162,6 +180,31 @@ j(document).ready(function() {
 	<% } %>
 });
 --></script>
+	<% if(coreRecommender) { %>
+	<link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/recommender/core.css" type="text/css" />	
+	<script>
+		(function(d, s, idScript, idRec, userInput) {
+			var coreAddress = 'https://core.ac.uk/';
+			var js, fjs = d.getElementsByTagName(s)[0];
+			if (d.getElementById(idScript))
+				return;
+			js = d.createElement(s);
+			js.id = idScript;
+			js.src = coreAddress + 'recommender/embed.js';
+			fjs.parentNode.insertBefore(js, fjs);
+	
+			localStorage.setItem('idRecommender', idRec);
+			localStorage.setItem('userInput', JSON.stringify(userInput));
+	
+/* 			var link = d.createElement('link');
+			link.setAttribute('rel', 'stylesheet');
+			link.setAttribute('type', 'text/css');
+			link.setAttribute('href', coreAddress
+					+ 'recommender/embed-default-style.css');
+			d.getElementsByTagName('head')[0].appendChild(link); */
+		}(document, 'script', 'recommender-embed', '<%= coreCredentials %>', {}));
+	</script>
+	<% } %>
 </c:set>
 <% } %>
 
@@ -331,7 +374,35 @@ j(document).ready(function() {
     </form>
 <%
     } else {
+    	if (exportBiblioEnabled && ( exportBiblioAll || user!=null ) ) {
+    %>
 
+    		<form target="blank" class="form-inline"  id="exportform" action="<%= request.getContextPath() %>/references">
+
+    		<div id="export-biblio-panel">
+    	<%		
+    		if (cfg == null)
+    		{
+    			cfg = "refman, endnote, bibtex, refworks";
+    		}
+    		String[] cfgSplit = cfg.split("\\s*,\\s*");
+    		for (String format : cfgSplit) {
+    	%>
+    		<c:set var="format"><%= format %></c:set>	    
+    		<label class="radio-inline">
+        		  <input id="${format}" type="radio" name="format" value="${format}" <c:if test="${format=='bibtex'}"> checked="checked"</c:if>/><fmt:message key="exportcitation.option.${format}" />
+    	    </label>
+
+    		
+    	<% } %>
+    		<label class="checkbox-inline">
+    			<input type="checkbox" id="email" name="email" value="true"/><fmt:message key="exportcitation.option.email" />
+    		</label>
+    			<input type="hidden" name="item_id" value="<%= item.getID() %>" />
+    			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" />
+    		</div>	
+    		</form>
+    <% }
 		if (suggestLink)
         {
 %>
@@ -341,7 +412,17 @@ j(document).ready(function() {
 <%
         }
 %>
-
+	<% if(coreRecommender) { %>	
+	<br/>
+	<br/>
+	<div id="recommender" class="panel panel-default">
+	<div class="panel-heading"><fmt:message key="jsp.display-item.recommender" /></div>
+	
+	<div class="panel-body">
+	<div id="coreRecommenderOutput"></div>
+	</div>
+	</div>
+	<% } %>
 </div>
 <div class="col-lg-3">
 <div class="row">
@@ -517,7 +598,8 @@ if (dedupEnabled && admin_button) { %>
 <div class="col-lg-12 col-md-4 col-sm-6">
 <div class="media altmetric">
 	<div class="media-left">
-      		<div class='altmetric-embed' data-hide-no-mentions="true" data-badge-popover="right" data-badge-type="donut" data-link-target='_blank' data-doi="<%= doi %>"></div>
+      		<div class='altmetric-embed' data-hide-no-mentions="true" data-badge-popover="right" data-badge-type="donut" data-link-target='_blank'
+      		<% if (doi != null) { %> data-doi="<%= doi %>"<% } else if (isbn != null) { %> data-isbn="<%= isbn %>"<% } %>></div>
 	</div>
 	<div class="media-body media-middle text-center">
 		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.altmetric"/></h4>
@@ -539,6 +621,21 @@ if (dedupEnabled && admin_button) { %>
 <%
     }
 %>
+
+	<% if(StringUtils.isNotBlank(crisID)) { %>
+	
+	       <div class="col-sm-5 col-md-4 col-lg-3">
+            <div class="panel panel-warning">
+            	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
+            	<div class="panel-body">
+        			<a class="btn btn-primary col-md-12" href="<%= request.getContextPath() %>/tools/claim?handle=<%= handle %>">
+            			<fmt:message key="jsp.display-item.claim-publication"/>
+        			</a>    	
+            	</div>
+            </div>
+            </div>
+    <% } %>
+    
 </div>
 </div>
 <div class="container">

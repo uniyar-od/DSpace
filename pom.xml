@@ -4,9 +4,9 @@
    <groupId>org.dspace</groupId>
    <artifactId>dspace-parent</artifactId>
    <packaging>pom</packaging>
-   <version>CRIS-5.6.2-SNAPSHOT</version>
+   <version>CRIS-5.8.1-SNAPSHOT</version>
    <name>DSpace Parent Project</name>
-   <url>https://github.com/Cineca/DSpace</url>
+   <url>https://github.com/4Science/DSpace</url>
    <description>
    	DSpace open source software is a turnkey institutional repository application. The DSpace-CRIS addon add the missing features to allow you to track all research entities!
    </description>
@@ -32,24 +32,31 @@
     <properties>		
 		<!-- Warning hibernate core many pom point to 3.3.2.GA to be compliant with hibernate-annotation 3.4.0.GA (required by spring ORM 3.1.1.RELEASE)-->
 		<!--<org.hibernate.version>3.6.10.Final</org.hibernate.version> -->
-		<org.hibernate.version>4.1.8.Final</org.hibernate.version>
-		<org.hibernate.ehcache.version>4.0.1.Final</org.hibernate.ehcache.version>
-		<org.hibernate.entitymanager.version>4.1.8.Final</org.hibernate.entitymanager.version>
-		<org.hibernate.annotations.version>4.0.1.Final</org.hibernate.annotations.version>
+		<org.hibernate.version>4.2.21.Final</org.hibernate.version>
+		<org.hibernate.ehcache.version>4.2.21.Final</org.hibernate.ehcache.version>
+		<org.hibernate.entitymanager.version>4.2.21.Final</org.hibernate.entitymanager.version>
+		<org.hibernate.annotations.version>4.0.2.Final</org.hibernate.annotations.version>
 		<org.hibernate.jpa.version>1.0.1.Final</org.hibernate.jpa.version>
 		
-		<org.jdyna.version>5.7</org.jdyna.version>		
-		<it.cilea.ccommons.version>2.2</it.cilea.ccommons.version>
+		<org.jdyna.version>5.9-SNAPSHOT</org.jdyna.version>		
+		<it.cilea.ccommons.version>2.4-SNAPSHOT</it.cilea.ccommons.version>
 		
 		<ckan.addon.modules>[5.1-SNAPSHOT,6.0-SNAPSHOT)</ckan.addon.modules>
 		<iiif.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</iiif.addon.modules>
+		<woocommerce.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</woocommerce.addon.modules>
 		<commons.addon.modules>[5.1-SNAPSHOT,6.0-SNAPSHOT)</commons.addon.modules>
 		<annoiiif.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</annoiiif.addon.modules>
 		<ocr.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</ocr.addon.modules>
 		<docviewer.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</docviewer.addon.modules>		
+		<av.addon.modules>[5.0-SNAPSHOT,6.0-SNAPSHOT)</av.addon.modules>
 		
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
+        <jackson.version>2.8.5</jackson.version>
         <java.version>1.7</java.version>
+        <!-- Added maven compiler version for eclipse setting -->
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
         <lucene.version>4.10.2</lucene.version>
         <solr.version>4.10.2</solr.version>
         <jena.version>2.12.0</jena.version>
@@ -60,18 +67,10 @@
     </properties>
 
     <build>
-	  <!-- Define Maven Plugin Settings that should be inherited to ALL submodule POMs.
-          (NOTE: individual POMs can override specific settings). -->
+      <!-- Define Maven Plugin Settings that should be inherited to ALL submodule POMs.
+           (NOTE: individual POMs can override specific settings). -->
       <pluginManagement>
           <plugins>
-	      <plugin>
-                  <groupId>org.apache.maven.plugins</groupId>
-        	  <artifactId>maven-javadoc-plugin</artifactId>
-        	  <configuration>
-          	     <minmemory>128m</minmemory>
-          	     <maxmemory>1g</maxmemory>
-        	  </configuration>
-      	      </plugin>
               <plugin>
                   <artifactId>maven-compiler-plugin</artifactId>
                   <version>3.1</version>
@@ -96,10 +95,6 @@
               <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <!-- We'd rather this be an open-ended range of versions.
-				But, because of a Maven bug, we must force a specific version:
-				http://jira.codehaus.org/browse/MNG-2742
-				Once the bug is fixed, we should put open-ended range in dspace-pom -->
                 <version>2.4</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
@@ -126,9 +121,9 @@
                     <!-- Detailed logs in reportsDirectory/testName-output.txt instead of stdout -->
                     <redirectTestOutputToFile>true</redirectTestOutputToFile>
                     <!--
-					Enable to debug Maven Surefire tests in remote proces
-					<debugForkedProcess>true</debugForkedProcess>
-					-->
+                    Enable to debug Maven Surefire tests in remote proces
+                    <debugForkedProcess>true</debugForkedProcess>
+                    -->
                 </configuration>
              </plugin>
              <plugin>
@@ -161,7 +156,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <version>2.8</version>
-             </plugin>           
+             </plugin>
              <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
@@ -174,6 +169,7 @@
              </plugin>
           </plugins>
       </pluginManagement>
+
       <!-- These plugin settings only apply to this single POM and are not inherited
            to any submodules. -->
       <plugins>
@@ -566,12 +562,12 @@
             <modules>
                 <module>dspace-services</module>
             </modules>
-        </profile> 
+        </profile>
 
         <!--
            Builds XOAI Gateway WAR for DSpace
         -->
-      <profile>
+        <profile>
             <id>dspace-oai</id>
             <activation>
                 <file>
@@ -581,7 +577,7 @@
             <modules>
                 <module>dspace-oai</module>
             </modules>
-        </profile> 
+        </profile>
 
         <!--
            Builds JSPUI WAR for DSpace
@@ -660,7 +656,7 @@
 
         <!--
            Builds SWORDv2 WAR for DSpace
-       -->
+        -->
         <profile>
             <id>dspace-swordv2</id>
             <activation>
@@ -671,7 +667,7 @@
             <modules>
                 <module>dspace-swordv2</module>
             </modules>
-        </profile> 
+        </profile>
 
         <!--
            Builds MIRAGE2 WAR for DSpace
@@ -692,7 +688,7 @@
         <!--
            Builds XMLUI WAR for DSpace
         -->
-         <profile>
+        <profile>
             <id>dspace-xmlui</id>
             <activation>
             	<activeByDefault>false</activeByDefault>
@@ -703,7 +699,8 @@
             <modules>
                 <module>dspace-xmlui</module>
             </modules>
-        </profile> 
+        </profile>
+
         <!--
            Builds LNI WAR & Client for DSpace
         -->
@@ -719,7 +716,6 @@
                 <module>dspace-lni/dspace-lni-client</module>
             </modules>
         </profile>
-	
 
     <!--
            Builds CRIS Module for DSpace
@@ -737,6 +733,20 @@
             </modules>
         </profile>
 
+        <!--
+           Builds ResourceSync WAR for DSpace
+        -->
+        <profile>
+            <id>dspace-rs</id>
+            <activation>
+                <file>
+                    <exists>dspace-rs/pom.xml</exists>
+                </file>
+            </activation>
+            <modules>
+                <module>dspace-rs</module>
+            </modules>
+        </profile>
 
         <profile>
             <id>addon-ckan</id>
@@ -783,6 +793,29 @@
 		        </dependencies>		                    
             </dependencyManagement>
         </profile>
+        
+        <profile>
+            <id>addon-woocommerce</id>
+			<activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>            
+            <dependencyManagement>
+            	<dependencies>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-woocommerce-api</artifactId>
+						 <version>${woocommerce.addon.modules}</version>
+						 <type>jar</type>
+			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-woocommerce-jspui</artifactId>
+						 <version>${woocommerce.addon.modules}</version>
+						 <type>war</type>
+			        </dependency>
+		        </dependencies>		                    
+            </dependencyManagement>
+        </profile>
 
         <profile>
             <id>addon-ocr</id>
@@ -822,13 +855,42 @@
 			        </dependency>
 			        <dependency>
 			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-docviewer-jspui</artifactId>
+						 <version>${docviewer.addon.modules}</version>
+						 <type>war</type>
+			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
 						 <artifactId>addon-annoiiif-api</artifactId>
 						 <version>${annoiiif.addon.modules}</version>
 						 <type>jar</type>
 			        </dependency>			        
 		        </dependencies>		                    
             </dependencyManagement>
-        </profile>                        
+        </profile>
+        
+        <profile>
+            <id>addon-av-streaming</id>
+			<activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>            
+            <dependencyManagement>
+            	<dependencies>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-video-api</artifactId>
+						 <version>${av.addon.modules}</version>
+						 <type>jar</type>
+			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-video-jspui</artifactId>
+						 <version>${av.addon.modules}</version>
+						 <type>war</type>
+			        </dependency>			        
+		        </dependencies>		                    
+            </dependencyManagement>
+        </profile>                                
       <!--
          The 'release' profile is used by the 'maven-release-plugin' (see above)
          to actually perform a DSpace software release to Maven central.
@@ -858,6 +920,7 @@
 
 
 
+             <module>dspace-rs</module>
          </modules>
       </profile>
 
@@ -878,12 +941,74 @@
             <artifactId>dspace-api</artifactId>
             <version>${project.version}</version>
          </dependency>
-         <dependency>
-            <groupId>org.dspace.modules</groupId>
-            <artifactId>additions</artifactId>
+   		 <dependency>
+			<groupId>org.dspace.modules</groupId>
+			<artifactId>additions</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-ckan-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-ckan-jspui</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-iiif-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-iiif-jspui</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-woocommerce-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-woocommerce-jspui</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-ocr-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-annoiiif-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-docviewer-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-docviewer-jspui</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-video-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-video-jspui</artifactId>
+				</exclusion>
+			</exclusions>
+		 </dependency>
+         <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-rs</artifactId>
+            <version>${project.version}</version>
+            <type>war</type>
          </dependency>
-
+         <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-rs</artifactId>
+            <version>${project.version}</version>
+            <type>jar</type>
+            <classifier>classes</classifier>            
+         </dependency>
          <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-sword</artifactId>
@@ -1040,49 +1165,49 @@
         <dependency>
             <artifactId>spring-core</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-beans</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-aop</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-context</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-tx</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-jdbc</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-web</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
         <dependency>
             <artifactId>spring-webmvc</artifactId>
             <groupId>org.springframework</groupId>
-            <version>3.1.1.RELEASE</version>
+            <version>3.2.16.RELEASE</version>
         </dependency>
 
          <dependency>
@@ -1334,10 +1459,10 @@
             <version>51.1</version>
          </dependency>
          <dependency>
-			<groupId>postgresql</groupId>
-			<artifactId>postgresql</artifactId>
-            <version>9.1-901-1.jdbc4</version>
-		</dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.2.1</version>
+         </dependency>
          <dependency>
             <groupId>com.oracle</groupId>
             <artifactId>ojdbc6</artifactId>
@@ -1510,6 +1635,12 @@
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
             <version>1.19.1</version>
+            <exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava-jdk5</artifactId>
+				</exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.http-client</groupId>
@@ -1542,8 +1673,28 @@
           <dependency>
         	<groupId>com.fasterxml.jackson.jaxrs</groupId>
         	<artifactId>jackson-jaxrs-json-provider</artifactId>
-        	<version>2.5.4</version>
+        	<version>${jackson.version}</version>
 	    </dependency>
+	      <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+	        <artifactId>jackson-annotations</artifactId>
+	        <version>${jackson.version}</version>
+	      </dependency>
+	      <dependency>
+	        <groupId>com.fasterxml.jackson.core</groupId>
+	        <artifactId>jackson-core</artifactId>
+	        <version>${jackson.version}</version>
+	      </dependency>
+	      <dependency>
+	        <groupId>com.fasterxml.jackson.core</groupId>
+	        <artifactId>jackson-databind</artifactId>
+	        <version>${jackson.version}</version>
+	      </dependency>
+	      <dependency>
+	        <groupId>com.fasterxml.jackson.datatype</groupId>
+	        <artifactId>jackson-datatype-jsr310</artifactId>
+	        <version>2.8.5</version>
+	      </dependency>
 	    <dependency>
 			<groupId>commons-httpclient</groupId>
 			<artifactId>commons-httpclient</artifactId>
@@ -1554,6 +1705,23 @@
 			<artifactId>addon-commons-api</artifactId>
 			<version>${commons.addon.modules}</version>
 		</dependency>
+		<dependency>
+			<groupId>it.4science</groupId>
+			<artifactId>tools-orcid-jaxb</artifactId>
+			<version>2.0</version>
+			<type>jar</type>
+			<exclusions>
+				<!-- Logging -->
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-core</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>		
       </dependencies>
    </dependencyManagement>
 

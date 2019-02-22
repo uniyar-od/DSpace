@@ -7,13 +7,16 @@
  */
 package org.dspace.app.cris.integration.authority;
 
+import java.beans.PropertyEditor;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -24,9 +27,9 @@ import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Metadatum;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -42,7 +45,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
 
     private Map<String, ItemMetadataImportFillerConfiguration> configurations;
 
-    private ApplicationService applicationService;
+    protected ApplicationService applicationService;
 
     private MetricsPersistenceService metricsPersistenceService;
 
@@ -98,8 +101,47 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
             log.debug("fillRecord -> " + crisObject.getAnagrafica4view());
             ItemMetadataImportFillerConfiguration conf = configurations
                     .get(mdString);
+            
             if (conf != null)
             {
+                String prefix = "";
+                if (crisObject instanceof ResearchObject)
+                {
+                    prefix = ((ResearchObject) crisObject).getTypo()
+                            .getShortName();
+                }
+                
+                Set<String> alreadyDeleted = new HashSet<String>();
+                for (Entry<String, MappingDetails> entry : conf.getMapping()
+                        .entrySet())
+                {
+                    String mdInput = entry.getKey();
+                    MappingDetails details = entry.getValue();                    
+                    if (!(details instanceof MetricsMappingDetails)) {
+
+                        log.debug("fillRecord -> conf to delete -> " + mdInput);
+                        String detailsShortname = prefix + details.getShortName();
+                        log.debug("fillRecord -> conf to delete -> " + detailsShortname);
+
+                        if (!details.isAppendMode())
+                        {
+                            if (!alreadyDeleted.contains(detailsShortname))
+                            {
+                                ResearcherPageUtils
+                                        .cleanPropertyByPropertyDefinition(
+                                                crisObject, detailsShortname);
+                                alreadyDeleted.add(detailsShortname);
+                            }
+                        }
+                    }                    
+                }
+
+                
+                String pdefKey = prefix + crisObject.getMetadataFieldTitle();
+                ResearcherPageUtils.cleanPropertyByPropertyDefinition(crisObject, pdefKey);
+                applicationService.saveOrUpdate(crisObject.getCRISTargetClass(), crisObject);
+                ResearcherPageUtils.buildTextValue(crisObject,m.value,pdefKey);
+                
                 for (Entry<String, MappingDetails> entry : conf.getMapping()
                         .entrySet())
                 {
@@ -110,17 +152,12 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                         MetricsMappingDetails mmd = (MetricsMappingDetails)details;
                         buildMetric(context, item, crisObject, m, mdInput, mmd, metricsPersistenceService);
                     }
+                    
                     log.debug("fillRecord -> conf -> " + mdInput);
                     log.debug(
                             "fillRecord -> conf -> " + details.getShortName());
                     List<? extends Property> props = (List<? extends Property>) crisObject
                             .getAnagrafica4view().get(details.getShortName());
-                    String prefix = "";
-                    if (crisObject instanceof ResearchObject)
-                    {
-                        prefix = ((ResearchObject) crisObject).getTypo()
-                                .getShortName();
-                    }
                     Metadatum[] inputs = item
                             .getMetadataByMetadataString(mdInput);
                     if (details.isUseAll())
@@ -129,6 +166,9 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                         {
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
+                            if(dcvalue!= null && dcvalue.equals(MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+                            	continue;
+                            }
                             if (!containsValue(props, dcvalue))
                             {
                                 ResearcherPageUtils.buildGenericValue(
@@ -151,7 +191,9 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                             }
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
-                            
+                            if(dcvalue!= null && dcvalue.equals(MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+                            	continue;
+                            }
                             if (!containsValue(props, dcvalue))
                             {
                                 ResearcherPageUtils.buildGenericValue(
@@ -276,6 +318,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
         {
             dcvalue = applicationService.getEntityByCrisId(value.authority);
         }
+        else if (details.isFormatAsInteger()) {
+            if(StringUtils.isNotBlank(value.value)) {
+                dcvalue = Integer.parseInt(value.value);
+            }
+        }
         return dcvalue;
     }
 
@@ -316,7 +363,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     {
         for (Property p : props)
         {
-            if (p.getValue().getObject().equals(val))
+            PropertyEditor pe1 = p.getTypo().getRendering().getPropertyEditor(applicationService);
+            PropertyEditor pe2 = p.getTypo().getRendering().getPropertyEditor(applicationService);
+            pe1.setValue(p.getValue().getObject());
+            pe2.setValue(val);
+            if (pe1.getAsText().equals(pe2.getAsText()))
             {
                 return true;
             }
@@ -328,4 +379,5 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
     {
         this.metricsPersistenceService = metricsPersistenceService;
     }
+    
 }

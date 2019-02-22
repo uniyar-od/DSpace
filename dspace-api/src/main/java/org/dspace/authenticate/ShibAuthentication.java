@@ -35,6 +35,7 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.NonUniqueMetadataException;
 import org.dspace.core.Context;
+import org.dspace.core.LogManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.authenticate.AuthenticationManager;
 import org.dspace.authenticate.AuthenticationMethod;
@@ -199,7 +200,54 @@ public class ShibAuthentication implements AuthenticationMethod
 					message += ""+headerName+"='"+headerValue+"'\n";
 				}
 			}
+			
+            // Check if IDP sent attribute into the request
+            String messageAttribute = "Received the following attribute:\n";
+            Enumeration<String> attributeNames = request.getAttributeNames();
+            boolean writeLogA = false;
+            if (attributeNames != null)
+            {
+                while (attributeNames.hasMoreElements())
+                {
+                    String attributeName = attributeNames.nextElement();
+                    Object attribute = request.getAttribute(attributeName);
+                    if (attribute != null && attribute instanceof String)
+                    {
+                        String attributeValue = (String) attribute;
+                        messageAttribute += "" + attributeName + "='"
+                                + attributeValue + "'\n";
+                        writeLogA = true;
+                    }
+                }
+            }
+            // Check if IDP sent attribute into the session
+            String messageSession = "Received the following session:\n";
+            Enumeration<String> attributeSessionNames = request.getSession()
+                    .getAttributeNames();
+            boolean writeLogB = false;
+            if (attributeSessionNames != null)
+            {
+                while (attributeSessionNames.hasMoreElements())
+                {
+                    String attributeName = attributeSessionNames.nextElement();
+                    Object attribute = request.getAttribute(attributeName);
+                    if (attribute != null && attribute instanceof String)
+                    {
+                        String attributeValue = (String) attribute;
+                        messageSession += "" + attributeName + "='"
+                                + attributeValue + "'\n";
+                        writeLogB = true;
+                    }
+                }
+            }
 			log.debug(message);
+			if(writeLogA) {
+			    log.debug(messageAttribute);
+			}
+            if (writeLogB)
+            {
+                log.debug(messageSession);
+            }
 		}
 
 		// Should we auto register new users.
@@ -709,6 +757,24 @@ public class ShibAuthentication implements AuthenticationMethod
 		// Set the minimum attributes for the new eperson
 		if (netid != null)
 			eperson.setNetid(netid);
+		
+        // Check if we were able to determine an email address from Shibboleth
+        if (StringUtils.isEmpty(email))
+        {
+            // If no email, check if we have a "netid_email_domain". If so, append it to the netid to create email
+            if (StringUtils.isNotEmpty(ConfigurationManager.getProperty("authentication-shibboleth", "netid_email_domain")))
+            {
+                email = netid + ConfigurationManager.getProperty("authentication-shibboleth", "netid_email_domain");
+            }
+            else
+            {
+                // We don't have a valid email address. We'll default it to 'netid' but log a warning
+                log.warn(LogManager.getHeader(context, "autoregister",
+                        "Unable to locate email address for account '" + netid + "', so it has been set to '" + netid + "'. " +
+                        "Please check the Shibboleth 'email-header' OR consider configuring 'netid_email_domain'."));
+                email = netid;
+            }
+        }
 		eperson.setEmail(email.toLowerCase());
 		if ( fname != null )
 			eperson.setFirstName(fname);
@@ -785,7 +851,7 @@ public class ShibAuthentication implements AuthenticationMethod
 			// to netid based authentication. The current users do not have netids and fall back to email-based
 			// identification but once they login we update their record and lock the account to a particular netid.
 			eperson.setNetid(netid);
-		if (email != null)
+		if (StringUtils.isNotBlank(email))
 			// The email could have changed if using netid based lookup.
 			eperson.setEmail(email.toLowerCase());
 		if (fname != null)

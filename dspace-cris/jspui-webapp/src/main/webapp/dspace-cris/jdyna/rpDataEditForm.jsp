@@ -37,7 +37,7 @@
     EPerson user = (EPerson) request.getAttribute("dspace.current.user");
 
     // Is the logged in user an admin
-    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    Boolean admin = (Boolean)request.getAttribute("isAdmin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
     boolean changeStatusAdmin = ConfigurationManager.getBooleanProperty("cris","rp.changestatus.admin");
 %>
@@ -811,7 +811,7 @@
 		</div>
 		</div>
 		</c:if>
-		<% if(!changeStatusAdmin) { %>
+		<% if(!changeStatusAdmin || isAdmin) { %>
 		<div class="col-md-6">	
 		<div class="cris-edit-status">
 		<spring:bind path="status">

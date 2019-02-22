@@ -17,19 +17,28 @@ import org.apache.log4j.Logger;
 import org.apache.solr.util.DateMathParser;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
+import org.dspace.core.Context;
 
 public class DateValueGenerator implements TemplateValueGenerator
 {
 
-    Logger log = Logger.getLogger(DateValueGenerator.class);
+    private static Logger log = Logger.getLogger(DateValueGenerator.class);
 
     @Override
-    public Metadatum[] generator(Item targetItem, Item templateItem,
+    public Metadatum[] generator(Context context, Item targetItem, Item templateItem,
             Metadatum metadatum, String extraParams)
     {
 
         Metadatum[] m = new Metadatum[1];
         m[0] = metadatum;
+        String value = buildValue(extraParams);
+
+        metadatum.value = value;
+        return m;
+    }
+
+    public static String buildValue(String extraParams)
+    {
         String[] params = StringUtils.split(extraParams, "\\.");
         String operazione = "";
         String formatter = "";
@@ -65,9 +74,7 @@ public class DateValueGenerator implements TemplateValueGenerator
         {
             value = date.toString();
         }
-
-        metadatum.value = value;
-        return m;
+        return value;
     }
 
 }

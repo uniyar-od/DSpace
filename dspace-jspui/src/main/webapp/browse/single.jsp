@@ -14,6 +14,7 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
@@ -115,8 +116,11 @@
 //	 the message key for the type
 	String typeKey = "browse.type.metadata." + bix.getName();
 %>
-
-<dspace:layout titlekey="browse.page-title">
+<c:set var="fmtkey">
+ jsp.layout.navbar-default.cris.${location}
+</c:set>
+<c:set var="locbarType"><c:choose><c:when test="${location eq null}"><c:set var="fmtkey"></c:set></c:when><c:otherwise>link</c:otherwise></c:choose></c:set>
+<dspace:layout titlekey="browse.page-title" locbar="${locbarType}" parenttitlekey="${fmtkey}" parentlink="/cris/explore/${location}">
 
 	<%-- Build the header (careful use of spacing) --%>
 	<h2>
@@ -186,7 +190,7 @@
 		String browseJumpKey = "browse.nav.jump." + bix.getName();
 %>	
 		<label class="sr-only" for="starts_with"><fmt:message key="<%= browseNavKey %>"/></label>
-		<input type="text" name="starts_with" class="form-control" size="60" 
+		<input type="text" name="vfocus" class="form-control" size="60" 
 			placeholder="<fmt:message key="<%= browseStartKey %>" />" />
 		<input type="submit" class="btn btn-default" value="<fmt:message key="browse.nav.go"/>" />
 		<br/>

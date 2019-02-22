@@ -361,6 +361,16 @@
 	</servlet>
 
 	<servlet>
+    	<servlet-name>loginstats</servlet-name>
+    	<servlet-class>org.dspace.app.webui.servlet.LoginStatisticsServlet</servlet-class>
+  	</servlet> 	
+
+  	<servlet>
+    	<servlet-name>workflowstats</servlet-name>
+    	<servlet-class>org.dspace.app.webui.servlet.WorkflowStatisticsServlet</servlet-class>
+  	</servlet> 	
+  
+	<servlet>
 		<servlet-name>metadataexport</servlet-name>
 		<servlet-class>org.dspace.app.webui.servlet.MetadataExportServlet</servlet-class>
 	</servlet>
@@ -517,7 +527,12 @@
     	<servlet-name>authority-management</servlet-name>
     	<servlet-class>org.dspace.app.webui.servlet.admin.AuthorityManagementServlet</servlet-class>
   	</servlet>
-		
+
+	<servlet>
+    	<servlet-name>authority-claim</servlet-name>
+    	<servlet-class>org.dspace.app.webui.cris.servlet.AuthorityClaimServlet</servlet-class>
+  	</servlet>
+  			
 	<servlet>
     	<servlet-name>sherpapolicy</servlet-name>
     	<servlet-class>org.dspace.app.webui.servlet.SHERPAPublisherPolicyServlet</servlet-class>
@@ -615,6 +630,11 @@
   	<servlet>
     	<servlet-name>doiqueued</servlet-name>
     	<servlet-class>org.dspace.app.webui.servlet.DoiQueuedServlet</servlet-class>
+  	</servlet>
+  	
+  	<servlet>
+    	<servlet-name>inpageloginservlet</servlet-name>
+    	<servlet-class>org.dspace.app.webui.servlet.InPageLoginServlet</servlet-class>
   	</servlet>
   	
 	<!-- Servlet Mappings -->
@@ -910,6 +930,16 @@
 	</servlet-mapping>
 
 	<servlet-mapping>
+		<servlet-name>loginstats</servlet-name>
+		<url-pattern>/loginstats</url-pattern>
+	</servlet-mapping>	
+
+	<servlet-mapping>
+		<servlet-name>workflowstats</servlet-name>
+		<url-pattern>/workflowstats</url-pattern>
+	</servlet-mapping>	
+	
+	<servlet-mapping>
 		<servlet-name>submit</servlet-name>
 		<url-pattern>/submit</url-pattern>
 	</servlet-mapping>
@@ -964,6 +994,16 @@
         <url-pattern>/dspace-admin/authority</url-pattern>
     </servlet-mapping>
     
+    <servlet-mapping>
+        <servlet-name>authority-management</servlet-name>
+        <url-pattern>/tools/authority</url-pattern>
+    </servlet-mapping>
+
+  	<servlet-mapping>
+    	<servlet-name>authority-claim</servlet-name>
+    	<url-pattern>/tools/claim</url-pattern>
+  	</servlet-mapping>
+      
   	<servlet-mapping>
     	<servlet-name>sherpapolicy</servlet-name>
     	<url-pattern>/tools/sherpaPolicy</url-pattern>
@@ -1048,6 +1088,16 @@
   </servlet-mapping>
 
 	<!-- CRIS -->
+  <servlet>
+    <servlet-name>stats-cleaner</servlet-name>
+    <servlet-class>org.dspace.app.webui.cris.servlet.StatsCleaner</servlet-class>
+  </servlet>  	
+  
+  <servlet-mapping>
+    <servlet-name>stats-cleaner</servlet-name>
+    <url-pattern>/dspace-admin/stats-cleaner</url-pattern>
+  </servlet-mapping>   	
+
 	<servlet>
 		<servlet-name>researcherImageServlet</servlet-name>
 		<servlet-class>org.dspace.app.webui.cris.servlet.ResearcherPictureServlet</servlet-class>
@@ -1102,6 +1152,12 @@
 		<servlet-name>networkrelationsservice</servlet-name>
 		<url-pattern>/networkdatarelations/*</url-pattern>
 	</servlet-mapping>
+	
+	<servlet-mapping>
+    <servlet-name>inpageloginservlet</servlet-name>
+    <url-pattern>/login-in-page</url-pattern>
+  </servlet-mapping>
+  
 	<!-- Pubmed retrieval -->
 	<servlet>
 		<servlet-name>PMCGetCitedByCount</servlet-name>

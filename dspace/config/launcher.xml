@@ -132,6 +132,13 @@
         </step>
     </command>
     <command>
+        <name>index-deduplication</name>
+        <description>Update Deduplication Solr Search Index</description>
+        <step>
+            <class>org.dspace.app.cris.batch.DedupClient</class>
+        </step>
+    </command>    
+    <command>
         <name>index-discovery</name>
         <description>Update Discovery Solr Search Index</description>
         <step>
@@ -252,8 +259,6 @@
             <class>org.dspace.util.SolrImportExport</class>
 	    <argument>-a</argument>
 	    <argument>export</argument>
-	    <argument>-i</argument>
-	    <argument>statistics</argument>
         </step>
     </command>
     <command>
@@ -263,8 +268,6 @@
             <class>org.dspace.util.SolrImportExport</class>
 	    <argument>-a</argument>
 	    <argument>import</argument>
-	    <argument>-i</argument>
-	    <argument>statistics</argument>
         </step>
     </command>
     <command>
@@ -274,8 +277,6 @@
             <class>org.dspace.util.SolrImportExport</class>
 	    <argument>-a</argument>
 	    <argument>reindex</argument>
-	    <argument>-i</argument>
-	    <argument>statistics</argument>
         </step>
     </command>
     <command>

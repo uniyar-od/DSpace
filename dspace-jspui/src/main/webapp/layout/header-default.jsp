@@ -46,10 +46,13 @@
     String generator = dsVersion == null ? "DSpace" : "DSpace "+dsVersion;
     String analyticsKey = ConfigurationManager.getProperty("jspui.google.analytics.key");
 
+    boolean cookiesPolicyEnabled = ConfigurationManager.getBooleanProperty("cookies.policy.enabled", false);
+    
     // get the locale languages
     Locale[] supportedLocales = I18nUtil.getSupportedLocales();
     Locale sessionLocale = UIUtil.getSessionLocale(request);
     boolean isRtl = StringUtils.isNotBlank(LocaleUIHelper.ifLtr(request, "","rtl"));    
+    String resourceSyncBaseURL = ConfigurationManager.getProperty("resourcesync", "base-url");
 %>
 
 <!DOCTYPE html>
@@ -60,6 +63,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
         <meta name="Generator" content="<%= generator %>" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0">		
+        <link rel="resourcesync sitemap" href="<%= resourceSyncBaseURL %>/resourcesync.xml" type="application/xml"/>
         <link rel="shortcut icon" href="<%= request.getContextPath() %>/favicon.ico" type="image/x-icon"/>
 	    <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/jquery-ui-1.10.3.custom/redmond/jquery-ui-1.10.3.custom.css" type="text/css" />
 	    <link href="<%= request.getContextPath() %>/css/researcher.css" type="text/css" rel="stylesheet" />
@@ -212,6 +216,33 @@
 <%    	
     }
 %>
+
+<% if(cookiesPolicyEnabled) { %>
+<link rel="stylesheet" type="text/css" href="<%= request.getContextPath() %>/static/css/cookieconsent/cookieconsent.min.css" />
+<script src="<%= request.getContextPath() %>/static/js/cookieconsent/cookieconsent.min.js"></script>
+<script>
+window.addEventListener("load", function(){
+window.cookieconsent.initialise({
+  "palette": {
+    "popup": {
+      "background": "#edeff5",
+      "text": "#838391"
+    },
+    "button": {
+      "background": "#4b81e8"
+    }
+  },
+  "position": "bottom-right",
+  "theme": "classic",
+  "content": {
+    "message": "<%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.layout.navbar-default.cookies.info.message") %>",
+    "dismiss": "<%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.layout.navbar-default.cookies.button") %>",
+    "link": "<%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.layout.navbar-default.cookies.info.link") %>",
+    "href": "<%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.layout.navbar-default.cookies.href") %>"
+  }
+})});
+</script>
+<% } %>
 </header>
 
 <main id="content" role="main">

@@ -17,9 +17,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
@@ -28,8 +30,10 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.core.PluginManager;
 import org.dspace.core.Utils;
 import org.dspace.handle.HandleManager;
+import org.dspace.plugin.BitstreamHomeProcessor;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 
@@ -169,7 +173,11 @@ public class BitstreamServlet extends DSpaceServlet
 
         log.info(LogManager.getHeader(context, "view_bitstream",
                 "bitstream_id=" + bitstream.getID()));
-        
+ 
+		if (bitstream.getMetadataValue(IViewer.METADATA_STRING_PROVIDER).contains(IViewer.STOP_DOWNLOAD)
+				&& !AuthorizeManager.isAdmin(context, bitstream)) {
+			throw new AuthorizeException("Download not allowed by viewer policy");
+		}
         //new UsageEvent().fire(request, context, AbstractUsageEvent.VIEW,
 		//		Constants.BITSTREAM, bitstream.getID());
 
@@ -192,7 +200,16 @@ public class BitstreamServlet extends DSpaceServlet
                     .getTime());
 
             // Check for if-modified-since header
-            long modSince = request.getDateHeader("If-Modified-Since");
+            long modSince = -1;
+            try {
+            	modSince = request.getDateHeader("If-Modified-Since");
+            }
+            catch (IllegalArgumentException ex) {
+            	// ignore the exception, the header is invalid 
+            	// we proceed as it was not supplied/supported
+            	// we have some bad web client that provide unvalid values 
+            	// no need to fill our log with such exceptions
+            }
 
             if (modSince != -1 && item.getLastModified().getTime() < modSince)
             {
@@ -202,6 +219,8 @@ public class BitstreamServlet extends DSpaceServlet
                 return;
             }
         }
+        
+        preProcessBitstreamHome(context, request, response, bitstream);
         
         // Pipe the bits
         InputStream is = bitstream.retrieve();
@@ -224,5 +243,24 @@ public class BitstreamServlet extends DSpaceServlet
         Utils.bufferedCopy(is, response.getOutputStream());
         is.close();
         response.getOutputStream().flush();
+    }
+    
+    private void preProcessBitstreamHome(Context context, HttpServletRequest request,
+            HttpServletResponse response, Bitstream item)
+        throws ServletException, IOException, SQLException
+    {
+        try
+        {
+            BitstreamHomeProcessor[] chp = (BitstreamHomeProcessor[]) PluginManager.getPluginSequence(BitstreamHomeProcessor.class);
+            for (int i = 0; i < chp.length; i++)
+            {
+                chp[i].process(context, request, response, item);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("caught exception: ", e);
+            throw new ServletException(e);
+        }
     }
 }
