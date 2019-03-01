@@ -38,6 +38,7 @@
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
+        <epocaintegration.version>[5.0-SNAPSHOT,6.0-SNAPSHOT)</epocaintegration.version>
     </properties>
 
     <build>
@@ -701,6 +702,22 @@
              <module>dspace-xmlui-mirage2</module>
              <module>dspace-xmlui</module>
          </modules>
+      </profile>
+      <profile>
+            <id>epocaintegration</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                       <dependency>
+                             <groupId>it.ivscience.epoca</groupId>
+                             <artifactId>epocaintegration-dspace-api</artifactId>
+                             <version>${epocaintegration.version}</version>
+                             <type>jar</type>
+                       </dependency>
+                </dependencies>
+            </dependencyManagement>
       </profile>
 
    </profiles>
