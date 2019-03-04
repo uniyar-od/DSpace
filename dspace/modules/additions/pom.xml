@@ -66,25 +66,6 @@
          </dependencies>
       </profile>
 
-        <profile>
-            <id>epocaintegration</id>
-            <activation>
-                <property>
-                    <name>epocaintegration.on</name>
-                </property>
-            </activation>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>it.ivscience.epoca</groupId>
-                        <artifactId>epocaintegration-dspace-api</artifactId>
-                        <version>${epocaintegration.version}</version>
-                        <type>jar</type>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </profile>
-
    </profiles>
 
    <!--
