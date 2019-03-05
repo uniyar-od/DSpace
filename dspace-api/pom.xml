@@ -239,6 +239,25 @@
         </plugins>
     </build>
 
+    <profiles>
+        <profile>
+            <id>epocaintegration</id>
+            <activation>
+                <property>
+                    <name>!skipEpocaintegration</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>it.ivscience.epoca</groupId>
+                    <artifactId>epocaintegration-dcris-api</artifactId>
+                    <version>${epocaintegration.version}</version>
+                    <type>jar</type>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
+
     <dependencies>
         <dependency>
             <groupId>org.dspace</groupId>
