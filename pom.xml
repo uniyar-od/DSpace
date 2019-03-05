@@ -47,6 +47,7 @@
 		<ocr.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ocr.addon.modules>
 		<docviewer.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</docviewer.addon.modules>		
 		<av.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</av.addon.modules>
+		<epocaintegration.version>[6.0-SNAPSHOT,7.0-SNAPSHOT)</epocaintegration.version>
 		
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -917,6 +918,22 @@
             </dependencyManagement>
         </profile>                                
 
+        <profile>
+            <id>epocaintegration</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                       <dependency>
+                             <groupId>it.ivscience.epoca</groupId>
+                             <artifactId>epocaintegration-dcris-api</artifactId>
+                             <version>${epocaintegration.version}</version>
+                             <type>jar</type>
+                       </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
    </profiles>
 
    <!--
