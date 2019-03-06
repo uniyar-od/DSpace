@@ -228,7 +228,7 @@ public class PushToORCID
                         + " AND orcid iD:" + orcid);
                 try
                 {
-                    String tokenCreateWork = getTokenReleasedForSync(researcher,
+                    String tokenCreateWork = OrcidPreferencesUtils.getTokenReleasedForSync(researcher,
                                     OrcidService.SYSTEM_ORCID_TOKEN_ACTIVITIES_CREATE_SCOPE);
                     DSpaceObject dso = HandleManager.resolveToObject(context,
                             uuid);
@@ -310,9 +310,9 @@ public class PushToORCID
                         + " AND orcid iD:" + orcid);
                 try
                 {
-                    String tokenUpdateBio = getTokenReleasedForSync(researcher,
+                    String tokenUpdateBio = OrcidPreferencesUtils.getTokenReleasedForSync(researcher,
                             OrcidService.SYSTEM_ORCID_TOKEN_PROFILE_CREATE_SCOPE);
-                    String tokenActivities = getTokenReleasedForSync(researcher,
+                    String tokenActivities = OrcidPreferencesUtils.getTokenReleasedForSync(researcher,
                             OrcidService.SYSTEM_ORCID_TOKEN_ACTIVITIES_CREATE_SCOPE);
                     if (tokenUpdateBio != null)
                     {
@@ -395,7 +395,7 @@ public class PushToORCID
                         + " AND orcid iD:" + orcid);
                 try
                 {
-                    String tokenCreateFunding = getTokenReleasedForSync(
+                    String tokenCreateFunding = OrcidPreferencesUtils.getTokenReleasedForSync(
                             researcher, OrcidService.SYSTEM_ORCID_TOKEN_ACTIVITIES_CREATE_SCOPE);
 
                     Project project = (Project) applicationService
@@ -2079,7 +2079,7 @@ public class PushToORCID
                 }
 
                 List<String> listOrgunitcountry = employment
-                        .get("affiliationorgunit.iso-3166-country");
+                        .get("affiliationorgunit.iso-country");
                 if (listOrgunitcountry != null && !listOrgunitcountry.isEmpty())
                 {
                     Iso3166Country isoCountry = Iso3166Country
@@ -2292,7 +2292,7 @@ public class PushToORCID
                 }
 
                 List<String> listOrgunitcountry = education
-                        .get("educationorgunit.iso-3166-country");
+                        .get("educationorgunit.iso-country");
                 if (listOrgunitcountry != null && !listOrgunitcountry.isEmpty())
                 {
                     Iso3166Country isoCountry = Iso3166Country
@@ -3136,7 +3136,7 @@ public class PushToORCID
             listMetadataParentOrgunitCity.add(pp.toString());
         }
         List<OUProperty> countryorgunits = ou.getAnagrafica4view()
-                .get("iso-3166-country");
+                .get("iso-country");
         for (OUProperty pp : countryorgunits)
         {
             listMetadataParentOrgunitCountry.add(pp.toString());
@@ -3148,13 +3148,6 @@ public class PushToORCID
         }
     }
 
-    //UTILITY METHODS
-    public static String getTokenReleasedForSync(ResearcherPage researcher,
-            String tokenName)
-    {
-        return ResearcherPageUtils.getStringValue(researcher, tokenName);
-    }
-    
     private static String getMd5Hash(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         MessageDigest digester = MessageDigest.getInstance("MD5");
@@ -3441,7 +3434,7 @@ public class PushToORCID
                 if (!listMetadataParentOrgunitCountry.isEmpty())
                 {
                     mapMetadata.put(
-                            metadataNestedShortname + ".iso-3166-country",
+                            metadataNestedShortname + ".iso-country",
                             listMetadataParentOrgunitCountry);
                 }
                 if (!listMetadataParentOrgunitCity.isEmpty())

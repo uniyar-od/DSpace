@@ -23,7 +23,6 @@
   -                  display any collections.
   -    admin_button - Boolean, show admin 'edit' button
   --%>
-<%@page import="org.apache.commons.lang.StringUtils"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -47,6 +46,7 @@
 <%@page import="org.dspace.eperson.EPerson"%>
 <%@page import="org.dspace.versioning.VersionHistory"%>
 <%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
+<%@page import="org.apache.commons.lang.StringUtils"%>
 
 <%
     // Attributes
@@ -92,16 +92,22 @@
     boolean wosEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.thomsonreuters.wos.enabled",false);
     String doiMetadata = ConfigurationManager.getProperty("cris","ametrics.identifier.doi");
     String isbnMetadata = ConfigurationManager.getProperty("cris","ametrics.identifier.isbn");
+    String pmidMetadata = ConfigurationManager.getProperty("cris","ametrics.identifier.pmid");
     if (doiMetadata == null) {
     	doiMetadata = "dc.identifier.doi";
     }
     if (isbnMetadata == null) {
     	isbnMetadata = "dc.identifier.isbn";
     }
+    if (pmidMetadata == null) {
+    	pmidMetadata = "dc.identifier.pmid";
+    }
     String doi = item.getMetadata(doiMetadata);
     String isbn = item.getMetadata(isbnMetadata);
+    String pmid = item.getMetadata(pmidMetadata);
     boolean scholarEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.google.scholar.enabled",false);
     boolean altMetricEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.enabled",false) && (StringUtils.isNotBlank(doi) || StringUtils.isNotBlank(isbn));
+    boolean altMetricDimensionsEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.dimensionsbadges.enabled",false) && (StringUtils.isNotBlank(doi) || StringUtils.isNotBlank(pmid));
     
     Boolean versioningEnabledBool = (Boolean)request.getAttribute("versioning.enabled");
     boolean versioningEnabled = (versioningEnabledBool!=null && versioningEnabledBool.booleanValue());
@@ -150,34 +156,54 @@ j(document).ready(function() {
 	<% } %>
 	
 	<% if (dedupEnabled && admin_button) { %>
-	j.ajax({
-		url : "<%=request.getContextPath()%>/json/duplicate",
-		data : {																			
-			"itemid" : <%= item.getID()%>,
-			"typeid" : "2",
-			"admin": true
-		},
-		success : function(data) {
-			if(data.iTotalDisplayRecords==0) {
-				j('div.dedup').hide();
+		j.ajax({
+			url : "<%=request.getContextPath()%>/json/duplicate",
+			data : {																			
+				"itemid" : <%= item.getID()%>,
+				"typeid" : "2",
+				"admin": true
+			},
+			success : function(data) {
+				if(data.iTotalDisplayRecords==0) {
+					j('div.dedup').hide();
+				}
+				else {
+					j('#dedupCounter').html(data.iTotalDisplayRecords);
+					var queryString = "?";
+					var tmp_itemid_list = <%= item.getID()%> + ",";
+					j.each(data.aaData, function( index, value ) {
+						tmp_itemid_list += value.entityID;
+						tmp_itemid_list += ",";
+					});				
+					var itemid_list = tmp_itemid_list.substr(0, tmp_itemid_list.length-1);
+					queryString += 'scope=0&submitcheck=submitcheck&itemid_list='+itemid_list;
+					j('#dedupCounter').attr('href', '<%=request.getContextPath()%>/tools/duplicate' + queryString);
+				}			
+			},
+			error : function(data) {
 			}
-			else {
-				j('#dedupCounter').html(data.iTotalDisplayRecords);
-				var queryString = "?";
-				var tmp_itemid_list = <%= item.getID()%> + ",";
-				j.each(data.aaData, function( index, value ) {
-					tmp_itemid_list += value.entityID;
-					tmp_itemid_list += ",";
-				});				
-				var itemid_list = tmp_itemid_list.substr(0, tmp_itemid_list.length-1);
-				queryString += 'scope=0&submitcheck=submitcheck&itemid_list='+itemid_list;
-				j('#dedupCounter').attr('href', '<%=request.getContextPath()%>/tools/duplicate' + queryString);
-			}			
-		},
-		error : function(data) {
+		});
+	<% } %> 
+	<% 
+		if(StringUtils.isNotBlank(crisID)) {
+	%>
+		j.ajax({
+			url : "<%=request.getContextPath()%>/json/checkclaimpublicationmetadata",
+			data : {																			
+				"item" : "<%= item.getID()%>",
+				"crisid": "<%= crisID %>"
+			},
+			success : function(data) {
+					j.each(data, function( index, value ) {
+						j('#claim-usertools').append("<a class=\"btn btn-primary col-md-12\" href=\"<%= request.getContextPath() %>/tools/claim?action=" + value.action + "&metadata=" + value.metadata + "&handle=<%= handle %>\">" + value.message + "</a>");	
+					});				
+			},
+			error : function(data) {
+			}
+		});	
+	<%
 		}
-	});
-	<% } %>
+	%>
 });
 --></script>
 	<% if(coreRecommender) { %>
@@ -606,6 +632,20 @@ if (dedupEnabled && admin_button) { %>
 	</div>
 </div>
 </div>
+<% } 
+  if(altMetricDimensionsEnabled) { %>
+<div class="col-lg-12 col-md-4 col-sm-6">
+<div class="altmetric">
+	<div class="media-left">
+	
+      	<div class="__dimensions_badge_embed__" data-legend="hover-right" data-style="small_circle" <% if (doi != null) { %> data-doi="<%= doi %>"<% } else if (pmid != null) { %> data-pmid="<%= pmid %>"<% } %>" ></div>
+      	<script async src="https://badge.dimensions.ai/badge.js" charset="utf-8"></script>
+	</div>
+	<div class="media-body media-middle text-center">
+		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.altmetric"/></h4>
+	</div>
+</div>
+</div>
 <% } %>
     </div>
 </div>
@@ -628,9 +668,8 @@ if (dedupEnabled && admin_button) { %>
             <div class="panel panel-warning">
             	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
             	<div class="panel-body">
-        			<a class="btn btn-primary col-md-12" href="<%= request.getContextPath() %>/tools/claim?handle=<%= handle %>">
-            			<fmt:message key="jsp.display-item.claim-publication"/>
-        			</a>    	
+			    	<div id="claim-usertools">
+			    	</div>
             	</div>
             </div>
             </div>

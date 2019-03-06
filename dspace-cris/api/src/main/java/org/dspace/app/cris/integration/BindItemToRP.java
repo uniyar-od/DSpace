@@ -56,6 +56,12 @@ import org.dspace.utils.DSpace;
  */
 public class BindItemToRP
 {
+    private static final String COMMAND_WORK = "work";
+    
+    private static final String COMMAND_LIST = "list";
+
+    private static final String COMMAND_LISTEXCLUDEAUTHORITY = "listexcludeauthority";
+
     /** the logger */
     private static Logger log = Logger.getLogger(BindItemToRP.class);
 
@@ -284,73 +290,7 @@ public class BindItemToRP
     {
         log.debug("Working...building names list");
 
-        List<NameResearcherPage> names = new ArrayList<NameResearcherPage>();
-
-        Map<String, Set<Integer>> mapInvalids = new HashMap<String, Set<Integer>>();
-        for (ResearcherPage researcher : rps)
-        {
-            Set<Integer> invalidIds = new HashSet<Integer>();
-
-            List<RelationPreference> rejected = new ArrayList<RelationPreference>();
-            for (RelationPreferenceConfiguration configuration : relationPreferenceService
-                    .getConfigurationService().getList())
-            {
-                if (configuration.getRelationConfiguration().getRelationClass()
-                        .equals(Item.class))
-                {
-                    rejected = relationPreferenceService
-                            .findRelationsPreferencesByUUIDByRelTypeAndStatus(
-                                    researcher.getUuid(), configuration
-                                            .getRelationConfiguration()
-                                            .getRelationName(),
-                                    RelationPreference.UNLINKED);
-                }
-            }
-
-            for (RelationPreference relationPreference : rejected)
-            {
-                invalidIds.add(relationPreference.getItemID());
-            }
-            
-            mapInvalids.put(researcher.getCrisID(), invalidIds);
-        }
-        log.debug("...DONE building names list size " + names.size());
-        log.debug("Create DSpace context and use browse indexing");
-        Context context = null;
-        try
-        {
-            context = new Context();
-            context.setIgnoreAuthorization(true);
-
-            List<MetadataField> fieldsWithAuthoritySupport = metadataFieldWithAuthorityRP(context);
-            IRetrievePotentialMatchPlugin plugin = new DSpace()
-                    .getSingletonService(IRetrievePotentialMatchPlugin.class);
-
-            Map<NameResearcherPage, Item[]> result = plugin
-                    .retrieveGroupByName(context, mapInvalids, rps);
-            for (NameResearcherPage tempName : result.keySet())
-            {
-                if(result.get(tempName).length>0) {
-                    bindItemsToRP(relationPreferenceService, context,
-                            fieldsWithAuthoritySupport, tempName,
-                            result.get(tempName));
-                }
-            }
-
-        }
-        catch (Exception e)
-        {
-            log.error(e.getMessage(), e);
-            throw new RuntimeException(e.getMessage(), e);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
-
+        doWorkOrList(COMMAND_WORK, rps, relationPreferenceService);
     }
 
     public static void bindItemsToRP(
@@ -629,4 +569,109 @@ public class BindItemToRP
         }
 
     }
+    
+    public static Map<NameResearcherPage, Item[]> list(List<ResearcherPage> rps,
+            RelationPreferenceService relationPreferenceService)
+    {
+        return doWorkOrList(COMMAND_LIST, rps, relationPreferenceService);
+    }
+
+    public static Map<NameResearcherPage, Item[]> listExcludeAuthority(List<ResearcherPage> rps,
+            RelationPreferenceService relationPreferenceService)
+    {
+        return doWorkOrList(COMMAND_LISTEXCLUDEAUTHORITY, rps, relationPreferenceService);
+    }
+    
+    public static Map<NameResearcherPage, Item[]> doWorkOrList(String command, List<ResearcherPage> rps,
+            RelationPreferenceService relationPreferenceService)
+    {
+        log.debug("Working...building names list");
+
+        List<NameResearcherPage> names = new ArrayList<NameResearcherPage>();
+
+        Map<String, Set<Integer>> mapInvalids = new HashMap<String, Set<Integer>>();
+        for (ResearcherPage researcher : rps)
+        {
+            Set<Integer> invalidIds = new HashSet<Integer>();
+
+            List<RelationPreference> rejected = new ArrayList<RelationPreference>();
+            for (RelationPreferenceConfiguration configuration : relationPreferenceService
+                    .getConfigurationService().getList())
+            {
+                if (configuration.getRelationConfiguration().getRelationClass()
+                        .equals(Item.class))
+                {
+                    rejected = relationPreferenceService
+                            .findRelationsPreferencesByUUIDByRelTypeAndStatus(
+                                    researcher.getUuid(), configuration
+                                            .getRelationConfiguration()
+                                            .getRelationName(),
+                                    RelationPreference.UNLINKED);
+                }
+            }
+
+            for (RelationPreference relationPreference : rejected)
+            {
+                invalidIds.add(relationPreference.getItemID());
+            }
+            
+            mapInvalids.put(researcher.getCrisID(), invalidIds);
+        }
+        log.debug("...DONE building names list size " + names.size());
+        log.debug("Create DSpace context and use browse indexing");
+        Context context = null;
+        try
+        {
+            context = new Context();
+            context.setIgnoreAuthorization(true);
+
+            IRetrievePotentialMatchPlugin plugin = new DSpace()
+                    .getSingletonService(IRetrievePotentialMatchPlugin.class);
+            
+            Map<NameResearcherPage, Item[]> result = null;
+            
+            if(COMMAND_WORK.equals(command)) {
+                //do work command
+                result = plugin
+                        .retrieveGroupByName(context, mapInvalids, rps, false);
+                
+                List<MetadataField> fieldsWithAuthoritySupport = metadataFieldWithAuthorityRP(context);
+                for (NameResearcherPage tempName : result.keySet())
+                {
+                    if(result.get(tempName).length>0) {
+                        bindItemsToRP(relationPreferenceService, context,
+                                fieldsWithAuthoritySupport, tempName,
+                                result.get(tempName));
+                    }
+                }
+            }
+            else {
+                if(COMMAND_LISTEXCLUDEAUTHORITY.equals(command)) {
+                    result = plugin
+                            .retrieveGroupByNameExceptAuthority(context, mapInvalids, rps, true, true);                    
+                }
+                else if(COMMAND_LIST.equals(command)) {
+                    result = plugin
+                        .retrieveGroupByName(context, mapInvalids, rps, true);
+                }
+            }
+            
+            return result;
+
+        }
+        catch (Exception e)
+        {
+            log.error(e.getMessage(), e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        finally
+        {
+            if (context != null && context.isValid())
+            {
+                context.abort();
+            }
+        }
+
+    }
+
 }
