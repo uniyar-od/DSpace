@@ -24,6 +24,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
+import org.dspace.app.cris.model.jdyna.EditTabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
@@ -105,6 +106,7 @@ public class OUDetailsController
         }
         
         boolean isAdmin = CrisAuthorizeManager.isAdmin(context,ou);
+        boolean canEdit = isAdmin || CrisAuthorizeManager.canEdit(context, applicationService, EditTabOrganizationUnit.class, ou);
         if ((ou.getStatus() == null || ou.getStatus().booleanValue() == false)
                 && !isAdmin)
         {
@@ -132,6 +134,11 @@ public class OUDetailsController
         {
             model.put("ou_page_menu", new Boolean(true));
         }
+
+		if (canEdit) 
+		{
+			model.put("canEdit", new Boolean(true));
+		}
 
         ModelAndView mvc = null;
 
@@ -162,13 +169,16 @@ public class OUDetailsController
                 processor.process(context, request, response, ou);
                 Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
                 if(extra!=null && !extra.isEmpty()) {
-                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
-                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
-                    if(metrics!=null && !metrics.isEmpty()) {
-                        metricsTotal.putAll(metrics);
-                    }
-                    if(metricTypes!=null && !metricTypes.isEmpty()) {
-                        metricsTypeTotal.addAll(metricTypes);
+                    Object metricsObject = extra.get("metrics");
+                    if(metricsObject!=null) {
+                        Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)metricsObject;
+                        List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                        if(metrics!=null && !metrics.isEmpty()) {
+                            metricsTotal.putAll(metrics);
+                        }
+                        if(metricTypes!=null && !metricTypes.isEmpty()) {
+                            metricsTypeTotal.addAll(metricTypes);
+                        }
                     }
                 }
             }

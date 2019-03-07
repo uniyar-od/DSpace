@@ -56,6 +56,10 @@
     // Is the logged in user an admin
     Boolean admin = (Boolean)request.getAttribute("isAdmin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
+    // Can the logged in user edit
+    Boolean bEdit = (Boolean)request.getAttribute("canEdit");
+    boolean canEdit = (bEdit == null ? false : bEdit.booleanValue());
+    
     // Get the current page, minus query string
     String currentPage = UIUtil.getOriginalURL(request);
     int c = currentPage.indexOf( '?' );
@@ -303,7 +307,7 @@
 					</c:choose>
 	  				<a class="btn btn-default" href="<%= request.getContextPath() %>/open-search?query=author_authority:${authority}&amp;format=rss"><i class="fa fa-rss"></i> <fmt:message key="jsp.cris.detail.link.rssfeed" /></a>
 				</div>
-				<c:if test="${researcher_page_menu && !empty researcher}">
+				<c:if test="${(researcher_page_menu || canEdit) && !empty researcher}">
 				<div class="btn-group">
 						<c:if test="${!empty addModeType && addModeType=='display'}">
 							<a class="btn btn-default" href="<%= request.getContextPath() %>/cris/tools/rp/editDynamicData.htm?id=${researcher.id}&anagraficaId=${researcher.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-edit"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.primary-data"/></a>
@@ -316,6 +320,7 @@
 						    <li>
 								<a href="<%= request.getContextPath() %>/cris/tools/rp/editDynamicData.htm?id=${researcher.id}&anagraficaId=${researcher.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-pencil-square-o"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.primary-data"/></a>
 							</li>
+							<c:if test="${researcher_page_menu && !empty researcher}">
 							<li>
 								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>								
 							</li>
@@ -323,11 +328,15 @@
 								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/projects"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-project"/></a>								
 							</li>							
 							</c:if>
+							</c:if>
 							<c:if test="${admin}">				
 								<li>
 									<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}"><i class="fa fa-search"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.bind.items"/></a>
 								</li>
 							</c:if>
+							<li>
+								<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}&operation=list"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-claim.choice.list.items"/></a>
+							</li>							
 						</ul>
 					</div> 
 					
@@ -367,6 +376,24 @@
 				key="jsp.layout.hku.detail.researcher-disabled.fixit" /></a>
 		</p>
 	</c:if>
+	
+	
+	<c:if test="${!empty infoPendingImpRecord && researcher_page_menu}">
+		<c:forEach var="entry" items="${infoPendingImpRecord}">
+			<c:if test="${entry.value>0}">
+    	    <p class="warning pending">
+    	    	<c:choose>				
+					<c:when test="${admin}">
+						<a href="<%=request.getContextPath()%>/tools/importrecord?crisid=${researcher.crisID}&sourceref=${entry.key}"><fmt:message key="jsp.cris.detail.imprecord.result-match.${entry.key}"><fmt:param>${entry.value}</fmt:param></fmt:message></a>
+	    	    	</c:when>
+	    	    	<c:otherwise>
+						<a href="<%=request.getContextPath()%>/tools/importrecord?sourceref=${entry.key}"><fmt:message key="jsp.cris.detail.imprecord.result-match.${entry.key}"><fmt:param>${entry.value}</fmt:param></fmt:message></a>    	    	
+	    	    	</c:otherwise>
+    	    	</c:choose>
+    	    </p>
+    	  	</c:if>
+		</c:forEach>
+	</c:if>
 
 	<c:if test="${pendingItems > 0 && publicationSelfClaimRP}">
 		<p class="warning pending">
@@ -386,7 +413,7 @@
 	<c:if test="${not empty messages}">
 	<div class="message" id="successMessages">
 		<c:forEach var="msg" items="${messages}">
-				<div id="authority-message">${msg}</div>
+				<div id="authority-message" class="alert alert-info">${msg}</div>
 		</c:forEach>
 	</div>
 	<c:remove var="messages" scope="session" />

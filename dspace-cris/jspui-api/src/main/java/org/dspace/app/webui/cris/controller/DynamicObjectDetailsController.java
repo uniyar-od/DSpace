@@ -31,6 +31,7 @@ import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
 import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicProperty;
+import org.dspace.app.cris.model.jdyna.EditTabDynamicObject;
 import org.dspace.app.cris.model.jdyna.TabDynamicObject;
 import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.TabProject;
@@ -110,6 +111,7 @@ public class DynamicObjectDetailsController
         }
         
         boolean isAdmin = CrisAuthorizeManager.isAdmin(context,dyn);
+        boolean canEdit = isAdmin || CrisAuthorizeManager.canEdit(context, applicationService, EditTabDynamicObject.class, dyn);
         if ((dyn.getStatus() == null || dyn.getStatus().booleanValue() == false)
                 && !isAdmin)
         {
@@ -138,6 +140,9 @@ public class DynamicObjectDetailsController
             model.put("do_page_menu", new Boolean(true));
         }
 
+		if (canEdit) {
+			model.put("canEdit", new Boolean(true));
+		}
         ModelAndView mvc = null;
 
         try
@@ -168,13 +173,16 @@ public class DynamicObjectDetailsController
                 processor.process(context, request, response, dyn);
                 Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
                 if(extra!=null && !extra.isEmpty()) {
-                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
-                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
-                    if(metrics!=null && !metrics.isEmpty()) {
-                        metricsTotal.putAll(metrics);
-                    }
-                    if(metricTypes!=null && !metricTypes.isEmpty()) {
-                        metricsTypeTotal.addAll(metricTypes);
+                    Object metricsObject = extra.get("metrics");
+                    if(metricsObject!=null) {
+                        Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)metricsObject;
+                        List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                        if(metrics!=null && !metrics.isEmpty()) {
+                            metricsTotal.putAll(metrics);
+                        }
+                        if(metricTypes!=null && !metricTypes.isEmpty()) {
+                            metricsTypeTotal.addAll(metricTypes);
+                        }
                     }
                 }
             }

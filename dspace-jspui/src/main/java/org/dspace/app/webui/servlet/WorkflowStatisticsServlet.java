@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.webui.servlet;
 
 import java.io.IOException;
@@ -134,7 +141,7 @@ public class WorkflowStatisticsServlet extends DSpaceServlet {
 		
 		
 		
-		StatisticsBean wStats = generateStats(context, dso, averageMonth, maxResults, filters, "previousWorkflowStep");
+		StatisticsBean wStats = generateStats(context, dso, averageMonth, maxResults, filters, "workflowStep");
 		StatisticsBean oStats = generateStats(context, dso, averageMonth, maxResults, filters, "owner");
         
         request.setAttribute("workflowStats", wStats);
