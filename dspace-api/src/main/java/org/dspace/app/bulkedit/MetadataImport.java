@@ -15,6 +15,8 @@ import org.apache.commons.lang.StringUtils;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.*;
+import org.dspace.content.authority.Choice;
+import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -859,6 +861,8 @@ public class MetadataImport
         dcv.element = element;
         dcv.qualifier = qualifier;
         dcv.language = language;
+        
+        String field = schema + "_" + element + (StringUtils.isNotBlank(qualifier) ? "_" + qualifier : "");
         if (fromAuthority != null) {
             if (value.indexOf(':') > 0) {
                 value = value.substring(0, value.indexOf(':'));
@@ -867,10 +871,11 @@ public class MetadataImport
             // look up the value and authority in solr
             AuthorityValue example = fromAuthority.newInstance(value);
             List<AuthorityValue> byValue = authorityValueFinder.findByValue(c, schema, element, qualifier, example.getValue());
+            
             AuthorityValue authorityValue = null;
             if (byValue.isEmpty()) {
                 String toGenerate = fromAuthority.generateString() + value;
-                String field = schema + "_" + element + (StringUtils.isNotBlank(qualifier) ? "_" + qualifier : "");
+                
                 authorityValue = AuthorityValueGenerator.generate(c, toGenerate, value, field);
                 dcv.authority = toGenerate;
             } else {
@@ -880,9 +885,22 @@ public class MetadataImport
 
             dcv.value = authorityValue.getValue();
             dcv.confidence = Choices.CF_ACCEPTED;
-        } else if (value == null || !value.contains(DSpaceCSV.authoritySeparator)) {
+        } else if (value == null || !isAuthorityControlledField(dcv.getField()) ) {
             simplyCopyValue(value, dcv);
-        } else {
+        } else if(isAuthorityControlledField(dcv.getField()) && StringUtils.isNotBlank(value) && !StringUtils.contains(value, DSpaceCSV.authoritySeparator)) {
+        	
+        	
+        	Choices choices = ChoiceAuthorityManager.getManager().getBestMatch(field, value, -1, "en");
+        	if(choices!= null && choices.values.length >0) {
+	        	Choice c = choices.values[0];
+	        	dcv.value=value;
+	        	dcv.authority=c.authority;
+	        	dcv.confidence=Choices.CF_UNCERTAIN;
+        	}else {
+        		simplyCopyValue(value, dcv);
+        	}
+        }
+        else {
             
         	String[] parts = value.split(DSpaceCSV.escapedAuthoritySeparator);
         	if (parts.length>3) {
