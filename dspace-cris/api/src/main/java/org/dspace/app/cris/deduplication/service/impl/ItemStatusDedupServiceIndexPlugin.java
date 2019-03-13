@@ -47,7 +47,12 @@ public class ItemStatusDedupServiceIndexPlugin
         try
         {
             Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemId);
-
+            
+            if (item == null) {
+            	// found a zombie reference in solr, ignore it
+            	return;
+            }
+            
             document.addField("itemstatus_i",
                     ItemUtils.getItemStatus(context, item));
         }

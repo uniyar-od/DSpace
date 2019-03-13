@@ -49,7 +49,10 @@ public class ItemLocationDedupServiceIndexPlugin
         {
 
             Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemId);
-
+            if (item == null) {
+            	// found a zombie reference in solr, ignore it
+            	return;
+            }
             List<Community> communities = ContentServiceFactory.getInstance().getItemService().getCommunities(context, item);
             List<Collection> collections = item.getCollections();
 

@@ -37,6 +37,9 @@ import org.dspace.content.UsageEventEntity;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataValueService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchService;
@@ -67,7 +70,7 @@ public class CrisConsumer implements Consumer
             .getServiceManager().getServiceByName(MetricsPersistenceService.class.getName(),
                     MetricsPersistenceService.class);
 
-    private transient Set<String> processedHandles = new HashSet<String>();
+    private transient Set<UUID> itemsToProcess = new HashSet<UUID>();
 
     public void initialize() throws Exception
     {
@@ -79,302 +82,7 @@ public class CrisConsumer implements Consumer
         if (dso instanceof Item)
         {
             Item item = (Item) dso;
-            if (item == null || !item.isArchived())
-                return;
-            if (processedHandles.contains(item.getHandle()))
-            {
-                return;
-            }
-            else
-            {
-                processedHandles.add(item.getHandle());
-            }
-
-            ctx.turnOffAuthorisationSystem();
-            Set<String> listAuthoritiesManager = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getAuthorities();
-
-            Map<String, List<IMetadataValue>> toBuild = new HashMap<String, List<IMetadataValue>>();
-            Map<String, List<IMetadataValue>> toUpdate = new HashMap<String, List<IMetadataValue>>();
-            Map<String, String> toBuildType = new HashMap<String, String>();
-            Map<String, CRISAuthority> toBuildChoice = new HashMap<String, CRISAuthority>();
-            Map<String, String> toBuildMetadata = new HashMap<String, String>();
-
-            for (String crisAuthority : listAuthoritiesManager)
-            {
-                List<String> listMetadata = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
-                        .getAuthorityMetadataForAuthority(crisAuthority);
-
-                for (String metadata : listMetadata)
-                {
-                    List<IMetadataValue> MetadataValues = item
-                            .getMetadataValueInDCFormat(metadata);
-                    ChoiceAuthority choiceAuthority = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getChoiceAuthority(metadata);
-                    if (CRISAuthority.class
-                            .isAssignableFrom(choiceAuthority.getClass()))
-                    {
-                        int idx = 0;
-                        for (IMetadataValue dcval : MetadataValues)
-                        {
-                            dcval.setPlace(idx);
-                            if(StringUtils.equals(dcval.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE)){
-                            	idx++;
-                            	continue;
-                            }
-                            
-                            String authority = dcval.getAuthority();
-                            if (StringUtils.isNotBlank(authority))
-                            {
-                                String type = null, info = null;
-                                if (authority.startsWith(
-                                        AuthorityValueService.GENERATE))
-                                {
-
-                                    String[] split = StringUtils.split(
-                                            authority,
-                                            AuthorityValueService.SPLIT);
-                                    if (split.length > 0)
-                                    {
-                                        type = split[1];
-                                        if (split.length > 1)
-                                        {
-                                            info = split[2];
-                                        }
-                                    }
-                                }
-                                else {
-                                    type = SOURCE_INTERNAL;
-                                    info = dcval.getAuthority();
-                                }
-                                toBuildType.put(info, type);
-
-                                List<IMetadataValue> list = new ArrayList<IMetadataValue>();
-                                if (toBuild.containsKey(info))
-                                {
-                                    list = toBuild.get(info);
-                                    list.add(dcval);
-                                }
-                                else
-                                {
-                                    list.add(dcval);
-                                }
-                                toBuild.put(info, list);
-                                toBuildChoice.put(info,
-                                        (CRISAuthority) choiceAuthority);
-                                toBuildMetadata.put(info, metadata);
-                            }
-                            else
-                            {
-                                boolean activateImportInSubmission = ConfigurationManager
-                                        .getBooleanProperty("cris",
-                                                "import.submission." + metadata,
-                                                "import.submission");
-                                if (activateImportInSubmission)
-                                {
-                                    String valueHashed = "";
-
-                                    boolean buildFromUUID = ConfigurationManager
-                                            .getBooleanProperty("cris",
-                                                    "import.submission.strategy.uuid."
-                                                            + metadata,
-                                                    false);
-                                    if (buildFromUUID)
-                                    {
-                                        valueHashed = UUID.randomUUID()
-                                                .toString();
-                                    }
-                                    else
-                                    {
-                                        valueHashed = HashUtil
-                                                .hashMD5(dcval.getValue());
-                                    }
-                                        
-                                    List<IMetadataValue> list = new ArrayList<IMetadataValue>();
-                                    if (toBuild.containsKey(valueHashed))
-                                    {
-                                        list = toBuild.get(valueHashed);
-                                        list.add(dcval);
-                                    }
-                                    else
-                                    {
-                                        list.add(dcval);
-                                    }
-                                    toBuild.put(valueHashed, list);
-                                    toBuildType.put(valueHashed,
-                                            SOURCE_INTERNAL);
-                                    toBuildChoice.put(valueHashed,
-                                            (CRISAuthority) choiceAuthority);
-                                    toBuildMetadata.put(valueHashed, metadata);
-                                }
-                            }
-                            idx++;
-                        }
-                    }
-                }
-            }
-
-            Map<String, String> toBuildAuthority = new HashMap<String, String>();
-            Map<String, ACrisObject> createdObjects = new HashMap<String, ACrisObject>();
-            Map<String, ACrisObject> referencedObjects = new HashMap<String, ACrisObject>();
-
-            for (String authorityKey : toBuild.keySet())
-            {
-
-                String rpKey = null;
-
-                CRISAuthority choiceAuthorityObject = toBuildChoice
-                        .get(authorityKey);
-                String typeAuthority = toBuildType.get(authorityKey);
-
-                Class<ACrisObject> crisTargetClass = choiceAuthorityObject
-                        .getCRISTargetClass();
-                
-                ACrisObject rp = applicationService.getEntityBySourceId(
-                        typeAuthority, authorityKey, crisTargetClass);
-                if(rp==null) {
-                    rp = applicationService.getEntityByCrisId(authorityKey, crisTargetClass);
-                }
-
-                if (rp != null)
-                {
-                    rpKey = rp.getCrisID();
-                    referencedObjects.put(rpKey, rp);
-                }
-                else
-                {
-                    // build a simple RP
-                    rp = choiceAuthorityObject.getNewCrisObject();
-                    SolrQuery query = new SolrQuery();
-
-                    if (choiceAuthorityObject.getCRISTargetTypeID() == -1)
-                    {
-                        query.setQuery("search.resourcetype:[1001 TO 9999]");
-                    }
-                    else
-                    {
-                        query.setQuery("search.resourcetype:"
-                                + choiceAuthorityObject.getCRISTargetTypeID());
-                    }
-
-                    if (StringUtils.isNotBlank(authorityKey))
-                    {
-                        if ((typeAuthority.equalsIgnoreCase(SOURCE_INTERNAL)))
-                        {
-                            query.addFilterQuery(
-                                    "cris-sourceref:" + typeAuthority);
-                            query.addFilterQuery(
-                                    "cris-sourceid:" + authorityKey);
-                        }
-                        else
-                        {
-                            String filterQuery = "cris" + rp.getPublicPath()
-                                    + "." + typeAuthority.toLowerCase() + ":\""
-                                    + authorityKey + "\"";
-                            query.addFilterQuery(filterQuery);
-                        }
-                    }
-
-                    QueryResponse qResp = searcher.search(query);
-                    SolrDocumentList docList = qResp.getResults();
-                    if (docList.size() > 0)
-                    {
-                        SolrDocument doc = docList.get(0);
-                        rpKey = (String) doc.getFirstValue("cris"
-                                + rp.getPublicPath() + ".this_authority");
-                    }
-
-                    if (rpKey == null)
-                    {
-
-                        rp.setSourceID(authorityKey);
-                        rp.setSourceRef(typeAuthority);
-
-                        List<IMetadataValue> MetadataValueAuthority = toBuild
-                                .get(authorityKey);
-                        String prefix = "";
-                        if (choiceAuthorityObject instanceof DOAuthority)
-                        {
-                            prefix = ConfigurationManager.getProperty("cris",
-                                    "DOAuthority."
-                                            + toBuildMetadata.get(authorityKey)
-                                            + ".new-instances");
-                            if (StringUtils.isNotBlank(prefix))
-                            {
-                                DynamicObjectType dType = applicationService
-                                        .findTypoByShortName(
-                                                DynamicObjectType.class,
-                                                prefix);
-                                if (dType != null)
-                                {
-                                    ((ResearchObject) rp).setTypo(dType);
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                            }
-                            else
-                            {
-                                continue;
-                            }
-                        }
-
-                        ResearcherPageUtils.buildTextValue(rp,
-                                MetadataValueAuthority.get(0).getValue(),
-                                prefix + rp.getMetadataFieldTitle());
-
-                        boolean activateNewObject = ConfigurationManager
-                                .getBooleanProperty("cris",
-                                        "import.submission.enabled.entity."
-                                                + toBuildMetadata
-                                                        .get(authorityKey),
-                                        "import.submission.enabled.entity");
-                        if (activateNewObject)
-                        {
-                            rp.setStatus(true);
-                        }
-
-                        try
-                        {
-                            applicationService.saveOrUpdate(crisTargetClass,
-                                    rp);
-                            log.info("Build new CRIS Object [" + crisTargetClass
-                                    + "] sourceId/sourceRef:" + authorityKey
-                                    + " / " + typeAuthority);
-                        }
-                        catch (Exception ex)
-                        {
-                            log.error(ex.getMessage(), ex);
-                        }
-                        rpKey = rp.getCrisID();
-                        createdObjects.put(authorityKey, rp);
-                    }
-                    else
-                    {
-                        referencedObjects.put(authorityKey, rp);
-                    }
-                }
-
-                if (StringUtils.isNotBlank(rpKey))
-                {
-                    toBuildAuthority.put(authorityKey, rpKey);
-                }
-            }
-
-            for (String orcid : toBuildAuthority.keySet())
-            {
-                for (IMetadataValue IMetadataValue : toBuild.get(orcid))
-                {               	
-                    item.getItemService().addMetadata(ctx, item, IMetadataValue.getMetadataField(), IMetadataValue.getLanguage(), IMetadataValue.getValue(), toBuildAuthority.get(orcid), Choices.CF_ACCEPTED, IMetadataValue.getPlace());
-                }
-                item.getItemService().removeMetadataValues(ctx, item, toBuild.get(orcid));
-            }
-            item.getItemService().update(ctx, item);
-            fillerAuthority(ctx, item, toBuild, toBuildType, createdObjects,
-                    referencedObjects);
-
-            fillerMetrics(ctx, item, toBuildMetadata, createdObjects, referencedObjects);
-
-            ctx.restoreAuthSystemState();
+            itemsToProcess.add(item.getID());
         }
     }
 
@@ -464,8 +172,302 @@ public class CrisConsumer implements Consumer
 
     public void end(Context ctx) throws Exception
     {
-        // nothing to do
-        processedHandles.clear();
+    	ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    	MetadataValueService metadataValueService = ContentServiceFactory.getInstance().getMetadataValueService();
+    	ctx.turnOffAuthorisationSystem();
+    	for (UUID uuid : itemsToProcess) {
+    		Item item = itemService.find(ctx, uuid);
+	        if (item == null || !item.isArchived())
+	            return;
+	
+	        Set<String> listAuthoritiesManager = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getAuthorities();
+	
+	        Map<String, List<IMetadataValue>> toBuild = new HashMap<String, List<IMetadataValue>>();
+	        Map<String, List<IMetadataValue>> toUpdate = new HashMap<String, List<IMetadataValue>>();
+	        Map<String, String> toBuildType = new HashMap<String, String>();
+	        Map<String, CRISAuthority> toBuildChoice = new HashMap<String, CRISAuthority>();
+	        Map<String, String> toBuildMetadata = new HashMap<String, String>();
+	
+	        for (String crisAuthority : listAuthoritiesManager)
+	        {
+	            List<String> listMetadata = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService()
+	                    .getAuthorityMetadataForAuthority(crisAuthority);
+	
+	            for (String metadata : listMetadata)
+	            {
+	                List<IMetadataValue> MetadataValues = item
+	                        .getMetadataValueInDCFormat(metadata);
+	                ChoiceAuthority choiceAuthority = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getChoiceAuthority(metadata);
+	                if (CRISAuthority.class
+	                        .isAssignableFrom(choiceAuthority.getClass()))
+	                {
+	                    int idx = 0;
+	                    for (IMetadataValue dcval : MetadataValues)
+	                    {
+	                        dcval.setPlace(idx);
+	                        if(StringUtils.equals(dcval.getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+	                        	idx++;
+	                        	continue;
+	                        }
+	                        
+	                        String authority = dcval.getAuthority();
+	                        if (StringUtils.isNotBlank(authority))
+	                        {
+	                            String type = null, info = null;
+	                            if (authority.startsWith(
+	                                    AuthorityValueService.GENERATE))
+	                            {
+	
+	                                String[] split = StringUtils.split(
+	                                        authority,
+	                                        AuthorityValueService.SPLIT);
+	                                if (split.length > 0)
+	                                {
+	                                    type = split[1];
+	                                    if (split.length > 1)
+	                                    {
+	                                        info = split[2];
+	                                    }
+	                                }
+	                            }
+	                            else {
+	                                type = SOURCE_INTERNAL;
+	                                info = dcval.getAuthority();
+	                            }
+	                            toBuildType.put(info, type);
+	
+	                            List<IMetadataValue> list = new ArrayList<IMetadataValue>();
+	                            if (toBuild.containsKey(info))
+	                            {
+	                                list = toBuild.get(info);
+	                                list.add(dcval);
+	                            }
+	                            else
+	                            {
+	                                list.add(dcval);
+	                            }
+	                            toBuild.put(info, list);
+	                            toBuildChoice.put(info,
+	                                    (CRISAuthority) choiceAuthority);
+	                            toBuildMetadata.put(info, metadata);
+	                        }
+	                        else
+	                        {
+	                            boolean activateImportInSubmission = ConfigurationManager
+	                                    .getBooleanProperty("cris",
+	                                            "import.submission." + metadata,
+	                                            "import.submission");
+	                            if (activateImportInSubmission)
+	                            {
+	                                String valueHashed = "";
+	
+	                                boolean buildFromUUID = ConfigurationManager
+	                                        .getBooleanProperty("cris",
+	                                                "import.submission.strategy.uuid."
+	                                                        + metadata,
+	                                                false);
+	                                if (buildFromUUID)
+	                                {
+	                                    valueHashed = UUID.randomUUID()
+	                                            .toString();
+	                                }
+	                                else
+	                                {
+	                                    valueHashed = HashUtil
+	                                            .hashMD5(dcval.getValue());
+	                                }
+	                                    
+	                                List<IMetadataValue> list = new ArrayList<IMetadataValue>();
+	                                if (toBuild.containsKey(valueHashed))
+	                                {
+	                                    list = toBuild.get(valueHashed);
+	                                    list.add(dcval);
+	                                }
+	                                else
+	                                {
+	                                    list.add(dcval);
+	                                }
+	                                toBuild.put(valueHashed, list);
+	                                toBuildType.put(valueHashed,
+	                                        SOURCE_INTERNAL);
+	                                toBuildChoice.put(valueHashed,
+	                                        (CRISAuthority) choiceAuthority);
+	                                toBuildMetadata.put(valueHashed, metadata);
+	                            }
+	                        }
+	                        idx++;
+	                    }
+	                }
+	            }
+	        }
+	
+	        Map<String, String> toBuildAuthority = new HashMap<String, String>();
+	        Map<String, ACrisObject> createdObjects = new HashMap<String, ACrisObject>();
+	        Map<String, ACrisObject> referencedObjects = new HashMap<String, ACrisObject>();
+	
+	        for (String authorityKey : toBuild.keySet())
+	        {
+	
+	            String rpKey = null;
+	
+	            CRISAuthority choiceAuthorityObject = toBuildChoice
+	                    .get(authorityKey);
+	            String typeAuthority = toBuildType.get(authorityKey);
+	
+	            Class<ACrisObject> crisTargetClass = choiceAuthorityObject
+	                    .getCRISTargetClass();
+	            
+	            ACrisObject rp = applicationService.getEntityBySourceId(
+	                    typeAuthority, authorityKey, crisTargetClass);
+	            if(rp==null) {
+	                rp = applicationService.getEntityByCrisId(authorityKey, crisTargetClass);
+	            }
+	
+	            if (rp != null)
+	            {
+	                rpKey = rp.getCrisID();
+	                referencedObjects.put(rpKey, rp);
+	            }
+	            else
+	            {
+	                // build a simple RP
+	                rp = choiceAuthorityObject.getNewCrisObject();
+	                SolrQuery query = new SolrQuery();
+	
+	                if (choiceAuthorityObject.getCRISTargetTypeID() == -1)
+	                {
+	                    query.setQuery("search.resourcetype:[1001 TO 9999]");
+	                }
+	                else
+	                {
+	                    query.setQuery("search.resourcetype:"
+	                            + choiceAuthorityObject.getCRISTargetTypeID());
+	                }
+	
+	                if (StringUtils.isNotBlank(authorityKey))
+	                {
+	                    if ((typeAuthority.equalsIgnoreCase(SOURCE_INTERNAL)))
+	                    {
+	                        query.addFilterQuery(
+	                                "cris-sourceref:" + typeAuthority);
+	                        query.addFilterQuery(
+	                                "cris-sourceid:" + authorityKey);
+	                    }
+	                    else
+	                    {
+	                        String filterQuery = "cris" + rp.getPublicPath()
+	                                + "." + typeAuthority.toLowerCase() + ":\""
+	                                + authorityKey + "\"";
+	                        query.addFilterQuery(filterQuery);
+	                    }
+	                }
+	
+	                QueryResponse qResp = searcher.search(query);
+	                SolrDocumentList docList = qResp.getResults();
+	                if (docList.size() > 1)
+	                {
+	                    SolrDocument doc = docList.get(0);
+	                    rpKey = (String) doc.getFirstValue("cris"
+	                            + rp.getPublicPath() + ".this_authority");
+	                }
+	
+	                if (rpKey == null)
+	                {
+	
+	                    rp.setSourceID(authorityKey);
+	                    rp.setSourceRef(typeAuthority);
+	
+	                    List<IMetadataValue> MetadataValueAuthority = toBuild
+	                            .get(authorityKey);
+	                    String prefix = "";
+	                    if (choiceAuthorityObject instanceof DOAuthority)
+	                    {
+	                        prefix = ConfigurationManager.getProperty("cris",
+	                                "DOAuthority."
+	                                        + toBuildMetadata.get(authorityKey)
+	                                        + ".new-instances");
+	                        if (StringUtils.isNotBlank(prefix))
+	                        {
+	                            DynamicObjectType dType = applicationService
+	                                    .findTypoByShortName(
+	                                            DynamicObjectType.class,
+	                                            prefix);
+	                            if (dType != null)
+	                            {
+	                                ((ResearchObject) rp).setTypo(dType);
+	                            }
+	                            else
+	                            {
+	                                continue;
+	                            }
+	                        }
+	                        else
+	                        {
+	                            continue;
+	                        }
+	                    }
+	
+	                    ResearcherPageUtils.buildTextValue(rp,
+	                            MetadataValueAuthority.get(0).getValue(),
+	                            prefix + rp.getMetadataFieldTitle());
+	
+	                    boolean activateNewObject = ConfigurationManager
+	                            .getBooleanProperty("cris",
+	                                    "import.submission.enabled.entity."
+	                                            + toBuildMetadata
+	                                                    .get(authorityKey),
+	                                    "import.submission.enabled.entity");
+	                    if (activateNewObject)
+	                    {
+	                        rp.setStatus(true);
+	                    }
+	
+	                    try
+	                    {
+	                        applicationService.saveOrUpdate(crisTargetClass,
+	                                rp);
+	                        log.info("Build new CRIS Object [" + crisTargetClass
+	                                + "] sourceId/sourceRef:" + authorityKey
+	                                + " / " + typeAuthority);
+	                    }
+	                    catch (Exception ex)
+	                    {
+	                        log.error(ex.getMessage(), ex);
+	                    }
+	                    rpKey = rp.getCrisID();
+	                    createdObjects.put(authorityKey, rp);
+	                }
+	                else
+	                {
+	                    referencedObjects.put(authorityKey, rp);
+	                }
+	            }
+	
+	            if (StringUtils.isNotBlank(rpKey))
+	            {
+	                toBuildAuthority.put(authorityKey, rpKey);
+	            }
+	        }
+	
+	        for (String orcid : toBuildAuthority.keySet())
+	        {
+	            for (IMetadataValue IMetadataValue : toBuild.get(orcid))
+	            {
+	            	IMetadataValue.setAuthority(toBuildAuthority.get(orcid));
+	            	IMetadataValue.setConfidence(Choices.CF_ACCEPTED);
+	            	metadataValueService.update(ctx, (MetadataValue) IMetadataValue); 
+	            }
+	        }
+	        fillerAuthority(ctx, item, toBuild, toBuildType, createdObjects,
+	                referencedObjects);
+	
+	        fillerMetrics(ctx, item, toBuildMetadata, createdObjects, referencedObjects);
+    	}
+    	
+    	ctx.restoreAuthSystemState();
+    	ctx.commit();
+        // clean our list
+        itemsToProcess.clear();
     }
 
     public void finish(Context ctx) throws Exception
