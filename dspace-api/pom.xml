@@ -285,6 +285,23 @@
             </build>
 
         </profile>
+        <profile>
+            <id>epocaintegration</id>
+            <activation>
+                <property>
+                    <name>!skipEpocaintegration</name>
+                </property>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>it.ivscience.epoca</groupId>
+                    <artifactId>epocaintegration-dspace-api</artifactId>
+                    <version>${epocaintegration.version}</version>
+                    <type>jar</type>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+        </profile>
     </profiles>
 
 
