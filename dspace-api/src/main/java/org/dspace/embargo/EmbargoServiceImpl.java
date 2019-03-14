@@ -138,13 +138,10 @@ public class EmbargoServiceImpl implements EmbargoService
                             + result.toString());
         }
 
-        // sanity check: do not allow an embargo lift date in the past.
-        if (liftDate.before(new Date()))
-        {
-            throw new IllegalArgumentException(
-                    "Embargo lift date must be in the future, but this is in the past: "
-                            + result.toString());
-        }
+        /*
+         * NOTE: We do not check here for past dates as it can result in errors during AIP restoration. 
+         * Therefore, UIs should perform any such date validation on input. See DS-3348
+         */
         return result;
     }
 
@@ -153,8 +150,8 @@ public class EmbargoServiceImpl implements EmbargoService
     public void liftEmbargo(Context context, Item item)
         throws SQLException, AuthorizeException, IOException
     {
-        // new version of Embargo policies remain in place.
-        //lifter.liftEmbargo(context, item);
+        // Since 3.0 the lift process for all embargoes is performed through the dates on the authorization process (see DS-2588)
+        // lifter.liftEmbargo(context, item);
         itemService.clearMetadata(context, item, lift_schema, lift_element, lift_qualifier, Item.ANY);
 
         // set the dc.date.available value to right now

@@ -9,12 +9,18 @@ package org.dspace.app.itemupdate;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -22,6 +28,7 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang.StringUtils;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
@@ -30,6 +37,8 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
 
 /**
  *   
@@ -75,6 +84,7 @@ public class ItemUpdate {
 
     protected static final EPersonService epersonService = EPersonServiceFactory.getInstance().getEPersonService();
     protected static final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+    protected static final HandleService handleService = HandleServiceFactory.getInstance().getHandleService();
 
 	static
 	{
@@ -353,15 +363,11 @@ public class ItemUpdate {
 	        
 	        pr("ItemUpdate - initializing run on " + (new Date()).toString());
 	               	
-	        context = new Context();  
+	        context = new Context(Context.Mode.BATCH_EDIT);
 	        iu.setEPerson(context, iu.eperson);	
 	        context.turnOffAuthorisationSystem();
 	        
-	    	HANDLE_PREFIX = ConfigurationManager.getProperty("handle.canonical.prefix");
-	    	if (HANDLE_PREFIX == null || HANDLE_PREFIX.length() == 0)
-	    	{
-	    		HANDLE_PREFIX = "http://hdl.handle.net/";
-	    	}
+	    	HANDLE_PREFIX = handleService.getCanonicalPrefix();
 	    		        
         	iu.processArchive(context, sourcedir, itemField, metadataIndexName, alterProvenance, isTest);		        	            
 
@@ -460,6 +466,7 @@ public class ItemUpdate {
 	    		{
     				Item item = itarch.getItem();
                     itemService.update(context, item);  //need to update before commit
+					context.uncacheEntity(item);
 	    		}
     			ItemUpdate.pr("Item " + dirname + " completed");
     			successItemCount++;

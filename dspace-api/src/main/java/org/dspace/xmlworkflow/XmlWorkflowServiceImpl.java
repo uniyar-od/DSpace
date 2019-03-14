@@ -93,11 +93,6 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
 
     @Override
-    public void addInitialWorkspaceItemPolicies(Context context, WorkspaceItem workspaceItem) throws SQLException, AuthorizeException {
-        //Not used, rights are added dynamically.
-    }
-
-    @Override
     public void deleteCollection(Context context, Collection collection) throws SQLException, IOException, AuthorizeException {
         xmlWorkflowItemService.deleteByCollection(context, collection);
         collectionRoleService.deleteByCollection(context, collection);
@@ -240,7 +235,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         }
         //Make sure we don't add duplicate policies
         if(!userHasPolicies.contains(Constants.READ))
-            addPolicyToItem(context, item, Constants.READ, submitter);
+            addPolicyToItem(context, item, Constants.READ, submitter, ResourcePolicy.TYPE_SUBMISSION);
     }
 
 
@@ -463,8 +458,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
      *
      * @return the fully archived item.
      */
-    @Override
-    public Item archive(Context context, XmlWorkflowItem wfi)
+    protected Item archive(Context context, XmlWorkflowItem wfi)
             throws SQLException, IOException, AuthorizeException {
         // FIXME: Check auth
         Item item = wfi.getItem();
@@ -636,8 +630,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         grantUserAllItemPolicies(context, wi.getItem(), e);
     }
 
-    protected void grantUserAllItemPolicies(Context context, Item item, EPerson epa) throws AuthorizeException, SQLException {
-        if(epa != null){
+    public void grantUserAllItemPolicies(Context context, Item item, EPerson epa) throws AuthorizeException, SQLException {
+        if (epa != null){
             //A list of policies the user has for this item
             List<Integer>  userHasPolicies = new ArrayList<Integer>();
             List<ResourcePolicy> itempols = authorizeService.getPolicies(context, item);
@@ -688,18 +682,23 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     }
 
     protected void addPolicyToItem(Context context, Item item, int type, EPerson epa) throws AuthorizeException, SQLException {
+        addPolicyToItem(context, item, type, epa, null);
+    }
+
+    protected void addPolicyToItem(Context context, Item item, int type, EPerson epa, String policyType) throws AuthorizeException, SQLException {
         if(epa != null){
-            authorizeService.addPolicy(context, item, type, epa);
+            authorizeService.addPolicy(context, item, type, epa, policyType);
             List<Bundle> bundles = item.getBundles();
             for (Bundle bundle : bundles) {
-                authorizeService.addPolicy(context, bundle, type, epa);
+                authorizeService.addPolicy(context, bundle, type, epa, policyType);
                 List<Bitstream> bits = bundle.getBitstreams();
                 for (Bitstream bit : bits) {
-                    authorizeService.addPolicy(context, bit, type, epa);
+                    authorizeService.addPolicy(context, bit, type, epa, policyType);
                 }
             }
         }
     }
+
     protected void addGroupPolicyToItem(Context context, Item item, int type, Group group) throws AuthorizeException, SQLException {
         if(group != null){
             authorizeService.addPolicy(context, item, type, group);
@@ -714,8 +713,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         }
     }
 
-    protected void removeUserItemPolicies(Context context, Item item, EPerson e) throws SQLException, AuthorizeException {
-        if(e != null){
+    public void removeUserItemPolicies(Context context, Item item, EPerson e) throws SQLException, AuthorizeException {
+        if (e != null){
             //Also remove any lingering authorizations from this user
             authorizeService.removeEPersonPolicies(context, item, e);
             //Remove the bundle rights

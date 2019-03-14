@@ -84,8 +84,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     public void afterPropertiesSet() throws Exception {
         for(Map.Entry<Integer, BitStoreService> storeEntry : stores.entrySet()) {
             storeEntry.getValue().init();
+            }
         }
-    }
 
     @Override
     public UUID store(Context context, Bitstream bitstream, InputStream is) throws SQLException, IOException
@@ -102,7 +102,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
          * where it should go
          */
         bitstream.setStoreNumber(incoming);
-
+        
         //For efficiencies sake, PUT is responsible for setting bitstream size_bytes, checksum, and checksum_algorithm
         stores.get(incoming).put(bitstream, is);
         //bitstream.setSizeBytes(file.length());
@@ -223,7 +223,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 
         try
         {
-            context = new Context();
+            context = new Context(Context.Mode.BATCH_EDIT);
             context.turnOffAuthorisationSystem();
 
             List<Bitstream> storage = bitstreamService.findDeletedBitstreams(context);
@@ -254,6 +254,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                         }
                         bitstreamService.expunge(context, bitstream);
                     }
+                    context.uncacheEntity(bitstream);
                     continue;
                 }
 
@@ -262,7 +263,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 if (isRecent(Long.valueOf(receivedMetadata.get("modified").toString())))
                 {
                 	log.debug("file is recent");
-                    continue;
+                    context.uncacheEntity(bitstream);
+                	continue;
                 }
 
                 if (deleteDbRecords)
@@ -281,12 +283,13 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 }
 
 				if (isRegisteredBitstream(bitstream.getInternalId())) {
+                    context.uncacheEntity(bitstream);
 				    continue;			// do not delete registered bitstreams
 				}
 
 
                 // Since versioning allows for multiple bitstreams, check if the internal identifier isn't used on another place
-                if(0 < bitstreamService.findDuplicateInternalIdentifier(context, bitstream).size())
+                if(bitstreamService.findDuplicateInternalIdentifier(context, bitstream).isEmpty())
                 {
                     stores.get(bitstream.getStoreNumber()).remove(bitstream);
 
@@ -310,6 +313,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
                 {
                     context.dispatchEvents();
                 }
+
+                context.uncacheEntity(bitstream);
             }
 
             System.out.print("Committing changes to the database...");
@@ -334,23 +339,22 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         }
     }
 
-    /**
-     *
-     * @param context
-     * @param bitstream the bitstream to be cloned
-     * @return id of the clone bitstream.
-     * @throws SQLException if database error
-     */
-	@Override
-    public Bitstream clone(Context context, Bitstream bitstream) throws SQLException, IOException, AuthorizeException {
-		Bitstream clonedBitstream = bitstreamService.create(context, bitstreamService.retrieve(context, bitstream));
-		List<MetadataValue> metadataValues = bitstreamService.getMetadata(bitstream, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-		for (MetadataValue metadataValue : metadataValues) {
-			bitstreamService.addMetadata(context, clonedBitstream, metadataValue.getMetadataField(), metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence());
-		}
-		return clonedBitstream;
+    @Override
+    public Bitstream clone(Context context, Bitstream bitstream) throws SQLException, IOException, AuthorizeException 
+    {
+        Bitstream clonedBitstream = bitstreamService.clone(context, bitstream);
+        clonedBitstream.setStoreNumber(bitstream.getStoreNumber());
+        
+        List<MetadataValue> metadataValues = bitstreamService.getMetadata(bitstream, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        
+        for (MetadataValue metadataValue : metadataValues) 
+        {
+            bitstreamService.addMetadata(context, clonedBitstream, metadataValue.getMetadataField(), metadataValue.getLanguage(), metadataValue.getValue(), metadataValue.getAuthority(), metadataValue.getConfidence());
+        }
+        bitstreamService.update(context, clonedBitstream);
+        return clonedBitstream;
 
-	}
+    }
 
     /**
      * Migrates all assets off of one assetstore to another
@@ -364,7 +368,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
 
         while (allBitstreamsInSource.hasNext()) {
             Bitstream bitstream = allBitstreamsInSource.next();
-            log.info("Copying bitstream:" + bitstream.getID() + " from assetstore[" + assetstoreSource + "] to assetstore[" + assetstoreDestination + "] Name:" + bitstream.getName() + ", SizeBytes:" + bitstream.getSize());
+            log.info("Copying bitstream:" + bitstream.getID() + " from assetstore[" + assetstoreSource + "] to assetstore[" + assetstoreDestination + "] Name:" + bitstream.getName() + ", SizeBytes:" + bitstream.getSizeBytes());
 
             InputStream inputStream = retrieve(context, bitstream);
             stores.get(assetstoreDestination).put(bitstream, inputStream);
@@ -377,6 +381,8 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
             }
 
             processedCounter++;
+            context.uncacheEntity(bitstream);
+
             //modulo
             if ((processedCounter % batchCommitSize) == 0) {
                 log.info("Migration Commit Checkpoint: " + processedCounter);

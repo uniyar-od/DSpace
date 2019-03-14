@@ -7,10 +7,37 @@
  */
 package org.dspace.statistics;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
+import java.net.URLEncoder;
+import java.sql.SQLException;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
-import com.maxmind.geoip.Location;
-import com.maxmind.geoip.LookupService;
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
@@ -18,20 +45,23 @@ import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.request.AbstractUpdateRequest;
 import org.apache.solr.client.solrj.request.ContentStreamUpdateRequest;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
+import org.apache.solr.client.solrj.request.LukeRequest;
 import org.apache.solr.client.solrj.response.FacetField;
+import org.apache.solr.client.solrj.response.LukeResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
+import org.apache.solr.client.solrj.response.SolrPingResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
+import org.apache.solr.common.luke.FieldFlag;
 import org.apache.solr.common.params.*;
 import org.dspace.content.*;
 import org.dspace.content.Collection;
@@ -48,17 +78,10 @@ import org.dspace.statistics.util.DnsLookup;
 import org.dspace.statistics.util.LocationUtils;
 import org.dspace.statistics.util.SpiderDetector;
 import org.dspace.usage.UsageWorkflowEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.net.URLEncoder;
-import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * Static holder for a HttpSolrClient connection pool to issue
@@ -71,20 +94,23 @@ import java.util.*;
  */
 public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBean
 {
-    private static final Logger log = Logger.getLogger(SolrLoggerServiceImpl.class);
-	
+    private static final Logger log = LoggerFactory.getLogger(SolrLoggerServiceImpl.class);
+
+    private static final String MULTIPLE_VALUES_SPLITTER = "|";
+
     protected HttpSolrServer solr;
 
     public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public static final String DATE_FORMAT_DCDATE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 
-    protected LookupService locationService;
+    protected DatabaseReader locationService;
 
     protected boolean useProxies;
 
     private static List<String> statisticYearCores = new ArrayList<String>();
-
+    private static boolean statisticYearCoresInit = false;
+    
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
@@ -126,28 +152,6 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             try
             {
                 server = new HttpSolrServer(configurationService.getProperty("solr-statistics.server"));
-
-                //Attempt to retrieve all the statistic year cores
-                File solrDir = new File(configurationService.getProperty("dspace.dir") + File.separator + "solr" + File.separator);
-                File[] solrCoreFiles = solrDir.listFiles(new FileFilter() {
-
-                    @Override
-                    public boolean accept(File file) {
-                        //Core name example: statistics-2008
-                        return file.getName().matches("statistics-\\d\\d\\d\\d");
-                    }
-                });
-                //Base url should like : http://localhost:{port.number}/solr
-                String baseSolrUrl = server.getBaseURL().replace("statistics", "");
-                for (File solrCoreFile : solrCoreFiles) {
-                    log.info("Loading core with name: " + solrCoreFile.getName());
-
-                    createCore(server, solrCoreFile.getName());
-                    //Add it to our cores list so we can query it !
-                    statisticYearCores.add(baseSolrUrl.replace("http://", "").replace("https://", "") + solrCoreFile.getName());
-                }
-                //Also add the core containing the current year !
-                statisticYearCores.add(server.getBaseURL().replace("http://", "").replace("https://", ""));
             } catch (Exception e) {
             	log.error(e.getMessage(), e);
             }
@@ -157,23 +161,24 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         // Read in the file so we don't have to do it all the time
         //spiderIps = SpiderDetector.getSpiderIpAddresses();
 
-        LookupService service = null;
+        DatabaseReader service = null;
         // Get the db file for the location
-        String dbfile = configurationService.getProperty("usage-statistics.dbfile");
-        if (dbfile != null)
-        {
-            try
-            {
-                service = new LookupService(dbfile,
-                        LookupService.GEOIP_STANDARD);
-            }
-            catch (FileNotFoundException fe)
-            {
-                log.error("The GeoLite Database file is missing (" + dbfile + ")! Solr Statistics cannot generate location based reports! Please see the DSpace installation instructions for instructions to install this file.", fe);
-            }
-            catch (IOException e)
-            {
-                log.error("Unable to load GeoLite Database file (" + dbfile + ")! You may need to reinstall it. See the DSpace installation instructions for more details.", e);
+        String dbPath = configurationService.getProperty("usage-statistics.dbfile");
+        if (dbPath != null) {
+            try {
+                File dbFile = new File(dbPath);
+                service = new DatabaseReader.Builder(dbFile).build();
+            } catch (FileNotFoundException fe) {
+                log.error(
+                    "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
+                        "based reports! Please see the DSpace installation instructions for instructions to install " +
+                        "this file.",
+                    fe);
+            } catch (IOException e) {
+                log.error(
+                    "Unable to load GeoLite Database file (" + dbPath + ")! You may need to reinstall it. See the " +
+                        "DSpace installation instructions for more details.",
+                    e);
             }
         }
         else
@@ -201,6 +206,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         {
             return;
         }
+        initSolrYearCores();
 
 
         try
@@ -240,6 +246,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 		if (solr == null || locationService == null) {
 			return;
 		}
+        initSolrYearCores();
 
 		try {
 			SolrInputDocument doc1 = getCommonSolrDoc(dspaceObject, ip, userAgent, xforwardedfor,
@@ -328,30 +335,32 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 		    doc1.addField("isBot",isSpiderBot);
             // Save the location information if valid, save the event without
             // location information if not valid
-            if(locationService != null)
-            {
-                Location location = locationService.getLocation(ip);
-                if (location != null
-                        && !("--".equals(location.countryCode)
-                        && location.latitude == -180 && location.longitude == -180))
-                {
-                    try
-                    {
-                        doc1.addField("continent", LocationUtils
-                                .getContinentCode(location.countryCode));
+            if (locationService != null) {
+                try {
+                    InetAddress ipAddress = InetAddress.getByName(ip);
+                    CityResponse location = locationService.city(ipAddress);
+                    String countryCode = location.getCountry().getIsoCode();
+                    double latitude = location.getLocation().getLatitude();
+                    double longitude = location.getLocation().getLongitude();
+                    if (!(
+                            "--".equals(countryCode)
+                            && latitude == -180
+                            && longitude == -180)
+                    ) {
+                        try {
+                            doc1.addField("continent", LocationUtils
+                                .getContinentCode(countryCode));
+                        } catch (Exception e) {
+                            System.out
+                                .println("COUNTRY ERROR: " + countryCode);
+                        }
+                        doc1.addField("countryCode", countryCode);
+                        doc1.addField("city", location.getCity().getName());
+                        doc1.addField("latitude", latitude);
+                        doc1.addField("longitude", longitude);
                     }
-                    catch (Exception e)
-                    {
-                        System.out
-                                .println("COUNTRY ERROR: " + location.countryCode);
-                    }
-                    doc1.addField("countryCode", location.countryCode);
-                    doc1.addField("city", location.city);
-                    doc1.addField("latitude", location.latitude);
-                    doc1.addField("longitude", location.longitude);
-                    
-
-
+                } catch (IOException | GeoIp2Exception e) {
+                    log.error("Unable to get location of request:  {}", e.getMessage());
                 }
             }
         }
@@ -414,30 +423,32 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 		    doc1.addField("isBot",isSpiderBot);
             // Save the location information if valid, save the event without
             // location information if not valid
-            if(locationService != null)
-            {
-                Location location = locationService.getLocation(ip);
-                if (location != null
-                        && !("--".equals(location.countryCode)
-                        && location.latitude == -180 && location.longitude == -180))
-                {
-                    try
-                    {
-                        doc1.addField("continent", LocationUtils
-                                .getContinentCode(location.countryCode));
+            if (locationService != null) {
+                try {
+                    InetAddress ipAddress = InetAddress.getByName(ip);
+                    CityResponse location = locationService.city(ipAddress);
+                    String countryCode = location.getCountry().getIsoCode();
+                    double latitude = location.getLocation().getLatitude();
+                    double longitude = location.getLocation().getLongitude();
+                    if (!(
+                            "--".equals(countryCode)
+                            && latitude == -180
+                            && longitude == -180)
+                    ) {
+                        try {
+                            doc1.addField("continent", LocationUtils
+                                .getContinentCode(countryCode));
+                        } catch (Exception e) {
+                            System.out
+                                .println("COUNTRY ERROR: " + countryCode);
+                        }
+                        doc1.addField("countryCode", countryCode);
+                        doc1.addField("city", location.getCity().getName());
+                        doc1.addField("latitude", latitude);
+                        doc1.addField("longitude", longitude);
                     }
-                    catch (Exception e)
-                    {
-                        System.out
-                                .println("COUNTRY ERROR: " + location.countryCode);
-                    }
-                    doc1.addField("countryCode", location.countryCode);
-                    doc1.addField("city", location.city);
-                    doc1.addField("latitude", location.latitude);
-                    doc1.addField("longitude", location.longitude);
-                    
-
-
+                } catch (GeoIp2Exception | IOException e) {
+                    log.error("Unable to get location of request:  {}", e.getMessage());
                 }
             }
         }
@@ -465,6 +476,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         {
             SolrInputDocument solrDoc = getCommonSolrDoc(resultObject, request, currentUser);
             if (solrDoc == null) return;
+            initSolrYearCores();
 
             for (String query : queries) {
                 solrDoc.addField("query", query);
@@ -511,6 +523,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     @Override
     public void postWorkflow(UsageWorkflowEvent usageWorkflowEvent) throws SQLException {
+        initSolrYearCores();
         try {
             SolrInputDocument solrDoc = getCommonSolrDoc(usageWorkflowEvent.getObject(), null, null);
 
@@ -1236,8 +1249,12 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             yearQueryParams.put(CommonParams.FQ, filterQuery.toString());
             yearQueryParams.put(CommonParams.WT, "csv");
 
+            //Tell SOLR how to escape and separate the values of multi-valued fields
+            yearQueryParams.put("csv.escape", "\\");
+            yearQueryParams.put("csv.mv.separator", MULTIPLE_VALUES_SPLITTER);
+
             //Start by creating a new core
-            String coreName = "statistics-" + dcStart.getYear();
+            String coreName = "statistics-" + dcStart.getYearUTC();
             HttpSolrServer statisticsYearServer = createCore(solr, coreName);
 
             System.out.println("Moving: " + totalRecords + " into core " + coreName);
@@ -1252,7 +1269,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 HttpResponse response = new DefaultHttpClient().execute(get);
                 InputStream csvInputstream = response.getEntity().getContent();
                 //Write the csv ouput to a file !
-                File csvFile = new File(tempDirectory.getPath() + File.separatorChar + "temp." + dcStart.getYear() + "." + i + ".csv");
+                File csvFile = new File(tempDirectory.getPath() + File.separatorChar + "temp." + dcStart.getYearUTC() + "." + i + ".csv");
                 FileUtils.copyInputStreamToFile(csvInputstream, csvFile);
                 filesToUpload.add(csvFile);
 
@@ -1260,16 +1277,26 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 yearQueryParams.put(CommonParams.START, String.valueOf((i + 10000)));
             }
 
+            Set<String> multivaluedFields = getMultivaluedFieldNames();
+
             for (File tempCsv : filesToUpload) {
                 //Upload the data in the csv files to our new solr core
                 ContentStreamUpdateRequest contentStreamUpdateRequest = new ContentStreamUpdateRequest("/update/csv");
                 contentStreamUpdateRequest.setParam("stream.contentType", "text/plain;charset=utf-8");
+                contentStreamUpdateRequest.setParam("escape", "\\");
 	            contentStreamUpdateRequest.setParam("skip", "_version_");
                 contentStreamUpdateRequest.setAction(AbstractUpdateRequest.ACTION.COMMIT, true, true);
                 contentStreamUpdateRequest.addFile(tempCsv, "text/plain;charset=utf-8");
 
+                //Add parsing directives for the multivalued fields so that they are stored as separate values instead of one value
+                for (String multivaluedField : multivaluedFields) {
+                    contentStreamUpdateRequest.setParam("f." + multivaluedField + ".split", Boolean.TRUE.toString());
+                    contentStreamUpdateRequest.setParam("f." + multivaluedField + ".separator", MULTIPLE_VALUES_SPLITTER);
+                }
+
                 statisticsYearServer.request(contentStreamUpdateRequest);
             }
+
             statisticsYearServer.commit(true, true);
 
 
@@ -1286,14 +1313,61 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     protected HttpSolrServer createCore(HttpSolrServer solr, String coreName) throws IOException, SolrServerException {
         String solrDir = configurationService.getProperty("dspace.dir") + File.separator + "solr" +File.separator;
         String baseSolrUrl = solr.getBaseURL().replace("statistics", "");
+        
+        //DS-3458: Test to see if a solr core already exists.  If it exists, return that server.  Otherwise create a new one.
+        HttpSolrServer returnServer = new HttpSolrServer(baseSolrUrl + "/" + coreName);
+        try {
+            SolrPingResponse ping = returnServer.ping();
+            log.debug(String.format("Ping of Solr Core [%s] Returned with Status [%d]", coreName, ping.getStatus()));
+            return returnServer;
+        } catch(Exception e) {
+            log.debug(String.format("Ping of Solr Core [%s] Failed with [%s].  New Core Will be Created", coreName, e.getClass().getName()));
+        }
+        
+        //Unfortunately, this class is documented as "experimental and subject to change" on the Lucene website.
+        //http://lucene.apache.org/solr/4_4_0/solr-solrj/org/apache/solr/client/solrj/request/CoreAdminRequest.html
         CoreAdminRequest.Create create = new CoreAdminRequest.Create();
         create.setCoreName(coreName);
+        
+        //The config files for a statistics shard reside wihtin the statistics repository
         create.setInstanceDir("statistics");
         create.setDataDir(solrDir + coreName + File.separator + "data");
+        //It is unclear why a separate solr server using the baseSolrUrl is required.
+        //Based on testing while working on DS-3457, this appears to be necessary.
         HttpSolrServer solrServer = new HttpSolrServer(baseSolrUrl);
+        
+        //DS-3457: The invocation of this method will cause tomcat to hang if this method is invoked before the solr webapp has fully initialized.
+        //Also, any attempt to ping a repository before solr is fully initialized will also cause tomcat to hang.
         create.process(solrServer);
         log.info("Created core with name: " + coreName);
-        return new HttpSolrServer(baseSolrUrl + "/" + coreName);
+        return returnServer;
+    }
+
+    /**
+     * Retrieves a list of all the multi valued fields in the solr core
+     * @return all fields tagged as multivalued
+     * @throws SolrServerException When getting the schema information from the SOLR core fails
+     * @throws IOException When connection to the SOLR server fails
+     */
+    public Set<String> getMultivaluedFieldNames() throws SolrServerException, IOException {
+        Set<String> multivaluedFields = new HashSet<String>();
+        LukeRequest lukeRequest = new LukeRequest();
+        lukeRequest.setShowSchema(true);
+        LukeResponse process = lukeRequest.process(solr);
+        Map<String, LukeResponse.FieldInfo> fields = process.getFieldInfo();
+        for(String fieldName : fields.keySet())
+        {
+            LukeResponse.FieldInfo fieldInfo = fields.get(fieldName);
+            EnumSet<FieldFlag> flags = fieldInfo.getFlags();
+            for(FieldFlag fieldFlag : flags)
+            {
+                if(fieldFlag.getAbbreviation() == FieldFlag.MULTI_VALUED.getAbbreviation())
+                {
+                    multivaluedFields.add(fieldName);
+                }
+            }
+        }
+        return multivaluedFields;
     }
 
 
@@ -1516,10 +1590,49 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
     protected void addAdditionalSolrYearCores(SolrQuery solrQuery){
         //Only add if needed
+        initSolrYearCores();
         if(0 < statisticYearCores.size()){
             //The shards are a comma separated list of the urls to the cores
             solrQuery.add(ShardParams.SHARDS, StringUtils.join(statisticYearCores.iterator(), ","));
         }
 
+    }
+    
+    /*
+     * The statistics shards should not be initialized until all tomcat webapps are fully initialized.
+     * DS-3457 uncovered an issue in DSpace 6x in which this code triggered tomcat to hang when statistics shards are present.
+     * This code is synchonized in the event that 2 threads trigger the initialization at the same time.
+     */
+    protected synchronized void initSolrYearCores() {
+        if (statisticYearCoresInit) {
+            return;
+        }
+        try
+        {
+            //Attempt to retrieve all the statistic year cores
+            File solrDir = new File(configurationService.getProperty("dspace.dir") + File.separator + "solr" + File.separator);
+            File[] solrCoreFiles = solrDir.listFiles(new FileFilter() {
+
+                @Override
+                public boolean accept(File file) {
+                    //Core name example: statistics-2008
+                    return file.getName().matches("statistics-\\d\\d\\d\\d");
+                }
+            });
+            //Base url should like : http://localhost:{port.number}/solr
+            String baseSolrUrl = solr.getBaseURL().replace("statistics", "");
+            for (File solrCoreFile : solrCoreFiles) {
+                log.info("Loading core with name: " + solrCoreFile.getName());
+
+                createCore(solr, solrCoreFile.getName());
+                //Add it to our cores list so we can query it !
+                statisticYearCores.add(baseSolrUrl.replace("http://", "").replace("https://", "") + solrCoreFile.getName());
+            }
+            //Also add the core containing the current year !
+            statisticYearCores.add(solr.getBaseURL().replace("http://", "").replace("https://", ""));
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        statisticYearCoresInit = true;
     }
 }

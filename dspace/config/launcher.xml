@@ -222,8 +222,6 @@
             <class>org.dspace.util.SolrImportExport</class>
 	    <argument>-a</argument>
 	    <argument>export</argument>
-	    <argument>-i</argument>
-	    <argument>statistics</argument>
         </step>
     </command>
     <command>
@@ -233,8 +231,6 @@
             <class>org.dspace.util.SolrImportExport</class>
 	    <argument>-a</argument>
 	    <argument>import</argument>
-	    <argument>-i</argument>
-	    <argument>statistics</argument>
         </step>
     </command>
     <command>
@@ -244,8 +240,13 @@
             <class>org.dspace.util.SolrImportExport</class>
 	    <argument>-a</argument>
 	    <argument>reindex</argument>
-	    <argument>-i</argument>
-	    <argument>statistics</argument>
+        </step>
+    </command>
+    <command>
+        <name>solr-upgrade-statistics-6x</name>
+        <description>Upgrade statistics (integer to UUID) to DSpace 6.x (or above) compatibility</description>
+        <step passuserargs="true">
+            <class>org.dspace.util.SolrUpgradePre6xStatistics</class>
         </step>
     </command>
     <command>

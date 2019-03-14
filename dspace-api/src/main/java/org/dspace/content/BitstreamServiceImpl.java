@@ -96,6 +96,38 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     }
 
     @Override
+    public Bitstream clone(Context context, Bitstream bitstream)
+            throws SQLException 
+    {
+        // Create a new bitstream with a new ID.
+        Bitstream clonedBitstream = bitstreamDAO.create(context, new Bitstream());
+        // Set the internal identifier, file size, checksum, and 
+        // checksum algorithm as same as the given bitstream. 
+        clonedBitstream.setInternalId(bitstream.getInternalId());
+        clonedBitstream.setSizeBytes(bitstream.getSizeBytes());
+        clonedBitstream.setChecksum(bitstream.getChecksum());
+        clonedBitstream.setChecksumAlgorithm(bitstream.getChecksumAlgorithm());
+        clonedBitstream.setFormat(bitstream.getBitstreamFormat());
+
+        try 
+        {
+            //Update our bitstream but turn off the authorization system since permissions haven't been set at this point in time.
+            context.turnOffAuthorisationSystem();
+            update(context, clonedBitstream);
+        } 
+        catch (AuthorizeException e) 
+        {
+            log.error(e);
+            //Can never happen since we turn off authorization before we update
+        } 
+        finally 
+        {
+            context.restoreAuthSystemState();
+        }
+        return clonedBitstream;
+    }
+    
+    @Override
     public Bitstream create(Context context, InputStream is) throws IOException, SQLException {
         // Store the bits
         UUID bitstreamID = bitstreamStorageService.store(context, bitstreamDAO.create(context, new Bitstream()), is);
@@ -248,21 +280,21 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         context.addEvent(new Event(Event.DELETE, Constants.BITSTREAM, bitstream.getID(),
                 String.valueOf(bitstream.getSequenceID()), getIdentifiers(context, bitstream)));
 
-        //Remove our bitstream from all our bundles
-        final List<Bundle> bundles = bitstream.getBundles();
-        for (Bundle bundle : bundles) {
-            bundle.getBitstreams().remove(bitstream);
-        }
-
-        // Remove policies
-        authorizeService.removeAllPolicies(context, bitstream);
-
         // Remove bitstream itself
         bitstream.setDeleted(true);
         update(context, bitstream);
 
+        //Remove our bitstream from all our bundles
+        final List<Bundle> bundles = bitstream.getBundles();
+        for (Bundle bundle : bundles) {
+            bundle.removeBitstream(bitstream);
+        }
+
         //Remove all bundles from the bitstream object, clearing the connection in 2 ways
         bundles.clear();
+
+        // Remove policies only after the bitstream has been updated (otherwise the current user has not WRITE rights)
+        authorizeService.removeAllPolicies(context, bitstream);
     }
 
     @Override

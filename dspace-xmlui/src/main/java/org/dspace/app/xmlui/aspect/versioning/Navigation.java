@@ -11,6 +11,7 @@ import org.apache.cocoon.caching.CacheableProcessingComponent;
 import org.apache.cocoon.environment.ObjectModelHelper;
 import org.apache.cocoon.environment.Request;
 import org.apache.cocoon.util.HashUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.excalibur.source.SourceValidity;
 import org.apache.excalibur.source.impl.validity.NOPValidity;
 import org.dspace.app.util.Util;
@@ -117,15 +118,17 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
 
 		            validity.add(context, eperson);
 
-		            java.util.List<Group> groups = groupService.allMemberGroups(context, eperson);
+		            java.util.Set<Group> groups = groupService.allMemberGroupsSet(context, eperson);
 		            for (Group group : groups)
 		            {
 		            	validity.add(context, group);
 		            }
 
                     DSpaceObject dso = HandleUtil.obtainHandle(objectModel);
-                    if(dso != null)
-                    {
+		            if(dso == null){
+                        dso = getItemById();
+                    }
+                    if (dso != null) {
                         validity.add(context, dso);
                     }
 
@@ -201,6 +204,12 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
         if (itemId != null)
         {
             item = itemService.find(this.context, itemId);
+        } else {
+            String itemIDParam = parameters.getParameter("itemID", null);
+            if (StringUtils.isNotBlank(itemIDParam)) {
+                itemId = UUID.fromString(itemIDParam);
+                item = itemService.find(context, itemId);
+            }
         }
         return item;
     }
