@@ -42,7 +42,7 @@
             <id>epocaintegration</id>
             <activation>
                 <property>
-                    <name>epocaintegration.on</name>
+                    <name>!skipEpocaintegration</name>
                 </property>
             </activation>
             <dependencies>

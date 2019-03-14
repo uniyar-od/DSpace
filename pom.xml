@@ -316,7 +316,7 @@
             </plugin>
         </plugins>
     </build>
-   
+    
     <profiles>
         <!-- Skip Unit Tests by default, but allow override on command line
            by setting property "-Dmaven.test.skip=false" -->
@@ -835,7 +835,9 @@
         <profile>
             <id>epocaintegration</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>!skipEpocaintegration</name>
+                </property>
             </activation>
             <dependencyManagement>
                 <dependencies>
