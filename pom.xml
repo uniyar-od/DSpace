@@ -541,7 +541,9 @@
       <profile>
             <id>epocaintegration</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>!skipEpocaintegration</name>
+                </property>
             </activation>
             <dependencyManagement>
                 <dependencies>
