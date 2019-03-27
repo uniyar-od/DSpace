@@ -306,7 +306,6 @@
                     <artifactId>epocaintegration-dcris-api</artifactId>
                     <version>${epocaintegration.version}</version>
                     <type>jar</type>
-                    <scope>test</scope>
                 </dependency>
             </dependencies>
         </profile>
