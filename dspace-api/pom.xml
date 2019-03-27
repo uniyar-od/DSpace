@@ -303,7 +303,7 @@
             <dependencies>
                 <dependency>
                     <groupId>it.ivscience.epoca</groupId>
-                    <artifactId>epocaintegration-dspace-api</artifactId>
+                    <artifactId>epocaintegration-dcris-api</artifactId>
                     <version>${epocaintegration.version}</version>
                     <type>jar</type>
                     <scope>test</scope>
