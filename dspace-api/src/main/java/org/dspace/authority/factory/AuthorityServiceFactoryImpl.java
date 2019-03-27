@@ -15,6 +15,7 @@ import org.dspace.authority.indexer.AuthorityIndexerInterface;
 import org.dspace.authority.indexer.AuthorityIndexingService;
 import org.dspace.authority.service.AuthorityService;
 import org.dspace.authority.service.AuthorityValueService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -28,9 +29,6 @@ public class AuthorityServiceFactoryImpl extends AuthorityServiceFactory {
     private AuthorityValueService authorityValueService;
 
     @Autowired(required = true)
-    private AuthorityTypes authorityTypes;
-
-    @Autowired(required = true)
     private AuthorityService authorityService;
 
     @Autowired(required = true)
@@ -39,7 +37,6 @@ public class AuthorityServiceFactoryImpl extends AuthorityServiceFactory {
     @Autowired(required = true)
     private AuthoritySearchService authoritySearchService;
 
-    @Autowired(required = true)
     private List<AuthorityIndexerInterface> authorityIndexerInterfaces;
 
     @Override
@@ -49,7 +46,7 @@ public class AuthorityServiceFactoryImpl extends AuthorityServiceFactory {
 
     @Override
     public AuthorityTypes getAuthorTypes() {
-        return authorityTypes;
+        return getAuthorityValueService().getAuthorityTypes();
     }
 
     @Override
@@ -69,6 +66,9 @@ public class AuthorityServiceFactoryImpl extends AuthorityServiceFactory {
 
     @Override
     public List<AuthorityIndexerInterface> getAuthorityIndexers() {
+        if(authorityIndexerInterfaces == null) {
+            authorityIndexerInterfaces = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(AuthorityIndexerInterface.class);
+        }
         return authorityIndexerInterfaces;
     }
 }

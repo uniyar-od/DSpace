@@ -16,6 +16,7 @@ import org.dspace.authority.service.AuthorityService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
@@ -31,7 +32,7 @@ public class AuthorityServiceImpl implements AuthorityService{
 
     @Autowired(required = true)
     protected AuthorityIndexingService indexingService;
-    @Autowired(required = true)
+    
     protected List<AuthorityIndexerInterface> indexers;
 
     protected AuthorityServiceImpl()
@@ -46,7 +47,7 @@ public class AuthorityServiceImpl implements AuthorityService{
             return;
         }
 
-        for (AuthorityIndexerInterface indexerInterface : indexers) {
+        for (AuthorityIndexerInterface indexerInterface : getIndexers()) {
             List<AuthorityValue> authorityValues = indexerInterface.getAuthorityValues(context , item);
             for (AuthorityValue authorityValue : authorityValues) {
                 indexingService.indexContent(authorityValue);
@@ -63,12 +64,19 @@ public class AuthorityServiceImpl implements AuthorityService{
             return false;
         }
 
-        for (AuthorityIndexerInterface indexerInterface : indexers) {
+        for (AuthorityIndexerInterface indexerInterface : getIndexers()) {
             if(!indexerInterface.isConfiguredProperly()){
                 return false;
             }
         }
         return true;
+    }
+
+    public List<AuthorityIndexerInterface> getIndexers() {
+        if(indexers == null) {
+            indexers = DSpaceServicesFactory.getInstance().getServiceManager().getServicesByType(AuthorityIndexerInterface.class);
+        }
+        return indexers;
     }
 
 }
