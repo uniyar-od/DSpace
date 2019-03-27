@@ -921,7 +921,9 @@
         <profile>
             <id>epocaintegration</id>
             <activation>
-                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>!skipEpocaintegration</name>
+                </property>
             </activation>
             <dependencyManagement>
                 <dependencies>
@@ -1873,6 +1875,12 @@
 				<enabled>true</enabled>
 				<checksumPolicy>never</checksumPolicy>
 			</snapshots>
+		</repository>
+
+		<repository>
+			<id>4science-repo-nexus</id>
+			<name>4Science Maven Repository</name>
+			<url>https://nexus.4science.it/repository/maven-public/</url>
 		</repository>
 		
 		<repository>
