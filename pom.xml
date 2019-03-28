@@ -1577,6 +1577,12 @@
     <!-- Enable access to artifacts in Sonatype's snapshot repo for Snapshots ONLY -->
     <repositories>
         <repository>
+            <id>4science-repo-nexus</id>
+            <name>4Science Maven Repository</name>
+            <url>https://nexus.4science.it/repository/maven-public/</url>
+        </repository>
+        
+        <repository>
           <id>maven-snapshots</id>
           <url>http://oss.sonatype.org/content/repositories/snapshots</url>
           <layout>default</layout>
