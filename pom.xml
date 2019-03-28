@@ -1353,6 +1353,12 @@
 
     <repositories>
         <repository>
+            <id>4science-repo-nexus</id>
+            <name>4Science Maven Repository</name>
+            <url>https://nexus.4science.it/repository/maven-public/</url>
+        </repository>
+        
+        <repository>
             <id>sonatype-releases</id>
             <name>Sonatype Releases Repository</name>
             <url>https://oss.sonatype.org/content/repositories/releases/</url>
