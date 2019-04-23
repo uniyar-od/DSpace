@@ -60,6 +60,17 @@
 
        <field>
 		 <dc-schema>dc</dc-schema>
+         <dc-element>contributor</dc-element>
+         <dc-qualifier>contributor</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Contributors</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the names of the contributors of this item in the form Surname, Firstname [i.e. Smith, Josh or Smith, J].</hint>
+         <required></required>
+       </field>
+
+       <field>
+		 <dc-schema>dc</dc-schema>
          <dc-element>title</dc-element>
          <dc-qualifier></dc-qualifier>
          <repeatable>false</repeatable>
@@ -90,7 +101,18 @@
          <hint>Please give the date of previous publication or public distribution.
                         You can leave out the day and/or month if they aren't
                         applicable.</hint>
-         <required>You must enter at least the year.</required>
+         <required></required>
+       </field>
+
+        <field>
+     <dc-schema>dc</dc-schema>
+         <dc-element>coverage</dc-element>
+         <dc-qualifier>temporal</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Chronology</label>
+         <input-type>onebox</input-type>
+         <hint>Chronology of the item</hint>
+         <required></required>
        </field>
 
        <field>
@@ -160,6 +182,29 @@ it, please enter the types and the actual numbers or codes.</hint>
          <hint>Select the language of the main content of the item.  If the language does not appear in the list, please select 'Other'.  If the content does not really have a language (for example, if it is a dataset or an image) please select 'N/A'.</hint>
          <required></required>
        </field>
+       
+        <field>
+                 <dc-schema>dc</dc-schema>
+         <dc-element>format</dc-element>
+         <dc-qualifier>medium</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Medium</label>
+         <input-type>onebox</input-type>
+         <hint>Enter the phisycal support of the original source</hint>
+         <required></required>
+       </field>
+
+       <field>
+                 <dc-schema>dc</dc-schema>
+         <dc-element>source</dc-element>
+         <dc-qualifier>content</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Content</label>
+         <input-type>onebox</input-type>
+         <hint>Describe the physical resource from which the described item is derived</hint>
+         <required></required>
+       </field>       
+       
      </page>
 
      <page number="2">
@@ -224,9 +269,32 @@ it, please enter the types and the actual numbers or codes.</hint>
          <dc-element>relation</dc-element>
          <dc-qualifier>conference</dc-qualifier>
          <repeatable>true</repeatable>
-         <label>Conference</label>
+         <label>Related event</label>
          <input-type>onebox</input-type>
-         <hint> Enter the name of the conference where the item has been presented, if any.</hint>
+         <hint> Enter the name of an event related to the item</hint>
+         <required></required>
+       </field>
+       
+       <field>
+      	 <dc-schema>dc</dc-schema>
+         <dc-element>relation</dc-element>
+         <dc-qualifier>concept</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Related concept</label>
+         <input-type>onebox</input-type>
+         <hint> Enter the name of a concept related to the item</hint>
+         <required></required>
+       </field>
+
+
+       <field>
+         <dc-schema>dc</dc-schema>
+         <dc-element>relation</dc-element>
+         <dc-qualifier>interpretation</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Related interpretation</label>
+         <input-type>onebox</input-type>
+         <hint> Enter the name of an interpretation related to the item</hint>
          <required></required>
        </field>
        
@@ -240,6 +308,29 @@ it, please enter the types and the actual numbers or codes.</hint>
          <hint> Enter any other description or comments in this box. </hint>
          <required></required>
        </field>
+       
+        <field>
+                 <dc-schema>dc</dc-schema>
+         <dc-element>rights</dc-element>
+         <dc-qualifier></dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Use condition</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+       
+       <field>
+                 <dc-schema>dc</dc-schema>
+         <dc-element>rights</dc-element>
+         <dc-qualifier>holder</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Library</label>
+         <input-type>onebox</input-type>
+         <hint></hint>
+         <required></required>
+       </field>
+              
      </page>
 <!--      <page number="3">
        <field>
@@ -1352,6 +1443,18 @@ it, please enter the types and the actual numbers or codes.</hint>
        <displayed-value>ISBN</displayed-value>
        <stored-value>isbn</stored-value>
      </pair>
+     <pair>
+       <displayed-value>BID</displayed-value>
+       <stored-value>bid</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Inventory number</displayed-value>
+       <stored-value>inventorynumber</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Shelfmark</displayed-value>
+       <stored-value>shelfmark</stored-value>
+     </pair>
    </value-pairs>
    
    <value-pairs value-pairs-name="common_article_identifiers" dc-term="identifier">
@@ -1488,6 +1591,10 @@ it, please enter the types and the actual numbers or codes.</hint>
        <stored-value>Animation</stored-value>
      </pair>
      <pair>
+       <displayed-value>Archival Unit</displayed-value>
+       <stored-value>Archival Unit</stored-value>
+     </pair>
+     <pair>
        <displayed-value>Article</displayed-value>
        <stored-value>Article</stored-value>
      </pair>
@@ -1514,6 +1621,10 @@ it, please enter the types and the actual numbers or codes.</hint>
      <pair>
        <displayed-value>Image, 3-D</displayed-value>
        <stored-value>Image, 3-D</stored-value>
+     </pair>
+     <pair>
+	<displayed-value>Manuscript</displayed-value>
+	<stored-value>Manuscript</stored-value>
      </pair>
      <pair>
        <displayed-value>Map</displayed-value>
@@ -1656,6 +1767,14 @@ it, please enter the types and the actual numbers or codes.</hint>
      <pair>
        <displayed-value>Turkish</displayed-value>
        <stored-value>tr</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Latin</displayed-value>
+       <stored-value>la</stored-value>
+     </pair>
+    <pair>
+       <displayed-value>Ancient Greek</displayed-value>
+       <stored-value>grc</stored-value>
      </pair>
      <pair>
        <displayed-value>(Other)</displayed-value>
