@@ -7,12 +7,12 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
            http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
 
-	<bean name="tree" class="org.dspace.app.webui.json.TreeHierarchy">
+	<bean name="tree" class="org.dspace.app.webui.cris.json.TreeHierarchy">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 		<property name="configurator" ref="configuratorResource" />
 	</bean>
 
-	<bean name="resource" class="org.dspace.app.webui.json.Resource">
+	<bean name="resource" class="org.dspace.app.webui.cris.json.Resource">
 		<property name="configurator" ref="configuratorResource" />
 		<property name="applicationService" ref="applicationService" />
 	</bean>
