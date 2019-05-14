@@ -1239,4 +1239,14 @@
         <url-pattern>/orcidwebhook/*</url-pattern>
     </servlet-mapping>
     
+
+	<servlet>
+		<servlet-name>simple-rest</servlet-name>
+		<servlet-class>org.dspace.app.webui.servlet.SimpleJsonRest</servlet-class>		
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>simple-rest</servlet-name>
+		<url-pattern>/api/v1/simple/*</url-pattern>
+	</servlet-mapping>    
+    
 </web-app>

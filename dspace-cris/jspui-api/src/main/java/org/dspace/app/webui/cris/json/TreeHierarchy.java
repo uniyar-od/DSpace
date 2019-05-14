@@ -63,6 +63,7 @@ public class TreeHierarchy extends JSONRequest
             // only the first level
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery("treeparent_s:\"" + selectedNode + "\"");
+            solrQuery.setRows(Integer.MAX_VALUE);
             solrQuery.setFields("crisauthoritylookup","handle", "cris-id", "treeleaf_b");
             try
             {
@@ -111,6 +112,7 @@ public class TreeHierarchy extends JSONRequest
             //get the node related to this cris-id
             SolrQuery solrQuery = new SolrQuery();
             solrQuery.setQuery("cris-id:\""+ pluginName + "\" OR handle:\""+ pluginName + "\"");
+            solrQuery.setRows(Integer.MAX_VALUE);
             solrQuery.setFields("treeroot_s");
             try
             {
@@ -125,6 +127,7 @@ public class TreeHierarchy extends JSONRequest
                     SolrQuery solrQueryInternal = new SolrQuery();
                     solrQueryInternal.setQuery("treeroot_s:\""+ valueRoot + "\"");
                     solrQueryInternal.setFields("crisauthoritylookup","handle", "cris-id", "treeparent_s", "treeleaf_b", "treecontext_s");
+                    solrQueryInternal.setRows(Integer.MAX_VALUE);
                     QueryResponse responseInternal = searchService.search(solrQueryInternal);
                     SolrDocumentList docListInternal = responseInternal.getResults();
                     for(SolrDocument docInternal : docListInternal) {                  
@@ -168,6 +171,7 @@ public class TreeHierarchy extends JSONRequest
                             SolrQuery solrQueryItem = new SolrQuery();
                             String contextTree = (String)(docInternal.getFieldValue("treecontext_s"));                            
                             solrQueryItem.setQuery(MessageFormat.format(configurator.getRelation().get(contextTree).getQuery(),authority));
+                            solrQueryItem.setRows(Integer.MAX_VALUE);
                             solrQueryItem.setFields("search.resourcetype", "search.resourceid", "handle", "dc.title");
                             QueryResponse responseItem = searchService.search(solrQueryItem);
                             SolrDocumentList docListItem = responseItem.getResults();
