@@ -10,6 +10,7 @@ package org.dspace.content;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -306,7 +307,7 @@ public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
 	@Override
 	public Map<String, Object> getExtraInfo() {
 		// TODO Auto-generated method stub
-		return null;
+		return new HashMap<String, Object>();
 	}
 
 	@Override
@@ -341,15 +342,10 @@ public class Community extends DSpaceObject implements DSpaceObjectLegacySupport
 	
 	@Override
 	public BrowsableDSpaceObject getParentObject() {
-		Context context = new Context();
 		try {
-			return (BrowsableDSpaceObject)(getCommunityService().getParentObject(context, this));
+				return (BrowsableDSpaceObject)(getCommunityService().getParentObject(null, this));
 		} catch (SQLException e) {
-		}
-		finally {
-			if(context != null && context.isValid()) {
-				context.abort();
-			}
+				log.error(e.getMessage(), e);
 		}
 		return null;
 	}
