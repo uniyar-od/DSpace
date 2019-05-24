@@ -227,7 +227,7 @@ public class ItemImportMainOA
             }
             else
             {
-                String sql = "SELECT a.imp_id, a.imp_record_id, a.imp_eperson_id, a.imp_collection_id, a.status, a.operation, a.handle, a.imp_sourceref FROM imp_record WHERE last_modified is NULL order by imp_id ASC";
+                String sql = "SELECT a.imp_id, a.imp_record_id, a.imp_eperson_id, a.imp_collection_id, a.status, a.operation, a.handle, a.imp_sourceref FROM imp_record a WHERE last_modified is NULL order by imp_id ASC";
                 
                 rows = getHibernateSession(context).createSQLQuery(sql).list();
 
