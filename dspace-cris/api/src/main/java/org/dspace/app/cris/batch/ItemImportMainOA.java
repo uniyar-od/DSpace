@@ -436,7 +436,7 @@ public class ItemImportMainOA
                 else
                 {
 
-                    Object record_item = getHibernateSession(subcontext).createSQLQuery("select imp_item_id from imp_record_to_item where imp_record_id = :par0 and imp_sourceref = :par1").setParameter(0, record_id).setParameter(1, sourceref).uniqueResult();
+                    Object record_item = getHibernateSession(subcontext).createSQLQuery("select imp_item_id from imp_record_to_item where imp_record_id = ? and imp_sourceref = ?").setParameter(0, record_id).setParameter(1, sourceref).uniqueResult();
                     if (record_item != null)
                     {
                         itemId = (String)record_item;//.getIntColumn("imp_item_id");

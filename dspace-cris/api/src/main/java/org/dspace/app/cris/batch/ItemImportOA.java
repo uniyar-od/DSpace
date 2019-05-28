@@ -409,12 +409,12 @@ public class ItemImportOA
 
                 if(StringUtils.isNotBlank(myLoader.getSourceRef())) {
                     getHibernateSession(context).createSQLQuery(
-                        "INSERT INTO imp_record_to_item " + "VALUES ( :par0, :par1, :par2)").setParameter(0, 
+                        "INSERT INTO imp_record_to_item " + "VALUES ( ?, ?, ?)").setParameter(0, 
                         imp_record_id).setParameter(1, item_id).setParameter(2, myLoader.getSourceRef()).executeUpdate();
                 }
                 else {
                     getHibernateSession(context).createSQLQuery(
-                            "INSERT INTO imp_record_to_item " + "VALUES ( :par0, :par1, null)").setParameter(0, 
+                            "INSERT INTO imp_record_to_item " + "VALUES ( ?, ?, null)").setParameter(0, 
                             imp_record_id).setParameter(1, item_id).executeUpdate();                	
                 }
             }
@@ -436,14 +436,14 @@ public class ItemImportOA
                 {
                 	getHibernateSession(context).createSQLQuery(
                             "DELETE FROM imp_record_to_item "
-                                    + "WHERE imp_record_id = :par0 AND imp_item_id = :par1").setParameter(0,
+                                    + "WHERE imp_record_id = ? AND imp_item_id = ?").setParameter(0,
                             imp_record_id).setParameter(1, item_id).executeUpdate();
                 }
             }
 
             getHibernateSession(context).createSQLQuery(
                     "UPDATE imp_record " + "SET last_modified = LOCALTIMESTAMP"
-                            + " WHERE imp_id = :par0").setParameter(0,
+                            + " WHERE imp_id = ?").setParameter(0,
                     imp_id);
             context.restoreAuthSystemState();
             return item_id;
@@ -769,7 +769,6 @@ public class ItemImportOA
 
     	BasicWorkflowService WorkflowManager = (BasicWorkflowService)WorkflowServiceFactory.getInstance().getWorkflowService();
     	
-        // gestione richiesta di whithdrawn per item non gi� in archivio
         if (goToWithdrawn)
         {
             throw new RuntimeException("Item corresponding imp_id=" + imp_id
@@ -806,7 +805,9 @@ public class ItemImportOA
         wi.setMultipleTitles(true);
         wi.setPublishedBefore(true);
         wi.setStageReached(1);
-        wi.update();
+        
+        ContentServiceFactory.getInstance().getWorkspaceItemService().update(c, wi);
+        
 
         if (goToWFStepOne || goToWFStepTwo || goToWFStepThree)
         {
@@ -875,7 +876,7 @@ public class ItemImportOA
             throws SQLException, AuthorizeException, TransformerException
     {
 
-        String myQuery = "SELECT imp_value, imp_element, imp_qualifier, imp_authority, imp_confidence, TEXT_LANG, IMP_SHARE  FROM imp_metadatavalue WHERE imp_id = :par0 ORDER BY imp_metadatavalue_id, imp_element, imp_qualifier, metadata_order";
+        String myQuery = "SELECT imp_value, imp_element, imp_qualifier, imp_authority, imp_confidence, TEXT_LANG, IMP_SHARE  FROM imp_metadatavalue WHERE imp_id = ? ORDER BY imp_metadatavalue_id, imp_element, imp_qualifier, metadata_order";
 
         List<Object[]> retTRI = getHibernateSession(c).createSQLQuery(myQuery).setParameter(0, imp_id).list();
 
@@ -1051,7 +1052,7 @@ public class ItemImportOA
             }
         }
         // retrieve the attached
-        String sql_bs = "SELECT imp_bitstream_id, filepath, bundle, description, primary_bitstream, assetstore, name, embargo_policy, embargo_start_date, md5value, imp_blob, assetstore FROM imp_bitstream WHERE imp_id = :par0 order by bitstream_order asc";
+        String sql_bs = "SELECT imp_bitstream_id, filepath, bundle, description, primary_bitstream, assetstore, name, embargo_policy, embargo_start_date, md5value, imp_blob FROM imp_bitstream WHERE imp_id = ? order by bitstream_order asc";
 
         List<Object[]> rows_bs_all = getHibernateSession(c).createSQLQuery(sql_bs).setParameter(0,imp_id).list();
 
@@ -1106,8 +1107,8 @@ public class ItemImportOA
                 }
             }
 
-            String valueMD5 = (String)imp_bitstream[8];//.getStringColumn("md5value");
-            byte[] content = (byte[])imp_bitstream[9];//.getBinaryData("imp_blob");
+            String valueMD5 = (String)imp_bitstream[9];//.getStringColumn("md5value");
+            byte[] content = imp_bitstream[10]!= null ? imp_bitstream[10].toString().getBytes() : null;//.getBinaryData("imp_blob");
             Bitstream bs = processBitstreamEntry(c, i, filepath, bundleName,
                     description, primary_bitstream, name_file,
                     assetstore, embargoGroup, start_date, content,
@@ -1115,7 +1116,7 @@ public class ItemImportOA
             // HACK: replace the bytea with a register like operation
             if (content != null)
             {
-            	String sql = "UPDATE imp_bitstream SET imp_blob = null, assetstore = :par0, filepath = :par1 WHERE imp_bitstream_id = :par2";
+            	String sql = "UPDATE imp_bitstream SET imp_blob = null, assetstore = ?, filepath = ? WHERE imp_bitstream_id = ?";
                 
                 String assetstorePath;
                 if (bs.getStoreNumber() == 0)
