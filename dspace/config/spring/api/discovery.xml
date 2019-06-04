@@ -2226,11 +2226,8 @@
 	<bean id="facetsDRISConfiguration" class="java.util.ArrayList">
 		<constructor-arg>
 		<list>
-				<ref bean="searchFilterDRISSoftware" />
-				<ref bean="searchFilterDRISCerifCompatibility" />
-				<ref bean="searchFilterDRISCerifVersion" />
-				<ref bean="searchFilterDRISCoverage" />
 				<ref bean="searchFilterDRISCountry" />
+				<ref bean="searchFilterDRISSoftware" />
 				<ref bean="searchFilterDRISStatus" />
 		</list>
 		</constructor-arg>
