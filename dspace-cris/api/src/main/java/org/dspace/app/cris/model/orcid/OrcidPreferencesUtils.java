@@ -40,6 +40,7 @@ import org.dspace.app.cris.model.RelationPreference;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
+import org.dspace.app.cris.model.jdyna.ProjectProperty;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.service.ApplicationService;
@@ -57,11 +58,17 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
+import org.orcid.jaxb.model.common_v3.Amount;
 import org.orcid.jaxb.model.common_v3.CreditName;
+import org.orcid.jaxb.model.common_v3.DisambiguatedOrganization;
 import org.orcid.jaxb.model.common_v3.ExternalId;
+import org.orcid.jaxb.model.common_v3.ExternalIds;
 import org.orcid.jaxb.model.common_v3.FuzzyDate;
 import org.orcid.jaxb.model.common_v3.FuzzyDate.Day;
 import org.orcid.jaxb.model.common_v3.FuzzyDate.Month;
+import org.orcid.jaxb.model.common_v3.Organization;
+import org.orcid.jaxb.model.common_v3.OrganizationAddress;
+import org.orcid.jaxb.model.common_v3.Url;
 import org.orcid.jaxb.model.common_v3.Visibility;
 import org.orcid.jaxb.model.record_v3.AddressType;
 import org.orcid.jaxb.model.record_v3.Addresses;
@@ -69,8 +76,12 @@ import org.orcid.jaxb.model.record_v3.BiographyType;
 import org.orcid.jaxb.model.record_v3.EmailType;
 import org.orcid.jaxb.model.record_v3.Emails;
 import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
+import org.orcid.jaxb.model.record_v3.Funding;
 import org.orcid.jaxb.model.record_v3.FundingContributor;
 import org.orcid.jaxb.model.record_v3.FundingContributorAttributes;
+import org.orcid.jaxb.model.record_v3.FundingGroup;
+import org.orcid.jaxb.model.record_v3.FundingSummary;
+import org.orcid.jaxb.model.record_v3.Fundings;
 import org.orcid.jaxb.model.record_v3.KeywordType;
 import org.orcid.jaxb.model.record_v3.Keywords;
 import org.orcid.jaxb.model.record_v3.NameType.FamilyName;
@@ -81,6 +92,7 @@ import org.orcid.jaxb.model.record_v3.Person;
 import org.orcid.jaxb.model.record_v3.ResearcherUrlType;
 import org.orcid.jaxb.model.record_v3.ResearcherUrls;
 import org.orcid.jaxb.model.utils.FundingContributorRole;
+import org.orcid.jaxb.model.utils.FundingType;
 
 import it.cilea.osd.jdyna.value.BooleanValue;
 
@@ -132,6 +144,8 @@ public class OrcidPreferencesUtils
     private static final int ORCID_PREFS_VISIBLE = 3;
 
     private static Map<String, String> investigatorsMapping;
+
+    private static final int DEFAULT_PROPERTY_VISIBILITY = 1;
 
     public void prepareOrcidQueue(String crisId, DSpaceObject obj)
     {
@@ -1121,6 +1135,161 @@ public class OrcidPreferencesUtils
         return false;
     }
     
+    public static List<Project> populatePJ(ResearcherPage rp, String orcid, String token)
+    {
+        List<Project> pjsCreatedOrUpdated = new ArrayList<>();
+
+        ApplicationService applicationService = new Researcher()
+                .getApplicationService();
+        OrcidService orcidService = OrcidService.getOrcid();
+        Fundings fundings = orcidService.getFundings(orcid, token);
+        if (fundings != null)
+        {
+            for (FundingGroup fundingGroup : fundings.getGroup())
+            {
+                for (FundingSummary fundingSummary : fundingGroup.getFundingSummary())
+                {
+                    if (FundingType.GRANT.value().equals(fundingSummary.getType()))
+                    {
+                        String putCode = String.valueOf(fundingSummary.getPutCode());
+                        Funding funding = orcidService.getFunding(orcid, token, putCode);
+                        String title = funding.getTitle().getTitle();
+
+                        Project pj = findCrisObject(applicationService,
+                                Project.class, orcid, putCode, CrisConstants.PROJECT_TYPE_ID, title);
+                        if (pj == null)
+                        {
+                            pj = new Project();
+                            pj.setSourceRef(orcid);
+                            pj.setSourceID(putCode);
+                            pj.setStatus(getVisibility(CrisConstants.PROJECT_TYPE_ID));
+                        }
+                        else
+                        {
+                            for (String shortname : pj.getAnagrafica4view().keySet())
+                            {
+                                ResearcherPageUtils.cleanPropertyByPropertyDefinition(pj, shortname);
+                            }
+                        }
+
+                        ResearcherPageUtils.buildGenericValue(pj, title, "title", DEFAULT_PROPERTY_VISIBILITY);
+
+                        String type = funding.getType().toString();
+                        ResearcherPageUtils.buildGenericValue(pj, type, "type", DEFAULT_PROPERTY_VISIBILITY);
+
+                        Date startDate = getDateFromFuzzyDate(funding.getStartDate());
+                        ResearcherPageUtils.buildGenericValue(pj, startDate, "startdate", DEFAULT_PROPERTY_VISIBILITY);
+
+                        Date endDate = getDateFromFuzzyDate(funding.getEndDate());
+                        ResearcherPageUtils.buildGenericValue(pj, endDate, "expdate", DEFAULT_PROPERTY_VISIBILITY);
+
+                        String description = funding.getShortDescription();
+                        if (StringUtils.isNotBlank(description))
+                        {
+                            ResearcherPageUtils.buildGenericValue(pj, description, "abstract", DEFAULT_PROPERTY_VISIBILITY);
+                        }
+
+                        Url fundingURL = funding.getUrl();
+                        if (fundingURL != null)
+                        {
+                            String projectURL = fundingURL.getValue();
+                            if (StringUtils.isNotBlank(projectURL))
+                            {
+                                ResearcherPageUtils.buildGenericValue(pj, projectURL, "projectURL", DEFAULT_PROPERTY_VISIBILITY);
+                            }
+                        }
+
+                        Amount fundingAmount = funding.getAmount();
+                        if (fundingAmount != null)
+                        {
+                            String amount = fundingAmount.getValue();
+                            if (StringUtils.isNotBlank(amount))
+                            {
+                                ResearcherPageUtils.buildGenericValue(pj, amount, "grantamount", DEFAULT_PROPERTY_VISIBILITY);
+                            }
+                            String currencyCode = fundingAmount.getCurrencyCode();
+                            if (StringUtils.isNotBlank(currencyCode))
+                            {
+                                ResearcherPageUtils.buildGenericValue(pj, currencyCode, "granttype", DEFAULT_PROPERTY_VISIBILITY);
+                            }
+                        }
+
+                        ExternalIds externalIds = funding.getExternalIds();
+                        if (externalIds != null)
+                        {
+                            List<ExternalId> externalIdList = externalIds.getExternalId();
+                            if (externalIdList != null && !externalIdList.isEmpty())
+                            {
+                                for (ExternalId externalId : externalIdList)
+                                {
+                                    if ("grant_number".equals(externalId.getExternalIdType()))
+                                    {
+                                        String code = externalId.getExternalIdValue();
+                                        String awardURL = externalId.getExternalIdUrl();
+
+                                        if (StringUtils.isNotBlank(code))
+                                        {
+                                            ResearcherPageUtils.buildGenericValue(pj, code, "code", DEFAULT_PROPERTY_VISIBILITY);
+                                        }
+                                        if (StringUtils.isNotBlank(awardURL))
+                                        {
+                                            ResearcherPageUtils.buildGenericValue(pj, awardURL, "awardURL", DEFAULT_PROPERTY_VISIBILITY);
+                                            List<ProjectProperty> awardUrls = pj.getAnagrafica4view().get("awardURL");
+                                            List<ProjectProperty> projectUrls = pj.getAnagrafica4view().get("projectURL");
+                                            if ((awardUrls == null || awardUrls.size() == 0)
+                                                    && (projectUrls == null || projectUrls.size() == 0)) {
+                                                ResearcherPageUtils.buildGenericValue(pj, awardURL, "projectURL", DEFAULT_PROPERTY_VISIBILITY);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        ResearcherPageUtils.buildGenericValue(pj, rp, "principalinvestigator", DEFAULT_PROPERTY_VISIBILITY);
+
+                        Organization fundingOrganization = funding.getOrganization();
+                        String organizationSourceRef = null;
+                        String organizationSourceId = null;
+                        DisambiguatedOrganization organization = fundingOrganization.getDisambiguatedOrganization();
+                        if (organization != null)
+                        {
+                            organizationSourceRef = organization.getDisambiguationSource();
+                            organizationSourceId = organization.getDisambiguatedOrganizationIdentifier();
+                        }
+                        String organizationName = fundingOrganization.getName();
+                        OrganizationUnit ou = findCrisOrganisation(applicationService, organizationSourceRef,
+                                organizationSourceId, organizationName, null);
+                        if (ou == null)
+                        {
+                            ou = new OrganizationUnit();
+                            ou.setStatus(getVisibility(CrisConstants.OU_TYPE_ID));
+
+                            OrganizationAddress organizationAddress = fundingOrganization.getAddress();
+                            String organizationCity = organizationAddress.getCity();
+                            String organizationCountry = organizationAddress.getCountry().toString();
+
+                            if (organizationSourceRef != null
+                                    && organizationSourceId != null)
+                            {
+                                ou.setSourceRef(organizationSourceRef);
+                                ou.setSourceID(organizationSourceId);
+                            }
+                            ResearcherPageUtils.buildGenericValue(ou, organizationName, "name", DEFAULT_PROPERTY_VISIBILITY);
+                            ResearcherPageUtils.buildGenericValue(ou, organizationCity, "city", DEFAULT_PROPERTY_VISIBILITY);
+                            ResearcherPageUtils.buildGenericValue(ou, organizationCountry, "iso-country", DEFAULT_PROPERTY_VISIBILITY);
+                            applicationService.saveOrUpdate(OrganizationUnit.class, ou);
+                        }
+                        ResearcherPageUtils.buildGenericValue(pj, ou, "funder", DEFAULT_PROPERTY_VISIBILITY);
+
+                        pjsCreatedOrUpdated.add(pj);
+                    }
+                }
+            }
+        }
+        return pjsCreatedOrUpdated;
+    }
+
     private static Boolean getVisibility(Integer entityType)
     {
         String entityTypeText = CrisConstants.getEntityTypeText(entityType);
