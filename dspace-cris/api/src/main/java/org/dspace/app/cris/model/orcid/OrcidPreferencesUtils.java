@@ -38,11 +38,16 @@ import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.RelationPreference;
 import org.dspace.app.cris.model.ResearcherPage;
+import org.dspace.app.cris.model.SourceReference;
 import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.model.jdyna.ProjectProperty;
+import org.dspace.app.cris.model.jdyna.RPNestedObject;
+import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.RPNestedProperty;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
+import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.cris.util.Researcher;
@@ -58,6 +63,7 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
+import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.common_v3.Amount;
 import org.orcid.jaxb.model.common_v3.CreditName;
 import org.orcid.jaxb.model.common_v3.DisambiguatedOrganization;
@@ -72,9 +78,14 @@ import org.orcid.jaxb.model.common_v3.Url;
 import org.orcid.jaxb.model.common_v3.Visibility;
 import org.orcid.jaxb.model.record_v3.AddressType;
 import org.orcid.jaxb.model.record_v3.Addresses;
+import org.orcid.jaxb.model.record_v3.AffiliationGroup;
 import org.orcid.jaxb.model.record_v3.BiographyType;
+import org.orcid.jaxb.model.record_v3.EducationSummary;
+import org.orcid.jaxb.model.record_v3.Educations;
 import org.orcid.jaxb.model.record_v3.EmailType;
 import org.orcid.jaxb.model.record_v3.Emails;
+import org.orcid.jaxb.model.record_v3.EmploymentSummary;
+import org.orcid.jaxb.model.record_v3.Employments;
 import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
 import org.orcid.jaxb.model.record_v3.Funding;
 import org.orcid.jaxb.model.record_v3.FundingContributor;
@@ -94,6 +105,7 @@ import org.orcid.jaxb.model.record_v3.ResearcherUrls;
 import org.orcid.jaxb.model.utils.FundingContributorRole;
 import org.orcid.jaxb.model.utils.FundingType;
 
+import it.cilea.osd.jdyna.model.AValue;
 import it.cilea.osd.jdyna.value.BooleanValue;
 
 public class OrcidPreferencesUtils
@@ -1135,6 +1147,205 @@ public class OrcidPreferencesUtils
         return false;
     }
     
+    public static List<RPNestedObject> populateRPNestedAffiliations(ResearcherPage rp, String ORCID, String token)
+    {
+        List<RPNestedObject> nestedsCreated = new ArrayList<>();
+
+        String shortname = "affiliation";
+        ApplicationService applicationService = new Researcher()
+                .getApplicationService();
+        RPPropertiesDefinition rppd = applicationService
+                .likePropertiesDefinitionsByShortName(
+                        RPPropertiesDefinition.class,
+                        OrcidPreferencesUtils.PREFIX_ORCID_PROFILE_PREF + shortname).get(0);
+
+        if (rppd != null) {
+            String internalShortname = rppd.getShortName()
+                    .replaceFirst(
+                            OrcidPreferencesUtils.PREFIX_ORCID_PROFILE_PREF, "");
+
+            OrcidService orcidService = OrcidService.getOrcid();
+            Employments employments = orcidService.getEmployments(ORCID, token);
+            if (employments != null) {
+                String sourceRef = ORCID;
+                cleanRPNestedBySourceRefAndShortname(applicationService, rp, internalShortname, sourceRef);
+
+                List<AffiliationGroup> affiliationGroups = employments.getAffiliationGroup();
+                if (affiliationGroups != null) {
+                    for (AffiliationGroup affiliationGroup : affiliationGroups) {
+                        if (affiliationGroup != null) {
+                            List<EmploymentSummary> employmentSummaries = affiliationGroup.getEmploymentSummary();
+                            if (employmentSummaries != null) {
+                                for (EmploymentSummary employment : employmentSummaries) {
+                                    if (employment != null) {
+                                        AffiliationSummary affiliation = employment.getValue();
+                                        if (affiliation != null) {
+                                            String sourceId = affiliation.getPutCode().toString();
+
+                                            Organization organization = affiliation.getOrganization();
+                                            Date startDate = getDateFromFuzzyDate(affiliation.getStartDate());
+                                            Date endDate = getDateFromFuzzyDate(affiliation.getEndDate());
+                                            String role = affiliation.getRoleTitle();
+
+                                            nestedsCreated.add(
+                                                    createRPNested(applicationService, rp, internalShortname, sourceRef, sourceId,
+                                                            organization, startDate, endDate, role));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return nestedsCreated;
+    }
+
+    public static List<RPNestedObject> populateRPNestedEducations(ResearcherPage rp, String ORCID, String token)
+    {
+        List<RPNestedObject> nestedsCreated = new ArrayList<>();
+
+        String shortname = "education";
+        ApplicationService applicationService = new Researcher()
+                .getApplicationService();
+        RPPropertiesDefinition rppd = applicationService
+                .likePropertiesDefinitionsByShortName(
+                        RPPropertiesDefinition.class,
+                        OrcidPreferencesUtils.PREFIX_ORCID_PROFILE_PREF + shortname).get(0);
+
+        if (rppd != null) {
+            String internalShortname = rppd.getShortName()
+                    .replaceFirst(
+                            OrcidPreferencesUtils.PREFIX_ORCID_PROFILE_PREF, "");
+
+            OrcidService orcidService = OrcidService.getOrcid();
+            Educations educations = orcidService.getEducations(ORCID, token);
+            if (educations != null) {
+                String sourceRef = ORCID;
+                cleanRPNestedBySourceRefAndShortname(applicationService, rp, internalShortname, sourceRef);
+
+                List<AffiliationGroup> affiliationGroups = educations.getAffiliationGroup();
+                if (affiliationGroups != null) {
+                    for (AffiliationGroup affiliationGroup : affiliationGroups) {
+                        if (affiliationGroup != null) {
+                            List<EducationSummary> educationSummaries = affiliationGroup.getEducationSummary();
+                            if (educations != null) {
+                                for (EducationSummary education : educationSummaries) {
+                                    if (education != null) {
+                                        AffiliationSummary affiliation = education.getValue();
+                                        if (affiliation != null) {
+                                            String sourceId = affiliation.getPutCode().toString();
+
+                                            Organization organization = affiliation.getOrganization();
+                                            Date startDate = getDateFromFuzzyDate(affiliation.getStartDate());
+                                            Date endDate = getDateFromFuzzyDate(affiliation.getEndDate());
+                                            String role = affiliation.getRoleTitle();
+
+                                            nestedsCreated.add(
+                                                    createRPNested(applicationService, rp, internalShortname, sourceRef, sourceId,
+                                                            organization, startDate, endDate, role));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return nestedsCreated;
+    }
+
+    private static void cleanRPNestedBySourceRefAndShortname(ApplicationService applicationService,
+            ResearcherPage rp, String shortname, String sourceRef)
+    {
+        List<RPNestedObject> nestedObjects = applicationService.getNestedObjectsByParentIDAndShortname(
+                rp.getId(), shortname, rp.getClassNested());
+        for (RPNestedObject acno : nestedObjects) {
+            if (StringUtils.equals(sourceRef, acno.getSourceReference().getSourceRef())) {
+                applicationService.delete(rp.getClassNested(), acno.getId());
+            }
+        }
+    }
+
+    private static RPNestedObject createRPNested(ApplicationService applicationService,
+            ResearcherPage rp, String shortname, String sourceRef, String sourceId,
+            Organization organization, Date startDate, Date endDate, String role)
+    {
+        RPNestedObject nested = new RPNestedObject();
+        SourceReference sourceReference = new SourceReference();
+        sourceReference.setSourceRef(sourceRef);
+        sourceReference.setSourceID(sourceId);
+        nested.setSourceReference(sourceReference);
+        nested.setParent(rp);
+        nested.setTypo(
+                applicationService.findTypoByShortName(
+                        RPTypeNestedObject.class, shortname));
+        nested.setStatus(true);
+
+        if (StringUtils.isNotBlank(role)) {
+            buildRPNestedGenericValue(applicationService, nested, role, shortname + "role", DEFAULT_PROPERTY_VISIBILITY);
+        }
+        if (startDate != null) {
+            buildRPNestedGenericValue(applicationService, nested, startDate, shortname + "startdate", DEFAULT_PROPERTY_VISIBILITY);
+        }
+        if (endDate != null) {
+            buildRPNestedGenericValue(applicationService, nested, endDate, shortname + "enddate", DEFAULT_PROPERTY_VISIBILITY);
+        }
+
+        if (organization != null) {
+            String organizationSourceRef = null;
+            String organizationSourceId = null;
+            DisambiguatedOrganization disambiguatedOrganization = organization.getDisambiguatedOrganization();
+            if (disambiguatedOrganization != null) {
+                organizationSourceRef = disambiguatedOrganization.getDisambiguationSource();
+                organizationSourceId = disambiguatedOrganization.getDisambiguatedOrganizationIdentifier();
+            }
+            String organizationName = organization.getName();
+            OrganizationUnit ou = findCrisOrganisation(applicationService, organizationSourceRef,
+                    organizationSourceId, organizationName, null);
+            if (ou == null) {
+                ou = new OrganizationUnit();
+                ou.setStatus(getVisibility(CrisConstants.OU_TYPE_ID));
+                OrganizationAddress organizationAddress = organization.getAddress();
+                String organizationCity = organizationAddress.getCity();
+                String organizationCountry = organizationAddress.getCountry().toString();
+
+                if (organizationSourceRef != null
+                        && organizationSourceId != null) {
+                    ou.setSourceRef(organizationSourceRef);
+                    ou.setSourceID(organizationSourceId);
+                }
+                ResearcherPageUtils.buildGenericValue(ou, organizationName, "name", DEFAULT_PROPERTY_VISIBILITY);
+                ResearcherPageUtils.buildGenericValue(ou, organizationSourceRef, "disambiguation-identifier-source", DEFAULT_PROPERTY_VISIBILITY);
+                ResearcherPageUtils.buildGenericValue(ou, organizationSourceId, "disambiguation-identifier", DEFAULT_PROPERTY_VISIBILITY);
+                ResearcherPageUtils.buildGenericValue(ou, organizationCity, "city", DEFAULT_PROPERTY_VISIBILITY);
+                ResearcherPageUtils.buildGenericValue(ou, organizationCountry, "iso-country", DEFAULT_PROPERTY_VISIBILITY);
+                applicationService.saveOrUpdate(OrganizationUnit.class, ou);
+            }
+            buildRPNestedGenericValue(applicationService, nested, ou, shortname + "orgunit", DEFAULT_PROPERTY_VISIBILITY);
+        }
+
+        return nested;
+    }
+
+    private static void buildRPNestedGenericValue(ApplicationService applicationService, RPNestedObject nested,
+            Object valueToSet, String pdefKey, Integer visibility)
+    {
+        RPNestedPropertiesDefinition pdef = applicationService.findPropertiesDefinitionByShortName(
+                nested.getClassPropertiesDefinition(), pdefKey);
+        if (pdef == null) {
+            log.warn("Property " + pdefKey + " not found");
+            return;
+        }
+        AValue avalue = pdef.getRendering().getInstanceValore();
+        avalue.setOggetto(valueToSet);
+        RPNestedProperty prop = nested.createProprieta(pdef);
+        prop.setValue(avalue);
+        prop.setVisibility(visibility);
+    }
+
     public static List<Project> populatePJ(ResearcherPage rp, String orcid, String token)
     {
         List<Project> pjsCreatedOrUpdated = new ArrayList<>();
