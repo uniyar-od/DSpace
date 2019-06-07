@@ -1118,6 +1118,17 @@ public class OrcidPreferencesUtils
         return false;
     }
     
+    private static Boolean getVisibility(Integer entityType)
+    {
+        String entityTypeText = CrisConstants.getEntityTypeText(entityType);
+        String enabled = ConfigurationManager.getProperty("cris", "import.batch.orcid.enabled." + entityTypeText);
+        if (StringUtils.isBlank(enabled))
+        {
+            return ConfigurationManager.getBooleanProperty("cris", "import.batch.orcid.enabled.entity");
+        }
+        return Boolean.valueOf(enabled);
+    }
+
     private static String retrieveFundingContributorRole(FundingContributor fundingContributor)
     {
         String fundingContributorRole = FundingContributorRole.OTHER_CONTRIBUTION.value();
