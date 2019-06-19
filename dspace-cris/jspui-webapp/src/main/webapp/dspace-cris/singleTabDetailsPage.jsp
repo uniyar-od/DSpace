@@ -88,7 +88,7 @@
         												</a>
       												</h4>
     										</div>
-										    <div id="collapseOne${holder.shortName}" class="panel-collapse collapse in">
+										    <div id="collapseOne${holder.shortName}" class="panel-collapse collapse<c:if test="${holder.collapsed==false}"> in</c:if>">
 												<div class="panel-body">
 											      <c:set var="hideLabel">${fn:length(propertiesDefinitionsInHolder[holder.shortName]) le 1}</c:set>
 													<c:forEach
@@ -129,6 +129,9 @@
 																<span id="nested_${tipologiaDaVisualizzare.real.id}_editmode" class="spandatabind">false</span>
 																<span id="nested_${tipologiaDaVisualizzare.real.id}_externalJSP" class="spandatabind">${tipologiaDaVisualizzare.externalJSP}</span>
 																</div>
+																<c:if test="${tipologiaDaVisualizzare.real.newline}">
+																	<div class="dynaClear">&nbsp;</div>
+																</c:if>
 														</c:if>
 														<c:if
 															test="${dyna:instanceOf(tipologiaDaVisualizzare,'it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition')}">
