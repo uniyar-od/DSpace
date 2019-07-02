@@ -12,6 +12,8 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
@@ -29,6 +31,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -339,6 +342,118 @@ public class ItemUtils
         {
             log.warn(e1.getMessage(), e1);
         }
+        
+        return metadata;
+    }
+    
+    /***
+     * Retrieve all metadata
+     * 
+     * @param context The context
+     * @param item The cris item
+     * @return
+     */
+    public static Metadata retrieveMetadata (Context context, ACrisObject item) {
+        Metadata metadata;
+        
+        // read all metadata into Metadata Object
+        metadata = new Metadata();
+        
+        Metadatum[] vals = /*item.getAllMetadata(true, true, "oai")*/UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        for (Metadatum val : vals)
+        {
+        	// TODO: remove?
+            // Don't expose fields that are hidden by configuration
+//            try {
+//                if (MetadataExposure.isHidden(context,
+//                        val.schema,
+//                        val.element,
+//                        val.qualifier))
+//                {
+//                    continue;
+//                }
+//            } catch(SQLException se) {
+//                throw new RuntimeException(se);
+//            }
+
+            Element schema = getElement(metadata.getElement(), val.schema);
+            if (schema == null)
+            {
+                schema = create(val.schema);
+                metadata.getElement().add(schema);
+            }
+            Element element = writeMetadata(schema, val);
+            metadata.getElement().add(element);
+        }
+
+        // Other info
+        Element other = create("others");
+
+        other.getField().add(
+                createValue("handle", item.getHandle()));
+        other.getField().add(
+                createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
+        Date m = new Date(item
+                .getTimeStampInfo().getLastModificationTime().getTime());
+        other.getField().add(
+                createValue("lastModifyDate", m.toString()));
+        metadata.getElement().add(other);
+
+        // Repository Info
+        Element repository = create("repository");
+        repository.getField().add(
+                createValue("name",
+                        ConfigurationManager.getProperty("dspace.name")));
+        repository.getField().add(
+                createValue("mail",
+                        ConfigurationManager.getProperty("mail.admin")));
+        metadata.getElement().add(repository);
+
+        // Licensing info
+        // TODO: Handle license? Remove?
+//        Element license = create("license");
+//        Bundle[] licBundles;
+//        try
+//        {
+//            licBundles = item.getBundles(Constants.LICENSE_BUNDLE_NAME);
+//            if (licBundles.length > 0)
+//            {
+//                Bundle licBundle = licBundles[0];
+//                Bitstream[] licBits = licBundle.getBitstreams();
+//                if (licBits.length > 0)
+//                {
+//                    Bitstream licBit = licBits[0];
+//                    InputStream in;
+//                    try
+//                    {
+//                        in = licBit.retrieve();
+//                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+//                        Utils.bufferedCopy(in, out);
+//                        license.getField().add(
+//                                createValue("bin",
+//                                        Base64Utils.encode(out.toString())));
+//                        metadata.getElement().add(license);
+//                    }
+//                    catch (AuthorizeException e)
+//                    {
+//                        log.warn(e.getMessage(), e);
+//                    }
+//                    catch (IOException e)
+//                    {
+//                        log.warn(e.getMessage(), e);
+//                    }
+//                    catch (SQLException e)
+//                    {
+//                        log.warn(e.getMessage(), e);
+//                    }
+//
+//                }
+//            }
+//        }
+//        catch (SQLException e1)
+//        {
+//            log.warn(e1.getMessage(), e1);
+//        }
         
         return metadata;
     }

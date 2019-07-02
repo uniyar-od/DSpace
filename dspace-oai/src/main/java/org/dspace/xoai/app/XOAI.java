@@ -18,20 +18,22 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.authorize.AuthorizeException;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.*;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
 import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRowIterator;
 import org.dspace.xoai.exceptions.CompilingException;
 import org.dspace.xoai.services.api.cache.XOAICacheService;
 import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
@@ -41,8 +43,6 @@ import org.dspace.xoai.services.api.config.XOAIManagerResolver;
 import org.dspace.xoai.services.api.context.ContextService;
 import org.dspace.xoai.services.api.database.CollectionsService;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
-import org.dspace.xoai.solr.DSpaceSolrSearch;
-import org.dspace.xoai.solr.exceptions.DSpaceSolrException;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -52,14 +52,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.sql.SQLException;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
-import static org.dspace.content.Item.find;
 import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
 
 /**
@@ -122,29 +124,53 @@ public class XOAI {
         System.out.println(line);
     }
 
-    public int index() throws DSpaceSolrIndexerException {
+    public int index(String idxType) throws DSpaceSolrIndexerException {
         int result = 0;
         try {
 
             if (clean) {
                 clearIndex();
                 System.out.println("Using full import.");
-                result = this.indexAll();
+                result = this.indexAll(idxType);
             } else {
-                SolrQuery solrParams = new SolrQuery("*:*")
-                        .addField("item.lastmodified")
-                        .addSortField("item.lastmodified", ORDER.desc).setRows(1);
+            	DiscoverQuery query = new DiscoverQuery();
+            	query.setQuery(buildQuery(idxType));
+            	query.setMaxResults(1);
+            	
+            	switch (idxType) {
+            	case "item":
+    	    		query.setSortField("lastModified", DiscoverQuery.SORT_ORDER.desc);
+    	    		break;
+            	case "rp":
+            	case "project":
+            	case "ou":
+            	case "other":
+                	query.setSortField("cris" + idxType + ".time_lastmodified_dt", DiscoverQuery.SORT_ORDER.desc);
+                	break;
+            	case "all":
+                default:
+                	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType); 
+            	}
+	    		
+	    		DiscoverResult results = SearchUtils.getSearchService().search(context, query, true);
+	    		if (results.getDspaceObjects().isEmpty()) {
+	    			System.out.println("There are no indexed documents, using full import.");
 
-                SolrDocumentList results = DSpaceSolrSearch.query(solrServerResolver.getServer(), solrParams);
-                if (results.getNumFound() == 0) {
-                    System.out.println("There are no indexed documents, using full import.");
-                    result = this.indexAll();
-                } else
-                    result = this.index((Date) results.get(0).getFieldValue("item.lastmodified"));
-
+	    			result = this.indexAll(idxType);
+	    		}
+	    		else {
+	    			DSpaceObject o = results.getDspaceObjects().get(0);
+	    			Date lastModification = null;
+	    			if (o instanceof Item) {
+	    				lastModification = ((Item) o).getLastModified();
+	    			} else if (o instanceof ACrisObject) {
+	    				lastModification = ((ACrisObject)o).getTimeStampInfo().getTimestampLastModified().getTimestamp();
+	    			}
+	    			
+	    			result = this.index(idxType, lastModification);
+	    		}
             }
             solrServerResolver.getServer().commit();
-
 
             if (optimize) {
                 println("Optimizing Index");
@@ -155,7 +181,7 @@ public class XOAI {
             // Set last compilation date
             xoaiLastCompilationCacheService.put(new Date());
             return result;
-        } catch (DSpaceSolrException ex) {
+        } catch (SearchServiceException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         } catch (SolrServerException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
@@ -164,54 +190,208 @@ public class XOAI {
         }
     }
 
-    private int index(Date last) throws DSpaceSolrIndexerException {
+    /***
+     * index all data whose modification date is greater than given start date.
+     * 
+     * @param idxType The index type (item, rp, ...)
+     * @param start The latest date
+     * @return The number of indexed fields.
+     * @throws DSpaceSolrIndexerException
+     */
+    private int index(String idxType, Date start) throws DSpaceSolrIndexerException {
         System.out
                 .println("Incremental import. Searching for documents modified after: "
-                        + last.toString());
-        // Index both in_archive items AND withdrawn items. Withdrawn items will be flagged withdrawn
-        // (in order to notify external OAI harvesters of their new status)
-        String sqlQuery = "SELECT item_id FROM item WHERE (in_archive=TRUE OR withdrawn=TRUE) AND discoverable=TRUE AND last_modified > ?";
-        if(DatabaseManager.isOracle()){
-                sqlQuery = "SELECT item_id FROM item WHERE (in_archive=1 OR withdrawn=1) AND discoverable=1 AND last_modified > ?";
+                        + start.toString());
+
+        TimeZone tz = TimeZone.getTimeZone("UTC");
+        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        df.setTimeZone(tz);
+        
+        String discoverQuery = "";
+        switch (idxType) {
+        case "item":
+        	discoverQuery = "lastModified:{%s TO *}";
+        	discoverQuery = String.format(discoverQuery, df.format(start));
+	        break;
+        case "rp":
+        case "project":
+        case "ou":
+        case "other":
+        	discoverQuery = "cris" + idxType + ".time_lastmodified_dt:{%s TO *}";
+        	discoverQuery = String.format(discoverQuery, df.format(start));
+	        break;
+        case "all":
+        default:
+        	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
         }
+    	discoverQuery += " AND " + buildQuery(idxType);
 
         try {
-            TableRowIterator iterator = DatabaseManager
-                    .query(context,
-                            sqlQuery,
-                            new java.sql.Timestamp(last.getTime()));
-            return this.index(iterator);
-        } catch (SQLException ex) {
+            return indexWithQuery(discoverQuery);
+        } catch (Exception ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         }
     }
 
-    private int indexAll() throws DSpaceSolrIndexerException {
+    /***
+     * index all data
+     * 
+     * @param idxType The index type (item, rp, ...)
+     * @return The number of indexed fields
+     * @throws DSpaceSolrIndexerException
+     */
+    private int indexAll(String idxType) throws DSpaceSolrIndexerException {
         System.out.println("Full import");
         try {
-            // Index both in_archive items AND withdrawn items. Withdrawn items will be flagged withdrawn
-            // (in order to notify external OAI harvesters of their new status)
-            String sqlQuery = "SELECT item_id FROM item WHERE (in_archive=TRUE OR withdrawn=TRUE) AND discoverable=TRUE";
-            if(DatabaseManager.isOracle()){
-                sqlQuery = "SELECT item_id FROM item WHERE (in_archive=1 OR withdrawn=1) AND discoverable=1";
-            }
-
-            TableRowIterator iterator = DatabaseManager.query(context,
-                    sqlQuery);
-            return this.index(iterator);
-        } catch (SQLException ex) {
+        	String discoverQuery = buildQuery(idxType);
+            
+            return indexWithQuery(discoverQuery);
+        } catch (Exception ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         }
     }
+    
+    /***
+     * Build the query used to retrieve the data of give type idxType.
+     * 
+     * The query can be overridden using:
+     * 	oai.discover.query.item
+     * 	oai.discover.query.crisrp
+     * 	oai.discover.query.crisproject
+     * 	oai.discover.query.crisou
+     * 	oai.discover.query.crisother
+     * 
+     * @param idxType The index type
+     * @return The number of indexed fields.
+     * @throws DSpaceSolrIndexerException
+     */
+    private String buildQuery(String idxType) throws DSpaceSolrIndexerException {
+    	String discoverQuery = "";
+    	
+    	switch (idxType) {
+        case "item":
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.item");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        		discoverQuery = "(discoverable:true OR withdrawn:false) AND search.resourcetype:2";
+        	}
+	        break;
+        case "rp":
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisrp");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.RP_TYPE_ID;
+        	}
+	        break;
+        case "project":
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisproject");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID;
+        	}
+	        break;
+        case "ou":
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisou");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.OU_TYPE_ID;
+        	}
+	        break;
+        case "other":
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisother");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        		discoverQuery = "(discoverable:true NOT (search.resourcetype:2 and search.resourcetype:" + CrisConstants.RP_TYPE_ID + 
+        				" AND search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID + 
+        				" AND search.resourcetype:" + CrisConstants.OU_TYPE_ID + "))";
+        	}
+	        break;
+        case "all":
+	    default:
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.all");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0)
+        		discoverQuery = "(discoverable:true OR (withdrawn:false AND search.resourcetype:2))";
+        	break;
+    	}
+    	
+    	return discoverQuery;
+    }
+    
+    /***
+     * Paged solr query used to retrieve data to index.
+     * The page size can be modified using:
+     * 	oai.discover.pagesize
+     * 
+     * @param solrQuery The query
+     * @return The number of indexed data.
+     * @throws DSpaceSolrIndexerException
+     */
+    private int indexWithQuery(String solrQuery) throws DSpaceSolrIndexerException {
+    	String discoverPageSize = "";
+		try {
+			int pageSize = -1;
+			int total = 0;
+			int read = -1;
+	    	
+	    	discoverPageSize = ConfigurationManager.getProperty("oai", "oai.discover.pagesize");
+	    	if (discoverPageSize == null || discoverPageSize.trim().length() <= 0)
+	    		pageSize = 100;
+	    	else {
+	    		pageSize = Integer.parseInt(discoverPageSize);
+	    	}
+	    	
+	    	DiscoverResult results = null;
+	    	int page = 0;
+	    	int offset;
+	    	
+	    	do {
+	    		offset = page > 0 ? page * pageSize : 0;
+			
+	    		DiscoverQuery query = new DiscoverQuery();
+	    		query.setQuery(solrQuery);
+	    		query.setMaxResults(pageSize);
+	    		query.setStart(offset);
+			
+			 	results = SearchUtils.getSearchService().search(context, query, true);
+			 	read = 0;
+			 	if (!results.getDspaceObjects().isEmpty())
+			 		read = indexResults(results, total);
+			 	page++;
+			 	total += read;
+	    	}
+	    	while (read == pageSize);
+	    	
+	    	System.out.println("Total: " + total + " items");
+			return total;
+		} catch (SearchServiceException e) {
+			String message = "Error while processing solr query results: " + e.getMessage();
+			log.error(message, e);
+			throw new DSpaceSolrIndexerException(message, e);
+		} catch (DSpaceSolrIndexerException e) {
+			String message = "Error while processing solr query results: \" + e.getMessage()";
+			log.error(message, e);
+			throw new DSpaceSolrIndexerException(message, e);
+		} catch (NumberFormatException e) {
+			String message = "Error in option oai.discover.pagesize: \" + discoverPageSize + \". \" + e.getMessage()";
+			log.error(message, e);
+			throw new DSpaceSolrIndexerException(message, e);
+		}
+    }
 
-    private int index(TableRowIterator iterator)
+    /***
+     * Read one page of data.
+     * 
+     * @param result The paged data
+     * @param subtotal The number of data processed so far.
+     * @return The number of indexed data.
+     * @throws DSpaceSolrIndexerException
+     */
+    private int indexResults(DiscoverResult result, int subtotal)
             throws DSpaceSolrIndexerException {
         try {
             int i = 0;
             SolrServer server = solrServerResolver.getServer();
-            while (iterator.hasNext()) {
+            for (DSpaceObject o : result.getDspaceObjects()) {
                 try {
-                    server.add(this.index(find(context, iterator.next().getIntColumn("item_id"))));
+                	if (o instanceof Item)
+                		server.add(this.indexResults((Item)o));
+                	else if (o instanceof ACrisObject)
+                		server.add(this.indexResults((ACrisObject)o));
                     context.clearCache();
                 } catch (SQLException ex) {
                     log.error(ex.getMessage(), ex);
@@ -225,13 +405,11 @@ public class XOAI {
                     log.error(e.getMessage(), e);
                 }
                 i++;
-                if (i % 100 == 0) System.out.println(i + " items imported so far...");
+                if ((i+subtotal) % 100 == 0) System.out.println((i+subtotal) + " items imported so far...");
             }
-            System.out.println("Total: " + i + " items");
+            System.out.println("Partial Total: " + (i+subtotal) + " items");
             server.commit();
             return i;
-        } catch (SQLException ex) {
-            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         } catch (SolrServerException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         } catch (IOException ex) {
@@ -239,7 +417,18 @@ public class XOAI {
         }
     }
 
-    private SolrInputDocument index(Item item) throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
+    /***
+     * Index one item
+     * 
+     * @param item The item
+     * @return The sorl document
+     * @throws SQLException
+     * @throws MetadataBindException
+     * @throws ParseException
+     * @throws XMLStreamException
+     * @throws WritingXmlException
+     */
+    private SolrInputDocument indexResults(Item item) throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
         SolrInputDocument doc = new SolrInputDocument();
         doc.addField("item.id", item.getID());
         boolean pub = this.isPublic(item);
@@ -297,6 +486,65 @@ public class XOAI {
 
         return doc;
     }
+    
+    /***
+     * Index one cris item
+     * 
+     * @param item The cris item
+     * @return The sorl document
+     * @throws SQLException
+     * @throws MetadataBindException
+     * @throws ParseException
+     * @throws XMLStreamException
+     * @throws WritingXmlException
+     */
+    private SolrInputDocument indexResults(ACrisObject item) throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
+        SolrInputDocument doc = new SolrInputDocument();
+        doc.addField("item.id", item.getID());
+        boolean pub = item.getStatus();
+        doc.addField("item.public", pub);
+        String handle = item.getHandle();
+        if (verbose) {
+            println("Prepare handle " + handle);
+        }
+        doc.addField("item.handle", handle);
+        Date m = new Date(item
+                .getTimeStampInfo().getLastModificationTime().getTime());
+        doc.addField("item.lastmodified", m);
+        doc.addField("item.deleted", "false");
+
+        @SuppressWarnings("unchecked")
+		Metadatum[] allData = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        for (Metadatum dc : allData) {
+            String key = "metadata." + dc.schema + "." + dc.element;
+            if (dc.qualifier != null) {
+                key += "." + dc.qualifier;
+            }
+            
+            String val =StringUtils.equals(dc.value, MetadataValue.PARENT_PLACEHOLDER_VALUE)? "N/D":dc.value;
+
+            doc.addField(key, val);
+            if (dc.authority != null) {
+                doc.addField(key + ".authority", dc.authority);
+                doc.addField(key + ".confidence", dc.confidence + "");
+            }
+        }
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
+        retrieveMetadata(context, item).write(xmlContext);
+        xmlContext.getWriter().flush();
+        xmlContext.getWriter().close();
+        doc.addField("item.compile", out.toString());
+
+        if (verbose) {
+            println(String.format("Cris Item %d with handle %s indexed",
+                    item.getID(), handle));
+        }
+
+        return doc;
+    }
+
 
     private boolean isPublic(Item item) {
         boolean pub = false;
@@ -375,6 +623,7 @@ public class XOAI {
             options.addOption("v", "verbose", false, "Verbose output");
             options.addOption("h", "help", false, "Shows some help");
             options.addOption("n", "number", true, "FOR DEVELOPMENT MUST DELETE");
+            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, other, all). The default is item.");
             CommandLine line = parser.parse(options, argv);
 
             String[] validSolrCommands = {COMMAND_IMPORT, COMMAND_CLEAN_CACHE};
@@ -412,8 +661,11 @@ public class XOAI {
                             line.hasOption('v'));
 
                     applicationContext.getAutowireCapableBeanFactory().autowireBean(indexer);
-
-                    int imported = indexer.index();
+                    
+                    String idxType = line.getOptionValue("t");
+                    if (idxType == null || idxType.trim().length() <= 0)
+                    	idxType = "item";
+                    int imported = indexer.index(idxType);
                     if (imported > 0) cleanCache(itemCacheService, cacheService);
                 } else if (COMMAND_CLEAN_CACHE.equals(command)) {
                     cleanCache(itemCacheService, cacheService);
