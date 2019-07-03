@@ -12,7 +12,9 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
@@ -20,11 +22,15 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.authority.ChoiceAuthorityDetails;
+import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.utils.DSpace;
 import org.dspace.xoai.data.DSpaceItem;
 
 import java.io.ByteArrayOutputStream;
@@ -133,6 +139,10 @@ public class ItemUtils
 
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
+    	return retrieveMetadata(context, item, false);
+    }
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority) {
         Metadata metadata;
         
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
@@ -164,6 +174,41 @@ public class ItemUtils
             }
             Element element = writeMetadata(schema, val);
             metadata.getElement().add(element);
+            
+            if (!skipAutority && val.authority != null) {
+            	String m = val.schema + "." + val.element;
+            	
+                if (val.qualifier != null) {
+                	m += "." + val.qualifier;
+                }
+
+                // add metadata of related cris object, using authority to get it
+                boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
+                if (metadataAuth) {
+                	try {
+                		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
+                		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
+                		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
+							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
+							ACrisObject cris = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
+                			
+                			Metadata crisMetadata = retrieveMetadata(context, cris, true);
+                			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
+                				Element root = create(m);
+                				metadata.getElement().add(root);
+                				
+                				for (Element crisElement : crisMetadata.getElement()) {
+                					root.getElement().add(crisElement);
+                				}
+                			}
+                		} else {
+                			log.warn("No choices plugin (CRISAuthority plugin) was configured for field " + m);
+                		}
+            		} catch (Exception e) {
+            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
+            		}
+                }
+            }
         }
 
         // Done! Metadata has been read!
@@ -353,29 +398,15 @@ public class ItemUtils
      * @param item The cris item
      * @return
      */
-    public static Metadata retrieveMetadata (Context context, ACrisObject item) {
+    public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-        Metadatum[] vals = /*item.getAllMetadata(true, true, "oai")*/UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        Metadatum[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
         for (Metadatum val : vals)
         {
-        	// TODO: remove?
-            // Don't expose fields that are hidden by configuration
-//            try {
-//                if (MetadataExposure.isHidden(context,
-//                        val.schema,
-//                        val.element,
-//                        val.qualifier))
-//                {
-//                    continue;
-//                }
-//            } catch(SQLException se) {
-//                throw new RuntimeException(se);
-//            }
-
             Element schema = getElement(metadata.getElement(), val.schema);
             if (schema == null)
             {
@@ -408,53 +439,17 @@ public class ItemUtils
                 createValue("mail",
                         ConfigurationManager.getProperty("mail.admin")));
         metadata.getElement().add(repository);
-
-        // Licensing info
-        // TODO: Handle license? Remove?
-//        Element license = create("license");
-//        Bundle[] licBundles;
-//        try
-//        {
-//            licBundles = item.getBundles(Constants.LICENSE_BUNDLE_NAME);
-//            if (licBundles.length > 0)
-//            {
-//                Bundle licBundle = licBundles[0];
-//                Bitstream[] licBits = licBundle.getBitstreams();
-//                if (licBits.length > 0)
-//                {
-//                    Bitstream licBit = licBits[0];
-//                    InputStream in;
-//                    try
-//                    {
-//                        in = licBit.retrieve();
-//                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//                        Utils.bufferedCopy(in, out);
-//                        license.getField().add(
-//                                createValue("bin",
-//                                        Base64Utils.encode(out.toString())));
-//                        metadata.getElement().add(license);
-//                    }
-//                    catch (AuthorizeException e)
-//                    {
-//                        log.warn(e.getMessage(), e);
-//                    }
-//                    catch (IOException e)
-//                    {
-//                        log.warn(e.getMessage(), e);
-//                    }
-//                    catch (SQLException e)
-//                    {
-//                        log.warn(e.getMessage(), e);
-//                    }
-//
-//                }
-//            }
-//        }
-//        catch (SQLException e1)
-//        {
-//            log.warn(e1.getMessage(), e1);
-//        }
         
         return metadata;
+    }
+    
+    /***
+     * Cris application service
+     * @return
+     */
+    private static ApplicationService getApplicationService()
+    {
+    	return new DSpace().getServiceManager().getServiceByName(
+    			"applicationService", ApplicationService.class);
     }
 }

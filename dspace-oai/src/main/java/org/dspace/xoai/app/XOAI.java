@@ -381,17 +381,21 @@ public class XOAI {
      * @return The number of indexed data.
      * @throws DSpaceSolrIndexerException
      */
-    private int indexResults(DiscoverResult result, int subtotal)
+    @SuppressWarnings("rawtypes")
+	private int indexResults(DiscoverResult result, int subtotal)
             throws DSpaceSolrIndexerException {
         try {
             int i = 0;
             SolrServer server = solrServerResolver.getServer();
             for (DSpaceObject o : result.getDspaceObjects()) {
                 try {
+                	SolrInputDocument solrDoc = null;
                 	if (o instanceof Item)
-                		server.add(this.indexResults((Item)o));
+                		solrDoc = this.indexResults((Item)o);
                 	else if (o instanceof ACrisObject)
-                		server.add(this.indexResults((ACrisObject)o));
+                		solrDoc = this.indexResults((ACrisObject)o);
+                	
+                	server.add(solrDoc);
                     context.clearCache();
                 } catch (SQLException ex) {
                     log.error(ex.getMessage(), ex);
@@ -532,7 +536,7 @@ public class XOAI {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
-        retrieveMetadata(context, item).write(xmlContext);
+        retrieveMetadata(context, item, false).write(xmlContext);
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
         doc.addField("item.compile", out.toString());
