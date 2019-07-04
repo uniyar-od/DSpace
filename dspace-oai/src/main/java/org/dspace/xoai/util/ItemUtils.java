@@ -23,7 +23,6 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
 import org.dspace.content.authority.ChoiceAuthority;
-import org.dspace.content.authority.ChoiceAuthorityDetails;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
@@ -37,6 +36,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -44,7 +44,6 @@ import java.util.List;
  * 
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
-@SuppressWarnings("deprecation")
 public class ItemUtils
 {
     private static Logger log = LogManager
@@ -75,6 +74,21 @@ public class ItemUtils
     }
     
     private static Element writeMetadata(Element  schema,Metadatum val) {
+    	return writeMetadata(schema, val, null, null, false);
+    }
+    
+    /***
+     * Write metadata into a Element structure.
+     * Add id and group identifier to group metadata values.
+     * 
+     * @param schema The reference schema
+     * @param val The metadata value
+     * @param group the group name (usually a relation metadata)
+     * @param id The grouping id
+     * @param allowMultipleValue
+     * @return
+     */
+    private static Element writeMetadata(Element  schema,Metadatum val, String group, String id, boolean allowMultipleValue) {
     	
         Element valueElem = null;
         valueElem = schema;
@@ -110,7 +124,7 @@ public class ItemUtils
         {
             Element language = getElement(valueElem.getElement(),
                     val.language);
-            if (language == null)
+            if (language == null || allowMultipleValue)
             {
                 language = create(val.language);
                 valueElem.getElement().add(language);
@@ -121,7 +135,7 @@ public class ItemUtils
         {
             Element language = getElement(valueElem.getElement(),
                     "none");
-            if (language == null)
+            if (language == null || allowMultipleValue)
             {
                 language = create("none");
                 valueElem.getElement().add(language);
@@ -135,14 +149,32 @@ public class ItemUtils
             if (val.confidence != Choices.CF_NOVALUE)
                 valueElem.getField().add(createValue("confidence", val.confidence + ""));
         }
+        if (id != null && group != null) {
+        	valueElem.getField().add(createValue("id", id));
+        	valueElem.getField().add(createValue("group", group));
+        }
         return valueElem;
 
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
-    	return retrieveMetadata(context, item, false);
+    	return retrieveMetadata(context, item, false, null, null, true);
     }
+    
+    /***
+     * Retrieve all metadata in a XML fragment.
+     * 
+     * Group and id are used to group metadata of an item inside xsl. 
+     * 
+     * @param context The context
+     * @param item The cris item
+     * @param skipAutority is used to disable relation metadata inclusion.
+     * @param group The group name
+     * @param id The id
+     * @param allowMultipleValue is used to enabled metadata with multiple value
+     * @return
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority) {
+	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, String group, String id, boolean allowMultipleValue) {
         Metadata metadata;
         
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
@@ -166,22 +198,32 @@ public class ItemUtils
                 throw new RuntimeException(se);
             }
 
-            Element schema = getElement(metadata.getElement(), val.schema);
+            // mapping metadata in index only
+            Metadatum valMapped = val.copy();
+            MetadataMapper mapper = new MetadataMapper("oai");
+            valMapped = mapper.map(valMapped);
+            
+            Element schema = getElement(metadata.getElement(), valMapped.schema);
+
             if (schema == null)
             {
-                schema = create(val.schema);
+                schema = create(valMapped.schema);
                 metadata.getElement().add(schema);
             }
-            Element element = writeMetadata(schema, val);
+            Element element = writeMetadata(schema, valMapped);
             metadata.getElement().add(element);
             
+            // use original value for relation
             if (!skipAutority && val.authority != null) {
             	String m = val.schema + "." + val.element;
             	
                 if (val.qualifier != null) {
                 	m += "." + val.qualifier;
                 }
-
+                String mMapped = valMapped.schema + "." + valMapped.element;
+                if (valMapped.qualifier != null) {
+                	mMapped += "." + valMapped.qualifier;
+                }
                 // add metadata of related cris object, using authority to get it
                 boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
                 if (metadataAuth) {
@@ -192,9 +234,10 @@ public class ItemUtils
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject cris = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
                 			
-                			Metadata crisMetadata = retrieveMetadata(context, cris, true);
+                			Metadata crisMetadata = retrieveMetadata(context, cris, true, group, id);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
-                				Element root = create(m);
+                				// optimize element generation using only one root
+                				Element root = create(mMapped);
                 				metadata.getElement().add(root);
                 				
                 				for (Element crisElement : crisMetadata.getElement()) {
@@ -391,20 +434,29 @@ public class ItemUtils
         return metadata;
     }
     
+    public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
+    	return retrieveMetadata(context, item, skipAutority, null, null);
+    }
+    
     /***
-     * Retrieve all metadata
+     * Retrieve all metadata in a XML fragment.
+     * 
+     * Group and id are used to group metadata of an item inside xsl. 
      * 
      * @param context The context
      * @param item The cris item
+     * @param group The group name
+     * @param id The id
      * @return
      */
-    public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
+    @SuppressWarnings("rawtypes")
+	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, String group, String id) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-        Metadatum[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        Metadatum[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
         for (Metadatum val : vals)
         {
             Element schema = getElement(metadata.getElement(), val.schema);
@@ -413,7 +465,7 @@ public class ItemUtils
                 schema = create(val.schema);
                 metadata.getElement().add(schema);
             }
-            Element element = writeMetadata(schema, val);
+            Element element = writeMetadata(schema, val, group, id, true);
             metadata.getElement().add(element);
         }
 
@@ -441,6 +493,72 @@ public class ItemUtils
         metadata.getElement().add(repository);
         
         return metadata;
+    }
+    
+    public static String DEFAULT_SCHEMA_NAME = "crisitem";
+ 	public static String DEFAULT_ELEMENT_NAME = "crisprop";
+	public static String VIRTUAL_ELEMENT_NAME = "crisvprop";
+    
+    /***
+     * Read all metadata of a cris object
+     * 
+     * Added mapping of virtual
+     * 
+     * @param item The cris item
+     * @param onlyPub Set to true to read only public property
+     * @param filterProperty Set to true to enable property filtering
+     * @param module The config file name (module of config)
+     * @return
+     */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Metadatum[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module) {
+    	List<Metadatum> results = new ArrayList<Metadatum>();
+    	
+    	Metadatum[] vals = UtilsCrisMetadata.getAllMetadata(item, onlyPub, filterProperty, module);
+    	for (Metadatum metadatum : vals) {
+    		MetadataMapper mapper = new MetadataMapper(module);
+    		// mapping attribute
+    		metadatum = mapper.map(metadatum);
+    		
+    		results.add(metadatum);
+    	}
+    	
+    	// add default virtual
+    	{
+    		Metadatum metadatum = new Metadatum();
+    		
+    	    //crisitem.crisvprop.id        	(the id of the cris item)
+    		metadatum.schema = DEFAULT_SCHEMA_NAME;
+    		metadatum.element = VIRTUAL_ELEMENT_NAME;
+    		metadatum.qualifier = "id";
+    		metadatum.language = null;
+    		
+    		metadatum.authority = null;
+    		metadatum.value = Integer.toString(item.getID());
+    		results.add(metadatum.copy());
+
+    	    //crisitem.crisvprop.uuid      	(the uuid of the cris item)
+    		metadatum.schema = DEFAULT_SCHEMA_NAME;
+    		metadatum.element = VIRTUAL_ELEMENT_NAME;
+    		metadatum.qualifier = "uuid";
+    		metadatum.language = null;
+    		
+    		metadatum.authority = null;
+    		metadatum.value = item.getUuid();
+    		results.add(metadatum.copy());
+    		
+    	    //crisitem.crisvprop.handle    	(the handle of the cris item)
+    		metadatum.schema = DEFAULT_SCHEMA_NAME;
+    		metadatum.element = VIRTUAL_ELEMENT_NAME;
+    		metadatum.qualifier = "handle";
+    		metadatum.language = null;
+    		
+    		metadatum.authority = null;
+    		metadatum.value = item.getHandle();
+    		results.add(metadatum.copy());
+    	}
+    	
+    	return results.toArray(new Metadatum[results.size()]);
     }
     
     /***

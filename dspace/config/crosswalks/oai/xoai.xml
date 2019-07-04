@@ -30,7 +30,8 @@
             <Format ref="qdc"/>
             <Format ref="marc"/>
             <Format ref="uketd_dc"/>
-            <!--<Format ref="junii2" />-->            
+            <!--<Format ref="junii2" />-->
+            <Format ref="oai_cerif"/>
             <Description>
                 This is the default context of the DSpace OAI-PMH data provider.
             </Description>
@@ -78,6 +79,7 @@
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="mets"/>
+            <Format ref="oai_cerif"/>
             <Description>
                 This contexts complies with OpenAIRE rules.
             </Description>
@@ -187,6 +189,13 @@
             <XSLT>metadataFormats/datacite41-openaire.xsl</XSLT>
             <Namespace>http://schema.datacite.org/oai/oai-1.1/</Namespace>
             <SchemaLocation>http://schema.datacite.org/oai/oai-1.1/oai.xsd</SchemaLocation>
+        </Format>
+        <!-- set the format for openaire cerif profile -->
+        <Format id="oai_cerif">
+            <Prefix>oai_cerif</Prefix>
+            <XSLT>metadataFormats/oai_cerif.xsl</XSLT>
+            <Namespace>https://www.openaire.eu/cerif-profile/1.1/</Namespace>
+            <SchemaLocation>https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd</SchemaLocation>
         </Format>
     </Formats>
 
@@ -449,6 +458,23 @@
                     <string>contributionToPeriodical</string>
                     <string>patent</string>
                     <string>other</string>
+                    <!-- also with upper case -->
+                    <string>Article</string>
+                    <string>BachelorThesis</string>
+                    <string>MasterThesis</string>
+                    <string>DoctoralThesis</string>
+                    <string>Book</string>
+                    <string>BookPart</string>
+                    <string>Review</string>
+                    <string>ConferenceObject</string>
+                    <string>Lecture</string>
+                    <string>WorkingPaper</string>
+                    <string>Preprint</string>
+                    <string>Report</string>
+                    <string>Annotation</string>
+                    <string>ContributionToPeriodical</string>
+                    <string>Patent</string>
+                    <string>Other</string>
                 </list>
             </Configuration>
         </CustomCondition>

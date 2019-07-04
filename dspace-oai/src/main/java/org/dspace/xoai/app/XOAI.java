@@ -44,6 +44,7 @@ import org.dspace.xoai.services.api.context.ContextService;
 import org.dspace.xoai.services.api.database.CollectionsService;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
+import org.dspace.xoai.util.ItemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -518,7 +519,7 @@ public class XOAI {
         doc.addField("item.deleted", "false");
 
         @SuppressWarnings("unchecked")
-		Metadatum[] allData = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+		Metadatum[] allData = ItemUtils.getAllMetadata(item, true, true, "oai");
         for (Metadatum dc : allData) {
             String key = "metadata." + dc.schema + "." + dc.element;
             if (dc.qualifier != null) {
