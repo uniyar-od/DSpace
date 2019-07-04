@@ -177,8 +177,6 @@ public class ItemUtils
 	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, String group, String id, boolean allowMultipleValue) {
         Metadata metadata;
         
-        //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
-        
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
@@ -374,6 +372,8 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
+        other.getField().add(
+                createValue("type", "item"));
         metadata.getElement().add(other);
 
         // Repository Info
@@ -449,7 +449,7 @@ public class ItemUtils
      * @param id The id
      * @return
      */
-    @SuppressWarnings("rawtypes")
+    @SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, String group, String id) {
         Metadata metadata;
         
@@ -480,6 +480,8 @@ public class ItemUtils
                 .getTimeStampInfo().getLastModificationTime().getTime());
         other.getField().add(
                 createValue("lastModifyDate", m.toString()));
+        other.getField().add(
+                createValue("type", item.getPublicPath()));
         metadata.getElement().add(other);
 
         // Repository Info
