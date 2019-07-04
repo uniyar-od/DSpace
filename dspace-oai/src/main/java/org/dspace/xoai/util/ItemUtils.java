@@ -44,7 +44,6 @@ import java.util.List;
  * 
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
-@SuppressWarnings("deprecation")
 public class ItemUtils
 {
     private static Logger log = LogManager
@@ -144,8 +143,6 @@ public class ItemUtils
     @SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority) {
         Metadata metadata;
-        
-        //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
@@ -331,6 +328,8 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
+        other.getField().add(
+                createValue("type", "item"));
         metadata.getElement().add(other);
 
         // Repository Info
@@ -398,6 +397,7 @@ public class ItemUtils
      * @param item The cris item
      * @return
      */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
         Metadata metadata;
         
@@ -428,6 +428,8 @@ public class ItemUtils
                 .getTimeStampInfo().getLastModificationTime().getTime());
         other.getField().add(
                 createValue("lastModifyDate", m.toString()));
+        other.getField().add(
+                createValue("type", item.getPublicPath()));
         metadata.getElement().add(other);
 
         // Repository Info
