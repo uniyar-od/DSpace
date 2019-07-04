@@ -67,7 +67,6 @@ import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
-@SuppressWarnings("deprecation")
 public class XOAI {
     private static Logger log = LogManager.getLogger(XOAI.class);
 
@@ -124,12 +123,13 @@ public class XOAI {
         System.out.println(line);
     }
 
+    @SuppressWarnings("rawtypes")
     public int index(String idxType) throws DSpaceSolrIndexerException {
         int result = 0;
         try {
 
             if (clean) {
-                clearIndex();
+                clearIndex(idxType);
                 System.out.println("Using full import.");
                 result = this.indexAll(idxType);
             } else {
@@ -144,11 +144,10 @@ public class XOAI {
             	case "rp":
             	case "project":
             	case "ou":
-            	case "other":
+            	default:
                 	query.setSortField("cris" + idxType + ".time_lastmodified_dt", DiscoverQuery.SORT_ORDER.desc);
                 	break;
             	case "all":
-                default:
                 	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType); 
             	}
 	    		
@@ -216,12 +215,11 @@ public class XOAI {
         case "rp":
         case "project":
         case "ou":
-        case "other":
+        default:
         	discoverQuery = "cris" + idxType + ".time_lastmodified_dt:{%s TO *}";
         	discoverQuery = String.format(discoverQuery, df.format(start));
 	        break;
         case "all":
-        default:
         	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
         }
     	discoverQuery += " AND " + buildQuery(idxType);
@@ -259,7 +257,7 @@ public class XOAI {
      * 	oai.discover.query.crisrp
      * 	oai.discover.query.crisproject
      * 	oai.discover.query.crisou
-     * 	oai.discover.query.crisother
+     * 	oai.discover.query.cris<OtherObject>
      * 
      * @param idxType The index type
      * @return The number of indexed fields.
@@ -293,22 +291,20 @@ public class XOAI {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.OU_TYPE_ID;
         	}
 	        break;
-        case "other":
-        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisother");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
-        		discoverQuery = "(discoverable:true NOT (search.resourcetype:2 and search.resourcetype:" + CrisConstants.RP_TYPE_ID + 
-        				" AND search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID + 
-        				" AND search.resourcetype:" + CrisConstants.OU_TYPE_ID + "))";
-        	}
-	        break;
         case "all":
-	    default:
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.all");
         	if (discoverQuery == null || discoverQuery.trim().length() <= 0)
         		discoverQuery = "(discoverable:true OR (withdrawn:false AND search.resourcetype:2))";
         	break;
+    	default:
+    		if (idxType != null && idxType.trim().length() > 0) {
+    			discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.cris" + idxType);
+    			if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+    				discoverQuery = "discoverable:true AND cris-id:" + idxType + "*";
+    			}
+    		}
+    		break;
     	}
-    	
     	return discoverQuery;
     }
     
@@ -381,6 +377,7 @@ public class XOAI {
      * @return The number of indexed data.
      * @throws DSpaceSolrIndexerException
      */
+    @SuppressWarnings("rawtypes")
     private int indexResults(DiscoverResult result, int subtotal)
             throws DSpaceSolrIndexerException {
         try {
@@ -438,6 +435,7 @@ public class XOAI {
             println("Prepare handle " + handle);
         }
         doc.addField("item.handle", handle);
+        doc.addField("item.type", "item");
         doc.addField("item.lastmodified", item.getLastModified());
         if (item.getSubmitter() != null) {
             doc.addField("item.submitter", item.getSubmitter().getEmail());
@@ -498,6 +496,7 @@ public class XOAI {
      * @throws XMLStreamException
      * @throws WritingXmlException
      */
+    @SuppressWarnings("rawtypes")
     private SolrInputDocument indexResults(ACrisObject item) throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
         SolrInputDocument doc = new SolrInputDocument();
         doc.addField("item.id", item.getID());
@@ -508,6 +507,7 @@ public class XOAI {
             println("Prepare handle " + handle);
         }
         doc.addField("item.handle", handle);
+        doc.addField("item.type", item.getPublicPath());
         Date m = new Date(item
                 .getTimeStampInfo().getLastModificationTime().getTime());
         doc.addField("item.lastmodified", m);
@@ -577,10 +577,50 @@ public class XOAI {
         return false;
     }
 
-    private void clearIndex() throws DSpaceSolrIndexerException {
+    private void clearIndex(String idxType) throws DSpaceSolrIndexerException {
         try {
             System.out.println("Clearing index");
-            solrServerResolver.getServer().deleteByQuery("*:*");
+            
+            String eraseQuery = "";
+            switch (idxType) {
+            case "item":
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.item");
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "item.type:item";
+            	}
+    	        break;
+            case "rp":
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.crisrp");
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "item.type:rp";
+            	}
+    	        break;
+            case "project":
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.crisproject");
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "item.type:project";
+            	}
+    	        break;
+            case "ou":
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.crisou");
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "item.type:ou";
+            	}
+    	        break;
+            default:
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.cris" + idxType);
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "item.type:" + idxType;
+            	}
+    			break;
+            case "all":
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.all");
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "*:*";
+            	}
+            	break;
+            }
+            solrServerResolver.getServer().deleteByQuery(eraseQuery);
             solrServerResolver.getServer().commit();
             System.out.println("Index cleared");
         } catch (SolrServerException ex) {
@@ -623,7 +663,7 @@ public class XOAI {
             options.addOption("v", "verbose", false, "Verbose output");
             options.addOption("h", "help", false, "Shows some help");
             options.addOption("n", "number", true, "FOR DEVELOPMENT MUST DELETE");
-            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, other, all). The default is item.");
+            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, all or other cris entities like journals, ...). The default is item.");
             CommandLine line = parser.parse(options, argv);
 
             String[] validSolrCommands = {COMMAND_IMPORT, COMMAND_CLEAN_CACHE};

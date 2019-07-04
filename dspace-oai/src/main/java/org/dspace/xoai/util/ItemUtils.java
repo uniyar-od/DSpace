@@ -38,7 +38,6 @@ import java.util.List;
  * 
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
-@SuppressWarnings("deprecation")
 public class ItemUtils
 {
     private static Logger log = LogManager
@@ -134,8 +133,6 @@ public class ItemUtils
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
         Metadata metadata;
-        
-        //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
@@ -286,6 +283,8 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
+        other.getField().add(
+                createValue("type", "item"));
         metadata.getElement().add(other);
 
         // Repository Info
@@ -353,29 +352,16 @@ public class ItemUtils
      * @param item The cris item
      * @return
      */
-    public static Metadata retrieveMetadata (Context context, ACrisObject item) {
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-        Metadatum[] vals = /*item.getAllMetadata(true, true, "oai")*/UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        Metadatum[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
         for (Metadatum val : vals)
         {
-        	// TODO: remove?
-            // Don't expose fields that are hidden by configuration
-//            try {
-//                if (MetadataExposure.isHidden(context,
-//                        val.schema,
-//                        val.element,
-//                        val.qualifier))
-//                {
-//                    continue;
-//                }
-//            } catch(SQLException se) {
-//                throw new RuntimeException(se);
-//            }
-
             Element schema = getElement(metadata.getElement(), val.schema);
             if (schema == null)
             {
@@ -397,6 +383,8 @@ public class ItemUtils
                 .getTimeStampInfo().getLastModificationTime().getTime());
         other.getField().add(
                 createValue("lastModifyDate", m.toString()));
+        other.getField().add(
+                createValue("type", item.getPublicPath()));
         metadata.getElement().add(other);
 
         // Repository Info
@@ -408,52 +396,6 @@ public class ItemUtils
                 createValue("mail",
                         ConfigurationManager.getProperty("mail.admin")));
         metadata.getElement().add(repository);
-
-        // Licensing info
-        // TODO: Handle license? Remove?
-//        Element license = create("license");
-//        Bundle[] licBundles;
-//        try
-//        {
-//            licBundles = item.getBundles(Constants.LICENSE_BUNDLE_NAME);
-//            if (licBundles.length > 0)
-//            {
-//                Bundle licBundle = licBundles[0];
-//                Bitstream[] licBits = licBundle.getBitstreams();
-//                if (licBits.length > 0)
-//                {
-//                    Bitstream licBit = licBits[0];
-//                    InputStream in;
-//                    try
-//                    {
-//                        in = licBit.retrieve();
-//                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-//                        Utils.bufferedCopy(in, out);
-//                        license.getField().add(
-//                                createValue("bin",
-//                                        Base64Utils.encode(out.toString())));
-//                        metadata.getElement().add(license);
-//                    }
-//                    catch (AuthorizeException e)
-//                    {
-//                        log.warn(e.getMessage(), e);
-//                    }
-//                    catch (IOException e)
-//                    {
-//                        log.warn(e.getMessage(), e);
-//                    }
-//                    catch (SQLException e)
-//                    {
-//                        log.warn(e.getMessage(), e);
-//                    }
-//
-//                }
-//            }
-//        }
-//        catch (SQLException e1)
-//        {
-//            log.warn(e1.getMessage(), e1);
-//        }
         
         return metadata;
     }

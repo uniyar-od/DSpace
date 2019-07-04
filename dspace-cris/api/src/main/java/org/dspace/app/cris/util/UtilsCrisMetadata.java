@@ -26,7 +26,6 @@ import it.cilea.osd.jdyna.model.IContainable;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
 import jxl.write.WriteException;
-import jxl.write.biff.RowsExceededException;
 
 public class UtilsCrisMetadata {
 	/** log4j logger */
@@ -116,9 +115,7 @@ public class UtilsCrisMetadata {
 	 * @throws InvocationTargetException
 	 */
 	private static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-	List<Metadatum> getAllMetadata(ACO item, List<IContainable> metadata, List<IContainable> metadataNestedLevel, boolean onlyPub, boolean filterProperty, String module) 
-		throws IOException, WriteException, IllegalArgumentException,
-		IllegalAccessException, InvocationTargetException {
+	List<Metadatum> getAllMetadata(ACO item, List<IContainable> metadata, List<IContainable> metadataNestedLevel, boolean onlyPub, boolean filterProperty, String module)  {
 		
 		List<Metadatum> metadatum = new ArrayList<Metadatum>();
 		
@@ -133,7 +130,8 @@ public class UtilsCrisMetadata {
 
         for (IContainable nestedContainable : metadataNestedLevel)
         {
-        	item.getMetadata(nestedContainable.getShortName(), nestedContainable.getShortName(), null, null, onlyPub);
+        	// the schema name have to be different from "cris" + nestedContainable.getShortName()
+        	item.getMetadata("cris", nestedContainable.getShortName(), null, null, onlyPub);
 		}
         
         if (filterProperty) {
@@ -162,12 +160,10 @@ public class UtilsCrisMetadata {
 	 * @param item The item
 	 * @param onlyPub Set to true if only public metadata have to be retrieved
 	 * @return The list of metadata
-	 * @throws RowsExceededException
-	 * @throws WriteException
 	 */
 	@SuppressWarnings("rawtypes")
 	private static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-	List<Metadatum> getMetadata(ACO item, ADecoratorPropertiesDefinition decorator, boolean onlyPub) throws RowsExceededException, WriteException {
+	List<Metadatum> getMetadata(ACO item, ADecoratorPropertiesDefinition decorator, boolean onlyPub) {
 		
 		List<Metadatum> metadatum = new ArrayList<Metadatum>();
 		PropertiesDefinition real = (PropertiesDefinition)decorator.getReal();
