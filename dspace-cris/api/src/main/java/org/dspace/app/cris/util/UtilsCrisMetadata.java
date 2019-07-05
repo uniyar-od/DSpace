@@ -1,7 +1,5 @@
 package org.dspace.app.cris.util;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,7 +23,6 @@ import it.cilea.osd.jdyna.model.ATypeNestedObject;
 import it.cilea.osd.jdyna.model.IContainable;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
-import jxl.write.WriteException;
 
 public class UtilsCrisMetadata {
 	/** log4j logger */
@@ -108,11 +105,6 @@ public class UtilsCrisMetadata {
 	 * @param filterProperty Set to true if metadata can be filtered
 	 * @param module The module configuration file name
 	 * @return The list of metadata
-	 * @throws IOException
-	 * @throws WriteException
-	 * @throws IllegalArgumentException
-	 * @throws IllegalAccessException
-	 * @throws InvocationTargetException
 	 */
 	private static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
 	List<Metadatum> getAllMetadata(ACO item, List<IContainable> metadata, List<IContainable> metadataNestedLevel, boolean onlyPub, boolean filterProperty, String module)  {
