@@ -144,11 +144,15 @@ public class XOAI {
             	case "rp":
             	case "project":
             	case "ou":
+                	query.setSortField("cris" + idxType + ".time_lastmodified_dt", DiscoverQuery.SORT_ORDER.desc);
+                	break;
+            	case "other":
+                	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
+            	case "all":
+                	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType); 
             	default:
                 	query.setSortField("cris" + idxType + ".time_lastmodified_dt", DiscoverQuery.SORT_ORDER.desc);
                 	break;
-            	case "all":
-                	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType); 
             	}
 	    		
 	    		DiscoverResult results = SearchUtils.getSearchService().search(context, query, true);
@@ -215,12 +219,17 @@ public class XOAI {
         case "rp":
         case "project":
         case "ou":
+        	discoverQuery = "cris" + idxType + ".time_lastmodified_dt:{%s TO *}";
+        	discoverQuery = String.format(discoverQuery, df.format(start));
+	        break;
+        case "other":
+        	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
+        case "all":
+        	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
         default:
         	discoverQuery = "cris" + idxType + ".time_lastmodified_dt:{%s TO *}";
         	discoverQuery = String.format(discoverQuery, df.format(start));
 	        break;
-        case "all":
-        	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
         }
     	discoverQuery += " AND " + buildQuery(idxType);
 
@@ -270,7 +279,7 @@ public class XOAI {
         case "item":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.item");
         	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
-        		discoverQuery = "(discoverable:true OR withdrawn:false) AND search.resourcetype:2";
+        		discoverQuery = "discoverable:true AND search.resourcetype:2";
         	}
 	        break;
         case "rp":
@@ -291,10 +300,16 @@ public class XOAI {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.OU_TYPE_ID;
         	}
 	        break;
+        case "other":
+        	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisother");
+        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO " + CrisConstants.CRIS_NDYNAMIC_TYPE_ID_START + "}";
+        	}
+	        break;
         case "all":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.all");
         	if (discoverQuery == null || discoverQuery.trim().length() <= 0)
-        		discoverQuery = "(discoverable:true OR (withdrawn:false AND search.resourcetype:2))";
+        		discoverQuery = "discoverable:true";
         	break;
     	default:
     		if (idxType != null && idxType.trim().length() > 0) {
@@ -610,18 +625,24 @@ public class XOAI {
             		eraseQuery = "item.type:ou";
             	}
     	        break;
-            default:
-            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.cris" + idxType);
+            case "other":
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.crisother");
             	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
-            		eraseQuery = "item.type:" + idxType;
+            		eraseQuery = "NOT (item.type:item OR item.type:rp OR item.type:project OR item.type:uo)";
             	}
-    			break;
+    	        break;
             case "all":
             	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.all");
             	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
             		eraseQuery = "*:*";
             	}
             	break;
+            default:
+            	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.cris" + idxType);
+            	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
+            		eraseQuery = "item.type:" + idxType;
+            	}
+    			break;
             }
             solrServerResolver.getServer().deleteByQuery(eraseQuery);
             solrServerResolver.getServer().commit();
@@ -666,7 +687,7 @@ public class XOAI {
             options.addOption("v", "verbose", false, "Verbose output");
             options.addOption("h", "help", false, "Shows some help");
             options.addOption("n", "number", true, "FOR DEVELOPMENT MUST DELETE");
-            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, all or other cris entities like journals, ...). The default is item.");
+            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, other, all or specifying other cris entities like journals, ...). The default is item.");
             CommandLine line = parser.parse(options, argv);
 
             String[] validSolrCommands = {COMMAND_IMPORT, COMMAND_CLEAN_CACHE};
