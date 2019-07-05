@@ -208,7 +208,7 @@ public class ItemUtils
                 schema = create(valMapped.schema);
                 metadata.getElement().add(schema);
             }
-            Element element = writeMetadata(schema, valMapped);
+            Element element = writeMetadata(schema, valMapped, group, id, allowMultipleValue);
             metadata.getElement().add(element);
             
             // use original value for relation
@@ -230,9 +230,9 @@ public class ItemUtils
                 		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
                 		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
-							ACrisObject cris = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
+							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
                 			
-                			Metadata crisMetadata = retrieveMetadata(context, cris, true, group, id);
+                			Metadata crisMetadata = retrieveMetadata(context, o, true, m, ((ACrisObject) o).getUuid());
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
                 				Element root = create(mMapped);
