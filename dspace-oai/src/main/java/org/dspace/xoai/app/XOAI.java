@@ -171,7 +171,7 @@ public class XOAI {
 	    				lastModification = ((Item) o).getLastModified();
 	    			} else if (o instanceof ACrisObject) {
 	    				lastModification = ((ACrisObject)o).getTimeStampInfo().getTimestampLastModified().getTimestamp();
-	    				
+
 	    				// get lastmodification from 
 	    				if (o.getExtraInfo().containsKey("lastModified")) {
 	    					lastModification = (Date)o.getExtraInfo().get("lastModified");
