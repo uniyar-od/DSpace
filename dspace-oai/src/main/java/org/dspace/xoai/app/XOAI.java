@@ -32,8 +32,11 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
@@ -62,10 +65,10 @@ import org.dspace.xoai.services.api.cache.XOAICacheService;
 import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
 import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
 import org.dspace.xoai.services.api.config.ConfigurationService;
-import org.dspace.xoai.services.api.config.XOAIManagerResolver;
-import org.dspace.xoai.services.api.context.ContextService;
 import org.dspace.xoai.services.api.database.CollectionsService;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
+import org.dspace.xoai.solr.DSpaceSolrSearch;
+import org.dspace.xoai.solr.exceptions.DSpaceSolrException;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -138,30 +141,20 @@ public class XOAI {
                 System.out.println("Using full import.");
                 result = this.indexAll(idxType);
             } else {
-            	DiscoverQuery query = new DiscoverQuery();
-            	query.setQuery(buildQuery(idxType));
-            	query.setMaxResults(1);
-            	query.setSortField("lastModified", DiscoverQuery.SORT_ORDER.desc);
-            	
-	    		DiscoverResult results = SearchUtils.getSearchService().search(context, query, true);
-	    		if (results.getDspaceObjects().isEmpty()) {
-	    			System.out.println("There are no indexed documents, using full import.");
+                SolrQuery solrParams = new SolrQuery("*:*")
+                        .addField("item.lastmodified")
+                        .addSortField("item.lastmodified", ORDER.desc).setRows(1);
 
-	    			result = this.indexAll(idxType);
-	    		}
-	    		else {
-	    			DSpaceObject o = results.getDspaceObjects().get(0);
-	    			Date lastModification = null;
-	    			if (o instanceof Item) {
-	    				lastModification = ((Item) o).getLastModified();
-	    			} else if (o instanceof ACrisObject) {
-	    				lastModification = ((ACrisObject)o).getTimeStampInfo().getTimestampLastModified().getTimestamp();
-	    			}
-	    			
-	    			result = this.index(idxType, lastModification);
-	    		}
+                SolrDocumentList results = DSpaceSolrSearch.query(solrServerResolver.getServer(), solrParams);
+                if (results.getNumFound() == 0) {
+                    System.out.println("There are no indexed documents, using full import.");
+                    result = this.indexAll(idxType);
+                } else {
+                    result = this.index(idxType, (Date) results.get(0).getFieldValue("item.lastmodified"));
+                }
             }
             solrServerResolver.getServer().commit();
+
 
             if (optimize) {
                 println("Optimizing Index");
@@ -172,7 +165,7 @@ public class XOAI {
             // Set last compilation date
             xoaiLastCompilationCacheService.put(new Date());
             return result;
-        } catch (SearchServiceException ex) {
+        } catch (DSpaceSolrException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         } catch (SolrServerException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
@@ -494,9 +487,7 @@ public class XOAI {
         }
         doc.addField("item.handle", handle);
         doc.addField("item.type", item.getPublicPath());
-        Date m = new Date(item
-                .getTimeStampInfo().getLastModificationTime().getTime());
-        doc.addField("item.lastmodified", m);
+        doc.addField("item.lastmodified", item.getLastModified());
         doc.addField("item.deleted", "false");
 
         @SuppressWarnings("unchecked")
