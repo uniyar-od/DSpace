@@ -14,6 +14,7 @@ import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Utils;
 import org.dspace.utils.DSpace;
 import org.hibernate.LazyInitializationException;
 
@@ -128,14 +129,17 @@ public class UtilsCrisMetadata {
         			item.getClassTypeNested(), nestedContainable.getShortName());
         	List<NTP> ntps = null;
         	try {
-                ntps = typo.getMask();
+        	    ntps = getApplicationService().findMaskByShortName(typo.getClass(), typo.getShortName());
             }
-            catch (LazyInitializationException e) {
-                ntps = getApplicationService().findMaskByShortName(typo.getClass(), typo.getShortName());
+            catch (Exception e) {
+                log.error(e.getMessage());
             }
         	if (ntps != null) {
         		for (NTP ntp : ntps) {
-        			item.getMetadata(typo.getShortName(), ntp.getShortName(), null, null, onlyPub);
+        		    Metadatum[] nestedMetadata = item.getMetadata(typo.getShortName(), ntp.getShortName(), null, null, onlyPub);
+        		    for(Metadatum m : nestedMetadata) {
+        		        metadatum.add(m);
+        		    }
         		}
         	}
 		}
@@ -145,9 +149,7 @@ public class UtilsCrisMetadata {
             List<Metadatum> filteredMetadatum = new ArrayList<Metadatum>();
             
         	for (Metadatum m : metadatum) {
-        		String meta = m.schema + "." + m.element;
-        		if (m.qualifier != null && m.qualifier.trim().length() > 0)
-        			meta += "." + m.qualifier;
+        	    String meta = Utils.standardize(m.schema, m.element, m.qualifier, ".");
         		boolean filtered = ConfigurationManager.getBooleanProperty(module, module + ".filtered." + meta);
         		if (!filtered)
         			filteredMetadatum.add(m);
@@ -172,11 +174,8 @@ public class UtilsCrisMetadata {
 	List<Metadatum> getMetadata(ACO item, ADecoratorPropertiesDefinition decorator, boolean onlyPub) {
 		
 		List<Metadatum> metadatum = new ArrayList<Metadatum>();
-		PropertiesDefinition real = (PropertiesDefinition)decorator.getReal();
-		String shortName = real.getShortName();
-
 		String schema = "cris" + item.getPublicPath();
-		for (Metadatum m : item.getMetadata(schema, shortName, "", "", onlyPub))
+		for (Metadatum m : item.getMetadata(schema, decorator.getShortName(), "", "", onlyPub))
 			metadatum.add(m);
 		
 		return metadatum;

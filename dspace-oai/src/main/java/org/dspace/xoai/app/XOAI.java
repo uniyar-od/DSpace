@@ -7,47 +7,9 @@
  */
 package org.dspace.xoai.app;
 
-import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
-import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
-import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
-import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.PosixParser;
-import org.apache.commons.lang.StringUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.common.SolrInputDocument;
-import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.*;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
-import org.dspace.core.Context;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResult;
-import org.dspace.discovery.SearchServiceException;
-import org.dspace.discovery.SearchUtils;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.xoai.exceptions.CompilingException;
-import org.dspace.xoai.services.api.cache.XOAICacheService;
-import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
-import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
-import org.dspace.xoai.services.api.config.ConfigurationService;
-import org.dspace.xoai.services.api.config.XOAIManagerResolver;
-import org.dspace.xoai.services.api.context.ContextService;
-import org.dspace.xoai.services.api.database.CollectionsService;
-import org.dspace.xoai.services.api.solr.SolrServerResolver;
-import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
-import org.dspace.xoai.util.ItemUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
+import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
 
-import javax.xml.stream.XMLStreamException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
@@ -61,8 +23,60 @@ import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 
-import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
-import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+import javax.xml.stream.XMLStreamException;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
+import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.SolrDocumentList;
+import org.apache.solr.common.SolrInputDocument;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.ItemIterator;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.Metadatum;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.core.Utils;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SearchUtils;
+import org.dspace.storage.rdbms.DatabaseManager;
+import org.dspace.xoai.exceptions.CompilingException;
+import org.dspace.xoai.services.api.cache.XOAICacheService;
+import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
+import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
+import org.dspace.xoai.services.api.config.ConfigurationService;
+import org.dspace.xoai.services.api.database.CollectionsService;
+import org.dspace.xoai.services.api.solr.SolrServerResolver;
+import org.dspace.xoai.solr.DSpaceSolrSearch;
+import org.dspace.xoai.solr.exceptions.DSpaceSolrException;
+import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
+import org.dspace.xoai.util.ItemUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
+import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
+import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
+import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
@@ -78,13 +92,7 @@ public class XOAI {
     @Autowired
     private SolrServerResolver solrServerResolver;
     @Autowired
-    private XOAIManagerResolver xoaiManagerResolver;
-    @Autowired
-    private ContextService contextService;
-    @Autowired
     private XOAILastCompilationCacheService xoaiLastCompilationCacheService;
-    @Autowired
-    private XOAICacheService xoaiCacheService;
     @Autowired
     private XOAIItemCacheService xoaiItemCacheService;
     @Autowired
@@ -123,7 +131,6 @@ public class XOAI {
         System.out.println(line);
     }
 
-    @SuppressWarnings("rawtypes")
     public int index(String idxType) throws DSpaceSolrIndexerException {
         int result = 0;
         try {
@@ -133,55 +140,20 @@ public class XOAI {
                 System.out.println("Using full import.");
                 result = this.indexAll(idxType);
             } else {
-            	DiscoverQuery query = new DiscoverQuery();
-            	query.setQuery(buildQuery(idxType));
-            	query.setMaxResults(1);
-            	
-            	switch (idxType) {
-            	case "item":
-    	    		query.setSortField("lastModified", DiscoverQuery.SORT_ORDER.desc);
-    	    		break;
-            	case "rp":
-            	case "project":
-            	case "ou":
-                	query.setSortField("cris" + idxType + ".time_lastmodified_dt", DiscoverQuery.SORT_ORDER.desc);
-                	break;
-            	case "other":
-            		query.addSearchField("lastModified");
-            		query.setSortField("lastModified", DiscoverQuery.SORT_ORDER.desc);
-            		break;
-            	case "all":
-            		query.addSearchField("lastModified");
-            		query.setSortField("lastModified", DiscoverQuery.SORT_ORDER.desc);
-            		break;
-            	default:
-            		throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
-            	}
-	    		
-	    		DiscoverResult results = SearchUtils.getSearchService().search(context, query, true);
-	    		if (results.getDspaceObjects().isEmpty()) {
-	    			System.out.println("There are no indexed documents, using full import.");
+                SolrQuery solrParams = new SolrQuery("*:*")
+                        .addField("item.lastmodified")
+                        .addSortField("item.lastmodified", ORDER.desc).setRows(1);
 
-	    			result = this.indexAll(idxType);
-	    		}
-	    		else {
-	    			DSpaceObject o = results.getDspaceObjects().get(0);
-	    			Date lastModification = null;
-	    			if (o instanceof Item) {
-	    				lastModification = ((Item) o).getLastModified();
-	    			} else if (o instanceof ACrisObject) {
-	    				lastModification = ((ACrisObject)o).getTimeStampInfo().getTimestampLastModified().getTimestamp();
-
-	    				// get lastmodification from 
-	    				if (o.getExtraInfo().containsKey("lastModified")) {
-	    					lastModification = (Date)o.getExtraInfo().get("lastModified");
-	    				}
-	    			}
-	    			
-	    			result = this.index(idxType, lastModification);
-	    		}
+                SolrDocumentList results = DSpaceSolrSearch.query(solrServerResolver.getServer(), solrParams);
+                if (results.getNumFound() == 0) {
+                    System.out.println("There are no indexed documents, using full import.");
+                    result = this.indexAll(idxType);
+                } else {
+                    result = this.index(idxType, (Date) results.get(0).getFieldValue("item.lastmodified"));
+                }
             }
             solrServerResolver.getServer().commit();
+
 
             if (optimize) {
                 println("Optimizing Index");
@@ -192,7 +164,7 @@ public class XOAI {
             // Set last compilation date
             xoaiLastCompilationCacheService.put(new Date());
             return result;
-        } catch (SearchServiceException ex) {
+        } catch (DSpaceSolrException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         } catch (SolrServerException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
@@ -218,28 +190,18 @@ public class XOAI {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         df.setTimeZone(tz);
         
-        String discoverQuery = "";
+        String discoverQuery = "lastModified:{%s TO *}";
+        discoverQuery = String.format(discoverQuery, df.format(start));
         switch (idxType) {
         case "item":
-        	discoverQuery = "lastModified:{%s TO *}";
-        	discoverQuery = String.format(discoverQuery, df.format(start));
-	        break;
         case "rp":
         case "project":
         case "ou":
-        	discoverQuery = "cris" + idxType + ".time_lastmodified_dt:{%s TO *}";
-        	discoverQuery = String.format(discoverQuery, df.format(start));
-	        break;
         case "other":
-        	discoverQuery = "lastModified:{%s TO *}";
-        	discoverQuery = String.format(discoverQuery, df.format(start));
-        	break;
         case "all":
-        	discoverQuery = "lastModified:{%s TO *}";
-        	discoverQuery = String.format(discoverQuery, df.format(start));
-        	break;
+            break;
         default:
-        	throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
+            throw new DSpaceSolrIndexerException("The partial index is not supported for type " + idxType);
         }
     	discoverQuery += " AND " + buildQuery(idxType);
 
@@ -473,10 +435,7 @@ public class XOAI {
         Metadatum[] allData = item.getMetadata(Item.ANY, Item.ANY, Item.ANY,
                 Item.ANY);
         for (Metadatum dc : allData) {
-            String key = "metadata." + dc.schema + "." + dc.element;
-            if (dc.qualifier != null) {
-                key += "." + dc.qualifier;
-            }
+            String key = "metadata." + Utils.standardize(dc.schema, dc.element, dc.qualifier, ".");
             
             String val =StringUtils.equals(dc.value, MetadataValue.PARENT_PLACEHOLDER_VALUE)? "N/D":dc.value;  
 
@@ -530,27 +489,28 @@ public class XOAI {
         }
         doc.addField("item.handle", handle);
         doc.addField("item.type", item.getPublicPath());
-        Date m = new Date(item
-                .getTimeStampInfo().getLastModificationTime().getTime());
-        doc.addField("item.lastmodified", m);
+        doc.addField("item.lastmodified", item.getLastModified());
         doc.addField("item.deleted", "false");
 
 		Metadatum[] allData = ItemUtils.getAllMetadata(item, true, true, "oai");
-        for (Metadatum dc : allData) {
-            String key = "metadata." + dc.schema + "." + dc.element;
-            if (dc.qualifier != null) {
-                key += "." + dc.qualifier;
-            }
-            
-            String val =StringUtils.equals(dc.value, MetadataValue.PARENT_PLACEHOLDER_VALUE)? "N/D":dc.value;
+        if (allData != null)
+        {
+            for (Metadatum dc : allData)
+            {
+                String key = "metadata." + Utils.standardize(dc.schema, dc.element, dc.qualifier, ".");
 
-            doc.addField(key, val);
-            if (dc.authority != null) {
-                doc.addField(key + ".authority", dc.authority);
-                doc.addField(key + ".confidence", dc.confidence + "");
+                String val = StringUtils.equals(dc.value,
+                        MetadataValue.PARENT_PLACEHOLDER_VALUE) ? "N/D"
+                                : dc.value;
+
+                doc.addField(key, val);
+                if (dc.authority != null)
+                {
+                    doc.addField(key + ".authority", dc.authority);
+                    doc.addField(key + ".confidence", dc.confidence + "");
+                }
             }
         }
-
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
         retrieveMetadata(context, item, false).write(xmlContext);
@@ -809,7 +769,7 @@ public class XOAI {
             System.out.println("OAI Manager Script");
             System.out.println("Syntax: oai <action> [parameters]");
             System.out.println("> Possible actions:");
-            System.out.println("     " + COMMAND_IMPORT + " - To import DSpace items into OAI index and cache system");
+            System.out.println("     " + COMMAND_IMPORT + " - To import DSpace items and/or DSpace-CRIS entities into OAI index and cache system");
             System.out.println("     " + COMMAND_CLEAN_CACHE + " - Cleans the OAI cached responses");
             System.out.println("> Parameters:");
             System.out.println("     -o Optimize index after indexing (" + COMMAND_IMPORT + " only)");

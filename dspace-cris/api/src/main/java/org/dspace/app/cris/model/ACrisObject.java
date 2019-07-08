@@ -10,6 +10,7 @@ package org.dspace.app.cris.model;
 import java.beans.PropertyEditor;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -494,6 +495,18 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	
     public String getMetadataFieldName(Locale locale) {
         return getMetadataFieldTitle() + locale.getLanguage();
+    }
+
+    /**
+     * 
+     * Get the date the entity was last modified, or the current date if
+     * last_modified is null
+     * 
+     * @return
+     */
+    public Date getLastModified()
+    {
+        return new Date(getTimeStampInfo().getLastModificationTime().getTime());
     }
 	    
 }

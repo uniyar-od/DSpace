@@ -776,6 +776,9 @@ public class CrisSearchService extends SolrServiceImpl
                         "crisDateIssued.year_lastmodified",
                         DateFormatUtils.formatUTC(dso.getTimeStampInfo()
                                 .getTimestampCreated().getTimestamp(), "yyyy"));
+                //if timestamplastmodified is null the lastModified is managed by solr schema with the default value
+                doc.addField("lastModified", dso.getTimeStampInfo()
+                        .getTimestampLastModified().getTimestamp());
             }
         }
         catch (Exception e)
