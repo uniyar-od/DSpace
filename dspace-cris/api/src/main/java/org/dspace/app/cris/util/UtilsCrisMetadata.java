@@ -15,6 +15,7 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.utils.DSpace;
+import org.hibernate.LazyInitializationException;
 
 import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
@@ -106,6 +107,7 @@ public class UtilsCrisMetadata {
 	 * @param module The module configuration file name
 	 * @return The list of metadata
 	 */
+	@SuppressWarnings("unchecked")
 	private static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
 	List<Metadatum> getAllMetadata(ACO item, List<IContainable> metadata, List<IContainable> metadataNestedLevel, boolean onlyPub, boolean filterProperty, String module)  {
 		
@@ -122,8 +124,20 @@ public class UtilsCrisMetadata {
 
         for (IContainable nestedContainable : metadataNestedLevel)
         {
-        	// the schema name have to be different from "cris" + nestedContainable.getShortName()
-        	item.getMetadata("cris", nestedContainable.getShortName(), null, null, onlyPub);
+        	ATNO typo = getApplicationService().findTypoByShortName(
+        			item.getClassTypeNested(), nestedContainable.getShortName());
+        	List<NTP> ntps = null;
+        	try {
+                ntps = typo.getMask();
+            }
+            catch (LazyInitializationException e) {
+                ntps = getApplicationService().findMaskByShortName(typo.getClass(), typo.getShortName());
+            }
+        	if (ntps != null) {
+        		for (NTP ntp : ntps) {
+        			item.getMetadata(typo.getShortName(), ntp.getShortName(), null, null, onlyPub);
+        		}
+        	}
 		}
         
         if (filterProperty) {
