@@ -360,16 +360,19 @@ public class ItemUtils
         metadata = new Metadata();
         
         Metadatum[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
-        for (Metadatum val : vals)
+        if (vals != null)
         {
-            Element schema = getElement(metadata.getElement(), val.schema);
-            if (schema == null)
+            for (Metadatum val : vals)
             {
-                schema = create(val.schema);
-                metadata.getElement().add(schema);
+                Element schema = getElement(metadata.getElement(), val.schema);
+                if (schema == null)
+                {
+                    schema = create(val.schema);
+                    metadata.getElement().add(schema);
+                }
+                Element element = writeMetadata(schema, val);
+                metadata.getElement().add(element);
             }
-            Element element = writeMetadata(schema, val);
-            metadata.getElement().add(element);
         }
 
         // Other info
