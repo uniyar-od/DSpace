@@ -38,7 +38,9 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 
@@ -181,6 +183,7 @@ public class ItemUtils
         metadata = new Metadata();
         
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        Map<String, Element> root_indexed = new HashMap<String, Element>();
         for (Metadatum val : vals)
         {
             // Don't expose fields that are hidden by configuration
@@ -228,6 +231,7 @@ public class ItemUtils
                 	try {
                 		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
                 		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
+                		Element root_idx = root_indexed.get(mMapped);
                 		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
@@ -235,11 +239,18 @@ public class ItemUtils
                 			Metadata crisMetadata = retrieveMetadata(context, o, true, m, ((ACrisObject) o).getUuid());
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
-                				Element root = create(mMapped);
-                				metadata.getElement().add(root);
-                				
-                				for (Element crisElement : crisMetadata.getElement()) {
-                					root.getElement().add(crisElement);
+                				if (root_idx == null) {
+	                				Element root = create(mMapped);
+	                				metadata.getElement().add(root);
+	                				root_indexed.put(mMapped, root);
+	                				
+	                				for (Element crisElement : crisMetadata.getElement()) {
+	                					root.getElement().add(crisElement);
+	                				}
+                				}
+                				else {
+                    				// schema, remap elements
+                    				remap(root_idx, crisMetadata.getElement());
                 				}
                 			}
                 		} else {
@@ -434,7 +445,42 @@ public class ItemUtils
         return metadata;
     }
     
-    public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
+    /***
+     * Map XML fragment of elements in an given root element.
+     * 
+     * @param root_idx The root element
+     * @param elements The list of elements to remap
+     */
+    private static void remap(Element root_idx, List<Element> elements) {
+    	Element father = root_idx;
+    	Element remapFather = null;		// to avoid concurrent modification exception
+    	
+		for (Element s: elements) {
+			if (remapFather != null) {
+				father.getElement().add(s);
+				remapFather = null;
+			}
+			
+			Element idx_schema = getElement(father.getElement(), s.getName());
+			if (idx_schema == null) {
+				 father.getElement().add(s);
+			}
+			else if (idx_schema.getElement().isEmpty()) {
+				 remapFather = s;
+			 }
+			 else {
+				 remap(idx_schema, s.getElement());
+			 }
+		}
+		
+		if (remapFather != null) {
+			father.getElement().add(remapFather);
+			remapFather = null;
+		}	
+    }
+    
+    @SuppressWarnings("rawtypes")
+	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
     	return retrieveMetadata(context, item, skipAutority, null, null);
     }
     
@@ -449,7 +495,7 @@ public class ItemUtils
      * @param id The id
      * @return
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({ "rawtypes" })
 	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, String group, String id) {
         Metadata metadata;
         
@@ -561,6 +607,16 @@ public class ItemUtils
     		metadatum.authority = null;
     		metadatum.value = item.getHandle();
     		results.add(metadatum.copy());
+    		
+    		// crisitem.crisprop.objecttype
+            metadatum.schema = DEFAULT_SCHEMA_NAME;
+            metadatum.element = VIRTUAL_ELEMENT_NAME;
+            metadatum.qualifier = "objecttype";
+            metadatum.language = null;
+
+            metadatum.authority = null;
+            metadatum.value = item.getPublicPath();
+            results.add(metadatum.copy());
     	}
     	
     	return results.toArray(new Metadatum[results.size()]);
