@@ -1,5 +1,8 @@
 package org.dspace.xoai.util;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.content.Metadatum;
@@ -11,6 +14,9 @@ public class MetadataMapper {
 	
 	public static String MAP_PREFIX = "oai.map";
 	private String module;
+	
+	public static String SEPARATOR = ",";
+    public static String VALUE_INDEX = "oai.value";
 	
 	/***
 	 * Initialize the mapper with the configuration file (module name).
@@ -65,4 +71,54 @@ public class MetadataMapper {
 		return metadatum;
 	}
 
+	/***
+	 * Mappings item properties to virtual property
+	 * 
+	 * @param name The object type
+	 * @return The array of fixed value virtual metadata
+	 */
+	public List<Metadatum> fixedValues(String type) {
+		List<Metadatum> metadatumList = new ArrayList<Metadatum>();
+		String index = VALUE_INDEX + "." + type;
+
+		String objectIndex = ConfigurationManager.getProperty(module, index);
+		if (objectIndex == null || objectIndex.trim().length() <= 0)
+			return metadatumList;
+
+		objectIndex = objectIndex.trim();
+		String[] props = objectIndex.split(SEPARATOR);
+		for (String p : props) {
+			String meta = p;
+			// remove prefix
+			if (meta.length() > index.length()) {
+				meta = meta.substring(index.length() + 1);
+			}
+			String value = ConfigurationManager.getProperty(module, p);
+
+			Metadatum metadatum = new Metadatum();
+			String[] m = meta.split("\\.");
+			if (m.length < 2)
+				continue;
+
+			if (m.length > 0)
+				metadatum.schema = m[0];
+			if (m.length > 1)
+				metadatum.element = m[1];
+			if (m.length > 2)
+				metadatum.qualifier = m[2];
+			if (m.length == 4)
+				metadatum.language = m[3];
+			else {
+				for (int i = 3; i < m.length; i++)
+					metadatum.qualifier += '.' + m[i];
+			}
+
+			metadatum.authority = null;
+			metadatum.value = value;
+
+			metadatumList.add(metadatum);
+		}
+
+		return metadatumList;
+	}
 }

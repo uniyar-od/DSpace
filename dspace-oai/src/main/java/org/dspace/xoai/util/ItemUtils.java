@@ -10,11 +10,15 @@ package org.dspace.xoai.util;
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.util.FirstNames;
 import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
@@ -183,6 +187,20 @@ public class ItemUtils
         metadata = new Metadata();
         
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        // add defaults
+        {
+        	Metadatum[] defaults = new Metadatum[1];
+        	Metadatum metadatum = new Metadatum();
+        	
+        	metadatum.schema = "item";
+        	metadatum.element = "vprop";
+        	metadatum.qualifier = "id";
+        	metadatum.authority = null;
+        	metadatum.value = Integer.toString(item.getID());
+        	defaults[0] = metadatum;
+        	
+        	vals = ArrayUtils.addAll(vals, defaults);
+        }
         Map<String, Element> root_indexed = new HashMap<String, Element>();
         for (Metadatum val : vals)
         {
@@ -457,7 +475,7 @@ public class ItemUtils
     	
 		for (Element s: elements) {
 			if (remapFather != null) {
-				father.getElement().add(s);
+				father.getElement().add(remapFather);
 				remapFather = null;
 			}
 			
@@ -619,6 +637,57 @@ public class ItemUtils
             results.add(metadatum.copy());
     	}
     	
+    	// crisitem.crisvprop.fullname
+    	Metadatum metadatum = new Metadatum();
+    	for (Metadatum m : results) {
+    		if (DEFAULT_SCHEMA_NAME.equals(m.schema) && VIRTUAL_ELEMENT_NAME.equals(m.element) && "fullname".equals(m.qualifier)) {
+    			String firstName = null;
+    			String familyName = null;
+
+    			m.value = m.value.trim();
+    			if (StringUtils.countMatches(m.value, ",") == 1) {
+    				String[] t = m.value.split(",");
+
+    				firstName = t[1].trim();
+    				familyName = t[0].trim();
+    			}
+    			else {
+    				firstName = FirstNames.getInstance(module).getFirstName(m.value);
+    				familyName = m.value.substring((firstName != null) ? firstName.length() : 0).trim();
+    			}
+    			// crisitem.crisprop.firstname
+    			metadatum.schema = DEFAULT_SCHEMA_NAME;
+    			metadatum.element = VIRTUAL_ELEMENT_NAME;
+    			metadatum.qualifier = "firstname";
+    			metadatum.language = null;
+
+    			metadatum.authority = null;
+    			metadatum.value = firstName;
+    			results.add(metadatum.copy());
+
+    			// crisitem.crisprop.familyname
+    			metadatum.schema = DEFAULT_SCHEMA_NAME;
+    			metadatum.element = VIRTUAL_ELEMENT_NAME;
+    			metadatum.qualifier = "familyname";
+    			metadatum.language = null;
+
+    			metadatum.authority = null;
+    			metadatum.value = familyName;
+    			results.add(metadatum.copy());
+    			break;
+    		}
+        }
+    	
+    	// fixed values
+    	{
+    		MetadataMapper mapper = new MetadataMapper(module);
+    		List<Metadatum> fixedValues = mapper.fixedValues(item.getPublicPath());
+    		for (Metadatum m : fixedValues) {
+    			// add fixed value
+    			results.add(m);
+    		}
+    	}
+
     	return results.toArray(new Metadatum[results.size()]);
     }
     
