@@ -257,7 +257,7 @@ public class ItemUtils
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
                 			
-                			Metadata crisMetadata = retrieveMetadata(context, o, true, m, ((ACrisObject) o).getUuid(), 0);
+                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), 0);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
                 				if (root_idx == null) {
@@ -524,29 +524,42 @@ public class ItemUtils
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
+		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai", false);
         if (vals != null)
         {
+        	Map<String, Element> root_indexed = new HashMap<String, Element>();
             for (MetadatumAuthorityDecorator valAuthDec : vals)
             {
             	Metadatum val = valAuthDec.getMetadatum();
-                Element schema = getElement(metadata.getElement(), val.schema);
+
+            	// mapping metadata in index only
+                Metadatum valMapped = val.copy();
+                MetadataMapper mapper = new MetadataMapper("oai");
+                valMapped = mapper.map(valMapped);
+                
+                Element schema = getElement(metadata.getElement(), valMapped.schema);
+                
                 if (schema == null)
                 {
-                    schema = create(val.schema);
+                    schema = create(valMapped.schema);
                     metadata.getElement().add(schema);
                 }
-                Element element = writeMetadata(schema, val, group, id, true);
+                Element element = writeMetadata(schema, valMapped, group, id, true);
                 metadata.getElement().add(element);
                 
-                // follow relations:
+                // follow relations (use original value for relation)
                 if (!skipAutority && val.authority != null) {
                 	String m = val.schema + "." + val.element;
                 	
                     if (val.qualifier != null && !val.qualifier.equals("")) {
                     	m += "." + val.qualifier;
                     }
-
+                    String mMapped = valMapped.schema + "." + valMapped.element;
+                    if (valMapped.qualifier != null) {
+                    	mMapped += "." + valMapped.qualifier;
+                    }
+                    
+                    // compute deep
                     int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
                     if (authorityDeep <= 0) {
                     	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
@@ -560,6 +573,7 @@ public class ItemUtils
 	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
 	                	try {
 	                		ACrisObject o = null;
+	                		Element root_idx = root_indexed.get(mMapped);
 	                		
 	                		if (!valAuthDec.isClassNameNull())
 	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
@@ -568,13 +582,21 @@ public class ItemUtils
 	                			
                 			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), deep + 1);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
-                				Element root = create(m);
-                				metadata.getElement().add(root);
+                				// optimize element generation using only one root
+                				if (root_idx == null) {
+	                				Element root = create(mMapped);
+	                				metadata.getElement().add(root);
+	                				root_indexed.put(mMapped, root);
                 				
-                				for (Element crisElement : crisMetadata.getElement()) {
-                					root.getElement().add(crisElement);
+	                				for (Element crisElement : crisMetadata.getElement()) {
+	                					root.getElement().add(crisElement);
+	                				}
                 				}
-                			}
+                				else {
+                    				// schema, remap elements
+                    				remap(root_idx, crisMetadata.getElement());
+                				}
+                			}		
 	            		} catch (Exception e) {
 	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
 	            		}
@@ -624,17 +646,20 @@ public class ItemUtils
      * @param onlyPub Set to true to read only public property
      * @param filterProperty Set to true to enable property filtering
      * @param module The config file name (module of config)
+     * @param map Is set to true if the mapping will be executed
      * @return
      */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static MetadatumAuthorityDecorator[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module) {
+	public static MetadatumAuthorityDecorator[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module, boolean map) {
     	List<MetadatumAuthorityDecorator> results = new ArrayList<MetadatumAuthorityDecorator>();
     	
     	MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, onlyPub, filterProperty, module);
     	for (MetadatumAuthorityDecorator mad : vals) {
-    		MetadataMapper mapper = new MetadataMapper(module);
-    		// mapping attribute
-    		mad.update(mapper.map(mad.getMetadatum()));
+    		if (map) {
+	    		MetadataMapper mapper = new MetadataMapper(module);
+	    		// mapping attribute
+	    		mad.update(mapper.map(mad.getMetadatum()));
+    		}
     		
     		results.add(mad);
     	}
