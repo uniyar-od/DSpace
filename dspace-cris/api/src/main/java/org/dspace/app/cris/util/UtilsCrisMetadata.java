@@ -11,12 +11,12 @@ import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
+import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Utils;
 import org.dspace.utils.DSpace;
-import org.hibernate.LazyInitializationException;
 
 import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
@@ -50,11 +50,11 @@ public class UtilsCrisMetadata {
 	 * @return The read metadatum.
 	 */
 	public static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> 
-	Metadatum[] getAllMetadata(ACO item, boolean onlyPub, boolean filterProperty, String module) {
+	MetadatumAuthorityDecorator[] getAllMetadata(ACO item, boolean onlyPub, boolean filterProperty, String module) {
 		List<IContainable> metadataFirstLevel = new ArrayList<IContainable>();
         List<IContainable> metadataNestedLevel = new LinkedList<IContainable>();
         
-        List<Metadatum> metadatum = null;
+        List<MetadatumAuthorityDecorator> metadatumAuthDec = null;
 		int entity = -1;
 		try {
 			if (entity > CrisConstants.CRIS_DYNAMIC_TYPE_ID_START) {
@@ -86,10 +86,10 @@ public class UtilsCrisMetadata {
 	            }
 	        }
 			
-			metadatum = getAllMetadata(item, metadataFirstLevel,
+			metadatumAuthDec = getAllMetadata(item, metadataFirstLevel,
 	                metadataNestedLevel, onlyPub, filterProperty, module);
 			
-			return metadatum.toArray(new Metadatum[metadatum.size()]);
+			return metadatumAuthDec.toArray(new MetadatumAuthorityDecorator[metadatumAuthDec.size()]);
 		}
 		catch (Exception e) {
 			log.error("error in reading metadata of object " + item.getPublicPath() + " with id " + item.getID(), e);
@@ -110,16 +110,16 @@ public class UtilsCrisMetadata {
 	 */
 	@SuppressWarnings("unchecked")
 	private static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-	List<Metadatum> getAllMetadata(ACO item, List<IContainable> metadata, List<IContainable> metadataNestedLevel, boolean onlyPub, boolean filterProperty, String module)  {
+	List<MetadatumAuthorityDecorator> getAllMetadata(ACO item, List<IContainable> metadata, List<IContainable> metadataNestedLevel, boolean onlyPub, boolean filterProperty, String module)  {
 		
-		List<Metadatum> metadatum = new ArrayList<Metadatum>();
+		List<MetadatumAuthorityDecorator> metadatumAuthDec = new ArrayList<MetadatumAuthorityDecorator>();
 		
 		for (IContainable containable : metadata) {
 			if (containable instanceof ADecoratorPropertiesDefinition) {
 				@SuppressWarnings("rawtypes")
-				List<Metadatum> m = getMetadata(item, (ADecoratorPropertiesDefinition) containable, onlyPub);
+				List<MetadatumAuthorityDecorator> m = getMetadata(item, (ADecoratorPropertiesDefinition) containable, onlyPub);
 				
-				metadatum.addAll(m);
+				metadatumAuthDec.addAll(m);
 			}
 		}
 
@@ -138,7 +138,7 @@ public class UtilsCrisMetadata {
         		for (NTP ntp : ntps) {
         		    Metadatum[] nestedMetadata = item.getMetadata(typo.getShortName(), ntp.getShortName(), null, null, onlyPub);
         		    for(Metadatum m : nestedMetadata) {
-        		        metadatum.add(m);
+        		        metadatumAuthDec.add(new MetadatumAuthorityDecorator(m, (RPNestedPropertiesDefinition)ntp));
         		    }
         		}
         	}
@@ -146,19 +146,20 @@ public class UtilsCrisMetadata {
         
         if (filterProperty) {
         	// Filter all metadatum
-            List<Metadatum> filteredMetadatum = new ArrayList<Metadatum>();
+            List<MetadatumAuthorityDecorator> filteredMetadatumAD = new ArrayList<MetadatumAuthorityDecorator>();
             
-        	for (Metadatum m : metadatum) {
+        	for (MetadatumAuthorityDecorator mad : metadatumAuthDec) {
+        		Metadatum m = mad.getMetadatum();
         	    String meta = Utils.standardize(m.schema, m.element, m.qualifier, ".");
         		boolean filtered = ConfigurationManager.getBooleanProperty(module, module + ".filtered." + meta);
         		if (!filtered)
-        			filteredMetadatum.add(m);
+        			filteredMetadatumAD.add(mad);
         	}
         	
-        	return filteredMetadatum;
+        	return filteredMetadatumAD;
         }
         else
-        	return metadatum;
+        	return metadatumAuthDec;
 	}
 
 	/***
@@ -171,12 +172,12 @@ public class UtilsCrisMetadata {
 	 */
 	@SuppressWarnings("rawtypes")
 	private static <ACO extends ACrisObject<P, TP, NP, NTP, ACNO, ATNO>, P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>>
-	List<Metadatum> getMetadata(ACO item, ADecoratorPropertiesDefinition decorator, boolean onlyPub) {
+	List<MetadatumAuthorityDecorator> getMetadata(ACO item, ADecoratorPropertiesDefinition decorator, boolean onlyPub) {
 		
-		List<Metadatum> metadatum = new ArrayList<Metadatum>();
+		List<MetadatumAuthorityDecorator> metadatum = new ArrayList<MetadatumAuthorityDecorator>();
 		String schema = "cris" + item.getPublicPath();
 		for (Metadatum m : item.getMetadata(schema, decorator.getShortName(), "", "", onlyPub))
-			metadatum.add(m);
+			metadatum.add(new MetadatumAuthorityDecorator(m));
 		
 		return metadatum;
 	}

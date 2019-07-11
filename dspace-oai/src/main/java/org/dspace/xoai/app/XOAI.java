@@ -40,6 +40,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
 import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Bitstream;
@@ -131,7 +132,6 @@ public class XOAI {
         System.out.println(line);
     }
 
-    @SuppressWarnings("rawtypes")
     public int index(String idxType) throws DSpaceSolrIndexerException {
         int result = 0;
         try {
@@ -494,11 +494,12 @@ public class XOAI {
         doc.addField("item.deleted", "false");
 
         @SuppressWarnings("unchecked")
-		Metadatum[] allData = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
-        if (allData != null)
+		MetadatumAuthorityDecorator[] allDataAuthDec = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        if (allDataAuthDec != null)
         {
-            for (Metadatum dc : allData)
+            for (MetadatumAuthorityDecorator dcAuthDec : allDataAuthDec)
             {
+            	Metadatum dc = dcAuthDec.getMetadatum();
                 String key = "metadata." + Utils.standardize(dc.schema, dc.element, dc.qualifier, ".");
 
                 String val = StringUtils.equals(dc.value,
@@ -515,7 +516,7 @@ public class XOAI {
         }
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
-        retrieveMetadata(context, item, false).write(xmlContext);
+        retrieveMetadata(context, item).write(xmlContext);
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
         doc.addField("item.compile", out.toString());

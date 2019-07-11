@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
 import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
@@ -23,7 +24,6 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
 import org.dspace.content.authority.ChoiceAuthority;
-import org.dspace.content.authority.ChoiceAuthorityDetails;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
@@ -48,6 +48,8 @@ public class ItemUtils
 {
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
+    
+    public static Integer MAX_DEEP = 2;
 
     private static Element getElement(List<Element> list, String name)
     {
@@ -175,7 +177,7 @@ public class ItemUtils
             if (!skipAutority && val.authority != null) {
             	String m = val.schema + "." + val.element;
             	
-                if (val.qualifier != null) {
+                if (val.qualifier != null && !val.qualifier.equals("")) {
                 	m += "." + val.qualifier;
                 }
 
@@ -189,7 +191,7 @@ public class ItemUtils
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject cris = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
                 			
-                			Metadata crisMetadata = retrieveMetadata(context, cris, true);
+                			Metadata crisMetadata = retrieveMetadata(context, cris, skipAutority, 0);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				Element root = create(m);
                 				metadata.getElement().add(root);
@@ -397,18 +399,33 @@ public class ItemUtils
      * @param item The cris item
      * @return
      */
+    @SuppressWarnings("rawtypes")
+	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
+    	return retrieveMetadata(context, item, false, 0);
+    }
+    
+    /***
+     * Retrieve all metadata
+     * 
+     * @param context The context
+     * @param item The cris item
+     * @param skipAutority Usually set to false.
+     * @param deep 
+     * @return
+     */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority) {
+    public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, int deep) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-        Metadatum[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+        MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
         if (vals != null)
         {
-            for (Metadatum val : vals)
+            for (MetadatumAuthorityDecorator valAuthDec : vals)
             {
+            	Metadatum val = valAuthDec.getMetadatum();
                 Element schema = getElement(metadata.getElement(), val.schema);
                 if (schema == null)
                 {
@@ -417,6 +434,48 @@ public class ItemUtils
                 }
                 Element element = writeMetadata(schema, val);
                 metadata.getElement().add(element);
+                
+                // follow relations:
+                if (!skipAutority && val.authority != null) {
+                	String m = val.schema + "." + val.element;
+                	
+                    if (val.qualifier != null && !val.qualifier.equals("")) {
+                    	m += "." + val.qualifier;
+                    }
+
+                    int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
+                    if (authorityDeep <= 0) {
+                    	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
+                    	
+                    	if (authorityDeep <= 0)
+                    		authorityDeep = MAX_DEEP;
+                    }
+                    
+                    // add metadata of related cris object, using authority to get it
+                    boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
+	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
+	                	try {
+	                		ACrisObject cris = null;
+	                		
+	                		if (!valAuthDec.isClassNameNull())
+	                			cris = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
+	                		else
+	                			cris = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className(val.authority));
+	                			
+                			Metadata crisMetadata = retrieveMetadata(context, cris, skipAutority, deep + 1);
+                			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
+                				Element root = create(m);
+                				metadata.getElement().add(root);
+                				
+                				for (Element crisElement : crisMetadata.getElement()) {
+                					root.getElement().add(crisElement);
+                				}
+                			}
+	            		} catch (Exception e) {
+	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
+	            		}
+	                }
+                }
             }
         }
 
