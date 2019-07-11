@@ -171,6 +171,7 @@ public class TreeHierarchy extends JSONRequest
                             SolrQuery solrQueryItem = new SolrQuery();
                             String contextTree = (String)(docInternal.getFieldValue("treecontext_s"));                            
                             solrQueryItem.setQuery(MessageFormat.format(configurator.getRelation().get(contextTree).getQuery(),authority));
+                            solrQueryItem.setFilterQueries("-withdrawn:true");
                             solrQueryItem.setRows(Integer.MAX_VALUE);
                             solrQueryItem.setFields("search.resourcetype", "search.resourceid", "handle", "dc.title");
                             QueryResponse responseItem = searchService.search(solrQueryItem);
