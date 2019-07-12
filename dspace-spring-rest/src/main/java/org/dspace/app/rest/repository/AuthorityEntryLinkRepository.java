@@ -18,6 +18,7 @@ import org.dspace.app.rest.model.AuthorityEntryRest;
 import org.dspace.app.rest.model.AuthorityRest;
 import org.dspace.app.rest.model.hateoas.AuthorityEntryResource;
 import org.dspace.app.rest.model.hateoas.HALResource;
+import org.dspace.app.rest.repository.page.DspacePageImpl;
 import org.dspace.app.rest.utils.AuthorityUtils;
 import org.dspace.content.Collection;
 import org.dspace.content.authority.Choice;
@@ -27,7 +28,6 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
@@ -80,7 +80,7 @@ public class AuthorityEntryLinkRepository extends AbstractDSpaceRestRepository
                 results.add(authorityUtils.convertEntry(value, name));
             }
         }
-        return new PageImpl<AuthorityEntryRest>(results, pageable, results.size());
+        return new DspacePageImpl<AuthorityEntryRest>(results, pageable, results.size());
     }
 
 }
