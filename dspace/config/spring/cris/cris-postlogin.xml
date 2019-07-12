@@ -19,6 +19,10 @@
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
+	<bean id="standaloneMethod" class="org.dspace.app.webui.cris.orcid.OrcidStandaloneAuthenticationMethod">
+		<property name="applicationService" ref="applicationService" />
+	</bean>
+	
 	<bean class="org.dspace.app.cris.integration.ResearcherLoggedInAction">
 		<property name="applicationService" ref="applicationService" />
 		<property name="typeSourceRef" value="orcid"></property>
