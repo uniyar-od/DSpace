@@ -83,7 +83,7 @@ public class ItemUtils
     }
     
     private static Element writeMetadata(Element  schema,Metadatum val) {
-    	return writeMetadata(schema, val, null, null, false);
+    	return writeMetadata(schema, val, null, null, null, false);
     }
     
     /***
@@ -94,10 +94,11 @@ public class ItemUtils
      * @param val The metadata value
      * @param group the group name (usually a relation metadata)
      * @param id The grouping id
+     * @param relid The relation id
      * @param allowMultipleValue
      * @return
      */
-    private static Element writeMetadata(Element  schema,Metadatum val, String group, String id, boolean allowMultipleValue) {
+    private static Element writeMetadata(Element  schema,Metadatum val, String group, String id, String relid, boolean allowMultipleValue) {
     	
         Element valueElem = null;
         valueElem = schema;
@@ -158,32 +159,34 @@ public class ItemUtils
             if (val.confidence != Choices.CF_NOVALUE)
                 valueElem.getField().add(createValue("confidence", val.confidence + ""));
         }
-        if (id != null && group != null) {
+        if (id != null && group != null && relid != null) {
         	valueElem.getField().add(createValue("id", id));
         	valueElem.getField().add(createValue("group", group));
+        	valueElem.getField().add(createValue("relid", relid));
         }
         return valueElem;
 
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
-    	return retrieveMetadata(context, item, false, null, null, true);
+    	return retrieveMetadata(context, item, false, null, null, null, true);
     }
     
     /***
      * Retrieve all metadata in a XML fragment.
      * 
-     * Group and id are used to group metadata of an item inside xsl. 
+     * Group and id and relid are used to group metadata of an item, or relations, inside xsl. 
      * 
      * @param context The context
      * @param item The cris item
      * @param skipAutority is used to disable relation metadata inclusion.
      * @param group The group name
      * @param id The id
+     * @param relid The relation id
      * @param allowMultipleValue is used to enabled metadata with multiple value
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, String group, String id, boolean allowMultipleValue) {
+	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, String group, String id, String relid, boolean allowMultipleValue) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
@@ -232,8 +235,8 @@ public class ItemUtils
                 schema = create(valMapped.schema);
                 metadata.getElement().add(schema);
             }
-            Element element = writeMetadata(schema, valMapped, group, id, allowMultipleValue);
-            metadata.getElement().add(element);
+            Element element = writeMetadata(schema, valMapped, group, id, relid, allowMultipleValue);
+            //metadata.getElement().add(element);
             
             // use original value for relation
             if (!skipAutority && val.authority != null) {
@@ -257,7 +260,7 @@ public class ItemUtils
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
                 			
-                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), 0);
+                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), Integer.toString(item.getID()), 0);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
                 				if (root_idx == null) {
@@ -502,23 +505,24 @@ public class ItemUtils
     
     @SuppressWarnings("rawtypes")
 	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
-    	return retrieveMetadata(context, item, false, null, null, 0);
+    	return retrieveMetadata(context, item, false, null, null, null, 0);
     }
     
     /***
      * Retrieve all metadata in a XML fragment.
      * 
-     * Group and id are used to group metadata of an item inside xsl. 
+     * Group and id are used to group metadata of an item, or relation, inside xsl. 
      * 
      * @param context The context
      * @param item The cris item
      * @param group The group name
      * @param id The id
+     * @param relid The relation id
      * @param deep 
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, String group, String id, int deep) {
+	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, String group, String id, String relid, int deep) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
@@ -544,8 +548,8 @@ public class ItemUtils
                     schema = create(valMapped.schema);
                     metadata.getElement().add(schema);
                 }
-                Element element = writeMetadata(schema, valMapped, group, id, true);
-                metadata.getElement().add(element);
+                Element element = writeMetadata(schema, valMapped, group, id, relid, true);
+                //metadata.getElement().add(element);
                 
                 // follow relations (use original value for relation)
                 if (!skipAutority && val.authority != null) {
@@ -580,7 +584,7 @@ public class ItemUtils
 	                		else
 	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className(val.authority));
 	                			
-                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), deep + 1);
+                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), item.getUuid(), deep + 1);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
                 				if (root_idx == null) {
@@ -711,8 +715,13 @@ public class ItemUtils
     	
     	// crisitem.crisvprop.fullname
     	Metadatum metadatum = new Metadatum();
-    	for (MetadatumAuthorityDecorator mad : results) {
+    	for (MetadatumAuthorityDecorator mad : results) {	    		
     		Metadatum m = mad.getMetadatum();
+       		if (!map) {
+	    		MetadataMapper mapper = new MetadataMapper(module);
+	    		m = mapper.map(m);
+    		}
+
     		if (DEFAULT_SCHEMA_NAME.equals(m.schema) && VIRTUAL_ELEMENT_NAME.equals(m.element) && "fullname".equals(m.qualifier)) {
     			String firstName = null;
     			String familyName = null;
