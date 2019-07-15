@@ -493,7 +493,7 @@ public class XOAI {
         doc.addField("item.lastmodified", item.getLastModified());
         doc.addField("item.deleted", "false");
 
-		MetadatumAuthorityDecorator[] allDataAuthDec = ItemUtils.getAllMetadata(item, true, true, "oai", true);
+		MetadatumAuthorityDecorator[] allDataAuthDec = ItemUtils.getAllMetadata(item, true, true, "oai");
         if (allDataAuthDec != null)
         {
             for (MetadatumAuthorityDecorator dcAuthDec : allDataAuthDec)

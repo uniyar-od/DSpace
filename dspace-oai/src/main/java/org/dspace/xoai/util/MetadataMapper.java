@@ -39,9 +39,10 @@ public class MetadataMapper {
 	 * @return The mapped metadada or the original metadata value.
 	 */
 	public Metadatum map(Metadatum metadatum) {
-		String metadata = metadatum.schema + "." + metadatum.element;
-		if (metadatum.qualifier != null && metadatum.qualifier.trim().length() > 0) {
-			metadata += "." + metadatum.qualifier;
+		Metadatum metadatumCopy = metadatum.copy();
+		String metadata = metadatumCopy.schema + "." + metadatumCopy.element;
+		if (metadatumCopy.qualifier != null && metadatumCopy.qualifier.trim().length() > 0) {
+			metadata += "." + metadatumCopy.qualifier;
 //			if (metadatum.language != null && metadatum.language.trim().length() > 0)
 //				metadata += "." + metadatum.language;
 		}
@@ -53,22 +54,22 @@ public class MetadataMapper {
 			String m[] = mapping.split("\\.");
 			if (m.length < 3) {
 				log.error("Error in metadata mapping. The metadata has no element or qualifier: " + metadata);
-				return metadatum;
+				return metadatumCopy;
 			} else {
-				metadatum.schema = m[0];
-				metadatum.element = m[1];
-	        	metadatum.qualifier = m[2];
-	        	metadatum.language = null;
+				metadatumCopy.schema = m[0];
+				metadatumCopy.element = m[1];
+	        	metadatumCopy.qualifier = m[2];
+	        	metadatumCopy.language = null;
 	        
 	        	if (m.length == 4) {
-	        		metadatum.language = m[4];
+	        		metadatumCopy.language = m[4];
 	        	} else {
 	        		for (int i = 4; i < m.length; i++)
-	        			metadatum.qualifier += m[i];
+	        			metadatumCopy.qualifier += m[i];
 	        	}
 	        }
 		}
-		return metadatum;
+		return metadatumCopy;
 	}
 
 	/***

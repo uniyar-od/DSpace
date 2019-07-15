@@ -224,9 +224,9 @@ public class ItemUtils
             }
 
             // mapping metadata in index only
-            Metadatum valMapped = val.copy();
+            //Metadatum valMapped = val.copy();
             MetadataMapper mapper = new MetadataMapper("oai");
-            valMapped = mapper.map(valMapped);
+            Metadatum valMapped =  mapper.map(val);
             
             Element schema = getElement(metadata.getElement(), valMapped.schema);
 
@@ -528,7 +528,7 @@ public class ItemUtils
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai", false);
+		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
         if (vals != null)
         {
         	Map<String, Element> root_indexed = new HashMap<String, Element>();
@@ -537,9 +537,9 @@ public class ItemUtils
             	Metadatum val = valAuthDec.getMetadatum();
 
             	// mapping metadata in index only
-                Metadatum valMapped = val.copy();
+                //Metadatum valMapped = val.copy();
                 MetadataMapper mapper = new MetadataMapper("oai");
-                valMapped = mapper.map(valMapped);
+                Metadatum valMapped = mapper.map(val);
                 
                 Element schema = getElement(metadata.getElement(), valMapped.schema);
                 
@@ -552,14 +552,14 @@ public class ItemUtils
                 //metadata.getElement().add(element);
                 
                 // follow relations (use original value for relation)
-                if (!skipAutority && val.authority != null) {
+                if (!skipAutority && val.authority != null && val.authority.trim().length() > 0) {
                 	String m = val.schema + "." + val.element;
                 	
                     if (val.qualifier != null && !val.qualifier.equals("")) {
                     	m += "." + val.qualifier;
                     }
                     String mMapped = valMapped.schema + "." + valMapped.element;
-                    if (valMapped.qualifier != null) {
+                    if (valMapped.qualifier != null && valMapped.qualifier.trim().length() > 0) {
                     	mMapped += "." + valMapped.qualifier;
                     }
                     
@@ -650,21 +650,14 @@ public class ItemUtils
      * @param onlyPub Set to true to read only public property
      * @param filterProperty Set to true to enable property filtering
      * @param module The config file name (module of config)
-     * @param map Is set to true if the mapping will be executed
      * @return
      */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static MetadatumAuthorityDecorator[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module, boolean map) {
+	public static MetadatumAuthorityDecorator[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module) {
     	List<MetadatumAuthorityDecorator> results = new ArrayList<MetadatumAuthorityDecorator>();
     	
     	MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, onlyPub, filterProperty, module);
     	for (MetadatumAuthorityDecorator mad : vals) {
-    		if (map) {
-	    		MetadataMapper mapper = new MetadataMapper(module);
-	    		// mapping attribute
-	    		mad.update(mapper.map(mad.getMetadatum()));
-    		}
-    		
     		results.add(mad);
     	}
     	
@@ -717,10 +710,10 @@ public class ItemUtils
     	Metadatum metadatum = new Metadatum();
     	for (MetadatumAuthorityDecorator mad : results) {	    		
     		Metadatum m = mad.getMetadatum();
-       		if (!map) {
-	    		MetadataMapper mapper = new MetadataMapper(module);
-	    		m = mapper.map(m);
-    		}
+       		
+    		// map
+    		MetadataMapper mapper = new MetadataMapper(module);
+	    	m = mapper.map(m);
 
     		if (DEFAULT_SCHEMA_NAME.equals(m.schema) && VIRTUAL_ELEMENT_NAME.equals(m.element) && "fullname".equals(m.qualifier)) {
     			String firstName = null;
