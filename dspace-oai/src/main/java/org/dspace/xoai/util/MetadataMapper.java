@@ -38,40 +38,79 @@ public class MetadataMapper {
 	 * @param metadatum The current metadata value
 	 * @return The mapped metadada or the original metadata value.
 	 */
-	public Metadatum map(Metadatum metadatum) {
-		Metadatum metadatumCopy = metadatum.copy();
-		String metadata = metadatumCopy.schema + "." + metadatumCopy.element;
-		if (metadatumCopy.qualifier != null && metadatumCopy.qualifier.trim().length() > 0) {
-			metadata += "." + metadatumCopy.qualifier;
-//			if (metadatum.language != null && metadatum.language.trim().length() > 0)
-//				metadata += "." + metadatum.language;
-		}
+//	public Metadatum map(Metadatum metadatum) {
+//		Metadatum metadatumCopy = metadatum.copy();
+//		String metadata = metadatumCopy.schema + "." + metadatumCopy.element;
+//		if (metadatumCopy.qualifier != null && metadatumCopy.qualifier.trim().length() > 0) {
+//			metadata += "." + metadatumCopy.qualifier;
+//		}
+//		
+//		String mapping = ConfigurationManager.getProperty(module, MAP_PREFIX + "." + metadata);
+//		if (mapping != null && mapping.trim().length() > 0) {
+//			mapping = mapping.trim();
+//			
+//			String m[] = mapping.split("\\.");
+//			if (m.length < 3) {
+//				log.error("Error in metadata mapping. The metadata has no element or qualifier: " + metadata);
+//				return metadatumCopy;
+//			} else {
+//				metadatumCopy.schema = m[0];
+//				metadatumCopy.element = m[1];
+//	        	metadatumCopy.qualifier = m[2];
+//	        	metadatumCopy.language = null;
+//	        
+//	        	if (m.length == 4) {
+//	        		metadatumCopy.language = m[4];
+//	        	} else {
+//	        		for (int i = 4; i < m.length; i++)
+//	        			metadatumCopy.qualifier += m[i];
+//	        	}
+//	        }
+//		}
+//		return metadatumCopy;
+//	}
+
+	/***
+	 * Mappings cris property to virtual property.
+	 * 
+	 * Sample of virtual metadata used inside oai_cerif.xsl are:
+	 * 		cris object journal:
+	 * 			crisitem.crisvprop.journalsname    (the name of the journal)
+	 * 			crisitem.crisvprop.issn            (the issn of the journal)
+	 * 
+	 * @param metadatum The current metadata value
+	 * @return The mapped metadada or the original metadata value.
+	 */
+	public Metadatum map(String metadata) {
 		
 		String mapping = ConfigurationManager.getProperty(module, MAP_PREFIX + "." + metadata);
 		if (mapping != null && mapping.trim().length() > 0) {
 			mapping = mapping.trim();
 			
 			String m[] = mapping.split("\\.");
-			if (m.length < 3) {
+			if (m.length < 2) {
 				log.error("Error in metadata mapping. The metadata has no element or qualifier: " + metadata);
-				return metadatumCopy;
+				return null;
 			} else {
-				metadatumCopy.schema = m[0];
-				metadatumCopy.element = m[1];
-	        	metadatumCopy.qualifier = m[2];
-	        	metadatumCopy.language = null;
+				Metadatum metadatum = new Metadatum();
+				metadatum.schema = m[0];
+				metadatum.element = m[1];
+				metadatum.qualifier = (m.length > 2) ? m[2] : null;
+				metadatum.language = null;
 	        
 	        	if (m.length == 4) {
-	        		metadatumCopy.language = m[4];
-	        	} else {
+	        		metadatum.language = m[4];
+	        	} else if (m.length > 4){
 	        		for (int i = 4; i < m.length; i++)
-	        			metadatumCopy.qualifier += m[i];
+	        			metadatum.qualifier += m[i];
 	        	}
+	        	
+	        	return metadatum;
 	        }
 		}
-		return metadatumCopy;
+		return null;
 	}
-
+	
 	/***
 	 * Mappings item properties to virtual property
 	 * 

@@ -225,8 +225,10 @@ public class ItemUtils
 
             // mapping metadata in index only
             //Metadatum valMapped = val.copy();
-            MetadataMapper mapper = new MetadataMapper("oai");
-            Metadatum valMapped =  mapper.map(val);
+            //MetadataMapper mapper = new MetadataMapper("oai");
+            // TODO: remove valMapped
+            //Metadatum valMapped =  mapper.map(val);
+            Metadatum valMapped = val.copy();
             
             Element schema = getElement(metadata.getElement(), valMapped.schema);
 
@@ -538,8 +540,10 @@ public class ItemUtils
 
             	// mapping metadata in index only
                 //Metadatum valMapped = val.copy();
-                MetadataMapper mapper = new MetadataMapper("oai");
-                Metadatum valMapped = mapper.map(val);
+                //MetadataMapper mapper = new MetadataMapper("oai");
+                // TODO: remove valMapped
+                //Metadatum valMapped = mapper.map(val);
+                Metadatum valMapped = val.copy();
                 
                 Element schema = getElement(metadata.getElement(), valMapped.schema);
                 
@@ -708,14 +712,15 @@ public class ItemUtils
     	
     	// crisitem.crisvprop.fullname
     	Metadatum metadatum = new Metadatum();
+    	MetadataMapper mapper = new MetadataMapper(module);
+    	Metadatum fullName = mapper.map(DEFAULT_SCHEMA_NAME + "." + VIRTUAL_ELEMENT_NAME + ".fullname");
+    	
     	for (MetadatumAuthorityDecorator mad : results) {	    		
     		Metadatum m = mad.getMetadatum();
-       		
-    		// map
-    		MetadataMapper mapper = new MetadataMapper(module);
-	    	m = mapper.map(m);
 
-    		if (DEFAULT_SCHEMA_NAME.equals(m.schema) && VIRTUAL_ELEMENT_NAME.equals(m.element) && "fullname".equals(m.qualifier)) {
+    		if (m.schema != null && m.schema.equals(fullName.schema) 
+    				&& m.element != null && m.element.equals(fullName.element) 
+    				&& (m.qualifier == null || m.qualifier.trim().length() <= 0 || m.qualifier.equals(fullName.qualifier))) {
     			String firstName = null;
     			String familyName = null;
 
@@ -755,7 +760,7 @@ public class ItemUtils
     	
     	// fixed values
     	{
-    		MetadataMapper mapper = new MetadataMapper(module);
+    		//MetadataMapper mapper = new MetadataMapper(module);
     		List<Metadatum> fixedValues = mapper.fixedValues(item.getPublicPath());
     		for (Metadatum m : fixedValues) {
     			// add fixed value
