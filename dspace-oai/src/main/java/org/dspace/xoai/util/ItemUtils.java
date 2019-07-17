@@ -8,6 +8,7 @@
 package org.dspace.xoai.util;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
+import com.lyncode.xoai.dataprovider.xml.xoai.Element.Field;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
 
@@ -82,6 +83,15 @@ public class ItemUtils
         return e;
     }
     
+    private static Field getField(List<Field> list, String name)
+    {
+        for (Field f : list)
+            if (name.equals(f.getName()))
+                return f;
+
+        return null;
+    }
+    
     private static Element writeMetadata(Element  schema,Metadatum val) {
     	return writeMetadata(schema, val, null, null, null, false);
     }
@@ -128,7 +138,8 @@ public class ItemUtils
                 valueElem = qualifier;
             }
         }
-
+        Element qualifier = valueElem;
+        
         // Language?
         if (val.language != null && !val.language.equals(""))
         {
@@ -152,7 +163,7 @@ public class ItemUtils
             }
             valueElem = language;
         }
-
+    	
         valueElem.getField().add(createValue("value", val.value));
         if (val.authority != null) {
             valueElem.getField().add(createValue("authority", val.authority));
@@ -223,21 +234,15 @@ public class ItemUtils
                 throw new RuntimeException(se);
             }
 
-            // mapping metadata in index only
-            //Metadatum valMapped = val.copy();
-            //MetadataMapper mapper = new MetadataMapper("oai");
-            // TODO: remove valMapped
-            //Metadatum valMapped =  mapper.map(val);
-            Metadatum valMapped = val.copy();
-            
-            Element schema = getElement(metadata.getElement(), valMapped.schema);
+            // mapping metadata in index only            
+            Element schema = getElement(metadata.getElement(), val.schema);
 
             if (schema == null)
             {
-                schema = create(valMapped.schema);
+                schema = create(val.schema);
                 metadata.getElement().add(schema);
             }
-            Element element = writeMetadata(schema, valMapped, group, id, relid, allowMultipleValue);
+            Element element = writeMetadata(schema, val, group, id, relid, allowMultipleValue);
             //metadata.getElement().add(element);
             
             // use original value for relation
@@ -247,17 +252,13 @@ public class ItemUtils
                 if (val.qualifier != null && !val.qualifier.equals("")) {
                 	m += "." + val.qualifier;
                 }
-                String mMapped = valMapped.schema + "." + valMapped.element;
-                if (valMapped.qualifier != null) {
-                	mMapped += "." + valMapped.qualifier;
-                }
                 // add metadata of related cris object, using authority to get it
                 boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
                 if (metadataAuth) {
                 	try {
                 		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
                 		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
-                		Element root_idx = root_indexed.get(mMapped);
+                		Element root_idx = root_indexed.get(m);
                 		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
@@ -266,9 +267,9 @@ public class ItemUtils
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
                 				if (root_idx == null) {
-	                				Element root = create(mMapped);
+	                				Element root = create(m);
 	                				metadata.getElement().add(root);
-	                				root_indexed.put(mMapped, root);
+	                				root_indexed.put(m, root);
 	                				
 	                				for (Element crisElement : crisMetadata.getElement()) {
 	                					root.getElement().add(crisElement);
@@ -489,13 +490,27 @@ public class ItemUtils
 			
 			Element idx_schema = getElement(father.getElement(), s.getName());
 			if (idx_schema == null) {
-				 father.getElement().add(s);
+				father.getElement().add(s);
 			}
 			else if (idx_schema.getElement().isEmpty()) {
-				 remapFather = s;
+				// check the value
+				boolean remapValue = true;
+				if (!idx_schema.getField().isEmpty() && idx_schema.getField().size() == s.getField().size()) {
+					remapValue = false;
+					for (Field idxf : idx_schema.getField()) {
+						Field sf = getField(s.getField(), idxf.getName());
+						
+						if (sf == null || (sf.getValue() != null && !sf.getValue().equals(idxf.getValue()) || (sf.getValue() == null && sf.getValue() != idxf.getValue()))) {
+							remapValue = true;
+							break;
+						}
+					}
+		        }
+    			if (remapValue)
+    				remapFather = s;
 			 }
 			 else {
-				 remap(idx_schema, s.getElement());
+				remap(idx_schema, s.getElement());
 			 }
 		}
 		
@@ -539,34 +554,23 @@ public class ItemUtils
             	Metadatum val = valAuthDec.getMetadatum();
 
             	// mapping metadata in index only
-                //Metadatum valMapped = val.copy();
-                //MetadataMapper mapper = new MetadataMapper("oai");
-                // TODO: remove valMapped
-                //Metadatum valMapped = mapper.map(val);
-                Metadatum valMapped = val.copy();
-                
-                Element schema = getElement(metadata.getElement(), valMapped.schema);
+                Element schema = getElement(metadata.getElement(), val.schema);
                 
                 if (schema == null)
                 {
-                    schema = create(valMapped.schema);
+                    schema = create(val.schema);
                     metadata.getElement().add(schema);
                 }
-                Element element = writeMetadata(schema, valMapped, group, id, relid, true);
+                Element element = writeMetadata(schema, val, group, id, relid, true);
                 //metadata.getElement().add(element);
                 
-                // follow relations (use original value for relation)
+                // create relation (use full metadata value as relation name)
                 if (!skipAutority && val.authority != null && val.authority.trim().length() > 0) {
                 	String m = val.schema + "." + val.element;
                 	
                     if (val.qualifier != null && !val.qualifier.equals("")) {
                     	m += "." + val.qualifier;
-                    }
-                    String mMapped = valMapped.schema + "." + valMapped.element;
-                    if (valMapped.qualifier != null && valMapped.qualifier.trim().length() > 0) {
-                    	mMapped += "." + valMapped.qualifier;
-                    }
-                    
+                    }          
                     // compute deep
                     int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
                     if (authorityDeep <= 0) {
@@ -581,7 +585,7 @@ public class ItemUtils
 	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
 	                	try {
 	                		ACrisObject o = null;
-	                		Element root_idx = root_indexed.get(mMapped);
+	                		Element root_idx = root_indexed.get(m);
 	                		
 	                		if (!valAuthDec.isClassNameNull())
 	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
@@ -592,9 +596,9 @@ public class ItemUtils
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				// optimize element generation using only one root
                 				if (root_idx == null) {
-	                				Element root = create(mMapped);
+	                				Element root = create(m);
 	                				metadata.getElement().add(root);
-	                				root_indexed.put(mMapped, root);
+	                				root_indexed.put(m, root);
                 				
 	                				for (Element crisElement : crisMetadata.getElement()) {
 	                					root.getElement().add(crisElement);
