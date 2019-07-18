@@ -206,16 +206,24 @@ public class ItemUtils
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         // add defaults
         {
-        	Metadatum[] defaults = new Metadatum[1];
-        	Metadatum metadatum = new Metadatum();
+        	Metadatum[] defaults = new Metadatum[2];
         	
+        	Metadatum metadatum = new Metadatum();
         	metadatum.schema = "item";
         	metadatum.element = "vprop";
         	metadatum.qualifier = "id";
         	metadatum.authority = null;
         	metadatum.value = Integer.toString(item.getID());
         	defaults[0] = metadatum;
+        	vals = ArrayUtils.addAll(vals, defaults);
         	
+        	metadatum = new Metadatum();
+        	metadatum.schema = "item";
+        	metadatum.element = "vprop";
+        	metadatum.qualifier = "handle";
+        	metadatum.authority = null;
+        	metadatum.value = item.getHandle();
+        	defaults[1] = metadatum;
         	vals = ArrayUtils.addAll(vals, defaults);
         }
         Map<String, Element> root_indexed = new HashMap<String, Element>();
