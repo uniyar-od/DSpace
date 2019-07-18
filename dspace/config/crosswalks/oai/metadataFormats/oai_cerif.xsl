@@ -22,8 +22,10 @@
     <xsl:key name="dc_relation_ispartof" match="doc:metadata/doc:element[@name='dc.relation.ispartof']" use="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element/doc:element/doc:field[@name = 'id']" />
     <xsl:key name="dc_contributor_author" match="doc:metadata/doc:element[@name='dc.contributor.author']" use="//doc:field[@name='id']" />
     <xsl:key name="affiliation.affiliationorgunit" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']" use="//doc:field[@name='id']" />
-	<xsl:key name="crisou_parentorgunit__depth1" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']//doc:element[@name='crisou.parentorgunit'][1]" use="//doc:field[@name='id']" />
+	<xsl:key name="crisou_parentorgunit__depth1" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
 	<xsl:key name="crisou_parentorgunit__depth2" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="crisou_parentorgunit__depth3" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="crisou_parentorgunit__depth4" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     		
     <!-- transate dc.type to Type xmlns="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types" -->
     <xsl:template name="oai_type">
@@ -68,39 +70,84 @@
         </xsl:choose>
     </xsl:template>
     
-    <!--  -->
+    <!--	
+    	oai_parentorgunit: Ricorsive template that handle orgunit.
+    	
+    	Example of parameters:
+	    	selector = doc:element[@name='crisou']/doc:element[@name='name']/doc:element
+			id = $crisou_parentorgunit_id  
+			uuid = $crisou_parentorgunit_uuid
+			relid = $crisou_parentorgunit_reli
+			key = 'crisou_parentorgunit_depth'
+			depth = 1
+    -->
 	<xsl:template name="oai_parentorgunit" match="/">
-		<xsl:param name="affiliation.affiliationorgunit_uuid" />
 		<xsl:param name="selector" />
-		<xsl:param name="crisou_parentorgunit" />
+		<xsl:param name="id" />
+		<xsl:param name="uuid" />
+		<xsl:param name="relid" />
+		<xsl:param name="key" />
+		<xsl:param name="depth" />
 		
-		<!-- xsl:for-each select="/doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element"-->
+		<!-- grab name -->
 		<xsl:for-each select="$selector">
-		<xsl:variable name="crisou_parentorgunit_id">
-			<xsl:value-of select="doc:field[@name='value']/text()" />
-		</xsl:variable>
-		<xsl:variable name="crisou_parentorgunit_uuid">
-			<xsl:value-of select="doc:field[@name='id']/text()" />
-		</xsl:variable>
-		<xsl:variable name="crisou_parentorgunit_relid">
-			<xsl:value-of select="doc:field[@name='relid']/text()" />
-		</xsl:variable>
-		<xsl:if test="$crisou_parentorgunit_relid=$affiliation.affiliationorgunit_uuid">
-		<xsl:for-each select="key($crisou_parentorgunit, doc:field[@name='id']/text())">
-		<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='name']/doc:element">
-		<xsl:if test="doc:field[@name='relid']/text()=$crisou_parentorgunit_relid and doc:field[@name='id']/text()=$crisou_parentorgunit_uuid">
-		<oai_cerif:PartOf>
-			<oai_cerif:OrgUnit id="{$crisou_parentorgunit_id}">
-			<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
+			<!-- only value with relation equal to author uuid will be processed -->
+			<xsl:if test="doc:field[@name='relid']/text()=$relid and doc:field[@name='id']/text()=$uuid">
+			
+			<oai_cerif:OrgUnit id="{$id}">
+				<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
+			
+				<!-- depth n-->
+				<!--xsl:for-each select="/doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='crisou_parentorgunit__depth0']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element"-->
+				<xsl:for-each select="../../../doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+				<xsl:variable name="parentorgunit_id">
+					<xsl:value-of select="doc:field[@name='value']/text()" />
+				</xsl:variable>
+				<xsl:variable name="parentorgunit_uuid">
+					<xsl:value-of select="doc:field[@name='id']/text()" />
+				</xsl:variable>
+				<xsl:variable name="parentorgunit_relid">
+					<xsl:value-of select="doc:field[@name='relid']/text()" />
+				</xsl:variable>
+				<xsl:if test="$parentorgunit_relid=$uuid">
+				<xsl:for-each select="key(concat($key, $depth), doc:field[@name='id']/text())">
+					<!-- grab next id -->			    
+					<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+						<xsl:if test="doc:field[@name='relid']/text()=$parentorgunit_relid and doc:field[@name='id']/text()=$parentorgunit_uuid">
+							<xsl:variable name="relation_parentorgunit_id">
+							<xsl:value-of select="doc:field[@name='value']/text()" />
+							</xsl:variable>
+							<xsl:variable name="relation_parentorgunit_uuid">
+							<xsl:value-of select="doc:field[@name='id']/text()" />
+							</xsl:variable>
+							<xsl:variable name="relation_parentorgunit_relid">
+							<xsl:value-of select="doc:field[@name='relid']/text()" />
+							</xsl:variable>
+						    
+						    <!-- [DEBUG-deep]<xsl:value-of select="$depth + 1"></xsl:value-of> -->
+						    <oai_cerif:Partof>
+						        <xsl:call-template name="oai_parentorgunit">
+						            <xsl:with-param name="selector" select="../../../../doc:element[@name='crisou']/doc:element[@name='name']/doc:element" />
+						            <xsl:with-param name="id" select="$relation_parentorgunit_id" />
+						            <xsl:with-param name="uuid" select="$relation_parentorgunit_uuid" />
+						            <xsl:with-param name="relid" select="$relation_parentorgunit_relid" />
+						            <xsl:with-param name="key" select="'crisou_parentorgunit__depth'" />
+						            <xsl:with-param name="depth" select="$depth + 1" />
+						        </xsl:call-template>
+						    </oai_cerif:Partof>
+						</xsl:if>
+					</xsl:for-each>
 				
+				</xsl:for-each>
+				</xsl:if>
+				</xsl:for-each>
 			</oai_cerif:OrgUnit>
-		</oai_cerif:PartOf>
-		</xsl:if>
+			
+			</xsl:if>
 		</xsl:for-each>
-		</xsl:for-each>
-		</xsl:if>
-		</xsl:for-each>
+			
     </xsl:template>
+
     
     <xsl:template match="/">
         <!-- NEW: virtuals medatata
@@ -279,13 +326,24 @@
 			 				<xsl:for-each select="key('affiliation.affiliationorgunit', doc:field[@name='id']/text())">
 							<!-- only value with relation id equals to author uuid -->
 			                <oai_cerif:Affiliation>
+			                	<!-- only value with relation equal to author uuid will be processed -->
+								<xsl:call-template name="oai_parentorgunit">
+									<xsl:with-param name="selector" select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element" />
+									<xsl:with-param name="id" select="$affiliation.affiliationorgunit_id" />
+									<xsl:with-param name="uuid" select="$affiliation.affiliationorgunit_uuid" />
+									<xsl:with-param name="relid" select="$affiliation.affiliationorgunit_relid" />
+									<xsl:with-param name="key" select="'crisou_parentorgunit__depth'" />
+									<xsl:with-param name="depth" select="1" />
+								</xsl:call-template>
+			                		
+			                	<!-- TODO: Remove (code replaced by template oai_parentorgunit)
 			                	<xsl:for-each select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element">
-			                		<!-- only value with relation equal to author uuid will be processed -->
+			                	
 			                		<xsl:if test="doc:field[@name='relid']/text()=$affiliation.affiliationorgunit_relid and doc:field[@name='id']/text()=$affiliation.affiliationorgunit_uuid">
 	                				<oai_cerif:OrgUnit id="{$affiliation.affiliationorgunit_id}">
 	                					<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
 	                					
-	                					<!-- goto, crisou.parentorgunit depth 1-->
+	                					// goto, crisou.parentorgunit depth 1
 										<xsl:for-each select="/doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
 										<xsl:variable name="crisou_parentorgunit_id__depth1">
 	            							<xsl:value-of select="doc:field[@name='value']/text()" />
@@ -298,7 +356,7 @@
 				             			</xsl:variable>
 				             			<xsl:if test="$crisou_parentorgunit_relid__depth1=$affiliation.affiliationorgunit_uuid">
 										<xsl:for-each select="key('crisou_parentorgunit__depth1', doc:field[@name='id']/text())">
-											<!-- grab next id -->
+											// grab next id
 											<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
 												<xsl:if test="doc:field[@name='relid']/text()=$crisou_parentorgunit_relid__depth1 and doc:field[@name='id']/text()=$crisou_parentorgunit_uuid__depth1">
 													<xsl:variable name="item_relation_parentorgunit_id__depth1">
@@ -310,20 +368,20 @@
 					             					<xsl:variable name="item_relation_parentorgunit_relid__depth1">
 					             					<xsl:value-of select="doc:field[@name='relid']/text()" />
 					             					</xsl:variable>
-					             					<!-- [DEBUG-id]<xsl:value-of select="."></xsl:value-of> -->
+					             					// [DEBUG-id]<xsl:value-of select="."></xsl:value-of>
 												</xsl:if>
 											</xsl:for-each>
 											
-											<!-- grab name -->
+											// grab name
 											<xsl:for-each select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element">
 											<xsl:if test="doc:field[@name='relid']/text()=$crisou_parentorgunit_relid__depth1 and doc:field[@name='id']/text()=$crisou_parentorgunit_uuid__depth1">
 											<oai_cerif:PartOf>
-												<!-- [DEBUG-name]<xsl:value-of select="."></xsl:value-of>-->
+												// [DEBUG-name]<xsl:value-of select="."></xsl:value-of>
 	                							<oai_cerif:OrgUnit id="{$crisou_parentorgunit_id__depth1}">
 	                								<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
 	                								
-	                								<!-- goto, crisou.parentorgunit depth 2-->
-	                								<!-- xsl:for-each select="/doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element"-->
+	                								// goto, crisou.parentorgunit depth 2
+	                								// xsl:for-each select="/doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element"
 													<xsl:for-each select="../../../doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
 													<xsl:variable name="crisou_parentorgunit_id__depth2">
 				            							<xsl:value-of select="doc:field[@name='value']/text()" />
@@ -335,9 +393,9 @@
 							             				<xsl:value-of select="doc:field[@name='relid']/text()" />
 							             			</xsl:variable>
 							             			<xsl:if test="$crisou_parentorgunit_relid__depth2=$crisou_parentorgunit_uuid__depth1">
-							             			<!-- [DEBUG__depth2]<xsl:value-of select="."></xsl:value-of>  -->
+							             			// [DEBUG__depth2]<xsl:value-of select="."></xsl:value-of>
 							             			<xsl:for-each select="key('crisou_parentorgunit__depth2', doc:field[@name='id']/text())">
-							             				<!-- grab next id -->
+							             				// grab next id 
 														<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
 															<xsl:if test="doc:field[@name='relid']/text()=$crisou_parentorgunit_relid__depth2 and doc:field[@name='id']/text()=$crisou_parentorgunit_uuid__depth2">
 																<xsl:variable name="item_relation_parentorgunit_id__depth2">
@@ -349,19 +407,19 @@
 								             					<xsl:variable name="item_relation_parentorgunit_relid__depth2">
 								             					<xsl:value-of select="doc:field[@name='relid']/text()" />
 								             					</xsl:variable>
-								             					<!-- [DEBUG-id]<xsl:value-of select="."></xsl:value-of> -->
+								             					// [DEBUG-id]<xsl:value-of select="."></xsl:value-of>
 															</xsl:if>
 														</xsl:for-each>
 														
-														<!-- grab name -->
+														// grab name
 														<xsl:for-each select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element">
 														<xsl:if test="doc:field[@name='relid']/text()=$crisou_parentorgunit_relid__depth2 and doc:field[@name='id']/text()=$crisou_parentorgunit_uuid__depth2">
 														<oai_cerif:PartOf>
-									             			<!-- [DEBUG-name]<xsl:value-of select="."></xsl:value-of>-->
+									             			// [DEBUG-name]<xsl:value-of select="."></xsl:value-of>
 			                								<oai_cerif:OrgUnit id="{$crisou_parentorgunit_id__depth2}">
 			                									<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
 			                									
-			                									<!-- goto, crisou.parentorgunit depth 3-->
+			                									// goto, crisou.parentorgunit depth 3
 			                								</oai_cerif:OrgUnit>
 			                							</oai_cerif:PartOf>
 			                							</xsl:if>
@@ -380,8 +438,9 @@
 	             			 			
 	                				</oai_cerif:OrgUnit>
 	                				</xsl:if>
-	            				
+	            					
 	            				</xsl:for-each>
+	            				-->
 	            			</oai_cerif:Affiliation>
 		                	</xsl:for-each>
             				</xsl:if>
