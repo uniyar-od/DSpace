@@ -11,11 +11,22 @@
  
  > http://www.openarchives.org/OAI/2.0/oai_dc.xsd
  
+ Global namespace:
+ 	oai_cerif		openaire tag
+ 	dc				used in oai_cerif:Publication
+ 	xsi				used in oai_cerif:Publication
+ 	
+ Local Namespace:
+ 	oai_cerif:Publication	oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types"
+ 	oai_cerif:Publication	oai:Type scheme="https://w3id.org/cerif/vocab/OrganisationTypes"
  -->
 <xsl:stylesheet
 	xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/1.1/"
-    xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
     xmlns:doc="http://www.lyncode.com/xoai"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd https://www.openaire.eu/cerif-profile/1.1/ https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd"
     version="1.0">
     <xsl:output omit-xml-declaration="yes" method="xml" indent="yes" />
     
@@ -30,6 +41,11 @@
 	<xsl:key name="crisou_parentorgunit__depth2" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     <xsl:key name="crisou_parentorgunit__depth3" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     <xsl:key name="crisou_parentorgunit__depth4" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+
+	<xsl:key name="root_parentorgunit__depth1" match="doc:metadata/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+	<xsl:key name="root_parentorgunit__depth2" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="root_parentorgunit__depth3" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="root_parentorgunit__depth4" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     		
     <!-- transate dc.type to Type xmlns="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types" -->
     <xsl:template name="oai_type">
@@ -118,6 +134,7 @@
 					<xsl:value-of select="doc:field[@name='relid']/text()" />
 				</xsl:variable>
 				<xsl:if test="$parentorgunit_relid=$uuid">
+
 				<xsl:for-each select="key(concat($key, $depth), doc:field[@name='id']/text())">
 					<!-- grab next id -->			    
 					<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
@@ -139,7 +156,7 @@
 						            <xsl:with-param name="id" select="$relation_parentorgunit_id" />
 						            <xsl:with-param name="uuid" select="$relation_parentorgunit_uuid" />
 						            <xsl:with-param name="relid" select="$relation_parentorgunit_relid" />
-						            <xsl:with-param name="key" select="'crisou_parentorgunit__depth'" />
+						            <xsl:with-param name="key" select="$key" />
 						            <xsl:with-param name="depth" select="$depth + 1" />
 						        </xsl:call-template>
 						    </oai_cerif:Partof>
@@ -152,6 +169,84 @@
 			</oai_cerif:OrgUnit>
 			
 			</xsl:if>
+		</xsl:for-each>
+    </xsl:template>
+    
+    <!--	
+    	oai_parentorgunit: Ricorsive template that handle orgunit.
+    	
+    	To add another level of recursion define crisou_parentorgunit__depthX, where X is the next level.
+    	For instance copy crisou_parentorgunit__depth4 to crisou_parentorgunit__depth5 and add an estra level in
+    	xpath of /doc:element[@name='crisou.parentorgunit'].
+    	
+    	Example of parameters:
+			key = 'parentorgunit_depth'
+			depth = 1
+    -->
+	<xsl:template name="oai_parentorgunit_root" match="/">
+		<xsl:param name="key" />
+		<xsl:param name="depth" />
+		
+		<xsl:variable name="id">
+       		<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+       			<xsl:value-of select="doc:field[@name='value']/text()" />
+       		</xsl:for-each>
+       	</xsl:variable>
+        <xsl:variable name="uuid">
+       		<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='uuid']/doc:element">
+       			<xsl:value-of select="doc:field[@name='value']/text()" />
+       		</xsl:for-each>
+       	</xsl:variable>
+       	
+       	<xsl:for-each select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element">
+			<oai_cerif:OrgUnit id="{$id}">
+				<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
+			
+				<!-- depth n-->
+				<xsl:for-each select="../../../doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+				<xsl:variable name="parentorgunit_id">
+					<xsl:value-of select="doc:field[@name='value']/text()" />
+				</xsl:variable>
+				<xsl:variable name="parentorgunit_uuid">
+					<xsl:value-of select="doc:field[@name='id']/text()" />
+				</xsl:variable>
+				<xsl:variable name="parentorgunit_relid">
+					<xsl:value-of select="doc:field[@name='relid']/text()" />
+				</xsl:variable>
+				<xsl:if test="$parentorgunit_relid=$uuid">
+				<xsl:for-each select="key(concat($key, $depth), doc:field[@name='id']/text())">
+					<!-- grab next id -->			    
+					<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+						<xsl:if test="doc:field[@name='relid']/text()=$parentorgunit_relid and doc:field[@name='id']/text()=$parentorgunit_uuid">
+							<xsl:variable name="relation_parentorgunit_id">
+							<xsl:value-of select="doc:field[@name='value']/text()" />
+							</xsl:variable>
+							<xsl:variable name="relation_parentorgunit_uuid">
+							<xsl:value-of select="doc:field[@name='id']/text()" />
+							</xsl:variable>
+							<xsl:variable name="relation_parentorgunit_relid">
+							<xsl:value-of select="doc:field[@name='relid']/text()" />
+							</xsl:variable>
+						    
+						    <!-- [DEBUG-deep]<xsl:value-of select="$depth + 1"></xsl:value-of> -->
+						    <oai_cerif:Partof>
+						        <xsl:call-template name="oai_parentorgunit">
+						            <xsl:with-param name="selector" select="../../../../doc:element[@name='crisou']/doc:element[@name='name']/doc:element" />
+						            <xsl:with-param name="id" select="$relation_parentorgunit_id" />
+						            <xsl:with-param name="uuid" select="$relation_parentorgunit_uuid" />
+						            <xsl:with-param name="relid" select="$relation_parentorgunit_relid" />
+						            <xsl:with-param name="key" select="$key" />
+						            <xsl:with-param name="depth" select="$depth + 1" />
+						        </xsl:call-template>
+						    </oai_cerif:Partof>
+						</xsl:if>
+					</xsl:for-each>
+				
+				</xsl:for-each>
+				</xsl:if>
+				</xsl:for-each>
+			</oai_cerif:OrgUnit>
+			
 		</xsl:for-each>
     </xsl:template>
 
@@ -238,37 +333,27 @@
 	    <!-- oai_cerif:Person [END] -->
     </xsl:template>
     
-    <xsl:template match="/">
-        <!-- NEW: virtuals medatata
-         crisitem.crisvprop.id        	(the id of the cris item)
-         crisitem.crisvprop.uuid      	(the uuid of the cris item)
-         crisitem.crisvprop.handle    	(the handle of the cris item)
-         crisitem.crisvprop.fullname	(the full name, supports two formats: familyname, firstname or firstname familyname)
-         crisitem.crisvprop.familyname	(the family name)
-         crisitem.crisvprop.firstname	(the first name)
-         
-         item.vprop.id					(the id of the item)
-         item.vprop.handle				(the handle of the item)
-         -->
-        <xsl:variable name="item_prop_id">
+    <!--	
+    	publisher: Template that handle Authors/Editors/Publishers.
+    	
+    	Example of parameters:
+	    	dc_contributor_id
+    -->
+	<xsl:template name="publication" match="/">
+       <xsl:variable name="item_prop_id">
             <xsl:value-of select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='id']/doc:element/doc:field[@name='value']" />
         </xsl:variable>
         
-        <oai_cerif:Publication xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/1.1/"
-            xmlns:dc="http://purl.org/dc/elements/1.1/"
-            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/ http://www.openarchives.org/OAI/2.0/OAI-PMH.xsd https://www.openaire.eu/cerif-profile/1.1/ https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd"
-            id="{$item_prop_id}">
-            
+        <oai_cerif:Publication id="{$item_prop_id}">
             <!-- dc.type BUG: one /doc:element removed -->
             <xsl:variable name="dc_type_ci">
                 <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
             </xsl:variable>
             <xsl:variable name="dc_type" select="translate($dc_type_ci,'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
             
-            <oai_cerif:Type xmlns="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
+            <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
             	<xsl:call-template name="oai_type"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template>
-            </oai_cerif:Type>
+            </oai:Type>
             
             <!-- dc.title (BUG, missing one /doc:element)-->
             <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
@@ -302,9 +387,9 @@
                         <xsl:value-of select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
                     </xsl:variable>
                     <oai_cerif:Publication id="{$ispartof_crisitem_crisprop_id}">
-                        <oai_cerif:Type xmlns="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
+                        <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
                             <xsl:call-template name="oai_type"><xsl:with-param name="type" select="$crisitem_crisvprop_type" /></xsl:call-template>
-                        </oai_cerif:Type>
+                        </oai:Type>
                     
 	            		<!-- oai_cerif:PublishedIn, Title (crisjournals.journalsname) --> 
 	                    <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsname']/doc:element">
@@ -445,31 +530,62 @@
             </xsl:for-each>
            	</oai_cerif:Publishers>
             <!-- oai_cerif:Publishers [END] -->
+            
+            <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='license']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:License><xsl:value-of select="." /></oai_cerif:License>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Subject><xsl:value-of select="." /></oai_cerif:Subject>
+	        </xsl:for-each>
+	        
+	        <!--  MISSING METADATA FIX [START]: keywords -->
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='keywords']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Keywords><xsl:value-of select="." /></oai_cerif:Keywords>
+	        </xsl:for-each>
+	        <!-- MISSING METADATA FIX [END] -->
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
+	        </xsl:for-each>
+	        
+	        <!--  MISSING METADATA FIX [START]: status -->
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='status']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Status><xsl:value-of select="." /></oai_cerif:Status>
+	        </xsl:for-each>
+	        <!-- MISSING METADATA FIX [END] -->
         </oai_cerif:Publication>
+	</xsl:template>
+	
+    <xsl:template match="/">
+        <!-- NEW: virtuals medatata
+         crisitem.crisvprop.id        	(the id of the cris item)
+         crisitem.crisvprop.uuid      	(the uuid of the cris item)
+         crisitem.crisvprop.handle    	(the handle of the cris item)
+         crisitem.crisvprop.fullname	(map the attribute fullname, supports two formats: familyname, firstname or firstname familyname)
+         crisitem.crisvprop.familyname	(the family name)
+         crisitem.crisvprop.firstname	(the first name)
+         crisitem.crisvprop.objecttype	(the type: project, rp, ou, journals, ...)
+         
+         item.vprop.id					(the id of the item)
+         item.vprop.handle				(the handle of the item)
+         item.vprop.objecttype			(the vaue is always item)
+         -->
+         
+        <!-- item -->
+        <xsl:if test="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='item'">
+        	<xsl:call-template name="publication" />
+        </xsl:if>
         
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='license']/doc:element/doc:field[@name='value']">
-        	<oai_cerif:License><xsl:value-of select="." /></oai_cerif:License>
-        </xsl:for-each>
-        
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-        	<oai_cerif:Subject><xsl:value-of select="." /></oai_cerif:Subject>
-        </xsl:for-each>
-        
-        <!--  MISSING METADATA FIX [START]: keywords -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='keywords']/doc:element/doc:field[@name='value']">
-        	<oai_cerif:Keywords><xsl:value-of select="." /></oai_cerif:Keywords>
-        </xsl:for-each>
-        <!-- MISSING METADATA FIX [END] -->
-        
-        <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
-        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
-        </xsl:for-each>
-        
-        <!--  MISSING METADATA FIX [START]: status -->
-        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='status']/doc:element/doc:field[@name='value']">
-        	<oai_cerif:Status><xsl:value-of select="." /></oai_cerif:Status>
-        </xsl:for-each>
-        <!-- MISSING METADATA FIX [END] -->
+        <!-- ou -->
+        <xsl:if test="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='ou'">
+        	<xsl:for-each select="doc:metadata">
+	        	<xsl:call-template name="oai_parentorgunit_root">
+					<xsl:with-param name="key" select="'root_parentorgunit__depth'" />
+					<xsl:with-param name="depth" select="1" />
+				</xsl:call-template>
+			</xsl:for-each>
+        </xsl:if>
         
     </xsl:template>
 
