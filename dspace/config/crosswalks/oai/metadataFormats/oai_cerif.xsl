@@ -36,16 +36,25 @@
     <xsl:key name="dc_contributor_editor" match="doc:metadata/doc:element[@name='dc.contributor.editor']" use="//doc:field[@name='id']" />
     <xsl:key name="dc_publisher" match="doc:metadata/doc:element[@name='dc.publisher']" use="//doc:field[@name='id']" />
    
+   	<!-- used when parsing Item -->
     <xsl:key name="affiliation.affiliationorgunit" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']" use="//doc:field[@name='id']" />
 	<xsl:key name="crisou_parentorgunit__depth1" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
 	<xsl:key name="crisou_parentorgunit__depth2" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     <xsl:key name="crisou_parentorgunit__depth3" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     <xsl:key name="crisou_parentorgunit__depth4" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
 
-	<xsl:key name="root_parentorgunit__depth1" match="doc:metadata/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
-	<xsl:key name="root_parentorgunit__depth2" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
-    <xsl:key name="root_parentorgunit__depth3" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
-    <xsl:key name="root_parentorgunit__depth4" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+	<!-- used when parsing ou -->
+	<xsl:key name="ou.parentorgunit__depth1" match="doc:metadata/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+	<xsl:key name="ou.parentorgunit__depth2" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="ou.parentorgunit__depth3" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="ou.parentorgunit__depth4" match="doc:metadata/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+
+	<!-- used when parsing rp -->
+	<xsl:key name="rp.affiliation.affiliationorgunit" match="doc:metadata/doc:element[@name='affiliation.affiliationorgunit']" use="//doc:field[@name='id']" />
+	<xsl:key name="rp.parentorgunit__depth1" match="doc:metadata/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+	<xsl:key name="rp.parentorgunit__depth2" match="doc:metadata/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="rp.parentorgunit__depth3" match="doc:metadata/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
+    <xsl:key name="rp.parentorgunit__depth4" match="doc:metadata/doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisou.parentorgunit']" use="//doc:field[@name='id']" />
     		
     <!-- transate dc.type to Type xmlns="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types" -->
     <xsl:template name="oai_type">
@@ -90,6 +99,40 @@
         </xsl:choose>
     </xsl:template>
     
+    <!-- transate ou.type to Type xmlns="https://w3id.org/cerif/vocab/OrganisationTypes" -->
+    <xsl:template name="oai_outype">
+        <xsl:param name="type" select="'Academic Institute'"/>
+        <xsl:choose>
+            
+            <!-- An academic institution is an educational institution dedicated to education and research, which grants academic degrees. -->
+            <xsl:when test="$type='Academic Institute'">https://w3id.org/cerif/vocab/OrganisationTypes#AcademicInstitute</xsl:when>
+            <!-- A university is an institution of higher education and research, which grants academic degrees in a variety of subjects. A university is a corporation that provides both undergraduate education and postgraduate education. -->
+            <xsl:when test="$type='University'">https://w3id.org/cerif/vocab/OrganisationTypes#University</xsl:when>
+    		<!-- The term "university college" is used in a number of countries to denote college institutions that provide tertiary education but do not have full or independent university status. A university college is often part of a larger university. The precise usage varies from country to country.. -->
+            <xsl:when test="$type='University College'">https://w3id.org/cerif/vocab/OrganisationTypes#UniversityCollege</xsl:when>
+    		<!-- A research institute is an establishment endowed for doing research. Research institutes may specialize in basic research or may be oriented to applied research. -->
+    		<xsl:when test="$type='Research Institute'">https://w3id.org/cerif/vocab/OrganisationTypes#ResearchInstitute</xsl:when>
+    		<!-- A strategic research institute's core mission is to provide analyses that respond to the needs of decision-makers. -->
+    		<xsl:when test="$type='Strategic Research Insitute'">https://w3id.org/cerif/vocab/OrganisationTypes#StrategicResearchInsitute</xsl:when>
+    		<!-- A company is a form of business organization. In the United States, a company is a corporation—or, less commonly, an association, partnership, or union—that carries on an industrial enterprise." Generally, a company may be a "corporation, partnership, association, joint-stock company, trust, fund, or organized group of persons, whether incorporated or not, and (in an official capacity) any receiver, trustee in bankruptcy, or similar official, or liquidating agent, for any of the foregoing." In English law, and therefore in the Commonwealth realms, a company is a form of body corporate or corporation, generally registered under the Companies Acts or similar legislation. It does not include a partnership or any other unincorporated group of persons. -->
+    		<xsl:when test="$type='Company'">https://w3id.org/cerif/vocab/OrganisationTypes#Company</xsl:when>
+    		<!-- Small and medium enterprises (also SMEs, small and medium businesses, SMBs, and variations thereof) are companies whose headcount or turnover falls below certain limits. EU Member States traditionally have their own definition of what constitutes an SME, for example the traditional definition in Germany had a limit of 250 employees, while, for example, in Belgium it could have been 100. But now the EU has started to standardize the concept. Its current definition categorizes companies with fewer than 10 employees as "micro", those with fewer than 50 employees as "small", and those with fewer than 250 as "medium". -->
+    		<xsl:when test="$type='SME'">https://w3id.org/cerif/vocab/OrganisationTypes#SME</xsl:when>
+    		<!-- A government is the organization, or agency through which a political unit exercises its authority, controls and administers public policy, and directs and controls the actions of its members or subjects. -->
+    		<xsl:when test="$type='Government'">https://w3id.org/cerif/vocab/OrganisationTypes#Government</xsl:when>
+    		<!-- Higher education or post-secondary education refers to a level of education that is provided at academies, universities, colleges, seminaries, institutes of technology, and certain other collegiate- level institutions, such as vocational schools, trade schools, and career colleges, that award academic degrees or professional certifications. -->
+    		<xsl:when test="$type='Higher Education'">https://w3id.org/cerif/vocab/OrganisationTypes#HigherEducation</xsl:when>
+    		<!-- An organization that is incorporated under state law and whose purpose is not to make profit, but rather to further a charitable, civic, scientific, or other lawful purpose. -->
+    		<xsl:when test="$type='Private non-profit'">https://w3id.org/cerif/vocab/OrganisationTypes#Privatenon-profit</xsl:when>
+    		<!-- An intergovernmental organization, sometimes rendered as an international governmental organization and both abbreviated as IGO, is an organization composed primarily of sovereign states (referred to as member states), or of other intergovernmental organizations. Intergovernmental organizations are often called international organizations, although that term may also include international nongovernmental organization such as international non-profit organizations or multinational corporations. -->
+    		<xsl:when test="$type='Intergovernmental'">https://w3id.org/cerif/vocab/OrganisationTypes#Intergovernmental</xsl:when>
+    		<!-- A charitable organization is a type of non-profit organization (NPO). It differs from other types of NPOs in that it centers on philanthropic goals (e.g. charitable, educational, religious, or other activities serving the public interest or common good). The legal definition of charitable organization (and of Charity) varies according to the country and in some instances the region of the country in which the charitable organization operates. The regulation, tax treatment, and the way in which charity law affects charitable organizations also varies. -->
+    		<xsl:when test="$type='Charity'">https://w3id.org/cerif/vocab/OrganisationTypes#Charity</xsl:when>
+    		<!-- Hospitals, trusts and other bodies receiving funding from central governement through the national insurance scheme. -->
+    		<xsl:when test="$type='National Health Service'">https://w3id.org/cerif/vocab/OrganisationTypes#NationalHealthService</xsl:when>
+    	</xsl:choose>
+    </xsl:template>
+    
     <!--	
     	oai_parentorgunit: Ricorsive template that handle orgunit.
     	
@@ -119,8 +162,33 @@
 			<xsl:if test="doc:field[@name='relid']/text()=$relid and doc:field[@name='id']/text()=$uuid">
 			
 			<oai_cerif:OrgUnit id="{$id}">
+				<!-- duplicated (uo *) -->
+				<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element">
+				<xsl:variable name="ou_type">
+					<xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of>
+				</xsl:variable>
+				<oai_cerif:Type xmlns:oai="https://w3id.org/cerif/vocab/OrganisationTypes">
+            		<xsl:call-template name="oai_outype"><xsl:with-param name="type" select="$ou_type" /></xsl:call-template>
+            	</oai_cerif:Type>
+            	</xsl:for-each>
+            	
+            	<!-- duplicated (uo *) -->
+            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='acronym']/doc:element">
+				<oai_cerif:Acronym><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:Acronym>
+            	</xsl:for-each>
+            	
 				<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
 			
+				<!-- duplicated (uo *) -->
+				<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='identifier']/doc:element">
+				<oai_cerif:Identifier><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:Identifier>
+            	</xsl:for-each>
+            	
+            	<!-- duplicated (uo *) -->
+            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='email']/doc:element">
+				<oai_cerif:ElectronicAddress><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:ElectronicAddress>
+            	</xsl:for-each>
+            	
 				<!-- depth n-->
 				<!--xsl:for-each select="/doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='crisou_parentorgunit__depth0']/doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element"-->
 				<xsl:for-each select="../../../doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
@@ -200,8 +268,33 @@
        	
        	<xsl:for-each select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element">
 			<oai_cerif:OrgUnit id="{$id}">
+				<!-- duplicated (uo *) -->
+				<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element">
+				<xsl:variable name="ou_type">
+					<xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of>
+				</xsl:variable>
+				<oai_cerif:Type xmlns:oai="https://w3id.org/cerif/vocab/OrganisationTypes">
+            		<xsl:call-template name="oai_outype"><xsl:with-param name="type" select="$ou_type" /></xsl:call-template>
+            	</oai_cerif:Type>
+            	</xsl:for-each>
+            	
+            	<!-- duplicated (uo *) -->
+            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='acronym']/doc:element">
+				<oai_cerif:Acronym><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:Acronym>
+            	</xsl:for-each>
+            	
 				<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
-			
+            
+            	<!-- duplicated (uo *) -->
+            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='identifier']/doc:element">
+				<oai_cerif:Identifier><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:Identifier>
+            	</xsl:for-each>
+            	
+            	<!-- duplicated (uo *) -->
+            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='email']/doc:element">
+				<oai_cerif:ElectronicAddress><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:ElectronicAddress>
+            	</xsl:for-each>
+            	
 				<!-- depth n-->
 				<xsl:for-each select="../../../doc:element[@name='crisou.parentorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
 				<xsl:variable name="parentorgunit_id">
@@ -250,8 +343,144 @@
 		</xsl:for-each>
     </xsl:template>
 
+    <!--	
+    	person: Template that handle Person.
+    	
+    	Example of parameters:
+	    	author_crisitem_crisprop_id
+	    	dc_contributor_id
+	    	author_crisitem_crisprop_uuid
+    -->
+    <xsl:template name="person" match="/">
+    	<xsl:param name="author_crisitem_crisprop_id" />
+    	<xsl:param name="dc_contributor_id" />
+    	<xsl:param name="author_crisitem_crisprop_uuid" />
+    	<xsl:param name="key_affiliation_affiliationorgunit" />
+    	<xsl:param name="crisou_parentorgunit__depth" />
+    	
+	    <oai_cerif:Person id="{$author_crisitem_crisprop_id}"> 
+	        <oai_cerif:PersonName>
+	        	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='familyname']/doc:element">
+	            <xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:FamilyName><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:FamilyName>
+               	</xsl:if>
+           		</xsl:for-each>
+           					
+           		<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='firstname']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:PersonName><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:PersonName>
+               	</xsl:if>
+           		</xsl:for-each>
+	    	</oai_cerif:PersonName>
+	    	
+	    	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='gender']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:Gender><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Gender>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='rp']/doc:element[@name='orcid']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:ORCID><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ORCID>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='alternativeORCID']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:AlternativeORCID><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:AlternativeORCID>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='rp']/doc:element[@name='authorid']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:ResearchID><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ResearchID>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='alternativeResearchid']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:AlternativeResearchID><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:AlternativeResearchID>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='rp']/doc:element[@name='scopusid']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:ScopusAuthorID><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ScopusAuthorID>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='alternativeScopus']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:AlternativeScopusAuthorID><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:AlternativeScopusAuthorID>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='isni']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:ISNI><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ISNI>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='alternativeIsni']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:AlternativeISNI><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:AlternativeISNI>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='dai']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:DAI><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:DAI>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='alternativeDAI']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:AlternativeDAI><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:AlternativeDAI>
+               	</xsl:if>
+           	</xsl:for-each>
+           	
+           	<xsl:for-each select="doc:element[@name='rp']/doc:element[@name='email']/doc:element">
+               	<xsl:if test="not(doc:field[@name='id']) or (doc:field[@name='id']=$dc_contributor_id)">
+               		<oai_cerif:ElectronicAddress><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ElectronicAddress>
+               	</xsl:if>
+           	</xsl:for-each>
+	                    
+		    <!-- oai_cerif:Affiliation [START] -->
+			<xsl:for-each select="doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+				<xsl:variable name="affiliation.affiliationorgunit_id">
+             		<xsl:value-of select="doc:field[@name='value']/text()" />
+             	</xsl:variable>
+             	<xsl:variable name="affiliation.affiliationorgunit_uuid">
+             		<xsl:value-of select="doc:field[@name='id']/text()" />
+             	</xsl:variable>
+             	<xsl:variable name="affiliation.affiliationorgunit_relid">
+             		<xsl:value-of select="doc:field[@name='relid']/text()" />
+             	</xsl:variable>
+             			
+               	<xsl:if test="$author_crisitem_crisprop_uuid=$affiliation.affiliationorgunit_relid">
+		 		<xsl:for-each select="key($key_affiliation_affiliationorgunit, doc:field[@name='id']/text())">
+				<!-- only value with relation id equals to author uuid -->
+		        <oai_cerif:Affiliation>
+		        	<!-- only value with relation equal to author uuid will be processed -->
+					<xsl:call-template name="oai_parentorgunit">
+						<xsl:with-param name="selector" select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element" />
+						<xsl:with-param name="id" select="$affiliation.affiliationorgunit_id" />
+						<xsl:with-param name="uuid" select="$affiliation.affiliationorgunit_uuid" />
+						<xsl:with-param name="relid" select="$affiliation.affiliationorgunit_relid" />
+						<xsl:with-param name="key" select="$crisou_parentorgunit__depth" />
+						<xsl:with-param name="depth" select="1" />
+					</xsl:call-template>
+            	</oai_cerif:Affiliation>
+	            </xsl:for-each>
+           		</xsl:if>
+           					                
+	      	</xsl:for-each>
+	        <!-- oai_cerif:Affiliation [END] -->
+		</oai_cerif:Person>
+    </xsl:template>
+    
 	<!--	
-    	oai_author: Template that handle Authors/Editors/Publishers.
+    	oai_contributors: Template that handle Authors/Editors/Publishers.
     	
     	Example of parameters:
 	    	dc_contributor_id
@@ -282,55 +511,15 @@
 	    </xsl:for-each>
 	    </xsl:variable>
 	 	               	
-	 	<!-- oai_cerif:Person [START] -->
-	    <oai_cerif:Person id="{$author_crisitem_crisprop_id}"> 
-	        <oai_cerif:PersonName>
-	        	<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='familyname']/doc:element">
-	            <xsl:if test="doc:field[@name='id']=$dc_contributor_id">
-               		<oai_cerif:FamilyName><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:FamilyName>
-               	</xsl:if>
-           		</xsl:for-each>
-           					
-           		<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='firstname']/doc:element">
-               	<xsl:if test="doc:field[@name='id']=$dc_contributor_id">
-               		<oai_cerif:PersonName><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:PersonName>
-               	</xsl:if>
-           		</xsl:for-each>
-	    	</oai_cerif:PersonName>
-	                    
-		    <!-- oai_cerif:Affiliation [START] -->
-			<xsl:for-each select="doc:element[@name='affiliation.affiliationorgunit']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
-				<xsl:variable name="affiliation.affiliationorgunit_id">
-             		<xsl:value-of select="doc:field[@name='value']/text()" />
-             	</xsl:variable>
-             	<xsl:variable name="affiliation.affiliationorgunit_uuid">
-             		<xsl:value-of select="doc:field[@name='id']/text()" />
-             	</xsl:variable>
-             	<xsl:variable name="affiliation.affiliationorgunit_relid">
-             		<xsl:value-of select="doc:field[@name='relid']/text()" />
-             	</xsl:variable>
-             			
-               	<xsl:if test="$author_crisitem_crisprop_uuid=$affiliation.affiliationorgunit_relid">
-		 		<xsl:for-each select="key('affiliation.affiliationorgunit', doc:field[@name='id']/text())">
-				<!-- only value with relation id equals to author uuid -->
-		        <oai_cerif:Affiliation>
-		        	<!-- only value with relation equal to author uuid will be processed -->
-					<xsl:call-template name="oai_parentorgunit">
-						<xsl:with-param name="selector" select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element" />
-						<xsl:with-param name="id" select="$affiliation.affiliationorgunit_id" />
-						<xsl:with-param name="uuid" select="$affiliation.affiliationorgunit_uuid" />
-						<xsl:with-param name="relid" select="$affiliation.affiliationorgunit_relid" />
-						<xsl:with-param name="key" select="'crisou_parentorgunit__depth'" />
-						<xsl:with-param name="depth" select="1" />
-					</xsl:call-template>
-            	</oai_cerif:Affiliation>
-	            </xsl:for-each>
-           		</xsl:if>
-           					                
-	      	</xsl:for-each>
-	        <!-- oai_cerif:Affiliation [END] -->
-		</oai_cerif:Person>
-	    <!-- oai_cerif:Person [END] -->
+		<!-- Person call -->
+		<xsl:call-template name="person">
+			<xsl:with-param name="author_crisitem_crisprop_id" select="$author_crisitem_crisprop_uuid" />
+			<xsl:with-param name="dc_contributor_id" select="$dc_contributor_id" />
+			<xsl:with-param name="author_crisitem_crisprop_uuid" select="$author_crisitem_crisprop_uuid" />
+			<xsl:with-param name="key_affiliation_affiliationorgunit" select="'affiliation.affiliationorgunit'" />
+			<xsl:with-param name="crisou_parentorgunit__depth" select="'crisou_parentorgunit__depth'" />
+		</xsl:call-template>
+					
     </xsl:template>
     
     <!--	
@@ -361,7 +550,7 @@
             </xsl:for-each>
             
             <!--  MISSING METADATA FIX [START]: subtitle -->
-            <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='subtitle']/doc:element/doc:field[@name='value']">
+            <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='title']/doc:element[@name='alternative']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Subtitle><xsl:value-of select="." /></oai_cerif:Subtitle>
             </xsl:for-each>
             <!-- MISSING METADATA FIX [END] -->
@@ -451,11 +640,11 @@
             </xsl:for-each>
             
             <!--  MISSING METADATA FIX [START]: pmcid, isinumber, scpnumber -->
-            <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='pmcid']/doc:element/doc:field[@name='value']">
+            <xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='pmid']/doc:element/doc:field[@name='value']">
                 <oai_cerif:PMCID><xsl:value-of select="." /></oai_cerif:PMCID>
             </xsl:for-each>
 
-			<xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='isinumber']/doc:element/doc:field[@name='value']">
+			<xsl:for-each select="doc:metadata/doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isi']/doc:element/doc:field[@name='value']">
                 <oai_cerif:ISI-Number><xsl:value-of select="." /></oai_cerif:ISI-Number>
             </xsl:for-each>
             
@@ -581,8 +770,34 @@
         <xsl:if test="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='ou'">
         	<xsl:for-each select="doc:metadata">
 	        	<xsl:call-template name="oai_parentorgunit_root">
-					<xsl:with-param name="key" select="'root_parentorgunit__depth'" />
+					<xsl:with-param name="key" select="'ou.parentorgunit__depth'" />
 					<xsl:with-param name="depth" select="1" />
+				</xsl:call-template>
+			</xsl:for-each>
+        </xsl:if>
+        
+        <!-- rp -->
+        <xsl:if test="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='rp'">
+			<xsl:for-each select="doc:metadata">
+				<xsl:variable name="author_crisitem_crisprop_id">
+				<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+		 			<xsl:value-of select="doc:field[@name='value']" />
+			    </xsl:for-each>
+			    </xsl:variable>
+		      			
+			    <xsl:variable name="author_crisitem_crisprop_uuid">
+				<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='uuid']/doc:element">
+		 			<xsl:value-of select="doc:field[@name='value']" />
+			    </xsl:for-each>
+			    </xsl:variable>
+		 	               	
+				<!-- Person call -->
+				<xsl:call-template name="person">
+					<xsl:with-param name="author_crisitem_crisprop_id" select="$author_crisitem_crisprop_id" />
+					<xsl:with-param name="dc_contributor_id" select="$author_crisitem_crisprop_uuid" />
+					<xsl:with-param name="author_crisitem_crisprop_uuid" select="$author_crisitem_crisprop_uuid" />
+					<xsl:with-param name="key_affiliation_affiliationorgunit" select="'rp.affiliation.affiliationorgunit'" />
+					<xsl:with-param name="crisou_parentorgunit__depth" select="'rp.parentorgunit__depth'" />
 				</xsl:call-template>
 			</xsl:for-each>
         </xsl:if>
