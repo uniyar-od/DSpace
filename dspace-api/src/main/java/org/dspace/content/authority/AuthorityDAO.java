@@ -8,10 +8,12 @@
 package org.dspace.content.authority;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
@@ -38,6 +40,8 @@ public abstract class AuthorityDAO {
 
 	abstract Context getContext();
 
+	private static Logger log = Logger.getLogger(AuthorityDAO.class);
+	
 	public Session getHibernateSession() throws SQLException {
 		return ((Session) getContext().getDBConnection().getSession());
 	}
@@ -87,28 +91,35 @@ public abstract class AuthorityDAO {
 			if (conf < Choices.CF_NOVALUE || conf > Choices.CF_ACCEPTED) {
 				conf = 0;
 			}
-			numMetadataByConfidence[conf / 100] = (Integer) row[1];
+			BigInteger numMetadataInt = (BigInteger) row[1];
+			int numMetadata = numMetadataInt!=null ? numMetadataInt.intValue() :0;
+			numMetadataByConfidence[conf / 100] = numMetadata;
 		}
 
 		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthoredItems(), fieldIds))
 				.addScalar("num").uniqueResult();
-		long numItems = (Integer) row;
+		BigInteger numItemsInt = (BigInteger) row;
+		long numItems = numItemsInt != null ? numItemsInt.longValue(): 0;
+		
 		if (numItems == -1) {
 			numItems = 0;
 		}
 
 		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumIssuedItems(), fieldIds))
-				.addScalar("num");
-		long numIssuedItems = (Integer) row;
+				.addScalar("num").uniqueResult();
+		BigInteger numIssuedItemsInt = (BigInteger) row;
+		long numIssuedItems = numIssuedItemsInt != null ? numIssuedItemsInt.longValue(): 0;
 		if (numIssuedItems == -1) {
 			numIssuedItems = 0;
 		}
 
-		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumMetadata(), fieldIds)).addScalar("num");
-		long numTotMetadata = (Integer) row;
-
-		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthkey(), fieldIds)).addScalar("num");
-		long numAuthorityKey = (Integer) row;
+		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumMetadata(), fieldIds)).addScalar("num").uniqueResult();
+		BigInteger numTotMetadataInt = (BigInteger) row;
+		long numTotMetadata = numTotMetadataInt != null ? numTotMetadataInt.longValue(): 0;
+		
+		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthkey(), fieldIds)).addScalar("num").uniqueResult();
+		BigInteger numAuthorityKeyInt = (BigInteger) row;
+		long numAuthorityKey = numAuthorityKeyInt != null ? numAuthorityKeyInt.longValue(): 0;
 
 		long numAuthorityIssued = countIssuedAuthorityKeys(fieldIds);
 
@@ -148,9 +159,10 @@ public abstract class AuthorityDAO {
 	}
 
 	private long countIssuedAuthorityKeys(int... fieldId) throws SQLException {
-		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlAuthkeyIssued(), fieldId))
+		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthkeyIssued(), fieldId))
 				.addScalar("num").uniqueResult();
-		long numAuthorityIssued = (Integer) row;
+		BigInteger numAuthorityIssuedInt = (BigInteger) row;
+		long numAuthorityIssued = numAuthorityIssuedInt!= null ? numAuthorityIssuedInt.longValue() :0;
 		return numAuthorityIssued;
 	}
 
@@ -185,7 +197,8 @@ public abstract class AuthorityDAO {
 
 	private long countIssuedItemsByAuthorityValueAndFieldId(String key, int[] fieldId) throws SQLException {
 		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumItemsissuedBykey(), fieldId)).addScalar("num", IntegerType.INSTANCE).setParameter("authority",key).uniqueResult();
-		long numAuthorityIssued = (Integer)row;
+		BigInteger numAuthorityIssuedInt = (BigInteger)row;
+		long numAuthorityIssued = numAuthorityIssuedInt != null ? numAuthorityIssuedInt.longValue() :0;
 		return numAuthorityIssued;
 	}
 
@@ -251,12 +264,15 @@ public abstract class AuthorityDAO {
 	private int getFieldId(String md) throws IllegalArgumentException, SQLException {
 		String[] metadata = md.split("\\.");
 		int fieldId = -1;
-		try {			
-			fieldId = ContentServiceFactory.getInstance().getMetadataFieldService().findByElement(getContext(), metadata[0], metadata[1], metadata[2]).getID();
+		try {
+			String qualifier = null;
+			if(metadata.length >2) {
+				qualifier = metadata[2];
+			}
+			fieldId = ContentServiceFactory.getInstance().getMetadataFieldService().findByElement(getContext(), metadata[0], metadata[1], qualifier).getID();
 		} catch (NullPointerException npe) {
 			// the metadata field is not defined
-			throw new IllegalArgumentException("Error retriving metadata field for input the supplied string: " + md,
-					npe);
+			log.warn("Retriving metadata field for input string not defined on registry: " + md);
 		}
 
 		return fieldId;
