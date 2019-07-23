@@ -35,6 +35,7 @@
     <xsl:key name="dc_contributor_author" match="doc:metadata/doc:element[@name='dc.contributor.author']" use="//doc:field[@name='id']" />
     <xsl:key name="dc_contributor_editor" match="doc:metadata/doc:element[@name='dc.contributor.editor']" use="//doc:field[@name='id']" />
     <xsl:key name="dc_publisher" match="doc:metadata/doc:element[@name='dc.publisher']" use="//doc:field[@name='id']" />
+    <xsl:key name="dc_relation" match="doc:metadata/doc:element[@name='dc.relation']" use="//doc:field[@name='id']" />
    
    	<!-- used when parsing Item -->
     <xsl:key name="affiliation.affiliationorgunit" match="doc:metadata/doc:element[@name='dc.contributor.author']/doc:element[@name='affiliation.affiliationorgunit']" use="//doc:field[@name='id']" />
@@ -133,6 +134,36 @@
     	</xsl:choose>
     </xsl:template>
     
+    <!-- transate ou.type to Type xmlns="https://w3id.org/cerif/vocab/OrganisationTypes" -->
+    <xsl:template name="oai_medium">
+    	<xsl:param name="type" select="'Other'"/>
+    	<xsl:choose>
+    		<!-- Print (paper) -->
+    		<xsl:when test="$type='Print'">http://issn.org/vocabularies/Medium#Print</xsl:when>
+    		<!-- Online (online publication) -->
+    		<xsl:when test="$type='Online'">http://issn.org/vocabularies/Medium#Online</xsl:when>
+    		<!-- Digital carrier (CD-ROM, USB keys) -->
+    		<xsl:when test="$type='Digital carrier'">http://issn.org/vocabularies/DigitalCarrier#Online</xsl:when>
+    		<!-- Other (Loose-leaf publications, braille, etc.) -->
+    		<xsl:when test="$type='Other'">http://issn.org/vocabularies/DigitalCarrier#Other</xsl:when>
+    	</xsl:choose>
+    </xsl:template>
+    
+    <!-- translate access to Type "http://purl.org/coar/access_right" -->
+    <xsl:template name="oai_accesstype">
+    	<xsl:param name="type" select="'open access'"/>
+    	<xsl:choose>
+    		<!-- Open access refers to a resource that is immediately and permanently online, and free for all on the Web, without financial and technical barriers. -->
+    		<xsl:when test="$type='open access'">http://purl.org/coar/access_right/c_abf2</xsl:when>
+    		<!-- Embargoed access refers to a resource that is metadata only access until released for open access on a certain date. Embargoes can be required by publishers and funders policies, or set by the author (e.g such as in the case of theses and dissertations). -->
+    		<xsl:when test="$type='embargoed access'">http://purl.org/coar/access_right/c_f1cf</xsl:when>
+    		<!-- Restricted access refers to a resource that is available in a system but with some type of restriction for full open access. This type of access can occur in a number of different situations. Some examples are described below: The user must log-in to the system in order to access the resource The user must send an email to the author or system administrator to access the resource Access to the resource is restricted to a specific community (e.g. limited to a university community) -->
+    		<xsl:when test="$type='restricted access'">http://purl.org/coar/access_right/c_16ec</xsl:when>
+    		<!-- Metadata only access refers to a resource in which access is limited to metadata only. The resource itself is described by the metadata, but is not directly available through the system or platform. This type of access can occur in a number of different situations. Some examples are described below: There is no electronic copy of the resource available (record links to a physical resource) The resource is only available elsewhere for a fee (record links to a subscription-based publisher version) The resource is available open access but at a different location (record links to a version at an open access publisher or archive) The resource is available elsewhere, but not in a fully open access format (record links to a read only, or other type of resources that is not permanent or in some way restricted) -->
+    		<xsl:when test="$type='metadata only'">http://purl.org/coar/access_right/c_14cb</xsl:when>
+    	</xsl:choose>
+    </xsl:template>
+    
     <!--	
     	oai_parentorgunit: Ricorsive template that handle orgunit.
     	
@@ -179,8 +210,7 @@
             	
 				<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
 			
-				<!-- duplicated (uo *) -->
-				<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='identifier']/doc:element">
+				<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='uuid']/doc:element">
 				<oai_cerif:Identifier><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:Identifier>
             	</xsl:for-each>
             	
@@ -285,8 +315,7 @@
             	
 				<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
             
-            	<!-- duplicated (uo *) -->
-            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='identifier']/doc:element">
+            	<xsl:for-each select="../../../doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='uuid']/doc:element">
 				<oai_cerif:Identifier><xsl:value-of select="doc:field[@name='value']/text()"></xsl:value-of></oai_cerif:Identifier>
             	</xsl:for-each>
             	
@@ -523,6 +552,101 @@
     </xsl:template>
     
     <!--	
+    	project: Template that handle Project.
+    	
+    	Example of parameters:
+	    	dc_relation_id
+    -->
+	<xsl:template name="project" match="/">
+		<xsl:param name="selector" />
+		<xsl:param name="dc_relation_id" />
+            
+        <xsl:for-each select="$selector">
+        <oai_cerif:Project id="$dc_relation_id">
+        
+        	<!--  MISSING METADATA FIX [START]: type, acronym -->
+	        <xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Type><xsl:value-of select="." /></oai_cerif:Type>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='acronym']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Acronym><xsl:value-of select="." /></oai_cerif:Acronym>
+	        </xsl:for-each>
+	        <!-- MISSING METADATA FIX [END] -->
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='uuid']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Identifier><xsl:value-of select="." /></oai_cerif:Identifier>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='startdate']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:StartDate><xsl:value-of select="." /></oai_cerif:StartDate>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='enddate']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:EndDate><xsl:value-of select="." /></oai_cerif:EndDate>
+	        </xsl:for-each>
+	        
+	        <!--  MISSING METADATA FIX [START]: consortium, team, funded  -->
+	        <!-- Missing: Coordinator, Partner, Contractor, InKindContributor, Member -->
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='organization']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Consortium><xsl:value-of select="." /></oai_cerif:Consortium>
+	        </xsl:for-each>
+	        
+	        <!-- Missing: PrincipalInvestigator, Contact, Member -->
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='principalinvestigator']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Team><xsl:value-of select="." /></oai_cerif:Team>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='funder']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Funded>
+	        		<!-- Missing: OrgUnit, Person, DisplayName -->
+	        		<xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='funder']/doc:element/doc:field[@name='value']">
+	        		<oai_cerif:By></oai_cerif:By>
+	        		</xsl:for-each>
+	        		
+	        		<!-- Missing: Funding -->
+	        		<xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='fundingprogram']/doc:element/doc:field[@name='value']">
+	        		<oai_cerif:As></oai_cerif:As>
+	        		</xsl:for-each>
+	        	</oai_cerif:Funded>
+	        </xsl:for-each>
+	        <!-- MISSING METADATA FIX [END] -->
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='description']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Subject><xsl:value-of select="." /></oai_cerif:Subject>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='keywords']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='status']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Status><xsl:value-of select="." /></oai_cerif:Status>
+	        </xsl:for-each>
+	        
+	        <!--  MISSING METADATA FIX [START]: uses, OAMandate -->
+	        <!-- Missing Equipment -->
+	        <xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='uses']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Uses><xsl:value-of select="." /></oai_cerif:Uses>
+	        </xsl:for-each>
+	        <!-- Missing mandated, uri -->
+	        <xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='oamandate']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:OAMandate><xsl:value-of select="." /></oai_cerif:OAMandate>
+	        </xsl:for-each>
+	        
+        </oai_cerif:Project>
+        </xsl:for-each>
+    </xsl:template>
+    
+    <!--	
     	publisher: Template that handle Authors/Editors/Publishers.
     	
     	Example of parameters:
@@ -710,11 +834,11 @@
              		<xsl:value-of select="doc:field[@name='id']/text()" />
              	</xsl:variable>
             	<xsl:for-each select="key('dc_publisher', doc:field[@name='id']/text())">
-            	    <oai_cerif:Publisher>
-						<xsl:call-template name="oai_contributors">
-							<xsl:with-param name="dc_contributor_id" select="$dc_publisher_id" />
-						</xsl:call-template>
-					</oai_cerif:Publisher>
+           	    <oai_cerif:Publisher>
+					<xsl:call-template name="oai_contributors">
+						<xsl:with-param name="dc_contributor_id" select="$dc_publisher_id" />
+					</xsl:call-template>
+				</oai_cerif:Publisher>
 				</xsl:for-each>
             </xsl:for-each>
            	</oai_cerif:Publishers>
@@ -741,6 +865,40 @@
 	        <!--  MISSING METADATA FIX [START]: status -->
 	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='status']/doc:element/doc:field[@name='value']">
 	        	<oai_cerif:Status><xsl:value-of select="." /></oai_cerif:Status>
+	        </xsl:for-each>
+	        
+	        <oai_cerif:OriginatesFrom>
+	        <xsl:for-each select="doc:metadata/doc:element[@name='dc.relation']/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+	        	<xsl:variable name="dc_relation_id">
+             		<xsl:value-of select="doc:field[@name='value']/text()" />
+             	</xsl:variable>
+            	<xsl:for-each select="key('dc_relation', doc:field[@name='id']/text())">
+					<xsl:call-template name="project">
+						<xsl:with-param name="selector" select="." />
+						<xsl:with-param name="dc_relation_id" select="$dc_relation_id" />
+					</xsl:call-template>
+            	</xsl:for-each>
+	        </xsl:for-each>
+	        </oai_cerif:OriginatesFrom>
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='presentedat']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:PresentedAt><xsl:value-of select="." /></oai_cerif:PresentedAt>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='outputfrom']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:OutputFrom><xsl:value-of select="." /></oai_cerif:OutputFrom>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='coverage']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Coverage><xsl:value-of select="." /></oai_cerif:Coverage>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='reference']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:References><xsl:value-of select="." /></oai_cerif:References>
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='access']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Access><xsl:value-of select="." /></oai_cerif:Access>
 	        </xsl:for-each>
 	        <!-- MISSING METADATA FIX [END] -->
         </oai_cerif:Publication>
@@ -800,6 +958,19 @@
 					<xsl:with-param name="crisou_parentorgunit__depth" select="'rp.parentorgunit__depth'" />
 				</xsl:call-template>
 			</xsl:for-each>
+        </xsl:if>
+        
+        <!-- project -->
+        <xsl:if test="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='project'">
+        	<xsl:for-each select="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
+	        	<xsl:variable name="dc_relation_id">
+             		<xsl:value-of select="doc:field[@name='value']/text()" />
+             	</xsl:variable>
+ 				<xsl:call-template name="project">
+					<xsl:with-param name="selector" select="../../../.." />
+					<xsl:with-param name="dc_relation_id" select="$dc_relation_id" />
+				</xsl:call-template>
+	        </xsl:for-each>
         </xsl:if>
         
     </xsl:template>
