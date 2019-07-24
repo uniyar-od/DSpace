@@ -26,15 +26,22 @@ import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.ItemAuthority;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.handle.HandleManager;
 import org.dspace.utils.DSpace;
 import org.dspace.xoai.data.DSpaceItem;
 
@@ -179,7 +186,7 @@ public class ItemUtils
 
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
-    	return retrieveMetadata(context, item, false, null, null, null, true);
+    	return retrieveMetadata(context, item, false, null, null, null, true, 0);
     }
     
     /***
@@ -194,10 +201,11 @@ public class ItemUtils
      * @param id The id
      * @param relid The relation id
      * @param allowMultipleValue is used to enabled metadata with multiple value
+     * @param deep the recursive dept
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, String group, String id, String relid, boolean allowMultipleValue) {
+	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, String group, String id, String relid, boolean allowMultipleValue, int deep) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
@@ -268,9 +276,18 @@ public class ItemUtils
                 if (val.qualifier != null && !val.qualifier.equals("")) {
                 	m += "." + val.qualifier;
                 }
+                // compute deep
+                int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
+                if (authorityDeep <= 0) {
+                	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
+                	
+                	if (authorityDeep <= 0)
+                		authorityDeep = MAX_DEEP;
+                }
+                
                 // add metadata of related cris object, using authority to get it
                 boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
-                if (metadataAuth) {
+                if (metadataAuth && (deep < authorityDeep)) {
                 	try {
                 		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
                 		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
@@ -296,7 +313,31 @@ public class ItemUtils
                     				remap(root_idx, crisMetadata.getElement());
                 				}
                 			}
-                		} else {
+                		} else if (choicheAuth != null) {
+                			//ItemAuthority itemAuthority = (ItemAuthority)choicheAuth;
+                			DSpaceObject dso = HandleManager.resolveToObject(context, val.authority);
+                			
+                			if (dso != null && dso instanceof Item) {
+                				Metadata itemMetadata = retrieveMetadata(context, (Item)dso, skipAutority, m, dso.getHandle(), Integer.toString(dso.getID()), true, deep + 1);
+                				if (itemMetadata != null && !itemMetadata.getElement().isEmpty()) {
+                					// optimize element generation using only one root
+                    				if (root_idx == null) {
+	                					Element root = create(m);
+		                				metadata.getElement().add(root);
+		                				root_indexed.put(m, root);
+		                				
+		                				for (Element crisElement : itemMetadata.getElement()) {
+		                					root.getElement().add(crisElement);
+		                				}
+                    				}
+                    				else {
+                        				// schema, remap elements
+                        				remap(root_idx, itemMetadata.getElement());
+                    				}
+                				}
+                			}
+                		}
+                		else {
                 			log.warn("No choices plugin (CRISAuthority plugin) was configured for field " + m);
                 		}
             		} catch (Exception e) {
