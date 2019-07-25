@@ -74,14 +74,14 @@ public class MetadatumAuthorityDecorator {
 	 */
 	@SuppressWarnings("rawtypes")
 	public Class className(String authority) {
-		Pattern pattern = Pattern.compile("(ou|proj|rp)([0-9]+)");
+		Pattern pattern = Pattern.compile("(ou|pj|rp|do)([0-9]+)");
 		Matcher matcher = pattern.matcher(authority);
 		
 		if (matcher.matches()) {
 			switch (matcher.group(1)) {
 				case "ou": return OrganizationUnit.class;
 				case "rp": return ResearcherPage.class;
-				case "proj": return Project.class;
+				case "pj": return Project.class;
 				default: return null;
 			}
 		}

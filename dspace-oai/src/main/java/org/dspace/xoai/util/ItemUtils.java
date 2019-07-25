@@ -32,15 +32,10 @@ import org.dspace.content.Item;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
-import org.dspace.content.authority.ItemAuthority;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResult;
-import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SearchServiceException;
 import org.dspace.handle.HandleManager;
 import org.dspace.utils.DSpace;
 import org.dspace.xoai.data.DSpaceItem;
@@ -242,7 +237,7 @@ public class ItemUtils
         	
         	vals = ArrayUtils.addAll(vals, defaults);
         }
-        Map<String, Element> root_indexed = new HashMap<String, Element>();
+        //Map<String, Element> root_indexed = new HashMap<String, Element>();
         for (Metadatum val : vals)
         {
             // Don't expose fields that are hidden by configuration
@@ -291,27 +286,33 @@ public class ItemUtils
                 	try {
                 		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
                 		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
-                		Element root_idx = root_indexed.get(m);
+                		//Element root_idx = root_indexed.get(m);
                 		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
                 			
                 			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), Integer.toString(item.getID()), 0);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
-                				// optimize element generation using only one root
-                				if (root_idx == null) {
-	                				Element root = create(m);
-	                				metadata.getElement().add(root);
-	                				root_indexed.put(m, root);
-	                				
-	                				for (Element crisElement : crisMetadata.getElement()) {
-	                					root.getElement().add(crisElement);
-	                				}
+                				Element root = create(m);
+                				element.getElement().add(root);
+                				for (Element crisElement : crisMetadata.getElement()) {
+                					root.getElement().add(crisElement);
                 				}
-                				else {
-                    				// schema, remap elements
-                    				remap(root_idx, crisMetadata.getElement());
-                				}
+                				
+//                				// optimize element generation using only one root
+//                				if (root_idx == null) {
+//	                				Element root = create(m);
+//	                				metadata.getElement().add(root);
+//	                				root_indexed.put(m, root);
+//	                				
+//	                				for (Element crisElement : crisMetadata.getElement()) {
+//	                					root.getElement().add(crisElement);
+//	                				}
+//                				}
+//                				else {
+//                    				// schema, remap elements
+//                    				remap(root_idx, crisMetadata.getElement());
+//                				}
                 			}
                 		} else if (choicheAuth != null) {
                 			//ItemAuthority itemAuthority = (ItemAuthority)choicheAuth;
@@ -320,20 +321,26 @@ public class ItemUtils
                 			if (dso != null && dso instanceof Item) {
                 				Metadata itemMetadata = retrieveMetadata(context, (Item)dso, skipAutority, m, dso.getHandle(), Integer.toString(dso.getID()), true, deep + 1);
                 				if (itemMetadata != null && !itemMetadata.getElement().isEmpty()) {
-                					// optimize element generation using only one root
-                    				if (root_idx == null) {
-	                					Element root = create(m);
-		                				metadata.getElement().add(root);
-		                				root_indexed.put(m, root);
-		                				
-		                				for (Element crisElement : itemMetadata.getElement()) {
-		                					root.getElement().add(crisElement);
-		                				}
+                					Element root = create(m);
+                    				element.getElement().add(root);
+                    				for (Element crisElement : itemMetadata.getElement()) {
+                    					root.getElement().add(crisElement);
                     				}
-                    				else {
-                        				// schema, remap elements
-                        				remap(root_idx, itemMetadata.getElement());
-                    				}
+                    				
+//                					// optimize element generation using only one root
+//                    				if (root_idx == null) {
+//	                					Element root = create(m);
+//		                				metadata.getElement().add(root);
+//		                				root_indexed.put(m, root);
+//		                				
+//		                				for (Element crisElement : itemMetadata.getElement()) {
+//		                					root.getElement().add(crisElement);
+//		                				}
+//                    				}
+//                    				else {
+//                        				// schema, remap elements
+//                        				remap(root_idx, itemMetadata.getElement());
+//                    				}
                 				}
                 			}
                 		}
@@ -529,53 +536,53 @@ public class ItemUtils
         return metadata;
     }
     
-    /***
-     * Map XML fragment of elements in an given root element.
-     * 
-     * @param root_idx The root element
-     * @param elements The list of elements to remap
-     */
-    private static void remap(Element root_idx, List<Element> elements) {
-    	Element father = root_idx;
-    	Element remapFather = null;		// to avoid concurrent modification exception
-    	
-		for (Element s: elements) {
-			if (remapFather != null) {
-				father.getElement().add(remapFather);
-				remapFather = null;
-			}
-			
-			Element idx_schema = getElement(father.getElement(), s.getName());
-			if (idx_schema == null) {
-				father.getElement().add(s);
-			}
-			else if (idx_schema.getElement().isEmpty()) {
-				// check the value
-				boolean remapValue = true;
-				if (!idx_schema.getField().isEmpty() && idx_schema.getField().size() == s.getField().size()) {
-					remapValue = false;
-					for (Field idxf : idx_schema.getField()) {
-						Field sf = getField(s.getField(), idxf.getName());
-						
-						if (sf == null || (sf.getValue() != null && !sf.getValue().equals(idxf.getValue()) || (sf.getValue() == null && sf.getValue() != idxf.getValue()))) {
-							remapValue = true;
-							break;
-						}
-					}
-		        }
-    			if (remapValue)
-    				remapFather = s;
-			 }
-			 else {
-				remap(idx_schema, s.getElement());
-			 }
-		}
-		
-		if (remapFather != null) {
-			father.getElement().add(remapFather);
-			remapFather = null;
-		}	
-    }
+//    /***
+//     * Map XML fragment of elements in an given root element.
+//     * 
+//     * @param root_idx The root element
+//     * @param elements The list of elements to remap
+//     */
+//    private static void remap(Element root_idx, List<Element> elements) {
+//    	Element father = root_idx;
+//    	Element remapFather = null;		// to avoid concurrent modification exception
+//    	
+//		for (Element s: elements) {
+//			if (remapFather != null) {
+//				father.getElement().add(remapFather);
+//				remapFather = null;
+//			}
+//			
+//			Element idx_schema = getElement(father.getElement(), s.getName());
+//			if (idx_schema == null) {
+//				father.getElement().add(s);
+//			}
+//			else if (idx_schema.getElement().isEmpty()) {
+//				// check the value
+//				boolean remapValue = true;
+//				if (!idx_schema.getField().isEmpty() && idx_schema.getField().size() == s.getField().size()) {
+//					remapValue = false;
+//					for (Field idxf : idx_schema.getField()) {
+//						Field sf = getField(s.getField(), idxf.getName());
+//						
+//						if (sf == null || (sf.getValue() != null && !sf.getValue().equals(idxf.getValue()) || (sf.getValue() == null && sf.getValue() != idxf.getValue()))) {
+//							remapValue = true;
+//							break;
+//						}
+//					}
+//		        }
+//    			if (remapValue)
+//    				remapFather = s;
+//			 }
+//			 else {
+//				remap(idx_schema, s.getElement());
+//			 }
+//		}
+//		
+//		if (remapFather != null) {
+//			father.getElement().add(remapFather);
+//			remapFather = null;
+//		}	
+//    }
     
     @SuppressWarnings("rawtypes")
 	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
@@ -605,7 +612,7 @@ public class ItemUtils
 		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
         if (vals != null)
         {
-        	Map<String, Element> root_indexed = new HashMap<String, Element>();
+        	//Map<String, Element> root_indexed = new HashMap<String, Element>();
             for (MetadatumAuthorityDecorator valAuthDec : vals)
             {
             	Metadatum val = valAuthDec.getMetadatum();
@@ -642,7 +649,7 @@ public class ItemUtils
 	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
 	                	try {
 	                		ACrisObject o = null;
-	                		Element root_idx = root_indexed.get(m);
+	                		//Element root_idx = root_indexed.get(m);
 	                		
 	                		if (!valAuthDec.isClassNameNull())
 	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
@@ -651,20 +658,26 @@ public class ItemUtils
 	                			
                 			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, m, ((ACrisObject) o).getUuid(), item.getUuid(), deep + 1);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
-                				// optimize element generation using only one root
-                				if (root_idx == null) {
-	                				Element root = create(m);
-	                				metadata.getElement().add(root);
-	                				root_indexed.put(m, root);
+                				Element root = create(m);
+                				element.getElement().add(root);
+                				for (Element crisElement : crisMetadata.getElement()) {
+                					root.getElement().add(crisElement);
+                				}
                 				
-	                				for (Element crisElement : crisMetadata.getElement()) {
-	                					root.getElement().add(crisElement);
-	                				}
-                				}
-                				else {
-                    				// schema, remap elements
-                    				remap(root_idx, crisMetadata.getElement());
-                				}
+//                				// optimize element generation using only one root
+//                				if (root_idx == null) {
+//	                				Element root = create(m);
+//	                				metadata.getElement().add(root);
+//	                				root_indexed.put(m, root);
+//                				
+//	                				for (Element crisElement : crisMetadata.getElement()) {
+//	                					root.getElement().add(crisElement);
+//	                				}
+//                				}
+//                				else {
+//                    				// schema, remap elements
+//                    				remap(root_idx, crisMetadata.getElement());
+//                				}
                 			}		
 	            		} catch (Exception e) {
 	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
