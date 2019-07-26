@@ -19,7 +19,6 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.FirstNames;
 import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
 import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.app.util.MetadataExposure;
@@ -216,7 +215,6 @@ public class ItemUtils
         	
         	vals = ArrayUtils.addAll(vals, defaults);
         }
-        //Map<String, Element> root_indexed = new HashMap<String, Element>();
         for (Metadatum val : vals)
         {
             // Don't expose fields that are hidden by configuration
@@ -241,7 +239,15 @@ public class ItemUtils
                 metadata.getElement().add(schema);
             }
             Element element = writeMetadata(schema, val);
-            //metadata.getElement().add(element);
+            // backward compatibility
+            {
+            	//metadata.getElement().add(element);
+            	Element elementCopy = create(element.getName());
+            	for (Field f : element.getField()) {
+            		elementCopy.getField().add(f);
+            	}
+            	metadata.getElement().add(elementCopy);
+            }
             
             // use original value for relation
             if (!skipAutority && val.authority != null) {
@@ -265,7 +271,6 @@ public class ItemUtils
                 	try {
                 		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
                 		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
-                		//Element root_idx = root_indexed.get(m);
                 		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
@@ -277,24 +282,8 @@ public class ItemUtils
                 				for (Element crisElement : crisMetadata.getElement()) {
                 					root.getElement().add(crisElement);
                 				}
-                				
-//                				// optimize element generation using only one root
-//                				if (root_idx == null) {
-//	                				Element root = create(m);
-//	                				metadata.getElement().add(root);
-//	                				root_indexed.put(m, root);
-//	                				
-//	                				for (Element crisElement : crisMetadata.getElement()) {
-//	                					root.getElement().add(crisElement);
-//	                				}
-//                				}
-//                				else {
-//                    				// schema, remap elements
-//                    				remap(root_idx, crisMetadata.getElement());
-//                				}
                 			}
                 		} else if (choicheAuth != null) {
-                			//ItemAuthority itemAuthority = (ItemAuthority)choicheAuth;
                 			DSpaceObject dso = HandleManager.resolveToObject(context, val.authority);
                 			
                 			if (dso != null && dso instanceof Item) {
@@ -305,21 +294,6 @@ public class ItemUtils
                     				for (Element crisElement : itemMetadata.getElement()) {
                     					root.getElement().add(crisElement);
                     				}
-                    				
-//                					// optimize element generation using only one root
-//                    				if (root_idx == null) {
-//	                					Element root = create(m);
-//		                				metadata.getElement().add(root);
-//		                				root_indexed.put(m, root);
-//		                				
-//		                				for (Element crisElement : itemMetadata.getElement()) {
-//		                					root.getElement().add(crisElement);
-//		                				}
-//                    				}
-//                    				else {
-//                        				// schema, remap elements
-//                        				remap(root_idx, itemMetadata.getElement());
-//                    				}
                 				}
                 			}
                 		}
@@ -442,7 +416,6 @@ public class ItemUtils
             e1.printStackTrace();
         }
         
-
         // Other info
         Element other = create("others");
 
@@ -515,54 +488,6 @@ public class ItemUtils
         return metadata;
     }
     
-//    /***
-//     * Map XML fragment of elements in an given root element.
-//     * 
-//     * @param root_idx The root element
-//     * @param elements The list of elements to remap
-//     */
-//    private static void remap(Element root_idx, List<Element> elements) {
-//    	Element father = root_idx;
-//    	Element remapFather = null;		// to avoid concurrent modification exception
-//    	
-//		for (Element s: elements) {
-//			if (remapFather != null) {
-//				father.getElement().add(remapFather);
-//				remapFather = null;
-//			}
-//			
-//			Element idx_schema = getElement(father.getElement(), s.getName());
-//			if (idx_schema == null) {
-//				father.getElement().add(s);
-//			}
-//			else if (idx_schema.getElement().isEmpty()) {
-//				// check the value
-//				boolean remapValue = true;
-//				if (!idx_schema.getField().isEmpty() && idx_schema.getField().size() == s.getField().size()) {
-//					remapValue = false;
-//					for (Field idxf : idx_schema.getField()) {
-//						Field sf = getField(s.getField(), idxf.getName());
-//						
-//						if (sf == null || (sf.getValue() != null && !sf.getValue().equals(idxf.getValue()) || (sf.getValue() == null && sf.getValue() != idxf.getValue()))) {
-//							remapValue = true;
-//							break;
-//						}
-//					}
-//		        }
-//    			if (remapValue)
-//    				remapFather = s;
-//			 }
-//			 else {
-//				remap(idx_schema, s.getElement());
-//			 }
-//		}
-//		
-//		if (remapFather != null) {
-//			father.getElement().add(remapFather);
-//			remapFather = null;
-//		}	
-//    }
-    
     @SuppressWarnings("rawtypes")
 	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
     	return retrieveMetadata(context, item, false, /*null, null, null, */ 0);
@@ -586,7 +511,6 @@ public class ItemUtils
 		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
         if (vals != null)
         {
-        	//Map<String, Element> root_indexed = new HashMap<String, Element>();
             for (MetadatumAuthorityDecorator valAuthDec : vals)
             {
             	Metadatum val = valAuthDec.getMetadatum();
@@ -623,7 +547,6 @@ public class ItemUtils
 	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
 	                	try {
 	                		ACrisObject o = null;
-	                		//Element root_idx = root_indexed.get(m);
 	                		
 	                		if (!valAuthDec.isClassNameNull())
 	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
@@ -637,21 +560,6 @@ public class ItemUtils
                 				for (Element crisElement : crisMetadata.getElement()) {
                 					root.getElement().add(crisElement);
                 				}
-                				
-//                				// optimize element generation using only one root
-//                				if (root_idx == null) {
-//	                				Element root = create(m);
-//	                				metadata.getElement().add(root);
-//	                				root_indexed.put(m, root);
-//                				
-//	                				for (Element crisElement : crisMetadata.getElement()) {
-//	                					root.getElement().add(crisElement);
-//	                				}
-//                				}
-//                				else {
-//                    				// schema, remap elements
-//                    				remap(root_idx, crisMetadata.getElement());
-//                				}
                 			}		
 	            		} catch (Exception e) {
 	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
@@ -779,10 +687,6 @@ public class ItemUtils
     				firstName = t[1].trim();
     				familyName = t[0].trim();
     			}
-    			else {
-    				firstName = FirstNames.getInstance(module).getFirstName(m.value);
-    				familyName = m.value.substring((firstName != null) ? firstName.length() : 0).trim();
-    			}
     			// crisitem.crisprop.firstname
     			metadatum.schema = DEFAULT_SCHEMA_NAME;
     			metadatum.element = VIRTUAL_ELEMENT_NAME;
@@ -808,7 +712,6 @@ public class ItemUtils
     	
     	// fixed values
     	{
-    		//MetadataMapper mapper = new MetadataMapper(module);
     		List<Metadatum> fixedValues = mapper.fixedValues(item.getPublicPath());
     		for (Metadatum m : fixedValues) {
     			// add fixed value
