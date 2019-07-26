@@ -496,13 +496,76 @@
         </xsl:for-each>
 	</xsl:template>
 	
+	<!-- 
+		publication_journal: Template that handle publication using a journal
+	
+    	Example of parameters:
+	    	selector
+	    	publication_id
+	 -->
+	<xsl:template name="publication_chooser" match="/">
+		<xsl:param name="selector" />
+		<xsl:param name="publication_id" />
+		
+		<xsl:for-each select="$selector">
+		
+		<!-- journals -->
+        <xsl:if test="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='journals'">
+			<xsl:call-template name="publication_journal">
+				<xsl:with-param name="selector" select="$selector" />
+				<xsl:with-param name="publication_id" select="$publication_id" />
+			</xsl:call-template>
+        </xsl:if>
+        
+        <!-- item -->
+        <xsl:if test="doc:element[@name='item']/doc:element[@name='vprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='item'">
+        	<xsl:call-template name="publication">
+        		<xsl:with-param name="selector" select="doc:metadata" />
+        	</xsl:call-template>
+        </xsl:if>
+        
+        </xsl:for-each>
+	</xsl:template>
+	
+	<!-- 
+		publication_journal: Template that handle publication using a journal
+	
+    	Example of parameters:
+	    	selector
+	    	publication_id
+	 -->
+	 <xsl:template name="publication_journal" match="/">
+		<xsl:param name="selector" />
+		<xsl:param name="publication_id" />
+		
+		<xsl:for-each select="$selector">
+		<xsl:variable name="crisitem_crisvprop_type">
+        	<xsl:value-of select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
+        </xsl:variable>
+                    
+        <oai_cerif:Publication id="{$publication_id}">
+               <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
+                   <xsl:call-template name="oai_type"><xsl:with-param name="type" select="$crisitem_crisvprop_type" /></xsl:call-template>
+               </oai:Type>
+           
+    		<!-- oai_cerif:PublishedIn, Title (crisjournals.journalsname) --> 
+            <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsname']/doc:element">
+                <oai_cerif:Title><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Title>
+            </xsl:for-each>
+            
+            <!-- oai_cerif:PublishedIn, ISSN -->
+            <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsissn']/doc:element">
+                <oai_cerif:ISSN><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ISSN>
+            </xsl:for-each>
+       	</oai_cerif:Publication>
+   		</xsl:for-each>
+   	</xsl:template>
+                	
     <!--	
-    	publisher: Template that handle Authors/Editors/Publishers.
+    	publication: Template that handle publication using an item
     	
     	Example of parameters:
 	    	selector
-	    	key_affiliation_affiliationorgunit
-	    	crisou_parentorgunit__depth
     -->
 	<xsl:template name="publication" match="/">
 		<xsl:param name="selector" />
@@ -536,31 +599,17 @@
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element/doc:element[@name='authority']">
             	<oai_cerif:PublishedIn>
 
-            		<xsl:variable name="ispartof_crisitem_crisprop_id">
+            		<xsl:variable name="publication_id">
             			<xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element">
                         	<xsl:value-of select="doc:field[@name='value']" />
                         </xsl:for-each>
                     </xsl:variable>
-                    
-                    <xsl:variable name="crisitem_crisvprop_type">
-                        <xsl:value-of select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
-                    </xsl:variable>
-                    <oai_cerif:Publication id="{$ispartof_crisitem_crisprop_id}">
-                        <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
-                            <xsl:call-template name="oai_type"><xsl:with-param name="type" select="$crisitem_crisvprop_type" /></xsl:call-template>
-                        </oai:Type>
-                    
-	            		<!-- oai_cerif:PublishedIn, Title (crisjournals.journalsname) --> 
-	                    <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsname']/doc:element">
-	                        <oai_cerif:Title><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Title>
-	                    </xsl:for-each>
-	                    
-	                    <!-- oai_cerif:PublishedIn, ISSN -->
-	                    <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsissn']/doc:element">
-	                        <oai_cerif:ISSN><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:ISSN>
-	                    </xsl:for-each>
-                	</oai_cerif:Publication>
-                	
+
+                    <xsl:call-template name="publication_chooser">
+            			<xsl:with-param name="selector" select="." />
+            			<xsl:with-param name="publication_id" select="$publication_id" />
+            		</xsl:call-template>
+
                 </oai_cerif:PublishedIn>
             </xsl:for-each>
             <!-- oai_cerif:PublishedIn [END] -->
