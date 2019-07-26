@@ -248,8 +248,7 @@ public class ItemUtils
             	}
             	metadata.getElement().add(elementCopy);
             }
-            
-            // use original value for relation
+
             if (!skipAutority && val.authority != null) {
             	String m = val.schema + "." + val.element;
             	
