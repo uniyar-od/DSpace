@@ -73,7 +73,10 @@
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
             <!-- OpenAIRE filter -->
-            <Filter ref="openAireFilter"/>
+            <!-- [COMMENTED OUT]
+             <Filter ref="openAireFilter"/>
+             -->
+            <Filter ref="allFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="openaireSet"/>
             <!-- Metadata Formats -->
@@ -259,6 +262,31 @@
             </Definition>
         </Filter>
 
+        <!-- OpenAIRE filter for records returned by OAI-PMH.
+         By default, return a record:
+         * If the record is an Item or cris item type.
+         This filter is only used in the OpenAIRE context ([oai]/openaire).
+         -->
+        <Filter id="allFilter">
+            <Definition>
+                <And>
+                    <LeftCondition>
+                        <Or>
+                            <LeftCondition>
+                                <Custom ref="itemAccessCondition"/>
+                            </LeftCondition>
+                            <RightCondition>
+                                <Custom ref="itemWithdrawnCondition"/>
+                            </RightCondition>
+                        </Or>
+                    </LeftCondition>
+                    <RightCondition>
+                        <Custom ref="itemTypeCondition"/>
+                    </RightCondition>
+                </And>
+            </Definition>
+        </Filter>
+        
         <!-- OpenAIRE filter for records returned by OAI-PMH.
              By default, return an Item record:
                * If a Title & Author field both exist
@@ -479,6 +507,25 @@
             </Configuration>
         </CustomCondition>
 
+        <!-- This condition determines if an Item has a "dc.rights" field
+         specifying "open access", which is required for DRIVER
+         OR "openAccess", which is required by OpenAIRE. -->
+        <CustomCondition id="itemTypeCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilterNDS</Class>
+            <Configuration>
+                <string name="field">item.type</string>
+                <string name="operator">equal</string>
+                <list name="values">
+                     <string>item</string>
+                     <string>journals</string>
+                     <string>events</string>
+                     <string>project</string>
+                     <string>rp</string>
+                     <string>ou</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+        
         <!-- This condition determines if an Item has a "dc.rights" field
              specifying "open access", which is required for DRIVER
              OR "openAccess", which is required by OpenAIRE. -->

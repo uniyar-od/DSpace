@@ -9,7 +9,7 @@
  http://www.dspace.org/license/
  Developed by DSpace @ Lyncode <dspace@lyncode.com>
  
- > http://www.openarchives.org/OAI/2.0/oai_dc.xsd
+ > http://www.openarchives.org/OAI/2.0/oai_cerif.xsd
  
  Global namespace:
  	oai_cerif		openaire tag
@@ -426,10 +426,10 @@
     -->
 	<xsl:template name="events" match="/">
 		<xsl:param name="selector" />
-		<xsl:param name="dc_relation_conference_id" />
+		<xsl:param name="event_id" />
             
         <xsl:for-each select="$selector">
-        <oai_cerif:Event id="{$dc_relation_conference_id}">
+        <oai_cerif:Event id="{$event_id}">
        		<!--  MISSING METADATA FIX [START]: type, acronym -->
 	        <xsl:for-each select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='type']/doc:element/doc:field[@name='value']">
 	        	<oai_cerif:Type><xsl:value-of select="." /></oai_cerif:Type>
@@ -779,7 +779,7 @@
              	</xsl:variable>
              	<xsl:call-template name="events">
 						<xsl:with-param name="selector" select="." />
-						<xsl:with-param name="dc_relation_conference_id" select="$dc_relation_conference_id" />
+						<xsl:with-param name="event_id" select="$dc_relation_conference_id" />
 					</xsl:call-template>
  	        </oai_cerif:PresentedAt>
 	       	</xsl:for-each>
@@ -865,15 +865,25 @@
         
         <!-- event -->
         <xsl:if test="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='events'">
-	        <xsl:variable name="dc_relation_conference_id">
+	        <xsl:variable name="events_id">
             	<xsl:value-of select="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element/doc:field[@name='value']/text()" />
             </xsl:variable>
 			<xsl:call-template name="events">
 				<xsl:with-param name="selector" select="doc:metadata" />
-				<xsl:with-param name="dc_relation_id" select="$dc_relation_conference_id" />
+				<xsl:with-param name="events_id" select="$events_id" />
 			</xsl:call-template>
         </xsl:if>
         
+        <!-- journals -->
+        <xsl:if test="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='objecttype']/doc:element/doc:field[@name='value']/text()='journals'">
+        	<xsl:variable name="journals_id">
+            	<xsl:value-of select="doc:metadata/doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element/doc:field[@name='value']/text()" />
+            </xsl:variable>
+			<xsl:call-template name="publication_journal">
+				<xsl:with-param name="selector" select="doc:metadata" />
+				<xsl:with-param name="publication_id" select="$journals_id" />
+			</xsl:call-template>
+        </xsl:if>
     </xsl:template>
 
 </xsl:stylesheet>
