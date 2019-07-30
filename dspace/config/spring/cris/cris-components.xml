@@ -419,6 +419,7 @@
 		<property name="components">
 			<map>
 				<entry key="journalspublications" value-ref="publicationlistforjournals" />				
+				<entry key="eventspublications" value-ref="publicationlistforevents" />
 			</map>
 		</property>
 	</bean>
@@ -434,6 +435,21 @@
 			<map>
 				<entry key="selected" value-ref="selectedPublicationForJournalComponent" />				
 				<entry key="all" value-ref="allPublicationForJournalComponent" />
+			</map>
+		</property>
+	</bean>
+
+	<!-- Publication list for Event dynamic entity -->
+	<bean id="publicationlistforevents"
+		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		<property name="relationConfiguration" ref="relationEVENTVSItemConfiguration" />
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>
+		<property name="target" value="org.dspace.app.cris.model.ResearchObject" />
+		<property name="facets" ref="facetsItemConfiguration"/>
+		<property name="types">
+			<map>
+				<entry key="selected" value-ref="selectedPublicationForEventComponent" />
+				<entry key="all" value-ref="allPublicationForEventComponent" />
 			</map>
 		</property>
 	</bean>
@@ -456,6 +472,39 @@
 	</bean>
 
 	<bean id="allPublicationForJournalComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="all" />
+		<property name="facetQuery">
+			<value>*:*</value>
+		</property>
+		<property name="order">
+			<value>asc</value>
+		</property>
+		<property name="rpp">
+			<value>20</value>
+		</property>
+		<property name="sortby">
+			<value>1</value>
+		</property>
+	</bean>
+
+	<bean id="selectedPublicationForEventComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="selected" />
+		<property name="facetQuery">
+			<value>relationpreferences.crisevents.publications.selected:{1}
+			</value>
+		</property>
+		<property name="order">
+			<value>asc</value>
+		</property>
+		<property name="rpp">
+			<value>20</value>
+		</property>
+		<property name="sortby">
+			<value>1</value>
+		</property>
+	</bean>
+
+	<bean id="allPublicationForEventComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="all" />
 		<property name="facetQuery">
 			<value>*:*</value>
