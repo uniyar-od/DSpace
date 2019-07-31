@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.webui.cris.orcid;
 
 import java.sql.SQLException;
@@ -10,6 +17,7 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
@@ -18,15 +26,10 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authenticate.StandaloneMethod;
 import org.dspace.authority.orcid.OrcidService;
-import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.content.Metadatum;
 import org.dspace.core.Context;
-import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
-import org.dspace.kernel.ServiceManager;
-import org.dspace.utils.DSpace;
 
 public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
 {
@@ -36,7 +39,8 @@ public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
             .getLogger(OrcidStandaloneAuthenticationMethod.class);
 
     private ApplicationService applicationService;
-
+    private CrisSearchService searchService;
+    
     @Override
     public int connect(Context context, String username, String password,
             String realm, HttpServletRequest request)
@@ -106,20 +110,14 @@ public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
                 }
             }
 
-            ServiceManager serviceManager = new DSpace().getServiceManager();
-            // System.out.println(serviceManager.getServicesNames());
-            SearchService searcher = serviceManager.getServiceByName(
-                    SearchService.class.getName(), SearchService.class);
             SolrQuery query = new SolrQuery();
             query.setQuery("search.resourcetype:" + CrisConstants.RP_TYPE_ID);
-            String filterQuery = "";
-            if (StringUtils.isNotBlank(orcid))
-            {
-                filterQuery += "crisrp.orcid:\"" + orcid
-                        + "\" OR crisrp.orcid_private:\"" + orcid + "\"";
-            }
+            String filterQuery = "cris-sourceref:" + orcid;
+            if(StringUtils.isNotBlank(orcid)){
+                filterQuery += (StringUtils.isNotBlank(filterQuery)?" OR ":"")+"crisrp.orcid:\""+orcid+"\" OR crisrp.orcid_private:\""+orcid+"\"";
+            }            
             query.addFilterQuery(filterQuery);
-            QueryResponse qResp = searcher.search(query);
+            QueryResponse qResp = getSearchService().search(query);
             SolrDocumentList docList = qResp.getResults();
             if (docList.size() >= 2)
             {
@@ -238,6 +236,16 @@ public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
     public void setApplicationService(ApplicationService applicationService)
     {
         this.applicationService = applicationService;
+    }
+
+    public CrisSearchService getSearchService()
+    {
+        return searchService;
+    }
+
+    public void setSearchService(CrisSearchService searchService)
+    {
+        this.searchService = searchService;
     }
 
 }
