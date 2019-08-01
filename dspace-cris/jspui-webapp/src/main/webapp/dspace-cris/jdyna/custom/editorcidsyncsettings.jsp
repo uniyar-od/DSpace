@@ -15,6 +15,7 @@
 <%@ taglib uri="researchertags" prefix="researcher"%>
 <%@ page import="java.util.Locale"%>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 
 <%
 Locale sessionLocale = UIUtil.getSessionLocale(request);
@@ -24,6 +25,16 @@ if (sessionLocale != null) {
 }
 
 %>
+<script type="text/javascript">
+<!--
+j(document).ready(function() {
+	j(".bottomTooltip").popover({
+		placement: "bottom",
+		trigger: "hover"
+	});
+});
+//-->
+</script>
 <c:set var="root"><%=request.getContextPath()%></c:set>
 <div class="panel-group" id="${holder.shortName}">
 	<div class="panel panel-default">
@@ -33,7 +44,7 @@ if (sessionLocale != null) {
           			${holder.title} 
         		</a></h4>
     	</div>
-		<div id="collapseOne${holder.shortName}" class="panel-collapse collapse in">
+		<div id="collapseOne${holder.shortName}" class="panel-collapse collapse<c:if test="${holder.collapsed==false}"> in</c:if>">
 			<div class="panel-body">
 				<div class="col-md-12">	
 					<div class="panel panel-default">
@@ -88,10 +99,35 @@ if (sessionLocale != null) {
 									var="tipologiaDaVisualizzareNoI18n">			
 									<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />						
 									<c:if test="${tipologiaDaVisualizzare.shortName eq 'orcid-publications-prefs'}">
-										<dyna:edit tipologia="${tipologiaDaVisualizzare.object}" disabled="${disabled}"
-											propertyPath="anagraficadto.anagraficaProperties[${tipologiaDaVisualizzare.shortName}]"
-											ajaxValidation="validateAnagraficaProperties" hideLabel="${hideLabel}"
-											validationParams="${parameters}" visibility="${visibility}" lock="true"/>																
+										<c:set var="propertyPath" value="anagraficadto.anagraficaProperties[${tipologiaDaVisualizzare.shortName}]" />
+										<c:set var="option4row" value="${tipologiaDaVisualizzare.object.rendering.option4row}" />
+										<spring:bind path="${propertyPath}[0]">
+											<c:set var="value" value="${status.value}" />
+											<c:set var="inputName"><c:out value="${status.expression}" escapeXml="false"></c:out></c:set>
+										</spring:bind>
+
+										<c:forEach var="option" items="${dyna:getResultsFromWidgetCheckRadio(tipologiaDaVisualizzare.object.rendering.staticValues)}" varStatus="optionStatus">
+											<c:set var="checked" value="" />
+											<c:if test="${option.identifyingValue == value}">
+												<c:set var="checked" value=" checked=\"checked\"" />
+											</c:if>
+											<c:if test="${empty value && optionStatus.count == 1}">
+												<c:set var="checked" value=" checked=\"checked\"" />
+											</c:if>
+
+											<c:set var="parametersValidation" value="${dyna:extractParameters(parameters)}"/>
+											<c:set var="functionValidation" value="${validateAnagraficaProperties}('${inputName}',${parametersValidation})" />
+											<input id="${inputName}" name="${inputName}" type="radio" value="${option.identifyingValue}" ${checked} onchange="${functionValidation};${onchange}">
+												<span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.preferences.publications.${option.identifyingValue}.tooltip"/>">
+													${option.displayValue}
+												</span>
+											</input>
+											<input name="_${inputName}" id="_${inputName}" value="true" type="hidden" />
+											<c:if test="${optionStatus.count mod option4row == 0}">
+												<br/>
+											</c:if>
+										</c:forEach>
+										<dyna:validation propertyPath="${propertyPath}" />
 									</c:if>
 								</c:forEach>
 							</div>
@@ -111,10 +147,35 @@ if (sessionLocale != null) {
 									var="tipologiaDaVisualizzareNoI18n">
 									<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
 									<c:if test="${tipologiaDaVisualizzare.shortName eq 'orcid-projects-prefs'}">
-										<dyna:edit tipologia="${tipologiaDaVisualizzare.object}" disabled="${disabled}"
-											propertyPath="anagraficadto.anagraficaProperties[${tipologiaDaVisualizzare.shortName}]"
-											ajaxValidation="validateAnagraficaProperties" hideLabel="${hideLabel}"
-											validationParams="${parameters}" visibility="${visibility}" lock="true"/>																
+										<c:set var="propertyPath" value="anagraficadto.anagraficaProperties[${tipologiaDaVisualizzare.shortName}]" />
+										<c:set var="option4row" value="${tipologiaDaVisualizzare.object.rendering.option4row}" />
+										<spring:bind path="${propertyPath}[0]">
+											<c:set var="value" value="${status.value}" />
+											<c:set var="inputName"><c:out value="${status.expression}" escapeXml="false"></c:out></c:set>
+										</spring:bind>
+
+										<c:forEach var="option" items="${dyna:getResultsFromWidgetCheckRadio(tipologiaDaVisualizzare.object.rendering.staticValues)}" varStatus="optionStatus">
+											<c:set var="checked" value="" />
+											<c:if test="${option.identifyingValue == value}">
+												<c:set var="checked" value=" checked=\"checked\"" />
+											</c:if>
+											<c:if test="${empty value && optionStatus.count == 1}">
+												<c:set var="checked" value=" checked=\"checked\"" />
+											</c:if>
+
+											<c:set var="parametersValidation" value="${dyna:extractParameters(parameters)}"/>
+											<c:set var="functionValidation" value="${validateAnagraficaProperties}('${inputName}',${parametersValidation})" />
+											<input id="${inputName}" name="${inputName}" type="radio" value="${option.identifyingValue}" ${checked} onchange="${functionValidation};${onchange}">
+												<span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.preferences.projects.${option.identifyingValue}.tooltip"/>">
+													${option.displayValue}
+												</span>
+											</input>
+											<input name="_${inputName}" id="_${inputName}" value="true" type="hidden" />
+											<c:if test="${optionStatus.count mod option4row == 0}">
+												<br/>
+											</c:if>
+										</c:forEach>
+										<dyna:validation propertyPath="${propertyPath}" />
 									</c:if>
 								</c:forEach>
 								  </div>  
@@ -136,10 +197,36 @@ if (sessionLocale != null) {
 									var="tipologiaDaVisualizzareNoI18n">
 									<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
 									<c:if test="${fn:startsWith(tipologiaDaVisualizzare.shortName, 'orcid-profile-pref-')}">
-										<dyna:edit tipologia="${tipologiaDaVisualizzare.object}" disabled="${disabled}"
-											propertyPath="anagraficadto.anagraficaProperties[${tipologiaDaVisualizzare.shortName}]"
-											ajaxValidation="validateAnagraficaProperties" hideLabel="${hideLabel}"
-											validationParams="${parameters}" visibility="${visibility}" lock="true"/>																
+										<c:set var="validationParams" value="${parameters}" />
+										<c:set var="propertyPath" value="anagraficadto.anagraficaProperties[${tipologiaDaVisualizzare.shortName}]" />
+										<c:set var="checkedAsDefault" value="${tipologiaDaVisualizzare.object.rendering.checked}" />
+
+										<div class="dynaField">
+											<span class="dynaLabel bottomTooltip" data-toggle="popover" data-container="body" data-content="${fn:replace(tipologiaDaVisualizzare.shortName, 'orcid-profile-pref-', '')}" data-original-title="" title="">
+												${tipologiaDaVisualizzare.object.label}
+											</span>
+											<c:set var="checked" value="" />
+											<spring:bind path="${propertyPath}[0]">
+												<c:set var="inputValue" ><c:out value="${status.value}" escapeXml="true"></c:out></c:set>
+												<c:set var="inputName"><c:out value="${status.expression}" escapeXml="false"></c:out></c:set>
+												<c:if test="${inputValue or checkedAsDefault}">
+													<c:set var="checked" value="checked=\"checked\"" />
+												</c:if>
+											</spring:bind>
+											<c:set var="validation" value="${propertyPath}[0]" />
+											<c:set var="parametersValidation" value="${dyna:extractParameters(parameters)}"/>
+											<c:set var="functionValidation" value="" />
+											<c:if test="${!empty validateAnagraficaProperties}">
+												<c:set var="functionValidation" value="validateAnagraficaProperties('${inputName}'${!empty parametersValidation?',':''}${!empty parametersValidation?parametersValidation:''});" />
+											</c:if>
+
+											<input id="_${inputName}" name="_${inputName}" type="hidden"  />
+											<input id="${inputName}" name="${inputName}" type="hidden" value="${empty inputValue?'false':inputValue}"  />
+
+											<c:set var="onchangeJS" value="cambiaBoolean('${inputName}');${functionValidation};${onchange}" />
+											<input id="check${inputName}" type="checkbox" value="${inputValue}" ${checked} <dyna:javascriptEvents onchange="${onchangeJS}"/> <dyna:javascriptEvents onclick="${onclick}"/>/>
+											<dyna:validation propertyPath="${validation}" />
+										</div>
 									</c:if>
 		
 								</c:forEach>

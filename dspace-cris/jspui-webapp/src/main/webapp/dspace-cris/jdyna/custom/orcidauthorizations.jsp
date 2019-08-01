@@ -46,7 +46,7 @@ j(document).ready(function() {
           			${holder.title} 
         		</a></h4>
     	</div>
-		<div id="collapseOne${holder.shortName}" class="panel-collapse collapse in">
+		<div id="collapseOne${holder.shortName}" class="panel-collapse collapse<c:if test="${holder.collapsed==false}"> in</c:if>">
 			<div class="panel-body">	
 			<div class="dynaClear">&nbsp;</div>
             <div class="dynaClear">&nbsp;</div>
@@ -132,35 +132,52 @@ j(document).ready(function() {
   						</div>
   						<div class="panel-body">
     						<div class="container">	
-								<div class="col-md-12">
+								<div class="row">
 									<ul class="oauth-icons">
-											<c:if test="${showgrantedidicon eq true}">
-												<li><span class="mini-orcid-icon oauth-bullet"></span></li>
-											</c:if>
-											<c:if test="${showgrantedeyesicon eq true}">
-												<li><span class="mini-icon glyphicon glyphicon-eye-open green"></span></li>
-											</c:if>
-											<c:if test="${showgrantedrepeaticon eq true}">
-												<li><span class="mini-icon glyphicon glyphicon-repeat green"></span></li>
-											</c:if>	 
+										<c:if test="${showgrantedidicon eq true || showauthenticate eq true}">
+											<li>
+												<c:if test="${showgrantedidicon eq true}">
+													<span class="mini-orcid-icon oauth-bullet"></span>
+												</c:if>
+												<c:if test="${showauthenticate eq true}">
+													<span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showauthenticate.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showauthenticate"/></span>
+												</c:if>
+											</li>
+										</c:if>
 									</ul>
 								</div>
-							</div>
-							<div class="container">	
-								<div class="col-md-12">
-									<ul class="oauth-scopes">			
-											<c:if test="${showauthenticate eq true}">
-												<li><span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showauthenticate.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showauthenticate"/></span></li>
-											</c:if>
-											<c:if test="${showorcidprofilereadlimited eq true}">
-												<li><span class="bottompopover" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidprofilereadlimited.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidprofilereadlimited"/></span></li>
-											</c:if>											
-											<c:if test="${showorcidbioupdate eq true}">
-												<li><span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidbioupdate.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidbioupdate"/></span></li>
-											</c:if>
-											<c:if test="${showorcidworksupdate eq true}">
-												<li><span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidworksupdate.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidworksupdate"/></span></li>
-											</c:if>
+								<div class="row">
+									<ul class="oauth-icons">
+										<c:if test="${showgrantedeyesicon eq true || showorcidprofilereadlimited eq true}">
+											<li>
+												<c:if test="${showgrantedeyesicon eq true}">
+													<span class="mini-icon glyphicon glyphicon-eye-open green"></span>
+												</c:if>
+												<c:if test="${showorcidprofilereadlimited eq true}">
+													<span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidprofilereadlimited.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidprofilereadlimited"/></span>
+												</c:if>
+											</li>
+										</c:if>
+									</ul>
+								</div>
+								<div class="row">
+									<ul class="oauth-icons">
+										<c:if test="${showgrantedrepeaticon eq true || showorcidbioupdate eq true || showorcidworksupdate eq true}">
+											<li>
+												<c:if test="${showgrantedrepeaticon eq true}">
+													<span class="mini-icon glyphicon glyphicon-repeat green"></span>
+												</c:if>
+												<c:if test="${showorcidbioupdate eq true}">
+													<span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidbioupdate.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidbioupdate"/></span>
+												</c:if>
+												<c:if test="${showorcidbioupdate eq true && showorcidworksupdate eq true}">
+													<br>
+												</c:if>
+												<c:if test="${showorcidworksupdate eq true}">
+													<span class="bottomTooltip" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidworksupdate.tooltip"/>"><fmt:message key="jsp.orcid.custom.box.label.authorization.showorcidworksupdate"/></span>
+												</c:if>
+											</li>
+										</c:if>
 									</ul>
 								</div>
 							</div>
@@ -173,7 +190,7 @@ j(document).ready(function() {
 					<c:when test="${showmissedidicon eq true or showmissedeyesicon eq true or showmissedrepeaticon eq true}">											
 						<div class="col-md-2">
 							<div class="row">
-							<a href="<%= request.getContextPath() %>/oauth-login">
+							<a href="<%= request.getContextPath() %>/oauth-login?standalone=true">
 		      					<div class="bottomTooltip col-md-offset-3" data-toggle="popover" data-container="body" data-content="<fmt:message key="jsp.orcid.custom.box.label.button.refresh.auth"/>">
 			      					<button class="btn btn-default">		      						
 			      						<img src="<%= request.getContextPath() %>/image/orcid_64x64.png" title="ORCID Authentication"/>
@@ -254,11 +271,11 @@ j(document).ready(function() {
 						<div class="dynaField">
 							<div class="dynaFieldValue">
 								<div class="btn-group" role="group">
-								  <a href="<%= request.getContextPath() %>/oauth-login?show-login=false">
+								  <a href="<%= request.getContextPath() %>/oauth-login?standalone=true&show-login=false">
 			      						<button class="btn btn-default"><fmt:message key="jsp.orcid.custom.box.button.create"/></button>
 			      				  </a>								  
 								  <span>&nbsp;&nbsp;&nbsp;<img src="<%= request.getContextPath() %>/image/orcid_64x64.png" title="ORCID Authentication">&nbsp;&nbsp;&nbsp;</span>
-								  <a href="<%= request.getContextPath() %>/oauth-login?show-login=true">
+								  <a href="<%= request.getContextPath() %>/oauth-login?standalone=true&show-login=true">
 			      						<button class="btn btn-default"><fmt:message key="jsp.orcid.custom.box.button.connect"/></button>
 			      				  </a>
 								</div>
