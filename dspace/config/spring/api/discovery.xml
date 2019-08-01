@@ -91,6 +91,10 @@
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
 	</bean>
 
+	<!--  Additional indexing plugin to add RP status when it is undefined -->
+	<bean id="crisRPStatusSolrIndexPlugin" class="org.dspace.app.cris.discovery.CrisRPStatusSolrIndexPlugin">
+	</bean>
+
 	<!--  Additional indexing plugin to index multilanguage for authority field -->
 	<bean id="ownerAuthorityIndexer" class="org.dspace.app.cris.discovery.OwnerRPAuthorityIndexer"/>
 						
