@@ -124,7 +124,9 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
                     String type = rp.getMetadata(ConfigurationManager
                             .getProperty("cris", "researcher.cris." + publicPath
                                     + ".ref.display.strategy.metadata.icon"));
-
+                    if (type != null) {
+                        type = type.replaceAll("[^a-zA-Z ]", "").replaceAll(" ", "-").toLowerCase();
+                    }
                     if(!rp.getStatus() || (type!=null && type.equals("exstaff"))) {
                         startLink = "&nbsp;";
                         endLink = "";
