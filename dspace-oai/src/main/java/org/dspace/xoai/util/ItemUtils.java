@@ -100,6 +100,19 @@ public class ItemUtils
      * @return
      */
     private static Element writeMetadata(Element  schema,Metadatum val) {
+    	return writeMetadata(schema, val, false);
+    }
+    
+    /***
+     * Write metadata into a Element structure.
+     * 
+     * @param schema The reference schema
+     * @param val The metadata value
+     * @param forceEmptyQualifier Set to true to create a qualifier element
+     * 				with value "none" when qualifier is empty. Otherwise the qualifier element is not created.
+     * @return
+     */
+    private static Element writeMetadata(Element  schema,Metadatum val, boolean forceEmptyQualifier) {
     	
         Element valueElem = null;
         valueElem = schema;
@@ -127,6 +140,15 @@ public class ItemUtils
                     element.getElement().add(qualifier);
                 }
                 valueElem = qualifier;
+            } else if (forceEmptyQualifier) {
+            	Element qualifier = getElement(element.getElement(),
+                        "none");
+            	//if (qualifier == null)
+                {
+                    qualifier = create("none");
+                    element.getElement().add(qualifier);
+                }
+                valueElem = qualifier;
             }
         }
         Element qualifier = valueElem;
@@ -136,7 +158,8 @@ public class ItemUtils
         {
             Element language = getElement(valueElem.getElement(),
                     val.language);
-            if (language == null)
+            // remove single language
+            //if (language == null)
             {
                 language = create(val.language);
                 valueElem.getElement().add(language);
@@ -147,7 +170,8 @@ public class ItemUtils
         {
             Element language = getElement(valueElem.getElement(),
                     "none");
-            if (language == null)
+            // remove single language
+            //if (language == null)
             {
                 language = create("none");
                 valueElem.getElement().add(language);
@@ -522,7 +546,7 @@ public class ItemUtils
                     schema = create(val.schema);
                     metadata.getElement().add(schema);
                 }
-                Element element = writeMetadata(schema, val);
+                Element element = writeMetadata(schema, val, true);
                 //metadata.getElement().add(element);
                 
                 // create relation (use full metadata value as relation name)
