@@ -387,25 +387,26 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 			<p class="alert alert-warning"><fmt:message key="jsp.submit.start-lookup-submission.noresult"/></p>
 			<div id="no_result_manual_submission"></div>
 		</div>
-		
-		<form class="form-horizontal" id="form-submission-identifiers" action="" method="post">
-			<div class="form-group">
-				<label for="select-collection-manual" class="col-sm-2 control-label"><fmt:message key="jsp.submit.start-lookup-submission.select.collection.label"/></label>
-				<div class="col-sm-7">
-						<dspace:selectcollection klass="form-control" id="select-collection-identifier" collection="<%= collection_id %>"/>
-				</div>
-				<button class="btn btn-success" id="identifier-submission-button" type="button"><fmt:message key="jsp.submit.general.submit"/> </button>
-				</div>
-			<input type="hidden" id="iuuid" name="iuuid" value=""/>
-			<input type="hidden" id="fuuid" name="fuuid" value=""/>
-			<input type="hidden" id="suuid" name="suuid" value="<%= uuid %>"/>
-			<input type="hidden" id="collectionid" name="collectionid" value=""/>
-			<input type="hidden" id="iuuid_batch" name="iuuid_batch" value=""/>
-			<input type="hidden" id="filePath" name="filePath" value=""/>
-		</form>
-		<input type="checkbox" id="checkallresults" name="checkallresults"><fmt:message key="jsp.submit.start-lookup-submission.js.checkallresults"/>
-		<h4 id="no-record" class="label label-warning" style="display:none"><fmt:message key="jsp.submit.start-lookup-submission.norecordselected" /></h4>
-		<h4 id="no-collection" class="label label-warning" style="display:none"><fmt:message key="jsp.submit.start-lookup-submission.nocollectionselected" /></h4>
+		<div id="result-form">
+			<form class="form-horizontal" id="form-submission-identifiers" action="" method="post">
+				<div class="form-group">
+					<label for="select-collection-identifier" class="col-sm-2 control-label"><fmt:message key="jsp.submit.start-lookup-submission.select.collection.label"/></label>
+					<div class="col-sm-7">
+							<dspace:selectcollection klass="form-control" id="select-collection-identifier" collection="<%= collection_id %>"/>
+					</div>
+					<button class="btn btn-success" id="identifier-submission-button" type="button"><fmt:message key="jsp.submit.general.submit"/> </button>
+					</div>
+				<input type="hidden" id="iuuid" name="iuuid" value=""/>
+				<input type="hidden" id="fuuid" name="fuuid" value=""/>
+				<input type="hidden" id="suuid" name="suuid" value="<%= uuid %>"/>
+				<input type="hidden" id="collectionid" name="collectionid" value=""/>
+				<input type="hidden" id="iuuid_batch" name="iuuid_batch" value=""/>
+				<input type="hidden" id="filePath" name="filePath" value=""/>
+			</form>
+			<input type="checkbox" id="checkallresults" name="checkallresults"><fmt:message key="jsp.submit.start-lookup-submission.js.checkallresults"/>
+			<h4 id="no-record" style="display:none"><span class="label label-warning"></span><fmt:message key="jsp.submit.start-lookup-submission.norecordselected" /></span></h4>
+			<h4 id="no-collection" style="display:none"><span class="label label-warning"><fmt:message key="jsp.submit.start-lookup-submission.nocollectionselected" /></span></h4>
+		</div>
 		<div id="result-list"></div>
 	</div>
 <% 
@@ -536,16 +537,13 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
             j("li.ui-state-default").toggleClass("ui-state-default ui-corner-top");
             j("div.ui-tabs-panel").toggleClass("ui-tabs-panel ui-widget-content ui-corner-bottom tab-content with-padding");
             },
-        activate: function( event, ui ) {
+	        activate: function( event, ui ) {
             j("li.ui-tabs-active").toggleClass("ui-tabs-active ui-state-active active");
-            if ('tabs-result' == ui.newPanel.attr('id'))
-   				{
-				j('#manual-submission>form').appendTo("#no_result_manual_submission");	
-    		}
-            else{
-            	j('#no_result_manual_submission>form').appendTo("#manual-submission");	
-   					}
-    			}
+	            if ('tabs-result' != ui.newPanel.attr('id'))
+	            {
+	            	j('#no_result_manual_submission>form').appendTo("#manual-submission");	
+	   			}
+        	}
     	});
    	
     	j('#link-ricerca-identificatore').click(function(){
