@@ -33,6 +33,7 @@
 <%@ page import="org.dspace.content.Collection"  %>
 <%@ page import="org.dspace.content.Item"        %>
 <%@ page import="org.dspace.content.MetadataValue" %>
+<%@ page import="org.dspace.content.IMetadataValue" %>
 <%@ page import="org.dspace.content.service.ItemService" %>
 <%@ page import="org.dspace.content.factory.ContentServiceFactory" %>
 <%@ page import="java.util.List" %>
@@ -126,7 +127,7 @@
         Item item = (Item)items.get(i.next());
         // get the metadata or placeholders to display for date, contributor and title
         String date = LocaleSupport.getLocalizedMessage(pageContext, "jsp.general.without-date");
-        List<MetadataValue> dates = itemService.getMetadata(item, "dc", "date", "issued", Item.ANY);
+        List<IMetadataValue> dates = itemService.getMetadata(item, "dc", "date", "issued", Item.ANY);
         if (dates.size() >= 1)
         {
             date = dates.get(0).getValue();
@@ -136,7 +137,7 @@
          // do nothing the date is already set to "without date"
         }
         String contributor = LocaleSupport.getLocalizedMessage(pageContext, "jsp.general.without-contributor");
-        List<MetadataValue> contributors = itemService.getMetadata(item, "dc", "contributor", Item.ANY, Item.ANY);
+        List<IMetadataValue> contributors = itemService.getMetadata(item, "dc", "contributor", Item.ANY, Item.ANY);
         if (contributors.size() >= 1)
         {
             contributor = contributors.get(0).getValue();
@@ -147,7 +148,7 @@
          // do nothing the contributor is already set to anonymous
         }
         String title = LocaleSupport.getLocalizedMessage(pageContext, "jsp.general.untitled");
-        List<MetadataValue> titles = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
+        List<IMetadataValue> titles = itemService.getMetadata(item, "dc", "title", null, Item.ANY);
         if (titles.size() >= 1)
         {
             title = titles.get(0).getValue();

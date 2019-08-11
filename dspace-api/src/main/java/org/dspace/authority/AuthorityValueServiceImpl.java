@@ -18,11 +18,12 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.authority.SolrAuthority;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 /**
  * This service contains all methods for using authority values
@@ -36,7 +37,6 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 
     private final Logger log = Logger.getLogger(AuthorityValueServiceImpl.class);
 
-    @Autowired(required = true)
     protected AuthorityTypes authorityTypes;
 
     protected AuthorityValueServiceImpl()
@@ -86,10 +86,10 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
                     info = split[2];
                 }
             }
-            AuthorityValue authorityType = authorityTypes.getEmptyAuthorityValue(type);
+            AuthorityValue authorityType = getAuthorityTypes().getEmptyAuthorityValue(type);
             nextValue = authorityType.newInstance(info);
         } else {
-            Map<String, AuthorityValue> fieldDefaults = authorityTypes.getFieldDefaults();
+            Map<String, AuthorityValue> fieldDefaults = getAuthorityTypes().getFieldDefaults();
             nextValue = fieldDefaults.get(field).newInstance(null);
             if (nextValue == null) {
                 nextValue = new AuthorityValue();
@@ -183,7 +183,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
     @Override
     public AuthorityValue fromSolr(SolrDocument solrDocument) {
         String type = (String) solrDocument.getFieldValue("authority_type");
-        AuthorityValue value = authorityTypes.getEmptyAuthorityValue(type);
+        AuthorityValue value = getAuthorityTypes().getEmptyAuthorityValue(type);
         value.setValues(solrDocument);
         return value;
     }
@@ -191,7 +191,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
     @Override
     public AuthorityValue getAuthorityValueType(String metadataString) {
         AuthorityValue fromAuthority = null;
-        for (AuthorityValue type : authorityTypes.getTypes()) {
+        for (AuthorityValue type : getAuthorityTypes().getTypes()) {
             if (StringUtils.startsWithIgnoreCase(metadataString,type.getAuthorityType())) {
                 fromAuthority = type;
             }
@@ -230,5 +230,12 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 
     protected String fieldParameter(String schema, String element, String qualifier) {
         return schema + "_" + element + ((qualifier != null) ? "_" + qualifier : "");
+    }
+
+    public AuthorityTypes getAuthorityTypes() {
+        if(authorityTypes == null) {
+            authorityTypes = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("AuthorityTypes", AuthorityTypes.class);
+        }
+        return authorityTypes;
     }
 }

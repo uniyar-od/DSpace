@@ -40,14 +40,14 @@ import java.util.*;
  * @author Ben Bosman (ben at atmire dot com)
  * @author Mark Diggory (markd at atmire dot com)
  */
-public class DSpaceAuthorityIndexer implements AuthorityIndexerInterface, InitializingBean {
+public class DSpaceAuthorityIndexer implements AuthorityIndexerInterface {
 
     private static final Logger log = Logger.getLogger(DSpaceAuthorityIndexer.class);
 
     /**
      * The list of metadata fields which are to be indexed *
      */
-    protected List<String> metadataFields;
+    private List<String> metadataFields;
 
     @Autowired(required = true)
     protected AuthorityValueService authorityValueService;
@@ -57,17 +57,6 @@ public class DSpaceAuthorityIndexer implements AuthorityIndexerInterface, Initia
 
     @Autowired(required = true)
     protected ConfigurationService configurationService;
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        int counter = 1;
-        String field;
-        metadataFields = new ArrayList<String>();
-        while ((field = configurationService.getProperty("authority.author.indexer.field." + counter)) != null) {
-            metadataFields.add(field);
-            counter++;
-        }
-    }
 
     @Override
     public List<AuthorityValue> getAuthorityValues(Context context, Item item)
@@ -82,7 +71,7 @@ public class DSpaceAuthorityIndexer implements AuthorityIndexerInterface, Initia
     {
         List<AuthorityValue> values = new ArrayList<>();
 
-        for (String metadataField : metadataFields) {
+        for (String metadataField : getMetadataFields()) {
             List<IMetadataValue> metadataValues = itemService.getMetadataByMetadataString(item, metadataField);
             for (IMetadataValue metadataValue : metadataValues) {
                 String content = metadataValue.getValue();
@@ -168,10 +157,23 @@ public class DSpaceAuthorityIndexer implements AuthorityIndexerInterface, Initia
     @Override
     public boolean isConfiguredProperly() {
         boolean isConfiguredProperly = true;
-        if(CollectionUtils.isEmpty(metadataFields)){
+        if(CollectionUtils.isEmpty(getMetadataFields())){
             log.warn("Authority indexer not properly configured, no metadata fields configured for indexing. Check the \"authority.author.indexer.field\" properties.");
             isConfiguredProperly = false;
         }
         return isConfiguredProperly;
+    }
+
+    public List<String> getMetadataFields() {
+        if (metadataFields == null) {
+            int counter = 1;
+            String field;
+            metadataFields = new ArrayList<String>();
+            while ((field = configurationService.getProperty("authority.author.indexer.field." + counter)) != null) {
+                metadataFields.add(field);
+                counter++;
+            }
+        }
+        return metadataFields;
     }
 }

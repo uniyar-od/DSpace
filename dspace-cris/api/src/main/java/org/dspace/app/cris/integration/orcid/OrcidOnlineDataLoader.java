@@ -246,8 +246,10 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                 }
                 else
                 {
-                    authNames.add(new StringValue(name.getFamilyName() + ", "
-                            + name.getGivenNames()));
+                    if(name.getFamilyName()!=null && name.getGivenNames()!=null) {
+                        authNames.add(new StringValue(name.getFamilyName().getValue() + ", "
+                            + name.getGivenNames().getValue()));
+                    }
                 }
             }
             authOrcid.add(new StringValue(orcid));

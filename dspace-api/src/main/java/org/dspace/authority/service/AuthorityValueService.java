@@ -10,6 +10,7 @@ package org.dspace.authority.service;
 import java.util.List;
 
 import org.apache.solr.common.SolrDocument;
+import org.dspace.authority.AuthorityTypes;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.core.Context;
 
@@ -51,4 +52,6 @@ public interface AuthorityValueService
     public AuthorityValue fromSolr(SolrDocument solrDocument);
 
     public AuthorityValue getAuthorityValueType(String metadataString);
+    
+    public AuthorityTypes getAuthorityTypes();
 }

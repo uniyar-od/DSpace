@@ -10,6 +10,7 @@ package org.dspace.content;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -382,7 +383,7 @@ public class Collection extends DSpaceObject implements DSpaceObjectLegacySuppor
 	@Override
 	public Map<String, Object> getExtraInfo() {
 		// TODO Auto-generated method stub
-		return null;
+		return new HashMap<String, Object>();
 	}
 
 	@Override

@@ -227,7 +227,7 @@ public class ItemImportMainOA
             }
             else
             {
-                String sql = "SELECT a.imp_id, a.imp_record_id, a.imp_eperson_id, a.imp_collection_id, a.status, a.operation, a.handle, a.imp_sourceref FROM imp_record WHERE last_modified is NULL order by imp_id ASC";
+                String sql = "SELECT a.imp_id, a.imp_record_id, a.imp_eperson_id, a.imp_collection_id, a.status, a.operation, a.handle, a.imp_sourceref FROM imp_record a WHERE last_modified is NULL order by imp_id ASC";
                 
                 rows = getHibernateSession(context).createSQLQuery(sql).list();
 
@@ -436,7 +436,7 @@ public class ItemImportMainOA
                 else
                 {
 
-                    Object record_item = getHibernateSession(subcontext).createSQLQuery("select imp_item_id from imp_record_to_item where imp_record_id = :par0 and imp_sourceref = :par1").setParameter(0, record_id).setParameter(1, sourceref).uniqueResult();
+                    Object record_item = getHibernateSession(subcontext).createSQLQuery("select imp_item_id from imp_record_to_item where imp_record_id = ? and imp_sourceref = ?").setParameter(0, record_id).setParameter(1, sourceref).uniqueResult();
                     if (record_item != null)
                     {
                         itemId = (String)record_item;//.getIntColumn("imp_item_id");

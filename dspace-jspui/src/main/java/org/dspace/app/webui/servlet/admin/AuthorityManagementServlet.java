@@ -8,6 +8,7 @@
 package org.dspace.app.webui.servlet.admin;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -308,7 +309,8 @@ public class AuthorityManagementServlet extends DSpaceServlet
             request.setAttribute("infos", infos);
     
             // add RP set # total item in HUB
-            long numItems = (Integer)(dao.getHibernateSession().createSQLQuery("select count(*) as count from Item where in_archive = true").addScalar("count").uniqueResult());
+            BigInteger numItemsInt = (BigInteger)(dao.getHibernateSession().createSQLQuery("select count(*) as count from Item where in_archive = true").addScalar("count").uniqueResult());
+            long numItems = numItemsInt != null ? numItemsInt.longValue():0;
             request.setAttribute("numItems", numItems);
     
             log.info(LogManager.getHeader(context, "show_main_page",
@@ -333,7 +335,8 @@ public class AuthorityManagementServlet extends DSpaceServlet
             request.setAttribute("infos", infos);
     
             // add RP set # total item in HUB
-            long numItems = (Integer)(dao.getHibernateSession().createSQLQuery("select count(*) as count from Item where in_archive = true").addScalar("count").uniqueResult());
+            BigInteger numItemsInt = (BigInteger)(dao.getHibernateSession().createSQLQuery("select count(*) as count from Item where in_archive = true").addScalar("count").uniqueResult());
+            long numItems = numItemsInt != null ? numItemsInt.longValue():0;
             request.setAttribute("numItems", numItems);
     
             log.info(LogManager.getHeader(context, "show_main_page",
