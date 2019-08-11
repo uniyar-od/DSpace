@@ -74,7 +74,7 @@
             <Transformer ref="openaireTransformer"/>
             <!-- OpenAIRE filter -->
             <!-- [COMMENTED OUT]
-             <Filter ref="openAireFilter"/>
+            <Filter ref="openAireFilter"/>
              -->
             <Filter ref="allFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
@@ -264,9 +264,10 @@
 
         <!-- OpenAIRE filter for records returned by OAI-PMH.
          By default, return a record:
-         * If the record is an Item or cris item type.
+         * If the record is an Item or another supported type
+         * ... other see driverFilter
          This filter is only used in the OpenAIRE context ([oai]/openaire).
-         -->
+        -->
         <Filter id="allFilter">
             <Definition>
                 <And>
@@ -288,13 +289,19 @@
         </Filter>
         
         <!-- OpenAIRE filter for records returned by OAI-PMH.
-             By default, return an Item record:
-               * If a Title & Author field both exist
-               * AND a valid DRIVER Document Type exists
-               * AND Item is either publicly accessible OR Withdrawn (for tombstones)
-               * AND the OpenAIRE "dc.relation" is specified
-             This filter is only used in the OpenAIRE context ([oai]/openaire).
-        -->
+         By default, return an Item record:
+            * If a Title & Author field both exist
+            * AND a valid DRIVER Document Type exists
+            * AND Item is either publicly accessible OR Withdrawn (for tombstones)
+            * AND the OpenAIRE "dc.relation" is specified
+         This filter is only used in the OpenAIRE context ([oai]/openaire).
+         
+         TODO: review.
+            * openaire type are related to publications, products and patent. The
+                list driverDocumentTypeCondition is only a partial list of publication types.
+            * openaireRelationCondition must be review to match the list of value of dc.rights.
+                see http://purl.org/coar/access_right.
+         -->
         <Filter id="openAireFilter">
             <Definition>
                 <And>
@@ -516,12 +523,15 @@
                 <string name="field">item.type</string>
                 <string name="operator">equal</string>
                 <list name="values">
-                     <string>item</string>
-                     <string>journals</string>
-                     <string>events</string>
-                     <string>project</string>
-                     <string>rp</string>
-                     <string>ou</string>
+                    <string>item</string>
+                    <string>project</string>
+                    <string>rp</string>
+                    <string>ou</string>
+                    <string>journals</string>
+                    <string>events</string>
+                    <string>funding</string>
+                    <string>equipment</string>
+                    <string>service</string>
                 </list>
             </Configuration>
         </CustomCondition>

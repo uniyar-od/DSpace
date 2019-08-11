@@ -640,8 +640,11 @@ public class ItemUtils
     	List<MetadatumAuthorityDecorator> results = new ArrayList<MetadatumAuthorityDecorator>();
     	
     	MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, onlyPub, filterProperty, module);
-    	for (MetadatumAuthorityDecorator mad : vals) {
-    		results.add(mad);
+    	// TODO: if vals is null an exception is thrown in UtilsCrisMetadata.getAllMetadata.
+    	if (vals != null) {
+    		for (MetadatumAuthorityDecorator mad : vals) {
+    			results.add(mad);
+    		}
     	}
     	
     	// add default virtual

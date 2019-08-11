@@ -11,7 +11,6 @@ import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
-import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
@@ -138,7 +137,7 @@ public class UtilsCrisMetadata {
         		for (NTP ntp : ntps) {
         		    Metadatum[] nestedMetadata = item.getMetadata(typo.getShortName(), ntp.getShortName(), null, null, onlyPub);
         		    for(Metadatum m : nestedMetadata) {
-        		        metadatumAuthDec.add(new MetadatumAuthorityDecorator(m, (RPNestedPropertiesDefinition)ntp));
+        		        metadatumAuthDec.add(new MetadatumAuthorityDecorator(m, ntp));
         		    }
         		}
         	}

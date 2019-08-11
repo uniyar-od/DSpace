@@ -6,13 +6,13 @@ import java.util.regex.Pattern;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearcherPage;
-import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.widget.WidgetPointerDO;
 import org.dspace.app.cris.model.jdyna.widget.WidgetPointerOU;
 import org.dspace.app.cris.model.jdyna.widget.WidgetPointerPJ;
 import org.dspace.app.cris.model.jdyna.widget.WidgetPointerRP;
 import org.dspace.content.Metadatum;
 
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
 import it.cilea.osd.jdyna.widget.WidgetPointer;
 
 /***
@@ -29,7 +29,7 @@ public class MetadatumAuthorityDecorator {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public MetadatumAuthorityDecorator(Metadatum metadatum, RPNestedPropertiesDefinition npd) {
+	public MetadatumAuthorityDecorator(Metadatum metadatum, ANestedPropertiesDefinition npd) {
 		init(metadatum);
 		
 		if (npd.getRendering() instanceof WidgetPointer) {
