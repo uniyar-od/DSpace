@@ -69,6 +69,7 @@
 <%@page import="org.dspace.content.DSpaceObject"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dspace.handle.HandleManager"%>
+<%@page import="org.dspace.core.I18nUtil"%>
 
 <%
 	String hdlPrefix = ConfigurationManager.getProperty("handle.prefix");
@@ -856,6 +857,9 @@ if((showGlobalFacet) || (brefine)) {
 	    { 
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
 	        {
+	        String displayedValue = fvalue.getAuthorityKey();
+	        String facetlabel = "jsp.search.facet.display." + f + "." + displayedValue;
+	        displayedValue = I18nUtil.getMessage(facetlabel, false);
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
                 + "/simple-search?query="
                 + URLEncoder.encode(query,"UTF-8")
@@ -869,7 +873,7 @@ if((showGlobalFacet) || (brefine)) {
                 + "&amp;filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
                 + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>"
                 title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
+                <%= displayedValue.startsWith("jsp.search") ? StringUtils.abbreviate(fvalue.getDisplayedValue(),36) : displayedValue %></a></li><%
                 idx++;
 	        }
 	        if (idx > limit)
