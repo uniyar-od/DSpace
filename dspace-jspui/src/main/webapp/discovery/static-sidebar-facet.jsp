@@ -16,7 +16,7 @@
   -    discovery.searchScope - the search scope 
   --%>
 
-<%@page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
+<%@ page import="org.dspace.discovery.configuration.DiscoverySearchFilterFacet"%>
 <%@ page import="java.util.HashMap"%>
 <%@ page import="java.util.Set"%>
 <%@ page import="java.util.Map"%>
@@ -24,10 +24,12 @@
 <%@ page import="java.util.List"%>
 <%@ page import="java.net.URLEncoder"%>
 <%@ page import="org.apache.commons.lang.StringUtils"%>
-
+<%@ page import="java.util.Locale"%>
 <%
 	boolean brefine = false;
 	
+	Locale sessionLocaleSidebar = UIUtil.getSessionLocale(request);
+
 	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
 	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
 	String searchScope = (String) request.getAttribute("discovery.searchScope");
@@ -94,13 +96,14 @@
 		    { 
 		        if (idx != limit)
 		        {
+		            String displayedValue = fvalue.getDisplayedValueI18N(f, sessionLocaleSidebar);
 		        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
 	                + "/simple-search?filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
 	                + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
 	                + "&amp;filtertype="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8")
 	                + "&amp;location="+URLEncoder.encode(searchScope,"UTF-8") %>"
 	                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-	                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
+	                <%= displayedValue.startsWith("jsp.search") ? StringUtils.abbreviate(fvalue.getDisplayedValue(),36) : displayedValue %></a></li><%
 		        }
 		        idx++;
 		    }

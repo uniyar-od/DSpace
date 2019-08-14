@@ -40,6 +40,7 @@
     prefix="c" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
+<%@ page import="java.util.Locale"%>
 <%@ page import="java.net.URLEncoder"            %>
 <%@ page import="org.dspace.content.Community"   %>
 <%@ page import="org.dspace.content.Collection"  %>
@@ -177,6 +178,8 @@
 		    brefine = brefine || showFacet;
 		}
 	}
+	
+	Locale sessionLocale = UIUtil.getSessionLocale(request);
 %>
 
 <c:set var="dspace.layout.head.last" scope="request">
@@ -857,9 +860,7 @@ if((showGlobalFacet) || (brefine)) {
 	    { 
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
 	        {
-	        String displayedValue = fvalue.getAuthorityKey();
-	        String facetlabel = "jsp.search.facet.display." + f + "." + displayedValue;
-	        displayedValue = I18nUtil.getMessage(facetlabel, false);
+	        String displayedValue = fvalue.getDisplayedValueI18N(f, sessionLocale);
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
                 + "/simple-search?query="
                 + URLEncoder.encode(query,"UTF-8")

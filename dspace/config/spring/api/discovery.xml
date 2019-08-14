@@ -2183,6 +2183,7 @@
 				<ref bean="searchFilterObjectPeople" />
 				<ref bean="searchFilterRPInterests" />
 				<ref bean="searchFilterRPWorkgroup" />
+				<ref bean="searchFilterRPStatus" />
 		</list>
 		</constructor-arg>
 	</bean>

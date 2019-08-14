@@ -765,7 +765,8 @@ public class DiscoverUtility
                     if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
                         queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                                 DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
-                                .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_", facetPage * facetLimit,false));                    }
+                                .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_", facetPage * facetLimit,false));
+                    }
                     else if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
 							globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName())) {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),

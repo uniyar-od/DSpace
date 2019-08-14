@@ -14,6 +14,7 @@ import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.I18nUtil;
 import org.dspace.discovery.SolrServiceImpl;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.services.ConfigurationService;
@@ -52,15 +54,23 @@ public class CrisRPStatusSolrIndexPlugin implements CrisServiceIndexPlugin {
         if (crisObject instanceof ResearcherPage) {
             String status = ConfigurationManager.getProperty("cris", "researcher.cris.rp.ref.display.strategy.metadata.icon");
             if (StringUtils.isBlank(status) || StringUtils.isBlank(crisObject.getMetadata(status))) {
+                             
+                
                 document.addField(fieldName, "undefined");
-                document.addField(fieldName + "_keyword", "undefined");
-                document.addField(fieldName + "_keyword", "en_undefined" + SolrServiceImpl.AUTHORITY_SEPARATOR + "undefined");
+                document.addField(fieldName + "_keyword", "undefined");                
                 document.addField(fieldName + "_ac", "undefined" +separator+ "undefined");
-                document.addField(fieldName + "_ac", "en_undefined" +separator+ "undefined");
-                document.addField(fieldName + "_acid", "en_undefined"+separator+"undefined" + SolrServiceImpl.AUTHORITY_SEPARATOR + "undefined");
                 document.addField(fieldName + "_filter", "undefined"+separator+"undefined");
-                document.addField(fieldName + "_filter", "en_undefined"+separator+"undefined" + SolrServiceImpl.AUTHORITY_SEPARATOR + "undefined");
                 document.addField(fieldName + "_authority", "undefined");
+                
+                for (Locale locale : I18nUtil.getSupportedLocales())
+                {
+                    String language = locale.getLanguage();
+                    String prefixedDisplayVal = language + "_" + "undefined";
+                    document.addField(fieldName + "_filter", prefixedDisplayVal.toLowerCase() + separator + "undefined" + SolrServiceImpl.AUTHORITY_SEPARATOR + "undefined");
+                    document.addField(fieldName + "_keyword", prefixedDisplayVal.toLowerCase() + SolrServiceImpl.AUTHORITY_SEPARATOR + "undefined");
+                    document.addField(fieldName + "_ac", prefixedDisplayVal.toLowerCase() +separator+ "undefined");
+                    document.addField(fieldName + "_acid", prefixedDisplayVal.toLowerCase() +separator+"undefined" + SolrServiceImpl.AUTHORITY_SEPARATOR + "undefined");
+                }
             }
         }
 
