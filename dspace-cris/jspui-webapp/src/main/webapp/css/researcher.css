@@ -1158,16 +1158,20 @@ div.subscription-current {
 	width: 120px; 
 }
 
-.exstaff {
-    color: goldenrod;
+.staff {
+    color: #00716A;
+}
+
+.former {
+    color: #67989A;
 }
 
 .externalstaff {
-    color: black;
+    color: #97942C;
 }
 
 .undefinedstaff {
-	   color: gray;
+	   color: #B7B1AD;
 }
 
 .badge-pill {

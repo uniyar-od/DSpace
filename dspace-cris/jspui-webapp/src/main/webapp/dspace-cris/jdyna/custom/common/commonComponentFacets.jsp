@@ -7,6 +7,7 @@
     https://github.com/CILEA/dspace-cris/wiki/License
 
 --%>
+<%@page import="java.util.Locale"%>
 <%@page import="org.apache.commons.lang.StringUtils"%>
 <%@page import="java.util.List"%>
 <%@page import="org.apache.commons.lang.StringEscapeUtils" %>
@@ -101,7 +102,7 @@
     	    brefine = brefine || showFacet;
     	}
     }
-	
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
 %>
 
 	<div id="collapseFacet_${holder.shortName}" class="collapse">
@@ -141,13 +142,14 @@
 						    { 
 						        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
 						        {
+						            String displayedValue = fvalue.getDisplayedValueI18N(f, sessionLocale);
 						        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="?open=<%=info.getType()							
 					                + httpFilters
 					                + "&amp;filtername" + relationName + "="+URLEncoder.encode(f,"UTF-8")
 					                + "&amp;filterquery" + relationName + "="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
 					                + "&amp;filtertype" + relationName + "="+URLEncoder.encode(fvalue.getFilterType(),"UTF-8") %>#${holder.shortName}"
 					                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
-					                <%= fvalue.getDisplayedValue() %></a></li><%
+					                <%= displayedValue.startsWith("jsp.search") ? StringUtils.abbreviate(fvalue.getDisplayedValue(),36) : displayedValue %></a></li><%
 					                idx++;
 						        }
 						        if (idx > limit)

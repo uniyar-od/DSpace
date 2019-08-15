@@ -7,9 +7,16 @@
  */
 package org.dspace.discovery;
 
-import org.dspace.content.DSpaceObject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
-import java.util.*;
+import org.dspace.content.DSpaceObject;
+import org.dspace.core.I18nUtil;
 
 /**
  * This class represents the result that the discovery search impl returns
@@ -196,6 +203,14 @@ public class DiscoverResult {
         {
             return authorityKey != null?"authority":
             	asFilterQuery != null?"equals":"notequals";
+        }
+        
+        public String getDisplayedValueI18N(String facet, Locale locale)
+        {
+            String displayedValue = this.getAuthorityKey();
+            String facetlabel = "jsp.search.facet.display." + facet + "." + displayedValue;
+            displayedValue = I18nUtil.getMessage(facetlabel, locale, false);
+            return displayedValue;
         }
     }
 
