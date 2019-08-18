@@ -8,38 +8,56 @@
 package org.dspace.xoai.util;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
+import com.lyncode.xoai.dataprovider.xml.xoai.Element.Field;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.integration.CRISAuthority;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
+import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.handle.HandleManager;
+import org.dspace.utils.DSpace;
 import org.dspace.xoai.data.DSpaceItem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
  * 
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
-@SuppressWarnings("deprecation")
 public class ItemUtils
 {
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
+    
+    public static Integer MAX_DEEP = 2;
+    public static String AUTHORITY = "authority";
 
     private static Element getElement(List<Element> list, String name)
     {
@@ -65,7 +83,36 @@ public class ItemUtils
         return e;
     }
     
+    private static Field getField(List<Field> list, String name)
+    {
+        for (Field f : list)
+            if (name.equals(f.getName()))
+                return f;
+
+        return null;
+    }
+    
+    /***
+     * Write metadata into a Element structure.
+     * 
+     * @param schema The reference schema
+     * @param val The metadata value
+     * @return
+     */
     private static Element writeMetadata(Element  schema,Metadatum val) {
+    	return writeMetadata(schema, val, false);
+    }
+    
+    /***
+     * Write metadata into a Element structure.
+     * 
+     * @param schema The reference schema
+     * @param val The metadata value
+     * @param forceEmptyQualifier Set to true to create a qualifier element
+     * 				with value "none" when qualifier is empty. Otherwise the qualifier element is not created.
+     * @return
+     */
+    private static Element writeMetadata(Element  schema,Metadatum val, boolean forceEmptyQualifier) {
     	
         Element valueElem = null;
         valueElem = schema;
@@ -93,15 +140,26 @@ public class ItemUtils
                     element.getElement().add(qualifier);
                 }
                 valueElem = qualifier;
+            } else if (forceEmptyQualifier) {
+            	Element qualifier = getElement(element.getElement(),
+                        "none");
+            	//if (qualifier == null)
+                {
+                    qualifier = create("none");
+                    element.getElement().add(qualifier);
+                }
+                valueElem = qualifier;
             }
         }
-
+        Element qualifier = valueElem;
+        
         // Language?
         if (val.language != null && !val.language.equals(""))
         {
             Element language = getElement(valueElem.getElement(),
                     val.language);
-            if (language == null)
+            // remove single language
+            //if (language == null)
             {
                 language = create(val.language);
                 valueElem.getElement().add(language);
@@ -112,14 +170,15 @@ public class ItemUtils
         {
             Element language = getElement(valueElem.getElement(),
                     "none");
-            if (language == null)
+            // remove single language
+            //if (language == null)
             {
                 language = create("none");
                 valueElem.getElement().add(language);
             }
             valueElem = language;
         }
-
+    	
         valueElem.getField().add(createValue("value", val.value));
         if (val.authority != null) {
             valueElem.getField().add(createValue("authority", val.authority));
@@ -130,14 +189,56 @@ public class ItemUtils
 
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
+    	return retrieveMetadata(context, item, false, /*null, null, null, true, */0);
+    }
+    
+    /***
+     * Retrieve all metadata in a XML fragment.
+     * 
+     * @param context The context
+     * @param item The cris item
+     * @param skipAutority is used to disable relation metadata inclusion.
+     * @param deep the recursive dept
+     * @return
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, int deep) {
         Metadata metadata;
-        
-        //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        // add defaults
+        {
+        	Metadatum[] defaults = new Metadatum[3];
+        	
+        	Metadatum metadatum = new Metadatum();
+        	metadatum.schema = "item";
+        	metadatum.element = "vprop";
+        	metadatum.qualifier = "id";
+        	metadatum.authority = null;
+        	metadatum.value = Integer.toString(item.getID());
+        	defaults[0] = metadatum;
+        	
+        	metadatum = new Metadatum();
+        	metadatum.schema = "item";
+        	metadatum.element = "vprop";
+        	metadatum.qualifier = "handle";
+        	metadatum.authority = null;
+        	metadatum.value = item.getHandle();
+        	defaults[1] = metadatum;
+        	
+        	metadatum = new Metadatum();
+        	metadatum.schema = "item";
+        	metadatum.element = "vprop";
+        	metadatum.qualifier = "objecttype";
+        	metadatum.authority = null;
+        	metadatum.value = "item";
+        	defaults[2] = metadatum;
+        	
+        	vals = ArrayUtils.addAll(vals, defaults);
+        }
         for (Metadatum val : vals)
         {
             // Don't expose fields that are hidden by configuration
@@ -153,14 +254,80 @@ public class ItemUtils
                 throw new RuntimeException(se);
             }
 
+            // mapping metadata in index only            
             Element schema = getElement(metadata.getElement(), val.schema);
+
             if (schema == null)
             {
                 schema = create(val.schema);
                 metadata.getElement().add(schema);
             }
             Element element = writeMetadata(schema, val);
-            metadata.getElement().add(element);
+            // backward compatibility
+            {
+            	//metadata.getElement().add(element);
+            	Element elementCopy = create(element.getName());
+            	for (Field f : element.getField()) {
+            		elementCopy.getField().add(f);
+            	}
+            	metadata.getElement().add(elementCopy);
+            }
+
+            if (!skipAutority && val.authority != null) {
+            	String m = val.schema + "." + val.element;
+            	
+                if (val.qualifier != null && !val.qualifier.equals("")) {
+                	m += "." + val.qualifier;
+                }
+                // compute deep
+                int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
+                if (authorityDeep <= 0) {
+                	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
+                	
+                	if (authorityDeep <= 0)
+                		authorityDeep = MAX_DEEP;
+                }
+                
+                // add metadata of related cris object, using authority to get it
+                boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
+                if (metadataAuth && (deep < authorityDeep)) {
+                	try {
+                		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
+                		ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
+                		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
+							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
+							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
+                			
+                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, /*m, ((ACrisObject) o).getUuid(), Integer.toString(item.getID()),*/ 0);
+                			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
+                				Element root = create(AUTHORITY);
+                				element.getElement().add(root);
+                				for (Element crisElement : crisMetadata.getElement()) {
+                					root.getElement().add(crisElement);
+                				}
+                			}
+                		} else if (choicheAuth != null) {
+                			DSpaceObject dso = HandleManager.resolveToObject(context, val.authority);
+                			
+                			if (dso != null && dso instanceof Item) {
+                				Metadata itemMetadata = retrieveMetadata(context, (Item)dso, skipAutority, /*m, dso.getHandle(), Integer.toString(dso.getID()), true, */deep + 1);
+                				if (itemMetadata != null && !itemMetadata.getElement().isEmpty()) {
+                					Element root = create(AUTHORITY);
+                    				element.getElement().add(root);
+                    				for (Element crisElement : itemMetadata.getElement()) {
+                    					root.getElement().add(crisElement);
+                    				}
+                				}
+                			}
+                		}
+                		else {
+                			log.warn("No choices plugin (CRISAuthority plugin) was configured for field " + m);
+                		}
+            		} catch (Exception e) {
+            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
+            		}
+                }
+            }
         }
 
         // Done! Metadata has been read!
@@ -272,7 +439,6 @@ public class ItemUtils
             e1.printStackTrace();
         }
         
-
         // Other info
         Element other = create("others");
 
@@ -283,6 +449,8 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
+        other.getField().add(
+                createValue("type", "item"));
         metadata.getElement().add(other);
 
         // Repository Info
@@ -341,5 +509,252 @@ public class ItemUtils
         }
         
         return metadata;
+    }
+    
+    @SuppressWarnings("rawtypes")
+	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
+    	return retrieveMetadata(context, item, false, /*null, null, null, */ 0);
+    }
+    
+    /***
+     * Retrieve all metadata in a XML fragment.
+     * 
+     * @param context The context
+     * @param item The cris item
+     * @param deep 
+     * @return
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Metadata retrieveMetadata (Context context, ACrisObject item, boolean skipAutority, int deep) {
+        Metadata metadata;
+        
+        // read all metadata into Metadata Object
+        metadata = new Metadata();
+        
+		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
+        if (vals != null)
+        {
+            for (MetadatumAuthorityDecorator valAuthDec : vals)
+            {
+            	Metadatum val = valAuthDec.getMetadatum();
+
+            	// mapping metadata in index only
+                Element schema = getElement(metadata.getElement(), val.schema);
+                
+                if (schema == null)
+                {
+                    schema = create(val.schema);
+                    metadata.getElement().add(schema);
+                }
+                Element element = writeMetadata(schema, val, true);
+                //metadata.getElement().add(element);
+                
+                // create relation (use full metadata value as relation name)
+                if (!skipAutority && val.authority != null && val.authority.trim().length() > 0) {
+                	String m = val.schema + "." + val.element;
+                	
+                    if (val.qualifier != null && !val.qualifier.equals("")) {
+                    	m += "." + val.qualifier;
+                    }          
+                    // compute deep
+                    int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
+                    if (authorityDeep <= 0) {
+                    	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
+                    	
+                    	if (authorityDeep <= 0)
+                    		authorityDeep = MAX_DEEP;
+                    }
+                    
+                    // add metadata of related cris object, using authority to get it
+                    boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
+	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
+	                	try {
+	                		ACrisObject o = null;
+	                		
+	                		if (!valAuthDec.isClassNameNull())
+	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
+	                		else
+	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className(val.authority));
+	                			
+                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, /*m, ((ACrisObject) o).getUuid(), item.getUuid(), */deep + 1);
+                			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
+                				Element root = create(AUTHORITY);
+                				element.getElement().add(root);
+                				for (Element crisElement : crisMetadata.getElement()) {
+                					root.getElement().add(crisElement);
+                				}
+                			}		
+	            		} catch (Exception e) {
+	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
+	            		}
+	                }
+                }
+            }
+        }
+
+        // Other info
+        Element other = create("others");
+
+        other.getField().add(
+                createValue("handle", item.getHandle()));
+        other.getField().add(
+                createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
+        Date m = new Date(item
+                .getTimeStampInfo().getLastModificationTime().getTime());
+        other.getField().add(
+                createValue("lastModifyDate", m.toString()));
+        other.getField().add(
+                createValue("type", item.getPublicPath()));
+        metadata.getElement().add(other);
+
+        // Repository Info
+        Element repository = create("repository");
+        repository.getField().add(
+                createValue("name",
+                        ConfigurationManager.getProperty("dspace.name")));
+        repository.getField().add(
+                createValue("mail",
+                        ConfigurationManager.getProperty("mail.admin")));
+        metadata.getElement().add(repository);
+        
+        return metadata;
+    }
+    
+    public static String DEFAULT_SCHEMA_NAME = "crisitem";
+ 	public static String DEFAULT_ELEMENT_NAME = "crisprop";
+	public static String VIRTUAL_ELEMENT_NAME = "crisvprop";
+    
+    /***
+     * Read all metadata of a cris object
+     * 
+     * Added mapping of virtual
+     * 
+     * @param item The cris item
+     * @param onlyPub Set to true to read only public property
+     * @param filterProperty Set to true to enable property filtering
+     * @param module The config file name (module of config)
+     * @return
+     */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static MetadatumAuthorityDecorator[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module) {
+    	List<MetadatumAuthorityDecorator> results = new ArrayList<MetadatumAuthorityDecorator>();
+    	
+    	MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, onlyPub, filterProperty, module);
+    	// TODO: if vals is null an exception is thrown in UtilsCrisMetadata.getAllMetadata.
+    	if (vals != null) {
+    		for (MetadatumAuthorityDecorator mad : vals) {
+    			results.add(mad);
+    		}
+    	}
+    	
+    	// add default virtual
+    	{
+    		Metadatum metadatum = new Metadatum();
+    		
+    	    //crisitem.crisvprop.id        	(the id of the cris item)
+    		metadatum.schema = DEFAULT_SCHEMA_NAME;
+    		metadatum.element = VIRTUAL_ELEMENT_NAME;
+    		metadatum.qualifier = "id";
+    		metadatum.language = null;
+    		
+    		metadatum.authority = null;
+    		metadatum.value = Integer.toString(item.getID());
+    		results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
+
+    	    //crisitem.crisvprop.uuid      	(the uuid of the cris item)
+    		metadatum.schema = DEFAULT_SCHEMA_NAME;
+    		metadatum.element = VIRTUAL_ELEMENT_NAME;
+    		metadatum.qualifier = "uuid";
+    		metadatum.language = null;
+    		
+    		metadatum.authority = null;
+    		metadatum.value = item.getUuid();
+    		results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
+    		
+    	    //crisitem.crisvprop.handle    	(the handle of the cris item)
+    		metadatum.schema = DEFAULT_SCHEMA_NAME;
+    		metadatum.element = VIRTUAL_ELEMENT_NAME;
+    		metadatum.qualifier = "handle";
+    		metadatum.language = null;
+    		
+    		metadatum.authority = null;
+    		metadatum.value = item.getHandle();
+    		results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
+    		
+    		// crisitem.crisprop.objecttype
+            metadatum.schema = DEFAULT_SCHEMA_NAME;
+            metadatum.element = VIRTUAL_ELEMENT_NAME;
+            metadatum.qualifier = "objecttype";
+            metadatum.language = null;
+
+            metadatum.authority = null;
+            metadatum.value = item.getPublicPath();
+            results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
+    	}
+    	
+    	// crisitem.crisvprop.fullname
+    	Metadatum metadatum = new Metadatum();
+    	MetadataMapper mapper = new MetadataMapper(module);
+    	Metadatum fullName = mapper.map(DEFAULT_SCHEMA_NAME + "." + VIRTUAL_ELEMENT_NAME + ".fullname");
+    	
+    	for (MetadatumAuthorityDecorator mad : results) {	    		
+    		Metadatum m = mad.getMetadatum();
+
+    		if (m.schema != null && m.schema.equals(fullName.schema) 
+    				&& m.element != null && m.element.equals(fullName.element) 
+    				&& (m.qualifier == null || m.qualifier.trim().length() <= 0 || m.qualifier.equals(fullName.qualifier))) {
+    			String firstName = null;
+    			String familyName = null;
+
+    			m.value = m.value.trim();
+    			if (StringUtils.countMatches(m.value, ",") == 1) {
+    				String[] t = m.value.split(",");
+
+    				firstName = t[1].trim();
+    				familyName = t[0].trim();
+    			}
+    			// crisitem.crisprop.firstname
+    			metadatum.schema = DEFAULT_SCHEMA_NAME;
+    			metadatum.element = VIRTUAL_ELEMENT_NAME;
+    			metadatum.qualifier = "firstname";
+    			metadatum.language = null;
+
+    			metadatum.authority = null;
+    			metadatum.value = firstName;
+    			results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
+
+    			// crisitem.crisprop.familyname
+    			metadatum.schema = DEFAULT_SCHEMA_NAME;
+    			metadatum.element = VIRTUAL_ELEMENT_NAME;
+    			metadatum.qualifier = "familyname";
+    			metadatum.language = null;
+
+    			metadatum.authority = null;
+    			metadatum.value = familyName;
+    			results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
+    			break;
+    		}
+        }
+    	
+    	// fixed values
+    	{
+    		List<Metadatum> fixedValues = mapper.fixedValues(item.getPublicPath());
+    		for (Metadatum m : fixedValues) {
+    			// add fixed value
+    			results.add(new MetadatumAuthorityDecorator(m));
+    		}
+    	}
+
+    	return results.toArray(new MetadatumAuthorityDecorator[results.size()]);
+    }
+    
+    /***
+     * Cris application service
+     * @return
+     */
+    private static ApplicationService getApplicationService()
+    {
+    	return new DSpace().getServiceManager().getServiceByName(
+    			"applicationService", ApplicationService.class);
     }
 }

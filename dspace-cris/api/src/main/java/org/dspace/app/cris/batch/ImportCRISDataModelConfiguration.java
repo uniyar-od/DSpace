@@ -732,7 +732,7 @@ public class ImportCRISDataModelConfiguration
 			riga = sheet.getRow(indexRiga);
 			String key = riga[2].getContents().trim();
             if (key.equals("rp") || key.equals("pj") || key.equals("ou")
-                    || key.equals("###"))
+                    || key.equals("###") || key.length() <= 0)
             {
 				indexRiga++;
 				continue;
@@ -1333,6 +1333,12 @@ public class ImportCRISDataModelConfiguration
         {
 			riga = sheet.getRow(indexRiga);
 			String key = riga[indexKey].getContents().trim();
+			if (key == null || key.trim().length() <= 0) {
+				indexRiga++;
+				
+				log.debug("skipping line with empty key. Line number " + indexRiga);
+				continue;
+			}
 			if("nesteddefinition".equals(sheetName)) {
 				String prefix = riga[0].getContents().trim();
 				if(!"rp".equals(prefix) && !"ou".equals(prefix) && !"pj".equals(prefix)) {
@@ -1367,7 +1373,11 @@ public class ImportCRISDataModelConfiguration
 			String header = sheet.getRow(0)[indexColumn].getContents().trim();
             while (indexRiga < rows)
             {
-				row = sheet.getRow(indexRiga)[indexColumn];				
+				row = sheet.getRow(indexRiga)[indexColumn];
+				if (row.getContents() == null || row.getContents().trim().length() <= 0) {
+					indexRiga++;
+					continue;
+				}
                 insertInList(controlledListMap, header,
                         row.getContents().trim());
 				indexRiga++;
