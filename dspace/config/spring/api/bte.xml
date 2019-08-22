@@ -474,7 +474,6 @@
 				<entry key="%X" value="abstract" />
 				<entry key="%D" value="issued" />
 				<entry key="%J" value="journal" />
-				<entry key="%R" value="doi" />
 			</map>
 		</property>
 	</bean>
