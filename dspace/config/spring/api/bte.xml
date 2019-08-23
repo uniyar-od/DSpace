@@ -382,7 +382,18 @@
 				<entry key="author" value="authors" />
 				<entry key="journal" value="journal" />
 				<entry key="year" value="issued" />
-				<entry key="ISSN" value="jissn" />
+				<entry key="issn" value="jissn" />
+				<entry key="doi" value="doi" />
+				<entry key="volume" value="volume" />
+				<entry key="issue" value="issue" />
+				<entry key="pages" value="firstpage" />
+				<entry key="keywords" value="keywords" />
+				<entry key="abstract" value="abstract" />
+				<entry key="pubmed_id" value="pubmedID" />
+				<entry key="language" value="language" />
+				<entry key="document_type" value="subtype" />
+				<entry key="url" value="url" />
+				<entry key="publisher" value="publisher" />
 			</map>
 		</property>
 	</bean>
@@ -444,12 +455,24 @@
 		<property name="fieldMap">
 			<map>
 				<entry key="T1" value="title" />
+				<entry key="TI" value="title" />
+				<entry key="T2" value="journal" />
 				<entry key="AU" value="authors" />
-				<entry key="SO" value="journal" />
 				<entry key="PY" value="issued" />
 				<entry key="SN" value="jissn" />
 				<entry key="PT" value="subtype" />
+				<entry key="M3" value="subtype" />
 				<entry key="AB" value="abstract" />
+				<entry key="VL" value="volume" />
+				<entry key="IS" value="issue" />
+				<entry key="SP" value="firstpage" />
+				<entry key="EP" value="lastpage" />
+				<entry key="KW" value="keywords" />
+				<entry key="PB" value="publisher" />
+				<entry key="PP" value="publisherPlace" />
+				<entry key="LA" value="language" />
+				<entry key="UR" value="url" />
+				<entry key="DO" value="doi" />			
 			</map>
 		</property>
 	</bean>
@@ -458,10 +481,23 @@
 		<property name="fieldMap">
 			<map>
 				<entry key="TI" value="title" />
+				<entry key="T2" value="journal" />
 				<entry key="AU" value="authors" />
-				<entry key="AB" value="abstract" />
 				<entry key="PY" value="issued" />
-				<entry key="SO" value="journal" />
+				<entry key="SN" value="jissn" />
+				<entry key="PT" value="subtype" />
+				<entry key="M3" value="subtype" />
+				<entry key="AB" value="abstract" />
+				<entry key="VL" value="volume" />
+				<entry key="IS" value="issue" />
+				<entry key="SP" value="firstpage" />
+				<entry key="EP" value="lastpage" />
+				<entry key="KW" value="keywords" />
+				<entry key="PB" value="publisher" />
+				<entry key="PP" value="publisherPlace" />
+				<entry key="LA" value="language" />
+				<entry key="UR" value="url" />
+				<entry key="DO" value="doi" />			
 			</map>
 		</property>
 	</bean>
@@ -470,10 +506,23 @@
 		<property name="fieldMap">
 			<map>
 				<entry key="%T" value="title" />
+				<entry key="%O" value="titleAlternative" />
 				<entry key="%A" value="authors" />
-				<entry key="%X" value="abstract" />
+				<entry key="%E" value="editors" />
 				<entry key="%D" value="issued" />
+				<entry key="%X" value="abstract" />
+				<entry key="%N" value="issue" />
+				<entry key="%V" value="volume" />
 				<entry key="%J" value="journal" />
+				<entry key="%B" value="booktitle" />
+				<entry key="%G" value="language" />
+				<entry key="%K" value="keywords" />
+				<entry key="%I" value="publisher" />
+				<entry key="%C" value="publisherPlace" />
+				<entry key="%R" value="doi" />
+				<entry key="%U" value="url" />
+				<entry key="%0" value="subtype" />
+				<entry key="%7" value="editionnumber" />
 			</map>
 		</property>
 	</bean>
@@ -721,10 +770,7 @@
 				<entry value="jissn" key="dc.identifier.issn" />
 				<entry value="eissn" key="dc.identifier.eissn" />				
 				<entry value="pisbn" key="dc.identifier.isbn" />
-				<entry value="sissn" key="dc.identifier.issn" />
-				<entry value="jeissn" key="dc.identifier.eissn" />
-				<entry value="lastpage" key="dc.relation.lastpage" />
-				<entry value="eisbn" key="" />
+				<entry value="eisbn" key="dc.identifier.eisbn" />
 				<entry value="journal" key="dc.relation.ispartof" />				
 				<entry value="proceedingsPaper.journal" key="dc.relation.ispartofbook" />				
 				<entry value="title" key="dc.title" />
@@ -733,9 +779,7 @@
 				<entry value="subtype" key="dc.type" />
 				<entry value="authors" key="dc.contributor.author" />
 				<entry value="editors" key="dc.contributor.editor" />
-				<entry value="translators" key="dc.contributor.other" />
-				<entry value="investigators" key="dc.contributor.other" />
-				<entry value="chairs" key="dc.contributor.other" />
+				<entry value="others" key="dc.contributor.other" />
 				<entry value="abstract" key="dc.description.abstract" />
 				<entry value="description" key="dc.description" />
 				<entry value="allkeywords" key="dc.subject" />
@@ -747,10 +791,10 @@
 				<entry value="pubmedcentralID" key="dc.identifier.pmcid" />
 				<entry value="uri" key="dc.identifier.uri" />
 				<entry value="url" key="dc.identifier.url" />
-				<entry value="issue" key="dc.identifier.issue" />
-				<entry value="volume" key="dc.identifier.volume" />
-				<entry value="firstpage" key="dc.identifier.spage" />
-				<entry value="lastpage" key="dc.identifier.epage" />
+				<entry value="issue" key="dc.relation.issue" />
+				<entry value="volume" key="dc.relation.volume" />
+				<entry value="firstpage" key="dc.relation.firstpage" />
+				<entry value="lastpage" key="dc.relation.lastpage" />
 				<entry value="editionnumber" key="dc.relation.edition" />
 				<entry value="seriestitle" key="dc.relation.ispartofjournal" />
 				<entry value="booktitle" key="dc.relation.ispartofbook" />				
