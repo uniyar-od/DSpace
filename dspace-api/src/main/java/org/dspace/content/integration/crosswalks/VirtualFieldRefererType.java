@@ -42,9 +42,12 @@ public class VirtualFieldRefererType implements VirtualFieldDisseminator, Virtua
 		String metadata = item.getMetadata("dc.type");
 
 		if (StringUtils.isNotBlank(metadata)) {
-			type = getConverter(qualifier).getValue(metadata, true);
-			if (StringUtils.isNotBlank(type)) {
-				return new String[] { type };
+			SimpleMapConverter smc = getConverter(qualifier);
+			if(smc != null) {
+				type = smc.getValue(metadata, true);
+				if (StringUtils.isNotBlank(type)) {
+					return new String[] { type };
+				}
 			}
 		}
 		
