@@ -53,6 +53,7 @@
 		<property name="process">
 			<list>
 				<!-- Add here filters and modifiers -->
+				<ref bean="mapConverter_endnoteType"/>
 			</list>
 		</property>
 	</bean>
@@ -185,6 +186,18 @@
 	<bean name="mapConverter_wosType" class="org.dspace.submit.lookup.MapConverterModifier" init-method="init">
 	    <constructor-arg value="mapConverter_wosType Modifier"/>
 	    <property name="converterNameFile" value="mapConverter-wosType.properties"/>
+	    <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
+	    <property name="fieldKeys">
+	        <list>
+	            <!-- Specify the internal BTE keys that this modifier needs to be applied for -->
+	        	<value>subtype</value>
+	        </list>
+	    </property>
+	</bean>
+
+	<bean name="mapConverter_endnoteType" class="org.dspace.submit.lookup.MapConverterModifier" init-method="init">
+	    <constructor-arg value="mapConverter_endnoteType Modifier"/>
+	    <property name="converterNameFile" value="mapConverter-endnoteType.properties"/>
 	    <property name="configurationService" ref="org.dspace.services.ConfigurationService"/>
 	    <property name="fieldKeys">
 	        <list>

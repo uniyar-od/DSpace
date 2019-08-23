@@ -10,7 +10,7 @@ VL  - @dc.relation.volume@
 IS  - @dc.relation.issue@
 N2  - @dc.description.abstract@
 UR  - @dc.identifier.url@
-DO  - doi:@dc.identifier.doi@
+DO  - @dc.identifier@
 SP  - @dc.relation.firstpage@
 EP  - @dc.relation.lastpage@
 KW  - @virtual.keywords.single@
