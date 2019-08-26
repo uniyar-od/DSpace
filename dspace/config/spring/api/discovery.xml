@@ -2309,7 +2309,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterRPInterests"
@@ -2334,7 +2335,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterRPPlace"
@@ -2347,7 +2349,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 
 	<bean id="searchFilterProjectFunders"
@@ -2427,7 +2430,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 	<bean id="searchFilterPlaceRelated"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2438,7 +2442,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 	<bean id="searchFilterEventsPlace"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2449,7 +2454,8 @@
 			</list>
 		</property>
 		<property name="facetLimit" value="10" />
-		<property name="sortOrder" value="COUNT" />
+        <property name="sortOrderSidebar" value="COUNT"/>
+        <property name="sortOrderFilterPage" value="COUNT"/>
 	</bean>
 	<bean id="searchFilterEndDate"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2461,7 +2467,8 @@
 			</list>
 		</property>
 		<property name="type" value="date" />
-		<property name="sortOrder" value="VALUE" />
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
 	</bean>
 	<bean id="searchFilterBirthDate"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2472,7 +2479,8 @@
 			</list>
 		</property>
 		<property name="type" value="date" />
-		<property name="sortOrder" value="VALUE" />
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
 	</bean>
 	<bean id="searchFilterDeathDate"
 		class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
@@ -2483,7 +2491,8 @@
 			</list>
 		</property>
 		<property name="type" value="date" />
-		<property name="sortOrder" value="VALUE" />
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>
 	</bean>
 
 	<bean id="searchFilterStartDate"
