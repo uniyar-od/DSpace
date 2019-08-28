@@ -183,6 +183,9 @@ public class ImportExportUtils {
 	public static final String PATH_DEFAULT_XML = ConfigurationManager.getProperty(CrisConstants.CFG_MODULE, "file.import.path")
 			+ "cris-data.csv";
 
+    public static final String PATH_EXPORT_EXCEL_DEFAULT = ConfigurationManager.getProperty(CrisConstants.CFG_MODULE, "file.export.path")
+            + "cris-data.xls";
+
 	/**
 	 * Write in the output stream the researcher pages contact data as an excel
 	 * file. The format of the exported Excel file is suitable for re-import in
@@ -545,6 +548,65 @@ public class ImportExportUtils {
 			}
 		}
 
+		//if forceNestedRemove is false works in append mode
+		boolean forceNestedRemove = ConfigurationManager.getBooleanProperty("cris", "script.bulk.import.force.nested.delete", false);		
+        if (forceNestedRemove)
+        {
+            //foreach bulkchange of a nested object try to clean old nested data
+            for (int i = 1; i <= bulkChanges.size(); i++)
+            {
+                try
+                {
+                    IBulkChange bulkChange = bulkChanges.getChanges(i);
+                    if (bulkChange.isANestedBulkChange())
+                    {
+                        log.info("Try to remove nested " + i + " of " + bulkChanges.size());
+                        IBulkChangeNested bulkChangenested = (IBulkChangeNested) bulkChange;
+                        String crisID = bulkChangenested.getParentCrisID();
+                        String sourceRefParent = bulkChangenested
+                                .getParentSourceRef();
+                        String sourceIDParent = bulkChangenested
+                                .getParentSourceID();
+
+                        ACO object = applicationService
+                                .getEntityByCrisId(crisID, crisObjectClazz);
+                        if (object == null)
+                        {
+                            object = applicationService.getEntityBySourceId(
+                                    sourceRefParent, sourceIDParent,
+                                    crisObjectClazz);
+                        }
+
+                        //try to remove all nested object from the parent object if exists
+                        if (object!=null)
+                        {
+                            for (IContainable cont : metadataNestedLevel)
+                            {
+                                ATNO typo = applicationService
+                                        .findTypoByShortName(
+                                                crisTypeObjectNestedClazz,
+                                                cont.getShortName());
+                                List<ACNO> nesteds = applicationService
+                                        .getNestedObjectsByParentIDAndTypoID(
+                                                object.getId(), typo.getId(),
+                                                crisObjectNestedClazz);
+                                for (ACNO n : nesteds)
+                                {
+                                    applicationService.delete(
+                                            crisObjectNestedClazz, n.getId());
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (RuntimeException e)
+                {
+                    log.error("DELETE NESTED ENTITY - FAILED " + e.getMessage(),
+                            e);
+                }
+            }
+        }
+		
 		//foreach bulkchange (a bulk change is an abstraction of the element that contains the entity in the file e.g row for csv format file)
 		int rows_discarded = 0;
 		int rows_imported = 0;
@@ -702,8 +764,10 @@ public class ImportExportUtils {
         if (object != null)
         {
             boolean remove = false;
-            if (StringUtils.isNotBlank(uuid) || (StringUtils.isNotBlank(sourceRef)
-                    && StringUtils.isNotBlank(sourceID)))
+            //if forceNestedRemove works in append mode
+            boolean forceNestedRemove = ConfigurationManager.getBooleanProperty("cris", "script.bulk.import.force.nested.delete", false);
+            if (!forceNestedRemove && (StringUtils.isNotBlank(uuid) || (StringUtils.isNotBlank(sourceRef)
+                    && StringUtils.isNotBlank(sourceID))))
             {
                 remove = true;
                 update = true;
@@ -2133,7 +2197,7 @@ public class ImportExportUtils {
 	            	rowIdx++;
 	            	
 					List<? extends PropertiesDefinition> nestedpropDefs = applicationService
-							.likePropertiesDefinitionsByShortName(nestedpropDefTypes.get(oType),
+							.findMaskByShortName(nestedDefTypes.get(oType),
 									propDef.getShortName());
 	                for (PropertiesDefinition npropDef : nestedpropDefs) {
 	    	        	try
@@ -2347,8 +2411,8 @@ public class ImportExportUtils {
         	utilsdataSheet.addCell(new Label(2, rowUtilsDataDynObjectsIdx, oType));
         	rowUtilsDataDynObjectsIdx++;
         	
-			List<? extends PropertiesDefinition> propDefs = applicationService
-					.likePropertiesDefinitionsByShortName(DynamicPropertiesDefinition.class, oType);
+			List<? extends PropertiesDefinition> propDefs = applicationService.findMaskByShortName(DynamicTypeNestedObject.class,
+                    oType);
             for (PropertiesDefinition propDef : propDefs) {
 	        	try
 	            {
