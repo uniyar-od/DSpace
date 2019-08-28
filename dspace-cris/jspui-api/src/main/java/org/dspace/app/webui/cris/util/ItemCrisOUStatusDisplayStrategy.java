@@ -20,12 +20,12 @@ import org.dspace.app.webui.util.ASimpleDisplayStrategy;
 import org.dspace.content.Metadatum;
 import org.dspace.core.I18nUtil;
 
-public class ItemCrisRPStatusDisplayStrategy extends ASimpleDisplayStrategy
+public class ItemCrisOUStatusDisplayStrategy extends ASimpleDisplayStrategy
 {
 
     /** log4j category */
     public static final Log log = LogFactory
-            .getLog(ItemCrisRPStatusDisplayStrategy.class);
+            .getLog(ItemCrisOUStatusDisplayStrategy.class);
 
     @Override
     public String getMetadataDisplay(HttpServletRequest hrq, int limit,
@@ -39,13 +39,13 @@ public class ItemCrisRPStatusDisplayStrategy extends ASimpleDisplayStrategy
         String icon = "";
         try {
             icon = MessageFormat.format(
-                    I18nUtil.getMessage("ItemCrisRPStatusDisplayStrategy." + type + ".icon", true),
+                    I18nUtil.getMessage("ItemCrisOUStatusDisplayStrategy." + type + ".icon", true),
                     I18nUtil
-                    .getMessage("ItemCrisRPStatusDisplayStrategy." + type + ".title", true));
+                    .getMessage("ItemCrisOUStatusDisplayStrategy." + type + ".title", true));
         } catch (Exception e) {
             log.debug("Error when build icon (perhaps missing this configuration: on cris module key:researcher.cris.rp.ref.display.strategy.metadata.icon)", e);
             try {
-                icon = I18nUtil.getMessage("ItemCrisRefDisplayStrategy.rp.icon", true);
+                icon = I18nUtil.getMessage("ItemCrisRefDisplayStrategy.ou.icon", true);
             } catch (MissingResourceException e2) {
                 log.debug("Error when build icon (perhaps missing this configuration: on cris module key:researcher.cris.rp.ref.display.strategy.metadata.icon)", e2);
                 icon = I18nUtil.getMessage("ItemCrisRefDisplayStrategy.default.icon");

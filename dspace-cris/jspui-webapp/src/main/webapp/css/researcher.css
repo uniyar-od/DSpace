@@ -1177,3 +1177,19 @@ div.subscription-current {
 .badge-pill {
     background-color: white;
 }	
+
+.orgunit-normal {
+    color: #00716A;
+}
+
+.orgunit-special {
+    color: #A50034;
+}
+
+.orgunit-external {
+    color: #97942C;
+}
+
+.orgunit-undefined {
+	color: #B7B1AD;
+}

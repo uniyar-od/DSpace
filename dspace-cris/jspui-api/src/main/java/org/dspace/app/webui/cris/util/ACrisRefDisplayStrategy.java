@@ -13,6 +13,7 @@ import java.util.MissingResourceException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.ACrisObject;
@@ -124,7 +125,9 @@ public abstract class ACrisRefDisplayStrategy<P extends Property<TP>, TP extends
                     String type = rp.getMetadata(ConfigurationManager
                             .getProperty("cris", "researcher.cris." + publicPath
                                     + ".ref.display.strategy.metadata.icon"));
-
+                    if (StringUtils.isNotBlank(type)) {
+                        type = type.replaceAll("[^A-Za-z0-9 ]", "").replaceAll(" ", "-").toLowerCase();
+                    }
                     if(!rp.getStatus() || (type!=null && type.equals("exstaff"))) {
                         startLink = "&nbsp;";
                         endLink = "";
