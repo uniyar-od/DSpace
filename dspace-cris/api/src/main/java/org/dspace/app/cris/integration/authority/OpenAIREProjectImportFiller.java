@@ -7,7 +7,9 @@
  */
 package org.dspace.app.cris.integration.authority;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -35,6 +37,8 @@ public class OpenAIREProjectImportFiller extends ItemMetadataImportFiller {
 	//	private ApplicationService applicationService;
 	private OpenAIREProjectService openAIREProjectService;
 	private CrisSearchService searchService;
+	
+	private Map<String,String> customMapping = new HashMap<String, String>();
 	
 	public void setOpenAIREProjectService(OpenAIREProjectService openAIREProjectService) {
 		this.openAIREProjectService = openAIREProjectService;
@@ -67,13 +71,13 @@ public class OpenAIREProjectImportFiller extends ItemMetadataImportFiller {
 		String fundingProgram = openAireproject.getFundingProgram();
 		if (StringUtils.isNotBlank(fundingProgram)) {
 			log.warn("FundingProgram:" + fundingProgram);
-			ResearcherPageUtils.buildTextValue(project, fundingProgram, OpenAIREProjectService.PROJECT_FUNDING_PROGRAM);
+			ResearcherPageUtils.buildTextValue(project, fundingProgram, customMapping.containsKey("fundingProgram")?customMapping.get("fundingProgram"):OpenAIREProjectService.PROJECT_FUNDING_PROGRAM);
 		}
 		
 		String code = openAireproject.getCode();
 		if (StringUtils.isNotBlank(code)) {
 			log.warn("Code:" + code);
-			ResearcherPageUtils.buildTextValue(project, code, OpenAIREProjectService.PROJECT_CODE);
+			ResearcherPageUtils.buildTextValue(project, code, customMapping.containsKey("code")?customMapping.get("code"):OpenAIREProjectService.PROJECT_CODE);
 		}
 		
 		String fundName = openAireproject.getFunder();
@@ -88,20 +92,25 @@ public class OpenAIREProjectImportFiller extends ItemMetadataImportFiller {
 				SolrDocument doc = results.get(0);
 				String funderCrisID = (String) doc.getFieldValue("cris-id");
 				log.warn("funderCrisID:" + funderCrisID);
-				ResearcherPageUtils.buildGenericValue(project, funderCrisID, OpenAIREProjectService.PROJECT_FUNDER, 1);
+				ResearcherPageUtils.buildGenericValue(project, funderCrisID, customMapping.containsKey("funder")?customMapping.get("funder"):OpenAIREProjectService.PROJECT_FUNDER, 1);
 			}
 			else {
 				OrganizationUnit funder = new OrganizationUnit();
 				ResearcherPageUtils.buildTextValue(funder, fundName, OrganizationUnit.NAME, 1);
 				applicationService.saveOrUpdate(OrganizationUnit.class, funder);
-				ResearcherPageUtils.buildGenericValue(project, funder, OpenAIREProjectService.PROJECT_FUNDER, 1);
+				ResearcherPageUtils.buildGenericValue(project, funder, customMapping.containsKey("funder")?customMapping.get("funder"):OpenAIREProjectService.PROJECT_FUNDER, 1);
 				log.info("funder:" + fundName);
 			}
 		} catch (SearchServiceException e) {
 			log.warn(e.getMessage());
 		}
 		String openAireid= OpenAIREProjectService.OPENAIRE_INFO_PREFIX+fundName+"/"+fundingProgram+"/"+code;
-		ResearcherPageUtils.buildTextValue(project, openAireid, OpenAIREProjectService.PROJECT_OPENAIRE_ID);
+		ResearcherPageUtils.buildTextValue(project, openAireid, customMapping.containsKey("openaireid")?customMapping.get("openaireid"):OpenAIREProjectService.PROJECT_OPENAIRE_ID);
 		applicationService.saveOrUpdate(Project.class, project);
 	}
+
+    public void setCustomMapping(Map<String, String> customMapping)
+    {
+        this.customMapping = customMapping;
+    }
 }

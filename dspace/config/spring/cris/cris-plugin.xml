@@ -68,6 +68,9 @@
 	<bean id="openAIREProjectImportFiller" class="org.dspace.app.cris.integration.authority.OpenAIREProjectImportFiller" parent="fullitemMetadataConfiguration">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 		<property name="openAIREProjectService" ref="org.dspace.authority.openaireproject.OpenAIREProjectService" />
+		<property name="customMapping">
+			<bean class="java.util.HashMap" />
+		</property>
 	</bean>
 
 </beans>
