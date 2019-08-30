@@ -61,7 +61,42 @@
 		<property name="metricsPersistenceService" ref="org.dspace.app.cris.metrics.common.services.MetricsPersistenceService" />
 		<property name="allowsUpdateByDefault" value="true" />
 		<property name="configurations">
-			<bean class="java.util.HashMap" />
+			<map>
+				<entry key="dc.relation.ispartof">
+					<bean
+						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+						<property name="updateEnabled" value="true" />
+						<property name="mapping">
+							<map>
+								<entry key="dc.relation.issn">
+									<bean
+										class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="issn" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>						
+							</map>
+						</property>
+					</bean>
+				</entry>
+				<entry key="dc.relation">
+					<bean
+						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+						<property name="updateEnabled" value="true" />
+						<property name="mapping">
+							<map>
+								<entry key="dc.relation.grantno">
+									<bean
+										class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="grantidentifier" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>						
+							</map>
+						</property>
+					</bean>
+				</entry>								
+			</map>	
 		</property>
 	</bean>
 	
