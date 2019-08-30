@@ -235,7 +235,10 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy implement
 		        String icon = "";
 				try {
 					ACrisObject rp = applicationService.getEntityByCrisId(authority);
-					String type = (rp == null) ? "deleted" : rp.getMetadata(ConfigurationManager.getProperty("cris", "researcher.cris."+publicPath+".ref.display.strategy.metadata.icon"));					
+					String type = (rp == null) ? "deleted" : rp.getMetadata(ConfigurationManager.getProperty("cris", "researcher.cris."+publicPath+".ref.display.strategy.metadata.icon"));
+                    if (StringUtils.isNotBlank(type)) {
+                        type = type.replaceAll("[^A-Za-z0-9 ]", "").replaceAll(" ", "-").toLowerCase();
+                    }
 					String status = "";
 					if(rp == null || !rp.getStatus()) {
 			             startLink = "&nbsp;";
