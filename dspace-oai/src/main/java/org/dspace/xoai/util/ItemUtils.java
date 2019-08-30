@@ -531,7 +531,7 @@ public class ItemUtils
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-		MetadatumAuthorityDecorator[] vals = ItemUtils.getAllMetadata(item, true, true, "oai");
+		MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
         if (vals != null)
         {
             for (MetadatumAuthorityDecorator valAuthDec : vals)
@@ -618,134 +618,6 @@ public class ItemUtils
         metadata.getElement().add(repository);
         
         return metadata;
-    }
-    
-    public static String DEFAULT_SCHEMA_NAME = "crisitem";
- 	public static String DEFAULT_ELEMENT_NAME = "crisprop";
-	public static String VIRTUAL_ELEMENT_NAME = "crisvprop";
-    
-    /***
-     * Read all metadata of a cris object
-     * 
-     * Added mapping of virtual
-     * 
-     * @param item The cris item
-     * @param onlyPub Set to true to read only public property
-     * @param filterProperty Set to true to enable property filtering
-     * @param module The config file name (module of config)
-     * @return
-     */
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	public static MetadatumAuthorityDecorator[] getAllMetadata(ACrisObject item, boolean onlyPub, boolean filterProperty, String module) {
-    	List<MetadatumAuthorityDecorator> results = new ArrayList<MetadatumAuthorityDecorator>();
-    	
-    	MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, onlyPub, filterProperty, module);
-    	// TODO: if vals is null an exception is thrown in UtilsCrisMetadata.getAllMetadata.
-    	if (vals != null) {
-    		for (MetadatumAuthorityDecorator mad : vals) {
-    			results.add(mad);
-    		}
-    	}
-    	
-    	// add default virtual
-    	{
-    		Metadatum metadatum = new Metadatum();
-    		
-    	    //crisitem.crisvprop.id        	(the id of the cris item)
-    		metadatum.schema = DEFAULT_SCHEMA_NAME;
-    		metadatum.element = VIRTUAL_ELEMENT_NAME;
-    		metadatum.qualifier = "id";
-    		metadatum.language = null;
-    		
-    		metadatum.authority = null;
-    		metadatum.value = Integer.toString(item.getID());
-    		results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
-
-    	    //crisitem.crisvprop.uuid      	(the uuid of the cris item)
-    		metadatum.schema = DEFAULT_SCHEMA_NAME;
-    		metadatum.element = VIRTUAL_ELEMENT_NAME;
-    		metadatum.qualifier = "uuid";
-    		metadatum.language = null;
-    		
-    		metadatum.authority = null;
-    		metadatum.value = item.getUuid();
-    		results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
-    		
-    	    //crisitem.crisvprop.handle    	(the handle of the cris item)
-    		metadatum.schema = DEFAULT_SCHEMA_NAME;
-    		metadatum.element = VIRTUAL_ELEMENT_NAME;
-    		metadatum.qualifier = "handle";
-    		metadatum.language = null;
-    		
-    		metadatum.authority = null;
-    		metadatum.value = item.getHandle();
-    		results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
-    		
-    		// crisitem.crisprop.objecttype
-            metadatum.schema = DEFAULT_SCHEMA_NAME;
-            metadatum.element = VIRTUAL_ELEMENT_NAME;
-            metadatum.qualifier = "objecttype";
-            metadatum.language = null;
-
-            metadatum.authority = null;
-            metadatum.value = item.getPublicPath();
-            results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
-    	}
-    	
-    	// crisitem.crisvprop.fullname
-    	Metadatum metadatum = new Metadatum();
-    	MetadataMapper mapper = new MetadataMapper(module);
-    	Metadatum fullName = mapper.map(DEFAULT_SCHEMA_NAME + "." + VIRTUAL_ELEMENT_NAME + ".fullname");
-    	
-    	for (MetadatumAuthorityDecorator mad : results) {	    		
-    		Metadatum m = mad.getMetadatum();
-
-    		if (m.schema != null && m.schema.equals(fullName.schema) 
-    				&& m.element != null && m.element.equals(fullName.element) 
-    				&& (m.qualifier == null || m.qualifier.trim().length() <= 0 || m.qualifier.equals(fullName.qualifier))) {
-    			String firstName = null;
-    			String familyName = null;
-
-    			m.value = m.value.trim();
-    			if (StringUtils.countMatches(m.value, ",") == 1) {
-    				String[] t = m.value.split(",");
-
-    				firstName = t[1].trim();
-    				familyName = t[0].trim();
-    			}
-    			// crisitem.crisprop.firstname
-    			metadatum.schema = DEFAULT_SCHEMA_NAME;
-    			metadatum.element = VIRTUAL_ELEMENT_NAME;
-    			metadatum.qualifier = "firstname";
-    			metadatum.language = null;
-
-    			metadatum.authority = null;
-    			metadatum.value = firstName;
-    			results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
-
-    			// crisitem.crisprop.familyname
-    			metadatum.schema = DEFAULT_SCHEMA_NAME;
-    			metadatum.element = VIRTUAL_ELEMENT_NAME;
-    			metadatum.qualifier = "familyname";
-    			metadatum.language = null;
-
-    			metadatum.authority = null;
-    			metadatum.value = familyName;
-    			results.add(new MetadatumAuthorityDecorator(metadatum.copy()));
-    			break;
-    		}
-        }
-    	
-    	// fixed values
-    	{
-    		List<Metadatum> fixedValues = mapper.fixedValues(item.getPublicPath());
-    		for (Metadatum m : fixedValues) {
-    			// add fixed value
-    			results.add(new MetadatumAuthorityDecorator(m));
-    		}
-    	}
-
-    	return results.toArray(new MetadatumAuthorityDecorator[results.size()]);
     }
     
     /***

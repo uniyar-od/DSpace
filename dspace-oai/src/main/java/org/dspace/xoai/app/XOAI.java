@@ -41,6 +41,7 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
+import org.dspace.app.cris.util.UtilsCrisMetadata;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -493,7 +494,7 @@ public class XOAI {
         doc.addField("item.lastmodified", item.getLastModified());
         doc.addField("item.deleted", "false");
 
-		MetadatumAuthorityDecorator[] allDataAuthDec = ItemUtils.getAllMetadata(item, true, true, "oai");
+		MetadatumAuthorityDecorator[] allDataAuthDec = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
         if (allDataAuthDec != null)
         {
             for (MetadatumAuthorityDecorator dcAuthDec : allDataAuthDec)

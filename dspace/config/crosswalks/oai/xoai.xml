@@ -73,10 +73,7 @@
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
             <!-- OpenAIRE filter -->
-            <!-- [COMMENTED OUT]
             <Filter ref="openAireFilter"/>
-             -->
-            <Filter ref="allFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="openaireSet"/>
             <!-- Metadata Formats -->
@@ -87,7 +84,21 @@
                 This contexts complies with OpenAIRE rules.
             </Description>
         </Context>
-        
+
+        <Context baseurl="openaire" name="OpenAIRE Context for CRIS System">
+            <!-- Date format, field prefixes, etc are ensured by the transformer -->
+            <Transformer ref="openaireTransformer"/>
+            <Filter ref="openAireCRISFilter"/>
+            <!-- Just an alias, in fact it returns all items within the driver context -->
+            <Set ref="openaireSet"/>
+            <!-- Metadata Formats -->
+            <Format ref="oaidc"/>
+            <Format ref="oai_cerif"/>
+            <Description>
+                This contexts complies with OpenAIRE rules for CRIS system v 1.1.1
+            </Description>
+        </Context>
+
         <Context baseurl="openairedata" name="OpenAIRE Data Repository Context">
             <!-- OpenAIRE filter -->
             <Filter ref="openaireDataFilter"/>
@@ -224,51 +235,57 @@
         <Filter id="driverFilter">
             <Definition>
                 <And>
-                    <LeftCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="titleExistsCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <Custom ref="authorExistsCondition"/>
-                            </RightCondition>
-                        </And>
-                    </LeftCondition>
-                    <RightCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="driverDocumentTypeCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <Or>
-                                            <LeftCondition>
-                                                <Custom ref="itemAccessCondition"/>
-                                            </LeftCondition>
-                                            <RightCondition>
-                                                <Custom ref="itemWithdrawnCondition"/>
-                                            </RightCondition>
-                                        </Or>
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <Custom ref="driverAccessCondition"/>
-                                    </RightCondition>
-                                </And>
-                            </RightCondition>
-                        </And>
-                    </RightCondition>
-                </And>
+                	<LeftCondition>
+		                <And>
+		                    <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="titleExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <Custom ref="authorExistsCondition"/>
+		                            </RightCondition>
+		                        </And>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="driverDocumentTypeCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Or>
+		                                            <LeftCondition>
+		                                                <Custom ref="itemAccessCondition"/>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="itemWithdrawnCondition"/>
+		                                            </RightCondition>
+		                                        </Or>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <Custom ref="driverAccessCondition"/>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </RightCondition>
+		                </And>
+                	</LeftCondition>
+               		<RightCondition>
+               			<Custom ref="dspaceItemCondition" />
+               		</RightCondition>
+               	</And>
             </Definition>
         </Filter>
 
-        <!-- OpenAIRE filter for records returned by OAI-PMH.
+        <!-- OpenAIRE CRIS filter for records returned by OAI-PMH.
          By default, return a record:
          * If the record is an Item or another supported type
-         * ... other see driverFilter
-         This filter is only used in the OpenAIRE context ([oai]/openaire).
+         This filter is only used in the OpenAIRE context ([oai]/openaire-cris).
         -->
-        <Filter id="allFilter">
+        <Filter id="openAireCRISFilter">
             <Definition>
                 <And>
                     <LeftCondition>
@@ -282,7 +299,7 @@
                         </Or>
                     </LeftCondition>
                     <RightCondition>
-                        <Custom ref="itemTypeCondition"/>
+                        <Custom ref="crisObjectTypeCondition"/>
                     </RightCondition>
                 </And>
             </Definition>
@@ -304,76 +321,90 @@
          -->
         <Filter id="openAireFilter">
             <Definition>
-                <And>
-                    <LeftCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="titleExistsCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <Custom ref="authorExistsCondition"/>
-                            </RightCondition>
-                        </And>
-                    </LeftCondition>
-                    <RightCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="driverDocumentTypeCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <Or>
-                                            <LeftCondition>
-                                                <Custom ref="itemAccessCondition"/>
-                                            </LeftCondition>
-                                            <RightCondition>
-                                                <Custom ref="itemWithdrawnCondition"/>
-                                            </RightCondition>
-                                        </Or>
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <Custom ref="openaireRelationCondition"/>
-                                    </RightCondition>
-                                </And>
-                            </RightCondition>
-                        </And>
-                    </RightCondition>
-                </And>
+            	<And>
+            		<LeftCondition>
+		                <And>
+		                    <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="titleExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <Custom ref="authorExistsCondition"/>
+		                            </RightCondition>
+		                        </And>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="driverDocumentTypeCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Or>
+		                                            <LeftCondition>
+		                                                <Custom ref="itemAccessCondition"/>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="itemWithdrawnCondition"/>
+		                                            </RightCondition>
+		                                        </Or>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <Custom ref="openaireRelationCondition"/>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </RightCondition>
+		                </And>
+					</LeftCondition>
+                	<RightCondition>
+                		<Custom ref="dspaceItemCondition" />
+                	</RightCondition>
+                </And>		                
             </Definition>
         </Filter>
         
         <!-- create a new filter for the openairedata Context -->
         <Filter id="openaireDataFilter">
             <Definition>
-                <And>
-                    <LeftCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="titleExistsCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <Custom ref="authorExistsCondition"/>
-                            </RightCondition>
-                        </And>
-                    </LeftCondition>
-                    <RightCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="identifierExistsCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <Custom ref="dateExistsCondition"/> 
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <Custom ref="publisherExistsCondition"/>
-                                    </RightCondition>
-                                </And>
-                            </RightCondition>
-                        </And>
-                    </RightCondition>
+            	<And>
+            		<LeftCondition>
+		                <And>
+		                    <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="titleExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <Custom ref="authorExistsCondition"/>
+		                            </RightCondition>
+		                        </And>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="identifierExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Custom ref="dateExistsCondition"/> 
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <Custom ref="publisherExistsCondition"/>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </RightCondition>
+		                </And>
+					</LeftCondition>
+                	<RightCondition>
+                		<Custom ref="dspaceItemCondition" />
+                	</RightCondition>
                 </And>
             </Definition>
         </Filter>
@@ -399,14 +430,21 @@
         -->
         <Filter id="defaultFilter">
             <Definition>
-                <Or>
-                    <LeftCondition>
-                        <Custom ref="itemAccessCondition"/>
-                    </LeftCondition>
-                    <RightCondition>
-                        <Custom ref="itemWithdrawnCondition"/>
-                    </RightCondition>
-                </Or>
+            	<And>
+            		<LeftCondition>
+		                <Or>
+		                    <LeftCondition>
+		                        <Custom ref="itemAccessCondition"/>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <Custom ref="itemWithdrawnCondition"/>
+		                    </RightCondition>
+		                </Or>
+					</LeftCondition>
+                	<RightCondition>
+                		<Custom ref="dspaceItemCondition" />
+                	</RightCondition>
+                </And>
             </Definition>
         </Filter>
 
@@ -514,10 +552,19 @@
             </Configuration>
         </CustomCondition>
 
-        <!-- This condition determines if an Item has a "dc.rights" field
-         specifying "open access", which is required for DRIVER
-         OR "openAccess", which is required by OpenAIRE. -->
-        <CustomCondition id="itemTypeCondition">
+		<!-- This condition determines if an OAI document is from a basic dspace items -->
+		<CustomCondition id="dspaceItemCondition">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilterNDS</Class>
+            <Configuration>
+                <string name="field">item.type</string>
+                <string name="operator">equal</string>
+                <string name="value">item</string>
+            </Configuration>
+        </CustomCondition>
+        
+        <!-- This condition determines if an OAI document is of one of the types 
+        	 required by OpenAIRE for CRIS System. -->
+        <CustomCondition id="crisObjectTypeCondition">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilterNDS</Class>
             <Configuration>
                 <string name="field">item.type</string>
@@ -529,9 +576,7 @@
                     <string>ou</string>
                     <string>journals</string>
                     <string>events</string>
-                    <string>funding</string>
                     <string>equipment</string>
-                    <string>service</string>
                 </list>
             </Configuration>
         </CustomCondition>

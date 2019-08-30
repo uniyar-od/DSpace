@@ -2,16 +2,6 @@
 <!DOCTYPE input-forms>
 
 <input-forms>
-
- <!-- The form-map maps collection handles to forms. DSpace does not       -->
- <!-- require that a collection's name be unique, even within a community .-->
- <!-- DSpace does however insure that each collection's handle is unique.  -->
- <!-- Form-map provides the means to associate a unique collection name    -->
- <!-- with a form. The form-map also provides the special handle "default" -->
- <!-- (which is never a collection), here mapped to "publication". Any     -->
- <!-- collection which does not appear in this map will be associated with -->
- <!-- the mapping for handle "default".                                    -->
-
   <form-map>
     <name-map collection-handle="default" form-name="publication" />
     <name-map collection-handle="123456789/2" form-name="publication" />
@@ -23,9 +13,42 @@
       <page number="1">
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must specify a title for the publication</required>
+          <hint>The title of the publication</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <dc-qualifier>alternative</dc-qualifier>
+          <parent />
+          <label>Other Titles</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>If the item has any alternative titles, please enter them here.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <parent />
+          <label>Date of Issue</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Please give the date of previous publication or public distribution. You can leave out the day and/or month if they aren't applicable.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
           <dc-qualifier>affiliation</dc-qualifier>
-          <parent>dc_contributor_affiliation</parent>
+          <parent>dc_contributor_author</parent>
           <label>Affiliation</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
@@ -46,6 +69,17 @@
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
+          <dc-qualifier>editoraffiliation</dc-qualifier>
+          <parent>dc_contributor_editor</parent>
+          <label>Affiliation</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the affiliation of the editor as stated on the publication</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
           <dc-qualifier>editor</dc-qualifier>
           <parent />
           <label>Editor</label>
@@ -56,38 +90,64 @@
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
+          <dc-element>identifier</dc-element>
           <dc-qualifier />
           <parent />
-          <label>Title</label>
-          <input-type>onebox</input-type>
+          <label>Identifiers</label>
+          <input-type value-pairs-name="publication_identifiers">qualdrop_value</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>The title of the publication</hint>
+          <hint>If the item has any identification numbers or codes associated with
+it, please enter the types and the actual numbers or codes. Please only add here identifiers that apply directly to the described item not identifiers related to the publication channel</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
-          <dc-qualifier>alternative</dc-qualifier>
+          <dc-element>type</dc-element>
+          <dc-qualifier />
           <parent />
-          <label>Subtitle</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The subtitle of the publication</hint>
+          <label>Type</label>
+          <input-type value-pairs-name="publication_types">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required>You must select a publication type</required>
+          <hint>Select the type(s) of content of the publication</hint>
         </field>
+      </page>
+      <page number="2">
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
+          <dc-element>language</dc-element>
+          <dc-qualifier>iso</dc-qualifier>
           <parent />
-          <label>Publication Date</label>
-          <input-type>date</input-type>
+          <label>Language</label>
+          <input-type value-pairs-name="iso_languages">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The issue of the publishing channel where this publication appeared.
-You can leave out the day and/or month if they aren't applicable.</hint>
+          <hint>Select the language of the main content of the publication.</hint>
         </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Subject Keywords</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter appropriate subject keywords or phrases.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <parent />
+          <label>Abstract</label>
+          <input-type>textarea</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the abstract of the item.</hint>
+        </field>
+      </page>
+      <page number="3">
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>publisher</dc-element>
@@ -104,102 +164,88 @@ You can leave out the day and/or month if they aren't applicable.</hint>
           <dc-element>relation</dc-element>
           <dc-qualifier>publication</dc-qualifier>
           <parent />
-          <label>Published In</label>
+          <label>Part Of</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
-          <hint>The source (another Publication) where this publication appeared. E.g. a journal article lists here the journal where it appeared. To be used for a publishing channel.</hint>
+          <hint>The publication where this publication is included. E.g. a book chapter lists here the book, a contribution to a conference lists here the conference proceeding.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>isbn</dc-qualifier>
+          <parent />
+          <label>ISBN (of the container)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The ISBN of the book/report if it was not found in the system</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>doi</dc-qualifier>
+          <parent />
+          <label>DOI (of the container)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The DOI of the book/report if it was not found in the system</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>ispartof</dc-qualifier>
           <parent />
-          <label>Part Of</label>
+          <label>Journal or Serie</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The Publication of which this publication is a part. E.g. a book chapter lists here the book that contains it. To be used for a containing publication</hint>
+          <hint>The journal or Serie where this publication has been published</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>identifier</dc-element>
-          <dc-qualifier />
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issn</dc-qualifier>
           <parent />
-          <label>Identifiers</label>
-          <input-type value-pairs-name="publisher_identifiers">qualdrop_value</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>If the item has any identification numbers or codes associated with
-it, please enter the types and the actual numbers or codes.</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>type</dc-element>
-          <dc-qualifier />
-          <parent />
-          <label>Type</label>
-          <input-type value-pairs-name="publisher_types">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required>You must select a publisher type</required>
-          <hint>Select the type(s) of content of the publication. To select more than one value in the list, you may have to hold down the "CTRL" or "Shift" key.</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>language</dc-element>
-          <dc-qualifier>iso</dc-qualifier>
-          <parent />
-          <label>Language</label>
-          <input-type value-pairs-name="iso_languages">dropdown</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Select the language of the main content of the publication.</hint>
-        </field>
-      </page>
-      <page number="2">
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier />
-          <parent />
-          <label>Subject</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The subject of the publication from a classification</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>keywords</dc-qualifier>
-          <parent />
-          <label>Keywords</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>A single keyword or key expression. Please repeat to serialize separate keywords or key expressions.</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>abstract</dc-qualifier>
-          <parent />
-          <label>Abstract</label>
-          <input-type>textarea</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Enter the abstract of the item.</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>number</dc-qualifier>
-          <parent />
-          <label>Number</label>
+          <label>ISSN</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The number of the publication (e.g. Article Number)</hint>
+          <hint>The journal or Serie ISSN if it was not found in the system</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>coverage</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <parent />
+          <label>Review of</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The publication object of the review</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>coverage</dc-element>
+          <dc-qualifier>isbn</dc-qualifier>
+          <parent />
+          <label>ISBN (of the reviewed item)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The ISBN of the reviewed item if it was not found in the system</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>coverage</dc-element>
+          <dc-qualifier>doi</dc-qualifier>
+          <parent />
+          <label>DOI (of the reviewed item)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The DOI of the reviewed item if it was not found in the system</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -210,117 +256,97 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The volume of the publishing channel where this publication appeared</hint>
+          <hint>If applicable, the volume of the publishing channel where this publication appeared</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
-          <dc-qualifier>edition</dc-qualifier>
+          <dc-qualifier>issue</dc-qualifier>
           <parent />
-          <label>Edition</label>
+          <label>Issue</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The edition of the publication</hint>
+          <hint>If applicable, the issue of the publishing channel where this publication appeared</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
-          <dc-qualifier>startPage</dc-qualifier>
+          <dc-qualifier>startpage</dc-qualifier>
           <parent />
           <label>Start Page</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The page where this publication starts, in case the publishing channel or containing publication has numbered pages</hint>
+          <hint>If applicable, the page where this publication starts</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
-          <dc-qualifier>endPage</dc-qualifier>
+          <dc-qualifier>endpage</dc-qualifier>
           <parent />
           <label>End Page</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The page where this publication ends, in case the publishing channel or containing publication has numbered pages</hint>
+          <hint>If applicable, the page where this publication ends</hint>
         </field>
+      </page>
+      <page number="4">
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>status</dc-qualifier>
-          <parent />
-          <label>Status</label>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>grantno</dc-qualifier>
+          <parent>dc_relation</parent>
+          <label>Grant Number / Funding identifier</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
+          <repeatable>true</repeatable>
           <required />
-          <hint>The publication status.</hint>
+          <hint />
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier />
           <parent />
-          <label>Originates From</label>
+          <label>Project</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>Enter the name of project, if any, that has produced this publication.</hint>
+          <hint>Enter the name of project, if any, that has supported this publication</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>conference</dc-qualifier>
           <parent />
-          <label>Presented At</label>
+          <label>Conference</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>The event where this publication was presented.</hint>
+          <hint>The event where this publication was presented or that is recorded in the publication (report / proceeding).</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>isbasedon</dc-qualifier>
+          <dc-qualifier>dataset</dc-qualifier>
           <parent />
-          <label>Output From</label>
+          <label>Dataset(s)</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>This publication contains the proceedings from the linked event</hint>
+          <hint>Dataset that are used or described by this publication</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>coverage</dc-element>
-          <dc-qualifier>temporal</dc-qualifier>
-          <parent />
-          <label>Coverage</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The event that is covered by this publication (e.g. a report about the event)</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>isreferencedby</dc-qualifier>
-          <parent />
-          <label>References</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>Result outputs that are referenced by this publication</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>rights</dc-element>
+          <dc-element>description</dc-element>
           <dc-qualifier />
           <parent />
-          <label>Access</label>
-          <input-type value-pairs-name="rights">dropdown</input-type>
+          <label>Description</label>
+          <input-type>textarea</input-type>
           <repeatable>false</repeatable>
           <required />
-          <hint>The open access type of the publication</hint>
+          <hint>Enter any other description or comments in this box.</hint>
         </field>
       </page>
     </form>
@@ -328,47 +354,69 @@ it, please enter the types and the actual numbers or codes.</hint>
       <page number="1">
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>creator</dc-element>
+          <dc-element>title</dc-element>
           <dc-qualifier />
+          <parent />
+          <label>Name/Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required>You must specify a name/title for the product</required>
+          <hint>The name of the product</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <dc-qualifier>alternative</dc-qualifier>
+          <parent />
+          <label>Other Titles</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>If the item has any alternative titles, please enter them here.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <parent />
+          <label>Date of creation</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Date of creation of the product</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>version</dc-qualifier>
+          <parent />
+          <label>Version</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>If applicable, the version of the product</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>affiliation</dc-qualifier>
+          <parent>dc_creator</parent>
+          <label>Affiliation</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the affiliation of the contributor as stated on the product</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
           <parent />
           <label>Creator</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint>The creators of this product</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
-          <dc-qualifier />
-          <parent />
-          <label>Name</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The name of the product</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>publisher</dc-element>
-          <dc-qualifier />
-          <parent />
-          <label>Publisher</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The publisher or publishers of this product</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>relation</dc-element>
-          <dc-qualifier>ispartof</dc-qualifier>
-          <parent />
-          <label>Part Of</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>Link to the research output of which this product is a part (e.g. a data set collection that contains it)</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -393,6 +441,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required>You must select a product type</required>
           <hint>The type of the resulting product (other than publication or patent)</hint>
         </field>
+      </page>
+      <page number="2">
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>language</dc-element>
@@ -404,78 +454,100 @@ it, please enter the types and the actual numbers or codes.</hint>
           <required />
           <hint>Select the language used.</hint>
         </field>
-      </page>
-      <page number="2">
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>subject</dc-element>
           <dc-qualifier />
           <parent />
-          <label>Subject</label>
+          <label>Subject Keywords</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>The subject of the product from a classification</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>keywords</dc-qualifier>
-          <parent />
-          <label>Keywords</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>A single keyword or key expression. Please repeat to serialize separate keywords or key expressions.</hint>
+          <hint>Enter appropriate subject keywords or phrases.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
-          <dc-qualifier />
+          <dc-qualifier>abstract</dc-qualifier>
           <parent />
-          <label>Description</label>
+          <label>Abstract</label>
           <input-type>textarea</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
-          <hint>Enter the description of the product.</hint>
+          <hint>Enter the abstract of the item.</hint>
         </field>
+      </page>
+      <page number="3">
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>version</dc-qualifier>
+          <dc-element>publisher</dc-element>
+          <dc-qualifier />
           <parent />
-          <label>Version</label>
+          <label>Publisher</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>The number of the publication (e.g. Article Number)</hint>
+          <hint>The publisher or publishers of this product</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartof</dc-qualifier>
+          <parent />
+          <label>Journal or Serie</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Link to the research output of which this product is a part (e.g. a data set collection that contains it)</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issn</dc-qualifier>
+          <parent />
+          <label>ISSN</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The journal or Serie ISSN if it was not found in the system</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>grantno</dc-qualifier>
+          <parent>dc_relation</parent>
+          <label>Grant Number / Funding identifier</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier />
           <parent />
-          <label>Originates From</label>
+          <label>Project</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>Enter the name of project, if any, that has produced this product.</hint>
+          <hint>Enter the name of project, if any, that has supported this product</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>conference</dc-qualifier>
           <parent />
-          <label>Presented At</label>
+          <label>Conference</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
-          <hint>The event where this product was presented</hint>
+          <hint>The event where this product was presented or that is recorded in the product.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>isbasedon</dc-qualifier>
+          <dc-qualifier>equipment</dc-qualifier>
           <parent />
           <label>Generated by</label>
           <input-type>onebox</input-type>
@@ -485,19 +557,8 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>coverage</dc-element>
-          <dc-qualifier>temporal</dc-qualifier>
-          <parent />
-          <label>Coverage</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The event that is covered by this product (e.g. a video or audio interview about the event)</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>isreferencedby</dc-qualifier>
+          <dc-qualifier>references</dc-qualifier>
           <parent />
           <label>References</label>
           <input-type>onebox</input-type>
@@ -507,14 +568,14 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>rights</dc-element>
-          <dc-qualifier />
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
           <parent />
-          <label>Access</label>
-          <input-type value-pairs-name="rights">dropdown</input-type>
-          <repeatable>false</repeatable>
+          <label>References</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
           <required />
-          <hint>The open access type of the publication</hint>
+          <hint>Result outputs that use this product</hint>
         </field>
       </page>
     </form>
@@ -522,25 +583,60 @@ it, please enter the types and the actual numbers or codes.</hint>
       <page number="1">
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>creator</dc-element>
+          <dc-element>title</dc-element>
           <dc-qualifier />
+          <parent />
+          <label>Title</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>You must specify a title for the patent</required>
+          <hint>The title of the patent</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>accessioned</dc-qualifier>
+          <parent />
+          <label>Approval Date</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The Approval date.
+You can leave out the day and/or month if they aren't applicable.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <parent />
+          <label>Registration Date</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>The registration date of the patent.
+You can leave out the day and/or month if they aren't applicable.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>affiliation</dc-qualifier>
+          <parent>dc_contributor_author</parent>
+          <label>Affiliation</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Enter the affiliation of the inventor</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
           <parent />
           <label>Inventor</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint>The inventor: The actual devisor of an invention that is the subject of a patent.</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>title</dc-element>
-          <dc-qualifier />
-          <parent />
-          <label>Title</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>The title of the patent</hint>
         </field>
         <field>
           <dc-schema>dcterms</dc-schema>
@@ -555,30 +651,6 @@ it, please enter the types and the actual numbers or codes.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>issued</dc-qualifier>
-          <parent />
-          <label>Approval Date</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The Approval date.
-You can leave out the day and/or month if they aren't applicable.</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>created</dc-qualifier>
-          <parent />
-          <label>Registration Date</label>
-          <input-type>date</input-type>
-          <repeatable>false</repeatable>
-          <required />
-          <hint>The registration date of the patent.
-You can leave out the day and/or month if they aren't applicable.</hint>
-        </field>
-        <field>
-          <dc-schema>dcterms</dc-schema>
           <dc-element>publisher</dc-element>
           <dc-qualifier />
           <parent />
@@ -591,9 +663,9 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>identifier</dc-element>
-          <dc-qualifier />
+          <dc-qualifier>patentno</dc-qualifier>
           <parent />
-          <label>PatentNumber</label>
+          <label>Patent Number</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -610,6 +682,8 @@ You can leave out the day and/or month if they aren't applicable.</hint>
           <required>You must select a patent type</required>
           <hint>Select the type of content of the patent.</hint>
         </field>
+      </page>
+      <page number="2">
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>language</dc-element>
@@ -621,29 +695,16 @@ You can leave out the day and/or month if they aren't applicable.</hint>
           <required />
           <hint>Select the country and its language.</hint>
         </field>
-      </page>
-      <page number="2">
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>subject</dc-element>
           <dc-qualifier />
           <parent />
-          <label>Subject</label>
+          <label>Subject Keywords</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
           <required />
-          <hint>The subject of the product from a classification</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>subject</dc-element>
-          <dc-qualifier>keywords</dc-qualifier>
-          <parent />
-          <label>Keywords</label>
-          <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <required />
-          <hint>A single keyword or key expression. Please repeat to serialize separate keywords or key expressions.</hint>
+          <hint>Enter appropriate subject keywords or phrases.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
@@ -652,10 +713,12 @@ You can leave out the day and/or month if they aren't applicable.</hint>
           <parent />
           <label>Abstract</label>
           <input-type>textarea</input-type>
-          <repeatable>true</repeatable>
+          <repeatable>false</repeatable>
           <required />
           <hint>Enter the description of the patent.</hint>
         </field>
+      </page>
+      <page number="3">
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
@@ -669,8 +732,8 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         </field>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>provenance</dc-element>
-          <dc-qualifier />
+          <dc-element>relation</dc-element>
+          <dc-qualifier>patent</dc-qualifier>
           <parent />
           <label>Predecessor</label>
           <input-type>onebox</input-type>
@@ -681,7 +744,7 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>isreferencedby</dc-qualifier>
+          <dc-qualifier>references</dc-qualifier>
           <parent />
           <label>References</label>
           <input-type>onebox</input-type>
@@ -693,30 +756,50 @@ You can leave out the day and/or month if they aren't applicable.</hint>
     </form>
   </form-definitions>
   <form-value-pairs>
-    <value-pairs value-pairs-name="publisher_identifiers" dc-term="publisher_identifiers">
+    <value-pairs value-pairs-name="publication_identifiers" dc-term="publication_identifiers">
       <pair>
         <displayed-value>DOI</displayed-value>
         <stored-value>doi</stored-value>
       </pair>
       <pair>
-        <displayed-value>PMCID</displayed-value>
-        <stored-value>pmid</stored-value>
+        <displayed-value>ISBN</displayed-value>
+        <stored-value>isbn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ISMN</displayed-value>
+        <stored-value>ismn</stored-value>
       </pair>
       <pair>
         <displayed-value>ISI Number</displayed-value>
         <stored-value>isi</stored-value>
       </pair>
       <pair>
-        <displayed-value>SCP Number</displayed-value>
-        <stored-value>scp</stored-value>
+        <displayed-value>Scopus Number</displayed-value>
+        <stored-value>scopus</stored-value>
       </pair>
       <pair>
-        <displayed-value>ISSN</displayed-value>
-        <stored-value>issn</stored-value>
+        <displayed-value>Pubmed ID</displayed-value>
+        <stored-value>pmid</stored-value>
       </pair>
       <pair>
-        <displayed-value>ISBN</displayed-value>
-        <stored-value>isbn</stored-value>
+        <displayed-value>PMC ID</displayed-value>
+        <stored-value>pmcid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Gov’t Doc #</displayed-value>
+        <stored-value>govdoc</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>arXiv</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ADS Bibcode</displayed-value>
+        <stored-value>bibcode</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Article Number</displayed-value>
+        <stored-value>artno</stored-value>
       </pair>
       <pair>
         <displayed-value>URL</displayed-value>
@@ -727,7 +810,7 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         <stored-value>uri</stored-value>
       </pair>
     </value-pairs>
-    <value-pairs value-pairs-name="publisher_types" dc-term="publisher_types">
+    <value-pairs value-pairs-name="publication_types" dc-term="publication_types">
       <pair>
         <displayed-value>Text</displayed-value>
         <stored-value>text</stored-value>
@@ -979,664 +1062,50 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         <stored-value>patent</stored-value>
       </pair>
     </value-pairs>
-    <value-pairs value-pairs-name="rights" dc-term="rights">
-      <pair>
-        <displayed-value>Open Access</displayed-value>
-        <stored-value>open access</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Embargoed Access</displayed-value>
-        <stored-value>embargoed access</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Restricted Access</displayed-value>
-        <stored-value>restricted access</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Metadata Only Access</displayed-value>
-        <stored-value>metadata only access</stored-value>
-      </pair>
-    </value-pairs>
     <value-pairs value-pairs-name="iso_languages" dc-term="iso_languages">
       <pair>
-        <displayed-value>Afrikaans (South Africa)</displayed-value>
-        <stored-value>af-ZA</stored-value>
+        <displayed-value>N/A</displayed-value>
+        <stored-value />
       </pair>
       <pair>
-        <displayed-value>Arabic (U.A.E.)</displayed-value>
-        <stored-value>ar-AE</stored-value>
+        <displayed-value>English</displayed-value>
+        <stored-value>en</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Bahrain)</displayed-value>
-        <stored-value>ar-BH</stored-value>
+        <displayed-value>Spanish</displayed-value>
+        <stored-value>es</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Algeria)</displayed-value>
-        <stored-value>ar-DZ</stored-value>
+        <displayed-value>German</displayed-value>
+        <stored-value>de</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Egypt)</displayed-value>
-        <stored-value>ar-EG</stored-value>
+        <displayed-value>French</displayed-value>
+        <stored-value>fr</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Iraq)</displayed-value>
-        <stored-value>ar-IQ</stored-value>
+        <displayed-value>Italian</displayed-value>
+        <stored-value>it</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Jordan)</displayed-value>
-        <stored-value>ar-JO</stored-value>
+        <displayed-value>Japanese</displayed-value>
+        <stored-value>ja</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Kuwait)</displayed-value>
-        <stored-value>ar-KW</stored-value>
+        <displayed-value>Chinese</displayed-value>
+        <stored-value>zh</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Lebanon)</displayed-value>
-        <stored-value>ar-LB</stored-value>
+        <displayed-value>Turkish</displayed-value>
+        <stored-value>tr</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Libya)</displayed-value>
-        <stored-value>ar-LY</stored-value>
+        <displayed-value>Arabic</displayed-value>
+        <stored-value>ar</stored-value>
       </pair>
       <pair>
-        <displayed-value>Arabic (Morocco)</displayed-value>
-        <stored-value>ar-MA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Arabic (Oman)</displayed-value>
-        <stored-value>ar-OM</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Arabic (Qatar)</displayed-value>
-        <stored-value>ar-QA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Arabic (Saudi Arabia)</displayed-value>
-        <stored-value>ar-SA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Arabic (Syria)</displayed-value>
-        <stored-value>ar-SY</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Arabic (Tunisia)</displayed-value>
-        <stored-value>ar-TN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Arabic (Yemen)</displayed-value>
-        <stored-value>ar-YE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Azeri (Latin) (Azerbaijan)</displayed-value>
-        <stored-value>az-AZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Azeri (Cyrillic) (Azerbaijan)</displayed-value>
-        <stored-value>az-AZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Belarusian (Belarus)</displayed-value>
-        <stored-value>be-BY</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Bulgarian (Bulgaria)</displayed-value>
-        <stored-value>bg-BG</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Bosnian (Bosnia and Herzegovina)</displayed-value>
-        <stored-value>bs-BA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Catalan (Spain)</displayed-value>
-        <stored-value>ca-ES</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Czech (Czech Republic)</displayed-value>
-        <stored-value>cs-CZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Welsh (United Kingdom)</displayed-value>
-        <stored-value>cy-GB</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Danish (Denmark)</displayed-value>
-        <stored-value>da-DK</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>German (Austria)</displayed-value>
-        <stored-value>de-AT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>German (Switzerland)</displayed-value>
-        <stored-value>de-CH</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>German (Germany)</displayed-value>
-        <stored-value>de-DE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>German (Liechtenstein)</displayed-value>
-        <stored-value>de-LI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>German (Luxembourg)</displayed-value>
-        <stored-value>de-LU</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Divehi (Maldives)</displayed-value>
-        <stored-value>dv-MV</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Greek (Greece)</displayed-value>
-        <stored-value>el-GR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Australia)</displayed-value>
-        <stored-value>en-AU</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Belize)</displayed-value>
-        <stored-value>en-BZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Canada)</displayed-value>
-        <stored-value>en-CA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Caribbean)</displayed-value>
-        <stored-value>en-CB</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (United Kingdom)</displayed-value>
-        <stored-value>en-GB</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Ireland)</displayed-value>
-        <stored-value>en-IE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Jamaica)</displayed-value>
-        <stored-value>en-JM</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (New Zealand)</displayed-value>
-        <stored-value>en-NZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Republic of the Philippines)</displayed-value>
-        <stored-value>en-PH</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Trinidad and Tobago)</displayed-value>
-        <stored-value>en-TT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (United States)</displayed-value>
-        <stored-value>en-US</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (South Africa)</displayed-value>
-        <stored-value>en-ZA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>English (Zimbabwe)</displayed-value>
-        <stored-value>en-ZW</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Argentina)</displayed-value>
-        <stored-value>es-AR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Bolivia)</displayed-value>
-        <stored-value>es-BO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Chile)</displayed-value>
-        <stored-value>es-CL</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Colombia)</displayed-value>
-        <stored-value>es-CO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Costa Rica)</displayed-value>
-        <stored-value>es-CR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Dominican Republic)</displayed-value>
-        <stored-value>es-DO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Ecuador)</displayed-value>
-        <stored-value>es-EC</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Castilian)</displayed-value>
-        <stored-value>es-ES</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Spain)</displayed-value>
-        <stored-value>es-ES</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Guatemala)</displayed-value>
-        <stored-value>es-GT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Honduras)</displayed-value>
-        <stored-value>es-HN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Mexico)</displayed-value>
-        <stored-value>es-MX</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Nicaragua)</displayed-value>
-        <stored-value>es-NI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Panama)</displayed-value>
-        <stored-value>es-PA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Peru)</displayed-value>
-        <stored-value>es-PE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Puerto Rico)</displayed-value>
-        <stored-value>es-PR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Paraguay)</displayed-value>
-        <stored-value>es-PY</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (El Salvador)</displayed-value>
-        <stored-value>es-SV</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Uruguay)</displayed-value>
-        <stored-value>es-UY</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Spanish (Venezuela)</displayed-value>
-        <stored-value>es-VE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Estonian (Estonia)</displayed-value>
-        <stored-value>et-EE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Basque (Spain)</displayed-value>
-        <stored-value>eu-ES</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Farsi (Iran)</displayed-value>
-        <stored-value>fa-IR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Finnish (Finland)</displayed-value>
-        <stored-value>fi-FI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Faroese (Faroe Islands)</displayed-value>
-        <stored-value>fo-FO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French (Belgium)</displayed-value>
-        <stored-value>fr-BE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French (Canada)</displayed-value>
-        <stored-value>fr-CA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French (Switzerland)</displayed-value>
-        <stored-value>fr-CH</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French (France)</displayed-value>
-        <stored-value>fr-FR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French (Luxembourg)</displayed-value>
-        <stored-value>fr-LU</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>French (Principality of Monaco)</displayed-value>
-        <stored-value>fr-MC</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Galician (Spain)</displayed-value>
-        <stored-value>gl-ES</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Gujarati (India)</displayed-value>
-        <stored-value>gu-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Hebrew (Israel)</displayed-value>
-        <stored-value>he-IL</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Hindi (India)</displayed-value>
-        <stored-value>hi-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Croatian (Bosnia and Herzegovina)</displayed-value>
-        <stored-value>hr-BA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Croatian (Croatia)</displayed-value>
-        <stored-value>hr-HR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Hungarian (Hungary)</displayed-value>
-        <stored-value>hu-HU</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Armenian (Armenia)</displayed-value>
-        <stored-value>hy-AM</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Indonesian (Indonesia)</displayed-value>
-        <stored-value>id-ID</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Icelandic (Iceland)</displayed-value>
-        <stored-value>is-IS</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Italian (Switzerland)</displayed-value>
-        <stored-value>it-CH</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Italian (Italy)</displayed-value>
-        <stored-value>it-IT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Japanese (Japan)</displayed-value>
-        <stored-value>ja-JP</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Georgian (Georgia)</displayed-value>
-        <stored-value>ka-GE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Kazakh (Kazakhstan)</displayed-value>
-        <stored-value>kk-KZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Kannada (India)</displayed-value>
-        <stored-value>kn-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Korean (Korea)</displayed-value>
-        <stored-value>ko-KR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Konkani (India)</displayed-value>
-        <stored-value>kok-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Kyrgyz (Kyrgyzstan)</displayed-value>
-        <stored-value>ky-KG</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Lithuanian (Lithuania)</displayed-value>
-        <stored-value>lt-LT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Latvian (Latvia)</displayed-value>
-        <stored-value>lv-LV</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Maori (New Zealand)</displayed-value>
-        <stored-value>mi-NZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>FYRO Macedonian (Former Yugoslav Republic of Macedonia)</displayed-value>
-        <stored-value>mk-MK</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Mongolian (Mongolia)</displayed-value>
-        <stored-value>mn-MN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Marathi (India)</displayed-value>
-        <stored-value>mr-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Malay (Brunei Darussalam)</displayed-value>
-        <stored-value>ms-BN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Malay (Malaysia)</displayed-value>
-        <stored-value>ms-MY</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Maltese (Malta)</displayed-value>
-        <stored-value>mt-MT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Norwegian (Bokm?l) (Norway)</displayed-value>
-        <stored-value>nb-NO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Dutch (Belgium)</displayed-value>
-        <stored-value>nl-BE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Dutch (Netherlands)</displayed-value>
-        <stored-value>nl-NL</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Norwegian (Nynorsk) (Norway)</displayed-value>
-        <stored-value>nn-NO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Northern Sotho (South Africa)</displayed-value>
-        <stored-value>ns-ZA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Punjabi (India)</displayed-value>
-        <stored-value>pa-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Polish (Poland)</displayed-value>
-        <stored-value>pl-PL</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Pashto (Afghanistan)</displayed-value>
-        <stored-value>ps-AR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Portuguese (Brazil)</displayed-value>
-        <stored-value>pt-BR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Portuguese (Portugal)</displayed-value>
-        <stored-value>pt-PT</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Quechua (Bolivia)</displayed-value>
-        <stored-value>qu-BO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Quechua (Ecuador)</displayed-value>
-        <stored-value>qu-EC</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Quechua (Peru)</displayed-value>
-        <stored-value>qu-PE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Romanian (Romania)</displayed-value>
-        <stored-value>ro-RO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Russian (Russia)</displayed-value>
-        <stored-value>ru-RU</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sanskrit (India)</displayed-value>
-        <stored-value>sa-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Northern) (Finland)</displayed-value>
-        <stored-value>se-FI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Skolt) (Finland)</displayed-value>
-        <stored-value>se-FI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Inari) (Finland)</displayed-value>
-        <stored-value>se-FI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Northern) (Norway)</displayed-value>
-        <stored-value>se-NO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Lule) (Norway)</displayed-value>
-        <stored-value>se-NO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Southern) (Norway)</displayed-value>
-        <stored-value>se-NO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Northern) (Sweden)</displayed-value>
-        <stored-value>se-SE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Lule) (Sweden)</displayed-value>
-        <stored-value>se-SE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Sami (Southern) (Sweden)</displayed-value>
-        <stored-value>se-SE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Slovak (Slovakia)</displayed-value>
-        <stored-value>sk-SK</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Slovenian (Slovenia)</displayed-value>
-        <stored-value>sl-SI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Albanian (Albania)</displayed-value>
-        <stored-value>sq-AL</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Serbian (Latin) (Bosnia and Herzegovina)</displayed-value>
-        <stored-value>sr-BA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Serbian (Cyrillic) (Bosnia and Herzegovina)</displayed-value>
-        <stored-value>sr-BA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Serbian (Latin) (Serbia and Montenegro)</displayed-value>
-        <stored-value>sr-SP</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Serbian (Cyrillic) (Serbia and Montenegro)</displayed-value>
-        <stored-value>sr-SP</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Swedish (Finland)</displayed-value>
-        <stored-value>sv-FI</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Swedish (Sweden)</displayed-value>
-        <stored-value>sv-SE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Swahili (Kenya)</displayed-value>
-        <stored-value>sw-KE</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Syriac (Syria)</displayed-value>
-        <stored-value>syr-SY</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Tamil (India)</displayed-value>
-        <stored-value>ta-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Telugu (India)</displayed-value>
-        <stored-value>te-IN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Thai (Thailand)</displayed-value>
-        <stored-value>th-TH</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Tagalog (Philippines)</displayed-value>
-        <stored-value>tl-PH</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Tswana (South Africa)</displayed-value>
-        <stored-value>tn-ZA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Turkish (Turkey)</displayed-value>
-        <stored-value>tr-TR</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Tatar (Russia)</displayed-value>
-        <stored-value>tt-RU</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Ukrainian (Ukraine)</displayed-value>
-        <stored-value>uk-UA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Urdu (Islamic Republic of Pakistan)</displayed-value>
-        <stored-value>ur-PK</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Uzbek (Latin) (Uzbekistan)</displayed-value>
-        <stored-value>uz-UZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Uzbek (Cyrillic) (Uzbekistan)</displayed-value>
-        <stored-value>uz-UZ</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Vietnamese (Viet Nam)</displayed-value>
-        <stored-value>vi-VN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Xhosa (South Africa)</displayed-value>
-        <stored-value>xh-ZA</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Chinese (S)</displayed-value>
-        <stored-value>zh-CN</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Chinese (Hong Kong)</displayed-value>
-        <stored-value>zh-HK</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Chinese (Macau)</displayed-value>
-        <stored-value>zh-MO</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Chinese (Singapore)</displayed-value>
-        <stored-value>zh-SG</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Chinese (T)</displayed-value>
-        <stored-value>zh-TW</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Zulu (South Africa)</displayed-value>
-        <stored-value>zu-ZA</stored-value>
+        <displayed-value>(Other)</displayed-value>
+        <stored-value>other</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
