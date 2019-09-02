@@ -400,7 +400,7 @@ it, please enter the types and the actual numbers or codes. Please only add here
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
           <dc-qualifier>affiliation</dc-qualifier>
-          <parent>dc_creator</parent>
+          <parent>dc_contributor_author</parent>
           <label>Affiliation</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
