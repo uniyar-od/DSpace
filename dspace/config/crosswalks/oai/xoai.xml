@@ -69,28 +69,35 @@
 
             - Predefined DSpace fields don't allow to set this up with a default.
          -->
-        <Context baseurl="openaire" name="OpenAIRE Context">
-            <!-- Date format, field prefixes, etc are ensured by the transformer -->
+<!--         <Context baseurl="openaire" name="OpenAIRE Context">
+            Date format, field prefixes, etc are ensured by the transformer
             <Transformer ref="openaireTransformer"/>
-            <!-- OpenAIRE filter -->
+            OpenAIRE filter
             <Filter ref="openAireFilter"/>
-            <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="openaireSet"/>
-            <!-- Metadata Formats -->
+            Just an alias, in fact it returns all items within the driver context
+            <Set ref="openaireFundedResourcesSet"/>
+            Metadata Formats
             <Format ref="oaidc"/>
             <Format ref="mets"/>
             <Format ref="oai_cerif"/>
             <Description>
                 This contexts complies with OpenAIRE rules.
             </Description>
-        </Context>
+        </Context> -->
 
         <Context baseurl="openaire" name="OpenAIRE Context for CRIS System">
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
             <Filter ref="openAireCRISFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
-            <Set ref="openaireSet"/>
+            <Set ref="openairePublicationsCrisSet"/>
+            <Set ref="openaireProductsCrisSet"/>
+            <Set ref="openairePatentsCrisSet"/>
+            <Set ref="openairePersonsCrisSet"/>
+            <Set ref="openaireOrgunitsCrisSet"/>
+            <Set ref="openaireProjectsCrisSet"/>
+            <Set ref="openaireEventsCrisSet"/>
+            <Set ref="openaireEquipmentsCrisSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="oai_cerif"/>
@@ -206,7 +213,7 @@
         </Format>
         <!-- set the format for openaire cerif profile -->
         <Format id="oai_cerif">
-            <Prefix>oai_cerif</Prefix>
+            <Prefix>oai_cerif_openaire</Prefix>
             <XSLT>metadataFormats/oai_cerif.xsl</XSLT>
             <Namespace>https://www.openaire.eu/cerif-profile/1.1/</Namespace>
             <SchemaLocation>https://www.openaire.eu/schema/cris/1.1/openaire-cerif-profile.xsd</SchemaLocation>
@@ -554,9 +561,10 @@
 
 		<!-- This condition determines if an OAI document is from a basic dspace items -->
 		<CustomCondition id="dspaceItemCondition">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilterNDS</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">item.type</string>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
                 <string name="operator">equal</string>
                 <string name="value">item</string>
             </Configuration>
@@ -565,9 +573,10 @@
         <!-- This condition determines if an OAI document is of one of the types 
         	 required by OpenAIRE for CRIS System. -->
         <CustomCondition id="crisObjectTypeCondition">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilterNDS</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">item.type</string>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
                 <string name="operator">equal</string>
                 <list name="values">
                     <string>item</string>
@@ -619,6 +628,157 @@
                 <string name="value">info:eu-repo/grantAgreement/</string>
             </Configuration>
         </CustomCondition>
+        
+        
+        <Filter id="defaultFilter">
+            <Definition>
+            	<Or>
+            		<LeftCondition>
+						<Custom ref="publicationSetFilter" />
+					</LeftCondition>
+                	<RightCondition>
+                		<Custom ref="journalSetFilter" />
+                	</RightCondition>
+                </Or>
+            </Definition>
+        </Filter>
+                
+        <CustomCondition id="publicationSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">equal</string>
+				<list name="values">
+			        <string>text</string>
+			        <string>annotation</string>
+			        <string>bibliography</string>
+			        <string>book</string>
+			        <string>conference object</string>
+			        <string>conference proceedings</string>
+			        <string>conference paper</string>
+			        <string>conference poster</string>
+			        <string>conference paper not in proceedings</string>
+			        <string>conference poster not in proceedings</string>
+			        <string>lecture</string>
+			        <string>letter</string>
+			        <string>periodical</string>
+			        <string>journal</string>
+			        <string>contribution to journal</string>
+			        <string>journal article</string>
+			        <string>review article</string>
+			        <string>research article</string>
+			        <string>editorial</string>
+			        <string>data paper</string>
+			        <string>letter to the editor</string>
+			        <string>preprint</string>
+			        <string>report</string>
+			        <string>report part</string>
+			        <string>internal report</string>
+			        <string>memorandum</string>
+			        <string>other type of report</string>
+			        <string>policy report</string>
+			        <string>project deliverable</string>
+			        <string>report to funding agency</string>
+			        <string>research report</string>
+			        <string>technical report</string>
+			        <string>research proposal</string>
+			        <string>review</string>
+			        <string>book review</string>
+			        <string>technical documentation</string>
+			        <string>working paper</string>
+			        <string>thesis</string>
+			        <string>bachelor thesis</string>
+			        <string>doctoral thesis</string>
+			        <string>master thesis</string>
+			        <string>musical notation</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="productSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">equal</string>
+                <list name="values">
+                    <string>interactive resource</string>
+					<string>website</string>
+					<string>dataset</string>
+					<string>image</string>
+					<string>moving image</string>
+					<string>video</string>
+					<string>still image</string>
+					<string>other</string>
+					<string>software</string>
+					<string>workflow</string>
+					<string>cartographic material</string>
+					<string>map</string>
+					<string>sound</string>
+					<string>musical composition</string>
+                </list>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="patentSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+                <string name="field">dc.type</string>
+                <string name="operator">equal</string>
+                <string name="value">patent</string>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="researcherSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
+                <string name="operator">equal</string>
+                <string name="value">rp</string>
+            </Configuration>
+        </CustomCondition>
+        <CustomCondition id="orgUnitSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
+                <string name="operator">equal</string>
+                <string name="value">ou</string>
+            </Configuration>            
+        </CustomCondition>
+        <CustomCondition id="projectSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
+                <string name="operator">equal</string>
+                <string name="value">project</string>
+            </Configuration>
+		</CustomCondition>
+        <CustomCondition id="journalSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
+                <string name="operator">equal</string>
+                <string name="value">journals</string>
+            </Configuration>
+		</CustomCondition>		
+        <CustomCondition id="eventSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
+                <string name="operator">equal</string>
+                <string name="value">events</string>
+            </Configuration>
+		</CustomCondition>
+        <CustomCondition id="equipmentSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Configuration>
+            	<string name="schema">item</string>
+                <string name="field">type</string>
+                <string name="operator">equal</string>
+                <string name="value">equipment</string>
+            </Configuration>
+		</CustomCondition>				
     </Filters>
 
     <Sets>
@@ -627,11 +787,52 @@
             <Name>Open Access DRIVERset</Name>
             <!-- Just an alias -->
         </Set>
-        <Set id="openaireSet">
+        <Set id="openaireFundedResourcesSet">
             <Spec>ec_fundedresources</Spec>
-            <Name>EC_fundedresources set</Name>
+            <Name>EC_fundedresources</Name>
             <!-- Just an alias -->
         </Set>
+		<!-- OpenAIRE OAI-PMH Sets. See https://openaire-guidelines-for-cris-managers.readthedocs.io/en/v1.1.1/implementation.html#openaire-oai-pmh-sets -->
+		<Set id="openairePublicationsCrisSet">
+            <Spec>openaire_cris_publications</Spec>
+            <Name>OpenAIRE_CRIS_publications</Name>
+            <Filter ref="publicationSetFilter" />
+        </Set>
+		<Set id="openaireProductsCrisSet">
+            <Spec>openaire_cris_products</Spec>
+            <Name>OpenAIRE_CRIS_products</Name>
+            <Filter ref="productSetFilter" />
+        </Set>
+		<Set id="openairePatentsCrisSet">
+            <Spec>openaire_cris_patents</Spec>
+            <Name>OpenAIRE_CRIS_patents</Name>
+            <Filter ref="patentSetFilter" />
+        </Set>        
+        <Set id="openairePersonsCrisSet">
+            <Spec>openaire_cris_persons</Spec>
+            <Name>OpenAIRE_CRIS_persons</Name>
+            <Filter ref="researcherSetFilter" />
+        </Set>
+        <Set id="openaireOrgunitsCrisSet">
+            <Spec>openaire_cris_orgunits</Spec>
+            <Name>OpenAIRE_CRIS_orgunits</Name>
+            <Filter ref="orgUnitSetFilter" />
+        </Set>
+        <Set id="openaireProjectsCrisSet">
+            <Spec>openaire_cris_projects</Spec>
+            <Name>OpenAIRE_CRIS_projects</Name>
+            <Filter ref="projectSetFilter" />
+        </Set>  
+        <Set id="openaireEventsCrisSet">
+            <Spec>openaire_cris_events</Spec>
+            <Name>OpenAIRE_CRIS_events</Name>
+            <Filter ref="eventSetFilter" />
+        </Set>          
+        <Set id="openaireEquipmentsCrisSet">
+            <Spec>openaire_cris_equipments</Spec>
+            <Name>OpenAIRE_CRIS_equipments</Name>
+            <Filter ref="equipmentSetFilter" />
+        </Set>                
         <!-- set the OpenAIRE Data Archive OAI Set. See: https://guidelines.openaire.eu/en/latest/data/use_of_oai_pmh.html -->
         <Set id="openaireDataSet">
             <Spec>openaire_data</Spec>

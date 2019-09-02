@@ -649,7 +649,7 @@ public class XOAI {
             options.addOption("v", "verbose", false, "Verbose output");
             options.addOption("h", "help", false, "Shows some help");
             options.addOption("n", "number", true, "FOR DEVELOPMENT MUST DELETE");
-            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, other, all). The default is item.");
+            options.addOption("t", "type", true, "Type of index (item, rp, project, ou, other, all). The default is 'all'.");
             CommandLine line = parser.parse(options, argv);
 
             String[] validSolrCommands = {COMMAND_IMPORT, COMMAND_CLEAN_CACHE};
@@ -690,7 +690,7 @@ public class XOAI {
                     
                     String idxType = line.getOptionValue("t");
                     if (idxType == null || idxType.trim().length() <= 0)
-                    	idxType = "item";
+                    	idxType = "all";
                     int imported = indexer.index(idxType);
                     if (imported > 0) cleanCache(itemCacheService, cacheService);
                 } else if (COMMAND_CLEAN_CACHE.equals(command)) {

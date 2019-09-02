@@ -189,7 +189,7 @@ public class ItemUtils
 
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
-    	return retrieveMetadata(context, item, false, /*null, null, null, true, */0);
+    	return retrieveMetadata(context, item, false, 0);
     }
     
     /***
@@ -209,36 +209,6 @@ public class ItemUtils
         metadata = new Metadata();
         
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        // add defaults
-        {
-        	Metadatum[] defaults = new Metadatum[3];
-        	
-        	Metadatum metadatum = new Metadatum();
-        	metadatum.schema = "item";
-        	metadatum.element = "vprop";
-        	metadatum.qualifier = "id";
-        	metadatum.authority = null;
-        	metadatum.value = Integer.toString(item.getID());
-        	defaults[0] = metadatum;
-        	
-        	metadatum = new Metadatum();
-        	metadatum.schema = "item";
-        	metadatum.element = "vprop";
-        	metadatum.qualifier = "handle";
-        	metadatum.authority = null;
-        	metadatum.value = item.getHandle();
-        	defaults[1] = metadatum;
-        	
-        	metadatum = new Metadatum();
-        	metadatum.schema = "item";
-        	metadatum.element = "vprop";
-        	metadatum.qualifier = "objecttype";
-        	metadatum.authority = null;
-        	metadatum.value = "item";
-        	defaults[2] = metadatum;
-        	
-        	vals = ArrayUtils.addAll(vals, defaults);
-        }
         for (Metadatum val : vals)
         {
             // Don't expose fields that are hidden by configuration
@@ -443,6 +413,8 @@ public class ItemUtils
         Element other = create("others");
 
         other.getField().add(
+                createValue("internalId", ""+item.getID()));
+        other.getField().add(
                 createValue("handle", item.getHandle()));
         other.getField().add(
                 createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
@@ -513,7 +485,7 @@ public class ItemUtils
     
     @SuppressWarnings("rawtypes")
 	public static Metadata retrieveMetadata (Context context, ACrisObject item) {
-    	return retrieveMetadata(context, item, false, /*null, null, null, */ 0);
+    	return retrieveMetadata(context, item, false, 0);
     }
     
     /***
@@ -595,6 +567,8 @@ public class ItemUtils
         // Other info
         Element other = create("others");
 
+        other.getField().add(
+                createValue("internalId", ""+item.getID()));
         other.getField().add(
                 createValue("handle", item.getHandle()));
         other.getField().add(
