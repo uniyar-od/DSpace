@@ -103,7 +103,8 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
             {
                 WorkspaceItem wi = workspaceItemService.create(context, collection,
                         true);
-                merge(formName, wi.getItem(), rec);
+                String collectionHandle = wi.getCollection().getHandle();
+                merge(formName, collectionHandle,wi.getItem(), rec);
 
                 witems.add(wi);
 
@@ -169,7 +170,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
     }
 
     // Methods
-    public void merge(String formName, Item item, Record record)
+    public void merge(String formName, String collectionHandle,Item item, Record record)
     {
         try
         {
@@ -188,12 +189,12 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
                 {
                     addedMetadata.add(metadata);
                     String[] md = splitMetadata(metadata);
-                    if (isValidMetadata(formName, md))
+                    if (isValidMetadata(collectionHandle, md))
                     { // if in extra metadata or in the spefific form
                         List<Value> values = itemLookup.getValues(field);
                         if (values != null && values.size() > 0)
                         {
-                            if (isRepeatableMetadata(formName, md))
+                            if (isRepeatableMetadata(collectionHandle, md))
                             { // if metadata is repeatable in form
                                 for (Value value : values)
                                 {
@@ -344,10 +345,10 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return false;
     }
 
-    protected DCInput getDCInput(String formName, String schema, String element,
+    protected DCInput getDCInput(String handle, String schema, String element,
             String qualifier) throws DCInputsReaderException
     {
-        DCInputSet dcinputset = new DCInputsReader().getInputs(formName);
+        DCInputSet dcinputset = new DCInputsReader().getInputs(handle);
         for (int idx = 0; idx < dcinputset.getNumberPages(); idx++)
         {
             for (DCInput dcinput : dcinputset.getPageRows(idx, true, true))
