@@ -62,6 +62,40 @@
 		<property name="allowsUpdateByDefault" value="true" />
 		<property name="configurations">
 			<map>
+				<entry key="dc.contributor.author">
+					<bean
+						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+						<property name="updateEnabled" value="true" />
+						<property name="mapping">
+							<map>
+								<entry key="dc.contributor.affiliation">
+									<bean
+										class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="dept" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>						
+							</map>
+						</property>
+					</bean>
+				</entry>
+				<entry key="dc.contributor.editor">
+					<bean
+						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
+						<property name="updateEnabled" value="true" />
+						<property name="mapping">
+							<map>
+								<entry key="dc.contributor.editoraffiliation">
+									<bean
+										class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+										<property name="shortName" value="dept" />
+										<property name="visibility" value="1" />
+									</bean>
+								</entry>						
+							</map>
+						</property>
+					</bean>
+				</entry>							
 				<entry key="dc.relation.ispartof">
 					<bean
 						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
