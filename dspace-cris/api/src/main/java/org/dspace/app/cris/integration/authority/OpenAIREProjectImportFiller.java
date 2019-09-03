@@ -91,8 +91,9 @@ public class OpenAIREProjectImportFiller extends ItemMetadataImportFiller {
 			if (results.getNumFound() == 1) {
 				SolrDocument doc = results.get(0);
 				String funderCrisID = (String) doc.getFieldValue("cris-id");
-				log.warn("funderCrisID:" + funderCrisID);
-				ResearcherPageUtils.buildGenericValue(project, funderCrisID, customMapping.containsKey("funder")?customMapping.get("funder"):OpenAIREProjectService.PROJECT_FUNDER, 1);
+				OrganizationUnit funder = applicationService.getEntityByCrisId(funderCrisID, OrganizationUnit.class);				
+				ResearcherPageUtils.buildGenericValue(project, funder, customMapping.containsKey("funder")?customMapping.get("funder"):OpenAIREProjectService.PROJECT_FUNDER, 1);
+				log.warn("funder(already in the authority):" + funderCrisID);
 			}
 			else {
 				OrganizationUnit funder = new OrganizationUnit();
