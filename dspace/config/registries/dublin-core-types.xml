@@ -794,6 +794,13 @@
         <qualifier>references</qualifier>
         <scope_note>Used by the DSpace-CRIS default inputform</scope_note>
     </dc-type>
+
+	<dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+        <qualifier>patent</qualifier>
+        <scope_note>Used by the DSpace-CRIS default inputform</scope_note>
+    </dc-type>
         
 	<dc-type>
         <schema>dc</schema>
