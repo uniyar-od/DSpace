@@ -31,6 +31,7 @@ import org.dspace.content.Item;
 import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.ChoiceAuthorityManager;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.MetadataAuthorityManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -243,12 +244,8 @@ public class ItemUtils
             	metadata.getElement().add(elementCopy);
             }
 
-            if (!skipAutority && val.authority != null) {
-            	String m = val.schema + "." + val.element;
-            	
-                if (val.qualifier != null && !val.qualifier.equals("")) {
-                	m += "." + val.qualifier;
-                }
+            if (!skipAutority && StringUtils.isNotBlank(val.authority)) {
+                String m = Utils.standardize(val.schema, val.element, val.qualifier, ".");
                 // compute deep
                 int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
                 if (authorityDeep <= 0) {
@@ -259,7 +256,8 @@ public class ItemUtils
                 }
                 
                 // add metadata of related cris object, using authority to get it
-                boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
+                MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
+                boolean metadataAuth = mam.isAuthorityControlled(val.schema, val.element, val.qualifier);
                 if (metadataAuth && (deep < authorityDeep)) {
                 	try {
                 		ChoiceAuthorityManager choicheAuthManager = ChoiceAuthorityManager.getManager();
@@ -413,8 +411,6 @@ public class ItemUtils
         Element other = create("others");
 
         other.getField().add(
-                createValue("internalId", ""+item.getID()));
-        other.getField().add(
                 createValue("handle", item.getHandle()));
         other.getField().add(
                 createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
@@ -522,12 +518,9 @@ public class ItemUtils
                 //metadata.getElement().add(element);
                 
                 // create relation (use full metadata value as relation name)
-                if (!skipAutority && val.authority != null && val.authority.trim().length() > 0) {
-                	String m = val.schema + "." + val.element;
-                	
-                    if (val.qualifier != null && !val.qualifier.equals("")) {
-                    	m += "." + val.qualifier;
-                    }          
+                if (!skipAutority && StringUtils.isNotBlank(val.authority)) {
+                    String m = Utils.standardize(val.schema, val.element, val.qualifier, ".");
+                    
                     // compute deep
                     int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
                     if (authorityDeep <= 0) {
@@ -538,17 +531,11 @@ public class ItemUtils
                     }
                     
                     // add metadata of related cris object, using authority to get it
-                    boolean metadataAuth = ConfigurationManager.getBooleanProperty("oai", "oai.authority." + m);
-	                if (metadataAuth && (deep < authorityDeep) && (!valAuthDec.isClassNameNull() || !valAuthDec.isClassNameNull(val.authority))) {
+	                if (valAuthDec.isPointer() && (deep < authorityDeep)) {
 	                	try {
-	                		ACrisObject o = null;
-	                		
-	                		if (!valAuthDec.isClassNameNull())
-	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className());
-	                		else
-	                			o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.className(val.authority));
+	                		ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.getClassname());
 	                			
-                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, /*m, ((ACrisObject) o).getUuid(), item.getUuid(), */deep + 1);
+                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, deep + 1);
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				Element root = create(AUTHORITY);
                 				element.getElement().add(root);
@@ -567,8 +554,6 @@ public class ItemUtils
         // Other info
         Element other = create("others");
 
-        other.getField().add(
-                createValue("internalId", ""+item.getID()));
         other.getField().add(
                 createValue("handle", item.getHandle()));
         other.getField().add(

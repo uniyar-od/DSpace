@@ -522,8 +522,8 @@ public class XOAI {
         doc.addField("item.compile", out.toString());
 
         if (verbose) {
-            println(String.format("Cris Item %d with handle %s indexed",
-                    item.getID(), handle));
+            println(String.format("Cris Item %s with handle %s indexed (type: %s)",
+                    item.getCrisID(), handle, item.getTypeText()));
         }
 
         return doc;

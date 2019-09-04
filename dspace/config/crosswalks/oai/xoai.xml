@@ -69,23 +69,23 @@
 
             - Predefined DSpace fields don't allow to set this up with a default.
          -->
-<!--         <Context baseurl="openaire" name="OpenAIRE Context">
-            Date format, field prefixes, etc are ensured by the transformer
+		<Context baseurl="openaire" name="OpenAIRE Context">
+            <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
-            OpenAIRE filter
+            <!-- OpenAIRE filter -->
             <Filter ref="openAireFilter"/>
-            Just an alias, in fact it returns all items within the driver context
+            <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="openaireFundedResourcesSet"/>
-            Metadata Formats
+            <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="mets"/>
             <Format ref="oai_cerif"/>
             <Description>
                 This contexts complies with OpenAIRE rules.
             </Description>
-        </Context> -->
+        </Context>
 
-        <Context baseurl="openaire" name="OpenAIRE Context for CRIS System">
+        <Context baseurl="openairecris" name="OpenAIRE Context for CRIS System">
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
             <Transformer ref="openaireTransformer"/>
             <Filter ref="openAireCRISFilter"/>
@@ -538,23 +538,6 @@
                     <string>contributionToPeriodical</string>
                     <string>patent</string>
                     <string>other</string>
-                    <!-- also with upper case -->
-                    <string>Article</string>
-                    <string>BachelorThesis</string>
-                    <string>MasterThesis</string>
-                    <string>DoctoralThesis</string>
-                    <string>Book</string>
-                    <string>BookPart</string>
-                    <string>Review</string>
-                    <string>ConferenceObject</string>
-                    <string>Lecture</string>
-                    <string>WorkingPaper</string>
-                    <string>Preprint</string>
-                    <string>Report</string>
-                    <string>Annotation</string>
-                    <string>ContributionToPeriodical</string>
-                    <string>Patent</string>
-                    <string>Other</string>
                 </list>
             </Configuration>
         </CustomCondition>

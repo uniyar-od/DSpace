@@ -1,5 +1,6 @@
 package org.dspace.app.cris.util;
 
+import java.beans.PropertyEditor;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -7,12 +8,15 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Metadatum;
+import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Utils;
 import org.dspace.utils.DSpace;
@@ -117,7 +121,6 @@ public class UtilsCrisMetadata {
 			if (containable instanceof ADecoratorPropertiesDefinition) {
 				@SuppressWarnings("rawtypes")
 				List<MetadatumAuthorityDecorator> m = getMetadata(item, (ADecoratorPropertiesDefinition) containable, onlyPub);
-				
 				metadatumAuthDec.addAll(m);
 			}
 		}
@@ -126,20 +129,71 @@ public class UtilsCrisMetadata {
         {
         	ATNO typo = getApplicationService().findTypoByShortName(
         			item.getClassTypeNested(), nestedContainable.getShortName());
-        	List<NTP> ntps = null;
-        	try {
-        	    ntps = getApplicationService().findMaskByShortName(typo.getClass(), typo.getShortName());
-            }
-            catch (Exception e) {
-                log.error(e.getMessage());
-            }
-        	if (ntps != null) {
-        		for (NTP ntp : ntps) {
-        		    Metadatum[] nestedMetadata = item.getMetadata(typo.getShortName(), ntp.getShortName(), null, null, onlyPub);
-        		    for(Metadatum m : nestedMetadata) {
-        		        metadatumAuthDec.add(new MetadatumAuthorityDecorator(m, ntp));
-        		    }
-        		}
+        	
+        	List<ACNO> acno = getApplicationService().getNestedObjectsByParentIDAndShortname(item.getID(), typo.getShortName(), item.getClassNested());
+        	
+        	if(acno != null && !acno.isEmpty()) {
+            	List<NTP> ntps = null;
+            	try {
+            	    ntps = getApplicationService().findMaskByShortName(typo.getClass(), typo.getShortName());
+                }
+                catch (Exception e) {
+                    log.error(e.getMessage());
+                }
+            	if (ntps != null) {
+            		for (NTP ntp : ntps) {
+            		    
+                        for (ACNO nestedObject : acno) {
+                            
+                            List<NP> nProprieties = nestedObject.getAnagrafica4view().get(ntp.getShortName());
+
+                            if (nProprieties != null && !nProprieties.isEmpty()) {
+                                for (NP prop : nProprieties) {
+                                    if (onlyPub && prop.getVisibility() != VisibilityConstants.PUBLIC)
+                                        continue;
+                                    
+                                    Metadatum copy = new Metadatum();
+                                    
+                                    copy.element = ntp.getShortName();
+                                    copy.language = null;
+                                    copy.qualifier = null;
+                                    copy.schema = typo.getShortName();
+                                    
+                                    Object val = prop.getObject();
+                                    if (val instanceof ACrisObject) {
+                                        String authority = ResearcherPageUtils.getPersistentIdentifier((ACrisObject) val);
+                                        String value = ((ACrisObject) val).getName();
+                                        copy.authority = authority;
+                                        copy.confidence = Choices.CF_ACCEPTED;
+                                        copy.value = value;
+                                    } else {
+                                        PropertyEditor propertyEditor = prop.getTypo().getRendering()
+                                                .getPropertyEditor(null);
+                                        propertyEditor.setValue(val);
+                                        String value = propertyEditor.getAsText();
+                                        copy.authority = null;
+                                        copy.confidence = Choices.CF_UNSET;
+                                        copy.value = value;
+                                    }
+                                    
+                                    metadatumAuthDec.add(new MetadatumAuthorityDecorator(copy, ntp));
+                                }
+                            }
+                            else {
+                                Metadatum copy = new Metadatum();
+                                copy.value = MetadataValue.PARENT_PLACEHOLDER_VALUE;
+                                copy.authority = null;
+                                copy.confidence = Choices.CF_UNSET;
+                                copy.element = ntp.getShortName();
+                                copy.language = null;
+                                copy.qualifier = null;
+                                copy.schema = typo.getShortName();
+                                metadatumAuthDec.add(new MetadatumAuthorityDecorator(copy, ntp));
+                            }
+                        }
+                        
+            		}
+            	}
         	}
 		}
         
@@ -176,7 +230,7 @@ public class UtilsCrisMetadata {
 		List<MetadatumAuthorityDecorator> metadatum = new ArrayList<MetadatumAuthorityDecorator>();
 		String schema = "cris" + item.getPublicPath();
 		for (Metadatum m : item.getMetadata(schema, decorator.getShortName(), "", "", onlyPub))
-			metadatum.add(new MetadatumAuthorityDecorator(m));
+			metadatum.add(new MetadatumAuthorityDecorator(m, (PropertiesDefinition)decorator.getObject()));
 		
 		return metadatum;
 	}
