@@ -997,7 +997,7 @@
 						<oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName>           	    	
 						<xsl:call-template name="ou">
 							<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
-							<xsl:with-param name="id" select="$dc_publisher_id" />
+							<xsl:with-param name="ou_id" select="$dc_publisher_id" />
 						</xsl:call-template>
 					</oai_cerif:Publisher>           		
             </xsl:for-each>
