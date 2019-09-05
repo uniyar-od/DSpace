@@ -499,82 +499,95 @@ public class ItemUtils
         // read all metadata into Metadata Object
         metadata = new Metadata();
         
-		MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
-        if (vals != null)
-        {
-            for (MetadatumAuthorityDecorator valAuthDec : vals)
+        if(!item.getStatus()) {
+            Element schema = create("cris" + item.getAuthorityPrefix());
+            metadata.getElement().add(schema);
+            Element element = create(item.getMetadataFieldName(null));
+            element.getElement().add(element);
+            Element qualifier = create("none");
+            element.getElement().add(qualifier);
+            Element lang = create("none");
+            element.getElement().add(lang);
+            element.getField().add(createValue("value", item.getName()));
+        }
+        else {
+    		MetadatumAuthorityDecorator[] vals = UtilsCrisMetadata.getAllMetadata(item, true, true, "oai");
+            if (vals != null)
             {
-            	Metadatum val = valAuthDec.getMetadatum();
-
-            	// mapping metadata in index only
-                Element schema = getElement(metadata.getElement(), val.schema);
-                
-                if (schema == null)
+                for (MetadatumAuthorityDecorator valAuthDec : vals)
                 {
-                    schema = create(val.schema);
-                    metadata.getElement().add(schema);
-                }
-                Element element = writeMetadata(schema, val, true);
-                //metadata.getElement().add(element);
-                
-                // create relation (use full metadata value as relation name)
-                if (!skipAutority && StringUtils.isNotBlank(val.authority)) {
-                    String m = Utils.standardize(val.schema, val.element, val.qualifier, ".");
+                	Metadatum val = valAuthDec.getMetadatum();
+    
+                	// mapping metadata in index only
+                    Element schema = getElement(metadata.getElement(), val.schema);
                     
-                    // compute deep
-                    int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
-                    if (authorityDeep <= 0) {
-                    	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
-                    	
-                    	if (authorityDeep <= 0)
-                    		authorityDeep = MAX_DEEP;
+                    if (schema == null)
+                    {
+                        schema = create(val.schema);
+                        metadata.getElement().add(schema);
                     }
+                    Element element = writeMetadata(schema, val, true);
+                    //metadata.getElement().add(element);
                     
-                    // add metadata of related cris object, using authority to get it
-	                if (valAuthDec.isPointer() && (deep < authorityDeep)) {
-	                	try {
-	                		ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.getClassname());
-	                			
-                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, deep + 1);
-                			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
-                				Element root = create(AUTHORITY);
-                				element.getElement().add(root);
-                				for (Element crisElement : crisMetadata.getElement()) {
-                					root.getElement().add(crisElement);
-                				}
-                			}		
-	            		} catch (Exception e) {
-	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
-	            		}
-	                }
+                    // create relation (use full metadata value as relation name)
+                    if (!skipAutority && StringUtils.isNotBlank(val.authority)) {
+                        String m = Utils.standardize(val.schema, val.element, val.qualifier, ".");
+                        
+                        // compute deep
+                        int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
+                        if (authorityDeep <= 0) {
+                        	authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
+                        	
+                        	if (authorityDeep <= 0)
+                        		authorityDeep = MAX_DEEP;
+                        }
+                        
+                        // add metadata of related cris object, using authority to get it
+    	                if (valAuthDec.isPointer() && (deep < authorityDeep)) {
+    	                	try {
+    	                		ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, valAuthDec.getClassname());
+    	                			
+                    			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, deep + 1);
+                    			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
+                    				Element root = create(AUTHORITY);
+                    				element.getElement().add(root);
+                    				for (Element crisElement : crisMetadata.getElement()) {
+                    					root.getElement().add(crisElement);
+                    				}
+                    			}		
+    	            		} catch (Exception e) {
+    	            			log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
+    	            		}
+    	                }
+                    }
                 }
             }
+    
+            // Other info
+            Element other = create("others");
+    
+            other.getField().add(
+                    createValue("handle", item.getHandle()));
+            other.getField().add(
+                    createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
+            Date m = new Date(item
+                    .getTimeStampInfo().getLastModificationTime().getTime());
+            other.getField().add(
+                    createValue("lastModifyDate", m.toString()));
+            other.getField().add(
+                    createValue("type", item.getPublicPath()));
+            metadata.getElement().add(other);
+    
+            // Repository Info
+            Element repository = create("repository");
+            repository.getField().add(
+                    createValue("name",
+                            ConfigurationManager.getProperty("dspace.name")));
+            repository.getField().add(
+                    createValue("mail",
+                            ConfigurationManager.getProperty("mail.admin")));
+            metadata.getElement().add(repository);
         }
-
-        // Other info
-        Element other = create("others");
-
-        other.getField().add(
-                createValue("handle", item.getHandle()));
-        other.getField().add(
-                createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
-        Date m = new Date(item
-                .getTimeStampInfo().getLastModificationTime().getTime());
-        other.getField().add(
-                createValue("lastModifyDate", m.toString()));
-        other.getField().add(
-                createValue("type", item.getPublicPath()));
-        metadata.getElement().add(other);
-
-        // Repository Info
-        Element repository = create("repository");
-        repository.getField().add(
-                createValue("name",
-                        ConfigurationManager.getProperty("dspace.name")));
-        repository.getField().add(
-                createValue("mail",
-                        ConfigurationManager.getProperty("mail.admin")));
-        metadata.getElement().add(repository);
         
         return metadata;
     }
