@@ -210,7 +210,7 @@
   	<xsl:template name="oai_dateembargoed">
         <xsl:param name="rights" select="other"/>
         <xsl:choose>
-			<xsl:when test="contains($rights, 'c_f1cf')"><xsl:value-of select="translate($rights,'http://purl.org/coar/access_right/c_f1cf/','')" /></xsl:when>
+			<xsl:when test="contains($rights, 'c_f1cf')"><xsl:value-of select="substring($rights, 42, 10)" /></xsl:when>
 			<xsl:otherwise></xsl:otherwise>
 	   	</xsl:choose>
   	</xsl:template>
@@ -1283,7 +1283,7 @@
             	    	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
             	    	<xsl:for-each select="./doc:element[@name='authority']">           	    	
 							<xsl:call-template name="person">
-								<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+								<xsl:with-param name="selector" select="." />
 								<xsl:with-param name="person_id" select="$dc_contributor_author_id" />
 							</xsl:call-template>
 						</xsl:for-each>						
