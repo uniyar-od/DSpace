@@ -87,7 +87,7 @@
 
         <Context baseurl="openairecris" name="OpenAIRE Context for CRIS System">
             <!-- Date format, field prefixes, etc are ensured by the transformer -->
-            <Transformer ref="openaireTransformer"/>
+            <Transformer ref="openairecrisTransformer"/>
             <Filter ref="openAireCRISFilter"/>
             <!-- Just an alias, in fact it returns all items within the driver context -->
             <Set ref="openairePublicationsCrisSet"/>
@@ -227,6 +227,9 @@
         <Transformer id="openaireTransformer">
             <XSLT>transformers/openaire.xsl</XSLT>
         </Transformer>
+        <Transformer id="openairecrisTransformer">
+            <XSLT>transformers/openairecris.xsl</XSLT>
+        </Transformer>        
     </Transformers>
 
 

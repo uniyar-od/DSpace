@@ -198,7 +198,22 @@
     		<xsl:when test="$type='Grant'">https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types#Grant</xsl:when>
     	</xsl:choose>
     </xsl:template>
-    
+
+  	 <xsl:template name="oai_accessrights">
+        <xsl:param name="rights" select="other"/>
+        <xsl:choose>
+			<xsl:when test="contains($rights, 'c_f1cf')">http://purl.org/coar/access_right/c_f1cf</xsl:when>
+			<xsl:otherwise><xsl:value-of select="$rights" /></xsl:otherwise>
+	   	</xsl:choose>
+  	</xsl:template>
+  	
+  	<xsl:template name="oai_dateembargoed">
+        <xsl:param name="rights" select="other"/>
+        <xsl:choose>
+			<xsl:when test="contains($rights, 'c_f1cf')"><xsl:value-of select="translate($rights,'http://purl.org/coar/access_right/c_f1cf/','')" /></xsl:when>
+			<xsl:otherwise></xsl:otherwise>
+	   	</xsl:choose>
+  	</xsl:template>
 	<!--  CHOOSER RULES -->
 	
 	<!-- 
@@ -214,7 +229,7 @@
 			
 			<!-- check type (is a publication or a product or ...) -->
         	<xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
+                <xsl:value-of select="doc:metadata/doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
             </xsl:variable>
             
             <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'" />
@@ -252,12 +267,7 @@
 	</xsl:template>
 	    
     <!--	
-    	ou: Template that handle orgunit.
-    	
-    	Example of parameters:
-	    	selector = doc:element[@name='crisou']/doc:element[@name='name']/doc:element
-			id = $crisou_parentorgunit_id  
-			
+    	ou: Template that handle Organization Unit.
     -->
 	<xsl:template name="ou" match="/">
 		<xsl:param name="selector" />
@@ -310,12 +320,6 @@
 
     <!--	
     	person: Template that handle Person.
-    	
-    	TODO: handle selector parameter and set the value to . when calling
-    			the "person" template.
-    	
-    	Example of parameters:
-	    	person_id
     -->
     <xsl:template name="person" match="/">
     	<xsl:param name="selector" />
@@ -412,10 +416,6 @@
     
     <!--	
     	project: Template that handle Project.
-    	
-    	Example of parameters:
-    		selector
-	    	project_id
     -->
 	<xsl:template name="project" match="/">
 		<xsl:param name="selector" />
@@ -445,6 +445,7 @@
 	        	<oai_cerif:EndDate><xsl:call-template name="formatdate"><xsl:with-param name="datestr" select="." /></xsl:call-template></oai_cerif:EndDate>
 	        </xsl:for-each>
 	        
+	        <xsl:if test="(doc:element[@name='crisproject']/doc:element[@name='coordinator']/doc:element/doc:element/doc:field[@name='value']!='' or doc:element[@name='crisproject']/doc:element[@name='partnerou']/doc:element/doc:element/doc:field[@name='value']!='' or doc:element[@name='crisproject']/doc:element[@name='organization']/doc:element/doc:element/doc:field[@name='value']!='')">
 	        <!-- Consortium [START] -->
 	        <oai_cerif:Consortium>
 	        <!-- Coordinator -->
@@ -488,7 +489,9 @@
             </xsl:for-each>
 	        </oai_cerif:Consortium>
 	        <!-- Consortium [END] -->
+	        </xsl:if>
 	        
+	       	<xsl:if test="(doc:element[@name='crisproject']/doc:element[@name='principalinvestigator']/doc:element/doc:element/doc:field[@name='value']!='' or doc:element[@name='crisproject']/doc:element[@name='coinvestigators']/doc:element/doc:element/doc:field[@name='value']!='')">
 	        <!-- Team [START] -->
 	        <oai_cerif:Team>
 	        <!-- PrincipalInvestigator -->
@@ -519,7 +522,9 @@
             </xsl:for-each>
 	        </oai_cerif:Team>
 	        <!-- Team [END] -->
+	        </xsl:if>
 	        
+	        <xsl:if test="(doc:element[@name='crisproject']/doc:element[@name='funder']/doc:element/doc:element/doc:field[@name='value']!='' or doc:element[@name='crisproject']/doc:element[@name='fundingProgram']/doc:element/doc:element/doc:field[@name='value']!='')">
 	        <!-- Funded [START] -->
 	        <oai_cerif:Funded>	        
         	<xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='funder']/doc:element/doc:element">
@@ -555,7 +560,8 @@
         	</xsl:for-each>
 	        </oai_cerif:Funded>
 	        <!-- Funded [END] -->
-	        
+	        </xsl:if>
+	        	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='keywords']/doc:element/doc:element/doc:field[@name='value']">
 	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
@@ -593,10 +599,6 @@
     
     <!--	
     	event: Template that handle Event.
-    	
-    	Example of parameters:
-    		selector
-	    	event_id
     -->
 	<xsl:template name="events" match="/">
 		<xsl:param name="selector" />
@@ -717,10 +719,6 @@
 	
 	 <!--	
     	equipment: Template that handle Equipment.
-    	
-    	Example of parameters:
-    		selector
-	    	equipment_id
     -->
 	<xsl:template name="equipment" match="/">
 		<xsl:param name="selector" />
@@ -775,10 +773,6 @@
 
 	<!-- 
 		journal: Template that handle publication using a journal
-	
-    	Example of parameters:
-	    	selector
-	    	publication_id
 	 -->
 	 <xsl:template name="journal" match="/">
 		<xsl:param name="selector" />
@@ -787,7 +781,7 @@
 		<xsl:for-each select="$selector">
                     
         <oai_cerif:Publication id="{$journal_id}">
-            <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">http://purl.org/coar/resource_type/c_0640</oai:Type>
+            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">http://purl.org/coar/resource_type/c_0640</oai_cerif:Type>
            
     		<!-- oai_cerif:PublishedIn, Title (crisjournals.journalsname) --> 
             <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsname']/doc:element/doc:element/doc:field[@name='value']">
@@ -804,9 +798,6 @@
    		
     <!--	
     	publication: Template that handle publication using a publication item
-    	
-    	Example of parameters:
-	    	selector
     -->
 	<xsl:template name="publication" match="/">
 		<xsl:param name="selector" />
@@ -818,16 +809,14 @@
         
         <oai_cerif:Publication id="{$item_prop_id}">
             <xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
+                <xsl:value-of select="doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
             </xsl:variable>
             <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'" />
 			<xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
 			<!-- upper-case() and lower-case() functions are not available use "translate" to convert from uppercase to lowercase -->
             <xsl:variable name="dc_type" select="translate($dc_type_ci,$uppercase,$lowercase)"/>
             
-            <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
-            	<xsl:call-template name="oai_publicationtype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template>
-            </oai:Type>
+            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types"><xsl:call-template name="oai_publicationtype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
@@ -840,16 +829,9 @@
             <!-- oai_cerif:PublishedIn [START] -->
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='publication']/doc:element/doc:element[@name='authority']">
             	<oai_cerif:PublishedIn>
-
-            		<xsl:variable name="publication_id">
-                        <xsl:value-of select="doc:element[@name='others']/doc:field[@name='handle']/text()" />
-                    </xsl:variable>
-
                     <xsl:call-template name="publication">
             			<xsl:with-param name="selector" select="." />
-            			<xsl:with-param name="publication_id" select="$publication_id" />
             		</xsl:call-template>
-
                 </oai_cerif:PublishedIn>
             </xsl:for-each>
             <!-- oai_cerif:PublishedIn [END] -->
@@ -858,7 +840,7 @@
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartof']/doc:element">
             	<oai_cerif:PartOf>
             	    <xsl:variable name="journals_id">
-                        <xsl:value-of select="doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+                        <xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
                     </xsl:variable>
                     
             		<!-- by desing dc.relation.ispartof is always a JournalAuthority -->
@@ -926,6 +908,7 @@
                 <oai_cerif:URN><xsl:value-of select="." /></oai_cerif:URN>
             </xsl:for-each>
             
+            <xsl:if test="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']!=''">
             <!-- oai_cerif:Authors [START] -->
             <oai_cerif:Authors>
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element">
@@ -936,6 +919,7 @@
             	    	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
             	    	<xsl:for-each select="./doc:element[@name='authority']">           	    	
 							<xsl:call-template name="person">
+								<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 								<xsl:with-param name="person_id" select="$dc_contributor_author_id" />
 							</xsl:call-template>
 						</xsl:for-each>						
@@ -943,7 +927,9 @@
             </xsl:for-each>
             </oai_cerif:Authors>
             <!-- oai_cerif:Authors [END] -->
+            </xsl:if>
             
+            <xsl:if test="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='editor']/doc:element/doc:field[@name='value']!=''">
             <!-- oai_cerif:Editors [START] -->
             <oai_cerif:Editors>
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='editor']/doc:element">
@@ -954,6 +940,7 @@
             	    	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
             	    	<xsl:for-each select="./doc:element[@name='authority']">           	    	
 							<xsl:call-template name="person">
+							<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 								<xsl:with-param name="person_id" select="$dc_contributor_editor_id" />
 							</xsl:call-template>
 						</xsl:for-each>							
@@ -961,15 +948,17 @@
             </xsl:for-each>
             </oai_cerif:Editors>
             <!-- oai_cerif:Editors [END] -->
+            </xsl:if>
             
+            <xsl:if test="doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element/doc:field[@name='value']!=''">
             <!-- oai_cerif:Publishers [START] -->
             <oai_cerif:Publishers>
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element">
              	<xsl:variable name="dc_publisher_id">
              		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
-             	</xsl:variable>
-             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+             	</xsl:variable>             		
            	    	<oai_cerif:Publisher>
+						<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>           	    	
 						<xsl:call-template name="ou">
 							<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 							<xsl:with-param name="id" select="$dc_publisher_id" />
@@ -978,45 +967,46 @@
             </xsl:for-each>
             </oai_cerif:Publishers>
             <!-- oai_cerif:Publishers [END] -->
+            </xsl:if>
             
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Subject><xsl:value-of select="." /></oai_cerif:Subject>
-	        </xsl:for-each>
-	        
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element[@name='keywords']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keywords><xsl:value-of select="." /></oai_cerif:Keywords>
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
 	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
 	        </xsl:for-each>
-	        
-	        <oai_cerif:OriginatesFrom>
+
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element">
+	        	<oai_cerif:OriginatesFrom>	        
 	        	<xsl:variable name="project_id">
              		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
+             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
 					</xsl:call-template>
+	        	</oai_cerif:OriginatesFrom>					
 	        </xsl:for-each>
-	        </oai_cerif:OriginatesFrom>
 	        
-			<oai_cerif:PresentedAt>
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='conference']/doc:element/doc:element[@name='authority']">
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='conference']/doc:element">
+				<oai_cerif:PresentedAt>	        
 	        	<xsl:variable name="dc_relation_conference_id">
-             		<xsl:value-of select="doc:element[@name='others']/doc:field[@name='handle']/text()" />
+             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
+             	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
              	<xsl:call-template name="events">
-					<xsl:with-param name="selector" select="." />
+					<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 					<xsl:with-param name="event_id" select="$dc_relation_conference_id" />
-				</xsl:call-template> 	        
+				</xsl:call-template>
+				</oai_cerif:PresentedAt>
 	       	</xsl:for-each>
-	       	</oai_cerif:PresentedAt>
 	        
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Access><xsl:value-of select="." /></oai_cerif:Access>
+	        <xsl:for-each select="doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Access><xsl:if test=". != '' and contains(., 'c_f1cf') ">
+	        	<xsl:attribute name="endDate"><xsl:call-template name="oai_dateembargoed"><xsl:with-param name="rights" select="." /></xsl:call-template></xsl:attribute></xsl:if>
+	        	<xsl:call-template name="oai_accessrights"><xsl:with-param name="rights" select="." /></xsl:call-template></oai_cerif:Access>
 	        </xsl:for-each>
         </oai_cerif:Publication>
         </xsl:for-each>
@@ -1024,11 +1014,6 @@
 	
 	<!--	
     	product: Template that handle publication using a product item
-    	
-    	TODO: add product_id parameter. 
-    	
-    	Example of parameters:
-	    	selector
     -->
 	<xsl:template name="product" match="/">
 		<xsl:param name="selector" />
@@ -1040,13 +1025,11 @@
         
         <oai_cerif:Product id="{$item_prop_id}">
             <xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
+                <xsl:value-of select="doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
             </xsl:variable>
             <xsl:variable name="dc_type" select="translate($dc_type_ci,'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
             
-            <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
-            	<xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template>
-            </oai:Type>
+            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Product_Types"><xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
@@ -1076,6 +1059,7 @@
                 <oai_cerif:URN><xsl:value-of select="." /></oai_cerif:URN>
             </xsl:for-each>
             
+            <xsl:if test="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']!=''">
             <!-- oai_cerif:Creators [START] -->
             <oai_cerif:Creators>
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element">
@@ -1086,6 +1070,7 @@
             	    	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
             	    	<xsl:for-each select="./doc:element[@name='authority']">           	    	
 							<xsl:call-template name="person">
+								<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 								<xsl:with-param name="person_id" select="$dc_contributor_author_id" />
 							</xsl:call-template>
 						</xsl:for-each>						
@@ -1093,23 +1078,26 @@
             </xsl:for-each>
             </oai_cerif:Creators>
             <!-- oai_cerif:Creators [END] -->
-                        
+            </xsl:if>
+                     
+			<xsl:if test="doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element/doc:field[@name='value']!=''">                        
             <!-- oai_cerif:Publishers [START] -->
             <oai_cerif:Publishers>
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element">
              	<xsl:variable name="dc_publisher_id">
              		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
-             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
            	    	<oai_cerif:Publisher>
+             			<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>           	    	
 						<xsl:call-template name="ou">
 							<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
-							<xsl:with-param name="id" select="$dc_publisher_id" />
+							<xsl:with-param name="ou_id" select="$dc_publisher_id" />
 						</xsl:call-template>
 					</oai_cerif:Publisher>           		
             </xsl:for-each>
             </oai_cerif:Publishers>
             <!-- oai_cerif:Publishers [END] -->
+            </xsl:if>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='rights']/doc:element[@name='license']/doc:element/doc:field[@name='value']">
 	        	<oai_cerif:License><xsl:value-of select="." /></oai_cerif:License>
@@ -1119,12 +1107,8 @@
 	        	<oai_cerif:Description><xsl:value-of select="." /></oai_cerif:Description>
 	        </xsl:for-each>
 	        
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Subject><xsl:value-of select="." /></oai_cerif:Subject>
-	        </xsl:for-each>
-	        
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element[@name='keywords']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keywords><xsl:value-of select="." /></oai_cerif:Keywords>
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
             
             <!-- oai_cerif:PartOf [START] -->
@@ -1142,45 +1126,65 @@
             	</oai_cerif:PartOf>
            	</xsl:for-each>
             <!-- oai_cerif:PartOf [END] -->
-            
-	        <oai_cerif:OriginatesFrom>
+
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element">
-	        	<xsl:variable name="project_id">
-             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
-             	</xsl:variable>
+	        	<oai_cerif:OriginatesFrom>	        
+	        		<xsl:variable name="project_id">
+             			<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+             		</xsl:variable>
+             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
 					</xsl:call-template>
+	        	</oai_cerif:OriginatesFrom>					
 	        </xsl:for-each>
-	        </oai_cerif:OriginatesFrom>
 
-	        <oai_cerif:GeneratedBy>
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='equipment']/doc:element">
-	        	<xsl:variable name="generatedby_id">
-             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
-             	</xsl:variable>
+	        	<oai_cerif:GeneratedBy>	        
+		        	<xsl:variable name="generatedby_id">
+	             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+	             	</xsl:variable>
+             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
  					<xsl:call-template name="equipment">
 						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="equipment_id" select="$generatedby_id" />
 					</xsl:call-template>
+	        	</oai_cerif:GeneratedBy>					
 	        </xsl:for-each>
-	        </oai_cerif:GeneratedBy>
-	        	        
-			<oai_cerif:PresentedAt>
+
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='conference']/doc:element">
-	        	<xsl:variable name="dc_relation_conference_id">
-             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
-             	</xsl:variable>
-             	<xsl:call-template name="events">
-					<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
-					<xsl:with-param name="event_id" select="$dc_relation_conference_id" />
-				</xsl:call-template> 	        
+				<oai_cerif:PresentedAt>
+		        	<xsl:variable name="dc_relation_conference_id">
+	             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+	             	</xsl:variable>
+	             	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+	             	<xsl:call-template name="events">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+						<xsl:with-param name="event_id" select="$dc_relation_conference_id" />
+					</xsl:call-template>
+	       		</oai_cerif:PresentedAt>				 	        
 	       	</xsl:for-each>
-	       	</oai_cerif:PresentedAt>
-	       	
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Access><xsl:value-of select="." /></oai_cerif:Access>
+
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='references']/doc:element">
+	        	<oai_cerif:References>	        
+ 					<xsl:call-template name="publication">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+					</xsl:call-template>
+	        	</oai_cerif:References>		
+	        </xsl:for-each>
+	        
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='publication']/doc:element">
+	        	<oai_cerif:References>	        
+ 					<xsl:call-template name="publication">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+					</xsl:call-template>
+	        	</oai_cerif:References>		
+	        </xsl:for-each>
+	        	        	       	
+	        <xsl:for-each select="doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Access><xsl:attribute name="endDate"><xsl:call-template name="oai_dateembargoed"><xsl:with-param name="rights" select="." /></xsl:call-template></xsl:attribute>
+	        	<xsl:call-template name="oai_accessrights"><xsl:with-param name="rights" select="." /></xsl:call-template></oai_cerif:Access>
 	        </xsl:for-each>
         </oai_cerif:Product>
         </xsl:for-each>
@@ -1188,9 +1192,6 @@
 	
 	<!--	
     	patent: Template that handle publication using a patent item
-    	
-    	Example of parameters:
-	    	selector
     -->
 	<xsl:template name="patent" match="/">
 		<xsl:param name="selector" />
@@ -1202,107 +1203,117 @@
         
         <oai_cerif:Patent id="{$item_prop_id}">
             <xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:element[@name='dc']/doc:element[@name='type']/doc:element/doc:field[@name='value']" />
+                <xsl:value-of select="doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
             </xsl:variable>
             <xsl:variable name="dc_type" select="translate($dc_type_ci,'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
             
-            <oai:Type xmlns:oai="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types">
-            	<xsl:call-template name="oai_patenttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template>
-            </oai:Type>
+            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Patent_Types"><xsl:call-template name="oai_patenttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
             </xsl:for-each>
             
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='version']/doc:element/doc:field[@name='value']">
-                <oai_cerif:VersionInfo><xsl:value-of select="." /></oai_cerif:VersionInfo>
-            </xsl:for-each>
-            
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='created']/doc:element/doc:field[@name='value']">
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
                 <oai_cerif:RegistrationDate><xsl:value-of select="." /></oai_cerif:RegistrationDate>
             </xsl:for-each>
             
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
                 <oai_cerif:ApprovalDate><xsl:value-of select="." /></oai_cerif:ApprovalDate>
             </xsl:for-each>
             
-            <!-- TODO: read countrycode from iso-language -->
-            <xsl:for-each select="doc:element[@name='item']/doc:element[@name='countrycode']/doc:element/doc:field[@name='value']">
-                <oai_cerif:CountryCode><xsl:value-of select="." /></oai_cerif:CountryCode>
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element">
+            	<oai_cerif:Issuer>
+	             	<xsl:variable name="dc_publisher_id">
+	             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+	             	</xsl:variable>
+           			<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+					<xsl:call-template name="ou">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+						<xsl:with-param name="ou_id" select="$dc_publisher_id" />
+					</xsl:call-template>
+				</oai_cerif:Issuer>
             </xsl:for-each>
             
-            <!-- TODO: handle realtion with OrgUnit -->
-            <xsl:for-each select="doc:element[@name='dcterms']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']">
-                <oai_cerif:Issuer><xsl:value-of select="." /></oai_cerif:Issuer>
-            </xsl:for-each>
-            
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element/doc:field[@name='value']">
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='patentno']/doc:element/doc:field[@name='value']">
                 <oai_cerif:PatentNumber><xsl:value-of select="." /></oai_cerif:PatentNumber>
             </xsl:for-each>
             
+            <xsl:if test="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']!=''">
             <!-- oai_cerif:Inventors [START] -->
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='creator']/doc:element/doc:element[@name='authority']">
-            	<oai_cerif:Inventors>
-             	<xsl:variable name="dc_creator_id">
-             		<xsl:value-of select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element/doc:field[@name='id']/text()" />
+            <oai_cerif:Inventors>
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element">
+             	<xsl:variable name="dc_contributor_author_id">
+             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
             	    <oai_cerif:Inventor>
-						<xsl:call-template name="person">
-							<xsl:with-param name="person_id" select="$dc_creator_id" />
-						</xsl:call-template>
+            	    	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+            	    	<xsl:for-each select="./doc:element[@name='authority']">           	    	
+							<xsl:call-template name="person">
+								<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+								<xsl:with-param name="person_id" select="$dc_contributor_author_id" />
+							</xsl:call-template>
+						</xsl:for-each>						
 					</oai_cerif:Inventor>
-           		</oai_cerif:Inventors>
             </xsl:for-each>
+            </oai_cerif:Inventors>
             <!-- oai_cerif:Inventors [END] -->
-            
+            </xsl:if>
+                     
+			<xsl:if test="doc:element[@name='dcterms']/doc:element[@name='rightsHolder']/doc:element/doc:element/doc:field[@name='value']!=''">                        
             <!-- oai_cerif:Holders [START] -->
-            <xsl:for-each select="doc:element[@name='dcterms']/doc:element[@name='rightsHolder']/doc:element/doc:element[@name='authority']">
-            	<oai_cerif:Publishers>
-             	<xsl:variable name="dc_rightholder_id">
-             		<xsl:value-of select="doc:element[@name='crisitem']/doc:element[@name='crisvprop']/doc:element[@name='id']/doc:element/doc:field[@name='id']/text()" />
+            <oai_cerif:Holders>
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='rightsHolder']/doc:element/doc:element">
+             	<xsl:variable name="dc_holder_id">
+             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
            	    	<oai_cerif:Holder>
-						<xsl:call-template name="person">
-							<xsl:with-param name="person_id" select="$dc_rightholder_id" />
+						<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>           	    	
+						<xsl:call-template name="ou">
+							<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+							<xsl:with-param name="ou_id" select="$dc_holder_id" />
 						</xsl:call-template>
-					</oai_cerif:Holder>
-           		</oai_cerif:Publishers>
+					</oai_cerif:Holder>           		
             </xsl:for-each>
+            </oai_cerif:Holders>
             <!-- oai_cerif:Holders [END] -->
+            </xsl:if>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
 	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
 	        </xsl:for-each>
 	        
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Subject><xsl:value-of select="." /></oai_cerif:Subject>
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:element/doc:field[@name='value']">
+	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
-	        
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element[@name='keywords']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keywords><xsl:value-of select="." /></oai_cerif:Keywords>
-	        </xsl:for-each>
-            
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:element[@name='authority']">
-	       	<oai_cerif:OriginatesFrom>
-	        	<xsl:variable name="project_id">
-             		<xsl:value-of select="doc:element[@name='others']/doc:field[@name='handle']/text()" />
-             	</xsl:variable>
+
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:element">
+	        	<oai_cerif:OriginatesFrom>	        
+		        	<xsl:variable name="project_id">
+	             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+	             	</xsl:variable>
+             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
  					<xsl:call-template name="project">
-						<xsl:with-param name="selector" select="." />
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
 					</xsl:call-template>
- 	        </oai_cerif:OriginatesFrom>
+	        	</oai_cerif:OriginatesFrom>					
 	        </xsl:for-each>
 	        
-	       	<!-- MISSING METADATA FIX [START] predecessor  -->
-	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='predecessor']/doc:element/doc:element[@name='authority']">
-	       	<oai_cerif:Predecessor>
-				<xsl:call-template name="patent">
-					<xsl:with-param name="selector" select="." />
-				</xsl:call-template>
-	        </oai_cerif:Predecessor>
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='patent']/doc:element">
+	        	<oai_cerif:Predecessor>	        
+ 					<xsl:call-template name="patent">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+					</xsl:call-template>
+	        	</oai_cerif:Predecessor>		
 	        </xsl:for-each>
-	        
+
+	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='references']/doc:element">
+	        	<oai_cerif:References>	        
+ 					<xsl:call-template name="publication">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+					</xsl:call-template>
+	        	</oai_cerif:References>		
+	        </xsl:for-each>	        
         </oai_cerif:Patent>
         </xsl:for-each>
 	</xsl:template>
