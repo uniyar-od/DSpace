@@ -55,10 +55,10 @@
 
 			</xsl:when>
 			<xsl:when test="contains(., 'reserved')">
-				<xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
+				<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+				<xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
