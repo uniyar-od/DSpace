@@ -1715,7 +1715,7 @@
 		<property name="recentSubmissionConfiguration">
 			<bean
 				class="org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration">
-				<property name="metadataSortField" value="eventsname" />
+				<property name="metadataSortField" value="equipmentname" />
 				<property name="type" value="date" />
 				<property name="max" value="5" />
 				<property name="metadataFields">
@@ -2206,6 +2206,11 @@
 		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
 		<property name="metadataField" value="crisevents.eventsname" />
 	</bean>
+
+	<bean id="sortEquipmentName"
+		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
+		<property name="metadataField" value="crisequipment.equipmentname" />
+	</bean>	
 
 	<bean id="sortJournalsName"
 		class="org.dspace.discovery.configuration.DiscoverySortFieldConfiguration">
