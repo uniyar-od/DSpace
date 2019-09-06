@@ -13,21 +13,34 @@
 */
 .banner img {background-color: #FFFFFF;padding:15px;margin-top:20px;}
 .brand h4 {color: #00716A}
-#communitylist-top-menu a, #userloggedin-top-menu a {padding-top:0.3em;padding-bottom:0.3em;}
+#communitylist-top-menu a, #userloggedin-top-menu a {padding-top:0.4em;padding-bottom:0.4em;}
 #user-top-menu, #userloggedin-top-menu {margin-right: 15px;}
 footer {padding-top: 1em;}
 footer.navbar-inverse {color: white;}
-footer .extra-footer{background-color: black; color:white;}
+footer .extra-footer {background-color: #00263E; color:white;}
 #designedby img {margin-right: 5px;}
 #formsearch-top-menu {width: 310px;}
 div.panel.panel-primary ul.list-group li.list-group-item.active {border-left: 3px solid #428bca; background: white;}
 div.panel.panel-primary ul.list-group li.list-group-item.active .badge {background-color: #428bca;}
 ol.breadcrumb li {color: white; font-style: italic;}
 ol.breadcrumb li a {color: white; font-weight: bold; font-style: normal;}
-body.undernavigation {overflow-x: hidden;
+body.undernavigation {overflow-x: hidden; font-family: sans-serif;
 // padding-top: 65px;
 }
+h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {font-family: sans-serif;}
+.header-logo {height: 80px;}
+.header-background {background-color: white; padding-bottom: 5px;}
+.navbar-logo {height: 40px;}
+.navbar-background {background-color: #00263E;}
+.navbar-inverse .navbar-nav > li > a {color:#D9D9D9; padding-top: 1.1em; padding-bottom: 1.1em;}
+.navbar-inverse .navbar-nav > li > a > .caret, .navbar-inverse .navbar-nav > .dropdown > a .caret {border-top-color: #D9D9D9; border-bottom-color: #D9D9D9;}
+.navbar-inverse .navbar-nav > .dropdown.open > a .caret, .navbar-inverse .navbar-nav > .dropdown.open > a:hover .caret, .navbar-inverse .navbar-nav > .dropdown.open > a:focus .caret {border-top-color: #D9D9D9; border-bottom-color: #D9D9D9;}
+.navbar-inverse .navbar-nav > .active > a, .navbar-inverse .navbar-nav > .active > a:hover, .navbar-inverse .navbar-nav > .active > a:focus {color:white;}
+.navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus {color:white;}
+.navbar-inverse .navbar-nav > li > a:hover, .navbar-inverse .navbar-nav > li > a:focus > .caret, .navbar-inverse .navbar-nav > li > a:hover > .caret {border-top-color: white; border-bottom-color: white;}
+.navbar-inverse .navbar-nav > .dropdown > a:hover, .navbar-inverse .navbar-nav > .dropdown > a:focus .caret, .navbar-inverse .navbar-nav > .dropdown > a:hover .caret {border-top-color: white; border-bottom-color: white;}
 .navbar-square {border-radius: 0px;}
+.home-logo {height: 200px;}
 #content {padding-bottom:60px;}
 #designedby {padding-top: 5px; padding-bottom:5px;}
 #footer_feedback {padding-top: 12px;}
@@ -315,4 +328,11 @@ footer .container {
 .hr-metadata-separator {
 	background-image: -webkit-linear-gradient(left, rgba(15,157,88,.8), rgba(15, 157, 88,.6), rgba(0,0,0,0));
 	height: 2px;	
+}
+
+.globalsearch {
+	color: white;
+	background-color: #A50034;
+	border-color: #A50034;
+	background-image: linear-gradient(to bottom, #A50034 0,#A50034 100%);
 }

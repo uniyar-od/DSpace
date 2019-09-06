@@ -54,48 +54,46 @@
 <br/>
 </main>
             <%-- Page footer --%>
-            <footer class="navbar navbar-inverse navbar-bottom navbar-square">
-             <div class="container">
+            <footer class="navbar navbar-inverse navbar-bottom navbar-square" id="footer-back" style="background-image:url('<%= request.getContextPath() %>/image/background-dark.jpg');">
+             <div>
 	             <div class="row">
-					<div class="col-md-3 col-sm-6">
-	             		<div class="panel panel-default">
-	             			<div class="panel-heading">
-	             				<h6 class="panel-title"><fmt:message key="jsp.layout.footer-default.explore"/></h6>
-	             			</div>
-	             			<div class="panel-body">
-	             			<ul>
-	    <% 	if(showCommList){ %>
-           <li><a href="<%= request.getContextPath() %>/community-list"><fmt:message key="jsp.layout.navbar-default.communities-collections"/></a></li>
-        <%	} 
-            for (String mlink : mlinks) { 
-         %>
-           <c:set var="fmtkey">
-           jsp.layout.navbar-default.cris.<%= mlink.trim() %>
-           </c:set>
-           <li><a href="<%= request.getContextPath() %>/cris/explore/<%= mlink.trim() %>"><fmt:message key="${fmtkey}"/></a></li>
-           <% } %>
-							</ul>
-	             			</div>
-	             		</div>
-	             	</div>
-	             	<div class="col-md-9 col-sm-6">
+	             	<div class="col-md-12 col-sm-12">
 	             		<%= footerNews %>
 	             	</div>
 	            </div> 
-            </div>
-			<div class="container-fluid extra-footer row">
-      			<div id="footer_feedback" class="col-sm-4 pull-<%= isRtl ? "right":"left" %>">   
-				<!-- Einbindung Ansprechpartner, Impressum und Datenschutzerklaerung; A:G., 09.05.2018  -->				
-                    <a href="https://ub.hsu-hh.de/ihre-ansprechpartner/"><fmt:message key="jsp.layout.footer-default.contact"/></a> 
-					<a href="https://ub.hsu-hh.de/impressum"><fmt:message key="jsp.layout.footer-default.imprint"/></a> 
-					<a href="https://ub.hsu-hh.de/datenschutzerklaerung"><fmt:message key="jsp.layout.footer-default.privacy"/></a> 
-                </div>
-	           	<div id="designedby" class="col-sm-8 text-<%= isRtl ? "left": "right" %>">
-            	 	<fmt:message key="jsp.layout.footer-default.text"/> - 
-            	 	<fmt:message key="jsp.layout.footer-default.version-by"/> 
-            	 	<a href="http://www.4science.it/en/dspace-and-dspace-cris-services/">
-            	 		<img src="<%= request.getContextPath() %>/image/logo-4science-small.png"
-                                    alt="Logo 4SCIENCE" height="32px"/></a>
+             </div>
+			<div class="extra-footer row"
+				style="background-image: linear-gradient(to bottom, #1A2134 0, #00263E 100%);">
+
+				<div id="footer_feedback" class="col-sm-12">
+					<p class="text-muted">
+					<center>
+						<a href="https://www.hsu-hh.de/" target="_blank">
+							<img alt="HSU" src="<%=request.getContextPath()%>/image/header-logo-hsu.png" style="height:55px; width:55px;">
+						</a>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="https://ub.hsu-hh.de/" target="_blank">HSU Library</a>
+						&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+						<a href="<%=request.getContextPath()%>/feedback"> <fmt:message key="jsp.layout.footer-default.feedback" />
+						</a> <br> <br>
+						<hr style="margin: 5px; width: 95%;">
+						<fmt:message key="jsp.layout.footer-default.notes" />
+
+					</center>
+					<a href="<%=request.getContextPath()%>/htmlmap"></a>
+					</p>
+				</div>
+			</div>
+
+			<div class="extra-footer row">
+				<div id="footer_feedback" class="col-sm-4 text-left">
+					<fmt:message key="jsp.layout.footer-default.text" />
+				</div>
+				<div id="designedby" class="col-sm-8 text-right">
+					<fmt:message key="jsp.layout.footer-default.version-by" />
+					<a href="http://www.4science.it/en/dspace-and-dspace-cris-services/">
+						<img src="<%= request.getContextPath() %>/image/logo-4science-small.png" alt="Logo 4SCIENCE" height="32px" />
+					</a>
 				</div>
 			</div>
 	    </footer>

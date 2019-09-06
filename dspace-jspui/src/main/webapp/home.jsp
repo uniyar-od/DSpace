@@ -79,16 +79,26 @@
     	int discovery_facet_cols = 4;
     	String processorSidebar = (String) request.getAttribute("processorSidebar");
     	String processorGlobal = (String) request.getAttribute("processorGlobal");
-          
-    if(processorGlobal!=null && processorGlobal.equals("global")) {
-		%>
-	<%@ include file="discovery/static-globalsearch-component-facet.jsp" %>
-	<% } %>        
-		  </div>
-	<div class="col-md-4 sm-12 pull-<%= isRtl? "left":"right" %>">
+	%>
+        <span ID="MySearch">
+            <div class="mobile-margin-logo hidden-xs"></div>
+            <center>
+                <img src="<%= request.getContextPath() %>/image/home-logo.gif" id="SearchImg" />
+            </center>
+            <%@ include file="discovery/static-my-globalsearch.jsp" %>
+        </span>
+    </div>
+
+    <div id="back1" class="well">
+        <div class="col-md-12 <%= isRtl ? "pull-right":""%>">
+            <%= sideNews %>
+        </div>
+    </div>
+
+    <%-- <div class="col-md-4 sm-12 pull-<%= isRtl? "left":"right" %>">
     <%@ include file="components/recent-submissions.jsp" %>
 	</div>
-</div>
+</div> --%>
 <%-- "Most viewed" und "Most Cited" auskommentiert; A.G., 23.02.2019 
 
 <div class="row">
