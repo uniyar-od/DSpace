@@ -26,6 +26,10 @@ import java.util.regex.Pattern;
  */
 public abstract class DSpaceItem implements Item
 {
+	public String getEntityType() {
+		return "item";
+	}
+
 	private static List<Element> filter (List<Element> input, String name) {
     	return Lists.newArrayList(Collections2.filter(input, new MetadataNamePredicate(name)));
     }

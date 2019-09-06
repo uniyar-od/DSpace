@@ -34,10 +34,12 @@ public class DSpaceSolrItem extends DSpaceItem
     private Date lastMod;
     private List<ReferenceSet> sets;
     private boolean deleted;
+    private String entityType;
     
     public DSpaceSolrItem (SolrDocument doc) {
     	log.debug("Creating OAI Item from Solr source");
         unparsedMD = (String) doc.getFieldValue("item.compile");
+        entityType = (String) doc.getFieldValue("item.type");
         handle = (String) doc.getFieldValue("item.handle");
         lastMod = (Date) doc.getFieldValue("item.lastmodified");
         sets = new ArrayList<ReferenceSet>();
@@ -92,4 +94,8 @@ public class DSpaceSolrItem extends DSpaceItem
         return handle;
     }
 
+    @Override
+    public String getEntityType() {
+    	return entityType;
+    }
 }

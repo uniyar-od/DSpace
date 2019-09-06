@@ -544,11 +544,8 @@
 
 		<!-- This condition determines if an OAI document is from a basic dspace items -->
 		<CustomCondition id="dspaceItemCondition">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">item</string>
             </Configuration>
         </CustomCondition>
@@ -556,11 +553,8 @@
         <!-- This condition determines if an OAI document is of one of the types 
         	 required by OpenAIRE for CRIS System. -->
         <CustomCondition id="crisObjectTypeCondition">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <list name="values">
                     <string>item</string>
                     <string>project</string>
@@ -701,64 +695,44 @@
             </Configuration>
         </CustomCondition>
         <CustomCondition id="patentSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-                <string name="field">dc.type</string>
-                <string name="operator">equal</string>
                 <string name="value">patent</string>
             </Configuration>
         </CustomCondition>
         <CustomCondition id="researcherSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">rp</string>
             </Configuration>
         </CustomCondition>
         <CustomCondition id="orgUnitSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">ou</string>
             </Configuration>            
         </CustomCondition>
         <CustomCondition id="projectSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">project</string>
             </Configuration>
 		</CustomCondition>
         <CustomCondition id="journalSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">journals</string>
             </Configuration>
 		</CustomCondition>		
         <CustomCondition id="eventSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">events</string>
             </Configuration>
 		</CustomCondition>
         <CustomCondition id="equipmentSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
-            	<string name="schema">item</string>
-                <string name="field">type</string>
-                <string name="operator">equal</string>
                 <string name="value">equipment</string>
             </Configuration>
 		</CustomCondition>				

@@ -7,15 +7,18 @@
  */
 package org.dspace.xoai.data;
 
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+
 import com.lyncode.xoai.dataprovider.core.ItemMetadata;
 import com.lyncode.xoai.dataprovider.core.ReferenceSet;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.dspace.content.Item;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * 
@@ -25,10 +28,10 @@ public class DSpaceDatabaseItem extends DSpaceItem
 {
     private static Logger log = LogManager.getLogger(DSpaceDatabaseItem.class);
 
-    private Item item;
+    private DSpaceObject item;
     private List<ReferenceSet> sets;
 
-    public DSpaceDatabaseItem(Item item, Metadata metadata, List<ReferenceSet> sets)
+    public DSpaceDatabaseItem(DSpaceObject item, Metadata metadata, List<ReferenceSet> sets)
     {
         this.item = item;
         this.metadata = new ItemMetadata(metadata);
@@ -38,7 +41,13 @@ public class DSpaceDatabaseItem extends DSpaceItem
     @Override
     public Date getDatestamp()
     {
-        return item.getLastModified();
+    	if (item instanceof Item) {
+    		return ((Item) item).getLastModified();
+    	}
+    	else if (item instanceof ACrisObject) {
+    		return ((ACrisObject) item).getLastModified();
+    	}
+    	return new Date();
     }
 
     @Override
@@ -61,7 +70,7 @@ public class DSpaceDatabaseItem extends DSpaceItem
         return metadata;
     }
 
-    public Item getItem()
+    public DSpaceObject getItem()
     {
         return item;
     }

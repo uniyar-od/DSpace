@@ -14,11 +14,15 @@ import java.util.List;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.util.Researcher;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
+import org.dspace.utils.DSpace;
 import org.dspace.xoai.data.DSpaceItem;
 import org.dspace.xoai.filter.results.DatabaseFilterResult;
 import org.dspace.xoai.filter.results.SolrFilterResult;
@@ -54,9 +58,12 @@ public class DSpaceAuthorizationFilter extends DSpaceFilter
             String handle = DSpaceItem.parseHandle(item.getIdentifier());
             if (handle == null)
                 return false;
+
             Item dspaceItem = (Item) HandleManager.resolveToObject(context, handle);
-            if (dspaceItem == null)
-                return false;
+            if (dspaceItem == null) {
+            	ACrisObject crisObj = new Researcher().getApplicationService().getEntityByUUID(handle);
+				return crisObj != null && Boolean.valueOf(true).equals(crisObj.getStatus());
+            }
 
             // Check if READ access allowed on Item
             pub = AuthorizeManager.authorizeActionBoolean(context, dspaceItem, Constants.READ);
