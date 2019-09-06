@@ -32,14 +32,6 @@
 	<!-- Removing other dc.date.* -->
 	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name!='issued']" />
 	
-	<!-- Prefixing dc.type -->
-	<xsl:template match="/doc:metadata/doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field/text()">
-		<xsl:call-template name="addPrefix">
-			<xsl:with-param name="value" select="." />
-			<xsl:with-param name="prefix" select="'info:eu-repo/semantics/'"></xsl:with-param>
-		</xsl:call-template>
-	</xsl:template>
-	
 	<!-- Prefixing and Modifying dc.rights -->
 	<!-- Removing unwanted -->
 	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:element" />
@@ -47,14 +39,14 @@
 	<xsl:template match="/doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field/text()">
 		<xsl:choose>
 			<xsl:when test="contains(., 'open')">
-				<xsl:text>info:eu-repo/semantics/openAccess</xsl:text>
+				<xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
 			</xsl:when>
 			<xsl:when test="contains(., 'restricted')">
-				<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+				<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
 			</xsl:when>
 			<xsl:when test="contains(., 'embargo')">
 
-					<xsl:text>info:eu-repo/date/embargoEnd/</xsl:text>
+					<xsl:text>http://purl.org/coar/access_right/c_f1cf/</xsl:text>
 					<xsl:value-of select="substring(., 9, 4)" />
 					<xsl:text>-</xsl:text>
 					<xsl:value-of select="substring(., 13, 2)" />
@@ -63,29 +55,15 @@
 
 			</xsl:when>
 			<xsl:when test="contains(., 'reserved')">
-				<xsl:text>info:eu-repo/semantics/closedAccess</xsl:text>
+				<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
 			</xsl:when>
 			<xsl:otherwise>
-				<xsl:text>info:eu-repo/semantics/restrictedAccess</xsl:text>
+				<xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
 	
 	<!-- AUXILIARY TEMPLATES -->
-	
-	<!-- dc.type prefixing -->
-	<xsl:template name="addPrefix">
-		<xsl:param name="value" />
-		<xsl:param name="prefix" />
-		<xsl:choose>
-			<xsl:when test="starts-with($value, $prefix)">
-				<xsl:value-of select="$value" />
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:value-of select="concat($prefix, $value)" />
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:template>
 	
 	<!-- Date format -->
 	<xsl:template name="formatdate">

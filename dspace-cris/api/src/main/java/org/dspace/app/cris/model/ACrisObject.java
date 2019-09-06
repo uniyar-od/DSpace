@@ -494,7 +494,7 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	}
 	
     public String getMetadataFieldName(Locale locale) {
-        return getMetadataFieldTitle() + locale.getLanguage();
+        return getMetadataFieldTitle() + locale==null?"":locale.getLanguage();
     }
 
     /**
