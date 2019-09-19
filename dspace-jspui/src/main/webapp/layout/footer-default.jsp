@@ -63,7 +63,7 @@
 	            </div> 
              </div>
 			<div class="extra-footer row"
-				style="background-image: linear-gradient(to bottom, #1A2134 0, #00263E 100%);">
+				style="background-image: linear-gradient(to bottom, #000A0E 0, #00263E 100%);">
 
 				<div id="footer_feedback" class="col-sm-12">
 					<p class="text-muted">

@@ -24,7 +24,7 @@ div.panel.panel-primary ul.list-group li.list-group-item.active {border-left: 3p
 div.panel.panel-primary ul.list-group li.list-group-item.active .badge {background-color: #428bca;}
 ol.breadcrumb li {color: white; font-style: italic;}
 ol.breadcrumb li a {color: white; font-weight: bold; font-style: normal;}
-body.undernavigation {overflow-x: hidden; font-family: sans-serif;
+body.undernavigation {overflow-x: hidden; font-family: sans-serif; background-color: #fff;
 // padding-top: 65px;
 }
 h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {font-family: sans-serif;}
@@ -45,6 +45,45 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6 {font-family: sans-serif;}
 #designedby {padding-top: 5px; padding-bottom:5px;}
 #footer_feedback {padding-top: 12px;}
 #footer_feedback > a {margin-left:5px;}
+#footer-back {
+	background-size: cover;
+}
+.btn-default {
+	background-color: #f6f5f5;
+}
+.btn-primary {
+	background-color: #A50034;
+	border-color: #A50034;
+	background-image: none;
+}
+.btn-primary:hover, .btn-primary:focus, .btn-primary:active, .btn-primary.active, .open .dropdown-toggle.btn-primary {
+	background-color: #A52034;
+	border-color: #A52034;
+}
+.btn-info {
+	background-color: #00263E;
+	border-color: #00263E;
+	background-image: none;
+}
+.btn-info:hover, .btn-info:focus, .btn-info:active, .btn-info.active, .open .dropdown-toggle.btn-info {
+	background-color: #00363E;
+	border-color: #00363E;
+}
+.nav.nav-pills.nav-stacked.cris-tabs-menu a {
+	color: #fff;
+	background-color: #A50034;
+	border: 2px solid transparent;
+}
+.nav.nav-pills.nav-stacked.cris-tabs-menu a:hover, .nav.nav-pills.nav-stacked.cris-tabs-menu a:focus {
+	color: #000;
+	background-color: #fff;
+	border: 2px solid #a50034;
+	transition: 350ms;
+}
+.panel-primary > .panel-heading {
+	background-color: #00263E;
+	background-image: none;
+}
 input[type="file"] {display: block;height: auto;}
 div.panel-primary div.panel-heading a {color: white;}
 /* This magic gets the 16x16 icon to show up.. setting height/width didn't
@@ -302,6 +341,7 @@ footer .container {
 
 .form-control{
 	color:#000;
+	background-color: #f6f5f5;
 }
 
 .modal.in .modal-dialog {
