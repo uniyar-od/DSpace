@@ -609,7 +609,7 @@
             </Configuration>
         </CustomCondition>
         
-        <Filter id="defaultFilter">
+        <Filter id="publicationOrJournalSetFilter">
             <Definition>
             	<Or>
             		<LeftCondition>
@@ -632,6 +632,7 @@
 			        <string>annotation</string>
 			        <string>bibliography</string>
 			        <string>book</string>
+			        <string>book part</string>
 			        <string>conference object</string>
 			        <string>conference proceedings</string>
 			        <string>conference paper</string>
@@ -765,7 +766,7 @@
 		<Set id="openairePublicationsCrisSet">
             <Spec>openaire_cris_publications</Spec>
             <Name>OpenAIRE_CRIS_publications</Name>
-            <Filter ref="publicationSetFilter" />
+            <Filter ref="publicationOrJournalSetFilter" />
         </Set>
 		<Set id="openaireProductsCrisSet">
             <Spec>openaire_cris_products</Spec>

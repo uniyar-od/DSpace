@@ -593,9 +593,9 @@ it, please enter the types and the actual numbers or codes.</hint>
           <hint>The title of the patent</hint>
         </field>
         <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>accessioned</dc-qualifier>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>dateAccepted</dc-element>
+          <dc-qualifier />
           <parent />
           <label>Approval Date</label>
           <input-type>date</input-type>
@@ -827,6 +827,10 @@ You can leave out the day and/or month if they aren't applicable.</hint>
         <displayed-value>Book</displayed-value>
         <stored-value>book</stored-value>
       </pair>
+      <pair>
+        <displayed-value>Book Part</displayed-value>
+        <stored-value>book part</stored-value>
+      </pair>      
       <pair>
         <displayed-value>Conference Object</displayed-value>
         <stored-value>conference object</stored-value>

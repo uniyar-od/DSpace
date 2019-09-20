@@ -1251,7 +1251,7 @@
                 <oai_cerif:RegistrationDate><xsl:value-of select="." /></oai_cerif:RegistrationDate>
             </xsl:for-each>
             
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']">
+            <xsl:for-each select="doc:element[@name='dcterms']/doc:element[@name='dateAccepted']/doc:element/doc:field[@name='value']">
                 <oai_cerif:ApprovalDate><xsl:value-of select="." /></oai_cerif:ApprovalDate>
             </xsl:for-each>
             
