@@ -89,18 +89,16 @@
     boolean showCommList = ConfigurationManager.getBooleanProperty("community-list.show.all",true);
 %>
 
-       <div class="navbar-header">
+       <div class="navbar-header navbar-background" style="padding-left:70px; padding-right:20px;">
          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
            <span class="icon-bar"></span>
            <span class="icon-bar"></span>
            <span class="icon-bar"></span>
          </button>
+         <a class="navbar-brand" style="padding:5px;" href="<%= request.getContextPath() %>/"><img class="navbar-logo" src="<%= request.getContextPath() %>/image/navbar-logo.gif"></a>
        </div>
-       <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
+       <nav class="collapse navbar-collapse bs-navbar-collapse navbar-background" role="navigation">
          <ul id="top-menu" class="nav navbar-nav navbar-<%= isRtl ? "right":"left"%>">
-           <li class="pull-<%= isRtl ? "right":"left"%>"><a class="navbar-brand" href="<%= request.getContextPath() %>/"><img height="25" src="<%= request.getContextPath() %>/image/dspace-logo-only.png" alt="DSpace logo" /></a></li>
-           <li id="home-top-menu" class="pull-<%= isRtl ? "right":"left"%>   <%= currentPage.endsWith("/home.jsp")? 
-        		   "active" : "" %>"><a href="<%= request.getContextPath() %>/"><fmt:message key="jsp.layout.navbar-default.home"/></a></li>
 		  <% if(showCommList){ %>
 		   <li id="communitylist-top-menu" class="<%= currentPage.endsWith("/community-list")? 
         		   "active" : "" %>"><a href="<%= request.getContextPath() %>/community-list"><fmt:message key="jsp.layout.navbar-default.communities-collections"/></a></li>
@@ -202,44 +200,21 @@
  <%
    }
  %>
- --%>
+ --%></ul>
        <div class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
 		<ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
-                    <li id="search-top-menu" class="dropdown">
-           <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-search"></span><b class="caret"></b></a>
-          <div class="dropdown-menu">
-          
-	<%-- Search Box --%>
-	<form id="formsearch-top-menu" method="get" action="<%= request.getContextPath() %>/global-search" class="navbar-form navbar-<%= isRtl ? "left" : "right" %>" scope="search">		
-	    <div class="form-group">
-          <input type="text" class="form-control" placeholder="<fmt:message key="jsp.layout.navbar-default.search"/>" name="query" id="tequery" size="25"/>
-        </div>
-        <button type="submit" class="btn btn-primary"><span class="glyphicon glyphicon-search"></span></button>
-<%--               <br/><a href="<%= request.getContextPath() %>/advanced-search"><fmt:message key="jsp.layout.navbar-default.advanced"/></a>
-<%
-			if (ConfigurationManager.getBooleanProperty("webui.controlledvocabulary.enable"))
-			{
-%>        
-              <br/><a href="<%= request.getContextPath() %>/subject-search"><fmt:message key="jsp.layout.navbar-default.subjectsearch"/></a>
-<%
-            }
-%> --%>
-	</form>
-	
-          </div>
-          </li>
          <%
     if (user != null)
     {
 		%>
-		<li id="userloggedin-top-menu" class="dropdown">
+		<li id="userloggedin-top-menu" class="dropdown" style="margin-right:70px;">
 		<a href="#" class="dropdown-toggle <%= isRtl ? "" : "text-right" %>" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.loggedin">
 		      <fmt:param><%= StringUtils.abbreviate(navbarEmail, 20) %></fmt:param>
 		  </fmt:message> <b class="caret"></b></a>
 		<%
     } else {
 		%>
-			<li id="user-top-menu" class="dropdown">
+			<li id="user-top-menu" class="dropdown" style="margin-right:70px;">
              <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.sign"/> <b class="caret"></b></a>
 	<% } %>             
              <ul class="dropdown-menu">

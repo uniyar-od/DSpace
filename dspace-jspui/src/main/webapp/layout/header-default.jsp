@@ -215,12 +215,39 @@
     <%-- HACK: marginwidth, marginheight: for non-CSS compliant Netscape browser --%>
     <body class="undernavigation" dir="<%= LocaleUIHelper.ifLtr(request, "ltr","rtl") %>">
 <a class="sr-only" href="#content">Skip navigation</a>
-<header class="navbar navbar-inverse navbar-square">    
+<header class="navbar navbar-inverse navbar-square navbar-fixed-top">
     <%
     if (!navbar.equals("off"))
     {
 %>
             <div class="container-fluid">
+                <div class="row header-background">
+                    <div class="col-sm-4 hidden-xs" style="padding-left:80px; margin-top:5px;">
+                        <a href="https://www.hsu-hh.de/" target="_blank">
+                            <img class="header-logo" src="<%= request.getContextPath() %>/image/header-logo-hsu.png">
+                        </a>
+                    </div>
+
+                    <div class="hidden-xs pull-right" style="padding-right:80px; margin-top:5px;">
+                        <a href="https://ub.hsu-hh.de/" target="_blank">
+                            <img class="header-logo" src="<%= request.getContextPath() %>/image/header-logo-library.png">
+                        </a>
+                    </div>
+
+                    <%-- Search Box --%>
+                    <div class="pull-right" id="TopSearch" style="height:76px;padding-top:16px;padding-right:80px;margin-top:10px;">
+                        <div class="row" >
+                            <form id="formsearch-top-menu" method="get" action="<%= request.getContextPath() %>/global-search" class="col-md-10 col-md-offset-1" scope="search" style="border:0px;">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="<fmt:message key="jsp.layout.navbar-default.search"/>" name="query" id="tequery" />
+                                    <span class="input-group-btn">
+                                        <button type="submit" class="btn btn-primary globalsearch"><span class="glyphicon glyphicon-search"></span></button>
+                                    </span>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
                 <dspace:include page="<%= navbar %>" />
             </div>
 <%
@@ -263,7 +290,7 @@ window.cookieconsent.initialise({
 <% } %>
 </header>
 
-<main id="content" role="main">
+<main id="content" role="main" style="padding-top:<%= (!navbar.equals("off")) ? "135" : "50"%>px;">
 <div class="container banner">
 	<div class="row">
 		<div class="col-sm-12">
@@ -291,12 +318,6 @@ window.cookieconsent.initialise({
 		
 		
 		</div>
-		  <div class="col-sm-8 brand pull-<%= isRtl ?"right" :"left" %>">
-		<h1><fmt:message key="jsp.layout.header-default.brand.heading" /></h1>
-        <fmt:message key="jsp.layout.header-default.brand.description" /> 
-        </div>
-        <div class="col-sm-4 hidden-xs pull-<%= isRtl ?"left" :"right" %>"><img class="img-responsive" src="<%= request.getContextPath() %>/image/logo.gif" alt="DSpace logo" />
-        </div>
 	</div>
 </div>	
 <br/>
@@ -322,7 +343,7 @@ window.cookieconsent.initialise({
 
 
         <%-- Page contents --%>
-<div class="container fullheight">
+<div class="container" id="pageContent">
 <% if (request.getAttribute("dspace.layout.sidebar") != null) { %>
 	<div class="row">
 		<div class="col-md-9 <%= isRtl ? "pull-right":"" %>">

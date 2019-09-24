@@ -56,7 +56,7 @@
 
 
        <div class="navbar-header">
-         <a class="navbar-brand" href="<%= request.getContextPath() %>/"><img height="25" src="<%= request.getContextPath() %>/image/dspace-logo-only.png" alt="DSpace logo" /></a>
+         <a class="navbar-brand" style="padding:5px;" href="<%= request.getContextPath() %>/"><img class="navbar-logo" src="<%= request.getContextPath() %>/image/navbar-logo.gif"></a>
        </div>
        <nav class="collapse navbar-collapse bs-navbar-collapse" role="navigation">
        <div class="nav navbar-nav navbar-right">
