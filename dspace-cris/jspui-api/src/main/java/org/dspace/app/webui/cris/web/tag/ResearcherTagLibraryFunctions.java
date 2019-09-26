@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.integration.ICRISComponent;
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
@@ -35,6 +36,9 @@ import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
 import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.BoxProject;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
+import org.dspace.app.cris.model.jdyna.DecoratorDynamicPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.DecoratorOUPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.DecoratorProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPTypeNested;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
@@ -985,5 +989,34 @@ public class ResearcherTagLibraryFunctions
         }
         return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
                 .getWrapper((IPropertiesDefinition) ipd, locale);
+    }
+
+    public static String getTranslatedName(
+            ACrisObject cris, String locale)
+    {
+        IContainable pd = null;
+        String shortname = null;
+        switch (cris.getType())
+        {
+        case CrisConstants.RP_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorRPPropertiesDefinition.class, shortname);
+            break;
+        case CrisConstants.PROJECT_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorProjectPropertiesDefinition.class, shortname);
+            break;
+        case CrisConstants.OU_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorOUPropertiesDefinition.class, shortname);
+            break;
+        default:
+            shortname = ((ResearchObject)cris).getTypo().getShortName() + cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorDynamicPropertiesDefinition.class, shortname);
+            break;
+        }
+        // if pd is null something is really wrong, batter an NPE then return null
+        IPropertiesDefinition ipd = (IPropertiesDefinition)getPropertyDefinitionI18N(pd, locale);
+        return ((List)cris.getAnagrafica4view().get(ipd.getShortName())).get(0).toString();
     }
 }
