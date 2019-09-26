@@ -20,7 +20,6 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -70,7 +69,10 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.handle.HandleManager;
 import org.dspace.util.SimpleMapConverter;
 import org.dspace.utils.DSpace;
+import org.joda.time.DateTime;
 import org.orcid.jaxb.model.common_v2.Amount;
+import org.orcid.jaxb.model.common_v2.ContributorEmail;
+import org.orcid.jaxb.model.common_v2.CreditName;
 import org.orcid.jaxb.model.common_v2.CurrencyCode;
 import org.orcid.jaxb.model.common_v2.ExternalId;
 import org.orcid.jaxb.model.common_v2.ExternalIds;
@@ -93,8 +95,6 @@ import org.orcid.jaxb.model.record_v2.Citation;
 import org.orcid.jaxb.model.record_v2.CitationType;
 import org.orcid.jaxb.model.record_v2.Contributor;
 import org.orcid.jaxb.model.record_v2.ContributorAttributes;
-import org.orcid.jaxb.model.common_v2.ContributorEmail;
-import org.orcid.jaxb.model.common_v2.CreditName;
 import org.orcid.jaxb.model.record_v2.ContributorRole;
 import org.orcid.jaxb.model.record_v2.ContributorSequence;
 import org.orcid.jaxb.model.record_v2.Education;
@@ -1932,11 +1932,11 @@ public class PushToORCID
                 {
                     String stringStartDate = listStartDate.get(0);
                     Date startDate;
-                    Calendar cal1 = Calendar.getInstance();
+                    DateTime cal1 = null;
                     try
                     {
                         startDate = df.parse(stringStartDate);
-                        cal1.setTime(startDate);
+                        cal1 = new DateTime(startDate.getTime());
                     }
                     catch (ParseException e)
                     {
@@ -1946,7 +1946,7 @@ public class PushToORCID
                     FuzzyDate fuzzyStartDate = new FuzzyDate();
                     try
                     {
-                        int yearSD = cal1.get(Calendar.YEAR);
+                        int yearSD = cal1.getYear();
                         Year year = new Year();
                         year.setValue(String.valueOf(yearSD));
                         fuzzyStartDate.setYear(year);
@@ -1958,7 +1958,7 @@ public class PushToORCID
 
                     try
                     {
-                        int monthSD = cal1.get(Calendar.MONTH);
+                        int monthSD = cal1.getMonthOfYear();
                         Month month = new Month();
                         month.setValue(dateMonthAndDayFormat
                                 .format(monthSD));
@@ -1971,7 +1971,7 @@ public class PushToORCID
 
                     try
                     {
-                        int daySD = cal1.get(Calendar.DAY_OF_MONTH);
+                        int daySD = cal1.getDayOfMonth();
                         Day day = new Day();
                         day.setValue(dateMonthAndDayFormat
                                 .format(daySD));
@@ -1987,13 +1987,13 @@ public class PushToORCID
                 List<String> listEndDate = employment.get("affiliationenddate");
                 if (listEndDate != null && !listEndDate.isEmpty())
                 {
-                    String stringEndDate = listStartDate.get(0);
+                    String stringEndDate = listEndDate.get(0);
                     Date endDate;
-                    Calendar cal2 = Calendar.getInstance();
+                    DateTime cal2 = null;
                     try
                     {
                         endDate = df.parse(stringEndDate);
-                        cal2.setTime(endDate);
+                        cal2 = new DateTime(endDate.getTime());
                     }
                     catch (ParseException e)
                     {
@@ -2003,7 +2003,7 @@ public class PushToORCID
                     FuzzyDate fuzzyEndDate = new FuzzyDate();
                     try
                     {
-                        int yearED = cal2.get(Calendar.YEAR);
+                        int yearED = cal2.getYear();
                         Year year = new Year();
                         year.setValue(String.valueOf(yearED));
                         fuzzyEndDate.setYear(year);
@@ -2015,7 +2015,7 @@ public class PushToORCID
 
                     try
                     {
-                        int monthED = cal2.get(Calendar.MONTH);
+                        int monthED = cal2.getMonthOfYear();
                         Month month = new Month();
                         month.setValue(dateMonthAndDayFormat
                                 .format(monthED));
@@ -2028,7 +2028,7 @@ public class PushToORCID
 
                     try
                     {
-                        int dayED = cal2.get(Calendar.DAY_OF_MONTH);
+                        int dayED = cal2.getDayOfMonth();
                         Day day = new Day();
                         day.setValue(dateMonthAndDayFormat
                                 .format(dayED));
@@ -2142,12 +2142,12 @@ public class PushToORCID
                 if (listStartDate != null && !listStartDate.isEmpty())
                 {
                     String stringStartDate = listStartDate.get(0);
-                    Date startDate;
-                    Calendar cal1 = Calendar.getInstance();
+                    Date startDate = null;
+                    DateTime cal1 = null;
                     try
                     {
                         startDate = df.parse(stringStartDate);
-                        cal1.setTime(startDate);
+                        cal1 = new DateTime(startDate.getTime());
                     }
                     catch (ParseException e)
                     {
@@ -2158,7 +2158,7 @@ public class PushToORCID
 
                     try
                     {
-                        int yearSD = cal1.get(Calendar.YEAR);
+                        int yearSD = cal1.getYear();
                         Year year = new Year();
                         year.setValue(String.valueOf(yearSD));
                         fuzzyStartDate.setYear(year);
@@ -2170,7 +2170,7 @@ public class PushToORCID
 
                     try
                     {
-                        int monthSD = cal1.get(Calendar.MONTH);
+                        int monthSD = cal1.getMonthOfYear();
                         Month month = new Month();
                         month.setValue(MessageFormat.format("{0,number,#00}",
                                 new Object[] { new Integer(monthSD) }));
@@ -2183,7 +2183,7 @@ public class PushToORCID
 
                     try
                     {
-                        int daySD = cal1.get(Calendar.DAY_OF_MONTH);
+                        int daySD = cal1.getDayOfMonth();
                         Day day = new Day();
                         day.setValue(MessageFormat.format("{0,number,#00}",
                                 new Object[] { new Integer(daySD) }));
@@ -2199,13 +2199,13 @@ public class PushToORCID
                 List<String> listEndDate = education.get("educationenddate");
                 if (listEndDate != null && !listEndDate.isEmpty())
                 {
-                    String stringEndDate = listStartDate.get(0);
-                    Date endDate;
-                    Calendar cal2 = Calendar.getInstance();
+                    String stringEndDate = listEndDate.get(0);
+                    Date endDate = null;
+                    DateTime cal2 = null;
                     try
                     {
                         endDate = df.parse(stringEndDate);
-                        cal2.setTime(endDate);
+                        cal2 = new DateTime(endDate.getTime());
                     }
                     catch (ParseException e)
                     {
@@ -2216,7 +2216,7 @@ public class PushToORCID
 
                     try
                     {
-                        int yearED = cal2.get(Calendar.YEAR);
+                        int yearED = cal2.getYear();
                         Year year = new Year();
                         year.setValue(String.valueOf(yearED));
                         fuzzyEndDate.setYear(year);
@@ -2228,7 +2228,7 @@ public class PushToORCID
 
                     try
                     {
-                        int monthED = cal2.get(Calendar.MONTH);
+                        int monthED = cal2.getMonthOfYear();
                         Month month = new Month();
                         month.setValue(MessageFormat.format("{0,number,#00}",
                                 new Object[] { new Integer(monthED) }));
@@ -2241,7 +2241,7 @@ public class PushToORCID
 
                     try
                     {
-                        int dayED = cal2.get(Calendar.DAY_OF_MONTH);
+                        int dayED = cal2.getDayOfMonth();
                         Day day = new Day();
                         day.setValue(MessageFormat.format("{0,number,#00}",
                                 new Object[] { new Integer(dayED) }));
