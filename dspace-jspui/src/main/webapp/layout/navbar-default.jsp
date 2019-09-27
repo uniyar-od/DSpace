@@ -139,7 +139,7 @@
 <!-- Link zur Service-Seite eingefuegt als dropdown-Menue; A.G., 08.05.2018  -->
 <!-- fmt:message keys angelegt für Tab "Unsere Services" mit fmt:message key="jsp.layout.navbar-default.help" in Messages.properties; A.G., 08.05.2018  -->
  <li id="help-top-menu">
-            <a href="/static/openhsuservices.jsp" class="dropdown-toggle" data-toggle="dropdown">Unsere Services <b class="caret"></b></a>
+            <a href="/static/openhsuservices.jsp" class="dropdown-toggle" data-toggle="dropdown">Services <b class="caret"></b></a>
             <ul class="dropdown-menu">
 				<li class=""> 
 					<a href="/static/openhsuservices.jsp#tabs-1">DSpace-CRIS Tutorial</a></li>
