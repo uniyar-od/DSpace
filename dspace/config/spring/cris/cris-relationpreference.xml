@@ -61,7 +61,7 @@
 	</bean>
 	
 	<bean id="relationOUVSOUConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
-		<property name="relationName" value="crisou.projects" />		
+		<property name="relationName" value="crisou.organisations" />
 		<property name="relationClass" value="org.dspace.app.cris.model.OrganizationUnit" />		
 		<property name="query">
 			<value>crisou.parentorgunit_authority:{0}</value>
@@ -96,7 +96,16 @@
 		<property name="relationName" value="crisevents.publications" />
 		<property name="relationClass" value="org.dspace.content.Item" />
 		<property name="query">
-			<value>dc.relation.conference_authority:{0}</value>
+			<value>dc.relation.conference_authority:{0} OR '{'!join from=cris-id to=dc.relation.conference_authority fromIndex=search'}'crisevents.eventsparent_conference_hsu_authority:{0}</value>
+		</property>
+	</bean>
+
+	<bean id="relationEVENTVSEVENTConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">
+		<property name="relationName" value="crisevents.events" />
+		<property name="relationClass" value="org.dspace.app.cris.model.ResearchObject" />
+		<property name="type" value="crisevents" />
+		<property name="query">
+			<value>crisevents.eventsparent_conference_hsu_authority:{0}</value>
 		</property>
 	</bean>
 

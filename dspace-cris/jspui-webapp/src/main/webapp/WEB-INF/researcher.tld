@@ -155,4 +155,11 @@
 	<function-class>org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions</function-class>
 	<function-signature>java.lang.Object getPropertyDefinitionI18N(java.lang.Object, java.lang.String)</function-signature>
 </function>
+
+<function>
+	<description>Get the translated name</description>
+	<name>getTranslatedName</name>
+	<function-class>org.dspace.app.webui.cris.web.tag.ResearcherTagLibraryFunctions</function-class>
+	<function-signature>java.lang.String getTranslatedName(org.dspace.app.cris.model.ACrisObject, java.lang.String)</function-signature>
+</function>
 </taglib>
