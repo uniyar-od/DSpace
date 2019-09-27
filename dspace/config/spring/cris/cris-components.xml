@@ -370,6 +370,26 @@
 		<property name="sortby"><value>6</value></property>			
 	</bean>
 	
+	<bean id="subeventslist"
+		class="org.dspace.app.webui.cris.components.CRISDOConfigurerComponent">
+		<property name="relationConfiguration" ref="relationEVENTVSEVENTConfiguration" />
+		<property name="target" value="org.dspace.app.cris.model.ResearchObject" />
+		<property name="types">
+			<map>
+				<entry key="subevents" value-ref="allEventsForEventsComponent" />
+			</map>
+		</property>
+	</bean>
+
+	<bean id="allEventsForEventsComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="subevents" />
+		<property name="facetQuery"><value>*:*</value></property>
+		<property name="order"><value>asc</value></property>
+		<property name="rpp"><value>20</value></property>
+		<property name="sortby"><value>6</value></property>
+	</bean>
+
 	<!-- Project Components -->
 	<bean id="projectComponentsService" class="org.dspace.app.cris.integration.CrisComponentsService">
 		<property name="components">
@@ -420,6 +440,7 @@
 			<map>
 				<entry key="journalspublications" value-ref="publicationlistforjournals" />				
 				<entry key="eventspublications" value-ref="publicationlistforevents" />
+				<entry key="subevents" value-ref="subeventslist" />
 			</map>
 		</property>
 	</bean>
@@ -450,6 +471,8 @@
 			<map>
 				<entry key="selected" value-ref="selectedPublicationForEventComponent" />
 				<entry key="all" value-ref="allPublicationForEventComponent" />
+				<!-- <entry key="direct" value-ref="directPublicationForEventComponent" /> -->
+				<!-- <entry key="sub" value-ref="subPublicationForEventComponent" /> -->
 			</map>
 		</property>
 	</bean>
@@ -519,4 +542,38 @@
 			<value>1</value>
 		</property>
 	</bean>
+
+	<!-- <bean id="directPublicationForEventComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="direct" />
+		<property name="facetQuery">
+			<value>dc.relation.conference_authority:{0}
+			</value>
+		</property>
+		<property name="order">
+			<value>asc</value>
+		</property>
+		<property name="rpp">
+			<value>20</value>
+		</property>
+		<property name="sortby">
+			<value>1</value>
+		</property>
+	</bean> -->
+
+	<!-- <bean id="subPublicationForEventComponent" class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="sub" />
+		<property name="facetQuery">
+			<value>'{'!join from=cris-id to=dc.relation.conference_authority fromIndex=search'}'crisevents.eventsparent_conference_hsu_authority:{0}
+			</value>
+		</property>
+		<property name="order">
+			<value>asc</value>
+		</property>
+		<property name="rpp">
+			<value>20</value>
+		</property>
+		<property name="sortby">
+			<value>1</value>
+		</property>
+	</bean> -->
 </beans>
