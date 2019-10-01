@@ -291,7 +291,7 @@
             	</xsl:for-each>
             	
             	<xsl:for-each select="doc:element[@name='crisou']/doc:element[@name='name']/doc:element/doc:element">
-					<oai_cerif:Name><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
+					<oai_cerif:Name xml:lang="en"><xsl:value-of select="doc:field[@name='value']" /></oai_cerif:Name>
 				</xsl:for-each>
 			
 				<xsl:variable name="identifiertypeid" select="doc:element[@name='ouidentifier']/doc:element[@name='ouidentifiertypeid']/doc:element/doc:element/doc:field[@name='value']" />
@@ -339,8 +339,8 @@
           		<xsl:for-each select="doc:element[@name='crisrp']/doc:element[@name='fullName']/doc:element/doc:element">
           		<xsl:choose>
 					<xsl:when test="contains(./doc:field[@name='value'], ',')">
-						<oai_cerif:FirstNames><xsl:value-of select="substring-after(., ', ')" /></oai_cerif:FirstNames>
 						<oai_cerif:FamilyNames><xsl:value-of select="substring-before(., ',')" /></oai_cerif:FamilyNames>
+						<oai_cerif:FirstNames><xsl:value-of select="substring-after(., ', ')" /></oai_cerif:FirstNames>
 					</xsl:when>
 					<xsl:otherwise>
 						<oai_cerif:FamilyNames><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:FamilyNames>					
@@ -449,7 +449,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='title']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
+	        	<oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='startdate']/doc:element/doc:element/doc:field[@name='value']">
@@ -568,7 +568,7 @@
 						</xsl:if>
 						<oai_cerif:PartOf>
 							<oai_cerif:Type xmlns="https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types">https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types#FundingProgramme</oai_cerif:Type>
-							<oai_cerif:Name><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:Name>
+							<oai_cerif:Name xml:lang="en"><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:Name>
 						</oai_cerif:PartOf>        				
         			</oai_cerif:Funding>	
         		</oai_cerif:As>
@@ -639,7 +639,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventsname']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Name><xsl:value-of select="." /></oai_cerif:Name>
+	        	<oai_cerif:Name xml:lang="en"><xsl:value-of select="." /></oai_cerif:Name>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventslocation']/doc:element/doc:element/doc:field[@name='value']">
@@ -761,7 +761,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisequipment']/doc:element[@name='equipmentname']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Name><xsl:value-of select="." /></oai_cerif:Name>
+	        	<oai_cerif:Name xml:lang="en"><xsl:value-of select="." /></oai_cerif:Name>
 	        </xsl:for-each>
 
 	        <xsl:for-each select="doc:element[@name='crisequipment']/doc:element[@name='equipmentidentifier']/doc:element/doc:element/doc:field[@name='value']">
@@ -820,7 +820,7 @@
            
     		<!-- oai_cerif:PublishedIn, Title (crisjournals.journalsname) --> 
             <xsl:for-each select="doc:element[@name='crisjournals']/doc:element[@name='journalsname']/doc:element/doc:element/doc:field[@name='value']">
-                <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
+                <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
             </xsl:for-each>
             
             <!-- oai_cerif:PublishedIn, ISSN -->
@@ -859,11 +859,11 @@
             <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types"><xsl:call-template name="oai_publicationtype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
-                <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
+                <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element[@name='alternative']/doc:element/doc:field[@name='value']">
-                <oai_cerif:Subtitle><xsl:value-of select="." /></oai_cerif:Subtitle>
+                <oai_cerif:Subtitle xml:lang="en"><xsl:value-of select="." /></oai_cerif:Subtitle>
             </xsl:for-each>
             
             <!-- oai_cerif:PublishedIn [START] -->
@@ -1068,7 +1068,7 @@
             <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Product_Types"><xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
-                <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
+                <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='version']/doc:element/doc:field[@name='value']">
@@ -1244,7 +1244,7 @@
             <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Patent_Types"><xsl:call-template name="oai_patenttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
-                <oai_cerif:Title><xsl:value-of select="." /></oai_cerif:Title>
+                <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
