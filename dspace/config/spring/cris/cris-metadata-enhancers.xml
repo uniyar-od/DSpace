@@ -270,6 +270,20 @@
 		</property>
 	</bean>
 
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="cerifentitytype" />
+		<property name="metadata">
+			<list>
+				<value>dc.type</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>
+			    <ref bean="enhancerCerifEntityType-MapConverter"/>
+			</list>
+		</property>
+	</bean>
+	
 	<bean name="enhancerLanguageISO639-1MapConverter" class="org.dspace.content.integration.defaultvalues.MapConverterValueGenerator" >
 		<property name="converter" ref="MapConverterLanguageISO639-1" />
 	</bean>
@@ -278,6 +292,10 @@
 		<property name="converter" ref="MapConverterType" />
 	</bean>
 
+	<bean name="enhancerCerifEntityType-MapConverter" class="org.dspace.content.integration.defaultvalues.MapConverterValueGenerator" >
+		<property name="converter" ref="MapConverterCerifEntityType" />
+	</bean>
+	
 	<bean name="MapConverterLanguageISO639-1"
 		class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<constructor-arg
@@ -299,6 +317,17 @@
 			ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value="@@ident@@" />
 	</bean>
+	
+	<bean name="MapConverterCerifEntityType"
+		class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<constructor-arg
+			value="enhancerCerifEntityType-MapConverter" />
+		<property name="converterNameFile"
+			value="mapConverter-cerifEntityType.properties" />
+		<property name="configurationService"
+			ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="other" />
+	</bean>	
 
 	<bean name="enhancerFulltext" class="org.dspace.content.integration.defaultvalues.FulltextInfoGenerator"/>
 	<bean name="enhancerPermissionFulltext" class="org.dspace.content.integration.defaultvalues.FulltextPermissionGenerator"/>

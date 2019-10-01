@@ -71,7 +71,6 @@ import org.dspace.xoai.services.api.solr.SolrServerResolver;
 import org.dspace.xoai.solr.DSpaceSolrSearch;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrException;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
-import org.dspace.xoai.util.ItemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -325,7 +324,7 @@ public class XOAI {
 	    		query.setQuery(solrQuery);
 	    		query.setMaxResults(pageSize);
 	    		query.setStart(offset);
-			
+	    		query.addSearchField("item.cerifentitytype");
 			 	results = SearchUtils.getSearchService().search(context, query, true);
 			 	read = 0;
 			 	if (!results.getDspaceObjects().isEmpty())
@@ -420,6 +419,15 @@ public class XOAI {
         if (verbose) {
             println("Prepare handle " + handle);
         }
+        
+        String type = (String)item.getExtraInfo().get("item.cerifentitytype");
+        if(StringUtils.isNotBlank(type)) {
+            doc.addField("item.identifier", type +"/"+ handle);
+        }
+        else {
+            doc.addField("item.identifier", handle);
+        }
+        
         doc.addField("item.handle", handle);
         doc.addField("item.type", "item");
         doc.addField("item.lastmodified", item.getLastModified());
@@ -489,6 +497,15 @@ public class XOAI {
         if (verbose) {
             println("Prepare handle " + handle);
         }
+        
+        String type = ConfigurationManager.getProperty("oai", "identifier.cerifentitytype." + item.getPublicPath());
+        if(StringUtils.isNotBlank(type)) {
+            doc.addField("item.identifier", type + "/" + handle);    
+        }
+        else {
+            doc.addField("item.identifier", handle);
+        }
+        
         doc.addField("item.handle", handle);
         doc.addField("item.type", item.getPublicPath());
         doc.addField("item.lastmodified", item.getLastModified());

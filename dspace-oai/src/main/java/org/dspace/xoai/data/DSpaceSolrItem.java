@@ -89,7 +89,7 @@ public class DSpaceSolrItem extends DSpaceItem
     }
 
     @Override
-    protected String getHandle()
+    public String getHandle()
     {
         return handle;
     }

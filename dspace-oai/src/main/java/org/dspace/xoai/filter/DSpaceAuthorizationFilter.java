@@ -55,7 +55,7 @@ public class DSpaceAuthorizationFilter extends DSpaceFilter
         try
         {
             // If Handle or Item are not found, return false
-            String handle = DSpaceItem.parseHandle(item.getIdentifier());
+            String handle = DSpaceItem.parseHandle(item.getHandle());
             if (handle == null)
                 return false;
 

@@ -412,8 +412,10 @@ public class ItemUtils
 
         other.getField().add(
                 createValue("handle", item.getHandle()));
+        
+        String type = (String)item.getExtraInfo().get("item.cerifentitytype");
         other.getField().add(
-                createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
+                createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle(), type)));
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
@@ -568,8 +570,11 @@ public class ItemUtils
     
             other.getField().add(
                     createValue("handle", item.getHandle()));
+            
+            String type = ConfigurationManager.getProperty("oai", "identifier.cerifentitytype." + item.getPublicPath());
             other.getField().add(
-                    createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle())));
+                    createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle(), type)));
+            
             Date m = new Date(item
                     .getTimeStampInfo().getLastModificationTime().getTime());
             other.getField().add(
