@@ -42,7 +42,7 @@
 %>
 <c:set var="currLocale"><%=currLocale %></c:set>
 	<div id="tab-${area.id}">
-		<div class="row">
+		<div class="row ${isVerticalTab == true ? 'vertical' : 'horizontal'}-tab">
 					<c:forEach items="${propertiesHolders}" var="holder">
 					<c:set var="holdershortname" value="${holder.shortName}" scope="page"/>
 					<c:set var="extraCSS">
