@@ -604,7 +604,7 @@
         <CustomCondition id="openaireRelationCondition">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">crisitem.project.openAire </string>
+                <string name="field">crisitem.project.openAire</string>
                 <string name="operator">starts_with</string>
                 <string name="value">info:eu-repo/grantAgreement/</string>
             </Configuration>
@@ -626,82 +626,25 @@
         <CustomCondition id="publicationSetFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">dc.type</string>
+                <string name="field">item.cerifentitytype</string>
                 <string name="operator">equal</string>
-				<list name="values">
-			        <string>text</string>
-			        <string>annotation</string>
-			        <string>bibliography</string>
-			        <string>book</string>
-			        <string>book part</string>
-			        <string>conference object</string>
-			        <string>conference proceedings</string>
-			        <string>conference paper</string>
-			        <string>conference poster</string>
-			        <string>conference paper not in proceedings</string>
-			        <string>conference poster not in proceedings</string>
-			        <string>lecture</string>
-			        <string>letter</string>
-			        <string>periodical</string>
-			        <string>journal</string>
-			        <string>contribution to journal</string>
-			        <string>journal article</string>
-			        <string>review article</string>
-			        <string>research article</string>
-			        <string>editorial</string>
-			        <string>data paper</string>
-			        <string>letter to the editor</string>
-			        <string>preprint</string>
-			        <string>report</string>
-			        <string>report part</string>
-			        <string>internal report</string>
-			        <string>memorandum</string>
-			        <string>other type of report</string>
-			        <string>policy report</string>
-			        <string>project deliverable</string>
-			        <string>report to funding agency</string>
-			        <string>research report</string>
-			        <string>technical report</string>
-			        <string>research proposal</string>
-			        <string>review</string>
-			        <string>book review</string>
-			        <string>technical documentation</string>
-			        <string>working paper</string>
-			        <string>thesis</string>
-			        <string>bachelor thesis</string>
-			        <string>doctoral thesis</string>
-			        <string>master thesis</string>
-			        <string>musical notation</string>
-                </list>
-            </Configuration>
+				<string name="value">Publications</string>
+			</Configuration>
         </CustomCondition>
         <CustomCondition id="productSetFilter">
             <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="field">dc.type</string>
+                <string name="field">item.cerifentitytype</string>
                 <string name="operator">equal</string>
-                <list name="values">
-                    <string>interactive resource</string>
-					<string>website</string>
-					<string>dataset</string>
-					<string>image</string>
-					<string>moving image</string>
-					<string>video</string>
-					<string>still image</string>
-					<string>other</string>
-					<string>software</string>
-					<string>workflow</string>
-					<string>cartographic material</string>
-					<string>map</string>
-					<string>sound</string>
-					<string>musical composition</string>
-                </list>
+				<string name="value">Products</string>            
             </Configuration>
         </CustomCondition>
         <CustomCondition id="patentSetFilter">
-            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Class>org.dspace.xoai.filter.DSpaceAtLeastOneMetadataFilter</Class>
             <Configuration>
-                <string name="value">patent</string>
+                <string name="field">item.cerifentitytype</string>
+                <string name="operator">equal</string>
+				<string name="value">Patents</string>
             </Configuration>
         </CustomCondition>
         <CustomCondition id="researcherSetFilter">

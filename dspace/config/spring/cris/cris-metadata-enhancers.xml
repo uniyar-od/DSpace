@@ -326,7 +326,7 @@
 			value="mapConverter-cerifEntityType.properties" />
 		<property name="configurationService"
 			ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="other" />
+		<property name="defaultValue" value="" />
 	</bean>	
 
 	<bean name="enhancerFulltext" class="org.dspace.content.integration.defaultvalues.FulltextInfoGenerator"/>
