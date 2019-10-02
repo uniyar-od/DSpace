@@ -98,6 +98,7 @@
             <Set ref="openaireProjectsCrisSet"/>
             <Set ref="openaireEventsCrisSet"/>
             <Set ref="openaireEquipmentsCrisSet"/>
+            <Set ref="openaireFundingCrisSet"/>
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="oai_cerif"/>
@@ -738,7 +739,13 @@
             <Configuration>
                 <string name="value">equipment</string>
             </Configuration>
-		</CustomCondition>				
+		</CustomCondition>
+        <CustomCondition id="fundingSetFilter">
+            <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
+            <Configuration>
+                <string name="value">funding</string>
+            </Configuration>
+		</CustomCondition>						
         <!-- NOTE to use the flat metadata comment in the previous and use the follow  configuration -->
         <!--        
         <CustomCondition id="openaireRelationCondition">
@@ -802,7 +809,12 @@
             <Spec>openaire_cris_equipments</Spec>
             <Name>OpenAIRE_CRIS_equipments</Name>
             <Filter ref="equipmentSetFilter" />
-        </Set>                
+        </Set>
+        <Set id="openaireFundingCrisSet">
+            <Spec>openaire_cris_funding</Spec>
+            <Name>OpenAIRE_CRIS_funding</Name>
+            <Filter ref="fundingSetFilter" />
+        </Set>                        
         <!-- set the OpenAIRE Data Archive OAI Set. See: https://guidelines.openaire.eu/en/latest/data/use_of_oai_pmh.html -->
         <Set id="openaireDataSet">
             <Spec>openaire_data</Spec>

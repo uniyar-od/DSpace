@@ -555,20 +555,27 @@
            		</oai_cerif:By>
         	</xsl:for-each>
         	<xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='fundingProgram']/doc:element/doc:element">
-        		<oai_cerif:As>
+        		<oai_cerif:As xmlns:oafunding="https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types">
         			<oai_cerif:Funding>
-        				<xsl:if test="$type_funding!=''">
-	        				<oai_cerif:Type xmlns="https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types"><xsl:value-of select="$type_funding" /></oai_cerif:Type>
-	        			</xsl:if>
+						<xsl:choose>
+							<xsl:when test="$type_funding!=''">
+								<oafunding:Type><xsl:value-of select="$type_funding" /></oafunding:Type>
+							</xsl:when>		
+							<xsl:otherwise>
+								<oafunding:Type>https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types#InternalFunding</oafunding:Type>
+							</xsl:otherwise>
+						</xsl:choose>
+						<xsl:if test="$amount_funding!=''">
+							<oai_cerif:Amount currency="{$currency_funding}"><xsl:value-of select="$amount_funding" /></oai_cerif:Amount>
+						</xsl:if>																			        				
 	        			<xsl:if test="$identifier_funding!=''">
 							<oai_cerif:Identifier type="https://w3id.org/cerif/vocab/IdentifierTypes#ProjectReference"><xsl:value-of select="$identifier_funding" /></oai_cerif:Identifier>
 						</xsl:if>
-						<xsl:if test="$amount_funding!=''">
-							<oai_cerif:Amount currency="{$currency_funding}"><xsl:value-of select="$amount_funding" /></oai_cerif:Amount>
-						</xsl:if>
 						<oai_cerif:PartOf>
-							<oai_cerif:Type xmlns="https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types">https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types#FundingProgramme</oai_cerif:Type>
-							<oai_cerif:Name xml:lang="en"><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:Name>
+							<oai_cerif:Funding>
+								<oafunding:Type>https://www.openaire.eu/cerif-profile/vocab/OpenAIRE_Funding_Types#FundingProgramme</oafunding:Type>
+								<oai_cerif:Name xml:lang="en"><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:Name>
+							</oai_cerif:Funding>	
 						</oai_cerif:PartOf>        				
         			</oai_cerif:Funding>	
         		</oai_cerif:As>
@@ -578,11 +585,11 @@
 	        </xsl:if>
 	        	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='keywords']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
+	        	<oai_cerif:Keyword xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='abstract']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
+	        	<oai_cerif:Abstract xml:lang="en"><xsl:value-of select="." /></oai_cerif:Abstract>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='status']/doc:element/doc:element/doc:field[@name='value']">
@@ -595,7 +602,7 @@
              		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
 	        	<oai_cerif:Uses>
-					<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']/text()" /></oai_cerif:DisplayName>            	
+					<!-- <oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']/text()" /></oai_cerif:DisplayName> -->            	
 					<xsl:call-template name="equipment">
 						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="equipment_id" select="$equipment_id" />
@@ -663,7 +670,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventskeywords']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keywords><xsl:value-of select="." /></oai_cerif:Keywords>
+	        	<oai_cerif:Keywords xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keywords>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventsorganizerou']/doc:element/doc:element/doc:element[@name='authority']">
@@ -1006,11 +1013,11 @@
             </xsl:if>
             
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
+	        	<oai_cerif:Keyword xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
+	        	<oai_cerif:Abstract xml:lang="en"><xsl:value-of select="." /></oai_cerif:Abstract>
 	        </xsl:for-each>
 
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']">
@@ -1018,7 +1025,7 @@
 		        	<xsl:variable name="project_id">
 	             		<xsl:value-of select="../doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
 	             	</xsl:variable>
-             		<oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName>
+             		<!-- <oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName> -->
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
@@ -1031,7 +1038,7 @@
 	        	<xsl:variable name="dc_relation_conference_id">
              		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
-             	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+             	<!-- <oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName> -->
              	<xsl:call-template name="events">
 					<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 					<xsl:with-param name="event_id" select="$dc_relation_conference_id" />
@@ -1040,10 +1047,47 @@
 	       	</xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Access><xsl:if test=". != '' and contains(., 'c_f1cf') ">
-	        	<xsl:attribute name="endDate"><xsl:call-template name="oai_dateembargoed"><xsl:with-param name="rights" select="." /></xsl:call-template></xsl:attribute></xsl:if>
-	        	<xsl:call-template name="oai_accessrights"><xsl:with-param name="rights" select="." /></xsl:call-template></oai_cerif:Access>
+	        	<ns4:Access xmlns:ns4="http://purl.org/coar/access_right">
+	        		<xsl:variable name="accessright">
+								<xsl:choose>
+									<xsl:when test="contains(., 'open')">
+										<xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
+									</xsl:when>
+									<xsl:when test="contains(., 'restricted')">
+										<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+									</xsl:when>
+									<xsl:when test="contains(., 'embargo')">
+						
+											<xsl:text>http://purl.org/coar/access_right/c_f1cf/</xsl:text>
+											<xsl:value-of select="substring(., 9, 4)" />
+											<xsl:text>-</xsl:text>
+											<xsl:value-of select="substring(., 13, 2)" />
+											<xsl:text>-</xsl:text>
+											<xsl:value-of select="substring(., 15, 2)" />
+						
+									</xsl:when>
+									<xsl:when test="contains(., 'reserved')">
+										<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
+									</xsl:otherwise>
+								</xsl:choose>
+					</xsl:variable>
+	        		<xsl:variable name="accessrightdate">
+							<xsl:call-template name="oai_dateembargoed">
+	        					<xsl:with-param name="rights" select="$accessright"/>
+	        				</xsl:call-template>	             			
+             		</xsl:variable>
+             		<xsl:if test="$accessrightdate!=''">
+		        		<xsl:attribute name="endDate"><xsl:value-of select="$accessrightdate" /></xsl:attribute>
+	        		</xsl:if>
+	        		<xsl:call-template name="oai_accessrights">
+	        				<xsl:with-param name="rights" select="$accessright"/>
+	        		</xsl:call-template>
+	        	</ns4:Access>
 	        </xsl:for-each>
+
         </oai_cerif:Publication>
         </xsl:for-each>
 	</xsl:template>
@@ -1068,11 +1112,11 @@
             <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Product_Types"><xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
-                <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
+                <oai_cerif:Name xml:lang="en"><xsl:value-of select="." /></oai_cerif:Name>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='version']/doc:element/doc:field[@name='value']">
-                <oai_cerif:VersionInfo><xsl:value-of select="." /></oai_cerif:VersionInfo>
+                <oai_cerif:VersionInfo xml:lang="en"><xsl:value-of select="." /></oai_cerif:VersionInfo>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='ark']/doc:element/doc:field[@name='value']">
@@ -1142,7 +1186,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
+	        	<oai_cerif:Keyword xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
             
             <!-- oai_cerif:PartOf [START] -->
@@ -1166,7 +1210,7 @@
 	        		<xsl:variable name="project_id">
              			<xsl:value-of select="../doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              		</xsl:variable>
-             		<oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName>
+             		<!-- <oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName> -->
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
@@ -1192,7 +1236,7 @@
 		        	<xsl:variable name="dc_relation_conference_id">
 	             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
 	             	</xsl:variable>
-	             	<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+	             	<!-- <oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName> -->
 	             	<xsl:call-template name="events">
 						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="event_id" select="$dc_relation_conference_id" />
@@ -1217,8 +1261,45 @@
 	        </xsl:for-each>
 	        	        	       	
 	        <xsl:for-each select="doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Access><xsl:attribute name="endDate"><xsl:call-template name="oai_dateembargoed"><xsl:with-param name="rights" select="." /></xsl:call-template></xsl:attribute>
-	        	<xsl:call-template name="oai_accessrights"><xsl:with-param name="rights" select="." /></xsl:call-template></oai_cerif:Access>
+	        	<ns4:Access xmlns:ns4="http://purl.org/coar/access_right">
+	        		<xsl:variable name="accessright">
+								<xsl:choose>
+									<xsl:when test="contains(., 'open')">
+										<xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
+									</xsl:when>
+									<xsl:when test="contains(., 'restricted')">
+										<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+									</xsl:when>
+									<xsl:when test="contains(., 'embargo')">
+						
+											<xsl:text>http://purl.org/coar/access_right/c_f1cf/</xsl:text>
+											<xsl:value-of select="substring(., 9, 4)" />
+											<xsl:text>-</xsl:text>
+											<xsl:value-of select="substring(., 13, 2)" />
+											<xsl:text>-</xsl:text>
+											<xsl:value-of select="substring(., 15, 2)" />
+						
+									</xsl:when>
+									<xsl:when test="contains(., 'reserved')">
+										<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
+									</xsl:when>
+									<xsl:otherwise>
+										<xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
+									</xsl:otherwise>
+								</xsl:choose>
+					</xsl:variable>
+	        		<xsl:variable name="accessrightdate">
+							<xsl:call-template name="oai_dateembargoed">
+	        					<xsl:with-param name="rights" select="$accessright"/>
+	        				</xsl:call-template>	             			
+             		</xsl:variable>
+             		<xsl:if test="$accessrightdate!=''">
+		        		<xsl:attribute name="endDate"><xsl:value-of select="$accessrightdate" /></xsl:attribute>
+	        		</xsl:if>
+	        		<xsl:call-template name="oai_accessrights">
+	        				<xsl:with-param name="rights" select="$accessright"/>
+	        		</xsl:call-template>
+	        	</ns4:Access>
 	        </xsl:for-each>
         </oai_cerif:Product>
         </xsl:for-each>
@@ -1313,11 +1394,11 @@
             </xsl:if>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Abstract><xsl:value-of select="." /></oai_cerif:Abstract>
+	        	<oai_cerif:Abstract xml:lang="en"><xsl:value-of select="." /></oai_cerif:Abstract>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keyword><xsl:value-of select="." /></oai_cerif:Keyword>
+	        	<oai_cerif:Keyword xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
 
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']">
@@ -1325,7 +1406,7 @@
 		        	<xsl:variable name="project_id">
 	             		<xsl:value-of select="../doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
 	             	</xsl:variable>
-             		<oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName>
+             		<!-- <oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName> -->
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />

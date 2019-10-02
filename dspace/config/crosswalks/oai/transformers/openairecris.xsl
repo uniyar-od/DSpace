@@ -35,33 +35,6 @@
 	<!-- Prefixing and Modifying dc.rights -->
 	<!-- Removing unwanted -->
 	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:element" />
-	<!-- Replacing -->
-	<xsl:template match="/doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field/text()">
-		<xsl:choose>
-			<xsl:when test="contains(., 'open')">
-				<xsl:text>http://purl.org/coar/access_right/c_abf2</xsl:text>
-			</xsl:when>
-			<xsl:when test="contains(., 'restricted')">
-				<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
-			</xsl:when>
-			<xsl:when test="contains(., 'embargo')">
-
-					<xsl:text>http://purl.org/coar/access_right/c_f1cf/</xsl:text>
-					<xsl:value-of select="substring(., 9, 4)" />
-					<xsl:text>-</xsl:text>
-					<xsl:value-of select="substring(., 13, 2)" />
-					<xsl:text>-</xsl:text>
-					<xsl:value-of select="substring(., 15, 2)" />
-
-			</xsl:when>
-			<xsl:when test="contains(., 'reserved')">
-				<xsl:text>http://purl.org/coar/access_right/c_16ec</xsl:text>
-			</xsl:when>
-			<xsl:otherwise>
-				<xsl:text>http://purl.org/coar/access_right/c_14cb</xsl:text>
-			</xsl:otherwise>
-		</xsl:choose>
-	</xsl:template>
 	
 	<!-- AUXILIARY TEMPLATES -->
 	
