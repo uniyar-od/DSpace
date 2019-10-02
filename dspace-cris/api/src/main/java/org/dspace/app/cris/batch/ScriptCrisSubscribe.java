@@ -92,6 +92,8 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Subscribe;
 import org.dspace.handle.HandleManager;
 
+import it.cilea.osd.jdyna.components.IComponent;
+
 /**
  * Class defining methods for sending new item e-mail alerts to users. Based on
  * {@link Subscribe} written by Robert Tansley
@@ -453,22 +455,26 @@ public class ScriptCrisSubscribe
                     .getAllCrisComponents();
             for (CrisComponentsService service : serviceComponent)
             {
-                for (ICRISComponent component : service.getComponents()
+                for (IComponent component : service.getComponents()
                         .values())
                 {
-                    RelationConfiguration relationConfiguration = component
-                            .getRelationConfiguration();
-                    if (Item.class.isAssignableFrom(relationConfiguration.getRelationClass()))
+                    if (component instanceof ICRISComponent)
                     {
-                        Integer key = CrisConstants.getEntityType(component.getTarget());
-                        String query = relationConfiguration.getQuery();
-                        if(!mapRelationFields.containsKey(key)) {
-                            List<String> rels = new LinkedList<String>();
-                            rels.add(query);
-                            mapRelationFields.put(key, rels);
-                        }
-                        else {
-                            mapRelationFields.get(key).add(query);
+                        ICRISComponent crisComponent = (ICRISComponent) component;
+                        RelationConfiguration relationConfiguration = crisComponent
+                                .getRelationConfiguration();
+                        if (Item.class.isAssignableFrom(relationConfiguration.getRelationClass()))
+                        {
+                            Integer key = CrisConstants.getEntityType(crisComponent.getTarget());
+                            String query = relationConfiguration.getQuery();
+                            if(!mapRelationFields.containsKey(key)) {
+                                List<String> rels = new LinkedList<String>();
+                                rels.add(query);
+                                mapRelationFields.put(key, rels);
+                            }
+                            else {
+                                mapRelationFields.get(key).add(query);
+                            }
                         }
                     }
                 }

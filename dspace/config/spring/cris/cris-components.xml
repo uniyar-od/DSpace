@@ -29,10 +29,26 @@
 			<map>
 				<entry key="dspaceitems" value-ref="publicationlist" />
 				<entry key="projects" value-ref="projectlist" />
+				<entry key="bibliometrics" value-ref="bibliometrics" />
 			</map>
 		</property>
 	</bean>
 		
+	<!-- Check if bibliometrics data are empty -->
+	<bean id="bibliometrics"
+		class="org.dspace.app.webui.cris.components.BibliometricsConfigurerComponent">
+		<property name="types">
+			<map>
+				<entry key="bibliometrics" value-ref="bibliometricsComponent" />
+			</map>
+		</property>
+	</bean>
+
+	<bean id="bibliometricsComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="bibliometrics" />
+	</bean>
+
 	<!-- Publication component for RP -->
 	<bean id="publicationlist"
 		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">

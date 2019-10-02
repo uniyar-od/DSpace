@@ -322,7 +322,7 @@ public class ResearcherTagLibraryFunctions
 
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getRPComponents();
+        Map<String, IComponent> rpComponent = researcher.getRPComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -355,7 +355,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher
+        Map<String, IComponent> rpComponent = researcher
                 .getProjectComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
@@ -389,7 +389,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getDOComponents();
+        Map<String, IComponent> rpComponent = researcher.getDOComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -422,7 +422,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getOUComponents();
+        Map<String, IComponent> rpComponent = researcher.getOUComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())

@@ -15,6 +15,8 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.CrisComponentsService;
 import org.dspace.app.cris.integration.ICRISComponent;
 
+import it.cilea.osd.jdyna.components.IComponent;
+
 
 
 public class CrisStatComponentsService extends AStatComponentService<IStatsDualComponent>
@@ -56,9 +58,11 @@ public class CrisStatComponentsService extends AStatComponentService<IStatsDualC
         if(this.components==null) {
             this.components = new TreeMap<String, IStatsDualComponent>();
         }
-        Map<String,ICRISComponent> mapBean = crisComponentsService.getComponents();
+        Map<String,IComponent> mapBean = crisComponentsService.getComponents();
         for(String key : mapBean.keySet()) {
-            components.put(key, mapBean.get(key)); 
+            if (mapBean instanceof IStatsDualComponent) {
+                components.put(key, (IStatsDualComponent)mapBean.get(key));
+            }
         }
         return components;
     }

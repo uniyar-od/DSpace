@@ -35,6 +35,8 @@ import org.dspace.utils.DSpace;
 import org.hibernate.SessionFactory;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
+import it.cilea.osd.jdyna.components.IComponent;
+
 public class Researcher implements EPersonCRISIntegration
 {
     
@@ -78,7 +80,7 @@ public class Researcher implements EPersonCRISIntegration
                 "org.dspace.discovery.SearchService", CrisSearchService.class);
     }
     
-    public Map<String, ICRISComponent> getRPComponents() {
+    public Map<String, IComponent> getRPComponents() {
         CrisComponentsService compService = dspace.getServiceManager().getServiceByName("rpComponentsService", CrisComponentsService.class);
         if (compService == null)
         {
@@ -87,7 +89,7 @@ public class Researcher implements EPersonCRISIntegration
         return compService.getComponents();
     }
     
-    public Map<String, ICRISComponent> getProjectComponents() {
+    public Map<String, IComponent> getProjectComponents() {
         CrisComponentsService compService = dspace.getServiceManager().getServiceByName("projectComponentsService", CrisComponentsService.class);
         if (compService == null)
         {
@@ -96,7 +98,7 @@ public class Researcher implements EPersonCRISIntegration
         return compService.getComponents();
     }
     
-    public Map<String, ICRISComponent> getOUComponents() {
+    public Map<String, IComponent> getOUComponents() {
         CrisComponentsService compService = dspace.getServiceManager().getServiceByName("ouComponentsService", CrisComponentsService.class);
         if (compService == null)
         {
@@ -105,7 +107,7 @@ public class Researcher implements EPersonCRISIntegration
         return compService.getComponents();
     }
 
-    public Map<String, ICRISComponent> getDOComponents() {
+    public Map<String, IComponent> getDOComponents() {
         CrisComponentsService compService = dspace.getServiceManager().getServiceByName("doComponentsService", CrisComponentsService.class);
         if (compService == null)
         {
