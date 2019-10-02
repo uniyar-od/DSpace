@@ -666,11 +666,11 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventsdescription']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Description><xsl:value-of select="." /></oai_cerif:Description>
+	        	<oai_cerif:Description xml:lang="en"><xsl:value-of select="." /></oai_cerif:Description>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventskeywords']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Keywords xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keywords>
+	        	<oai_cerif:Keyword xml:lang="en"><xsl:value-of select="." /></oai_cerif:Keyword>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisevents']/doc:element[@name='eventsorganizerou']/doc:element/doc:element/doc:element[@name='authority']">
@@ -776,7 +776,7 @@
 	        </xsl:for-each>
 
 	        <xsl:for-each select="doc:element[@name='crisequipment']/doc:element[@name='equipmentdescription']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Description><xsl:value-of select="." /></oai_cerif:Description>
+	        	<oai_cerif:Description xml:lang="en"><xsl:value-of select="." /></oai_cerif:Description>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisequipment']/doc:element[@name='equipmentownerou']/doc:element/doc:element">
@@ -1182,7 +1182,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Description><xsl:value-of select="." /></oai_cerif:Description>
+	        	<oai_cerif:Description xml:lang="en"><xsl:value-of select="." /></oai_cerif:Description>
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='subject']/doc:element/doc:field[@name='value']">
@@ -1223,7 +1223,7 @@
 		        	<xsl:variable name="generatedby_id">
 	             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
 	             	</xsl:variable>
-             		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName>
+             		<!-- <oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']" /></oai_cerif:DisplayName> -->
  					<xsl:call-template name="equipment">
 						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
 						<xsl:with-param name="equipment_id" select="$generatedby_id" />
