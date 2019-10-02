@@ -17,7 +17,8 @@ public class SimpleMapConverter extends MapConverterModifier {
 	}
 
 	public String getValue(String key) {
-		String stringValue = key;
+		boolean matchEmpty = false;
+	    String stringValue = key;
 
         String tmp = "";
         if (mapping.containsKey(stringValue))
@@ -34,6 +35,9 @@ public class SimpleMapConverter extends MapConverterModifier {
                 {
                     tmp = stringValue.replaceAll(regex,
                             regexConfig.get(regex));
+                    if (StringUtils.isBlank(tmp)) {
+                        matchEmpty = true;
+                    }
                 }
             }
         }
@@ -42,7 +46,7 @@ public class SimpleMapConverter extends MapConverterModifier {
         {
             return stringValue;
         }
-        else if (StringUtils.isNotBlank(tmp))
+        else if (StringUtils.isNotBlank(tmp) || (StringUtils.isBlank(tmp) && matchEmpty))
         {
             return tmp;
         }
