@@ -948,11 +948,15 @@
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='url']/doc:element/doc:field[@name='value']">
-                <oai_cerif:URL><xsl:value-of select="." /></oai_cerif:URL>
+            	<xsl:if test="position() = 1">
+                	<oai_cerif:URL><xsl:value-of select="." /></oai_cerif:URL>
+                </xsl:if>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='uri']/doc:element/doc:field[@name='value']">
-                <oai_cerif:URN><xsl:value-of select="." /></oai_cerif:URN>
+            	<xsl:if test="position() = 1">
+                	<oai_cerif:URN><xsl:value-of select="." /></oai_cerif:URN>
+                </xsl:if>
             </xsl:for-each>
             
             <xsl:if test="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']/doc:element/doc:field[@name='value']!=''">
