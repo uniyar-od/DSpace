@@ -172,7 +172,9 @@ public class CitationDocument {
     public File makeCitedDocument(Context context,Bitstream bitstream,String configuration)
             throws IOException, SQLException, AuthorizeException, COSVisitorException {
         // check authorization
-        AuthorizeManager.authorizeAction(context, bitstream, Constants.READ);
+    	if(context!= null) {
+    		AuthorizeManager.authorizeAction(context, bitstream, Constants.READ);
+    	}
         PDDocument document = new PDDocument();
         PDDocument sourceDocument = new PDDocument();
         String filePath =tempDir.getAbsolutePath() + "/bitstream.cover.pdf";

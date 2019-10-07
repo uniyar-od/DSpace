@@ -80,6 +80,10 @@ public class BitstreamServlet extends DSpaceServlet
     	Item item = null;
     	Bitstream bitstream = null;
 
+        boolean displayLicense = ConfigurationManager.getBooleanProperty("webui.licence_bundle.show", false);
+        boolean isLicense = false;
+        boolean displayPreservation = ConfigurationManager.getBooleanProperty("webui.preservation_bundle.show", false);
+        boolean isPreservation = false;    	
         // Get the ID from the URL
         String idString = request.getPathInfo();
         String handle = "";
@@ -163,6 +167,20 @@ public class BitstreamServlet extends DSpaceServlet
                         found = true;
                     }
                 }
+                if (found && 
+                        bundles[i].getName().equals(Constants.LICENSE_BUNDLE_NAME) &&
+                        bitstream.getName().equals(Constants.LICENSE_BITSTREAM_NAME) )
+                    {
+                            isLicense = true;
+                }else if(found && bundles[i].getName().equals("PRESERVATION")) {
+                    	isPreservation = true;
+                }
+                    
+                if (!AuthorizeManager.isAdmin(context) && 
+                		( (isLicense && !displayLicense ) || (isPreservation && !displayPreservation ) ))
+                {
+                    throw new AuthorizeException();
+                }
             }
         }
 
@@ -239,7 +257,7 @@ public class BitstreamServlet extends DSpaceServlet
     	}
     	String configFile =coverService.getConfigFile(collHandle);
         if (StringUtils.isNotBlank(configFile)
-                && coverService.isValidType(bitstream))
+                && coverService.canCreateCover(bitstream) )
         {
             // Pipe the bits
 
