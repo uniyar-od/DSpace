@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -205,6 +206,31 @@ public class ResearcherTagLibraryFunctions
 
     }
 
+    public static boolean isVerticalTab(String entityType, String tabName) {
+
+        String verticalSectionsConfigured = ConfigurationManager.getProperty("cris-vertical-components", "cris-entities." + entityType.toLowerCase() + ".sections");
+        if (StringUtils.isNotBlank(verticalSectionsConfigured)) {
+            List<String> verticalSections = Arrays.asList(verticalSectionsConfigured.split(","));
+            for (String verticalSection : verticalSections) {
+                if (isVerticalTab(verticalSection, entityType, tabName)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isVerticalTab(String verticalSection, String entityType, String tabName) {
+
+        String verticalTabsConfigured = ConfigurationManager.getProperty("cris-vertical-components", "cris-entities." + entityType.toLowerCase() + ".sections." + verticalSection + ".tabs");
+        if (StringUtils.isNotBlank(verticalTabsConfigured)
+                && Arrays.asList(verticalTabsConfigured.split(",")).contains(tabName)) {
+            return true;
+        }
+
+        return false;
+    }
 
     public static boolean isTabHidden(Object anagrafica,String tabName)
             throws IllegalArgumentException, IllegalAccessException,
@@ -326,7 +352,7 @@ public class ResearcherTagLibraryFunctions
 
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getRPComponents();
+        Map<String, IComponent> rpComponent = researcher.getRPComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -359,7 +385,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher
+        Map<String, IComponent> rpComponent = researcher
                 .getProjectComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
@@ -393,7 +419,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getDOComponents();
+        Map<String, IComponent> rpComponent = researcher.getDOComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -426,7 +452,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getOUComponents();
+        Map<String, IComponent> rpComponent = researcher.getOUComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
