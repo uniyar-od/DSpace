@@ -73,7 +73,8 @@ public class RetrieveServlet extends DSpaceServlet
         Bitstream bitstream = null;
         boolean displayLicense = ConfigurationManager.getBooleanProperty("webui.licence_bundle.show", false);
         boolean isLicense = false;
-        
+        boolean displayPreservation = ConfigurationManager.getBooleanProperty("webui.preservation_bundle.show", false);
+        boolean isPreservation = false;          
 
         // Get the ID from the URL
         String idString = request.getPathInfo();
@@ -119,11 +120,14 @@ public class RetrieveServlet extends DSpaceServlet
                 bitstream.getName().equals(Constants.LICENSE_BITSTREAM_NAME))
             {
                     isLicense = true;
+            }else if(bundle!=null && bundle.getName().equals("PRESERVATION")) {
+            	isPreservation = true;
             }
             
-            if (isLicense && !displayLicense && !authorizeService.isAdmin(context))
+            if (!authorizeService.isAdmin(context, bitstream) && 
+        		( (isLicense && !displayLicense ) || (isPreservation && !displayPreservation ) ))
             {
-                throw new AuthorizeException();
+            	throw new AuthorizeException();
             }
             
 			if (bitstream.getMetadataValue(IViewer.METADATA_STRING_PROVIDER).contains(IViewer.STOP_DOWNLOAD)
