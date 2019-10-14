@@ -422,7 +422,7 @@
            		</oai_cerif:Partner>
             </xsl:for-each>
             <!-- Contractor -->
-	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='organization']/doc:element/doc:element">
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='contractorou']/doc:element/doc:element">
              	<xsl:variable name="organization_id">
              		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              	</xsl:variable>
@@ -434,6 +434,19 @@
 					</xsl:call-template>
            		</oai_cerif:Contractor>
             </xsl:for-each>
+            <!-- Member -->
+	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='memberou']/doc:element/doc:element">
+             	<xsl:variable name="organization_id">
+             		<xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
+             	</xsl:variable>
+            	<oai_cerif:Member>
+            		<oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']/text()" /></oai_cerif:DisplayName>
+					<xsl:call-template name="ou">
+						<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
+						<xsl:with-param name="ou_id" select="$organization_id" />
+					</xsl:call-template>
+           		</oai_cerif:Member>
+            </xsl:for-each>            
 	        </oai_cerif:Consortium>
 	        <!-- Consortium [END] -->
 	        </xsl:if>
