@@ -816,7 +816,8 @@
             	    <xsl:variable name="journals_id">
                         <xsl:value-of select="./doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
                     </xsl:variable>
-                    
+            
+                    <oai_cerif:DisplayName><xsl:value-of select="./doc:field[@name='value']/text()" /></oai_cerif:DisplayName>        
             		<!-- by desing dc.relation.ispartof is always a JournalAuthority -->
             		<xsl:call-template name="journal">
             			<xsl:with-param name="selector" select="./doc:element[@name='authority']" />
