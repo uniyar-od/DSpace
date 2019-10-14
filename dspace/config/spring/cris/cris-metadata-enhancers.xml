@@ -255,7 +255,8 @@
 			</list>
 		</property>
 	</bean>	
-
+	
+	<!-- Used for literature OAI context -->
 	<bean class="org.dspace.content.ItemEnhancer">
 		<property name="alias" value="openairetype" />
 		<property name="metadata">
@@ -270,6 +271,22 @@
 		</property>
 	</bean>
 
+	<!-- Used for CRIS Manager OAI context -->
+	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="openairecristype" />
+		<property name="metadata">
+			<list>
+				<value>dc.type</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>
+			    <ref bean="enhancerCrisType-MapConverter"/>
+			</list>
+		</property>
+	</bean>
+
+	<!-- Used for CRIS Manager OAI context -->
 	<bean class="org.dspace.content.ItemEnhancer">
 		<property name="alias" value="cerifentitytype" />
 		<property name="metadata">
@@ -292,6 +309,9 @@
 		<property name="converter" ref="MapConverterType" />
 	</bean>
 
+	<bean name="enhancerCrisType-MapConverter" class="org.dspace.content.integration.defaultvalues.MapConverterValueGenerator" >
+		<property name="converter" ref="MapConverterCrisType" />
+	</bean>
 	<bean name="enhancerCerifEntityType-MapConverter" class="org.dspace.content.integration.defaultvalues.MapConverterValueGenerator" >
 		<property name="converter" ref="MapConverterCerifEntityType" />
 	</bean>
@@ -317,7 +337,18 @@
 			ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value="@@ident@@" />
 	</bean>
-	
+
+	<bean name="MapConverterCrisType"
+		class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<constructor-arg
+			value="enhancerCrisType-MapConverter" />
+		<property name="converterNameFile"
+			value="mapConverter-openaireCrisType.properties" />
+		<property name="configurationService"
+			ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="other" />
+	</bean>
+		
 	<bean name="MapConverterCerifEntityType"
 		class="org.dspace.util.SimpleMapConverter" init-method="init">
 		<constructor-arg

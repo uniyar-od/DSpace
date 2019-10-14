@@ -53,84 +53,21 @@
     <xsl:template name="oai_publicationtype">
         <xsl:param name="type" select="other"/>
         <xsl:choose>
-            <!-- see driverDocumentTypeCondition, xaoi.xml -->
-            
-            <!-- journal article (http://purl.org/coar/resource_type/c_6501): An article on a particular topic and published in a journal issue. (adapted from fabio) -->
-            <xsl:when test="$type='article' or $type='info:eu-repo/semantics/article'">http://purl.org/coar/resource_type/c_6501</xsl:when>
-            <!-- bachelor thesis (http://purl.org/coar/resource_type/c_7a1f): A thesis reporting a research project undertaken as part of an undergraduate course of education leading to a bachelor’s degree. -->
-            <xsl:when test="$type='bachelorthesis' or $type='info:eu-repo/semantics/bachelorthesis'">http://purl.org/coar/resource_type/c_46ec</xsl:when>
-            <!-- master thesis (http://purl.org/coar/resource_type/c_bdcc): A thesis reporting a research project undertaken as part of a graduate course of education leading to a master’s degree. -->
-            <xsl:when test="$type='masterthesis' or $type='info:eu-repo/semantics/masterthesis'">http://purl.org/coar/resource_type/c_db06</xsl:when>
-            <!-- doctoral thesis (http://purl.org/coar/resource_type/c_db06): A thesis reporting the research undertaken during a period of graduate study leading to a doctoral degree -->
-            <xsl:when test="$type='doctoralthesis' or $type='info:eu-repo/semantics/doctoralthesis'">http://purl.org/coar/resource_type/c_bdcc</xsl:when>
-            <!-- book (http://purl.org/coar/resource_type/c_2f33): A non-serial publication that is complete in one volume or a designated finite number of volumes. (adapted from CiTO; EPrint Type vocabulary) -->
-            <xsl:when test="$type='book' or $type='info:eu-repo/semantics/book'">http://purl.org/coar/resource_type/c_2f33</xsl:when>
-            <!-- book part (http://purl.org/coar/resource_type/c_3248): A defined chapter or section of a book, usually with a separate title or number -->
-            <xsl:when test="$type='bookpart' or $type='info:eu-repo/semantics/bookpart'">http://purl.org/coar/resource_type/c_3248</xsl:when>
-            <!-- review (http://purl.org/coar/resource_type/c_efa0): A review of others’ published work. -->
-            <xsl:when test="$type='review' or $type='info:eu-repo/semantics/review'">http://purl.org/coar/resource_type/c_efa0</xsl:when>
-            <!-- conference object (http://purl.org/coar/resource_type/c_c94f): All kind of digital resources contributed to a conference, like conference presentation (slides), conference report, conference lecture, abstracts, demonstrations. For conference papers, posters or proceedings the specific concepts should be used. -->
-            <xsl:when test="$type='conferenceobject' or $type='info:eu-repo/semantics/conferenceobject'">http://purl.org/coar/resource_type/c_c94f</xsl:when>
-            <!-- lecture (http://purl.org/coar/resource_type/c_8544): A transcription of a talk delivered during an academic event. -->
-            <xsl:when test="$type='lecture' or $type='info:eu-repo/semantics/lecture'">http://purl.org/coar/resource_type/c_8544</xsl:when>
-            <!-- working paper (http://purl.org/coar/resource_type/c_8042): A working paper or preprint is a report on research that is still on-going or which has not yet been accepted for publication. -->
-            <xsl:when test="$type='workingpaper' or $type='info:eu-repo/semantics/workingpaper'">http://purl.org/coar/resource_type/c_8042</xsl:when>
-            <!-- preprint (http://purl.org/coar/resource_type/c_816b): Pre-print describes the first draft of the article - before peer-review, even before any contact with a publisher. This use is common amongst academics for whom the key modification of an article is the peer-review process... -->
-            <xsl:when test="$type='preprint' or $type='info:eu-repo/semantics/preprint'">http://purl.org/coar/resource_type/c_816b</xsl:when>
-            <!-- eport (http://purl.org/coar/resource_type/c_93fc): A report is a separately published record of research findings, research still in progress, or other technical findings, usually bearing a report number and sometimes a grant number assigned by the funding agency... -->
-            <xsl:when test="$type='report' or $type='info:eu-repo/semantics/report'">http://purl.org/coar/resource_type/c_93fc</xsl:when>
-            <!-- annotation (http://purl.org/coar/resource_type/c_1162): An annotation in the sense of a legal note is a legally explanatory comment on a decision handed down by a court or arbitral tribunal. -->
-            <xsl:when test="$type='annotation' or $type='info:eu-repo/semantics/annotation'">http://purl.org/coar/resource_type/c_1162</xsl:when>
-            <!-- contribution to journal (http://purl.org/coar/resource_type/c_3e5a): A contribution to a journal denotes a work published in a journal. If applicable sub-terms should be chosen. -->
-            <xsl:when test="$type='contributiontoperiodical' or $type='info:eu-repo/semantics/contributiontoperiodical'">http://purl.org/coar/resource_type/c_3e5a</xsl:when>
-            <!-- journal (http://purl.org/coar/resource_type/c_0640): A periodical of (academic) journal articles. (Adapted from bibo) -->
-            <xsl:when test="$type='journal' or $type='info:eu-repo/semantics/journal'">http://purl.org/coar/resource_type/c_0640</xsl:when>
-            <!-- other type of report (http://purl.org/coar/resource_type/c_18wq): Other types of report may include Business Plans Technical Specifications, data management plans, recommendation reports, white papers, ... -->
-            <xsl:when test="$type='other' or $type='info:eu-repo/semantics/other'">http://purl.org/coar/resource_type/c_18wq</xsl:when>
-            <!-- [NOTE] default is other -->
-            <xsl:otherwise>http://purl.org/coar/resource_type/c_18wq</xsl:otherwise>
+		<xsl:when test="$type='Publications'">Publications</xsl:when>
         </xsl:choose>
     </xsl:template>
     
     <xsl:template name="oai_producttype">
         <xsl:param name="type" select="other"/>
         <xsl:choose>
-	        <!-- interactive resource (http://purl.org/coar/resource_type/c_e9a0): A resource requiring interaction from the user to be understood, executed, or experienced. Examples include forms on Web pages, applets, multimedia learning objects, chat services, or virtual reality environments. -->
-	        <xsl:when test="$type='interactive resource'">http://purl.org/coar/resource_type/c_e9a0</xsl:when>
-	        <!-- website (http://purl.org/coar/resource_type/c_7ad9): A website, also written as web site or simply site, is a set of related web pages typically served from a single web domain -->
-	        <xsl:when test="$type='website'">http://purl.org/coar/resource_type/c_7ad9</xsl:when>
-	        <!-- dataset (http://purl.org/coar/resource_type/c_ddb1): A collection of related facts and data encoded in a defined structure. (adapted from fabio; DataCite) -->
-	        <xsl:when test="$type='dataset'">http://purl.org/coar/resource_type/c_ddb1</xsl:when>
-	        <!-- image (http://purl.org/coar/resource_type/c_c513): A visual representation other than text, including all types of moving image and still image -->
-	        <xsl:when test="$type='image'">http://purl.org/coar/resource_type/c_c513</xsl:when>
-	        <!-- moving image (http://purl.org/coar/resource_type/c_8a7e): A moving display, either generated dynamically by a computer program or formed from a series of pre-recorded still images imparting an impression of motion when shown in succession. -->
-	        <xsl:when test="$type='moving image'">http://purl.org/coar/resource_type/c_8a7e</xsl:when>
-	        <!-- video (http://purl.org/coar/resource_type/c_12ce): A recording of visual images, usually in motion and with sound accompaniment. -->
-	        <xsl:when test="$type='video'">http://purl.org/coar/resource_type/c_12ce</xsl:when>
-	        <!-- still image (http://purl.org/coar/resource_type/c_ecc8): A recorded static visual representation. -->
-	        <xsl:when test="$type='still image'">http://purl.org/coar/resource_type/c_ecc8</xsl:when>
-	        <!-- software (http://purl.org/coar/resource_type/c_5ce6): A computer program in source code (text) or compiled form. -->
-	        <xsl:when test="$type='software'">http://purl.org/coar/resource_type/c_5ce6</xsl:when>
-	        <!-- workflow (http://purl.org/coar/resource_type/c_393c): A recorded sequence of connected steps, which may be automated, specifying a reliably repeatable sequence of operations... -->
-	        <xsl:when test="$type='workflow'">http://purl.org/coar/resource_type/c_393c</xsl:when>
-	        <!-- cartographic material (http://purl.org/coar/resource_type/c_12cc): Any material representing the whole or part of the earth or any celestial body at any scale.  -->
-	        <xsl:when test="$type='cartographic material'">http://purl.org/coar/resource_type/c_12cc</xsl:when>
-	        <!-- map (http://purl.org/coar/resource_type/c_12cd): Defined as a representation normally to scale and on a flat medium, of a selection of material or abstract features on... -->
-	        <xsl:when test="$type='map'">http://purl.org/coar/resource_type/c_12cd</xsl:when>
-	        <!-- sound (http://purl.org/coar/resource_type/c_18cc): A resource primarily intended to be heard.  -->
-	        <xsl:when test="$type='sound'">http://purl.org/coar/resource_type/c_18cc</xsl:when>
-	        
-	        <!-- [NOTE] Other value is reserved for publication, using "other product" -->
-	        <!-- other (http://purl.org/coar/resource_type/c_1843): A rest category which may cover text, interactive, sound, or image-based resources not explicitly addressed in any concept in this vocabulary -->
-	        <xsl:when test="$type='other product'">http://purl.org/coar/resource_type/c_1843</xsl:when>
-		</xsl:choose>
+		<xsl:when test="$type='Products'">Products</xsl:when>
+	</xsl:choose>
   	</xsl:template>
   	
   	 <xsl:template name="oai_patenttype">
         <xsl:param name="type" select="other"/>
         <xsl:choose>
-	        <!-- patent (http://purl.org/coar/resource_type/c_15cd): A patent or patent application. -->
-	        <xsl:when test="$type='patent'">http://purl.org/coar/resource_type/c_15cd</xsl:when>
+	        <xsl:when test="$type='Patents'">Patents</xsl:when>
 	   	</xsl:choose>
   	</xsl:template>
 
@@ -228,21 +165,16 @@
 		<xsl:for-each select="$selector">
 			
 			<!-- check type (is a publication or a product or ...) -->
-        	<xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:metadata/doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
+        	<xsl:variable name="typeCerifEntityType">
+                <xsl:value-of select="doc:metadata/doc:element[@name='item']/doc:element[@name='cerifentitytype']/doc:element/doc:field[@name='value']" />
             </xsl:variable>
             
-            <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'" />
-			<xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
-			<!-- upper-case() and lower-case() functions are not available use "translate" to convert from uppercase to lowercase -->
-            <xsl:variable name="dc_type" select="translate($dc_type_ci,$uppercase,$lowercase)"/>
-            
             <!-- check product -->
-            <xsl:variable name="type_product"><xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></xsl:variable>
+            <xsl:variable name="type_product"><xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$typeCerifEntityType" /></xsl:call-template></xsl:variable>
             <!-- check patent  -->
-            <xsl:variable name="type_patent"><xsl:call-template name="oai_patenttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></xsl:variable>
+            <xsl:variable name="type_patent"><xsl:call-template name="oai_patenttype"><xsl:with-param name="type" select="$typeCerifEntityType" /></xsl:call-template></xsl:variable>
             <!-- check publication -->
-            <xsl:variable name="type_publication"><xsl:call-template name="oai_publicationtype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></xsl:variable>
+            <xsl:variable name="type_publication"><xsl:call-template name="oai_publicationtype"><xsl:with-param name="type" select="$typeCerifEntityType" /></xsl:call-template></xsl:variable>
             
             <xsl:choose>
             	<xsl:when test="$type_product != ''">
@@ -855,15 +787,10 @@
         </xsl:variable>
         
         <oai_cerif:Publication id="{$item_prop_id}">
-            <xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
-            </xsl:variable>
-            <xsl:variable name="lowercase" select="'abcdefghijklmnopqrstuvwxyz'" />
-			<xsl:variable name="uppercase" select="'ABCDEFGHIJKLMNOPQRSTUVWXYZ'" />
-			<!-- upper-case() and lower-case() functions are not available use "translate" to convert from uppercase to lowercase -->
-            <xsl:variable name="dc_type" select="translate($dc_type_ci,$uppercase,$lowercase)"/>
             
-            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types"><xsl:call-template name="oai_publicationtype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
+            <xsl:for-each select="doc:element[@name='item']/doc:element[@name='openairecristype']/doc:element/doc:field[@name='value']">
+	            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Publication_Types"><xsl:value-of select="." /></oai_cerif:Type>
+            </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
@@ -1108,13 +1035,11 @@
         </xsl:variable>
         
         <oai_cerif:Product id="{$item_prop_id}">
-            <xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
-            </xsl:variable>
-            <xsl:variable name="dc_type" select="translate($dc_type_ci,'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
             
-            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Product_Types"><xsl:call-template name="oai_producttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
-            
+            <xsl:for-each select="doc:element[@name='item']/doc:element[@name='openairecristype']/doc:element/doc:field[@name='value']">
+	            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Product_Types"><xsl:value-of select="." /></oai_cerif:Type>
+            </xsl:for-each>            
+                        
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Name xml:lang="en"><xsl:value-of select="." /></oai_cerif:Name>
             </xsl:for-each>
@@ -1321,13 +1246,11 @@
         </xsl:variable>
         
         <oai_cerif:Patent id="{$item_prop_id}">
-            <xsl:variable name="dc_type_ci">
-                <xsl:value-of select="doc:element[@name='item']/doc:element[@name='openairetype']/doc:element/doc:field[@name='value']" />
-            </xsl:variable>
-            <xsl:variable name="dc_type" select="translate($dc_type_ci,'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz')"/>
-            
-            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Patent_Types"><xsl:call-template name="oai_patenttype"><xsl:with-param name="type" select="$dc_type" /></xsl:call-template></oai_cerif:Type>
-            
+
+           <xsl:for-each select="doc:element[@name='item']/doc:element[@name='openairecristype']/doc:element/doc:field[@name='value']">
+	            <oai_cerif:Type xmlns:oai_cerif="https://www.openaire.eu/cerif-profile/vocab/COAR_Patent_Types"><xsl:value-of select="." /></oai_cerif:Type>
+            </xsl:for-each>
+                        
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='title']/doc:element/doc:field[@name='value']">
                 <oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
             </xsl:for-each>
