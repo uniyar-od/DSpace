@@ -538,7 +538,7 @@
 	        </xsl:for-each>
 	        
 	        <xsl:for-each select="doc:element[@name='crisproject']/doc:element[@name='status']/doc:element/doc:element/doc:field[@name='value']">
-	        	<oai_cerif:Status><xsl:value-of select="." /></oai_cerif:Status>
+	        	<oai_cerif:Status scheme="https://cerif.eurocris.org/model#Project_Classification"><xsl:value-of select="." /></oai_cerif:Status>
 	        </xsl:for-each>
 	        
 	        <!--  REVIEW METADATA [START]: uses, oamandate -->
