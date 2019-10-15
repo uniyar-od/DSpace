@@ -346,7 +346,7 @@
 			value="mapConverter-openaireCrisType.properties" />
 		<property name="configurationService"
 			ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="other" />
+		<property name="defaultValue" value="http://purl.org/coar/resource_type/c_1843" />
 	</bean>
 		
 	<bean name="MapConverterCerifEntityType"
