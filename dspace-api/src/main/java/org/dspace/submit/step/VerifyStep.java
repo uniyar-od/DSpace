@@ -123,4 +123,11 @@ public class VerifyStep extends AbstractProcessingStep
         // always just one page for verify step
         return 1;
     }
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
+    }
 }

@@ -35,6 +35,19 @@
    
    
      <page number="1">
+     
+<!--   	 <field>
+       	<dc-schema>local</dc-schema>
+		<dc-element>submission</dc-element>
+		<dc-qualifier>type</dc-qualifier>
+		<parent />
+		<label>Submission type</label>
+		<input-type value-pairs-name="submission_types">dropdown</input-type>
+		<repeatable>false</repeatable>
+		<required />
+		<hint />
+     </field> -->
+     
 	 <!-- entspricht Erfassungsmaske 1 - Eingabe der Basis-Metadaten  -->
 	 <!-- vor Seite 2 Einbindung der Buttons "Metadata with fulltext" and "Metadata without fulltext"; A.G., 29.07.2019  -->
 	 <!-- DC.TITLE  -->
@@ -1533,9 +1546,16 @@
 		</pair>
 	</value-pairs>
 	
-	
-	
-	
+<!--     <value-pairs value-pairs-name="submission_types" dc-term="submission_types">
+      <pair>
+        <displayed-value>only-metadata</displayed-value>
+		<stored-value>only-metadata</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Full-Text</displayed-value>
+        <stored-value>full-text</stored-value>
+      </pair>
+    </value-pairs> -->
 
  </form-value-pairs>
 
