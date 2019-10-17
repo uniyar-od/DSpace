@@ -26,6 +26,7 @@ import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.app.cris.model.orcid.OrcidQueue;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.webui.json.JSONRequest;
+import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -68,14 +69,18 @@ public class JSONOrcidQueueServlet extends JSONRequest {
 		if (req.getPathInfo().contains("rest")) {
 			String uuId = req.getParameter("uuid");
 			String owner = req.getParameter("owner");
+			boolean force = UIUtil.getBoolParameter(req, "force");
 			boolean ok = false;
 			//send to ORCID Registry
-			if (req.getPathInfo().trim().endsWith("crisrp")) {
+			if (req.getPathInfo().trim().endsWith("remove")) {
+				orcidPreferencesUtils.deleteOrcidQueueByOwnerAndUuid(owner, uuId);
+				ok = true;
+			} else if (req.getPathInfo().trim().endsWith("crisrp")) {
 				ok = orcidPreferencesUtils.sendOrcidProfile(owner, uuId);
 			} else if (req.getPathInfo().trim().endsWith("crispj")) {
 				ok = orcidPreferencesUtils.sendOrcidFunding(owner, uuId);
 			} else {
-				ok = orcidPreferencesUtils.sendOrcidWork(owner, uuId);
+				ok = orcidPreferencesUtils.sendOrcidWork(owner, uuId, force);
 			}
 			if(ok) {				
 				jo.addProperty("status", true);
