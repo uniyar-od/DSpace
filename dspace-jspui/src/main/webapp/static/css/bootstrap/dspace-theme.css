@@ -13,7 +13,13 @@
 */
 .banner img {background-color: #FFFFFF;padding:15px;margin-top:20px;}
 .brand h4 {color: #00716A}
-#communitylist-top-menu a, #userloggedin-top-menu a {padding-top:0.4em;padding-bottom:0.4em;}
+@media (min-width: 991px) {
+    #communitylist-top-menu a {
+        padding-top:0.4em;
+        padding-bottom:0.4em;
+    }
+}
+#userloggedin-top-menu a {padding-top:0.4em;padding-bottom:0.4em;}
 #user-top-menu, #userloggedin-top-menu {margin-right: 15px;}
 footer {padding-top: 1em;}
 footer.navbar-inverse {color: white;}
@@ -377,11 +383,19 @@ footer .container {
 	background-image: linear-gradient(to bottom, #A50034 0,#A50034 100%);
 }
 
+@media (max-width: 991px) {
+    .dropdown-small {
+        right: 0;
+        left: auto;
+        float: right !important;
+    }
+}
+
 #myBtn {
   display: none;
   position: fixed;
   bottom: 20px;
-  left: 30px;
+  right: 30px;
   z-index: 99;
   font-size: 20px;
   border: none;
