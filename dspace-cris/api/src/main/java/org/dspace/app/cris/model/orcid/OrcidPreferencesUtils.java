@@ -123,6 +123,7 @@ public class OrcidPreferencesUtils
     public void prepareOrcidQueue(String crisId, DSpaceObject obj)
     {
 		if (obj instanceof ResearcherPage && hasBeenImportedInThisThread((ResearcherPage) obj)) {
+			log.debug("obj has been imported in this thread " + ((ResearcherPage) obj).getCrisID());
 			return;
 		}
         OrcidQueue orcidQueue = getApplicationService()
@@ -137,6 +138,7 @@ public class OrcidPreferencesUtils
             orcidQueue.setFastlookupObjectName(obj.getName());
             orcidQueue.setFastlookupUuid(obj.getHandle());
             getApplicationService().saveOrUpdate(OrcidQueue.class, orcidQueue);
+            log.debug("object_type " + obj.getType() + " id " + obj.getID() + " queued for ORCID synchronization of " + crisId);
         }
     }
 
@@ -763,6 +765,11 @@ public class OrcidPreferencesUtils
         getApplicationService().deleteOrcidQueueByOwnerAndTypeId(crisID,
                 typeId);
     }
+    
+    public void deleteOrcidQueueByOwnerAndUuid(String crisID, String uuid)
+    {
+        getApplicationService().deleteOrcidQueueByOwnerAndUuid(crisID, uuid);
+    }
 
     public boolean sendOrcidProfile(String owner, String uuId)
     {
@@ -775,9 +782,9 @@ public class OrcidPreferencesUtils
                 uuId);
     }
 
-    public boolean sendOrcidWork(String owner, String uuId)
+    public boolean sendOrcidWork(String owner, String uuId, boolean force)
     {
-        return PushToORCID.sendOrcidWork(getApplicationService(), owner, uuId);
+        return PushToORCID.sendOrcidWork(getApplicationService(), owner, uuId, force);
     }
 
     public List<OrcidHistory> getOrcidHistoryInSuccessByOwner(String crisID)
