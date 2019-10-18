@@ -24,6 +24,8 @@
 <%@ page import="org.dspace.app.webui.servlet.SubmissionController" %>
 <%@ page import="org.dspace.app.webui.submit.JSPStepManager" %>
 <%@ page import="org.dspace.submit.AbstractProcessingStep" %>
+<%@ page import="org.dspace.content.EditItem"%>
+<%@ page import="org.dspace.core.ConfigurationManager"%>
 
 <%@ page import="org.dspace.core.Context" %>
 <%@ page import="org.dspace.content.Collection" %>
@@ -38,6 +40,13 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 
 <%
+
+    Object subType = request.getAttribute("submissionType");
+    String submissionType = null;
+    if (subType != null){
+		submissionType = (String) subType;
+    }
+    
     request.setAttribute("LanguageSwitch", "hide");
 
     /** log4j logger */
@@ -105,8 +114,14 @@
           int stepNum = Integer.parseInt(fields[0]);
 		  int pageNum = Integer.parseInt(fields[1]);
           
+		  
+		  SubmissionStepConfig nextStepConfig = subInfo.getSubmissionConfig().getStep(stepNum);
 		  //if anywhere in last step (i.e. submission is completed), disable EVERYTHING (not allowed to jump back)
-		  if(stepReached >= subConfig.getNumberOfSteps())
+          if(nextStepConfig != null && JSPStepManager.skipStep(nextStepConfig, subInfo) && !(subInfo.getSubmissionItem() instanceof EditItem)){
+          %>
+          <input class="submitProgressButtonCurrent btn btn-default" disabled="disabled" type="submit" name="<%=AbstractProcessingStep.PROGRESS_BAR_PREFIX + stepAndPage%>" value="<%=heading%>" />
+          <%  
+          } else if (stepReached >= subConfig.getNumberOfSteps())
           {
 			 if(stepNum==subConfig.getNumberOfSteps())
 			 {
@@ -161,4 +176,5 @@
 			<fmt:param><%=collection.getName() %></fmt:param>
 		</fmt:message></p>
 </div>
+	<input type="hidden" name="submissionType" value="<%=submissionType%>" />
 </div>

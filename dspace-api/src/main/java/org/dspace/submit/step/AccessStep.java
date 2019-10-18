@@ -7,6 +7,14 @@
  */
 package org.dspace.submit.step;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Date;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.SubmissionInfo;
@@ -22,12 +30,6 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
 import org.dspace.submit.AbstractProcessingStep;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.Date;
 
 
 /**
@@ -305,6 +307,13 @@ public class AccessStep extends AbstractProcessingStep
     {
         return 1;
 
+    }
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
     }
 
 }

@@ -1451,4 +1451,11 @@ public class DescribeStep extends AbstractProcessingStep
         }
 
     }
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
+    }
 }

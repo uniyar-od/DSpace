@@ -274,3 +274,12 @@ function itemListCheckAll(checkBoxName){
 		}
 	}
 }
+
+function disableStep(){
+	var cells = document.getElementsByClassName("submitProgressButtonDone"); 
+    for (var i = 0; i < cells.length; i++) { 
+        cells[i].classList.remove("btn-info");
+        cells[i].classList.add("btn-default");
+        cells[i].disabled = true;
+    }
+}

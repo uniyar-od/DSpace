@@ -146,4 +146,11 @@ public class SelectCollectionStep extends AbstractProcessingStep
         // there is always just one page in the "select a collection" step!
         return 1;
     }
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
+    }
 }

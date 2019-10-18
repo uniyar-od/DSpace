@@ -15,14 +15,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
-
 import org.dspace.app.util.SubmissionInfo;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.workflow.WorkflowManager;
 import org.dspace.xmlworkflow.XmlWorkflowManager;
 
@@ -146,5 +145,12 @@ public class CompleteStep extends AbstractProcessingStep
         // that occurs just *before* the final confirmation page!
         // (so it should only be processed once!)
         return 1;
+    }
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
     }
 }

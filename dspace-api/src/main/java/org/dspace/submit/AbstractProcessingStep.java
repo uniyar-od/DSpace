@@ -128,6 +128,9 @@ public abstract class AbstractProcessingStep
             HttpServletRequest request, HttpServletResponse response,
             SubmissionInfo subInfo) throws ServletException, IOException,
             SQLException, AuthorizeException;
+    
+    public abstract void doClear(SubmissionInfo subInfo) throws ServletException, IOException,
+        SQLException, AuthorizeException;
 
     /**
      * Return a list of all UI fields which had errors that occurred during the

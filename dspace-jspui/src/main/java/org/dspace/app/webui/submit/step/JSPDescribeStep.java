@@ -16,19 +16,24 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionInfo;
+import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.app.webui.servlet.SubmissionController;
 import org.dspace.app.webui.submit.JSPStep;
 import org.dspace.app.webui.submit.JSPStepManager;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Collection;
+import org.dspace.content.EditItem;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.submit.step.DescribeStep;
 
 /**
@@ -144,6 +149,26 @@ public class JSPDescribeStep extends JSPStep
         // check what submit button was pressed in User Interface
         String buttonPressed = UIUtil.getSubmitButton(request, DescribeStep.NEXT_BUTTON);
 
+        if (!(subInfo.getSubmissionItem() instanceof EditItem))
+        {
+            String previousType = (String) request
+                    .getParameter("submissionType");
+            String submissionType = ConfigurationManager
+                    .getProperty("submission", "submission.type");
+            String type = subInfo.getSubmissionItem().getItem()
+                    .getMetadata(submissionType);
+            if (!StringUtils.equals(type, previousType))
+            {
+                int currPage = AbstractProcessingStep.getCurrentPage(request);
+                SubmissionStepConfig stepConfig = SubmissionController
+                        .getCurrentStepConfig(request, subInfo);
+                SubmissionController.setReachedStepAndPage(subInfo,
+                        stepConfig.getStepNumber(), currPage);
+                request.setAttribute("submissionType", type);
+            }
+        }
+
+        
         // this shouldn't happen...but just in case!
         if (subInfo.getSubmissionItem() == null)
         {
