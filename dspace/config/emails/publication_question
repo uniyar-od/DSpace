@@ -1,0 +1,23 @@
+# EMail to Queue for questions about specific publication
+#
+# Eventually you need to change the order of the arguments when editing the template
+# (in jspui/src/main/java/org/dspace/app/webui/servlet/QuestionsServlet.java)
+#
+# Parameters:
+#             {0}: Title of the publication
+#             {1}: Issue Date
+#             {2}: Author(s)
+#             {3}: Link to the publication
+#             {4}: asked question
+#             {5}: Name
+#             {6}: E-Mail
+#
+Subject: DSpace: Question about green openaccess Publication
+
+An user send question about the follow publication:
+Title:{0}
+Issue Date:{1}
+Author(s):{2}
+Link:{3}
+
+Question: "{4}" from {5} ({6})

@@ -597,7 +597,13 @@
   	<servlet>
     	<servlet-name>references</servlet-name>
     	<servlet-class>org.dspace.app.webui.servlet.ReferencesServlet</servlet-class>
-  	</servlet>  
+  	</servlet>
+
+	<!-- Publication Question -->
+ 	<servlet>
+	   	<servlet-name>pubquestion</servlet-name>
+	   	<servlet-class>org.dspace.app.webui.servlet.QuestionsServlet</servlet-class>
+ 	</servlet>
 
 	<!-- Deduplication -->
 	<servlet>
@@ -669,7 +675,12 @@
     	<url-pattern>/dspace-admin/doiqueued</url-pattern>
   	</servlet-mapping>
 
-  	<servlet-mapping>	
+  	<servlet-mapping>
+    	<servlet-name>pubquestion</servlet-name>
+    	<url-pattern>/pubquestion</url-pattern>
+  	</servlet-mapping>
+
+  	<servlet-mapping>
     	<servlet-name>deduplication</servlet-name>
     	<url-pattern>/dedup/*</url-pattern>
   	</servlet-mapping>
