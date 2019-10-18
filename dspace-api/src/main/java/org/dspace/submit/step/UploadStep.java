@@ -30,6 +30,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.curate.Curator;
 import org.dspace.submit.AbstractProcessingStep;
@@ -738,4 +739,12 @@ public class UploadStep extends AbstractProcessingStep
         return STATUS_COMPLETE;
     }
 
+	@Override
+	public void doClear(SubmissionInfo subInfo) throws ServletException, IOException, SQLException, AuthorizeException {
+		Item item = subInfo.getSubmissionItem().getItem();
+		Bundle[] bundles = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+		for (Bundle b : bundles) {
+			item.removeBundle(b);
+		}
+	}
 }

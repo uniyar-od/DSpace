@@ -9,21 +9,25 @@ package org.dspace.app.webui.submit;
 
 import java.io.IOException;
 import java.sql.SQLException;
-
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
-import org.dspace.app.webui.servlet.SubmissionController;
-import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.app.webui.servlet.SubmissionController;
+import org.dspace.app.webui.util.JSPManager;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.EditItem;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.submit.AbstractProcessingStep;
 
@@ -240,6 +244,12 @@ public class JSPStepManager
         boolean beginningOfStep = SubmissionController
                 .isBeginningOfStep(request);
 
+        boolean skip = skipStep(stepConfig, subInfo);
+        if (skip && !(subInfo.getSubmissionItem() instanceof EditItem))
+        {
+            return true;
+        }
+        
         // if this step has just been started, do beginning processing
         if (beginningOfStep)
         {
@@ -686,5 +696,52 @@ public class JSPStepManager
     {
         return stepJSPUI.getReviewJSP(context, request, response, subInfo);
     }
-    
+
+    public static boolean skipStep(SubmissionStepConfig currentStepConfig,
+            SubmissionInfo subInfo)
+    {
+        String heading = currentStepConfig.getHeading();
+        if (StringUtils.isNotBlank(heading))
+        {
+            String[] headingArray = heading.split("\\.");
+            String submissionType = ConfigurationManager
+                    .getProperty("submission", "submission.type");
+            String type = subInfo.getSubmissionItem().getItem()
+                    .getMetadata(submissionType);
+            String doStep = ConfigurationManager.getProperty("submission",
+                    "submission." + type);
+            if (StringUtils.isNotBlank(doStep))
+            {
+                String[] skipStepArray = doStep.split("\\|");
+                List<String> skipStepList = new ArrayList<String>(
+                        Arrays.asList(skipStepArray));
+                if (!skipStepList.contains(headingArray[2]))
+                {
+                    // load the processing class for this step
+                    try
+                    {
+                        ClassLoader loader = subInfo.getClass()
+                                .getClassLoader();
+                        Class<?> stepClass = null;
+                        stepClass = loader.loadClass(
+                                currentStepConfig.getProcessingClassName());
+                        // call the "getNumberOfPages()" method of the class
+                        // to get it's number of pages
+                        AbstractProcessingStep step = null;
+                        step = (AbstractProcessingStep) stepClass.newInstance();
+                        step.doClear(subInfo);
+                    }
+                    catch (ServletException | IOException | SQLException
+                            | AuthorizeException | ClassNotFoundException
+                            | InstantiationException | IllegalAccessException e)
+                    {
+                        log.error(e.getMessage());
+                    }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 }

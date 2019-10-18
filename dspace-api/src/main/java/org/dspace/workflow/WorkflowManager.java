@@ -10,6 +10,7 @@ package org.dspace.workflow;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -19,6 +20,7 @@ import java.util.ResourceBundle;
 
 import javax.mail.MessagingException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import org.dspace.authorize.AuthorizeException;
@@ -470,6 +472,23 @@ public class WorkflowManager
                         + taskstate + ",new_state=" + wi.getState()));
         return archived;
     }
+    
+    public static int doNextStep(int nextState, String[] skipSteps)
+    {
+        int i;
+        List<String> listSkipSteps = new ArrayList<String>(
+                Arrays.asList(skipSteps));
+        for (i = nextState; i < workflowText.length; i++)
+        {
+            String strNextState = workflowText[i];
+            if (!listSkipSteps.contains(strNextState))
+            {
+                break;
+            }
+        }
+        return i;
+    }
+    
 
     /**
      * returns an owned task/item to the pool
@@ -583,6 +602,17 @@ public class WorkflowManager
         //Gather our old data for launching the workflow event
         int oldState = wi.getState();
 
+        String submissionType = ConfigurationManager.getProperty("workflow",
+                "workflow.submission.type");
+        String type = wi.getItem().getMetadata(submissionType);
+        if (StringUtils.isNotBlank(type))
+        {
+            String skipStep = ConfigurationManager.getProperty("workflow",
+                    "workflow.skip." + type);
+            String[] arraySkipStep = skipStep.split("\\|");
+            newstate = doNextStep(newstate, arraySkipStep);
+        }
+        
         wi.setState(newstate);
 
         boolean archived;
@@ -715,6 +745,10 @@ public class WorkflowManager
         // Assign new owner.
         workflowItem.setState(newState);
         workflowItem.setOwner(newowner);
+        
+        logWorkflowEvent(context, workflowItem.getItem(), workflowItem,
+                context.getCurrentUser(), newState, newowner, collection,
+                oldState, null);
 
     }
 
@@ -1063,6 +1097,8 @@ public class WorkflowManager
                 + "collection_id=" + wi.getCollection().getID() + "eperson_id="
                 + e.getID()));
 
+        logWorkflowEvent(c, wsi.getItem(), wi, e, WFSTATE_SUBMIT, null, wsi.getCollection(), oldState, null);
+        
         return wsi;
     }
 

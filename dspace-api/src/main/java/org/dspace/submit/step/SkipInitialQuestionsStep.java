@@ -61,4 +61,11 @@ public class SkipInitialQuestionsStep extends AbstractProcessingStep
     {
         return 1;
     }
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
+    }
 }
