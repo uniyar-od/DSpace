@@ -87,6 +87,23 @@
 			title = "Item " + handle;
 		}
 	}
+
+    String authors = "";
+    if (handle != null)
+    {
+      Metadatum[] mAuthors = item.getDC("contributor", "author", Item.ANY);
+      for (Metadatum m : mAuthors)
+      {
+        authors += (!authors.equals("") ? " ; " : "") + m.value;
+      }
+    }
+
+    String issued = "";
+    if (handle != null)
+    {
+		issued = item.getMetadata("dc.date.issued");
+    }
+
     boolean pmcEnabled = ConfigurationManager.getBooleanProperty("cris","pmc.enabled",false);
     boolean scopusEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.elsevier.scopus.enabled",false);
     boolean wosEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.thomsonreuters.wos.enabled",false);
@@ -207,6 +224,30 @@ j(document).ready(function() {
 		}
 	%>
 });
+
+function display()
+{
+  var a = j("#qm-question").val();
+  var b = j("#qm-name").val();
+  var c = j("#qm-email").val();
+
+  j.ajax({
+    type: "post",
+    url: "<%=request.getContextPath()%>/pubquestion",
+    data: "item_id=<%= item.getID()%>&q="+a+"&name="+b+"&mail="+c,
+    success: function(msg)
+      {
+          j(".info-window-success").toggle();
+          j(".info-window-hide").addClass("hide");
+      },
+    error: function(msg)
+      {
+          j(".info-window-error").toggle();
+          j(".info-window-hide").addClass("hide");
+      }
+  });
+}
+
 --></script>
 	<% if(coreRecommender) { %>
 	<link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/recommender/core.css" type="text/css" />	
@@ -667,19 +708,93 @@ if (dedupEnabled && admin_button) { %>
     }
 %>
 
-	<% if(StringUtils.isNotBlank(crisID)) { %>
+	<% if(user!=null) { %>
 	
 	       <div class="col-sm-5 col-md-4 col-lg-3">
             <div class="panel panel-warning">
             	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
             	<div class="panel-body">
+            		<% if(StringUtils.isNotBlank(crisID)) { %>
 			    	<div id="claim-usertools">
 			    	</div>
+			    	<% } %>
+			    	<div id="greenopenaccess-usertools">
+
+						<a href="#" class="btn btn-primary col-md-12" data-toggle="modal" data-target="#FragenModal"><fmt:message key="jsp.display-item.question-modal.button" /></a>
+						<!-- Modal -->
+						<div id="FragenModal" class="modal fade" role="dialog">
+						  <div class="modal-dialog">
+						    <!-- Modal content-->
+						    <div class="modal-content">
+						      <div class="modal-header">
+						        <button id="btn-question-modal-close" type="button" class="close" data-dismiss="modal">&times;</button>
+						        <h4 class="modal-title"><fmt:message key="jsp.display-item.question-modal.title"/></h4>
+						      </div>
+						      <form>
+						        <div class="modal-body">
+						          <div class="info-window info-window-success alert alert-success" role="alert" style="display: none">
+						            <p><fmt:message key="jsp.display-item.question-modal.success"/></p>
+						          </div>
+						          <div class="info-window info-window-error alert alert-danger" role="alert" style="display: none">
+						            <p><fmt:message key="jsp.display-item.question-modal.error"/></p>
+						          </div>
+						          <div class="question-div">
+						            <label class="question-title"><fmt:message key="metadata.dc.title"/></label>
+						            <br />
+						            <small class="form-text"><%= title %></small>
+						          </div>
+						          <div class="question-div">
+						            <label class="question-title"><fmt:message key="metadata.dc.contributor.author"/></label>
+						            <br />
+						           <small class="form-text"><%= authors %></small>
+						          </div>
+						          <div class="question-div">
+						            <label class="question-title"><fmt:message key="metadata.dc.date.issued"/></label>
+						            <br />
+						            <small class="form-text"><%= issued %></small>
+						          </div>
+						          <div class="question-div">
+						            <label class="question-title" for="qm-question"><fmt:message key="jsp.display-item.question-modal.question"/></label>
+						            <br />
+						            <textarea class="form-control" id="qm-question" rows="3"></textarea>
+						          </div>
+						          <div class="question-div">
+						            <label class="question-title" for="qm-name"><fmt:message key="jsp.display-item.question-modal.name"/></label>
+						            <br />
+						            <input class="form-control" id="qm-name" value="<%= user == null ? "" : user.getFullName() %>" />
+						          </div>
+						          <div class="question-div">
+						            <label class="question-title" for="qm-email"><fmt:message key="jsp.display-item.question-modal.email"/></label>
+						            <br />
+						            <input class="form-control" id="qm-email" value="<%= user == null ? "" : user.getEmail() %>" />
+						          </div>
+						        </div>
+						        <div class="modal-footer">
+						          <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><fmt:message key="jsp.display-item.question-modal.close"/></button>
+						          <input type="button" class="btn btn-default info-window-hide" value="<fmt:message key="jsp.display-item.question-modal.send"/>" onclick="display();" />
+						        </div>
+						      </form>
+						    </div>
+						  </div>
+						</div>
+
+			    	</div>			    	
             	</div>
             </div>
             </div>
+    <% } else { %>
+	       <div class="col-sm-5 col-md-4 col-lg-3">
+            <div class="panel panel-warning">
+            	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
+            	<div class="panel-body">
+			    	<div id="greenopenaccess-usertools">
+
+						<a href="<%=request.getContextPath()+"/login-in-page?url="+request.getContextPath()+"/handle/" + handle%>" class="btn btn-primary col-md-12" data-toggle="modal"><fmt:message key="jsp.display-item.question-modal.button" /></a>
+			    	</div>			    	
+            	</div>
+            </div>
+            </div>    
     <% } %>
-    
 </div>
 </div>
 <div class="container">
