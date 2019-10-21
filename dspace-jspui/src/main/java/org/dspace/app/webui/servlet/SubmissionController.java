@@ -10,20 +10,17 @@ package org.dspace.app.webui.servlet;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.Enumeration;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.functors.SwitchClosure;
 import org.apache.commons.fileupload.FileUploadBase.FileSizeLimitExceededException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -44,15 +41,12 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.workflow.WorkflowItem;
 import org.dspace.submit.AbstractProcessingStep;
-
-import com.google.gson.Gson;
-import java.util.Collections;
-import javax.servlet.http.HttpSession;
-
 import org.dspace.submit.step.DescribeStep;
 import org.dspace.submit.step.UploadStep;
+import org.dspace.workflow.WorkflowItem;
+
+import com.google.gson.Gson;
 
 /**
  * Submission Manager servlet for DSpace. Handles the initial submission of
@@ -671,12 +665,30 @@ public class SubmissionController extends DSpaceServlet
             {
                 doStep(context, request, response, subInfo, currentStepNum);
             }
+
+            boolean foundPrevious = false;
+            boolean skipStep = true;
+            if (!(subInfo.getSubmissionItem() instanceof EditItem))
+            {
+                while (skipStep)
+                {
+                    currentStepConfig = subInfo.getSubmissionConfig()
+                            .getStep(currentStepNum-1);
+
+                    if (currentStepConfig != null)
+                    {
+                        currentStepNum = currentStepConfig.getStepNumber();
+                        foundPrevious = true;
+                    }
+                    skipStep = JSPStepManager.skipStep(currentStepConfig,
+                            subInfo);
+                }
+            }
+
             
             //Check to see if we are actually just going to a
             //previous PAGE within the same step.
             int currentPageNum = AbstractProcessingStep.getCurrentPage(request);
-            
-            boolean foundPrevious = false;
             
             //since there are pages before this one in this current step
             //just go backwards one page.
@@ -759,7 +771,8 @@ public class SubmissionController extends DSpaceServlet
 
         int nextStep = -1; // next step to load
         int nextPage = -1; // page within the nextStep to load
-
+        boolean skipStep = false;
+        
         if (buttonPressed.startsWith("submit_jump_"))
         {
             // Button on progress bar pressed
@@ -773,6 +786,9 @@ public class SubmissionController extends DSpaceServlet
                 String[] fields = stepAndPage.split("\\."); // split on period
                 nextStep = Integer.parseInt(fields[0]);
                 nextPage = Integer.parseInt(fields[1]);
+                SubmissionStepConfig jumpStepConfig = subInfo.getSubmissionConfig().getStep(nextStep);
+                skipStep = JSPStepManager.skipStep(jumpStepConfig, subInfo);
+                
             }
             catch (NumberFormatException ne)
             {
@@ -797,7 +813,7 @@ public class SubmissionController extends DSpaceServlet
             }
         }
 
-        if (nextStep == -1)
+        if (nextStep == -1 || skipStep && !(subInfo.getSubmissionItem() instanceof EditItem))
         {
             // Either no button pressed, or an illegal stage
             // reached. UI doesn't allow this, so something's
@@ -945,7 +961,7 @@ public class SubmissionController extends DSpaceServlet
                     double stepAndPageReached = Float.parseFloat(getStepReached(subInfo)+"."+JSPStepManager.getPageReached(subInfo));
                     
                     if (result != AbstractProcessingStep.STATUS_COMPLETE && currStepAndPage < stepAndPageReached){
-                        setReachedStepAndPage(subInfo, currStep, currPage);
+                        SubmissionController.setReachedStepAndPage(subInfo, currStep, currPage);
                     }
                     
                     //commit
@@ -1533,7 +1549,7 @@ public class SubmissionController extends DSpaceServlet
     * @param step the step to set as reached, can be also a previous reached step
     * @param page the page (within the step) to set as reached, can be also a previous reached page
     */
-    private void setReachedStepAndPage(SubmissionInfo subInfo, int step,
+    public static void setReachedStepAndPage(SubmissionInfo subInfo, int step,
             int page) throws SQLException, AuthorizeException, IOException
     {
         if (!subInfo.isInWorkflow() && subInfo.getSubmissionItem() != null)

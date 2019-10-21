@@ -1334,6 +1334,17 @@
       boolean required, boolean readonly, List valueList, String label,List<DCInput> children,boolean hasParent)
       throws java.io.IOException
     {
+        
+      boolean isSubmissionType = false;
+      String submissionType = ConfigurationManager.getProperty("submission", "submission.type");
+      String type = item.getMetadata(submissionType);
+      String [] submissionTypeArray = submissionType.split("\\.");
+      if (StringUtils.equals(schema,submissionTypeArray[0]) && StringUtils.equals(element,submissionTypeArray[1]) && 
+                 StringUtils.equals(qualifier,submissionTypeArray[2])){
+         isSubmissionType = true;
+      }
+
+        
       Metadatum[] defaults = item.getMetadata(schema, element, qualifier, Item.ANY);
       StringBuffer sb = new StringBuffer();
       Iterator vals;
@@ -1344,10 +1355,18 @@
         .append(label)
         .append("</label>");
 
-      sb.append("<div class=\"col-md-10\"><div class=\"row col-md-12\"><div class=\"col-md-10\">")
-        .append("<select class=\"form-control\" name=\"")
-        .append(fieldName)
-        .append("\"");
+      if(isSubmissionType){
+               sb.append("<div class=\"col-md-10\"><div class=\"row col-md-12\"><div class=\"col-md-10\">")
+             .append("<select class=\"form-control\" onchange=\"disableStep()\" name=\"")
+             .append(fieldName)
+             .append("\"");
+       }else{
+           sb.append("<div class=\"col-md-10\"><div class=\"row col-md-12\"><div class=\"col-md-10\">")
+             .append("<select class=\"form-control\" name=\"")
+             .append(fieldName)
+             .append("\"");
+       }
+
       if (repeatable)
         sb.append(" size=\"15\"  multiple=\"multiple\"");
       if (readonly)

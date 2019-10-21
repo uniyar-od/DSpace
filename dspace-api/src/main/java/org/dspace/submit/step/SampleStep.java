@@ -170,4 +170,12 @@ public class SampleStep extends AbstractProcessingStep
         // in most cases, you'll want to just return 1
         return 1;
     }
+
+
+    @Override
+    public void doClear(SubmissionInfo subInfo) throws ServletException,
+            IOException, SQLException, AuthorizeException
+    {
+        // NOOP
+    }
 }
