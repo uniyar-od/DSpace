@@ -604,15 +604,18 @@ public class WorkflowManager
 
         String submissionType = ConfigurationManager.getProperty("workflow",
                 "workflow.submission.type");
-        String type = wi.getItem().getMetadata(submissionType);
-        if (StringUtils.isNotBlank(type))
+        if (StringUtils.isNotBlank(submissionType))
         {
-            String skipStep = ConfigurationManager.getProperty("workflow",
-                    "workflow.skip." + type);
-            String[] arraySkipStep = skipStep.split("\\|");
-            newstate = doNextStep(newstate, arraySkipStep);
+            String type = wi.getItem().getMetadata(submissionType);
+            if (StringUtils.isNotBlank(type))
+            {
+                String skipStep = ConfigurationManager.getProperty("workflow",
+                        "workflow.skip." + type);
+                String[] arraySkipStep = skipStep.split("\\|");
+                newstate = doNextStep(newstate, arraySkipStep);
+            }
         }
-        
+    
         wi.setState(newstate);
 
         boolean archived;

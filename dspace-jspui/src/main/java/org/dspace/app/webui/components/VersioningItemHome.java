@@ -14,6 +14,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.VersionUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -110,6 +111,13 @@ public class VersioningItemHome implements ItemHomeProcessor {
 			}
 		}
 
+		String showPermissionRequired = request.getParameter("nosubmitversion");
+		if(StringUtils.isNotBlank(showPermissionRequired)) {
+		    request.setAttribute("versioning.nopermission", true);		    
+		}
+		else {
+		    request.setAttribute("versioning.nopermission", false);
+		}
 		request.setAttribute("versioning.enabled", versioningEnabled);
 		request.setAttribute("versioning.hasversionbutton", hasVersionButton);
 		request.setAttribute("versioning.hasversionhistory", hasVersionHistory);
@@ -122,7 +130,6 @@ public class VersioningItemHome implements ItemHomeProcessor {
 		request.setAttribute("versioning.latestversionhandle",
 				latestVersionHandle);
 		request.setAttribute("versioning.latestversionurl", latestVersionURL);
-
 	}
 
 }
