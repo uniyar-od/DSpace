@@ -77,7 +77,6 @@ public class VersionUtil
         }
         catch (Exception ex)
         {
-            context.abort();
             throw new RuntimeException(ex);
         }
         return null;
