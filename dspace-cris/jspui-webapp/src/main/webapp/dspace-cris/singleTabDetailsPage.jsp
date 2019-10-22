@@ -42,7 +42,7 @@
 %>
 <c:set var="currLocale"><%=currLocale %></c:set>
 	<div id="tab-${area.id}">
-		<div class="row">
+		<div class="row ${isVerticalTab == true ? 'vertical' : 'horizontal'}-tab">
 					<c:forEach items="${propertiesHolders}" var="holder">
 					<c:set var="holdershortname" value="${holder.shortName}" scope="page"/>
 					<c:set var="extraCSS">
@@ -94,7 +94,7 @@
 													<c:forEach
 														items="${propertiesDefinitionsInHolder[holder.shortName]}"
 														var="tipologiaDaVisualizzareNoI18n" varStatus="status">
-														<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
+														<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18NByCrisObject(anagraficaObject,tipologiaDaVisualizzareNoI18n,currLocale)}" />
 														<%!public URL fileFieldURL;%>
 							
 														<c:set var="urljspcustomfield"
@@ -111,7 +111,7 @@
 														%>
 														<c:if
 															test="${dyna:instanceOf(tipologiaDaVisualizzare,'it.cilea.osd.jdyna.model.ADecoratorTypeDefinition')}">
-															
+																
 																<c:set var="totalHit" value="0"/>
 																<c:set var="limit" value="5"/>
 																<c:set var="offset" value="0"/>											

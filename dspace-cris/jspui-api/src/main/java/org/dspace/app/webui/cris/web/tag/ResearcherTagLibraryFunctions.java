@@ -13,6 +13,7 @@ import java.lang.reflect.Method;
 import java.net.URLEncoder;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.integration.ICRISComponent;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.ICrisObject;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
@@ -61,6 +63,7 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.dto.AllMonthsStatsDTO;
 import org.dspace.core.ConfigurationManager;
 
+import it.cilea.osd.common.model.Identifiable;
 import it.cilea.osd.jdyna.components.IBeanSubComponent;
 import it.cilea.osd.jdyna.components.IComponent;
 import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
@@ -76,7 +79,9 @@ import it.cilea.osd.jdyna.model.IContainable;
 import it.cilea.osd.jdyna.model.IPropertiesDefinition;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.PointerValue;
 import it.cilea.osd.jdyna.web.Box;
+import it.cilea.osd.jdyna.widget.WidgetPointer;
 
 public class ResearcherTagLibraryFunctions
 {
@@ -205,6 +210,31 @@ public class ResearcherTagLibraryFunctions
 
     }
 
+    public static boolean isVerticalTab(String entityType, String tabName) {
+
+        String verticalSectionsConfigured = ConfigurationManager.getProperty("cris-vertical-components", "cris-entities." + entityType.toLowerCase() + ".sections");
+        if (StringUtils.isNotBlank(verticalSectionsConfigured)) {
+            List<String> verticalSections = Arrays.asList(verticalSectionsConfigured.split(","));
+            for (String verticalSection : verticalSections) {
+                if (isVerticalTab(verticalSection, entityType, tabName)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean isVerticalTab(String verticalSection, String entityType, String tabName) {
+
+        String verticalTabsConfigured = ConfigurationManager.getProperty("cris-vertical-components", "cris-entities." + entityType.toLowerCase() + ".sections." + verticalSection + ".tabs");
+        if (StringUtils.isNotBlank(verticalTabsConfigured)
+                && Arrays.asList(verticalTabsConfigured.split(",")).contains(tabName)) {
+            return true;
+        }
+
+        return false;
+    }
 
     public static boolean isTabHidden(Object anagrafica,String tabName)
             throws IllegalArgumentException, IllegalAccessException,
@@ -326,7 +356,7 @@ public class ResearcherTagLibraryFunctions
 
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getRPComponents();
+        Map<String, IComponent> rpComponent = researcher.getRPComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -359,7 +389,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher
+        Map<String, IComponent> rpComponent = researcher
                 .getProjectComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
@@ -393,7 +423,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getDOComponents();
+        Map<String, IComponent> rpComponent = researcher.getDOComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -426,7 +456,7 @@ public class ResearcherTagLibraryFunctions
     {
         Researcher researcher = new Researcher();
 
-        Map<String, ICRISComponent> rpComponent = researcher.getOUComponents();
+        Map<String, IComponent> rpComponent = researcher.getOUComponents();
         if (rpComponent != null && !rpComponent.isEmpty())
         {
             for (String key : rpComponent.keySet())
@@ -990,7 +1020,86 @@ public class ResearcherTagLibraryFunctions
         return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
                 .getWrapper((IPropertiesDefinition) ipd, locale);
     }
+    
+    public static IPropertiesDefinition getPropertyDefinitionI18NByCrisObject(ICrisObject object,
+            IContainable pd, String locale)
+    {
+        String shortname = pd.getShortName() + "_" + locale;
+        IContainable pdLocalized = applicationService
+                .findContainableByDecorable(pd.getClass(), shortname);
 
+        List<IContainable> pdefs = new ArrayList<IContainable>();
+        // add localized
+        if (pdLocalized != null)
+        {
+            pdefs.add(pdLocalized);
+        }
+        // add normal property definition
+        pdefs.add(pd);
+        String defaultLocales = ConfigurationManager
+                .getProperty("webui.supported.locales");
+        if (defaultLocales != null)
+        {
+            String[] splitted = defaultLocales.split(",");
+            // add all supported localized property definition minus the locale
+            // requested
+            for (String defaultLocale : splitted)
+            {
+                String trim = defaultLocale.trim();
+                if (!trim.equals(locale))
+                {
+                    String defaultShortname = pd.getShortName() + "_" + trim;
+                    IContainable pdSupportedLocale = applicationService
+                            .findContainableByDecorable(pd.getClass(),
+                                    defaultShortname);
+                    if (pdSupportedLocale != null)
+                    {
+                        pdefs.add(pdSupportedLocale);
+                    }
+                }
+            }
+        }
+
+        IPropertiesDefinition result = null;
+        for (IContainable pdef : pdefs)
+        {
+            if(pdef instanceof ADecoratorTypeDefinition) {            
+                // return the first nested type found with values
+                long countAll = getApplicationService().countNestedObjectsByParentIDAndTypoID(object.getID(), ((Identifiable)(((ADecoratorTypeDefinition) pdef).getReal())).getId(), ((ACrisObject)object).getClassNested());
+                if(countAll>0) {
+                    return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                            .getWrapper((IPropertiesDefinition) pdef, locale);
+                }
+            }
+            else {
+                // return the first property definition found with values
+                result = internalGetPropertyDefinitionI18NByCrisObject(locale,
+                        object, pdef);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+        }
+        return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) pd, locale);
+    }
+
+    private static IPropertiesDefinition internalGetPropertyDefinitionI18NByCrisObject(String locale,
+            ICrisObject aobject, IContainable containableLocalized)
+    {
+        IPropertiesDefinition result = (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) containableLocalized,
+                        locale);
+        List values = (List) aobject.getAnagrafica4view()
+                .get(result.getShortName());
+        if (!values.isEmpty())
+        {
+            return result;
+        }
+        return null;
+    }
+    
     public static String getTranslatedName(
             ACrisObject cris, String locale)
     {

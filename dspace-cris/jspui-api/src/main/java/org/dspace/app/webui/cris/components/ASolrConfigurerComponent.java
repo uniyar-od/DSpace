@@ -36,6 +36,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.BadRequestSearchServiceException;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
@@ -305,7 +306,7 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
 
     public DiscoverResult search(Context context, HttpServletRequest request, String type,
             ACrisObject cris, int start, int rpp, String orderfield,
-            boolean ascending, List<String> extraFields) throws SearchServiceException
+            boolean ascending, List<String> extraFields) throws SearchServiceException, BadRequestSearchServiceException
     {
         // can't start earlier than 0 in the results!
         if (start < 0)
@@ -384,10 +385,19 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
                 {
                     log.error(
                             LogManager.getHeader(context,
+                                    "Error retrieving object from database using facet query",
+                                    "filter_field: " + f[0] + ",filter_type:"
+                                            + f[1] + ",filer_value:" + f[2]));
+                    throw new SearchServiceException(e);
+                }
+                catch (NullPointerException e)
+                {
+                    log.error(
+                            LogManager.getHeader(context,
                                     "Error in discovery while setting up user facet query",
                                     "filter_field: " + f[0] + ",filter_type:"
-                                            + f[1] + ",filer_value:" + f[2]),
-                            e);
+                                            + f[1] + ",filer_value:" + f[2]));
+                    throw new BadRequestSearchServiceException(e);
                 }
 
             }
