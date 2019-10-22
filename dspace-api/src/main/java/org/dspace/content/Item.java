@@ -14,7 +14,6 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
@@ -33,7 +32,6 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
-import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.event.Event;
@@ -44,6 +42,8 @@ import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
 import org.dspace.utils.DSpace;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.VersioningService;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
@@ -2160,5 +2160,75 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
 				.getSingletonService(ItemWrapperIntegration.class);
         return wrapperService.getWrapper(this);    
     }
+	
+    public boolean isOriginalSubmitter(Context context)
+    {
+        EPerson eperson = context.getCurrentUser();
+        if(eperson!=null) {
+            //is the original submitter?
+            try
+            {
+                VersioningService versioningService = new DSpace()
+                        .getSingletonService(VersioningService.class);
+                VersionHistory vh = versioningService.findVersionHistory(context, this.getID());
+                if(vh!=null) {
+                    Version firstVersion = vh.getFirstVersion();
+                    if(eperson.getID() == firstVersion.getItem().getSubmitter().getID()) {
+                        return true;
+                    }
+                }
+                else {
+                    return isSubmitter(context);
+                }
+            }
+            catch (SQLException e)
+            {
+                log.error(e.getMessage(), e);
+            }
+            
+        }
+        return false;
+    }
 
+    public boolean isAuthor(Context context)
+    {
+        EPerson eperson = context.getCurrentUser();
+        if (eperson != null)
+        {
+            // is an authors?
+            Metadatum[] authors = this.getMetadata("dc", "contributor",
+                    "author", Item.ANY);
+            for (Metadatum author : authors)
+            {
+                if (StringUtils.isNotBlank(context.getCrisID())
+                        && StringUtils.isNotBlank(author.authority))
+                {
+                    if (context.getCrisID().equals(author.authority))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+    
+    public boolean isSubmitter(Context context)
+    {
+        EPerson eperson = context.getCurrentUser();
+        if(eperson!=null) {
+            //is a submitter?
+            try
+            {
+                if(eperson.getID() == this.getSubmitter().getID()) {
+                    return true;
+                }
+            }
+            catch (SQLException e)
+            {
+                log.error(e.getMessage(), e);
+            }
+        }
+        return false;
+    }    
 }

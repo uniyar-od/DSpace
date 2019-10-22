@@ -7,19 +7,20 @@
  */
 package org.dspace.versioning;
 
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
+import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.IdentifierService;
 import org.dspace.utils.DSpace;
-
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.List;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.authorize.ResourcePolicy;
 
 /**
  *
@@ -36,6 +37,15 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         {
             WorkspaceItem workspaceItem = WorkspaceItem.create(context, nativeItem.getOwningCollection(), false);
             Item itemNew = workspaceItem.getItem();
+            Bundle[] bundles = nativeItem.getBundles("ORIGINAL");
+            boolean isFullText = false;
+            for (Bundle bnd : bundles) {
+                isFullText = bnd.getBitstreams().length > 0;
+                if (isFullText) {
+                    itemNew.addMetadata("local", "submission", "type", null, "full-text");
+                    break;
+                }
+            }
             itemNew.update();
             return itemNew;
         }catch (SQLException e) {

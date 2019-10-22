@@ -47,6 +47,7 @@
 <%@page import="org.dspace.versioning.VersionHistory"%>
 <%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
 <%@page import="org.apache.commons.lang.StringUtils"%>
+<%@page import="org.dspace.content.Bundle"%>
 
 <%
     // Attributes
@@ -69,6 +70,16 @@
     String cc_url = CreativeCommons.getLicenseURL(item);
     String cc_rdf = CreativeCommons.getLicenseRDF(item);
 
+  	Bundle[] bundles = item.getBundles("ORIGINAL");
+  	boolean isFullText = false;
+  	if(bundles!=null) {		
+		for (Bundle bnd : bundles) {
+			isFullText = bnd.getBitstreams().length > 0;
+			if (isFullText) {
+				break;
+			}
+		}
+  	}
     // Full title needs to be put into a string to use as tag argument
     String title = "";
     if (handle == null)
@@ -143,6 +154,9 @@
     
     VersionHistory history = (VersionHistory)request.getAttribute("versioning.history");
     List<Version> historyVersions = (List<Version>)request.getAttribute("versioning.historyversions");
+
+    Boolean noPermissionVersioningBool = (Boolean)request.getAttribute("versioning.nopermission");
+    boolean noPermissionVersioning = (noPermissionVersioningBool!=null && noPermissionVersioningBool.booleanValue());
     
     EPerson user = (EPerson) request.getAttribute("dspace.current.user");
     boolean dedupEnabled = ConfigurationManager.getBooleanProperty("deduplication", "deduplication.admin.feature", false);
@@ -305,7 +319,17 @@ function display()
 		<%
 		    }
 		%>
-		
+
+		<%		
+		if (noPermissionVersioning)
+		   {
+		%>
+		<div class="alert alert-warning"><b><fmt:message key="jsp.version.notice.version_unauthorized"/></b>		
+		<fmt:message key="jsp.version.notice.version_unauthorized_help"/>
+		</div>
+		<%
+		    }
+		%>
 
                 <%-- <strong>Please use this identifier to cite or link to this item:
                 <code><%= HandleManager.getCanonicalForm(handle) %></code></strong>--%>
@@ -777,7 +801,22 @@ if (dedupEnabled && admin_button) { %>
 						    </div>
 						  </div>
 						</div>
-
+					</div>
+			    	<div id="fulltext-usertools">
+			    		<c:choose>
+				    		<c:when test="<%= !isFullText %>">								
+								<form method="get" action="<%= request.getContextPath() %>/tools/version">
+                    				<input type="hidden" name="itemID" value="<%= item.getID() %>" />                    
+                    				<input class="btn btn-primary col-md-12" type="submit" name="submit_version" value="<fmt:message key="jsp.display-item.fulltext.button" />" />
+                				</form>
+							</c:when>
+							<c:otherwise>
+								 <form method="get" action="<%= request.getContextPath() %>/tools/version">
+                    				<input type="hidden" name="itemID" value="<%= item.getID() %>" />                    
+                    				<input class="btn btn-primary col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.display-item.createnewversion.button" />" />
+                				</form>
+							</c:otherwise>
+						</c:choose>
 			    	</div>			    	
             	</div>
             </div>
@@ -788,8 +827,19 @@ if (dedupEnabled && admin_button) { %>
             	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
             	<div class="panel-body">
 			    	<div id="greenopenaccess-usertools">
-
 						<a href="<%=request.getContextPath()+"/login-in-page?url="+request.getContextPath()+"/handle/" + handle%>" class="btn btn-primary col-md-12" data-toggle="modal"><fmt:message key="jsp.display-item.question-modal.button" /></a>
+					</div
+			    	<div id="fulltext-usertools">
+						<a href="<%=request.getContextPath()+"/login-in-page?url="+request.getContextPath()+"/handle/" + handle%>" class="btn btn-primary col-md-12" data-toggle="modal">
+			    		<c:choose>
+				    		<c:when test="<%= !isFullText %>">
+								<fmt:message key="jsp.display-item.fulltext.button" />
+							</c:when>
+							<c:otherwise>
+								<fmt:message key="jsp.display-item.createnewversion.button" />
+							</c:otherwise>
+						</c:choose>
+						</a>
 			    	</div>			    	
             	</div>
             </div>
