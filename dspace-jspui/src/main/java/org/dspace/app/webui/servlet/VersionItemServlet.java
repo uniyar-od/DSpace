@@ -19,7 +19,9 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.app.webui.util.VersionUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Item;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
 /**
@@ -44,16 +46,28 @@ public class VersionItemServlet extends DSpaceServlet
         Item item = Item.find(context,itemID);
         String submit = UIUtil.getSubmitButton(request,"submit");
         if (submit!=null && submit.equals("submit")){
-            request.setAttribute("itemID", itemID);
-            JSPManager.showJSP(request, response,
-                    "/tools/version-summary.jsp");
+            if (AuthorizeManager.authorizeActionBoolean(context, item,
+                    Constants.WRITE) || item.canEdit() || item.isOriginalSubmitter(context) || item.isAuthor(context))
+            {
+                request.setAttribute("itemID", itemID);
+                JSPManager.showJSP(request, response,
+                        "/tools/version-summary.jsp");
+            }
+            else {
+                response.sendRedirect(request.getContextPath() + "/handle/" + item.getHandle() + "?nosubmitversion=true");
+            }
             return;
         }
         
         String summary = request.getParameter("summary");
         if (submit!=null && submit.equals("submit_version")){                        
-            Integer wsid = VersionUtil.processCreateNewVersion(context, itemID, summary);            
-            response.sendRedirect(request.getContextPath()+"/submit?resume=" + wsid);
+            Integer wsid = VersionUtil.processCreateNewVersion(context, itemID, summary);
+            if(wsid==null) {
+                response.sendRedirect(request.getContextPath() + "/handle/" + item.getHandle() + "?nosubmitversion=true");
+            }
+            else {
+                response.sendRedirect(request.getContextPath()+"/submit?resume=" + wsid);
+            }
             context.complete();
             return;
         }

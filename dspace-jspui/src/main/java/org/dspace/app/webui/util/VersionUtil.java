@@ -60,7 +60,7 @@ public class VersionUtil
             Item item = Item.find(context, itemID);
 
             if (AuthorizeManager.authorizeActionBoolean(context, item,
-                    Constants.WRITE) || item.canEdit())
+                    Constants.WRITE) || item.canEdit() || item.isOriginalSubmitter(context) || item.isAuthor(context))
             {
                 VersioningService versioningService = new DSpace()
                         .getSingletonService(VersioningService.class);
