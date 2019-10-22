@@ -140,7 +140,7 @@
                     <span id="search_concept">All</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                     <b><span class="caret"></b>
                 </button>
-                <ul class="dropdown-menu menu-global-processor" role="menu">
+                <ul class="dropdown-menu menu-global-processor dropdown-small" role="menu">
 
                     <%
                         if (facetsGlobalConf != null) {
