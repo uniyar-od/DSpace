@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.webui.util;
+package org.dspace.util;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -13,10 +13,10 @@ import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.Metadatum;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataSchema;
+import org.dspace.content.Metadatum;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -54,31 +54,24 @@ public class VersionUtil
             IOException
     {
 
-        try
-        {
-
             Item item = Item.find(context, itemID);
 
             if (AuthorizeManager.authorizeActionBoolean(context, item,
                     Constants.WRITE) || item.canEdit() || item.isOriginalSubmitter(context) || item.isAuthor(context))
             {
+                context.turnOffAuthorisationSystem();
                 VersioningService versioningService = new DSpace()
                         .getSingletonService(VersioningService.class);
                 Version version = versioningService.createNewVersion(context,
                         itemID, summary);
                 WorkspaceItem wsi = WorkspaceItem.findByItem(context,
                         version.getItem());
-
+                context.restoreAuthSystemState();
                 context.commit();
 
                 return wsi.getID();
 
             }
-        }
-        catch (Exception ex)
-        {
-            throw new RuntimeException(ex);
-        }
         return null;
     }
 
@@ -100,29 +93,18 @@ public class VersionUtil
             IOException
     {
 
-        try
-        {
-
             Item item = Item.find(context, itemID);
 
             if (AuthorizeManager.authorizeActionBoolean(context, item,
-                    Constants.WRITE))
+                    Constants.WRITE) || item.isOriginalSubmitter(context) || item.isAuthor(context))
             {
+                context.turnOffAuthorisationSystem();
                 VersioningService versioningService = new DSpace()
                         .getSingletonService(VersioningService.class);
                 versioningService.updateVersion(context, itemID, summary);
-
+                context.restoreAuthSystemState();
                 context.commit();
             }
-        }
-        catch (Exception ex)
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-            throw new RuntimeException(ex);
-        }
 
     }
 
@@ -143,24 +125,11 @@ public class VersionUtil
             IOException
     {
 
-        try
-        {
-
             VersioningService versioningService = new DSpace()
                     .getSingletonService(VersioningService.class);
             versioningService.restoreVersion(context, versionID, summary);
 
             context.commit();
-
-        }
-        catch (Exception ex)
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-            throw new RuntimeException(ex);
-        }
 
     }
 
@@ -179,45 +148,40 @@ public class VersionUtil
      * @throws IOException
      */
     public static Integer processDeleteVersions(Context context, int itemId,
-            String[] versionIDs) throws SQLException, AuthorizeException,
+            String... versionIDs) throws SQLException, AuthorizeException,
             IOException
     {
 
-        try
-        {
+            Item item = Item.find(context, itemId);
 
-            VersioningService versioningService = new DSpace()
-                    .getSingletonService(VersioningService.class);
-            VersionHistory versionHistory = versioningService
-                    .findVersionHistory(context, itemId);
-
-            for (String id : versionIDs)
+            if (AuthorizeManager.authorizeActionBoolean(context, item,
+                    Constants.WRITE) || item.isOriginalSubmitter(context) || item.isAuthor(context))
             {
-                versioningService.removeVersion(context, Integer.parseInt(id));
+                context.turnOffAuthorisationSystem();
+                VersioningService versioningService = new DSpace()
+                        .getSingletonService(VersioningService.class);
+                VersionHistory versionHistory = versioningService
+                        .findVersionHistory(context, itemId);
+    
+                for (String id : versionIDs)
+                {
+                    versioningService.removeVersion(context, Integer.parseInt(id));
+                }
+                context.restoreAuthSystemState();
+                context.commit();
+                // Retrieve the latest version of our history (IF any is even
+                // present)
+                Version latestVersion = versionHistory.getLatestVersion();
+                if (latestVersion == null)
+                {
+                    return null;
+                }
+                else
+                {
+                    return latestVersion.getItemID();
+                }
             }
-            context.commit();
-
-            // Retrieve the latest version of our history (IF any is even
-            // present)
-            Version latestVersion = versionHistory.getLatestVersion();
-            if (latestVersion == null)
-            {
-                return null;
-            }
-            else
-            {
-                return latestVersion.getItemID();
-            }
-
-        }
-        catch (Exception ex)
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-            throw new RuntimeException(ex);
-        }
+            return null;
 
     }
 

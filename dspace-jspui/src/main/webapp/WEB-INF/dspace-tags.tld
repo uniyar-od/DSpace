@@ -264,6 +264,11 @@
         <required>false</required>
         <rtexprvalue>true</rtexprvalue>
       </attribute>
+      <attribute>
+          <name>showOtherButton</name>
+          <required>false</required>
+          <rtexprvalue>true</rtexprvalue>
+      </attribute>      
   </tag>
 
 <tag>

@@ -59,6 +59,7 @@
 		<property name="types">
 			<map>
 				<entry key="selected" value-ref="selectedComponent" />
+				<entry key="all" value-ref="allComponent" />
 				<entry key="journal" value-ref="journalComponent" />
 				<entry key="conference" value-ref="conferenceComponent" />
 				<entry key="book" value-ref="bookComponent" />
@@ -78,7 +79,17 @@
 		<!-- selected component should be sorted by score (-1) -->
 	    <property name="sortby"><value>-1</value></property>		
 	</bean>
-	
+
+	<bean id="allComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="selected" />
+		<property name="facetQuery"><value>*:*</value></property>
+		<property name="order"><value>desc</value></property>
+		<property name="rpp"><value>20</value></property>		
+		<!-- selected component should be sorted by score (-1) -->
+	    <property name="sortby"><value>1</value></property>		
+	</bean>
+		
 	<bean id="journalComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="journal" />
