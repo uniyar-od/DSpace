@@ -41,6 +41,7 @@ import org.dspace.identifier.IdentifierService;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.util.VersionUtil;
 import org.dspace.utils.DSpace;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
@@ -1368,6 +1369,9 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
             throw new SQLException(e.getMessage(), e);
         }
 
+        // remove version attached to the item
+        removeVersion();
+        
         // Delete the Dublin Core
         removeMetadataFromDatabase();
 
@@ -1384,9 +1388,6 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
         
         // Remove any Handle
         HandleManager.unbindHandle(ourContext, this);
-        
-        // remove version attached to the item
-        removeVersion();
 
         // Remove from cache
         ourContext.removeCached(this, getID());
@@ -1395,12 +1396,13 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
         DatabaseManager.delete(ourContext, itemRow);
     }
     
-    private void removeVersion() throws AuthorizeException, SQLException
+    private void removeVersion() throws AuthorizeException, SQLException, IOException
     {
         VersioningService versioningService = new DSpace().getSingletonService(VersioningService.class);
-        if(versioningService.getVersion(ourContext, this)!=null)
+        Version version = versioningService.getVersion(ourContext, this);
+        if(version!=null)
         {
-            versioningService.removeVersion(ourContext, this);
+            VersionUtil.processDeleteVersions(ourContext, getID(), ""+version.getVersionId());
         }else{
             IdentifierService identifierService = new DSpace().getSingletonService(IdentifierService.class);
             try {

@@ -16,7 +16,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.webui.util.VersionUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Item;
@@ -25,6 +24,7 @@ import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
 import org.dspace.plugin.ItemHomeProcessor;
 import org.dspace.plugin.PluginException;
+import org.dspace.util.VersionUtil;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 

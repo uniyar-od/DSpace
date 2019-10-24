@@ -38,7 +38,7 @@
 <%@page import="javax.servlet.jsp.jstl.fmt.LocaleSupport"%>
 <%@page import="org.dspace.versioning.Version"%>
 <%@page import="org.dspace.core.Context"%>
-<%@page import="org.dspace.app.webui.util.VersionUtil"%>
+<%@page import="org.dspace.util.VersionUtil"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
 <%@page import="org.dspace.authorize.AuthorizeManager"%>
 <%@page import="java.util.List"%>
