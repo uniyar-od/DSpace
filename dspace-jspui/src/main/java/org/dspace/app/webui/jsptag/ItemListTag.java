@@ -8,6 +8,7 @@
 package org.dspace.app.webui.jsptag;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -31,13 +32,14 @@ import org.dspace.app.webui.util.TitleDisplayStrategy;
 import org.dspace.browse.BrowseException;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.CrossLinks;
-import org.dspace.content.Metadatum;
+import org.dspace.content.Bundle;
 import org.dspace.content.Item;
+import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.I18nUtil;
 import org.dspace.core.PluginManager;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
-import org.dspace.utils.DSpace;
 
 /**
  * Tag for display a list of items
@@ -115,6 +117,8 @@ public class ItemListTag extends TagSupport {
 
     /** Config to use a specific configuration */
     private String config = null;
+    
+    private boolean showOtherButton = false;
     
 	static {
 
@@ -283,16 +287,16 @@ public class ItemListTag extends TagSupport {
 			// but not if we have to add an 'edit item' button - we can't know
 			// how big it will be
 			if (widthArr.length > 0 && widthArr.length == fieldArr.length
-					&& !linkToEdit) {
+					&& !linkToEdit && !showOtherButton) {
 				// If the table width has been specified, we can make this a
 				// fixed layout
 				if (!StringUtils.isEmpty(tablewidth)) {
 					out.println("<table border=\"0\" style=\"width: "
 							+ tablewidth
-							+ "; table-layout: fixed;\" align=\"center\" class=\"table table-hover\" summary=\"This table browses all dspace content\">");
+							+ "; table-layout: fixed;\" align=\"center\" class=\"table table-hover table-responsive\" summary=\"This table browses all dspace content\">");
 				} else {
                     // Otherwise, don't constrain the width
-					out.println("<table border=\"0\" align=\"center\" class=\"table table-hover\" summary=\"This table browses all dspace content\">");
+					out.println("<table border=\"0\" align=\"center\" class=\"table table-hover table-responsive\" summary=\"This table browses all dspace content\">");
                 }
 
                 // Output the known column widths
@@ -438,7 +442,7 @@ public class ItemListTag extends TagSupport {
                         + (emph[colIdx] ? "</strong>" : "") + "</th>");
             }
 
-			if (linkToEdit) {
+			if (linkToEdit || showOtherButton) {
                 String id = "t" + Integer.toString(cOddOrEven.length + 1);
 				String css = "oddRow" + cOddOrEven[cOddOrEven.length - 2]
 						+ "Col";
@@ -569,40 +573,93 @@ public class ItemListTag extends TagSupport {
                 }
 
                 // Add column for 'edit item' links
-				if (linkToEdit) {
-                    String id = "t" + Integer.toString(cOddOrEven.length + 1);
+				if (linkToEdit || showOtherButton) {
+				    
+				    String id = "t" + Integer.toString(cOddOrEven.length + 1);
 
-					if (inputName != null) { // subform is not allowed in html
-												// so we need to use a
-												// javascript on the onclick...
-						out.print("<td headers=\""
-								+ id
-								+ "\" class=\""
-								+ rOddOrEven
-								+ "Row"
-								+ cOddOrEven[cOddOrEven.length - 2]
-								+ "Col\" nowrap>"
-								+ "<input class=\"btn btn-default\" type=\"button\" value=\"Edit Item\" onclick=\"javascript:self.location='"
-								+ hrq.getContextPath()
-								+ "/tools/edit-item?handle="
-								+ items[i].getHandle() + "'\"" + "/>" + "</td>");
-					} else {
-						out.print("<td headers=\""
-								+ id
-								+ "\" class=\""
-								+ rOddOrEven
-								+ "Row"
-								+ cOddOrEven[cOddOrEven.length - 2]
-								+ "Col\" nowrap>"
-								+ "<form method=\"get\" action=\""
-								+ hrq.getContextPath()
-								+ "/tools/edit-item\">"
-								+ "<input type=\"hidden\" name=\"handle\" value=\""
-								+ items[i].getHandle()
-								+ "\" />"
-                            + "<input type=\"submit\" value=\"Edit Item\" /></form>"
-                            + "</td>");
+                    out.print("<td headers=\"" + id + "\" class=\""
+                            + rOddOrEven + "Row"
+                            + cOddOrEven[cOddOrEven.length - 2]
+                            + "Col\" nowrap>");
+                    
+                    //instead to work hard on css to show dropdown menu ahead of table container move choose to open above and from right to left
+                    out.print("<div class=\"btn-group dropup\">");
+                    out.print("<button type=\"button\" class=\"btn btn-default dropdown-toggle\" data-toggle=\"dropdown\">");
+                    out.print("<i class=\"fa fa-cog\"></i> <i class=\"fa fa-caret-down\"></i>");
+                    out.print("</button>");
+                    out.print("<ul class=\"dropdown-menu pull-right\" role=\"menu\">");
+                    // subform is not allowed in html
+                    // so we need to use a
+                    // javascript on the onclick...
+
+                    if (linkToEdit)
+                    {
+                        String messageEditItem = I18nUtil.getMessage("jsp.itemlisttag.edititem.button", false);
+                        
+                        out.print("<li>");
+                        out.print("<a onclick=\"javascript:self.location='"
+                                + hrq.getContextPath()
+                                + "/tools/edit-item?handle="
+                                + items[i].getHandle() + "'\"" + "/>" + messageEditItem + "</a>");
+                        out.print("</li>");
                     }
+                    
+                    if(showOtherButton) 
+                    {
+                        String messageFulltext = I18nUtil.getMessage("jsp.itemlisttag.fulltext.button", false);
+                        String messageCreateNewVersion = I18nUtil.getMessage("jsp.itemlisttag.createnewversion.button", false);
+                        String messageInterestedInOpenAccess = I18nUtil.getMessage("jsp.itemlisttag.interestedinopenaccess.button", false);
+                        
+                        String authors = "";
+                        Metadatum[] mAuthors = items[i].getDC("contributor",
+                                "author", Item.ANY);
+                        for (Metadatum m : mAuthors)
+                        {
+                            authors += (!authors.equals("") ? " ; " : "") + m.value;
+                        }
+
+                        String issued = items[i].getMetadata("dc.date.issued");
+                        
+                        Bundle[] bundles;
+                        boolean isFullText = false;
+                        try
+                        {
+                            bundles = items[i].getBundles("ORIGINAL");
+                            if(bundles!=null) {     
+                                for (Bundle bnd : bundles) {
+                                    isFullText = bnd.getBitstreams().length > 0;
+                                    if (isFullText) {
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (SQLException e)
+                        {
+                            log.warn(e.getMessage(), e);
+                        }
+                        
+                        out.print("<li>");
+                        if(isFullText) {
+                            out.print("<a onclick=\"javascript:self.location='"
+                                    + hrq.getContextPath()
+                                    + "/tools/version?itemID="
+                                    + items[i].getID() + "&submit'\"" + "/>" + messageCreateNewVersion + "</a>");
+                        }
+                        else {
+                            out.print("<a onclick=\"javascript:self.location='"
+                                    + hrq.getContextPath()
+                                    + "/tools/version?itemID="
+                                    + items[i].getID() + "&submit_version'\"" + ">" + messageFulltext + "</a>" );
+                        }
+                        out.print("</li>");
+                        out.print("<li>");
+                        out.print("<a href=\"#\" class=\"openinteresteddialog\" data-itemid=\""+items[i].getID()+"\" data-title=\""+items[i].getName()+"\" data-authors=\""+authors+"\" data-issued=\""+issued+"\" data-toggle=\"modal\" data-target=\"#FragenModal\">" +messageInterestedInOpenAccess+ "</a>");
+                        out.print("</li>");
+                    }
+                    out.print("</ul>");
+                    out.print("</div>");
+                    out.print("</td>");
 				}
 
                 out.println("</tr>");
@@ -771,6 +828,7 @@ public class ItemListTag extends TagSupport {
 		inputName = null;
 		radioButton = false;
 		isDesc = false;
+		showOtherButton = false;
 	}
 
 	// allem modified: get-set methods for custom attribute
@@ -800,5 +858,15 @@ public class ItemListTag extends TagSupport {
     public void setConfig(String config)
     {
         this.config = config;
+    }
+
+    public boolean isShowOtherButton()
+    {
+        return showOtherButton;
+    }
+
+    public void setShowOtherButton(boolean showOtherButton)
+    {
+        this.showOtherButton = showOtherButton;
     }
 }
