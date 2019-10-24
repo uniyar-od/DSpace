@@ -9,11 +9,17 @@ package org.dspace.app.rest.security;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -27,6 +33,8 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
  * @author Tom Desair (tom dot desair at atmire dot com)
  */
 public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(RestAuthenticationService.class);
 
     private AuthenticationManager authenticationManager;
 
@@ -47,6 +55,21 @@ public class StatelessLoginFilter extends AbstractAuthenticationProcessingFilter
     public Authentication attemptAuthentication(HttpServletRequest req,
                                                 HttpServletResponse res) throws AuthenticationException {
 
+        Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                log.info("attemptAuthentication cookie: " + cookie.getName() + " : " + cookie.getValue());
+            }
+        }
+
+        Enumeration<String> headerNames = req.getHeaderNames();
+
+        if (headerNames != null) {
+                while (headerNames.hasMoreElements()) {
+                    String header = headerNames.nextElement();
+                    log.info("Header: " + header + " : " + req.getHeader(header));
+                }
+        }
         String user = req.getParameter("user");
         String password = req.getParameter("password");
 
