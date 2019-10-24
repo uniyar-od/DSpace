@@ -43,7 +43,8 @@
 <c:set var="root"><%=request.getContextPath()%></c:set>
 <c:set var="info" value="${componentinfomap}" scope="page" />
 <%
-	
+	EPerson user = (EPerson) request.getAttribute("dspace.current.user");
+
 	boolean exportBiblioEnabled =  ConfigurationManager.getBooleanProperty("exportcitation.list.enabled", false);
 	
     String cfg = (String)request.getAttribute("exportscitations");
@@ -82,6 +83,64 @@
 %>
 
 <c:set var="info" value="<%= info %>" scope="request" />
+
+<!-- Modal -->
+	<div id="FragenModal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button id="btn-question-modal-close" type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title"><fmt:message key="jsp.display-item.question-modal.title"/></h4>
+	      </div>
+	      <form>
+	        <div class="modal-body">
+	          <div class="info-window info-window-success alert alert-success" role="alert" style="display: none">
+	            <p><fmt:message key="jsp.display-item.question-modal.success"/></p>
+	          </div>
+	          <div class="info-window info-window-error alert alert-danger" role="alert" style="display: none">
+	            <p><fmt:message key="jsp.display-item.question-modal.error"/></p>
+	          </div>
+	          <div class="question-div">
+	            <label class="question-title"><fmt:message key="metadata.dc.title"/></label>
+	            <br />
+	            <small id="qm-title" class="form-text"></small>
+	          </div>
+	          <div class="question-div">
+	            <label class="question-title"><fmt:message key="metadata.dc.contributor.author"/></label>
+	            <br />
+	           	<small id="qm-authors" class="form-text"></small>
+	          </div>
+	          <div class="question-div">
+	            <label class="question-title"><fmt:message key="metadata.dc.date.issued"/></label>
+	            <br />
+	            <small id="qm-issued" class="form-text"></small>
+	          </div>
+	          <div class="question-div">
+	            <label class="question-title" for="qm-question"><fmt:message key="jsp.display-item.question-modal.question"/></label>
+	            <br />
+	            <textarea class="form-control" id="qm-question" rows="3"></textarea>
+	          </div>
+	          <div class="question-div">
+	            <label class="question-title" for="qm-name"><fmt:message key="jsp.display-item.question-modal.name"/></label>
+	            <br />
+	            <input class="form-control" id="qm-name" value="<%= user == null ? "" : user.getFullName() %>" />
+	          </div>
+	          <div class="question-div">
+	            <label class="question-title" for="qm-email"><fmt:message key="jsp.display-item.question-modal.email"/></label>
+	            <br />
+	            <input class="form-control" id="qm-email" value="<%= user == null ? "" : user.getEmail() %>" />
+	          </div>
+	        </div>
+	        <div class="modal-footer">
+	          <input type="hidden" id="qm-itemid" value="" />
+	          <button type="button" class="btn btn-default pull-left" data-dismiss="modal"><fmt:message key="jsp.display-item.question-modal.close"/></button>
+	          <input type="button" class="btn btn-default info-window-hide" value="<fmt:message key="jsp.display-item.question-modal.send"/>" onclick="display();" />
+	        </div>
+	      </form>
+	    </div>
+	  </div>
+	</div>
 
 	<% 
     boolean brefine = false;
@@ -253,10 +312,10 @@ if (info.getPagetotal() > 1)
 		</label>
 			<input id="<%= info.getType() %>submit_export" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>" showOtherButton="true"/>
 		</form>
 <% } else { %>
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" showOtherButton="true"/>
 <% } %>
 </div>
 </div>
@@ -289,9 +348,43 @@ if (info.getPagetotal() > 1)
 	j("input[name='<%= info.getType() %>item_id']").click(function() {
 		 j('#<%= info.getType() %>submit_export').attr("disabled", !j("input[name='<%= info.getType() %>item_id']").is(":checked"));	
 	});		
-	-->
-</script>
 
+	function display()
+	{
+	  var a = j("#qm-question").val();
+	  var b = j("#qm-name").val();
+	  var c = j("#qm-email").val();
+	  var d = j("#qm-itemid").val();
+
+	  j.ajax({
+	    type: "post",
+	    url: "<%=request.getContextPath()%>/pubquestion",
+	    data: "item_id="+d+"&q="+a+"&name="+b+"&mail="+c,
+	    success: function(msg)
+	      {
+	          j(".info-window-success").toggle();
+	          j(".info-window-hide").addClass("hide");
+	      },
+	    error: function(msg)
+	      {
+	          j(".info-window-error").toggle();
+	          j(".info-window-hide").addClass("hide");
+	      }
+	  });
+	}
+
+	j(".openinteresteddialog").click(function() {
+	     var title = j(this).data('title');
+	     var authors = j(this).data('authors');
+	     var issued = j(this).data('issued');
+	     var id = j(this).data('itemid');
+	     j("#qm-title").html( title );
+	     j("#qm-authors").html( authors );
+	     j("#qm-issued").html( issued );
+	     j("#qm-itemid").val( id );
+	});
+-->
+</script>
 <%-- show pagination controls at bottom --%>
 <%
 	if (info.getPagetotal() > 1)

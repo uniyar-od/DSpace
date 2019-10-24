@@ -302,6 +302,9 @@
 <div id="content">
 <div class="row">
 	<div class="col-lg-12">
+		<div class="alert alert-info" role="alert">
+  			<fmt:message key="jsp.layout.detail.info.about.feature"/>  		
+		</div>
 		<div class="form-inline">
 	         <div class="form-group">
 			 	<h1>

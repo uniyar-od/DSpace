@@ -194,10 +194,16 @@
         </div>         
 
 		<div class="panel-body">
+
 		<%
     if (crisEnabled)
     {
         %>
+
+		<div class="alert alert-info" role="alert">
+  			<fmt:message key="jsp.mydspace.info.about.feature"/>
+  			<a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+		</div>
         
         <h2 id="h2-cris-rp-status" class="cris-rp-status">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
