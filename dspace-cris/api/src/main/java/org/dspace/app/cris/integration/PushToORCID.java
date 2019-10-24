@@ -2115,7 +2115,18 @@ public class PushToORCID
                 if (listRole != null && !listRole.isEmpty())
                 {
                     String stringRole = listRole.get(0);
-                    affiliation.setRoleTitle(stringRole);
+                    
+                    SimpleMapConverter mapConverterModifier = new DSpace()
+                            .getServiceManager().getServiceByName(
+                                    "mapConverterOrcidEmploymentRoleType", SimpleMapConverter.class);
+                    if (mapConverterModifier == null)
+                    {
+                        affiliation.setRoleTitle(stringRole);
+                    }
+                    else
+                    {
+                        affiliation.setRoleTitle(mapConverterModifier.getValue(stringRole));
+                    }
                 }
 
                 List<String> listOrgUnitname = employment
@@ -2327,7 +2338,18 @@ public class PushToORCID
                 if (listRole != null && !listRole.isEmpty())
                 {
                     String stringRole = listRole.get(0);
-                    affiliation.setRoleTitle(stringRole);
+                    
+                    SimpleMapConverter mapConverterModifier = new DSpace()
+                            .getServiceManager().getServiceByName(
+                                    "mapConverterOrcidEducationRoleType", SimpleMapConverter.class);
+                    if (mapConverterModifier == null)
+                    {
+                        affiliation.setRoleTitle(stringRole);
+                    }
+                    else
+                    {
+                        affiliation.setRoleTitle(mapConverterModifier.getValue(stringRole));
+                    }
                 }
 
                 List<String> listOrgUnitname = education
