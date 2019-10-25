@@ -533,3 +533,17 @@ footer .container {
 	padding: 0;
 	float: left;
 }
+
+html body.undernavigation main#content div#pageContent.container div#content div#researcher div.col-lg-9 div#tab-130 div.row.vertical-tab div#dspaceitems.panel-group.col-md-12 div.panel.panel-default div.panel-heading h4.panel-title div.btn-group button.btn.btn-link.dropdown-toggle {
+	color: white;
+}
+
+html body.undernavigation main#content div#pageContent.container div#content div#researcher div.col-lg-9 div#tab-130 div.row.vertical-tab div#dspaceitems.panel-group.col-md-12 div.panel.panel-default div.panel-heading h4.panel-title div.btn-group.open button.btn.btn-link.dropdown-toggle {
+	color: white;
+}
+
+html body.undernavigation main#content div#pageContent.container div#content div#researcher div.col-lg-9 div#tab-130 div.row.vertical-tab div#dspaceitems.panel-group.col-md-12 div.panel.panel-default div.panel-heading h4.panel-title div.btn-group.open ul.dropdown-menu.dropdown-menu-right li a
+{
+	color: black;
+	font-weight: normal;
+}
