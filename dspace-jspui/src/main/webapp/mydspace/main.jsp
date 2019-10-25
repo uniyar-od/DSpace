@@ -173,6 +173,7 @@
                                                else
                                                {
                                             	   j(".cris-rp-status").hide();
+                                            	   j("#alert-newfeature-publicationlist").hide();
                                             	   j('#h2-cris-rp-status-undefined').show();
                                             	   j('#cris-rp-choice').show();
                                                }
@@ -200,7 +201,7 @@
     {
         %>
 
-		<div class="alert alert-info" role="alert">
+		<div id="alert-newfeature-publicationlist" class="alert alert-info" role="alert">
   			<fmt:message key="jsp.mydspace.info.about.feature"/>
   			<a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
 		</div>
