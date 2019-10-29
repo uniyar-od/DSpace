@@ -346,7 +346,7 @@
 			value="mapConverter-openaireCrisType.properties" />
 		<property name="configurationService"
 			ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="http://purl.org/coar/resource_type/c_1843" />
+		<property name="defaultValue" value="http://purl.org/coar/resource_type/c_18cf" />
 	</bean>
 		
 	<bean name="MapConverterCerifEntityType"
@@ -357,7 +357,7 @@
 			value="mapConverter-cerifEntityType.properties" />
 		<property name="configurationService"
 			ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="" />
+		<property name="defaultValue" value="Publications" />
 	</bean>	
 
 	<bean name="enhancerFulltext" class="org.dspace.content.integration.defaultvalues.FulltextInfoGenerator"/>

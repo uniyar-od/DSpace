@@ -840,8 +840,10 @@
            	</xsl:for-each>
             <!-- oai_cerif:PartOf [END] -->
             
-             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
-                <oai_cerif:PublicationDate><xsl:value-of select="." /></oai_cerif:PublicationDate>
+            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
+            	<xsl:if test=". != ''">
+                	<oai_cerif:PublicationDate><xsl:value-of select="." /></oai_cerif:PublicationDate>
+                </xsl:if>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='volume']/doc:element/doc:field[@name='value']">
@@ -883,11 +885,34 @@
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='scopus']/doc:element/doc:field[@name='value']">
                 <oai_cerif:SCP-Number><xsl:value-of select="." /></oai_cerif:SCP-Number>
             </xsl:for-each>
-            
-            <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value']">
-                <oai_cerif:ISBN><xsl:value-of select="." /></oai_cerif:ISBN>
-            </xsl:for-each>
-            
+
+			<xsl:for-each
+				select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='isbn']/doc:element/doc:field[@name='value']">
+				<xsl:variable name="isbn_plain">
+					<xsl:value-of
+						select="translate(., 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ():-', '')" />
+				</xsl:variable>
+				<xsl:variable name="isbn_empty">
+					<xsl:value-of
+						select="normalize-space(translate($isbn_plain, '1234567890-', ''))" />
+				</xsl:variable>
+				<xsl:choose>
+					<xsl:when
+						test="(contains(., 'PRINT') or contains(., 'Print') or contains(., 'print')) and $isbn_empty=''">
+						<oai_cerif:ISBN medium="http://issn.org/vocabularies/Medium#Print"><xsl:value-of select="normalize-space($isbn_plain)" /></oai_cerif:ISBN>
+					</xsl:when>
+					<xsl:when
+						test="(contains(., 'ONLINE') or contains(., 'Online') or contains(., 'online')) and $isbn_empty=''">
+						<oai_cerif:ISBN medium="http://issn.org/vocabularies/Medium#Online"><xsl:value-of select="normalize-space($isbn_plain)" /></oai_cerif:ISBN>
+					</xsl:when>
+					<xsl:otherwise>
+						<xsl:if test="$isbn_empty=''">
+							<oai_cerif:ISBN><xsl:value-of select="normalize-space($isbn_plain)" /></oai_cerif:ISBN>
+						</xsl:if>
+					</xsl:otherwise>
+				</xsl:choose>
+			</xsl:for-each>
+
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='url']/doc:element/doc:field[@name='value']">
             	<xsl:if test="position() = 1">
                 	<oai_cerif:URL><xsl:value-of select="." /></oai_cerif:URL>
@@ -1270,11 +1295,15 @@
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']">
-                <oai_cerif:RegistrationDate><xsl:value-of select="." /></oai_cerif:RegistrationDate>
+            	<xsl:if test=". != ''">
+                	<oai_cerif:RegistrationDate><xsl:value-of select="." /></oai_cerif:RegistrationDate>
+                </xsl:if>
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dcterms']/doc:element[@name='dateAccepted']/doc:element/doc:field[@name='value']">
-                <oai_cerif:ApprovalDate><xsl:value-of select="." /></oai_cerif:ApprovalDate>
+            	<xsl:if test=". != ''">
+                	<oai_cerif:ApprovalDate><xsl:value-of select="." /></oai_cerif:ApprovalDate>
+				</xsl:if>	               	
             </xsl:for-each>
             
             <xsl:for-each select="doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']">

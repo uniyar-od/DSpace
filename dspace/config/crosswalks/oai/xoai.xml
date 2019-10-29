@@ -77,7 +77,6 @@
             <!-- Metadata Formats -->
             <Format ref="oaidc"/>
             <Format ref="mets"/>
-            <Format ref="oai_cerif"/>
             <Description>
                 This contexts complies with OpenAIRE rules.
             </Description>
@@ -98,7 +97,6 @@
             <Set ref="openaireEquipmentsCrisSet"/>
             <Set ref="openaireFundingCrisSet"/>
             <!-- Metadata Formats -->
-            <Format ref="oaidc"/>
             <Format ref="oai_cerif"/>
             <Description>
                 This contexts complies with OpenAIRE rules for CRIS system v 1.1.1

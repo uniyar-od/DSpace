@@ -28,10 +28,17 @@
 			<xsl:with-param name="datestr" select="." />
 		</xsl:call-template>
 	</xsl:template>
+ 	
+ 	<!-- Formatting dcterms.dateAccepted --> 						 
+	<xsl:template match="/doc:metadata/doc:element[@name='dcterms']/doc:element[@name='dateAccepted']/doc:element/doc:field/text()">
+		<xsl:call-template name="formatdate">
+			<xsl:with-param name="datestr" select="." />
+		</xsl:call-template>
+	</xsl:template>
 	
 	<!-- Removing other dc.date.* -->
 	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name!='issued']" />
-	
+		
 	<!-- Prefixing and Modifying dc.rights -->
 	<!-- Removing unwanted -->
 	<xsl:template match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:element" />
@@ -42,7 +49,14 @@
 	<xsl:template name="formatdate">
 		<xsl:param name="datestr" />
 		<xsl:variable name="sub">
-			<xsl:value-of select="substring($datestr,1,10)" />
+			<xsl:choose>
+			<xsl:when test="translate(substring($datestr,1,10), '123456789', '000000000') = '0000-00-00'">
+    			<xsl:value-of select="substring($datestr,1,10)" />
+			</xsl:when>
+			<xsl:otherwise>
+				<xsl:value-of select="''"/>
+			</xsl:otherwise>
+			</xsl:choose>
 		</xsl:variable>
 		<xsl:value-of select="$sub" />
 	</xsl:template>
