@@ -269,7 +269,7 @@ public class CollectionsResource extends Resource
             while (dspaceItems.hasNext()) {
                 org.dspace.content.Item dspaceItem = dspaceItems.next();
                 if (ItemService.isItemListedForUser(context, dspaceItem)) {
-                    items.add(new Item(dspaceItem, expand, context));
+                    items.add(new Item(dspaceItem, expand, context, servletContext));
                     writeStats(dspaceItem, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor,
                                headers, request, context);
                 }

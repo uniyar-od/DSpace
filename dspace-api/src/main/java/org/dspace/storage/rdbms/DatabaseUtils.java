@@ -264,6 +264,7 @@ public class DatabaseUtils
                 	connection.close();
                 }
                 System.out.println("Done.");
+            }
             else if(argv[0].equalsIgnoreCase("update-sequences"))
             {
                 try (Connection connection = dataSource.getConnection()) {
