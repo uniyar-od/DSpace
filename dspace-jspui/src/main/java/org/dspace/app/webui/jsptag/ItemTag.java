@@ -557,11 +557,15 @@ public class ItemTag extends TagSupport
 
         try
         {
-        	List<Bundle> bundles = itemService.getBundles(item, "ORIGINAL");
+        	List<Bundle> obundles = itemService.getBundles(item, "ORIGINAL");
+        	List<Bundle> dbundles = itemService.getBundles(item, "DISPLAY");
+        	List<Bundle> bunds = new ArrayList<Bundle>();
+        	bunds.addAll(obundles);
+        	bunds.addAll(dbundles);
 
         	boolean filesExist = false;
             
-            for (Bundle bnd : bundles)
+            for (Bundle bnd : bunds)
             {
             	filesExist = bnd.getBitstreams().size() > 0;
             	if (filesExist)
@@ -583,7 +587,6 @@ public class ItemTag extends TagSupport
         		String handle = item.getHandle();
         		Bitstream primaryBitstream = null;
 
-        		List<Bundle> bunds = itemService.getBundles(item, "ORIGINAL");
         		List<Bundle> thumbs = itemService.getBundles(item, "THUMBNAIL");
 
         		// if item contains multiple bitstreams, display bitstream
@@ -707,7 +710,7 @@ public class ItemTag extends TagSupport
                                         "webui.itemdisplay.label.restricted.bitstreams",
                                         true);
                         
-            		for (Bundle bundle : bundles)
+            		for (Bundle bundle : bunds)
             		{
             			List<Bitstream> bitstreams = bundle.getBitstreams();
             			Bitstream primaryBit = bundle.getPrimaryBitstream();

@@ -71,7 +71,7 @@
                 jQuery(document).ready(function(html){
                     jQuery.ajax({
                         url: '<%= request.getContextPath() + "/tools/sherpaPolicy" %>', 
-                        data: {item_id: <%= subInfo.getSubmissionItem().getItem().getID() %>}})
+                        data: {item_id: '<%= subInfo.getSubmissionItem().getItem().getID() %>'}})
                             .done(function(html) {
                                 jQuery('#sherpaContent').html(html);
                     });
