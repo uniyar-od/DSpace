@@ -9,6 +9,7 @@ package org.dspace.content.integration.defaultvalues;
 
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -43,10 +44,13 @@ public class FulltextPermissionGenerator implements EnhancedValuesGenerator
             result.setMetadataSchema(schema);
             result.setMetadataElement(element);
             result.setMetadataQualifier(qualifier);
-            List<Bundle> bnds;
+            List<Bundle> bnds = new ArrayList<Bundle>();
             try
             {
-            	bnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
+            	List<Bundle> obnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
+                List<Bundle> dbnds = item.getItemService().getBundles(item, "DISPLAY");
+                bnds.addAll(dbnds);
+                bnds.addAll(obnds);
             }
             catch (SQLException e)
             {

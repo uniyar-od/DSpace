@@ -8,6 +8,7 @@
 package org.dspace.content.integration.defaultvalues;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.dspace.content.Bitstream;
@@ -31,15 +32,19 @@ public class FulltextInfoGenerator implements EnhancedValuesGenerator
 
         String values = I18nUtil
                 .getMessage("defaultvalue.fulltextdescription.nofulltext");
-        List<Bundle> bnds;
+        List<Bundle> bnds=new ArrayList<Bundle>();
         try
         {
-            bnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
+            List<Bundle> obnds = item.getItemService().getBundles(item, Constants.DEFAULT_BUNDLE_NAME);
+            List<Bundle> dbnds = item.getItemService().getBundles(item, "DISPLAY");
+            bnds.addAll(dbnds);
+            bnds.addAll(obnds);
         }
         catch (SQLException e)
         {
             throw new RuntimeException(e.getMessage(), e);
         }
+        
         external: for (Bundle bnd : bnds)
         {
             internal: for (Bitstream b : bnd.getBitstreams())
