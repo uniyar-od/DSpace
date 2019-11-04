@@ -327,10 +327,17 @@ public class ShibAuthentication implements AuthenticationMethod
 	public int[] getSpecialGroups(Context context, HttpServletRequest request)
 	{
 		try {
+		    
+		    log.debug("Try to get special groups.");
+		    
 			// User has not successfuly authenticated via shibboleth.
 			if ( request == null || 
 					context.getCurrentUser() == null || 
 					request.getSession().getAttribute("shib.authenticated") == null ) {
+			    log.debug("get special groups - User has not successfully authenticated via shibboleth:");
+			    log.debug("get special groups - Request is null: " + ((request == null)?"true":"false"));
+			    log.debug("get special groups - CurrentUser is null: " + ((context.getCurrentUser() == null)?"true":"false"));
+			    log.debug("get special groups - Attribute shib.authenticated is null: " + ((request.getSession().getAttribute("shib.authenticated") == null)?"true":"false"));
 				return new int[0];
 			}
 
@@ -864,7 +871,7 @@ public class ShibAuthentication implements AuthenticationMethod
 			String message = "Updated the eperson's minimal metadata: \n";
 			message += " Email Header: '"+emailHeader+"' = '"+email+"' \n";
 			message += " First Name Header: '"+fnameHeader+"' = '"+fname+"' \n";
-			message += " Last Name Header: '"+fnameHeader+"' = '"+lname+"'";
+			message += " Last Name Header: '"+lnameHeader+"' = '"+lname+"'";
 			log.debug(message);
 		}
 
