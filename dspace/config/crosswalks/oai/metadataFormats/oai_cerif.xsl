@@ -564,7 +564,11 @@
         </xsl:for-each>
         </xsl:when>
         <xsl:otherwise>
-        <oai_cerif:Project/>
+        <oai_cerif:Project>
+	        <xsl:for-each select="$selector">
+	        	<oai_cerif:Title xml:lang="en"><xsl:value-of select="." /></oai_cerif:Title>
+	        </xsl:for-each>
+		</oai_cerif:Project>
         </xsl:otherwise>
         </xsl:choose>        
     </xsl:template>
@@ -996,10 +1000,21 @@
 	             		<xsl:value-of select="../doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
 	             	</xsl:variable>
              		<!-- <oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName> -->
+             		
+             		<xsl:choose>
+             		<xsl:when test="$project_id!=''">
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
 					</xsl:call-template>
+					</xsl:when>
+					<xsl:otherwise>
+ 					<xsl:call-template name="project">
+						<xsl:with-param name="selector" select="." />
+						<xsl:with-param name="project_id" select="''" />
+					</xsl:call-template>					
+					</xsl:otherwise>
+					</xsl:choose>
 	        	</oai_cerif:OriginatesFrom>					
 	        </xsl:for-each>
 	        
@@ -1179,10 +1194,20 @@
              			<xsl:value-of select="../doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
              		</xsl:variable>
              		<!-- <oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName> -->
+             		<xsl:choose>
+             		<xsl:when test="$project_id!=''">
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
 					</xsl:call-template>
+					</xsl:when>
+					<xsl:otherwise>
+ 					<xsl:call-template name="project">
+						<xsl:with-param name="selector" select="." />
+						<xsl:with-param name="project_id" select="''" />
+					</xsl:call-template>					
+					</xsl:otherwise>
+					</xsl:choose>
 	        	</oai_cerif:OriginatesFrom>					
 	        </xsl:for-each>
 
@@ -1377,10 +1402,20 @@
 	             		<xsl:value-of select="../doc:element[@name='authority']/doc:element[@name='others']/doc:field[@name='handle']/text()" />
 	             	</xsl:variable>
              		<!-- <oai_cerif:DisplayName><xsl:value-of select="." /></oai_cerif:DisplayName> -->
+             		<xsl:choose>
+             		<xsl:when test="$project_id!=''">
  					<xsl:call-template name="project">
 						<xsl:with-param name="selector" select="../doc:element[@name='authority']" />
 						<xsl:with-param name="project_id" select="$project_id" />
 					</xsl:call-template>
+					</xsl:when>
+					<xsl:otherwise>
+ 					<xsl:call-template name="project">
+						<xsl:with-param name="selector" select="." />
+						<xsl:with-param name="project_id" select="''" />
+					</xsl:call-template>					
+					</xsl:otherwise>
+					</xsl:choose>
 	        	</oai_cerif:OriginatesFrom>					
 	        </xsl:for-each>
 	        
