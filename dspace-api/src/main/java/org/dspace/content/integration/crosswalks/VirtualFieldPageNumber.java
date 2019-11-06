@@ -10,6 +10,7 @@ package org.dspace.content.integration.crosswalks;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
@@ -36,10 +37,12 @@ public class VirtualFieldPageNumber implements VirtualFieldDisseminator, Virtual
 		}
 
 		// Get metadata 
-		String firstpage = (ConfigurationManager.getProperty("crosswalk.virtualfieldpage.firstpage.metadata") != null) ?
+		String firstpage = (StringUtils.isNotEmpty(
+				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.firstpage.metadata"))) ?
 				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.firstpage.metadata") :
 				"dc.relation.firstpage";
-		String lastpage = (ConfigurationManager.getProperty("crosswalk.virtualfieldpage.lastpage.metadata") != null) ?
+		String lastpage = (StringUtils.isNotEmpty(
+				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.lastpage.metadata"))) ?
 				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.lastpage.metadata") :
 				"dc.relation.lastpage";		
 
