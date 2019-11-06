@@ -61,7 +61,7 @@ public class UtilsCrisMetadata {
 		int entity = -1;
 		try {
 			if (entity > CrisConstants.CRIS_DYNAMIC_TYPE_ID_START) {
-	            DynamicObjectType type = getApplicationService().get(DynamicObjectType.class, CrisConstants.CRIS_DYNAMIC_TYPE_ID_START);
+	            DynamicObjectType type = getApplicationService().get(DynamicObjectType.class, entity);
 	            List<DynamicPropertiesDefinition> tps = type.getMask();            
 	            for (DynamicPropertiesDefinition tp : tps) {
 	                IContainable ic = getApplicationService().findContainableByDecorable(tp.getDecoratorClass(), tp.getId());
