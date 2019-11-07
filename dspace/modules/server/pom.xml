@@ -236,7 +236,8 @@ just adding new jar in the classloader</description>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-server-webapp</artifactId>
             <type>test-jar</type>
-            <scope>test</scope>
+            <classifier>classes</classifier>
+	    <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
