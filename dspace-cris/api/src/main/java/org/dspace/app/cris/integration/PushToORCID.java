@@ -168,7 +168,9 @@ public class PushToORCID
 
     private static final int ORCID_PROJECTS_PREFS_SELECTED = 2;
 
-    private static DateFormat df = new SimpleDateFormat("dd-MM-yyyy");
+    private static DateFormat dfFull = new SimpleDateFormat("dd-MM-yyyy");
+    private static DateFormat dfMonthly = new SimpleDateFormat("MM-yyyy");
+    private static DateFormat dfYear = new SimpleDateFormat("yyyy");
 
     /** the logger */
     private static Logger log = Logger.getLogger(PushToORCID.class);
@@ -2002,14 +2004,34 @@ public class PushToORCID
                     String stringStartDate = listStartDate.get(0);
                     Date startDate;
                     DateTime cal1 = null;
+                    boolean isFull = false;
+                    boolean isMonthly = false;
                     try
                     {
-                        startDate = df.parse(stringStartDate);
+                        startDate = dfFull.parse(stringStartDate);
                         cal1 = new DateTime(startDate.getTime());
+                        isFull = true;
                     }
                     catch (ParseException e)
                     {
-                        log.error(e.getMessage());
+                        try
+                        {
+                            startDate = dfMonthly.parse(stringStartDate);
+                            cal1 = new DateTime(startDate.getTime());
+                            isMonthly = true;
+                        }
+                        catch (ParseException e1)
+                        {
+                            try
+                            {
+                                startDate = dfYear.parse(stringStartDate);
+                                cal1 = new DateTime(startDate.getTime());
+                            }
+                            catch (ParseException e2)
+                            {
+                                log.error(e.getMessage());
+                            }
+                        }
                     }
 
                     FuzzyDate fuzzyStartDate = new FuzzyDate();
@@ -2025,30 +2047,34 @@ public class PushToORCID
                     	log.error(ex.getMessage());
                     }
 
-                    try
-                    {
-                        int monthSD = cal1.getMonthOfYear();
-                        Month month = new Month();
-                        month.setValue(dateMonthAndDayFormat
-                                .format(monthSD));
-                        fuzzyStartDate.setMonth(month);
+                    if(isMonthly || isFull) {
+                        try
+                        {
+                            int monthSD = cal1.getMonthOfYear();
+                            Month month = new Month();
+                            month.setValue(dateMonthAndDayFormat
+                                    .format(monthSD));
+                            fuzzyStartDate.setMonth(month);
+                        }
+                        catch (Exception ex)
+                        {
+                        	log.error(ex.getMessage());
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                    	log.error(ex.getMessage());
-                    }
-
-                    try
-                    {
-                        int daySD = cal1.getDayOfMonth();
-                        Day day = new Day();
-                        day.setValue(dateMonthAndDayFormat
-                                .format(daySD));
-                        fuzzyStartDate.setDay(day);
-                    }
-                    catch (Exception ex)
-                    {
-                    	log.error(ex.getMessage());
+                    
+                    if(isFull) {
+                        try
+                        {
+                            int daySD = cal1.getDayOfMonth();
+                            Day day = new Day();
+                            day.setValue(dateMonthAndDayFormat
+                                    .format(daySD));
+                            fuzzyStartDate.setDay(day);
+                        }
+                        catch (Exception ex)
+                        {
+                        	log.error(ex.getMessage());
+                        }
                     }
                     affiliation.setStartDate(fuzzyStartDate);
                 }
@@ -2059,14 +2085,34 @@ public class PushToORCID
                     String stringEndDate = listEndDate.get(0);
                     Date endDate;
                     DateTime cal2 = null;
+                    boolean isFull = false;
+                    boolean isMonthly = false;
                     try
                     {
-                        endDate = df.parse(stringEndDate);
+                        endDate = dfFull.parse(stringEndDate);
                         cal2 = new DateTime(endDate.getTime());
+                        isFull = true;
                     }
                     catch (ParseException e)
                     {
-                        log.error(e.getMessage());
+                        try
+                        {
+                            endDate = dfMonthly.parse(stringEndDate);
+                            cal2 = new DateTime(endDate.getTime());
+                            isMonthly = true;
+                        }
+                        catch (ParseException e1)
+                        {
+                            try
+                            {
+                                endDate = dfYear.parse(stringEndDate);
+                                cal2 = new DateTime(endDate.getTime());
+                            }
+                            catch (ParseException e2)
+                            {
+                                log.error(e.getMessage());
+                            }
+                        }
                     }
 
                     FuzzyDate fuzzyEndDate = new FuzzyDate();
@@ -2082,30 +2128,34 @@ public class PushToORCID
                         log.error(ex.getMessage());
                     }
 
-                    try
-                    {
-                        int monthED = cal2.getMonthOfYear();
-                        Month month = new Month();
-                        month.setValue(dateMonthAndDayFormat
-                                .format(monthED));
-                        fuzzyEndDate.setMonth(month);
+                    if(isMonthly || isFull) {
+                        try
+                        {
+                            int monthED = cal2.getMonthOfYear();
+                            Month month = new Month();
+                            month.setValue(dateMonthAndDayFormat
+                                    .format(monthED));
+                            fuzzyEndDate.setMonth(month);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.error(ex.getMessage());
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        log.error(ex.getMessage());
-                    }
-
-                    try
-                    {
-                        int dayED = cal2.getDayOfMonth();
-                        Day day = new Day();
-                        day.setValue(dateMonthAndDayFormat
-                                .format(dayED));
-                        fuzzyEndDate.setDay(day);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.error(ex.getMessage());
+                    
+                    if(isFull) {
+                        try
+                        {
+                            int dayED = cal2.getDayOfMonth();
+                            Day day = new Day();
+                            day.setValue(dateMonthAndDayFormat
+                                    .format(dayED));
+                            fuzzyEndDate.setDay(day);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.error(ex.getMessage());
+                        }
                     }
 
                     affiliation.setEndDate(fuzzyEndDate);
@@ -2224,14 +2274,34 @@ public class PushToORCID
                     String stringStartDate = listStartDate.get(0);
                     Date startDate = null;
                     DateTime cal1 = null;
+                    boolean isFull = false;
+                    boolean isMonthly = false;
                     try
                     {
-                        startDate = df.parse(stringStartDate);
+                        startDate = dfFull.parse(stringStartDate);
                         cal1 = new DateTime(startDate.getTime());
+                        isFull = true;
                     }
                     catch (ParseException e)
                     {
-                        log.error(e.getMessage());
+                        try
+                        {
+                            startDate = dfMonthly.parse(stringStartDate);
+                            cal1 = new DateTime(startDate.getTime());
+                            isMonthly = true;
+                        }
+                        catch (ParseException e1)
+                        {
+                            try
+                            {
+                                startDate = dfYear.parse(stringStartDate);
+                                cal1 = new DateTime(startDate.getTime());
+                            }
+                            catch (ParseException e2)
+                            {
+                                log.error(e.getMessage());
+                            }
+                        }
                     }
 
                     FuzzyDate fuzzyStartDate = new FuzzyDate();
@@ -2247,31 +2317,35 @@ public class PushToORCID
                     {
                         log.error(ex.getMessage());
                     }
+                    
+                    if(isMonthly || isFull) {
+                        try
+                        {
+                            int monthSD = cal1.getMonthOfYear();
+                            Month month = new Month();
+                            month.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(monthSD) }));
+                            fuzzyStartDate.setMonth(month);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.error(ex.getMessage());
+                        }
+                    }
 
-                    try
-                    {
-                        int monthSD = cal1.getMonthOfYear();
-                        Month month = new Month();
-                        month.setValue(MessageFormat.format("{0,number,#00}",
-                                new Object[] { new Integer(monthSD) }));
-                        fuzzyStartDate.setMonth(month);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.error(ex.getMessage());
-                    }
-
-                    try
-                    {
-                        int daySD = cal1.getDayOfMonth();
-                        Day day = new Day();
-                        day.setValue(MessageFormat.format("{0,number,#00}",
-                                new Object[] { new Integer(daySD) }));
-                        fuzzyStartDate.setDay(day);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.error(ex.getMessage());
+                    if(isFull) {
+                        try
+                        {
+                            int daySD = cal1.getDayOfMonth();
+                            Day day = new Day();
+                            day.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(daySD) }));
+                            fuzzyStartDate.setDay(day);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.error(ex.getMessage());
+                        }
                     }
                     affiliation.setStartDate(fuzzyStartDate);
                 }
@@ -2282,14 +2356,34 @@ public class PushToORCID
                     String stringEndDate = listEndDate.get(0);
                     Date endDate = null;
                     DateTime cal2 = null;
+                    boolean isFull = false;
+                    boolean isMonthly = false;
                     try
                     {
-                        endDate = df.parse(stringEndDate);
+                        endDate = dfFull.parse(stringEndDate);
                         cal2 = new DateTime(endDate.getTime());
+                        isFull = true;
                     }
                     catch (ParseException e)
                     {
-                        log.error(e.getMessage());
+                        try
+                        {
+                            endDate = dfMonthly.parse(stringEndDate);
+                            cal2 = new DateTime(endDate.getTime());
+                            isMonthly = true;
+                        }
+                        catch (ParseException e1)
+                        {
+                            try
+                            {
+                                endDate = dfYear.parse(stringEndDate);
+                                cal2 = new DateTime(endDate.getTime());
+                            }
+                            catch (ParseException e2)
+                            {
+                                log.error(e.getMessage());
+                            }
+                        }
                     }
 
                     FuzzyDate fuzzyEndDate = new FuzzyDate();
@@ -2306,30 +2400,34 @@ public class PushToORCID
                         log.error(ex.getMessage());
                     }
 
-                    try
-                    {
-                        int monthED = cal2.getMonthOfYear();
-                        Month month = new Month();
-                        month.setValue(MessageFormat.format("{0,number,#00}",
-                                new Object[] { new Integer(monthED) }));
-                        fuzzyEndDate.setMonth(month);
+                    if(isMonthly || isFull) {
+                        try
+                        {
+                            int monthED = cal2.getMonthOfYear();
+                            Month month = new Month();
+                            month.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(monthED) }));
+                            fuzzyEndDate.setMonth(month);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.error(ex.getMessage());
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        log.error(ex.getMessage());
-                    }
-
-                    try
-                    {
-                        int dayED = cal2.getDayOfMonth();
-                        Day day = new Day();
-                        day.setValue(MessageFormat.format("{0,number,#00}",
-                                new Object[] { new Integer(dayED) }));
-                        fuzzyEndDate.setDay(day);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.error(ex.getMessage());
+                    
+                    if(isFull) {
+                        try
+                        {
+                            int dayED = cal2.getDayOfMonth();
+                            Day day = new Day();
+                            day.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(dayED) }));
+                            fuzzyEndDate.setDay(day);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.error(ex.getMessage());
+                        }
                     }
                     affiliation.setEndDate(fuzzyEndDate);
                 }
