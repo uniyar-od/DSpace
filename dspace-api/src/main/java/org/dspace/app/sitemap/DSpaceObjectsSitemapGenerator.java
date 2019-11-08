@@ -22,7 +22,7 @@ import org.dspace.core.Context;
 
 public class DSpaceObjectsSitemapGenerator implements ISitemapGeneratorPlugin {
 
-	@Override
+    @Override
     public String addUrls(Context c, boolean makeHTMLMap, boolean makeSitemapOrg, List<String> includes,
 			AbstractGenerator html, AbstractGenerator sitemapsOrg) throws SQLException, IOException {
 		String handleURLStem = ConfigurationManager.getProperty("dspace.url") + "/handle/";

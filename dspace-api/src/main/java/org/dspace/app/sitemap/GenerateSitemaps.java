@@ -70,7 +70,7 @@ public class GenerateSitemaps {
             System.exit(1);
         }
         
-//      //FIXME check if both includes and excludes are provided, only one is allowed
+        // check if both includes and excludes are provided, only one is allowed
         if (line.hasOption('i') && line.hasOption('e')) {
             System.err.println("Bad arguments - cannot combine includes and excludes");
             hf.printHelp(usage, options);
