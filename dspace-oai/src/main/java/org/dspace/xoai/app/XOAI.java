@@ -611,7 +611,7 @@ public class XOAI {
             case "other":
             	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.crisother");
             	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
-            		eraseQuery = "NOT (item.type:item OR item.type:rp OR item.type:project OR item.type:uo)";
+            		eraseQuery = "NOT (item.type:item OR item.type:rp OR item.type:project OR item.type:ou)";
             	}
     	        break;
             case "all":
