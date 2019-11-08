@@ -56,29 +56,11 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
 
         if (includes.contains("crisou"))
         {
-
             List<OrganizationUnit> orgUnits = applicationService
                     .getList(OrganizationUnit.class);
 
-            for (ACrisObject orgUnit : orgUnits)
-            {
-                String url = crisURLStem + orgUnit.getAuthorityPrefix() + "/"
-                        + orgUnit.getCrisID();
-                
-                if (BooleanUtils.isNotTrue(orgUnit.getStatus())) {
-                    continue;
-                }
-                
-                if (makeHTMLMap)
-                {
-                    html.addURL(url, null);
-                }
-                if (makeSitemapOrg)
-                {
-                    sitemapsOrg.addURL(url, null);
-                }
-                applicationService.clearCache();
-            }
+            addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
+                    crisURLStem, orgUnits);
             objectDetails.append(",crisou=").append(orgUnits.size());
         }
 
@@ -88,24 +70,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
             List<ResearcherPage> crisrps = applicationService
                     .getList(ResearcherPage.class);
 
-            for (ACrisObject crisrp : crisrps)
-            {
-                String url = crisURLStem + crisrp.getAuthorityPrefix() + "/"
-                        + crisrp.getCrisID();
-                
-                if (BooleanUtils.isNotTrue(crisrp.getStatus())) {
-                    continue;
-                }
-                if (makeHTMLMap)
-                {
-                    html.addURL(url, null);
-                }
-                if (makeSitemapOrg)
-                {
-                    sitemapsOrg.addURL(url, null);
-                }
-                applicationService.clearCache();
-            }
+            addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
+                    crisURLStem, crisrps);
             objectDetails.append(",crisrp=").append(crisrps.size());
         }
 
@@ -125,27 +91,12 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
                     List<ResearchObject> researchers = applicationService
                             .getResearchObjectPaginateListByType(dynType, "id",
                                     false, page, 100);
-                    for (ACrisObject ro : researchers)
-                    {
-                        if (BooleanUtils.isNotTrue(ro.getStatus())) {
-                            continue;
-                        }
-                        String url = crisURLStem + dynShortName + "/"
-                                + ro.getCrisID();
 
-                        if (makeHTMLMap)
-                        {
-                            html.addURL(url, null);
-                        }
-                        if (makeSitemapOrg)
-                        {
-                            sitemapsOrg.addURL(url, null);
-                        }
-                    }
-                    applicationService.clearCache();
+                    addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
+                            crisURLStem, researchers);
                 }
                 objectDetails.append(",cris").append(dynShortName).append("=")
-                        .append(count);
+                    .append(count);
             }
         }
         return objectDetails.toString();
