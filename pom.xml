@@ -821,6 +821,12 @@
 						 <version>${ckan.addon.modules}</version>
 						 <type>jar</type>
 			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-ckan-jspui</artifactId>
+						 <version>${ckan.addon.modules}</version>
+						 <type>war</type>
+			        </dependency>
 		        </dependencies>		                    
             </dependencyManagement>
         </profile>
@@ -883,6 +889,12 @@
 						 <artifactId>addon-docviewer-api</artifactId>
 						 <version>${docviewer.addon.modules}</version>
 						 <type>jar</type>
+			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-docviewer-jspui</artifactId>
+						 <version>${docviewer.addon.modules}</version>
+						 <type>war</type>
 			        </dependency>
 			        <dependency>
 			             <groupId>it.4science.dspace</groupId>
@@ -966,6 +978,10 @@
 				<exclusion>
 					<groupId>it.4science.dspace</groupId>
 					<artifactId>addon-docviewer-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-docviewer-jspui</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>it.4science.dspace</groupId>
