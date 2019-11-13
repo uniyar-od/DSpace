@@ -48,4 +48,20 @@
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
 		<property name="defaultValue" value="other"/>
 	</bean>
+	
+	<bean name="mapConverterOrcidEducationRoleType" class="org.dspace.util.SimpleMapConverter"
+		init-method="init">
+		<constructor-arg value="mapConverterOrcidEducationRoleType" />
+		<property name="converterNameFile" value="mapConverter-orcid-educationrole.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="@@ident@@"/>
+	</bean>
+	
+	<bean name="mapConverterOrcidEmploymentRoleType" class="org.dspace.util.SimpleMapConverter"
+		init-method="init">
+		<constructor-arg value="mapConverterOrcidEmploymentRoleType" />
+		<property name="converterNameFile" value="mapConverter-orcid-employmentrole.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value="@@ident@@"/>
+	</bean>		
 </beans>
