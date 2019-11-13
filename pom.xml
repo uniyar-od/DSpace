@@ -42,7 +42,7 @@
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
         <!-- 4Science Addons' versions -->
-        <iiif.addon.modules>6.0-SNAPSHOT</iiif.addon.modules>
+        <iiif.addon.modules>BASE-6.0-SNAPSHOT</iiif.addon.modules>
     </properties>
 
     <build>
