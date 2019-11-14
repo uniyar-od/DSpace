@@ -1204,13 +1204,23 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
                 if ((searchFilters.get(field) != null || searchFilters.get(unqualifiedField + "." + Item.ANY) != null))
                 {
-                    List<DiscoverySearchFilter> searchFilterConfigs = searchFilters.get(field);
-                    if(searchFilterConfigs == null)
+                    List<DiscoverySearchFilter> filterConfigs = new ArrayList<DiscoverySearchFilter>();
+                    // get all the configuration specified for the field "as is" (i.e. dc.contributor.author)
+                    List<DiscoverySearchFilter> searchFieldFilterConfigs = searchFilters.get(field);
+                    if(searchFieldFilterConfigs != null)
                     {
-                        searchFilterConfigs = searchFilters.get(unqualifiedField + "." + Item.ANY);
+                        filterConfigs.addAll(searchFieldFilterConfigs);
+                    }
+                    // get all the configuration specified with jolly (i.e. dc.contributor.*)                    
+                    List<DiscoverySearchFilter> searchUnqualifiedFieldFilterConfigs = searchFilters
+                            .get(unqualifiedField + "." + Item.ANY);
+                    if(searchUnqualifiedFieldFilterConfigs != null)
+                    {
+                        filterConfigs.addAll(searchUnqualifiedFieldFilterConfigs);
                     }
 
-                    for (DiscoverySearchFilter searchFilter : searchFilterConfigs)
+                    // work on all the configurations that use the current field
+                    for (DiscoverySearchFilter searchFilter : filterConfigs)
                     {
                         Date date = null;
                         String separator = new DSpace().getConfigurationService().getProperty("discovery.solr.facets.split.char");
