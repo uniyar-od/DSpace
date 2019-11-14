@@ -173,6 +173,7 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy implement
             else
             {
                 argument = "value";
+                tmpValue = value;
             }
             if (viewFull)
             {
