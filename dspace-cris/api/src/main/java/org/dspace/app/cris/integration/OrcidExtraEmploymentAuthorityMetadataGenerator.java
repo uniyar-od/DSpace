@@ -8,6 +8,7 @@ import java.util.Map;
 
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.orcid.OrcidAccessToken;
+import org.dspace.authority.orcid.OrcidAuthorityValue;
 import org.dspace.authority.orcid.OrcidService;
 import org.dspace.content.authority.Choice;
 import org.orcid.jaxb.model.record_v2.Employment;
@@ -81,15 +82,16 @@ public class OrcidExtraEmploymentAuthorityMetadataGenerator
     public List<Choice> buildAggregate(OrcidService source, AuthorityValue val)
     {
         List<Choice> choiceList = new LinkedList<Choice>();
+        String serviceId = ((OrcidAuthorityValue)val).getServiceId();
         if (isSingleResultOnAggregate())
         {            
-            choiceList.add(new Choice(val.generateString(), val.getValue(), val.getValue(), build(source, val.getValue())));
+            choiceList.add(new Choice(val.generateString(), val.getValue(), val.getValue(), build(source, serviceId)));
         }
         else
         {
             String access_token = getAccessToken(source);
             
-            Employments employments = source.getEmployments(val.getValue(), access_token);
+            Employments employments = source.getEmployments(serviceId, access_token);
             for (EmploymentSummary employment : employments.getEmploymentSummary())
             {
                 Map<String, String> extras = new HashMap<String, String>();

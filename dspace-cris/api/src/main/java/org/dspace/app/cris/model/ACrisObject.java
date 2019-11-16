@@ -10,6 +10,7 @@ package org.dspace.app.cris.model;
 import java.beans.PropertyEditor;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -171,11 +172,20 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
     
 	@Override
 	public Metadatum[] getMetadata(String schema, String element, String qualifier, String lang) {
-		return internalGetMetadata(schema, element, qualifier, false);
+		return internalGetMetadata(schema, element, qualifier, false, false);
 	}
 
+	public Metadatum[] getMetadata(String schema, String element, String qualifier, String lang, boolean onlyPub) {
+		return internalGetMetadata(schema, element, qualifier, false, onlyPub);
+	}
+	
+	private Metadatum[] internalGetMetadata(String schema, String element,
+            String qualifier, boolean singleValue) {
+		return internalGetMetadata(schema, element, qualifier, singleValue, false);
+	}
+	
     private Metadatum[] internalGetMetadata(String schema, String element,
-            String qualifier, boolean singleValue)
+            String qualifier, boolean singleValue, boolean onlyPub)
     {
         Map<Integer, Object> mapResultsVal = new HashMap<Integer, Object>();
 		Map<Integer, String> mapResultsAuth = new HashMap<Integer, String>();
@@ -203,9 +213,12 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 
 					if (nProprieties != null) {
 						for (NP prop : nProprieties) {
+							if (onlyPub && prop.getVisibility() != VisibilityConstants.PUBLIC)
+								continue;
+							
 							Object val = prop.getObject();
 							if (StringUtils.isNotEmpty(qualifier) && val instanceof ACrisObject) {
-								authority = ResearcherPageUtils.getPersistentIdentifier((ACrisObject) val);								
+								authority = ResearcherPageUtils.getPersistentIdentifier((ACrisObject) val);					
 								qualifier = getCompatibleJDynAShortName((ACrisObject) val, qualifier);
 								List pointProps = (List) ((ACrisObject) val).getAnagrafica4view().get(qualifier);
 								if (pointProps != null && pointProps.size() > 0) {
@@ -240,6 +253,9 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 
 	            if (proprieties != null && !proprieties.isEmpty()) {
 	                for (P prop : proprieties) {
+	                	if (onlyPub && prop.getVisibility() != VisibilityConstants.PUBLIC)
+							continue;
+	                	
 	                    Object val = prop.getObject();
 	                    if (StringUtils.isNotEmpty(element) && val instanceof ACrisObject) {
 	                        
@@ -278,6 +294,9 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 
 			if (proprieties != null && !proprieties.isEmpty()) {
 				for (P prop : proprieties) {
+					if (onlyPub && prop.getVisibility() != VisibilityConstants.PUBLIC)
+						continue;
+					
 					Object val = prop.getObject();
 					if (StringUtils.isNotEmpty(qualifier) && val instanceof ACrisObject) {
 					    
@@ -475,7 +494,19 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 	}
 	
     public String getMetadataFieldName(Locale locale) {
-        return getMetadataFieldTitle() + locale.getLanguage();
+        return getMetadataFieldTitle() + locale==null?"":locale.getLanguage();
+    }
+
+    /**
+     * 
+     * Get the date the entity was last modified, or the current date if
+     * last_modified is null
+     * 
+     * @return
+     */
+    public Date getLastModified()
+    {
+        return new Date(getTimeStampInfo().getLastModificationTime().getTime());
     }
 	    
 }

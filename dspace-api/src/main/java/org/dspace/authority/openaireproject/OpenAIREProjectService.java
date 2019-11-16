@@ -39,7 +39,7 @@ public class OpenAIREProjectService {
 
 	public static final String PROJECT_FUNDER="funder";
 
-	public static final String PROJECT_CODE="code";
+	public static final String PROJECT_CODE="grantidentifier";
 
 	public static final String PROJECT_FUNDING_PROGRAM = "fundingProgram";
 	

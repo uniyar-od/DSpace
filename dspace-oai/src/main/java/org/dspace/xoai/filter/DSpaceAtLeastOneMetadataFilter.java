@@ -39,14 +39,21 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
     private String field;
     private DSpaceMetadataFilterOperator operator = DSpaceMetadataFilterOperator.UNDEF;
     private List<String> values;
-
+    
     private String getField() {
         if (field == null) {
             field = getConfiguration().get("field").asSimpleType().asString();
         }
         return field;
     }
-
+    
+    public String getSchema() {
+        if(getConfiguration()!=null && getConfiguration().get("schema")!=null) {
+            return getConfiguration().get("schema").asSimpleType().asString();
+        }
+    	return "metadata";
+    }
+    
     private List<String> getValues() {
         if (values == null) {
             ParameterValue parameterValue = getConfiguration().get("value");
@@ -198,8 +205,11 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
         String field = this.getField();
         List<String> parts = new ArrayList<String>();
         if (this.getField() != null) {
+        	String d = "";
+        	if (getSchema() != null && getSchema().length() > 0)
+				d = getSchema() + ".";
             for (String v : this.getValues())
-                this.buildQuery("metadata." + field,
+                this.buildQuery(d + field,
                         ClientUtils.escapeQueryChars(v), parts);
             if (parts.size() > 0) {
                 return new SolrFilterResult(StringUtils.join(parts.iterator(),

@@ -7,17 +7,15 @@
  */
 package org.dspace.xoai.services.impl.xoai;
 
-import com.lyncode.xoai.dataprovider.core.ListItemIdentifiersResult;
-import com.lyncode.xoai.dataprovider.core.ListItemsResults;
-import com.lyncode.xoai.dataprovider.core.ReferenceSet;
-import com.lyncode.xoai.dataprovider.data.Item;
-import com.lyncode.xoai.dataprovider.data.ItemIdentifier;
-import com.lyncode.xoai.dataprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.dataprovider.exceptions.OAIException;
-import com.lyncode.xoai.dataprovider.filter.ScopedFilter;
-import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.util.Researcher;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -31,14 +29,22 @@ import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
 import org.dspace.xoai.services.api.config.ConfigurationService;
 import org.dspace.xoai.services.api.context.ContextService;
 import org.dspace.xoai.services.api.context.ContextServiceException;
-import org.dspace.xoai.services.api.database.*;
+import org.dspace.xoai.services.api.database.CollectionsService;
+import org.dspace.xoai.services.api.database.DatabaseQuery;
+import org.dspace.xoai.services.api.database.DatabaseQueryException;
+import org.dspace.xoai.services.api.database.DatabaseQueryResolver;
+import org.dspace.xoai.services.api.database.HandleResolver;
 import org.dspace.xoai.util.ItemUtils;
 
-import java.io.IOException;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
+import com.lyncode.xoai.dataprovider.core.ListItemIdentifiersResult;
+import com.lyncode.xoai.dataprovider.core.ListItemsResults;
+import com.lyncode.xoai.dataprovider.core.ReferenceSet;
+import com.lyncode.xoai.dataprovider.data.Item;
+import com.lyncode.xoai.dataprovider.data.ItemIdentifier;
+import com.lyncode.xoai.dataprovider.exceptions.IdDoesNotExistException;
+import com.lyncode.xoai.dataprovider.exceptions.OAIException;
+import com.lyncode.xoai.dataprovider.filter.ScopedFilter;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 
 /**
  * 
@@ -115,6 +121,9 @@ public class DSpaceItemDatabaseRepository extends DSpaceItemRepository
             {
                 DSpaceObject obj = HandleManager.resolveToObject(context.getContext(),
                         parts[2]);
+                if (obj == null) {
+                	obj = new Researcher().getApplicationService().getEntityByUUID(parts[2]);
+                }
                 if (obj == null)
                     throw new IdDoesNotExistException();
                 if (!(obj instanceof Item))

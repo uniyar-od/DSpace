@@ -65,4 +65,21 @@
     </bean> 
 -->
 
+	<bean id="OpenAIRECodeExtraMetadataGenerator" 
+    	class="org.dspace.app.cris.integration.OpenAIRECodeExtraMetadataGenerator">
+    </bean>
+    
+	<bean id="ProjectCodeExtraMetadataGenerator" 
+    	class="org.dspace.app.cris.integration.CRISExtraBasicMetadataGenerator">
+        <property name="type" value="project" />
+        <property name="relatedMetadata" value="crisproject.grantidentifier" />
+        <property name="relatedInputformMetadata" value="dc_relation_grantno"/>    	
+    </bean>
+    
+	<bean id="JournalExtraIssnMetadataGenerator"
+        class="org.dspace.app.cris.integration.CRISExtraBasicMetadataGenerator">
+        <property name="type" value="journals" />
+        <property name="relatedMetadata" value="crisjournals.journalsissn" />
+        <property name="relatedInputformMetadata" value="dc_relation_issn"/>
+    </bean>
 </beans>

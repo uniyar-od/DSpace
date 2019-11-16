@@ -32,6 +32,8 @@ public class OpenAIREProjectAuthority extends ProjectAuthority {
 	
 	private OpenAIREProjectService openAIREProjectService = new DSpace().getServiceManager()
 			.getServiceByName(OpenAIREProjectService.class.getName(), OpenAIREProjectService.class);
+
+	private List<OpenAIREExtraMetadataGenerator> generators = new DSpace().getServiceManager().getServicesByType(OpenAIREExtraMetadataGenerator.class);
 	
 	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale) {
 		Choices choices = super.getMatches(field, query, collection, start, limit, locale);		
@@ -45,6 +47,7 @@ public class OpenAIREProjectAuthority extends ProjectAuthority {
 			for(OpenAireProject pj : pjs) {
 				Map<String, String> extras = new HashMap<String,String>();
 				extras.put("insolr", "false");
+				extras.putAll(buildExtra(pj.getCode()));
 				String value = pj.getTitle();
 				String authority=AuthorityValueGenerator.GENERATE + OPENAIRE_PROJECT_AUTHORITY_TYPE + AuthorityValueGenerator.SPLIT + pj.getCode();
 				if(ConfigurationManager.getBooleanProperty("openaireprojectauthority.prefix.enabled",false)) {
@@ -61,4 +64,18 @@ public class OpenAIREProjectAuthority extends ProjectAuthority {
 		return choices.values;
 	}
 
+
+    private Map<String, String> buildExtra(String value)
+    {
+        Map<String, String> extras = new HashMap<String,String>();
+        
+        if(generators!=null) {
+            for(OpenAIREExtraMetadataGenerator gg : generators) {
+                Map<String, String> extrasTmp = gg.build(value);
+                extras.putAll(extrasTmp);
+            }
+        }
+        return extras;
+    }
+    
 }
