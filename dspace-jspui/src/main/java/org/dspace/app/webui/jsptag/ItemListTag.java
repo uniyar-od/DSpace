@@ -111,6 +111,8 @@ public class ItemListTag extends TagSupport {
 
 	private static int itemStart = 1;
 
+	private boolean relationButton;
+
     private static final long serialVersionUID = 348762897199116432L;
 
     /** Config to use a specific configuration */
@@ -450,6 +452,16 @@ public class ItemListTag extends TagSupport {
                         + (emph[emph.length - 2] ? "</strong>" : "") + "</th>");
             }
 
+            if (relationButton) {
+                String css = "oddRow" + cOddOrEven[cOddOrEven.length - 2]
+                        + "Col";
+
+                // output the header
+                out.print("<th id=\"" + id +  "\" class=\"" + css + "\">"
+                        + (emph[emph.length - 2] ? "<strong>" : "") + "&nbsp;"
+                        + (emph[emph.length - 2] ? "</strong>" : "") + "</th>");
+            }
+
             out.print("</tr>");
 
             // now output each item row
@@ -604,6 +616,19 @@ public class ItemListTag extends TagSupport {
                             + "</td>");
                     }
 				}
+
+                if (relationButton) {
+                    IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) PluginManager
+                            .getNamedPlugin(IDisplayMetadataValueStrategy.class, "managerelation");
+
+                    String metadata = strategy.getMetadataDisplay(hrq, -1, true, null, -1,
+                            null, null, items[i], disableCrossLinks, false);
+
+                    out.print("<td headers=\"" + id + "\" class=\""
+                            + rOddOrEven + "Row" + cOddOrEven[cOddOrEven.length - 2]
+                            + "Col\">"
+                            + metadata + "</td>");
+                }
 
                 out.println("</tr>");
             }
@@ -771,6 +796,7 @@ public class ItemListTag extends TagSupport {
 		inputName = null;
 		radioButton = false;
 		isDesc = false;
+		relationButton = false;
 	}
 
 	// allem modified: get-set methods for custom attribute
@@ -796,6 +822,14 @@ public class ItemListTag extends TagSupport {
 		else
 			isDesc = false;
 	}
+
+    public boolean getRelationButton() {
+        return relationButton;
+    }
+
+    public void setRelationButton(boolean relationButton) {
+        this.relationButton = relationButton;
+    }
 
     public void setConfig(String config)
     {
