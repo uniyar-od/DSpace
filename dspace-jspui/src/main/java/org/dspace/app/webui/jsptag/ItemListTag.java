@@ -113,6 +113,8 @@ public class ItemListTag extends TagSupport {
 
 	private boolean relationButton;
 
+	private String type;
+
     private static final long serialVersionUID = 348762897199116432L;
 
     /** Config to use a specific configuration */
@@ -422,7 +424,7 @@ public class ItemListTag extends TagSupport {
 							css += " sortable";
 							csssort += "fa fa-sort pull-right";
 						}
-						thJs += ")\"";
+						thJs += ",'" + getType() + "')\"";
 						break;
 					}
 				}
@@ -829,6 +831,14 @@ public class ItemListTag extends TagSupport {
 
     public void setRelationButton(boolean relationButton) {
         this.relationButton = relationButton;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public void setConfig(String config)

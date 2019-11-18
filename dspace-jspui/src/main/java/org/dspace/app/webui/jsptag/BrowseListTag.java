@@ -127,6 +127,8 @@ public class BrowseListTag extends TagSupport
     private String inputName;
 
     private boolean relationButton;
+
+    private String type;
     
     private static final long serialVersionUID = 8091584920304256107L;
 
@@ -621,7 +623,7 @@ public class BrowseListTag extends TagSupport
                                 css += " sortable";
                                 csssort += "fa fa-sort pull-right";
                             }
-                            thJs += ")\"";
+                            thJs += ",'" + getType() + "')\"";
 
                             break;
                         }
@@ -1068,5 +1070,13 @@ public class BrowseListTag extends TagSupport
 
     public void setRelationButton(boolean relationButton) {
         this.relationButton = relationButton;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

@@ -269,6 +269,11 @@
         <required>false</required>
         <rtexprvalue>true</rtexprvalue>
       </attribute>
+      <attribute>
+        <name>type</name>
+        <required>false</required>
+        <rtexprvalue>true</rtexprvalue>
+      </attribute>
   </tag>
 
 <tag>
@@ -336,6 +341,11 @@
       </attribute>
       <attribute>
         <name>relationButton</name>
+        <required>false</required>
+        <rtexprvalue>true</rtexprvalue>
+      </attribute>
+      <attribute>
+        <name>type</name>
         <required>false</required>
         <rtexprvalue>true</rtexprvalue>
       </attribute>

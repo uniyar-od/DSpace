@@ -273,20 +273,20 @@ if (info.getPagetotal() > 1)
 		</label>
 			<input id="<%= info.getType() %>submit_export" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>" type="<%= info.getType() %>"/>
 		</form>
 <% } else { %>
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= (Item[])info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" type="<%= info.getType() %>"/>
 <% } %>
 </div>
 </div>
 <% } %>
 
 <script type="text/javascript"><!--
-    function sortBy(sort_by, order) {
-        j('#sort_by<%= info.getType() %>').val(sort_by);
-        j('#order<%= info.getType() %>').val(order);
-        j('#sortform<%= info.getType() %>').submit();        
+    function sortBy(sort_by, order, type) {
+        j('#sort_by' + type).val(sort_by);
+        j('#order' + type).val(order);
+        j('#sortform' + type).submit();
     }
     
 	j("#<%= info.getType() %>item_idchecker").click(function() {
