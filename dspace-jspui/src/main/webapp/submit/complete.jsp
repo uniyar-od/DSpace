@@ -22,6 +22,8 @@
 <%@ page import="org.dspace.app.util.SubmissionInfo" %>
 <%@ page import="org.dspace.content.InProgressSubmission" %>
 <%@ page import="org.dspace.content.Collection"%>
+<%@ page import="org.dspace.content.Bundle"%>
+<%@ page import="org.dspace.content.Bitstream"%>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
@@ -37,6 +39,17 @@
 
 	//get collection
     Collection collection = subInfo.getSubmissionItem().getCollection();
+	
+	Bundle[] licenseBnds = subInfo.getSubmissionItem().getItem().getBundles("LICENSE");
+	Bundle licenseBnd = null;
+	if (licenseBnds != null && licenseBnds.length > 0){
+		licenseBnd = licenseBnds[0];
+	}
+	Bitstream l = null;
+	if (licenseBnd != null) {
+		l = licenseBnd.getBitstreamByName("license.pdf");
+	}
+	
 %>
 
 <dspace:layout style="submission" locbar="off" navbar="off" titlekey="jsp.submit.complete.title">
@@ -52,7 +65,12 @@
     notification as soon as your submission has become a part of the collection,
     or if for some reason there is a problem with your submission. You can also
     check on the status of your submission by going to the My DSpace page.</p> --%>
-	<p class="alert alert-info"><fmt:message key="jsp.submit.complete.info"/></p> 
+	<p class="alert alert-info"><fmt:message key="jsp.submit.complete.info"/></p>
+	
+	<% if (l != null) { %>
+		<p><fmt:message key="license.download"><fmt:param><%= request.getContextPath() %>/retrieve/<%= l.getID() %></fmt:param></fmt:message></p> 
+	<% } %>
+	 
     <p><a href="<%= request.getContextPath() %>/mydspace"><fmt:message key="jsp.submit.complete.link"/></a></p>
      
     <p><a href="<%= request.getContextPath() %>/community-list"><fmt:message key="jsp.community-list.title"/></a></p>

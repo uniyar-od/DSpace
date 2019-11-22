@@ -8,16 +8,30 @@
 package org.dspace.content;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.Formatter;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.license.FormattableArgument;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+
+import net.sf.jasperreports.engine.JREmptyDataSource;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
 
 /**
  * Utility class to manage generation and storing of the license text that the
@@ -28,6 +42,8 @@ import org.dspace.eperson.EPerson;
  */
 public class LicenseUtils
 {
+    private static Logger log = Logger.getLogger(LicenseUtils.class);
+
     /**
      * Return the text of the license that the user has granted/must grant
      * before for submit the item. The license text is build using the template
@@ -143,5 +159,86 @@ public class LicenseUtils
         b.setFormat(bf);
 
         b.update();
+    }
+	public static void getLicensePDF(Context context, Item item, String choiceLicense) {
+		String reportName = ConfigurationManager.getProperty("jasper", choiceLicense);
+        String reportFolderPath = ConfigurationManager.getProperty("jasper","report.folder");
+        String reportExtension = ConfigurationManager.getProperty("jasper","report.extension");
+		String reportPath = reportFolderPath+reportName+reportExtension;
+		try {
+			fill(context, item, reportPath,reportName);
+		} catch (SQLException e) {
+			log.error(e.getMessage(),e);
+		}
+
+		
+	}
+
+	private static void fill(Context context, Item item, String reportPath, String reportName) throws SQLException {
+        HashMap<String, Object> reportMap = new HashMap<String, Object>();
+        String key = "";
+        String value = "";
+        EPerson ep = item.getSubmitter();
+        List<Metadatum> listEPMetadata = ep.getMetadata();
+        Metadatum[] listItemMetadata = item.getMetadataWithoutPlaceholder(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (Metadatum m: listItemMetadata) {
+        	key = m.getField().replace('.', '_');
+        	String oldValue = (String) reportMap.get(key);
+        	value = m.value;
+        	if (oldValue != null) {
+        		value = oldValue+", "+value;
+        	}
+    		reportMap.put(key, value);
+        }
+        for (Metadatum m: listEPMetadata) {
+        	key = m.getField().replace('.', '_');
+        	String oldValue = (String) reportMap.get(key);
+        	value = m.value;
+        	if (oldValue != null) {
+        		value = oldValue+", "+value;
+        	}
+    		reportMap.put(key, value);
+        }
+        String logo = ConfigurationManager.getProperty("jasper","parameter.logo");
+        String pathLogoImage = ConfigurationManager.getProperty("jasper","parameter.logo.path");
+        String submitterEmail = ConfigurationManager.getProperty("jasper","parameter.submitter.email");
+        String submitterFullName = ConfigurationManager.getProperty("jasper","parameter.submitter.fullname");
+        String currentDateLabel = ConfigurationManager.getProperty("jasper","parameter.current.date");
+        
+		reportMap.put(logo, pathLogoImage);
+		String email = item.getSubmitter().getEmail();
+		String fullname = item.getSubmitter().getFullName();
+		Date date = new Date();
+		String currentDate = date.toString();
+		reportMap.put(submitterEmail, email);
+		reportMap.put(submitterFullName, fullname);
+		reportMap.put(currentDateLabel, currentDate);
+        try {
+        	// Give the path of report jrxml file path for complie.
+        	JasperReport jasperReport = JasperCompileManager.compileReport(reportPath);
+        	//pass data HashMap with compiled jrxml file and a empty data source .
+        	JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, reportMap,new JREmptyDataSource() );
+
+        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        	JasperExportManager.exportReportToPdfStream(jasperPrint, baos);
+        	ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            Bitstream b = item.createSingleBitstream(bais, "LICENSE");
+            // Now set the format and name of the bitstream
+            b.setName("license.pdf");
+            b.setSource("Written by org.dspace.content.LicenseUtils");
+
+            // Find the License format
+            BitstreamFormat bf = BitstreamFormat.findByShortDescription(context,
+                    "License PDF");
+            b.setFormat(bf);
+            b.update();
+            context.turnOffAuthorisationSystem();
+            // grant access to the license to the submitter
+            AuthorizeManager.addPolicy(context, b, org.dspace.core.Constants.READ, context.getCurrentUser());
+            context.restoreAuthSystemState();
+        } catch (Exception e) {
+        	log.error(e.getMessage(),e);
+        	throw new RuntimeException(e.getMessage(), e);
+        }
     }
 }

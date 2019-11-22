@@ -9,6 +9,9 @@ package org.dspace.submit.step;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -21,6 +24,7 @@ import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.LicenseUtils;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.eperson.EPerson;
@@ -118,24 +122,37 @@ public class LicenseStep extends AbstractProcessingStep
                 && (buttonPressed.equals("submit_grant") || buttonPressed
                         .equals(NEXT_BUTTON)))
         {
-            // License granted
-            log.info(LogManager.getHeader(context, "accept_license",
-                    subInfo.getSubmissionLogInfo()));
+        	
+        	String typeMetadata = ConfigurationManager.getProperty("license.articles.metadata");
+    		String type = subInfo.getSubmissionItem().getItem().getMetadata(typeMetadata);
+    		String[] articleType = ConfigurationManager.getProperty("license.articles.value").split(",");
+    		List<String> list = new ArrayList<String>();
+    		list = Arrays.asList(articleType);
+    		if (list.contains(type))
+    		{
+    			// License granted
+    			log.info(LogManager.getHeader(context, "accept_license",
+    					subInfo.getSubmissionLogInfo()));
 
-            // Add the license to the item
-            Item item = subInfo.getSubmissionItem().getItem();
-            EPerson submitter = context.getCurrentUser();
+    			// Add the license to the item
+    			Item item = subInfo.getSubmissionItem().getItem();
+    			EPerson submitter = context.getCurrentUser();
 
-            // remove any existing DSpace license (just in case the user
-            // accepted it previously)
-            item.removeDSpaceLicense();
+    			// remove any existing DSpace license (just in case the user
+    			// accepted it previously)
+    			item.removeDSpaceLicense();
 
-            String license = LicenseUtils.getLicenseText(context
-                    .getCurrentLocale(), subInfo.getSubmissionItem()
-                    .getCollection(), item, submitter);
+    			String license = LicenseUtils.getLicenseText(context
+    					.getCurrentLocale(), subInfo.getSubmissionItem()
+    					.getCollection(), item, submitter);
 
-            LicenseUtils.grantLicense(context, item, license);
-
+    			LicenseUtils.grantLicense(context, item, license);
+    		}else {
+    		    String choiceLicense = request.getParameter("license_chooser");
+    			Item item = subInfo.getSubmissionItem().getItem();
+    			Item item2 = item.getWrapper();
+    			LicenseUtils.getLicensePDF(context, item2, choiceLicense);
+    		}
             // commit changes
             context.commit();
         }
@@ -173,13 +190,9 @@ public class LicenseStep extends AbstractProcessingStep
         return 1;
 
     }
-
-
     @Override
-    public void doClear(SubmissionInfo subInfo) throws ServletException,
-            IOException, SQLException, AuthorizeException
-    {
-        // NOOP
-    }
-
+	public void doClear(SubmissionInfo subInfo) throws SQLException, AuthorizeException, IOException {
+		Item item = subInfo.getSubmissionItem().getItem();
+		item.removeLicenses();
+	}
 }
