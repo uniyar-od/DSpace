@@ -55,7 +55,18 @@
     <support_level>1</support_level>
     <internal>true</internal>
   </bitstream-type>
+  
+  <!-- Used by system: do not remove -->
+  <bitstream-type>
+    <mimetype>application/pdf; charset=utf-8</mimetype>
+    <short_description>License PDF</short_description>
+    <description>Item-specific license agreed upon to submission</description>
+    <support_level>1</support_level>
+    <internal>true</internal>
+  </bitstream-type>
 
+
+  
   <!-- Used by system: do not remove -->
   <bitstream-type>
     <mimetype>text/html; charset=utf-8</mimetype>

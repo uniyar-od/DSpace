@@ -771,5 +771,16 @@
         	<groupId>com.fasterxml.jackson.jaxrs</groupId>
         	<artifactId>jackson-jaxrs-json-provider</artifactId>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports -->
+		<dependency>
+    		<groupId>net.sf.jasperreports</groupId>
+    		<artifactId>jasperreports</artifactId>
+    	</dependency>
+    	<!-- https://mvnrepository.com/artifact/net.sf.jasperreports/jasperreports-fonts -->
+		<dependency>
+    		<groupId>net.sf.jasperreports</groupId>
+    		<artifactId>jasperreports-fonts</artifactId>
+		</dependency>						
     </dependencies>
 </project>

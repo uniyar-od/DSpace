@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version 6.10.0.final utlizzo versione della libreria JasperReports6.10.0-unknown  -->
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="Vertrag1" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" whenResourceMissingType="Empty" uuid="823b2450-cec1-46db-a47e-027525dcdb38">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<parameter name="logo" class="java.lang.String"/>
+	<parameter name="dc_title" class="java.lang.String"/>
+	<parameter name="relation_seriesnumber" class="java.lang.String"/>
+	<parameter name="series_issn" class="java.lang.String"/>
+	<parameter name="dc_relation_ispartofseries" class="java.lang.String"/>
+	<parameter name="series_editorrp" class="java.lang.String"/>
+	<parameter name="series_editororgid" class="java.lang.String"/>
+	<parameter name="dc_contributor_author" class="java.lang.String"/>
+	<parameter name="dc_contributor_affiliation" class="java.lang.String"/>
+	<parameter name="dc_contributor_advisor" class="java.lang.String"/>
+	<parameter name="dc_title_subtitle" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_booktitle" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_number" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_volume" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_pagestart" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_pageend" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_issue" class="java.lang.String"/>
+	<parameter name="dcterms_bibliographicCitation_originalpublishername" class="java.lang.String"/>
+	<parameter name="dc_relation_ispartof" class="java.lang.String"/>
+	<parameter name="dc_date_issued" class="java.lang.String"/>
+	<parameter name="year" class="java.lang.String">
+		<defaultValueExpression><![CDATA[(($P{dc_date_issued}!=null)?$P{dc_date_issued}.substring(0,4):"").toString()]]></defaultValueExpression>
+	</parameter>	
+    <parameter name="titles" class="java.lang.String">
+        <defaultValueExpression><![CDATA[$P{dc_title} +" "+ $P{dc_title_subtitle}.toString()]]></defaultValueExpression>
+    </parameter>
+    <parameter name="citation" class="java.lang.String">
+        <defaultValueExpression><![CDATA[$P{dcterms_bibliographicCitation_pagestart} +"-"+ $P{dcterms_bibliographicCitation_pageend}+(($P{dcterms_bibliographicCitation_volume}!=null)? ","+$P{dcterms_bibliographicCitation_volume}:"")+(($P{dc_date_issued}!=null)? ","+$P{dc_date_issued}.substring(0,4):"")+(($P{dcterms_bibliographicCitation_issue}!=null)? ","+$P{dcterms_bibliographicCitation_issue}:"").toString()]]></defaultValueExpression>
+    </parameter>
+    <parameter name="ispartof1" class="java.lang.String">
+        <defaultValueExpression><![CDATA[$P{dc_relation_ispartof} +(($P{dcterms_bibliographicCitation_booktitle}!=null)? "/"+$P{dcterms_bibliographicCitation_booktitle} +","+ $P{dcterms_bibliographicCitation_number}:"").toString()]]></defaultValueExpression>
+    </parameter>
+    <parameter name="ispartof2" class="java.lang.String">
+        <defaultValueExpression><![CDATA[$P{dcterms_bibliographicCitation_booktitle} + (($P{dc_relation_ispartof}!=null)? "/"+$P{dc_relation_ispartof}:"").toString()]]></defaultValueExpression>
+    </parameter>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="30" splitType="Stretch"/>
+	</title>
+	<detail>
+		<band height="763" splitType="Stretch">
+			<staticText>
+				<reportElement x="40" y="120" width="513" height="60" uuid="78d8781a-0043-42bd-85a5-e808e2778f0e"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Vertrag über die Erstveröffentlichung einer digitalen Dissertation/
+Habilitation im Repository der Universitätsbibliothek der Helmut-Schmidt-Universität/Universität der Bundeswehr Hamburg (HSU/UniBw H)]]></text>
+			</staticText>
+			<image>
+				<reportElement x="60" y="21" width="80" height="80" uuid="062deb99-971a-4896-ac32-acb98b9c7869"/>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="41" y="200" width="513" height="480" uuid="c11cdf45-230e-4b6a-859e-2873363e1681">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[zwischen Frau/Herrn
+
+__________________________________________________ 
+Name, Vorname  
+
+__________________________________________________ 
+Fakultät 
+
+__________________________________________________ 
+Privatadresse 
+
+__________________________________________________ 
+E-Mail 
+
+- nachfolgend Autorin/Autor genannt - 
+
+und der 
+Helmut-Schmidt-Universität/Universität der Bundeswehr Hamburg (HSU/UniBw H), für diese handelnd die Universitätsbibliothek, 
+Holstenhofweg 85
+20043 Hamburg 
+
+- nachfolgend UB genannt -
+
+Titel der eingereichten Veröffentlichung 
+
+
+
+
+]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="434" y="730" width="120" height="20" uuid="c2e9c69d-5240-44b7-a4bd-5b18cf51b0d4"/>
+				<textElement textAlignment="Left"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement x="0" y="754" width="97" height="1" uuid="39a07a76-d6a2-4157-a0d6-504e224612d9"/>
+			</break>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="41" y="560" width="513" height="20" uuid="c2631500-a2af-480b-a829-bb947ec0bc72"/>
+				<textElement>
+					<font size="9" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{titles}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="40" y="230" width="513" height="20" uuid="4487fc14-83f6-48d4-8cf2-b66f9970a874"/>
+				<textElement>
+					<font size="9" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dc_contributor_author}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true" isBlankWhenNull="true">
+				<reportElement x="41" y="270" width="513" height="20" uuid="a5a97d82-c4ed-4dda-a1b9-0420fcbf5acb"/>
+				<textElement>
+					<font size="9" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dc_contributor_affiliation}]]></textFieldExpression>
+			</textField>
+		</band>
+		<band height="802">
+			<staticText>
+				<reportElement x="40" y="210" width="514" height="20" uuid="5b48d71e-21b6-4926-b936-31d0d24f3c26"/>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Lizenzbedingungen für die Bereitstellung im Repository der HSU/UniBw H]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="240" width="513" height="510" uuid="e256c7a3-cb15-4498-ac86-4978b46d790b">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[1. Online-Bereitstellung  
+Der UB wird durch die Autorin bzw. den Autor zeitlich unbegrenzt das nicht-ausschließliche (einfache) Recht zur freien elektronischen Publikation im Internet und zur Archivierung auf ihrem Dokumentenserver eingeräumt. Alle weiteren Rechte für die Verwertung der Arbeit verbleiben bei der Autorin bzw. dem Autor. 
+Im Rahmen dieser öffentlichen Bereitstellung sind die Nutzenden des Volltextservers berechtigt, Dokumente nach Maßgabe des Urhebergesetzes unentgeltlich zu nutzen, insbesondere, das Dokument zum privaten und sonstigen eigenen Gebrauch herunterzuladen, zu speichern oder in kleiner Anzahl zu drucken (§ 53 UrhG)⁮(1)
+Mit dem Hochladen des Dokuments ist kein rechtlich verbindlicher Anspruch auf die Bereitstellung oder Archivierung verbunden. 
+
+2. Urheberrechte und Rechte Dritter 
+Die Autorin bzw. der Autor erklärt, als Urheberin bzw. Urheber im alleinigen Besitz aller Rechte an dem Werk zu sein. Insbesondere versichert sie/er, dass mit der Bereitstellung des Dokuments und jedes Bestandteils (z. B. Abbildungen) keine Rechte Dritter verletzt werden. 
+Die Autorin bzw. der Autor stellt die UB von etwaigen Ansprüchen Dritter frei. Die UB ist berechtigt, den Zugriff auf ein Dokument zu sperren, soweit konkrete Anhaltspunkte für eine Verletzung von Rechten Dritter bestehen. Die UB wird die Autorin bzw. den Autor in einem solchen Fall unverzüglich über die Sperrung informieren.
+
+3. Langzeitarchivierung und Transformation in andere Formate
+Die Autorin bzw. der Autor räumt der UB im Rahmen der Online-Bereitstellung gemäß Ziffer 1 das Recht ein, die bereitgestellten Dokumente im Langzeitarchiv der UB zu speichern und bei Bedarf (z. B. Migration, Barrierefreiheit, bessere Zugänglichkeit oder Erschließung) in andere elektronische und physische Formate zu überführen.
+
+4. Weitergabe von Metadaten und Dokumenten
+Die Autorin bzw. der Autor räumt der UB im Rahmen der Online-Bereitstellung gemäß Ziffer 1 das Recht ein, die Metadaten des Dokuments unentgeltlich anderen Daten-banken zur Verfügung zu stellen. Darüber hinaus räumt sie/er der UB das Recht ein, das Dokument gegebenenfalls Dritten im Rahmen nationaler Sammelaufträge zur Online-Bereitstellung oder Archivierung zur Verfügung zu stellen. 
+
+]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="450" y="771" width="103" height="19" uuid="ab5cec77-f7cb-4315-9f22-2dad9a4c91ce"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<break>
+				<reportElement x="0" y="780" width="97" height="1" uuid="514b6c80-c051-41c6-a3be-a7bd0a8d0e1a"/>
+			</break>
+			<image>
+				<reportElement x="60" y="21" width="80" height="80" uuid="a27ef81b-41b8-4661-9a04-db532fae0824"/>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="40" y="120" width="513" height="20" uuid="ba55ea30-205a-4835-9f20-4661250818dc">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Rechteeinräumung]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="140" width="513" height="60" uuid="1f47b35d-85ff-4885-88fb-7421fe3e8a88">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[Hiermit gestattet die Autorin bzw. der Autor der UB, die eingereichte Veröffentlichung in elektronischer Form zu den unten genannten Vertragsbedingungen zu publizieren und zur freien Nutzung im Internet anzubieten.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="42" y="750" width="511" height="20" uuid="a580b3a7-cf68-419e-8cfe-a0580d080a5e"/>
+				<textElement>
+					<font size="8"/>
+				</textElement>
+				<text><![CDATA[(1) Gesetz über Urheberrecht und verwandte Schutzrechte, http://www.bundesrecht.juris.de/urhg - in der jeweils aktuellen Fassung.]]></text>
+			</staticText>
+		</band>
+		<band height="791">
+			<textField>
+				<reportElement x="454" y="761" width="100" height="30" uuid="72ea4921-d638-4956-b7fe-dea1c6ebf967"/>
+				<textFieldExpression><![CDATA[$V{PAGE_NUMBER}]]></textFieldExpression>
+			</textField>
+			<image>
+				<reportElement x="60" y="21" width="80" height="80" uuid="0140efcb-157b-470f-9823-243d8f67b0df"/>
+				<imageExpression><![CDATA[$P{logo}]]></imageExpression>
+			</image>
+			<staticText>
+				<reportElement x="38" y="300" width="513" height="20" uuid="5206d35b-d059-49a6-8892-2f4f806fdd3e">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Zustimmung der Betreuungsperson]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="330" width="513" height="20" uuid="09f80a0e-11d7-4aab-84fa-7aae93d04bb9">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Mit der Veröffentlichung der oben genannten Abschlussarbeit ist die Betreuungsperson einverstanden.
+]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="39" y="380" width="240" height="50" uuid="53addaf8-2a2f-43f4-8b54-37eea062d933"/>
+				<text><![CDATA[_________________________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="289" y="380" width="240" height="50" uuid="00846707-0a8a-4f2b-acc1-e84d32698475">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[_________________________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="39" y="400" width="239" height="30" uuid="6e6e240b-72ec-4c00-aa76-dd4029ce10e8"/>
+				<text><![CDATA[Name der Betreuungsperson ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="290" y="400" width="239" height="30" uuid="7e86eb84-9ab3-4a5a-81ce-ca0bd279d092"/>
+				<text><![CDATA[Datum, Unterschrift der Betreuungsperson]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="460" width="513" height="40" uuid="841a00e5-abfa-45e7-a291-abedf72dd558">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[Die Autorin bzw. der Autor versichert, dass die gelieferte Datei und die ausgedruckten Exemplare der von der Fakultät genehmigten Druckfassung entsprechen und die zuständige Einrichtung der Veröffentlichung zugestimmt habe.]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="40" y="510" width="240" height="50" uuid="93fc7724-3672-4aa4-b193-56239d2e638c">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<text><![CDATA[_________________________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="291" y="510" width="240" height="50" uuid="0515d180-d89a-499d-b53f-f795d1da482d">
+					<property name="com.jaspersoft.studio.unit.y" value="px"/>
+				</reportElement>
+				<text><![CDATA[_________________________________]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="41" y="530" width="239" height="30" uuid="a5364a73-4e7b-40bf-8b70-42b70e62d725"/>
+				<text><![CDATA[Datum, Unterschrift Autorin/Autor ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="292" y="530" width="239" height="30" uuid="cc7bb388-7e0e-4d64-89a3-3a01783b4919"/>
+				<text><![CDATA[Datum, Unterschrift UB]]></text>
+			</staticText>
+			<textField isBlankWhenNull="true">
+				<reportElement x="39" y="370" width="373" height="20" uuid="4061fde1-751e-48cb-9b24-14b75e4f938c"/>
+				<textElement>
+					<font size="9" isItalic="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$P{dc_contributor_advisor}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement x="41" y="120" width="513" height="170" uuid="e573ad53-1aac-4b02-a56b-44a98df75d32">
+					<property name="com.jaspersoft.studio.unit.x" value="px"/>
+				</reportElement>
+				<textElement>
+					<font size="12" isItalic="false"/>
+				</textElement>
+				<text><![CDATA[5. Personenbezogene Daten 
+Soweit dem Werk ein Lebenslauf oder andere weitergehende personenbezogene Daten beigefügt sind, dürfen diese in der elektronischen, zur Veröffentlichung vorgesehenen Fassung nicht enthalten sein und sind durch folgenden Hinweis zu ersetzen: „Der Lebenslauf wird aus Gründen des Datenschutzes in der elektronischen Fassung der Arbeit nicht veröffentlicht.“
+
+6. Rücknahme der Einverständniserklärung 
+Eine Rücknahme dieser Einverständniserklärung ist nur unter Berufung auf § 42 UrhG („Werk entspricht nicht mehr der Überzeugung der Autorin bzw. des Autors“) möglich.
+]]></text>
+			</staticText>
+		</band>
+	</detail>
+</jasperReport>
