@@ -39,10 +39,6 @@ dspace.baseUrl = http://localhost:8080/server
 # Full link your end users will use to access DSpace. This is the URL of your angular UI
 dspace.url = http://localhost:3000
 
-# This is the URL that will be used for the REST endpoints to be served on.
-# This will typically be followed by /api to determine the root endpoints.
-dspace.restUrl = ${dspace.baseUrl}/server
-
 # Name of the site
 dspace.name = DSpace at My University
 
@@ -56,11 +52,10 @@ dspace.name = DSpace at My University
 # Solr server/webapp.
 # DSpace uses Solr for all search/browse capability (and for usage statistics).
 # since DSpace 7, SOLR must be installed as a stand-alone service
-#solr.server = http://localhost:8983/solr
+solr.server = http://localhost:8983/solr
 
 # Multicore SOLR prefix (keep empty if you run SOLR for just one DSpace-CRIS installation)
 solr.multicorePrefix =
-
 ##########################
 # DATABASE CONFIGURATION #
 ##########################
@@ -207,6 +202,8 @@ db.schema = public
 ##########################
 # Grobid url.
 metadata.extraction.grobid.url =
+# Crossref api
+bte.crossref.apikey =
 
 ############################################
 # LOOKUP SUBMISSION PROVIDER CONFIGURATION #
