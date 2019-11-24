@@ -54,10 +54,8 @@ public class PubmedService
     /**
      * the api key for the Entrez ws. If null access to the ws is still allowed with a reduced rate
      */
-    private String apiKey;
-    
-    public PubmedService() {
-    	apiKey = ConfigurationManager.getProperty("entrez.e-utilities.api-key");
+    public String getApiKey() {
+    	return ConfigurationManager.getProperty("entrez.e-utilities.api-key");
     }
     
     public void setTimeout(int timeout)
@@ -118,8 +116,8 @@ public class PubmedService
 
                 URIBuilder uriBuilder = new URIBuilder(
                         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi");
-                if (apiKey != null) {
-                	uriBuilder.addParameter("api_key", apiKey);	
+                if (getApiKey() != null) {
+                	uriBuilder.addParameter("api_key", getApiKey());	
                 }
                 uriBuilder.addParameter("db", "pubmed");
                 uriBuilder.addParameter("datetype", "edat");
@@ -241,8 +239,8 @@ public class PubmedService
             try {
                 URIBuilder uriBuilder = new URIBuilder(
                         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
-                if (apiKey != null) {
-                    uriBuilder.addParameter("api_key", apiKey); 
+                if (getApiKey() != null) {
+                    uriBuilder.addParameter("api_key", getApiKey()); 
                 }
                 uriBuilder.addParameter("db", "pubmed");
                 uriBuilder.addParameter("retmode", "xml");
