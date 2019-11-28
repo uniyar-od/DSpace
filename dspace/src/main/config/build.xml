@@ -357,6 +357,7 @@ Common usage:
                 <include name="log4j*.properties"/>
                 <!-- Filter OAI-PMH description so it can include hostname and handle prefix -->
                 <include name="crosswalks/oai/description.xml"/>
+            	<include name="crosswalks/oai/service-description.xml"/>
                 <!-- Filter sample Tomcat context.xml -->
                 <include name="default.context.xml"/>
                 <!-- Filter RDF configs as these are TTL files -->

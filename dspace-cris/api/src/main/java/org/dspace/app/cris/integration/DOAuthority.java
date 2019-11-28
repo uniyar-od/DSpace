@@ -8,8 +8,9 @@
 package org.dspace.app.cris.integration;
 
 import org.dspace.app.cris.model.ResearchObject;
+import org.dspace.core.ConfigurationManager;
 
-public class DOAuthority extends CRISAuthority
+public class DOAuthority extends CRISAuthority<ResearchObject>
 {
 
     @Override
@@ -32,6 +33,12 @@ public class DOAuthority extends CRISAuthority
 	@Override
 	public ResearchObject getNewCrisObject() {
 		return new ResearchObject();
-	}  
+	}
+
+    @Override
+    protected String getInstanceType(String field)
+    {
+        return ConfigurationManager.getProperty("cris.DOAuthority." +field.replaceAll("_", ".") + ".new-instances");
+    }
 
 }

@@ -10,8 +10,10 @@ package org.dspace.app.cris.integration;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -355,4 +357,47 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
     }
     
     public abstract T getNewCrisObject();
+
+    public String getLabel(T cris, String locale)
+    {
+        return cris.getName()
+                + " (" + cris.getCrisID() + ")";
+    }
+    
+    protected String buildQuery(String field, String luceneQuery)
+    {
+        return "{!lucene q.op=AND df=" + getDefaultField()+ "}("
+                + luceneQuery.replaceAll("(?:\\\\-|-)|(?:\\\\\\+|\\+)", " ")
+                + ") OR (\""
+                + luceneQuery.substring(0,
+                        luceneQuery.length() - 1) + "\")";
+    }
+    
+    protected String getDefaultField() {
+        return "crisauthoritylookup";
+    }
+    
+    protected Map<String, String> getExtra(T crisObject, String field) {
+        Map<String, String> extras = new HashMap<String,String>();
+        List<CRISExtraBasicMetadataGenerator> generators = new DSpace().getServiceManager().getServicesByType(CRISExtraBasicMetadataGenerator.class);
+        if(generators!=null) {
+            for(CRISExtraBasicMetadataGenerator gg : generators) {
+                if(gg.getType().equals(getInstanceType(field))) {
+                    Map<String, String> extrasTmp = gg.build(crisObject);
+                    extras.putAll(extrasTmp);
+                }
+            }
+        }
+        return extras;
+    }
+
+    protected String getInstanceType(String field)
+    {
+        return getPublicPath();
+    }
+
+    protected String getValue(T cris)
+    {
+		return cris.getName();
+    }
 }

@@ -12,6 +12,8 @@ import java.sql.SQLException;
 
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.util.Researcher;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
@@ -46,8 +48,10 @@ public class DSpaceAuthorizationFilter extends DSpaceFilter
             if (handle == null)
                 return false;
             Item dspaceItem = (Item) handleService.resolveToObject(context, handle);
-            if (dspaceItem == null)
-                return false;
+            if (dspaceItem == null) {
+            	ACrisObject crisObj = new Researcher().getApplicationService().getEntityByUUID(handle);
+				return crisObj != null && Boolean.valueOf(true).equals(crisObj.getStatus());
+            }
 
             // Check if READ access allowed on Item
             pub = authorizeService.authorizeActionBoolean(context, dspaceItem, Constants.READ);

@@ -58,7 +58,7 @@ import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
  */
 public class OUDetailsController
         extends
-        SimpleDynaController<OUProperty, OUPropertiesDefinition, BoxOrganizationUnit, TabOrganizationUnit>
+        SimpleDynaController<OrganizationUnit, OUProperty, OUPropertiesDefinition, BoxOrganizationUnit, TabOrganizationUnit>
 {
     private CrisSubscribeService subscribeService;
     
@@ -82,15 +82,14 @@ public class OUDetailsController
     {
         Map<String, Object> model = new HashMap<String, Object>();
 
-        OrganizationUnit ou = extractOrganizationUnit(request);
-
-        if (ou == null)
-        {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "OU page not found");
+        OrganizationUnit ou = null;
+        try {
+            ou = extractObject(request, response);
+        }
+        catch(Exception ex) {
             return null;
         }
-
+        
         Context context = UIUtil.obtainContext(request);
         
         EPerson currUser = context.getCurrentUser();
@@ -159,13 +158,16 @@ public class OUDetailsController
                 processor.process(context, request, response, ou);
                 Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
                 if(extra!=null && !extra.isEmpty()) {
-                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
-                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
-                    if(metrics!=null && !metrics.isEmpty()) {
-                        metricsTotal.putAll(metrics);
-                    }
-                    if(metricTypes!=null && !metricTypes.isEmpty()) {
-                        metricsTypeTotal.addAll(metricTypes);
+                    Object metricsObject = extra.get("metrics");
+                    if(metricsObject!=null) {
+                        Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)metricsObject;
+                        List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                        if(metrics!=null && !metrics.isEmpty()) {
+                            metricsTotal.putAll(metrics);
+                        }
+                        if(metricTypes!=null && !metricTypes.isEmpty()) {
+                            metricsTypeTotal.addAll(metricTypes);
+                        }
                     }
                 }
             }
@@ -184,7 +186,10 @@ public class OUDetailsController
                         ou));
         
         mvc.getModel().putAll(model);
+        mvc.getModel().put("isAdmin", isAdmin);
         mvc.getModel().put("ou", ou);
+        request.setAttribute("components", super.getComponents());
+        request.setAttribute("entity", ou);
         return mvc;
     }
 
@@ -193,12 +198,27 @@ public class OUDetailsController
             HttpServletRequest request, Map<String, Object> model,
             HttpServletResponse response) throws SQLException, Exception
     {
-        
-        Integer entityId = extractEntityId(request);
-        
-        if(entityId==null) {
+
+        Integer entityId = -1;
+        //try to manage bad request, catch all generic Exception
+        try {
+            entityId = extractEntityId(request, response);
+        }
+        catch(Exception ex) {
+            log.warn(ex.getMessage() + ":"+ UIUtil.getOriginalURL(request));
+            response.sendError(HttpServletResponse.SC_BAD_REQUEST,
+                    "Request sent by the client was syntactically incorrect");
             return null;
         }
+        
+        if (entityId == -1)
+        {
+            log.warn("Entity page not found:"+ UIUtil.getOriginalURL(request));
+            response.sendError(HttpServletResponse.SC_NOT_FOUND,
+                    "Entity page not found");
+            return null;
+        }   
+        
         Context context = UIUtil.obtainContext(request);
 
         List<TabOrganizationUnit> tabs = applicationService.getList(TabOrganizationUnit.class);
@@ -252,21 +272,21 @@ public class OUDetailsController
     }
 
     @Override
-    protected void sendRedirect(HttpServletRequest request,
+    protected void showAuthorizeError(HttpServletRequest request,
             HttpServletResponse response, Exception ex, String objectId)
             throws IOException, ServletException
     {
-        JSPManager.showAuthorizeError(request, response, new AuthorizeException(ex.getMessage()));
-        //response.sendRedirect("/cris/ou/details?id=" + objectId);
+        JSPManager.showAuthorizeError(request, response,
+                new AuthorizeException(ex.getMessage()));
     }
 
     @Override
-    protected Integer getAnagraficaId(HttpServletRequest request)
+    protected Integer getAnagraficaId(HttpServletRequest request, HttpServletResponse response) throws Exception
     {
         OrganizationUnit ou = null;
         try
         {
-            ou = extractOrganizationUnit(request);
+            ou = extractObject(request, response);
         }
         catch (NumberFormatException e)
         {
@@ -275,15 +295,6 @@ public class OUDetailsController
         return ou.getDynamicField().getId();
     }
 
-    private OrganizationUnit extractOrganizationUnit(HttpServletRequest request)
-    {
-
-        Integer id = extractEntityId(request);
-        return ((ApplicationService) applicationService).get(OrganizationUnit.class,
-                id);
-
-    }
-    
     protected Integer getRealPersistentIdentifier(String persistentIdentifier)
     {
         return ResearcherPageUtils.getRealPersistentIdentifier(persistentIdentifier, OrganizationUnit.class);
@@ -299,8 +310,8 @@ public class OUDetailsController
 	}
 	
     @Override
-    protected boolean authorize(HttpServletRequest request, BoxOrganizationUnit box) throws SQLException
+    protected boolean authorize(HttpServletRequest request, HttpServletResponse response, BoxOrganizationUnit box) throws Exception
     {
-        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), OrganizationUnit.class, OUPropertiesDefinition.class, extractEntityId(request), box);
+        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), OrganizationUnit.class, OUPropertiesDefinition.class, extractEntityId(request, response), box);
     }
 }
