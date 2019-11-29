@@ -17,6 +17,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.integration.CRISAuthority;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
@@ -26,10 +27,14 @@ import org.dspace.app.util.service.MetadataExposureService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataField;
+import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -37,6 +42,8 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.handle.factory.HandleServiceFactory;
+import org.dspace.handle.service.HandleService;
 import org.dspace.utils.DSpace;
 import org.dspace.xoai.data.DSpaceItem;
 
@@ -61,6 +68,15 @@ public class ItemUtils
 
     private static final BitstreamService bitstreamService
             = ContentServiceFactory.getInstance().getBitstreamService();
+    
+    private static final MetadataAuthorityService mam = ContentAuthorityServiceFactory
+            .getInstance().getMetadataAuthorityService();    
+    
+    private static final ChoiceAuthorityService choicheAuthManager = ContentAuthorityServiceFactory
+            .getInstance().getChoiceAuthorityService();
+    
+    private static final HandleService handleService = HandleServiceFactory
+            .getInstance().getHandleService();
     
     public static Integer MAX_DEEP = 2;
     public static String AUTHORITY = "authority";
@@ -89,6 +105,15 @@ public class ItemUtils
         return e;
     }
     
+    private static Element.Field getField(List<Element.Field> list, String name)
+    {
+        for (Element.Field f : list)
+            if (name.equals(f.getName()))
+                return f;
+
+        return null;
+    }
+    
     /***
      * Write metadata into a Element structure.
      * 
@@ -115,27 +140,25 @@ public class ItemUtils
         valueElem = schema;
 
         // Has element.. with XOAI one could have only schema and value
-        String dcElement = val.getElement();
-        if (StringUtils.isNotBlank(dcElement))
+        if (val.getElement() != null && !val.getElement().equals(""))
         {
             Element element = getElement(schema.getElement(),
-                    dcElement);
+                    val.getElement());
             if (element == null)
             {
-                element = create(dcElement);
+                element = create(val.getElement());
                 schema.getElement().add(element);
             }
             valueElem = element;
 
             // Qualified element?
-            String dcQualifier = val.getQualifier();
-            if (StringUtils.isNotBlank(dcQualifier))
+            if (val.getQualifier() != null && !val.getQualifier().equals(""))
             {
                 Element qualifier = getElement(element.getElement(),
-                        dcQualifier);
+                        val.getQualifier());
                 if (qualifier == null)
                 {
-                    qualifier = create(dcQualifier);
+                    qualifier = create(val.getQualifier());
                     element.getElement().add(qualifier);
                 }
                 valueElem = qualifier;
@@ -150,17 +173,17 @@ public class ItemUtils
                 valueElem = qualifier;
             }
         }
+        Element qualifier = valueElem;
         
         // Language?
-        String dcLanguage = val.getLanguage();
-        if (StringUtils.isNotBlank(dcLanguage))
+        if (val.getLanguage() != null && !val.getLanguage().equals(""))
         {
             Element language = getElement(valueElem.getElement(),
-                    dcLanguage);
+                    val.getLanguage());
             // remove single language
             //if (language == null)
             {
-                language = create(dcLanguage);
+                language = create(val.getLanguage());
                 valueElem.getElement().add(language);
             }
             valueElem = language;
@@ -179,7 +202,7 @@ public class ItemUtils
         }
         
         valueElem.getField().add(createValue("value", val.getValue()));
-        if (StringUtils.isNotBlank(val.getAuthority())) {
+        if (val.getAuthority() != null) {
             valueElem.getField().add(createValue("authority", val.getAuthority()));
             if (val.getConfidence() != Choices.CF_NOVALUE)
                 valueElem.getField().add(createValue("confidence", val.getConfidence() + ""));
@@ -187,23 +210,35 @@ public class ItemUtils
         return valueElem;
 
     }
-    
     public static Metadata retrieveMetadata (Context context, Item item) {
+        return retrieveMetadata(context, item, false, 0);
+    }
+    
+    /***
+     * Retrieve all metadata in a XML fragment.
+     * 
+     * @param context The context
+     * @param item The cris item
+     * @param skipAutority is used to disable relation metadata inclusion.
+     * @param deep the recursive dept
+     * @return
+     */
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, int deep) {
         Metadata metadata;
-
+        
         // read all metadata into Metadata Object
         metadata = new Metadata();
-        List<IMetadataValue> vals = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        
+        List<IMetadataValue> vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         for (IMetadataValue val : vals)
         {
-            MetadataField field = val.getMetadataField();
-            
             // Don't expose fields that are hidden by configuration
             try {
                 if (metadataExposureService.isHidden(context,
-                        field.getMetadataSchema().getName(),
-                        field.getElement(),
-                        field.getQualifier()))
+                        val.getSchema(),
+                        val.getElement(),
+                        val.getQualifier()))
                 {
                     continue;
                 }
@@ -211,70 +246,74 @@ public class ItemUtils
                 throw new RuntimeException(se);
             }
 
-            Element valueElem = null;
-            Element schema = getElement(metadata.getElement(), field.getMetadataSchema().getName());
+            // mapping metadata in index only            
+            Element schema = getElement(metadata.getElement(), val.getSchema());
+
             if (schema == null)
             {
-                schema = create(field.getMetadataSchema().getName());
+                schema = create(val.getSchema());
                 metadata.getElement().add(schema);
             }
-            valueElem = schema;
-
-            // Has element.. with XOAI one could have only schema and value
-            if (field.getElement() != null && !field.getElement().equals(""))
+            Element element = writeMetadata(schema, val);
+            // backward compatibility
             {
-                Element element = getElement(schema.getElement(),
-                        field.getElement());
-                if (element == null)
-                {
-                    element = create(field.getElement());
-                    schema.getElement().add(element);
+                //metadata.getElement().add(element);
+                Element elementCopy = create(element.getName());
+                for (Element.Field f : element.getField()) {
+                    elementCopy.getField().add(f);
                 }
-                valueElem = element;
+                metadata.getElement().add(elementCopy);
+            }
 
-                // Qualified element?
-                if (field.getQualifier() != null && !field.getQualifier().equals(""))
-                {
-                    Element qualifier = getElement(element.getElement(),
-                            field.getQualifier());
-                    if (qualifier == null)
-                    {
-                        qualifier = create(field.getQualifier());
-                        element.getElement().add(qualifier);
+            if (!skipAutority && StringUtils.isNotBlank(val.getAuthority())) {
+                String m = Utils.standardize(val.getSchema(), val.getElement(), val.getQualifier(), ".");
+                // compute deep
+                int authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority." + m + ".deep");
+                if (authorityDeep <= 0) {
+                    authorityDeep = ConfigurationManager.getIntProperty("oai", "oai.authority.deep");
+                    
+                    if (authorityDeep <= 0)
+                        authorityDeep = MAX_DEEP;
+                }
+                
+                // add metadata of related cris object, using authority to get it                
+                boolean metadataAuth = mam.isAuthorityControlled(val.getMetadataField());
+                if (metadataAuth && (deep < authorityDeep)) {
+                    try {                        
+                        ChoiceAuthority choicheAuth = choicheAuthManager.getChoiceAuthority(m);
+                        if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
+                            CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
+                            ACrisObject o = getApplicationService().getEntityByCrisId(val.getAuthority(), crisAuthoriy.getCRISTargetClass());
+                            
+                            Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, /*m, ((ACrisObject) o).getUuid(), Integer.toString(item.getID()),*/ 0);
+                            if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
+                                Element root = create(AUTHORITY);
+                                element.getElement().add(root);
+                                for (Element crisElement : crisMetadata.getElement()) {
+                                    root.getElement().add(crisElement);
+                                }
+                            }
+                        } else if (choicheAuth != null) {
+                            DSpaceObject dso = handleService.resolveToObject(context, val.getAuthority());
+                            
+                            if (dso != null && dso instanceof Item) {
+                                Metadata itemMetadata = retrieveMetadata(context, (Item)dso, skipAutority, /*m, dso.getHandle(), Integer.toString(dso.getID()), true, */deep + 1);
+                                if (itemMetadata != null && !itemMetadata.getElement().isEmpty()) {
+                                    Element root = create(AUTHORITY);
+                                    element.getElement().add(root);
+                                    for (Element crisElement : itemMetadata.getElement()) {
+                                        root.getElement().add(crisElement);
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            log.warn("No choices plugin (CRISAuthority plugin) was configured for field " + m);
+                        }
+                    } catch (Exception e) {
+                        log.error("Error during retrieving choices plugin (CRISAuthority plugin) for field " + m + ". " + e.getMessage(), e);
                     }
-                    valueElem = qualifier;
                 }
-            }
-
-            // Language?
-            if (val.getLanguage() != null && !val.getLanguage().equals(""))
-            {
-                Element language = getElement(valueElem.getElement(),
-                        val.getLanguage());
-                if (language == null)
-                {
-                    language = create(val.getLanguage());
-                    valueElem.getElement().add(language);
-                }
-                valueElem = language;
-            }
-            else
-            {
-                Element language = getElement(valueElem.getElement(),
-                        "none");
-                if (language == null)
-                {
-                    language = create("none");
-                    valueElem.getElement().add(language);
-                }
-                valueElem = language;
-            }
-
-            valueElem.getField().add(createValue("value", val.getValue()));
-            if (val.getAuthority() != null) {
-                valueElem.getField().add(createValue("authority", val.getAuthority()));
-                if (val.getConfidence() != Choices.CF_NOVALUE)
-                    valueElem.getField().add(createValue("confidence", val.getConfidence() + ""));
             }
         }
         // Done! Metadata has been read!
