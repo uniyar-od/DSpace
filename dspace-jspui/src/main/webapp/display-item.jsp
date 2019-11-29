@@ -331,7 +331,7 @@ j(document).ready(function() {
 %>
 
 <div class="row">
-<div id="wrapperDisplayItem" class="col-lg-9">
+<div id="wrapperDisplayItem" class="col-lg-12">
     <dspace:item-preview item="<%= item %>" />
     <dspace:item item="<%= item %>" collections="<%= collections %>" style="<%= displayStyle %>" />
     <%-- SFX Link --%>

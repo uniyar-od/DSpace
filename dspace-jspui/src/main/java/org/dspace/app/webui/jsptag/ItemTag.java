@@ -406,6 +406,8 @@ public class ItemTag extends TagSupport
         HttpServletRequest request = (HttpServletRequest)pageContext.getRequest();
         Context context = UIUtil.obtainContext(request);
         
+        out.println("<div class=\"col-lg-9\">");
+        
         out.println("<table class=\"table itemDisplayTable\">");
 
         for (DisplayMetadata display : DisplayItemMetadataUtils.getDisplayMetadata(context, request, item, style)) {
@@ -443,7 +445,7 @@ public class ItemTag extends TagSupport
         // Get all the metadata
         List<IMetadataValue> values = itemService.getMetadataWithoutPlaceholder(item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
 
-        out.println("<div class=\"panel panel-info\"><div class=\"panel-heading\">"
+        out.println("<div class=\"panel panel-info col-lg-9\"><div class=\"panel-heading\">"
                 + LocaleSupport.getLocalizedMessage(pageContext,
                         "org.dspace.app.webui.jsptag.ItemTag.full") + "</div>");
 
