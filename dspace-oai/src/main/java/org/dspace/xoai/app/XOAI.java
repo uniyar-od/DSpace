@@ -520,7 +520,7 @@ public class XOAI {
             doc.addField(key, val);
             if (dc.getAuthority() != null) {
                 doc.addField(key + ".authority", dc.getAuthority());
-                doc.addField(key + ".confidence", dc.getAuthority() + "");
+                doc.addField(key + ".confidence", dc.getConfidence() + "");
             }
         }
 
