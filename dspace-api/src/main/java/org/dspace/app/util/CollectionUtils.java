@@ -41,11 +41,13 @@ public class CollectionUtils {
 		for (Collection col : collections) {
 		
 			String handle = col.getHandle();
-			if (skipCollection && StringUtils.contains(handle, skipHandles)) {
+			if (skipCollection && StringUtils.contains(handle, skipHandles)) 
+			{
 				continue;
-			} 
+			}
 			Community com = (Community) col.getCollectionService().getParentObject(context, col);
-			if (map.containsKey(com)) {
+			if (map.containsKey(com)) 
+			{
 				map.get(com).add(col);
 			} else {
 				List<Collection> cols = new ArrayList<>();
@@ -53,54 +55,120 @@ public class CollectionUtils {
 				map.put(com, cols);
 			}
 		}
-		List<CollectionsTree> trees = new ArrayList<CollectionsTree>();
-		for (Community com : map.keySet()) {
+		
+		List<CollectionsTree> treeBranches = new ArrayList<CollectionsTree>();
+		
+		for (Community com : map.keySet()) 
+		{
 			CollectionsTree tree = new CollectionsTree();
 			tree.setCurrent(com);
 			tree.setCollections(map.get(com));
-			trees.add(tree);
+			treeBranches.add(tree);
 		}
+		
+		for (int i = 0; i < treeBranches.size(); i++) 
+		{
+			CollectionsTree collectionsTree = treeBranches.get(i);
+			treeBranches.set(i, buildBranch(context, collectionsTree));
+		}
+		
+		List<CollectionsTree> trees = new ArrayList<CollectionsTree>();
+		
+		do
+		{
+			trees.add(mergeBranch(treeBranches));
+		} while (treeBranches.size() > 0);
+		
 		Collections.sort(trees);
-		return getCollectionsTree(context, trees);
+		CollectionsTree finalCollectionsTree = new CollectionsTree();
+		finalCollectionsTree.setSubTree(trees);
+		
+		return finalCollectionsTree;
 	}
-
-	private static CollectionsTree getCollectionsTree(Context context,
-			List<CollectionsTree> trees) throws SQLException {
-		if (trees.size() == 1) {
-			return trees.get(0);
-		}
-		Map<Community, CollectionsTree> map = new HashMap<Community, CollectionsTree>();
-		for (CollectionsTree tree : trees) {
-			Community current = tree.getCurrent();
-			Community com = null;
-			if (current != null)
-			{
-				com = (Community) current.getDSpaceObjectService().getParentObject(context, current);
-			}
-			if (map.containsKey(com)) {
-				map.get(com).getSubTree().add(tree);
-			} else {
-				List<CollectionsTree> subTree;
-				if (current == null) {
-					subTree = tree.getSubTree();	
-				}
-				else
+	
+	/**
+	 * Takes the first branch at position 0 in the provided CollectionsTree List and returns a CollectionsTree containing all trees with the same top community
+	 * @see org.dspace.app.util.CollectionUtils.mergeBranchRecursive
+	 */
+	private static CollectionsTree mergeBranch(List<CollectionsTree> trees) 
+	{
+		CollectionsTree currTree = trees.get(0);
+		trees.remove(0);
+			for (int i = 0; i < trees.size(); i++) 
+			{			
+				CollectionsTree current = trees.get(i);
+				if (currTree.getCurrent().getName().equals(current.getCurrent().getName())) 
 				{
-					subTree = new ArrayList<>();
-					subTree.add(tree);
+					mergeBranchRecursive(current, currTree);
+					trees.remove(i);
+					i--;
 				}
-				CollectionsTree currTree = new CollectionsTree();
-				currTree.setCurrent(com);
-				currTree.setSubTree(subTree);
-				map.put(com, currTree);
+			}
+		return currTree;
+	}
+	
+	/**
+	 * The recursive part of mergeBranch(List<CollectionsTree>)
+	 * @param source The CollectionsTree that needs to be merged with target
+	 * @param target The CollectionsTree that is being built
+	 * @see org.dspace.app.util.CollectionUtils.mergeBranch
+	 */
+	private static void mergeBranchRecursive(CollectionsTree source, CollectionsTree target) 
+	{
+		if (source.getSubTree() == null) 
+		{
+			if (target.getCollections() == null) 
+			{
+				target.setCollections(source.getCollections());
+				return;
+			}else
+			{
+				target.getCollections().addAll(source.getCollections());
+				return;
+			}
+		}else {
+			if (target.getSubTree() == null)
+			{
+				target.setSubTree(source.getSubTree());
+				target.getSubTree().sort(null);
+				return;
 			}
 		}
-
-		List<CollectionsTree> result = new ArrayList<CollectionsTree>();
-		for (CollectionsTree t : map.values()) {
-			result.add(t);
+		for (CollectionsTree sourceTree : source.getSubTree()) 
+		{
+			for (CollectionsTree targetTree : target.getSubTree()) 
+			{
+				if (sourceTree.getCurrent().getName().equals(targetTree.getCurrent().getName())) 
+				{
+					mergeBranchRecursive(sourceTree, targetTree);
+					return;
+				}
+			}
 		}
-
-		return getCollectionsTree(context, result);
+		target.getSubTree().addAll(source.getSubTree());
+		target.getSubTree().sort(null);
+		return;
 	}
+	
+	/**
+	 * Builds all single branches of the provided CollectionsTree
+	 */
+	private static CollectionsTree buildBranch(Context context, CollectionsTree tree) throws SQLException
+	{
+		Community current = tree.getCurrent();
+		Community com = (Community) current.getDSpaceObjectService().getParentObject(context, current);
+		if (com != null) 
+		{
+			CollectionsTree tree2 = new CollectionsTree();
+			tree2.setCurrent(com);
+			List<CollectionsTree> tempList = new ArrayList<CollectionsTree>();
+			tempList.add(tree);
+			tree2.setSubTree(tempList);
+			return buildBranch(context, tree2);
+		}else {
+			return tree;
+		}
+		
+	}
+	
 }
