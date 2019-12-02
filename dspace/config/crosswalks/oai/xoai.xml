@@ -244,41 +244,135 @@
         <Filter id="driverFilter">
             <Definition>
                 <And>
+                	<LeftCondition>
+		                <And>
+		                    <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="titleExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <Custom ref="authorExistsCondition"/>
+		                            </RightCondition>
+		                        </And>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="driverDocumentTypeCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Or>
+		                                            <LeftCondition>
+		                                                <Custom ref="itemAccessCondition"/>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="itemWithdrawnCondition"/>
+		                                            </RightCondition>
+		                                        </Or>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <Custom ref="driverAccessCondition"/>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </RightCondition>
+		                </And>
+                	</LeftCondition>
+               		<RightCondition>
+               			<Custom ref="dspaceItemCondition" />
+               		</RightCondition>
+               	</And>
+            </Definition>
+        </Filter>
+
+        <!-- OpenAIRE CRIS filter for records returned by OAI-PMH.
+         By default, return a record:
+         * If the record is an Item or another supported type
+         This filter is only used in the OpenAIRE context ([oai]/openaire-cris).
+        -->
+        <Filter id="openAireCRISFilter">
+            <Definition>
+                <And>
                     <LeftCondition>
-                        <And>
+                        <Or>
                             <LeftCondition>
-                                <Custom ref="titleExistsCondition"/>
+                                <Custom ref="itemAccessCondition"/>
                             </LeftCondition>
                             <RightCondition>
-                                <Custom ref="authorExistsCondition"/>
+                                <Custom ref="itemWithdrawnCondition"/>
                             </RightCondition>
-                        </And>
+                        </Or>
                     </LeftCondition>
                     <RightCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="driverDocumentTypeCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <Or>
-                                            <LeftCondition>
-                                                <Custom ref="itemAccessCondition"/>
-                                            </LeftCondition>
-                                            <RightCondition>
-                                                <Custom ref="itemWithdrawnCondition"/>
-                                            </RightCondition>
-                                        </Or>
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <Custom ref="driverAccessCondition"/>
-                                    </RightCondition>
-                                </And>
-                            </RightCondition>
-                        </And>
+                        <Custom ref="crisObjectTypeCondition"/>
                     </RightCondition>
                 </And>
+            </Definition>
+        </Filter>
+        
+        <!-- OpenAIRE filter for records returned by OAI-PMH.
+         By default, return an Item record:
+            * If a Title & Author field both exist
+            * AND a valid DRIVER Document Type exists
+            * AND Item is either publicly accessible OR Withdrawn (for tombstones)
+            * AND the OpenAIRE "dc.relation" is specified
+         This filter is only used in the OpenAIRE context ([oai]/openaire).
+         
+         TODO: review.
+            * openaire type are related to publications, products and patent. The
+                list driverDocumentTypeCondition is only a partial list of publication types.
+            * openaireRelationCondition must be review to match the list of value of dc.rights.
+                see http://purl.org/coar/access_right.
+         -->
+        <Filter id="openAireFilter">
+            <Definition>
+            	<And>
+            		<LeftCondition>
+		                <And>
+		                    <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="titleExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <Custom ref="authorExistsCondition"/>
+		                            </RightCondition>
+		                        </And>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="driverDocumentTypeCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Or>
+		                                            <LeftCondition>
+		                                                <Custom ref="itemAccessCondition"/>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="itemWithdrawnCondition"/>
+		                                            </RightCondition>
+		                                        </Or>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <Custom ref="openaireRelationCondition"/>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </RightCondition>
+		                </And>
+					</LeftCondition>
+                	<RightCondition>
+                		<Custom ref="dspaceItemCondition" />
+                	</RightCondition>
+                </And>		                
             </Definition>
         </Filter>
 
