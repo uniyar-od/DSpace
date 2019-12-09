@@ -109,6 +109,13 @@
 		</property>
 	</bean>
 
+	<bean id="relationFONDSVSItemConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
+		<property name="relationName" value="crisfonds.publications" />		
+		<property name="relationClass" value="org.dspace.content.Item" />		
+		<property name="query">
+			<value>dc.relation.fond_authority:{0}</value>
+		</property>
+	</bean>
 						
 	<bean
 		class="org.dspace.app.cris.configuration.RelationPreferenceServiceConfiguration">

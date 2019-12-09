@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    The contents of this file are subject to the license and copyright
+    detailed in the LICENSE and NOTICE files at the root of the source
+    tree and available online at
+
+    http://www.dspace.org/license/
+
+-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+
+    <bean name="tree" class="org.dspace.app.webui.cris.json.tree.TreeHierarchy">
+    	<property name="searchService" ref="org.dspace.discovery.SearchService" />
+    	<property name="configurator" ref="configuratorResource"/>
+    </bean>
+    
+    <bean name="resource" class="org.dspace.app.webui.cris.json.tree.TreeResource">
+    	<property name="configurator" ref="configuratorResource"/>
+		<property name="applicationService" ref="applicationService" />
+    </bean>
+
+	<bean id="solrServiceTreeNodeRootIndexPlugin"
+		class="org.dspace.app.cris.discovery.tree.TreeViewIndexPlugin">
+		<property name="configurator" ref="configuratorResource"/>
+		<property name="applicationService" ref="applicationService" />
+	</bean>
+
+	<bean id="treeViewConfigurator"
+		class="org.dspace.app.cris.discovery.tree.TreeViewConfigurator"
+		scope="prototype">
+		<property name="profile">
+			<!-- the map key for CRIS object is the shortname of the configured box (except for Item details). Please use convention with <authority-prefix>-tree -->
+			<map>
+				<entry key="fonds-tree">
+					<list>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.fondsname"/>
+							<property name="metadata" value="fondsname"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.fondscreatorperson"/>
+							<property name="metadata" value="fondscreatorperson"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.fondscreatorfamily"/>
+							<property name="metadata" value="fondscreatorfamily"/>
+							<property name="url" value="false"/>
+						</bean>												
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.fondscreatorcorporatebody"/>
+							<property name="metadata" value="fondscreatorcorporatebody"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.fondstype"/>
+							<property name="metadata" value="fondstype"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.fondsdescription"/>
+							<property name="metadata" value="fondsdescription"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.url"/>
+							<property name="metadata" value="url::handle"/>
+							<property name="url" value="true"/>
+						</bean>																		
+					</list>										
+				</entry>
+				<entry key="ou-tree">
+					<list>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.ouname"/>
+							<property name="metadata" value="name"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.oudirector"/>
+							<property name="metadata" value="director"/>
+							<property name="url" value="false"/>
+						</bean>												
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.tree.url"/>
+							<property name="metadata" value="url::handle"/>
+							<property name="url" value="true"/>
+						</bean>																		
+					</list>										
+				</entry>					
+				<entry key="item">
+					<list>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.itemauthor"/>
+							<property name="metadata" value="dc.contributor.author"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.treeview.itemtitle"/>
+							<property name="metadata" value="dc.title"/>
+							<property name="url" value="false"/>
+						</bean>
+						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
+							<property name="labelKey" value="label.tree.url"/>
+							<property name="metadata" value="url::handle"/>
+							<property name="url" value="true"/>
+						</bean>																		
+					</list>										
+				</entry>						
+			</map>
+		</property>
+		<property name="enabled">
+			<map>			
+				<entry key="fonds" value="true"/>			
+				<entry key="ou" value="true"/>
+			</map>
+		</property>
+		<property name="relations">
+			<map>			
+				<entry key="crisfonds">
+					<list>
+						<ref bean="relationFONDSVSItemConfiguration"/>
+					</list>
+				</entry>
+				<entry key="crisou">
+					<list>
+						<ref bean="relationOUVSItemConfiguration"/>
+						<ref bean="relationOUVSPJConfiguration"/>
+						<ref bean="relationOUVSOUConfiguration"/>
+						<ref bean="relationOUVSRPConfiguration"/>
+					</list>
+				</entry>							
+			</map>
+		</property>
+		<property name="showRelationCount">
+			<map>
+				<entry key="crisfonds" value="false"/>
+				<entry key="crisou" value="true"/>
+			</map>
+		</property>		
+		<!-- the follow property works in relation with the "leafs" property -->
+		<property name="showRelationOnLeaf">
+			<map>
+				<entry key="crisfonds" value="true"/>
+				<entry key="crisou" value="false"/>
+			</map>
+		</property>
+		<property name="icons">
+			<map>
+				<entry key="crisfonds" value="fa fa-archive"/>
+				<entry key="crisou" value="blank-icon"/>
+				<entry key="crisou-ou00334" value="fa fa-institution"/>
+				<entry key="crisou-ou00336" value="fa fa-graduation-cap"/>
+				<entry key="crisou-ou00306" value="fa fa-users"/>
+				<entry key="data-count-crisou-organisations" value="\f0e8"/>
+				<entry key="data-count-crisou-publications" value="\f15c"/>
+				<entry key="data-count-crisou-projects" value="\f1e0"/>
+				<entry key="data-count-crisou-persons" value="\f007"/>
+			</map>
+		</property>		
+		<property name="parents">
+			<map>			
+				<entry key="fonds">
+					<list>
+						<value>fondsparent</value>
+					</list>
+				</entry>
+				<entry key="ou">
+					<list>
+						<value>parentorgunit</value>
+					</list>
+				</entry>
+			</map>
+		</property>
+		<property name="leafs">
+			<map>			
+				<entry key="fonds">
+					<list>
+						<value>fondsleaf</value>
+					</list>
+				</entry>
+			</map>
+		</property>
+		<!-- configure the value of the metadato to show node collapsed -->
+		<property name="closed">
+			<map>
+				<entry key="ou">	
+						<props>
+							<prop key="orgunit_type_hsu">Faculty</prop>						
+						</props>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	
+	<alias name="treeViewConfigurator"
+		alias="org.dspace.app.cris.discovery.tree.TreeViewConfigurator" />
+</beans>
