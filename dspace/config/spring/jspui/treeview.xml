@@ -87,7 +87,7 @@
 							<property name="url" value="false"/>
 						</bean>												
 						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
-							<property name="labelKey" value="label.tree.url"/>
+							<property name="labelKey" value="label.treeview.url"/>
 							<property name="metadata" value="url::handle"/>
 							<property name="url" value="true"/>
 						</bean>																		
@@ -106,7 +106,7 @@
 							<property name="url" value="false"/>
 						</bean>
 						<bean class="org.dspace.app.cris.discovery.tree.TreeViewResourceConfigurator">
-							<property name="labelKey" value="label.tree.url"/>
+							<property name="labelKey" value="label.treeview.url"/>
 							<property name="metadata" value="url::handle"/>
 							<property name="url" value="true"/>
 						</bean>																		
