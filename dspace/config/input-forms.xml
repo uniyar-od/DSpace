@@ -1488,6 +1488,29 @@
 	</value-pairs>
 	
 	
+<value-pairs value-pairs-name="type_versions" dc-term="type">
+         <pair>
+          <displayed-value>Draft</displayed-value>
+          <stored-value>draft</stored-value>
+         </pair>
+         <pair>
+          <displayed-value>Submitted Version</displayed-value>
+          <stored-value>submittedVersion</stored-value>
+     </pair>
+         <pair>
+          <displayed-value>Accepted Version</displayed-value>
+          <stored-value>acceptedVersion</stored-value>
+     </pair>
+          <pair>
+          <displayed-value>Published Version</displayed-value>
+          <stored-value>publishedVersion</stored-value>
+     </pair>
+          <pair>
+          <displayed-value>Updated Version</displayed-value>
+          <stored-value>updatedVersion</stored-value>
+     </pair>
+    </value-pairs>
+
 
 	   
    	<!-- für OpenAIRE in depositonce; A.G.  -->
