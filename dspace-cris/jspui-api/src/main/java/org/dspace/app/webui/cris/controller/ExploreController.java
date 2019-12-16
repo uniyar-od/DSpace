@@ -87,6 +87,8 @@ public class ExploreController extends BaseAbstractController {
 						if (process != null) {
 							model.putAll(process);
 						}
+						// used to add extra attribute the response directly
+						expProc.process(request, response);
 					}
 				}
 			}

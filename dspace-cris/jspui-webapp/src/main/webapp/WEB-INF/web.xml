@@ -1250,4 +1250,14 @@
         <url-pattern>/orcidwebhook/*</url-pattern>
     </servlet-mapping>
     
+	<servlet>
+		<servlet-name>treeview</servlet-name>
+		<servlet-class>org.dspace.app.webui.cris.servlet.TreeViewJsonRest</servlet-class>		
+	</servlet>
+	
+	<servlet-mapping>
+		<servlet-name>treeview</servlet-name>
+		<url-pattern>/utilities/treeview/*</url-pattern>
+	</servlet-mapping>    
+    
 </web-app>

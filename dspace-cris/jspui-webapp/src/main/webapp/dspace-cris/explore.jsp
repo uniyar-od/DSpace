@@ -238,6 +238,10 @@ function submitForm() {
 	</div>
 
 	<div class="row">
+	<%@ include file="/components/treeview-component.jsp" %>
+	</div>
+
+	<div class="row">
 	<c:set var="discovery.searchScope" value="${location}" scope="request"/>
 	<%@ include file="/discovery/static-sidebar-facet.jsp" %>
 	</div>

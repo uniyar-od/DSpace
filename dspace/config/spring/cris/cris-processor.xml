@@ -140,6 +140,14 @@
 								</list>
 							</property>
 						</bean>
+						<bean class="org.dspace.app.webui.cris.components.tree.TreeProcessor">
+							<property name="lazyload" value="false" />
+							<property name="showprofile" value="true" />
+							<property name="showall" value="false" />
+							<property name="tree" value="ou-tree" />
+							<property name="contextTree" value="crisou" />
+							<property name="rootID" value="ou00334" />
+						</bean>						
 					</list>
 				</entry>
 				<entry key="fundings">
