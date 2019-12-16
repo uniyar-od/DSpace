@@ -120,9 +120,9 @@
 	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
 	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
 <!-- 	            depending on your apiKey you should use scopusOnlineDataLoader or scivalOnlineDataLoader or
-					adsOnlineDataLoader 
+					adsOnlineDataLoader -->
 		    <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
-	            <entry key="wos" value-ref="wosOnlineDataLoader"/> 
+<!--	            <entry key="wos" value-ref="wosOnlineDataLoader"/> 
 	            <entry key="ads" value-ref="adsOnlineDataLoader"/>-->
 	            <entry key="pubmedXML" value-ref="pubmedFileDataLoader"/>
 	            <!-- <entry key="pubmedEuropeXML" value-ref="pubmedEuropeFileDataLoader"/> -->
