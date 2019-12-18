@@ -29,7 +29,7 @@
 		<property name="applicationService" ref="applicationService" />
 	</bean>
 
-	<bean id="treeViewConfigurator"
+	<bean id="configuratorResource"
 		class="org.dspace.app.cris.discovery.tree.TreeViewConfigurator"
 		scope="prototype">
 		<property name="profile">
@@ -200,4 +200,5 @@
 	
 	<alias name="treeViewConfigurator"
 		alias="org.dspace.app.cris.discovery.tree.TreeViewConfigurator" />
+
 </beans>
