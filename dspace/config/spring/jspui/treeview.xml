@@ -15,17 +15,17 @@
 
     <bean name="tree" class="org.dspace.app.webui.cris.json.tree.TreeHierarchy">
     	<property name="searchService" ref="org.dspace.discovery.SearchService" />
-    	<property name="configurator" ref="configuratorResource"/>
+    	<property name="configurator" ref="treeViewConfigurator"/>
     </bean>
     
     <bean name="resource" class="org.dspace.app.webui.cris.json.tree.TreeResource">
-    	<property name="configurator" ref="configuratorResource"/>
+    	<property name="configurator" ref="treeViewConfigurator"/>
 		<property name="applicationService" ref="applicationService" />
     </bean>
 
 	<bean id="solrServiceTreeNodeRootIndexPlugin"
 		class="org.dspace.app.cris.discovery.tree.TreeViewIndexPlugin">
-		<property name="configurator" ref="configuratorResource"/>
+		<property name="configurator" ref="treeViewConfigurator"/>
 		<property name="applicationService" ref="applicationService" />
 	</bean>
 
