@@ -500,6 +500,16 @@ public class BitstreamStorageManager
 	    return false;
 	}
 
+	public static String absolutePath(Context context, int id)
+	            throws SQLException, IOException
+	{
+		TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
+
+		GeneralFile file = getFile(bitstream);
+
+		return (file != null) ? file.getAbsolutePath() : null;
+	}
+
     /**
      * Retrieve the bits for the bitstream with ID. If the bitstream does not
      * exist, or is marked deleted, returns null.

@@ -76,14 +76,14 @@
                                    3.) any war found transitively in the dependencies will be applied
                                    next. the order is unpredictable.
                                 -->
-                                <overlay>
+                                <!-- <overlay>
                                     <groupId>org.dspace</groupId>
                                     <artifactId>dspace-xmlui-lang</artifactId>
                                     <type>war</type>
                                     <excludes>
-                                        <!--
+                                        
                                            keep lang web.xml from overiding xmlui
-                                        -->
+                                        
                                         <exclude>WEB-INF/web.xml</exclude>
                                         <exclude>WEB-INF/classes/**</exclude>
                                     </excludes>
@@ -95,7 +95,7 @@
                                     <excludes>
                                         <exclude>WEB-INF/classes/**</exclude>
                                     </excludes>
-                                </overlay>
+                                </overlay> -->
                             </overlays>
                         </configuration>
                         <executions>
@@ -194,11 +194,11 @@
         </dependency>
 
         <!-- DSpace XMLUI Languages -->
-        <dependency>
+        <!-- <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-xmlui-lang</artifactId>
             <type>war</type>
-        </dependency>
+        </dependency> -->
 
         <!-- DSpace XMLUI Webapp -->
         <dependency>
@@ -219,6 +219,17 @@
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <!-- 4Science Addons -->
+        <dependency>
+           <groupId>it.4science.dspace</groupId>
+           <artifactId>addon-video-api</artifactId>
+           <type>jar</type>
+        </dependency>
+        <dependency>
+           <groupId>it.4science.dspace</groupId>
+           <artifactId>addon-video-xmlui</artifactId>
+           <type>war</type>
         </dependency>
 
     </dependencies>

@@ -40,6 +40,8 @@
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
+        <!-- 4Science Addons' versions -->
+        <av.addon.modules>BASE-5.0-SNAPSHOT</av.addon.modules>
     </properties>
 
     <build>
@@ -864,12 +866,12 @@
             <artifactId>dspace-api-lang</artifactId>
             <version>[5.0.0,6.0.0)</version>
          </dependency>
-         <dependency>
+         <!-- <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-xmlui-lang</artifactId>
             <version>[5.0.0,6.0.0)</version>
             <type>war</type>
-         </dependency>
+         </dependency> -->
          <!-- DSpace third Party Dependencies -->
 
          <dependency>
@@ -1078,6 +1080,21 @@
          </dependency>
          <dependency>
             <groupId>org.apache.pdfbox</groupId>
+            <artifactId>jbig2-imageio</artifactId>
+            <version>3.0.0</version>
+         </dependency>
+         <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-core</artifactId>
+            <version>1.4.0</version>
+         </dependency>
+         <dependency>
+            <groupId>com.github.jai-imageio</groupId>
+            <artifactId>jai-imageio-jpeg2000</artifactId>
+            <version>1.3.0</version>
+         </dependency>
+         <dependency>
+            <groupId>org.apache.pdfbox</groupId>
             <artifactId>jempbox</artifactId>
             <version>1.8.12</version>
          </dependency>
@@ -1273,6 +1290,12 @@
             <groupId>com.google.api-client</groupId>
             <artifactId>google-api-client</artifactId>
             <version>1.19.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.google.guava</groupId>
+                    <artifactId>guava-jdk5</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.google.http-client</groupId>
@@ -1316,6 +1339,25 @@
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.version}</version>
+            </dependency>
+             <!-- 4Science Addons -->
+            <dependency>
+                <groupId>it.4science.dspace</groupId>
+                <artifactId>addon-video-api</artifactId>
+                <version>${av.addon.modules}</version>
+                <type>jar</type>
+            </dependency>
+            <dependency>
+                <groupId>it.4science.dspace</groupId>
+                <artifactId>addon-video-jspui</artifactId>
+                <version>${av.addon.modules}</version>
+                <type>war</type>
+            </dependency>
+            <dependency>
+                <groupId>it.4science.dspace</groupId>
+                <artifactId>addon-video-xmlui</artifactId>
+                <version>${av.addon.modules}</version>
+                <type>war</type>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -1612,28 +1654,41 @@
       <tag>dspace-5.1-SNAPSHOT</tag>
    </scm>
 
+   <pluginRepositories>
+        <pluginRepository>
+            <id>4science-repo</id>
+            <name>4Science Maven Repository</name>
+            <url>https://nexus.4science.it/repository/maven-public/</url>
+        </pluginRepository>
+
+        <pluginRepository>
+            <id>sonatype-releases</id>
+             <name>Sonatype Releases Repository</name>
+             <url>https://oss.sonatype.org/content/repositories/releases/</url>
+        </pluginRepository>
+    </pluginRepositories>
+
     <!--
         Distribution Management is currently used by the Continuum
         server to update snapshots it generates. This will also be used
         on release to deploy release versions to the repository by the
         release manager.
     -->
-    <distributionManagement>
-        <!-- further distribution management is found upstream in the sonatype parent -->
+       <distributionManagement>
+        <repository>
+            <id>4science-nexus</id>
+            <name>4Science Public Releases</name>
+            <url>https://nexus.4science.it/repository/maven-releases/</url>
+        </repository>
+        <snapshotRepository>
+            <id>4science-snapshot</id>
+            <name>4Science Public Snapshot</name>
+            <url>https://nexus.4science.it/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <site>
+            <id>website</id>
+            <url>https://wiki.duraspace.org/display/DSPACECRIS/DSpace-CRIS+Home</url>
+        </site>
     </distributionManagement>
-
-    <repositories>
-        <repository>
-            <id>sonatype-releases</id>
-            <name>Sonatype Releases Repository</name>
-            <url>https://oss.sonatype.org/content/repositories/releases/</url>
-        </repository>
-        <!--Nor sonatype nor maven central appear to still contain org.restlet.jee:org.restlet.ext.servlet:jar:2.1.1 any more. No problem if it is in your local repo. Build fail if it isn't-->
-        <repository>
-            <id>restlet</id>
-            <name>restlet</name>
-            <url>http://maven.restlet.org</url>
-        </repository>
-    </repositories>
 
 </project>

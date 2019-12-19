@@ -2502,4 +2502,8 @@
     <message key="xmlui.mirage2.choice-authority-control.loading">Loading...</message>
 
     <message key="xmlui.mirage2.item-list.thumbnail">Thumbnail</message>
+    
+    <!-- 4Science Addons' keys -->
+    <message key="xmlui.itemviewer.video-streaming">Play!</message>
+    <message key="xmlui.explore.back"> back to the Record page</message>
 </catalogue>

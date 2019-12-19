@@ -96,6 +96,13 @@
             </exclusion>
          </exclusions>
       </dependency>
+      <!-- 4Science Addons -->
+      <dependency>
+         <groupId>it.4science.dspace</groupId>
+         <artifactId>addon-video-api</artifactId>
+         <version>${av.addon.modules}</version>
+         <type>jar</type>
+      </dependency>
 
    </dependencies>
 

@@ -22,6 +22,7 @@ import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
@@ -384,7 +385,20 @@ public class XSLTDisseminationCrosswalk
                 dim.addContent(createField("dc","identifier","uri",null,url));
                 dim.addContent(createField("dc","title",null,null,title));
             }
-            // XXX FIXME: Nothing to crosswalk for bitstream?
+            else if (dso.getType() == Constants.BITSTREAM)
+            {
+                Metadatum[] dcvs = ((Bitstream)dso).getMetadata(Item.ANY, Item.ANY, Item.ANY,
+                        Item.ANY);
+                for (Metadatum metadataValue : dcvs) {
+                    dim.addContent(createField(metadataValue.schema,
+                            metadataValue.element,
+                            metadataValue.qualifier,
+                            metadataValue.language,
+                            metadataValue.value,
+                            metadataValue.authority,
+                            metadataValue.confidence));
+                }
+            }
             return dim;
         }
     }

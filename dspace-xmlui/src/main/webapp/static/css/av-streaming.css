@@ -1,0 +1,36 @@
+@import "../../themes/Mirage/lib/css/reset.css";
+@import "../../themes/Mirage/lib/css/base.css";
+@import "../../themes/Mirage/lib/css/helper.css";
+@import "../../themes/Mirage/lib/css/style.css";
+@import "../../themes/Mirage/images/favicon.ico";
+
+.video-js .vjs-current-time, .vjs-no-flex .vjs-current-time {
+	display: block;
+}
+
+.video-js .vjs-duration, .vjs-no-flex .vjs-duration {
+	display: block;
+}
+
+.vjs-time-divider {
+	display: block;
+	line-height: 3em;
+}
+
+.container {
+	padding-right: 15px;
+	padding-left: 15px;
+	margin-right: auto;
+	margin-left: auto;
+	min-height: 35em;
+	max-width: 1170px;
+}
+
+.backButton {
+	text-align: right;
+}
+
+h1 {
+	color: #1F3F5E;
+	text-align: justify;
+}
