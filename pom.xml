@@ -16,14 +16,6 @@
       <url>http://www.dspace.org</url>
    </organization>
 
-    <!-- brings the sonatype snapshot repository and signing requirement on board -->
-    <parent>
-        <groupId>org.sonatype.oss</groupId>
-        <artifactId>oss-parent</artifactId>
-        <version>9</version>
-        <relativePath />
-    </parent>
-
     <prerequisites>
         <maven>3.0</maven>
     </prerequisites>
