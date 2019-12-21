@@ -1654,6 +1654,48 @@
       <tag>dspace-5.1-SNAPSHOT</tag>
    </scm>
 
+   <repositories>
+       <repository>
+			<id>4science-repo-nexus</id>
+			<name>4Science Maven Repository</name>
+			<url>https://nexus.4science.it/repository/maven-public/</url>
+		</repository>
+
+       <repository>
+			<id>4science-repo-github</id>
+			<name>4Science Maven Repository</name>
+			<url>https://github.com/4Science/mvn-repo/raw/master/releases</url>
+			<releases>
+				<enabled>true</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>false</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</snapshots>
+		</repository>
+		
+		<repository>
+			<id>4science-repo-github-snapshot</id>
+			<name>4Science Maven Repository</name>
+			<url>https://github.com/4Science/mvn-repo/raw/master/snapshots</url>
+			<releases>
+				<enabled>false</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<checksumPolicy>never</checksumPolicy>
+			</snapshots>
+		</repository>
+				
+		<repository>
+	         <id>sonatype-releases</id>
+	         <name>Sonatype Releases Repository</name>
+	         <url>https://oss.sonatype.org/content/repositories/releases/</url>
+	    </repository>
+   </repositories>
+
    <pluginRepositories>
         <pluginRepository>
             <id>4science-repo</id>
