@@ -37,6 +37,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
+import org.dspace.content.FormatIdentifier;
 import org.dspace.eperson.Group;
 import org.dspace.rest.common.Bitstream;
 import org.dspace.rest.common.ResourcePolicy;
@@ -103,8 +104,7 @@ public class BitstreamResource extends Resource
             writeStats(dspaceBitstream, UsageEvent.Action.VIEW, user_ip, user_agent, xforwardedfor, headers,
                     request, context);
 
-           
-            bitstream = new Bitstream(dspaceBitstream, servletContext, expand, context);
+            bitstream = new Bitstream(dspaceBitstream, expand, servletContext);
             context.complete();
             log.trace("Bitsream(id=" + bitstreamId + ") was successfully read.");
 
@@ -155,8 +155,7 @@ public class BitstreamResource extends Resource
             org.dspace.content.Bitstream dspaceBitstream = findBitstream(context, bitstreamId, org.dspace.core.Constants.READ);
             AuthorizeManager.getPolicies(context, dspaceBitstream);
 
-           
-            policies = new Bitstream(dspaceBitstream, servletContext, "policies", context).getPolicies();
+            policies = new Bitstream(dspaceBitstream,"policies", servletContext).getPolicies();
 
             context.complete();
             log.trace("Policies for bitstream(id=" + bitstreamId + ") was successfully read.");
@@ -232,8 +231,7 @@ public class BitstreamResource extends Resource
                     if (dspaceBitstreams[i].getParentObject() != null)
                     { // To eliminate bitstreams which cause exception, because of
                       // reading under administrator permissions
-                        
-                        bitstreams.add(new Bitstream(dspaceBitstreams[i], servletContext, expand, context));
+                        bitstreams.add(new Bitstream(dspaceBitstreams[i], expand, servletContext));
                         writeStats(dspaceBitstreams[i], UsageEvent.Action.VIEW, user_ip, user_agent,
                                 xforwardedfor, headers, request, context);
                     }
@@ -448,13 +446,14 @@ public class BitstreamResource extends Resource
 
             log.trace("Updating bitstream metadata.");
             dspaceBitstream.setDescription(bitstream.getDescription());
-            if (getMimeType(bitstream.getName()) == null)
+            BitstreamFormat format = FormatIdentifier.guessFormat(context, bitstream.getName());
+            if (format == null)
             {
                 dspaceBitstream.setFormat(BitstreamFormat.findUnknown(context));
             }
             else
             {
-                dspaceBitstream.setFormat(BitstreamFormat.findByMIMEType(context, getMimeType(bitstream.getName())));
+                dspaceBitstream.setFormat(format);
             }
             dspaceBitstream.setName(bitstream.getName());
             Integer sequenceId = bitstream.getSequenceId();
@@ -735,18 +734,6 @@ public class BitstreamResource extends Resource
         }
 
         return Response.status(Status.OK).build();
-    }
-
-    /**
-     * Return the MIME type of the file, by file extension.
-     *
-     * @param name
-     *            Name of file.
-     * @return String filled with type of file in MIME style.
-     */
-    static String getMimeType(String name)
-    {
-        return URLConnection.guessContentTypeFromName(name);
     }
 
     /**

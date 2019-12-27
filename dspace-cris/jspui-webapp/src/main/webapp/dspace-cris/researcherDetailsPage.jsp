@@ -54,8 +54,12 @@
 	}
 	
     // Is the logged in user an admin
-    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    Boolean admin = (Boolean)request.getAttribute("isAdmin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
+    // Can the logged in user edit
+    Boolean bEdit = (Boolean)request.getAttribute("canEdit");
+    boolean canEdit = (bEdit == null ? false : bEdit.booleanValue());
+    boolean canDisconnectOrcid = ConfigurationManager.getBooleanProperty("cris","rp.orcid.candisconnect");
     // Get the current page, minus query string
     String currentPage = UIUtil.getOriginalURL(request);
     int c = currentPage.indexOf( '?' );
@@ -66,12 +70,17 @@
     
     boolean networkModuleEnabled = ConfigurationManager.getBooleanProperty(NetworkPlugin.CFG_MODULE,"network.enabled");
     boolean changeStatusAdmin = ConfigurationManager.getBooleanProperty("cris","rp.changestatus.admin");
+    boolean claimEnabled = ConfigurationManager.getBooleanProperty("cris","rp.claim.enabled");
+    String fieldFeed = ConfigurationManager.getProperty("cris","rp.feed.field");
 %>
 <c:set var="admin" scope="request"><%=isAdmin%></c:set>
 <c:set var="statusAdmin" scope="request"><%=changeStatusAdmin%></c:set>
+<c:set var="claim" scope="request"><%=claimEnabled%></c:set>
 <c:set var="req" value="${pageContext.request}" />
 <c:set var="baseURL" value="${fn:replace(req.requestURL, fn:substring(req.requestURI, 0, fn:length(req.requestURI)), req.contextPath)}" />
 <c:set var="metaprofilename"><c:choose><c:when test="${!empty entity.preferredName.value}">${entity.preferredName.value}</c:when><c:otherwise>${entity.fullName}</c:otherwise></c:choose></c:set>
+<c:set var="fieldRSS" scope="request"><%= fieldFeed %></c:set>
+<c:set var="canDisconnectOrcid" scope="page"><%= canDisconnectOrcid %></c:set>
 
 <c:set var="dspace.cris.navbar" scope="request">
 
@@ -131,6 +140,14 @@
 									postfunction();
 								},
 								error : function(data) {
+								},
+								complete: function(data) {
+									j('#' + id).dataTable({
+												searching: false, 
+												info: false, 
+												paging: false,
+												ordering : true
+									});
 								}
 							});		
 						};
@@ -138,7 +155,6 @@
 							j('#nested_'+id+'_next').click(
 									function() {
 								    	ajaxFunction(parseInt(j('#nested_'+id+"_pageCurrent").html())+1);
-										
 							});
 							j('#nested_'+id+'_prev').click(
 									function() {
@@ -152,6 +168,14 @@
 						postfunction();
 					},
 					error : function(data) {
+					},
+					complete: function(data) {
+						j('#' + id).dataTable({
+									searching: false, 
+									info: false, 
+									paging: false,
+									ordering : true
+						});
 					}
 				});
 			});
@@ -189,6 +213,53 @@
 						else{
 							j('#claimrp-result').append('<span id="label-success" class="label label-success"><fmt:message key="jsp.cris.detail.claimrp.success" /></span>');
 							
+						}
+					}
+				});
+				
+			});
+			
+			j('#self-claim-rp').on('click', function(){
+				j('#label-success').remove();
+				j('#label-error').remove();				
+				j.ajax({
+					url: "<%= request.getContextPath() %>/json/claimrp",
+					data: {
+						"rpKey": j('#self-claimrp-rpkey').val()
+					},
+					success : function(data) {
+						send = data.result;
+						if(send==-1){
+							j('#selfclaimrp-result').append('<span id="label-error" class="label label-warning"><fmt:message key="jsp.cris.detail.selfclaimrp.error-1"><fmt:param value="${baseURL}/cris/rp/${entity.crisID}"/></fmt:message></span>');	
+						}
+						else{
+							j('#selfclaimrp-result').append('<span id="label-success" class="label label-success"><fmt:message key="jsp.cris.detail.selfclaimrp.success"><fmt:param value="${baseURL}/cris/rp/${entity.crisID}"/></fmt:message></span>');
+							
+						}
+					}
+				});
+				
+			});
+			
+			j('#disconnect-orcid-rp').on('click', function(){
+				j('#label-success').remove();
+				j('#label-error').remove();				
+				j.ajax({
+					url: "<%= request.getContextPath() %>/json/orcid/disconnect",
+					data: {
+						"crisid": '${entity.crisID}'
+					},
+					success : function(data) {
+						send = data.result;
+						if(send==-1){
+							j('#selfclaimrp-result').append('<span id="label-error" class="label label-warning"><fmt:message key="jsp.cris.detail.disconnectorcidrp.error-1"><fmt:param value="${baseURL}/cris/rp/${entity.crisID}"/></fmt:message></span>');	
+						}
+						else{
+							j('#selfclaimrp-result').append('<span id="label-success" class="label label-warning"><fmt:message key="jsp.cris.detail.disconnectorcidrp.success"><fmt:param value="${baseURL}/cris/rp/${entity.crisID}"/></fmt:message></span>');
+							j('#orciddisconnect-modal').modal('show');
+							setTimeout(function () { // wait 3 seconds and reload
+								    window.location.reload(true);
+								  }, 3000);
 						}
 					}
 				});
@@ -234,7 +305,7 @@
 		<div class="form-inline">
 	         <div class="form-group">
 			 	<h1>
-				 	<fmt:message key="jsp.layout.detail.title-first" /> 
+				 	<fmt:message key="jsp.layout.detail.title-first" />
 				 	<c:choose>
 						<c:when test="${!empty entity.preferredName.value}">
 							${entity.preferredName.value}
@@ -277,9 +348,9 @@
                 				<a class="btn btn-default" href="<%= request.getContextPath() %>/cris/tools/subscription/unsubscribe?uuid=${researcher.uuid}"><i class="fa fa-stop"></i> <fmt:message key="jsp.cris.detail.link.email.alert.remove" /> </a>
         					</c:otherwise>
 					</c:choose>
-	  				<a class="btn btn-default" href="<%= request.getContextPath() %>/open-search?query=author_authority:${authority}&amp;format=rss"><i class="fa fa-rss"></i> <fmt:message key="jsp.cris.detail.link.rssfeed" /></a>
+	  				<a class="btn btn-default" href="<%= request.getContextPath() %>/open-search?query=${fieldRSS}:${authority}&amp;format=rss"><i class="fa fa-rss"></i> <fmt:message key="jsp.cris.detail.link.rssfeed" /></a>
 				</div>
-				<c:if test="${researcher_page_menu && !empty researcher}">
+				<c:if test="${(researcher_page_menu || canEdit) && !empty researcher}">
 				<div class="btn-group">
 						<c:if test="${!empty addModeType && addModeType=='display'}">
 							<a class="btn btn-default" href="<%= request.getContextPath() %>/cris/tools/rp/editDynamicData.htm?id=${researcher.id}&anagraficaId=${researcher.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-edit"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.primary-data"/></a>
@@ -292,6 +363,7 @@
 						    <li>
 								<a href="<%= request.getContextPath() %>/cris/tools/rp/editDynamicData.htm?id=${researcher.id}&anagraficaId=${researcher.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-pencil-square-o"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.primary-data"/></a>
 							</li>
+							<c:if test="${researcher_page_menu && !empty researcher}">
 							<li>
 								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>								
 							</li>
@@ -299,11 +371,20 @@
 								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/projects"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-project"/></a>								
 							</li>							
 							</c:if>
+							</c:if>
 							<c:if test="${admin}">				
 								<li>
 									<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}"><i class="fa fa-search"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.bind.items"/></a>
 								</li>
 							</c:if>
+							<li>
+								<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}&operation=list"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-claim.choice.list.items"/></a>
+							</li>
+							<c:if test="${!empty anagraficaObject.anagrafica4view['orcid'] && canDisconnectOrcid}">
+							<li>
+								<a href="#" id="disconnect-orcid-rp"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-orcid.disconnect"/></a>
+							</li>
+							</c:if>							
 						</ul>
 					</div> 
 					
@@ -311,14 +392,22 @@
 						<a class="btn btn-default" href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>
 					</div> --%>
 				</c:if>
-				<c:if test="${empty researcher.epersonID}" >
+
+				
+				<c:if test="${claim && !researcher_page_menu && empty researcher.epersonID && !userHasRP}" >
 				<div class="btn-group">				
 				<c:choose>				
-					<c:when test="${empty researcher.email.value}">
+					<c:when test="${selfClaimRP}">
+						<span id="self-claim-rp" class="btn btn-primary"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></span>
+					</c:when>
+					<c:when test="${!selfClaimRP && (empty researcher.email.value && empty anagraficaObject.anagrafica4view['orcid'])}">
 						<a class="btn btn-primary" href="<%= request.getContextPath() %>/feedback?claimProfile=${researcher.crisID}"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></a>
 					</c:when>
+					<c:when test="${!selfClaimRP && isLoggedIn && empty anagraficaObject.anagrafica4view['orcid']}">
+						<a class="btn btn-primary" href="<%= request.getContextPath() %>/feedback?claimProfile=${researcher.crisID}"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></a>
+					</c:when>										
 					<c:otherwise>
-						<span id="claim-rp" class="btn btn-primary"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></span>
+						<span id="claim-rp" class="btn btn-primary"><i class="fa fa-user"></i>&nbsp;<fmt:message key="jsp.cris.detail.info.claimrp"/></span>							
 					</c:otherwise>
 				</c:choose>
 				</div>
@@ -335,23 +424,44 @@
 				key="jsp.layout.hku.detail.researcher-disabled.fixit" /></a>
 		</p>
 	</c:if>
+	
+	
+	<c:if test="${!empty infoPendingImpRecord && researcher_page_menu}">
+		<c:forEach var="entry" items="${infoPendingImpRecord}">
+			<c:if test="${entry.value>0}">
+    	    <p class="warning pending">
+    	    	<c:choose>				
+					<c:when test="${admin}">
+						<a href="<%=request.getContextPath()%>/tools/importrecord?crisid=${researcher.crisID}&sourceref=${entry.key}"><fmt:message key="jsp.cris.detail.imprecord.result-match.${entry.key}"><fmt:param>${entry.value}</fmt:param></fmt:message></a>
+	    	    	</c:when>
+	    	    	<c:otherwise>
+						<a href="<%=request.getContextPath()%>/tools/importrecord?sourceref=${entry.key}"><fmt:message key="jsp.cris.detail.imprecord.result-match.${entry.key}"><fmt:param>${entry.value}</fmt:param></fmt:message></a>    	    	
+	    	    	</c:otherwise>
+    	    	</c:choose>
+    	    </p>
+    	  	</c:if>
+		</c:forEach>
+	</c:if>
 
-	<c:if test="${pendingItems > 0}">
+	<c:if test="${pendingItems > 0 && publicationSelfClaimRP}">
 		<p class="warning pending">
 			<fmt:message
 				key="jsp.layout.hku.detail.researcher-pending-items">
 				<fmt:param>${pendingItems}</fmt:param>
 			</fmt:message> <fmt:message
 				key="jsp.layout.hku.detail.researcher-goto-pending-items">
-				<fmt:param><%=request.getContextPath()%>/dspace-admin/authority?authority=<%=RPAuthority.RP_AUTHORITY_NAME%>&key=${authority_key}</fmt:param>
+                <fmt:param><%=request.getContextPath()%>/tools/authority?authority=<%=RPAuthority.RP_AUTHORITY_NAME%>&key=${authority_key}</fmt:param>
 			</fmt:message>
 		</p>	
 	</c:if>
-
+	
+	<h4 id="selfclaimrp-result"></h4>
+	<input type="hidden" value="${requestScope.authority}" id="self-claimrp-rpkey"/>
+	
 	<c:if test="${not empty messages}">
 	<div class="message" id="successMessages">
 		<c:forEach var="msg" items="${messages}">
-				<div id="authority-message">${msg}</div>
+				<div id="authority-message" class="alert alert-info">${msg}</div>
 		</c:forEach>
 	</div>
 	<c:remove var="messages" scope="session" />
@@ -371,9 +481,9 @@
 			<h4 class="modal-title"><fmt:message key="jsp.cris.detail.claimrp.title" /></h4>
 		</div>
 		<div class="modal-body">
-			<p><fmt:message key="jsp.cris.detail.claimrp.text1" />
-			</p>
-			<p>Emails:
+            <c:if test="${!empty researcher.email.value && !isLoggedIn}">
+			<p><fmt:message key="jsp.cris.detail.claimrp.text1" /></p>
+			<p><fmt:message key="jsp.cris.detail.claimrp.title.emails" />
 		 	<c:set var="indexAt" value="${fn:indexOf(researcher.email.value,'@')}" />
 			<c:set var="len" value="${fn:length(researcher.email.value)}" />
               	<%-- <c:forEach var="chr" items="${researcher.email.value}" varStatus="i">--%>
@@ -403,8 +513,9 @@
       			</span>
     		</div>
      		<h4 id="claimrp-result"></h4>
+            </c:if>
 	     	<c:if test="${!empty anagraficaObject.anagrafica4view['orcid']}">
-     		<hr />
+     		<c:if test="${!empty researcher.email.value && !isLoggedIn}"><hr /></c:if>
 		     	<div class="col-md-12">
 		     		<h4><fmt:message key="jsp.cris.detail.claimrp.orcid"/></h4>
 		     		      <a href="<%= request.getContextPath() %>/oauth-login">
@@ -414,6 +525,12 @@
       					</a>
 	     		</div>
      		</c:if>
+     		<c:if test="${!empty researcher.email.value || !empty anagraficaObject.anagrafica4view['orcid']}"><hr /></c:if>
+     		<div>
+     		<h4><fmt:message key="jsp.cris.detail.claimrp.send.email"/></h4>
+     		<div class="col-md-12">
+     			<fmt:message key="jsp.cris.detail.claimrp.feedback.form"/><a class="btn btn-primary" href="<%= request.getContextPath() %>/feedback?claimProfile=${researcher.crisID}"><i class="fa fa-envelope-o"></i>&nbsp;</a>
+     		</div>
      </div>
       <div class="modal-footer">
          <button type="button" class="btn btn-default" data-dismiss="modal" id="claimrp-modal-close">Close</button>
@@ -423,6 +540,9 @@
   </div><!-- /.modal-dialog -->
 </div><!-- /.modal -->
 
+<div id="orciddisconnect-modal" style="display:none">
+	<!-- empty -->
+</div>
 </dspace:layout>
 </c:otherwise>
 </c:choose>

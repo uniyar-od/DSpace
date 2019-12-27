@@ -7,12 +7,21 @@
  */
 package org.dspace.app.cris.service;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.cli.ParseException;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.batch.ImportCRISDataModelConfiguration;
 import org.dspace.app.cris.dao.CrisObjectDao;
 import org.dspace.app.cris.dao.CrisSubscriptionDao;
 import org.dspace.app.cris.dao.DynamicObjectDao;
@@ -26,6 +35,7 @@ import org.dspace.app.cris.dao.ResearcherPageDao;
 import org.dspace.app.cris.dao.StatSubscriptionDao;
 import org.dspace.app.cris.dao.UserWSDao;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.CrisSubscription;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
@@ -40,11 +50,14 @@ import org.dspace.app.cris.model.orcid.OrcidHistory;
 import org.dspace.app.cris.model.orcid.OrcidQueue;
 import org.dspace.app.cris.model.ws.User;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.util.Util;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.services.ConfigurationService;
+import org.dspace.storage.rdbms.DatabaseUtils;
 import org.hibernate.Session;
 
-import it.cilea.osd.common.core.SingleTimeStampInfo;
 import it.cilea.osd.common.model.Identifiable;
+import it.cilea.osd.jdyna.model.Property;
 import net.sf.ehcache.Cache;
 import net.sf.ehcache.CacheManager;
 import net.sf.ehcache.Element;
@@ -87,6 +100,9 @@ public class ApplicationService extends ExtendedTabService
 	private Cache cacheBySource;
 	private Cache cacheByUUID;
 	
+    // the key is the UUID of the CRIS object, the set contains the UUIDs of all the CRIS objects that hold a reference to such object
+    private Map<String, Set<String>> cacheDependencies = new HashMap<String, Set<String>>();
+
     private static Logger log = Logger.getLogger(ApplicationService.class);
 
     /**
@@ -106,65 +122,83 @@ public class ApplicationService extends ExtendedTabService
         orcidQueueDao = (OrcidQueueDao) getDaoByModel(OrcidQueue.class);
         orcidHistoryDao = (OrcidHistoryDao) getDaoByModel(OrcidHistory.class);
         
-		if (configurationService.getPropertyAsType("cris.applicationServiceCache.enabled", true, true)
-        		&& cache == null)
+		if (configurationService.getPropertyAsType("cris.applicationServiceCache.enabled", true, true))
+        {
+            enableCacheManager();
+        }
+    }
+
+    private void enableCacheManager()
+    {
+        if (cache == null)
         {
             try
             {
                 cacheManager = CacheManager.create();
                 if (cacheManager != null)
                 {
-					int maxInMemoryObjects = 100;
-//					ConfigurationManager.getIntProperty("cris",
-//							"applicationServiceCache.max-in-memory-objects", 100);
-					boolean overflowToDisk = true;
-//					ConfigurationManager.getBooleanProperty("cris",
-//							"applicationServiceCache.overflow-to-disk", true);
-					int timeToLive = 0;
-//					ConfigurationManager.getIntProperty("cris",
-//							"applicationServiceCache.time-to-live", 0);
-					int timeToIdle = 0;
-//					ConfigurationManager.getIntProperty("cris",
-//							"applicationServiceCache.time-to-idle", 0);
-					int diskExpireThreadInterval = 600;
-//					ConfigurationManager.getIntProperty("cris",
-//							"applicationServiceCache.disk-expire-thread-interval", 600);
-                	
+                    int maxInMemoryObjects = configurationService.getPropertyAsType("cris.applicationServiceCache.max-in-memory-objects", 1000);
+                    boolean overflowToDisk = configurationService.getPropertyAsType("cris.applicationServiceCache.overflow-to-disk", true);
+                    int timeToLive = configurationService.getPropertyAsType("cris.applicationServiceCache.time-to-live", 0);
+                    int timeToIdle = configurationService.getPropertyAsType("cris.applicationServiceCache.time-to-idle", 0);
+                    int diskExpireThreadInterval = configurationService.getPropertyAsType("cris.applicationServiceCache.disk-expire-thread-interval", 600);
+
                     cache = cacheManager.getCache("applicationServiceCache");
                     if (cache == null)
                     {
-						cache = new Cache("applicationServiceCache", maxInMemoryObjects, overflowToDisk, false,
-								timeToLive, timeToIdle, false, diskExpireThreadInterval);
+                        cache = new Cache("applicationServiceCache",
+                                maxInMemoryObjects, overflowToDisk, false,
+                                timeToLive, timeToIdle, false,
+                                diskExpireThreadInterval);
 
                         cacheManager.addCache(cache);
                     }
-					cacheRpByEPerson = cacheManager.getCache("applicationServiceCacheRpByEPerson");
-					if (cacheRpByEPerson == null) {
-						cacheRpByEPerson = new Cache("applicationServiceCacheRpByEPerson", maxInMemoryObjects,
-								overflowToDisk, false, timeToLive, timeToIdle, false, diskExpireThreadInterval);
-						cacheManager.addCache(cacheRpByEPerson);
-					}
+                    cacheRpByEPerson = cacheManager
+                            .getCache("applicationServiceCacheRpByEPerson");
+                    if (cacheRpByEPerson == null)
+                    {
+                        cacheRpByEPerson = new Cache(
+                                "applicationServiceCacheRpByEPerson",
+                                maxInMemoryObjects, overflowToDisk, false,
+                                timeToLive, timeToIdle, false,
+                                diskExpireThreadInterval);
+                        cacheManager.addCache(cacheRpByEPerson);
+                    }
 
-					cacheByCrisID = cacheManager.getCache("applicationServicecacheByCrisID");
-					if (cacheByCrisID == null) {
-						cacheByCrisID = new Cache("applicationServicecacheByCrisID", maxInMemoryObjects,
-								overflowToDisk, false, timeToLive, timeToIdle, false, diskExpireThreadInterval);
-						cacheManager.addCache(cacheByCrisID);
-					}
+                    cacheByCrisID = cacheManager
+                            .getCache("applicationServicecacheByCrisID");
+                    if (cacheByCrisID == null)
+                    {
+                        cacheByCrisID = new Cache(
+                                "applicationServicecacheByCrisID",
+                                maxInMemoryObjects, overflowToDisk, false,
+                                timeToLive, timeToIdle, false,
+                                diskExpireThreadInterval);
+                        cacheManager.addCache(cacheByCrisID);
+                    }
 
-					cacheBySource = cacheManager.getCache("applicationServiceCacheBySource");
-					if (cacheBySource == null) {
-						cacheBySource = new Cache("applicationServiceCacheBySource", maxInMemoryObjects,
-								overflowToDisk, false, timeToLive, timeToIdle, false, diskExpireThreadInterval);
-						cacheManager.addCache(cacheBySource);
-					}
+                    cacheBySource = cacheManager
+                            .getCache("applicationServiceCacheBySource");
+                    if (cacheBySource == null)
+                    {
+                        cacheBySource = new Cache(
+                                "applicationServiceCacheBySource",
+                                maxInMemoryObjects, overflowToDisk, false,
+                                timeToLive, timeToIdle, false,
+                                diskExpireThreadInterval);
+                        cacheManager.addCache(cacheBySource);
+                    }
 
-					cacheByUUID = cacheManager.getCache("applicationServiceCacheBySource");
-					if (cacheByUUID == null) {
-						cacheByUUID = new Cache("applicationServiceCacheByUUID", maxInMemoryObjects, overflowToDisk,
-								false, timeToLive, timeToIdle, false, diskExpireThreadInterval);
-						cacheManager.addCache(cacheByUUID);
-					}                    
+                    cacheByUUID = cacheManager
+                            .getCache("applicationServiceCacheBySource");
+                    if (cacheByUUID == null)
+                    {
+                        cacheByUUID = new Cache("applicationServiceCacheByUUID",
+                                maxInMemoryObjects, overflowToDisk, false,
+                                timeToLive, timeToIdle, false,
+                                diskExpireThreadInterval);
+                        cacheManager.addCache(cacheByUUID);
+                    }
                 }
             }
             catch (Exception ex)
@@ -176,15 +210,7 @@ public class ApplicationService extends ExtendedTabService
 
     public void destroy()
     {
-        if (cacheManager != null)
-        {
-            cache = null;
-			cacheRpByEPerson = null;
-			cacheBySource = null;
-			cacheByCrisID = null;
-			cacheByUUID = null;            
-            cacheManager.shutdown();
-        }
+        disableCacheManager();
     }
 
     /**
@@ -573,7 +599,7 @@ public class ApplicationService extends ExtendedTabService
 			Element element = cacheRpByEPerson.getQuiet(id);
 			if (element != null) {
 				ResearcherPage rp = (ResearcherPage) element.getValue();
-				if (!isExpiredCache(ResearcherPage.class, element, id, rp)) {
+				if (!isExpiredCache(ResearcherPage.class, element, rp.getId(), rp)) {
 					return rp;
 				}
 				else if (rp != null) {
@@ -649,6 +675,27 @@ public class ApplicationService extends ExtendedTabService
             }
         }
         return dso;
+    }
+
+    public <T extends ACrisObject> T getEntityById(int id, int type)
+    {
+        T crisObject = null;
+        switch (type)
+        {
+        case CrisConstants.RP_TYPE_ID:
+            crisObject = (T)get(ResearcherPage.class, id);
+            break;
+        case CrisConstants.PROJECT_TYPE_ID:
+            crisObject = (T)get(Project.class, id);
+            break;
+        case CrisConstants.OU_TYPE_ID:
+            crisObject = (T)get(OrganizationUnit.class, id);
+            break;
+        default:
+            crisObject = (T)get(ResearchObject.class, id);
+            break;
+        }
+        return crisObject;
     }
     
     public <T extends ACrisObject> T getEntityBySourceId(String sourceRef, String sourceID,
@@ -821,14 +868,13 @@ public class ApplicationService extends ExtendedTabService
 		Date now = new Date();
 		if (rp == null) {
 			return true;
-		}
-		SingleTimeStampInfo timestampLastModified = rp.getTimeStampInfo().getTimestampLastModified();
-		long lastModCache = timestampLastModified != null?timestampLastModified.getTimestamp().getTime():-1;
+		}		
+		long lastModCache = element.getLastUpdateTime();
 		
 		if ( now.getTime() - element.getLastAccessTime() > 1000) {
 			Date uniqueLastModifiedTimeStamp = uniqueLastModifiedTimeStamp(model, objectId);
-			long lastModDb = uniqueLastModifiedTimeStamp != null? uniqueLastModifiedTimeStamp.getTime():-1;
-			if (lastModCache == lastModDb) {
+			long lastModDb = uniqueLastModifiedTimeStamp != null? uniqueLastModifiedTimeStamp.getTime():Long.MAX_VALUE;
+			if (lastModCache >= lastModDb) {
 				element.updateAccessStatistics();
 				return false;
 			}
@@ -836,7 +882,6 @@ public class ApplicationService extends ExtendedTabService
 				return true;
 			}
 		}
-		element.updateAccessStatistics();
 		return false;
 	}
 
@@ -865,6 +910,54 @@ public class ApplicationService extends ExtendedTabService
             }
         }
         return null;
+    }
+
+    public void clearCacheByUUID(String uuid)
+    {
+        ACrisObject object = getEntityByUUID(uuid);
+        if (object == null) {
+            log.warn("Try to decache unfounded object with UUID: " + uuid);
+            return;
+        }
+        if (cache != null)
+        {
+            try
+            {
+                cache.remove(object.getClass().getName() + "#" + object.getId());
+            }
+            catch (Exception ex)
+            {
+                log.error("clearCacheByUUID", ex);
+            }
+        }
+        if (cacheRpByEPerson != null && object instanceof ResearcherPage) {
+            Integer eid = ((ResearcherPage) object).getEpersonID();
+            if (eid != null) {
+                cacheRpByEPerson.remove(eid);
+            }
+        }
+        if (object instanceof ACrisObject) {
+            if (cacheByCrisID != null) {
+                String key = ((ACrisObject) object).getCrisID();
+                if (key != null) {
+                    cacheByCrisID.remove(key);
+                }
+            }
+            if (cacheBySource != null) {
+                String sourceRef = ((ACrisObject) object).getSourceRef();
+                String sourceID = ((ACrisObject) object).getSourceID();
+                if (sourceID != null) {
+                    String key = sourceRef + "-" + sourceID;
+                    cacheBySource.remove(object.getClass().getName() + "#" + key);
+                }
+            }
+            if (cacheByUUID != null) {
+                String key = ((ACrisObject) object).getUuid();
+                if (key != null) {
+                    cacheByUUID.remove(key);
+                }
+            }
+        }
     }
 
 	public void clearCache()
@@ -907,6 +1000,38 @@ public class ApplicationService extends ExtendedTabService
 			}
 		}
 		if (object instanceof ACrisObject) {
+			// get set of the depending objects
+			String myUuid = ((ACrisObject) object).getUuid();
+			Set<String> dependencies = cacheDependencies.get(myUuid);
+
+			// remove from the cache all the depending objects
+			if (dependencies != null) {
+				for (String uuidDep : dependencies) {
+					clearCacheByUUID(uuidDep);
+				}
+			}
+			cacheDependencies.remove(myUuid);
+
+			// add the object for all the CRIS objects mentioned in its direct properties to the dependencies map
+			List<Property> props = ((ACrisObject) object).getAnagrafica();
+			Set<String> myDeps = new HashSet<String>();
+			for (Property prop : props) {
+				Object val = prop.getValue().getReal();
+				if (val instanceof ACrisObject) {
+					myDeps.add(((ACrisObject) val).getUuid());
+				}
+			}
+			if (myDeps.size() > 0) {
+				for (String myDep : myDeps) {
+					Set<String> relatedUuids = cacheDependencies.get(myDep);
+					if (relatedUuids == null) {
+						relatedUuids = new HashSet<String>();
+					}
+					relatedUuids.add(myUuid);
+					cacheDependencies.put(myDep, relatedUuids);
+				}
+			}
+
 			if (cacheByCrisID != null) {
 				String key = ((ACrisObject) object).getCrisID();
 				if (key != null) {
@@ -918,7 +1043,7 @@ public class ApplicationService extends ExtendedTabService
 				String sourceID = ((ACrisObject) object).getSourceID();
 				if (sourceID != null) {
 					String key = sourceRef + "-" + sourceID;
-					cacheBySource.put(new Element(key, object));
+					cacheBySource.put(new Element(model.getName() + "#" + key, object));
 				}
 			}
 			if (cacheByUUID != null) {
@@ -963,6 +1088,10 @@ public class ApplicationService extends ExtendedTabService
     	return researchDao.findByShortNameType(shortName);
     }
     
+    public List<ResearchObject> getResearchObjectByIDType(Integer id) {
+        return researchDao.findByIDType(id);
+    }
+    
     @Override
     public <P, PK extends Serializable> void delete(Class<P> model, PK pkey) {    	
     	super.delete(model, pkey);
@@ -975,10 +1104,13 @@ public class ApplicationService extends ExtendedTabService
 	public OrcidQueue uniqueOrcidQueueByEntityIdAndTypeIdAndOwnerId(Integer entityID, Integer typeId, String ownerId) {
 		return orcidQueueDao.uniqueOrcidQueueByEntityIdAndTypeIdAndOwner(entityID, typeId, ownerId);
 	}
-	public List<OrcidHistory> findOrcidHistoryByEntityIdAndTypeId(Integer entityId, Integer typeId) {	
-		return orcidHistoryDao.findOrcidHistoryByEntityIdAndTypeId(entityId, typeId);
+	public List<OrcidHistory> findOrcidHistoryByOrcidAndTypeId(String orcid, Integer typeId) {	
+		return orcidHistoryDao.findOrcidHistoryByOrcidAndTypeId(orcid, typeId);
 	}
-
+    public List<OrcidHistory> findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(String orcid, String entityUUID, Integer typeId) {  
+        return orcidHistoryDao.findOrcidHistoryByOrcidAndEntityUUIDAndTypeId(orcid, entityUUID, typeId);
+    }
+	
 	public void deleteOrcidQueueByOwnerAndTypeId(String crisID, int typeId) {
 		orcidQueueDao.deleteByOwnerAndTypeId(crisID, typeId);
 	}
@@ -995,17 +1127,81 @@ public class ApplicationService extends ExtendedTabService
 		return orcidHistoryDao.findOrcidHistoryInSuccessByOwnerAndTypeId(crisID, type);
 	}
 	
-	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(String crisID, int entityID, int typeID) {
-		return orcidHistoryDao.uniqueOrcidHistoryInSuccessByOwnerAndEntityIdAndTypeId(crisID, entityID, typeID);
+	public OrcidHistory uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(String crisID, String uuid, int typeID) {
+		return orcidHistoryDao.uniqueOrcidHistoryInSuccessByOwnerAndEntityUUIDAndTypeId(crisID, uuid, typeID);
 	}
 	
-	public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(String crisID, int entityID, int typeID) {
-		return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityIdAndTypeId(crisID, entityID, typeID);
+	public OrcidHistory uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(String crisID, String orcid, int typeID) {
+		return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndOrcidAndTypeId(crisID, orcid, typeID);
 	}
+
+    public OrcidHistory uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
+            String crisID, String entityUUID, int typeID)
+    {
+        return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
+                crisID, entityUUID, typeID);
+    }
 
     public List<DynamicTypeNestedObject> findNestedMaskById(Class<DynamicObjectType> clazz, Integer id)
     {
         DynamicObjectTypeDao dao = (DynamicObjectTypeDao)getDaoByModel(clazz);
         return dao.findNestedMaskById(id);
     }
+    
+    public static synchronized void checkRebuildCrisConfiguration()
+    {
+        // We only do something if the reindexDiscovery flag has been triggered
+        if(DatabaseUtils.getRebuildCrisConfiguration())
+        {
+            // Kick off a custom thread to perform the reindexing in Discovery
+            // (See ReindexerThread nested class below)
+            ConfigurationThread go = new ConfigurationThread();
+            go.start();
+        }
+    }
+    
+	private static class ConfigurationThread extends Thread {
+
+		/**
+		 * Actually perform Rebuild Cris Configuration.
+		 */
+		@Override
+		public void run() {
+			if (DatabaseUtils.getRebuildCrisConfiguration()) {
+				try {
+					log.info("Post database migration, rebuild cris configuration");
+					String sourceVersion = Util.getSourceVersion();
+                    log.info("DSpace version: " + sourceVersion);
+					String file = ConfigurationManager.getProperty("dspace.dir") + File.separator + "etc"
+					        + File.separator + "upgrade" + File.separator + sourceVersion+"__DSpaceCRIS-Upgrade.xls";
+					String[] args = new String[] { "-f", file };
+					ImportCRISDataModelConfiguration.main(args);
+					log.info("Rebuild CRIS Configuration is complete");
+				} catch (SQLException | IOException | InstantiationException | IllegalAccessException
+						| ParseException e) {
+					log.error("Error attempting to Rebuild CRIS Configuration", e);
+				} finally {
+					// Reset our flag. Job is done or it threw an error,
+					// Either way, we shouldn't try again.
+					DatabaseUtils.setRebuildCrisConfiguration(false);
+
+				}
+			}
+		}
+	}
+
+    public void disableCacheManager()
+    {
+        if (cacheManager != null)
+        {
+            cache = null;
+            cacheRpByEPerson = null;
+            cacheBySource = null;
+            cacheByCrisID = null;
+            cacheByUUID = null;            
+            cacheManager.shutdown();
+        }   
+    }
+
+	
 } 

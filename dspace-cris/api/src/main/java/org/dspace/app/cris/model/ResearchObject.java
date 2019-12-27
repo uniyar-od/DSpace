@@ -35,6 +35,8 @@ import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
 import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
+import org.dspace.app.cris.model.jdyna.ProjectProperty;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.eperson.EPerson;
 
 
@@ -43,6 +45,7 @@ import org.dspace.eperson.EPerson;
 @NamedQueries({
         @NamedQuery(name = "ResearchObject.findAll", query = "from ResearchObject order by id"),
         @NamedQuery(name = "ResearchObject.findByShortNameType", query = "from ResearchObject where typo.shortName = ? order by id"),
+        @NamedQuery(name = "ResearchObject.findByIDType", query = "from ResearchObject where typo.id = ? order by id"),
         @NamedQuery(name = "ResearchObject.count", query = "select count(*) from ResearchObject"),
         @NamedQuery(name = "ResearchObject.countByType", query = "select count(*) from ResearchObject where typo = ?"),
         @NamedQuery(name = "ResearchObject.paginate.id.asc", query = "from ResearchObject order by id asc"),
@@ -306,8 +309,20 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     @Override
     public boolean isOwner(EPerson eperson)
     {
-        // TODO not implemented
-        return false;
+		String ownerProperty = ConfigurationManager.getProperty("cris",
+				getTypeText() + ".owner");
+		if (ownerProperty != null) {
+			for (String propConf : ownerProperty.split("\\s*,\\s*")) {
+	    		List<DynamicProperty> props = getAnagrafica4view().get(propConf);
+	    		for (DynamicProperty p : props) {
+	    			ResearcherPage rp = (ResearcherPage) p.getObject();
+	    			if (eperson != null && rp.getEpersonID()!= null && eperson.getID() == rp.getEpersonID()) {
+	    				return true;
+	    			}
+	    		}
+			}
+    	}
+    	return false;
     }
 
     

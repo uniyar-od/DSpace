@@ -37,6 +37,7 @@ import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
@@ -67,25 +68,40 @@ public class FormOUDynamicMetadataController
 
         // check admin authorization
         boolean isAdmin = false;
-        Context context = UIUtil.obtainContext(request);
-        if (AuthorizeManager.isAdmin(context))
-        {
-            isAdmin = true;
+        if(map.containsKey("isAdmin")) {
+            isAdmin = (Boolean)map.get("isAdmin");
         }
-
         // collection of edit tabs (all edit tabs created on system associate to
         // visibility)
-        List<EditTabOrganizationUnit> tabs = getApplicationService()
-                .getTabsByVisibility(EditTabOrganizationUnit.class, isAdmin);
+		Integer entityId = Integer.parseInt(request.getParameter("id"));
+
+		if (entityId == null) {
+			return null;
+		}
+		Context context = UIUtil.obtainContext(request);
+
+		List<EditTabOrganizationUnit> tabs = getApplicationService().getList(EditTabOrganizationUnit.class);
+		List<EditTabOrganizationUnit> authorizedTabs = new LinkedList<EditTabOrganizationUnit>();
+
+		for (EditTabOrganizationUnit tab : tabs) {
+			if (CrisAuthorizeManager.authorize(context, getApplicationService(), OrganizationUnit.class,
+					OUPropertiesDefinition.class, entityId, tab)) {
+				authorizedTabs.add(tab);
+			}
+		}
 
         // check if request tab from view is active (check on collection before)
         EditTabOrganizationUnit editT = getApplicationService().get(
                 EditTabOrganizationUnit.class, anagraficaObjectDTO.getTabId());
-        if (!tabs.contains(editT))
-        {
-            throw new AuthorizeException(
-                    "You not have needed authorization level to display this tab");
-        }
+		if (!authorizedTabs.contains(editT)) {
+			if (authorizedTabs.size() > 0) {
+				editT = authorizedTabs.get(0);
+				anagraficaObjectDTO.setTabId(editT.getId());
+			} else {
+
+				throw new AuthorizeException("You not have needed authorization level to display this tab");
+			}
+		}
 
         // collection of boxs
         List<BoxOrganizationUnit> propertyHolders = new LinkedList<BoxOrganizationUnit>();
@@ -143,7 +159,7 @@ public class FormOUDynamicMetadataController
         map.put("propertiesHolders", propertyHoldersCurrentAccessLevel);
         map.put("propertiesDefinitionsInTab", pDInTab);
         map.put("propertiesDefinitionsInHolder", mapBoxToContainables);
-        map.put("tabList", tabs);
+        map.put("tabList", authorizedTabs);
         map.put("simpleNameAnagraficaObject", getClazzAnagraficaObject()
                 .getSimpleName());
         map.put("addModeType", "edit");
@@ -159,36 +175,25 @@ public class FormOUDynamicMetadataController
         String paramId = request.getParameter("id");
 
         Integer id = null;
-        Boolean isAdmin = false;
         if (paramId != null)
         {
             id = Integer.parseInt(paramId);
         }
         OrganizationUnit grant = getApplicationService().get(OrganizationUnit.class, id);
         Context context = UIUtil.obtainContext(request);
-        if (!AuthorizeManager.isAdmin(context))
+        boolean canEdit = false;
+        if (CrisAuthorizeManager.canEdit(context, getApplicationService(), EditTabOrganizationUnit.class, grant))
         {
+            canEdit = true;
+        }
+        else {
             throw new AuthorizeException("Only system admin can edit");
         }
-        else
-        {
-            isAdmin = true;
-        }
 
-        Integer areaId;
+        Integer areaId = null;
         if (paramTabId == null)
         {
-            if (paramFuzzyTabId == null)
-            {
-                List<EditTabOrganizationUnit> tabs = getApplicationService()
-                        .getTabsByVisibility(EditTabOrganizationUnit.class, isAdmin);
-                if (tabs.isEmpty())
-                {
-                    throw new AuthorizeException("No tabs defined!!");
-                }
-                areaId = tabs.get(0).getId();
-            }
-            else
+            if (paramFuzzyTabId != null)
             {
                 EditTabOrganizationUnit fuzzyEditTab = (EditTabOrganizationUnit) ((ApplicationService) getApplicationService())
                         .<BoxOrganizationUnit, TabOrganizationUnit, EditTabOrganizationUnit, OUPropertiesDefinition>getEditTabByDisplayTab(
@@ -202,8 +207,32 @@ public class FormOUDynamicMetadataController
             areaId = Integer.parseInt(paramTabId);
         }
 
-        EditTabOrganizationUnit editT = getApplicationService().get(
+        EditTabOrganizationUnit editT = null;
+        if (areaId != null) { 
+        	editT = getApplicationService().get(
                 EditTabOrganizationUnit.class, areaId);
+        }
+        
+        List<EditTabOrganizationUnit> tabs = getApplicationService().getList(EditTabOrganizationUnit.class);
+        List<EditTabOrganizationUnit> authorizedTabs = new LinkedList<EditTabOrganizationUnit>();
+        
+        for(EditTabOrganizationUnit tab : tabs) {
+            if(CrisAuthorizeManager.authorize(context, getApplicationService(), OrganizationUnit.class, OUPropertiesDefinition.class, id, tab)) {
+                authorizedTabs.add(tab);
+            }
+        }
+        if (!authorizedTabs.contains(editT))
+        {
+               if (authorizedTabs.size() > 0) {
+                       editT = authorizedTabs.get(0);
+                       areaId = editT.getId();
+               }
+               else {
+                   throw new AuthorizeException(
+                           "You not have needed authorization level to display this tab");
+               }
+        }
+        
         List<BoxOrganizationUnit> propertyHolders = new LinkedList<BoxOrganizationUnit>();
         if (editT.getDisplayTab() != null)
         {

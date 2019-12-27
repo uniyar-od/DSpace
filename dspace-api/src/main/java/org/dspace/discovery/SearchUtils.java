@@ -23,6 +23,7 @@ import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoveryMostViewedConfiguration;
 import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
+import org.dspace.handle.HandleManager;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
@@ -65,7 +66,20 @@ public class SearchUtils {
         if(configurationName == null){
             result = configurationService.getMap().get("site");
         }else{
-            result = configurationService.getMap().get(configurationName);
+        	if(configurationName.startsWith(HandleManager.getPrefix())) {
+        		// get container Collection/Community configuration
+        		if(configurationService.getMap().containsKey(configurationName)) {
+        			// there is a specific configuration for collection/community
+        			result = configurationService.getMap().get(configurationName);	
+        		}
+        		else {
+        			// retrieve the basic configuration
+        			result = configurationService.getMap().get("dspacebasic");
+        		}
+        	}
+        	else {
+        		result = configurationService.getMap().get(configurationName);
+        	}
         }
 
         if(result == null){
@@ -107,19 +121,18 @@ public class SearchUtils {
 		}
 		
         //Also add one for the default
-		addConfigurationIfExists(result, null);
+        addConfigurationIfExists(result, null);
         
         //Add special dspacebasic discoveryConfiguration
-        DiscoveryConfiguration configurationExtra;
-		addConfigurationIfExists(result, "dspacebasic");
+        addConfigurationIfExists(result, "dspacebasic");
 
         String typeText = item.getTypeText();
         String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
-        		"cris", "facet.type." + typeText);
+                "cris", "facet.type." + typeText);
         String extra = null;
         if (StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
-        	extra = isDefinedAsSystemEntity.split("###")[1];
-        	addConfigurationIfExists(result, extra);
+            extra = isDefinedAsSystemEntity.split("###")[1];
+            addConfigurationIfExists(result, extra);
         }
 
         addConfigurationIfExists(result, "dspace"+typeText);
@@ -129,13 +142,12 @@ public class SearchUtils {
         return Arrays.asList(result.values().toArray(new DiscoveryConfiguration[result.size()]));
     }
 
-	private static void addConfigurationIfExists(Map<String, DiscoveryConfiguration> result, String confName) {
-		DiscoveryConfiguration configurationExtra = getDiscoveryConfigurationByName(confName);
+    private static void addConfigurationIfExists(Map<String, DiscoveryConfiguration> result, String confName) {
+        DiscoveryConfiguration configurationExtra = getDiscoveryConfigurationByName(confName);
         if(!result.containsKey(configurationExtra.getId())){
             result.put(configurationExtra.getId(), configurationExtra);
         }
-	}
-
+    }
     
     public static DiscoveryViewAndHighlightConfiguration getDiscoveryViewAndHighlightConfigurationByName(
             String configurationName)

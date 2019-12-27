@@ -236,11 +236,15 @@ public class CrisSearchService extends SolrServiceImpl
         Boolean status = dso.getStatus();
         String sourceref = dso.getSourceRef();
         String sourceid = dso.getSourceID();
+        String crisID = ResearcherPageUtils.getPersistentIdentifier(dso);
         if(StringUtils.isNotBlank(sourceref)) {
         	doc.addField("cris-sourceref", sourceref);
         }
         if(StringUtils.isNotBlank(sourceid)) {
         	doc.addField("cris-sourceid", sourceid);
+        }
+        if(StringUtils.isNotBlank(crisID)) {
+            doc.addField("cris-id", crisID);
         }
         commonIndexerHeader(status, uuid, doc);
 
@@ -261,10 +265,10 @@ public class CrisSearchService extends SolrServiceImpl
 
         // add the special crisXX.this metadata
         indexProperty(doc, dso.getUuid(), schema + ".this", dso.getName(),
-                ResearcherPageUtils.getPersistentIdentifier(dso),
-                toIgnoreFields, searchFilters, toProjectionFields,
-                sortFields, sortFieldsAdded, hitHighlightingFields,
-                moreLikeThisFields);
+                    crisID,
+                    toIgnoreFields, searchFilters, toProjectionFields,
+                    sortFields, sortFieldsAdded, hitHighlightingFields,
+                    moreLikeThisFields);
 
         commonsIndexerAnagrafica(dso, doc, schema, sortFieldsAdded,
                 hitHighlightingFields, uuid, toIgnoreFields, searchFilters,
@@ -284,7 +288,7 @@ public class CrisSearchService extends SolrServiceImpl
                         CrisServiceIndexPlugin.class);
         for (CrisServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(dso, doc);
+            solrServiceIndexPlugin.additionalIndex(dso, doc, searchFilters);
         }
 
         // write the index and close the inputstreamreaders
@@ -343,8 +347,16 @@ public class CrisSearchService extends SolrServiceImpl
     {
         AValue value = meta.getValue();
 
-        if (value == null || meta.getVisibility() != VisibilityConstants.PUBLIC)
+        boolean storePrivate = ConfigurationManager.getBooleanProperty(CrisConstants.CFG_MODULE, "system.store.private.field", false);
+        if (meta.getVisibility() != VisibilityConstants.PUBLIC)
         {
+            if(value == null) {
+                return;    
+            }
+            
+            if(storePrivate) {
+                doc.addField(field + "_private", value);
+            }
             return;
         }
 
@@ -653,6 +665,7 @@ public class CrisSearchService extends SolrServiceImpl
         doc.addField("search.parentfk", parent.getType() + "-" + parent.getID());
         String confName = "ncris" + parent.getPublicPath();
         String schema = confName + dso.getTypo().getShortName();
+        doc.addField("search.schema_s", schema);
         String uuid = dso.getUuid();
         Boolean status = dso.getStatus();
         Integer position = dso.getPositionDef();
@@ -690,7 +703,7 @@ public class CrisSearchService extends SolrServiceImpl
                         CrisServiceIndexPlugin.class);
         for (CrisServiceIndexPlugin solrServiceIndexPlugin : solrServiceIndexPlugins)
         {
-            solrServiceIndexPlugin.additionalIndex(dso, doc);
+            solrServiceIndexPlugin.additionalIndex(dso, doc, null);
         }
         
         log.debug("  Added Metadata");
@@ -869,16 +882,17 @@ public class CrisSearchService extends SolrServiceImpl
             }
             
             List<String> listExtraConfiguration = SearchUtils.getConfigurationService().getExtraConfigurationMapping().get(confName);
-			if (listExtraConfiguration != null) {
-            	for (String eConf : listExtraConfiguration) {
-            		DiscoveryConfiguration extraCrisConfiguration = SearchUtils
+            if (listExtraConfiguration != null) {
+                for (String eConf : listExtraConfiguration) {
+                    DiscoveryConfiguration extraCrisConfiguration = SearchUtils
                             .getDiscoveryConfigurationByName(eConf);
                     if (extraCrisConfiguration != null)
                     {
                         discoveryConfigurations.add(extraCrisConfiguration);
                     }
-            	}
+                }
             }
+            
             for (DiscoveryConfiguration discoveryConfiguration : discoveryConfigurations)
             {
                 for (int i = 0; i < discoveryConfiguration.getSearchFilters()

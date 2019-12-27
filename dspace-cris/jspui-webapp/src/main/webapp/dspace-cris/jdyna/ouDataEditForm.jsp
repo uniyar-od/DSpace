@@ -20,6 +20,8 @@
 <%@ taglib uri="http://ajaxtags.org/tags/ajax" prefix="ajax"%>
 
 <%@page import="java.util.List"%>
+<%@ page import="java.util.Locale"%>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@page import="java.util.ArrayList"%>
 <%@page import="it.cilea.osd.jdyna.model.PropertiesDefinition"%>
 <%@page
@@ -36,9 +38,14 @@
     EPerson user = (EPerson) request.getAttribute("dspace.current.user");
 
     // Is the logged in user an admin
-    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    Boolean admin = (Boolean)request.getAttribute("isAdmin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
 
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
+	String currLocale = null;
+	if (sessionLocale != null) {
+		currLocale = sessionLocale.toString();
+	}
 %>
 <c:set var="root"><%=request.getContextPath()%></c:set>
 <c:set var="admin"><%=isAdmin%></c:set>
@@ -807,7 +814,8 @@
 						  <div>
 						<c:forEach
 							items="${propertiesDefinitionsInHolder[holder.shortName]}"
-							var="tipologiaDaVisualizzare">
+							var="tipologiaDaVisualizzareNoI18n">
+							<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
 							<c:set var="hideLabel">${fn:length(propertiesDefinitionsInHolder[holder.shortName]) le 1}</c:set>
 							<c:set var="disabled" value=" readonly='readonly'"/>
 							
@@ -851,6 +859,9 @@
 								<span id="nested_${tipologiaDaVisualizzare.real.id}_pageCurrent" class="spandatabind">0</span>
 								<span id="nested_${tipologiaDaVisualizzare.real.id}_editmode" class="spandatabind">false</span>
 								</div>
+								<c:if test="${tipologiaDaVisualizzare.real.newline}">
+									<div class="dynaClear">&nbsp;</div>
+								</c:if>
 							</c:if>
 
 

@@ -13,14 +13,38 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://displaytag.sf.net" prefix="display"%>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@ page import="java.net.URL"%>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="java.util.Locale"%>
+<%@ page import="java.util.List"%>
+<%@ page import="java.util.Map"%>
+<%@ page import="java.util.HashMap"%>
+<%@ page import="it.cilea.osd.jdyna.web.Box"%>
 
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 <%@ taglib uri="researchertags" prefix="researcher"%>
-
+<%
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
+	String currLocale = null;
+	if (sessionLocale != null) {
+		currLocale = sessionLocale.toString();
+	}
+    List<Box> boxs = (List<Box>)(request.getAttribute("propertiesHolders"));
+    Map<String, Long> mapCount = new HashMap<String, Long>();
+   	for(Box box : boxs) {
+	 	if(box!=null) {
+		 	   String nameBoxCountAttribute = "count" + box.getShortName(); 
+		 	   Long objnameBoxCountAttribute = (Long)request.getAttribute(nameBoxCountAttribute);
+			   mapCount.put(box.getShortName(), objnameBoxCountAttribute);
+ 		} 
+	}
+%>
+<c:set var="currLocale"><%=currLocale %></c:set>
 	<div id="tab-${area.id}">
 		<div class="row">
 					<c:forEach items="${propertiesHolders}" var="holder">
+					<c:set var="holdershortname" value="${holder.shortName}" scope="page"/>
 					<c:set var="extraCSS">
 						<c:choose>
 							<c:when test="${holder.priority % 10 == 2}">col-md-6</c:when>
@@ -28,11 +52,17 @@
 						</c:choose>
 					</c:set>
 					
+					<% Long counterBoxMap = (Long)mapCount.get(pageContext.getAttribute("holdershortname")); 
+						if(counterBoxMap==null) {
+					%>
 						<c:set
 							value="${researcher:isBoxHidden(entity,holder.shortName)}"
 							var="invisibleBox"></c:set>
-
-
+					<% } else {	%>
+						<c:set
+							value="<%= counterBoxMap>0?false:true %>"
+							var="invisibleBox"></c:set>
+					<% } %>		
 						<c:if test="${invisibleBox==false}">
 
 							<%!public URL fileURL;%>
@@ -54,17 +84,17 @@
     										<div class="panel-heading">
       												<h4 class="panel-title">
         												<a data-toggle="collapse" data-parent="#${holder.shortName}" href="#collapseOne${holder.shortName}">
-          													${holder.title}
+          													<spring:message code="${entity.class.simpleName}.box.${holder.shortName}.label" text="${holder.title}"></spring:message>
         												</a>
       												</h4>
     										</div>
-										    <div id="collapseOne${holder.shortName}" class="panel-collapse collapse in">
+										    <div id="collapseOne${holder.shortName}" class="panel-collapse collapse<c:if test="${holder.collapsed==false}"> in</c:if>">
 												<div class="panel-body">
 											      <c:set var="hideLabel">${fn:length(propertiesDefinitionsInHolder[holder.shortName]) le 1}</c:set>
 													<c:forEach
 														items="${propertiesDefinitionsInHolder[holder.shortName]}"
-														var="tipologiaDaVisualizzare" varStatus="status">
-							
+														var="tipologiaDaVisualizzareNoI18n" varStatus="status">
+														<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18NByCrisObject(anagraficaObject,tipologiaDaVisualizzareNoI18n,currLocale)}" />
 														<%!public URL fileFieldURL;%>
 							
 														<c:set var="urljspcustomfield"
@@ -81,7 +111,7 @@
 														%>
 														<c:if
 															test="${dyna:instanceOf(tipologiaDaVisualizzare,'it.cilea.osd.jdyna.model.ADecoratorTypeDefinition')}">
-															
+																
 																<c:set var="totalHit" value="0"/>
 																<c:set var="limit" value="5"/>
 																<c:set var="offset" value="0"/>											
@@ -94,11 +124,14 @@
 																			<fmt:message key="jsp.jdyna.nestedloading" />
 																<span class="spandatabind nestedinfo">${tipologiaDaVisualizzare.real.id}</span>
 																<span id="nested_${tipologiaDaVisualizzare.real.id}_totalHit" class="spandatabind">0</span>
-																<span id="nested_${tipologiaDaVisualizzare.real.id}_limit" class="spandatabind">5</span>
+																<span id="nested_${tipologiaDaVisualizzare.real.id}_limit" class="spandatabind">20</span>
 																<span id="nested_${tipologiaDaVisualizzare.real.id}_pageCurrent" class="spandatabind">0</span>
 																<span id="nested_${tipologiaDaVisualizzare.real.id}_editmode" class="spandatabind">false</span>
 																<span id="nested_${tipologiaDaVisualizzare.real.id}_externalJSP" class="spandatabind">${tipologiaDaVisualizzare.externalJSP}</span>
 																</div>
+																<c:if test="${tipologiaDaVisualizzare.real.newline}">
+																	<div class="dynaClear">&nbsp;</div>
+																</c:if>
 														</c:if>
 														<c:if
 															test="${dyna:instanceOf(tipologiaDaVisualizzare,'it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition')}">

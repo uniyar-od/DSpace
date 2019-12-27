@@ -50,8 +50,6 @@
 <%
 	int discovery_panel_cols = 12;
 	int discovery_facet_cols = 4;
-	Map<String, List<FacetResult>> mapFacetes = (Map<String, List<FacetResult>>) request.getAttribute("discovery.fresults");
-	List<DiscoverySearchFilterFacet> facetsConf = (List<DiscoverySearchFilterFacet>) request.getAttribute("facetsConfig");
 	List<DiscoverySearchFilter> filters = (List<DiscoverySearchFilter>) request.getAttribute("filters");
 %>
 <c:set var="dspace.layout.head.last" scope="request">
@@ -99,7 +97,7 @@ function submitForm() {
 <c:set var="fmtkey">
  jsp.layout.navbar-default.cris.${location}
 </c:set>
-<dspace:layout locbar="link" parenttitlekey="${fmtkey}" parentlink="/explore/${location}" titlekey="${fmtkey}">
+<dspace:layout locbar="link" parenttitlekey="${fmtkey}" parentlink="/cris/explore/${location}" titlekey="${fmtkey}">
 <div class="row">
 	<div class="col-sm-4 col-md-3">
 		<h2><fmt:message key="jsp.general.browse" /></h2>

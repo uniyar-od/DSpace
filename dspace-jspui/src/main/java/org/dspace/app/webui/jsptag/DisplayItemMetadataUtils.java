@@ -137,12 +137,12 @@ public class DisplayItemMetadataUtils {
 			String postfix) throws SQLException, JspException {
 		List<DisplayMetadata> metadata = new ArrayList<DisplayMetadata>();
 
-		String style = styleSelection.getStyleForItem(item);
+		String style = styleSelection.getStyleForItem(context, item, req);
 		String configLine = "";
-		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(style + "." + postfix)) {
-			configLine = styleSelection.getConfigurationForStyle(style + "." + postfix);
+		if (postfix != null && styleSelection.isConfigurationDefinedForStyle(context, style + "." + postfix, req)) {
+			configLine = styleSelection.getConfigurationForStyle(context, style + "." + postfix, req);
 		} else {
-			configLine = styleSelection.getConfigurationForStyle(style);
+			configLine = styleSelection.getConfigurationForStyle(context, style, req);
 		}
 
 		if (configLine == null) {
@@ -202,14 +202,14 @@ public class DisplayItemMetadataUtils {
 			}
 
 			// FIXME: Still need to fix for metadata language?
-			Metadatum[] values = item.getMetadata(schema, element, qualifier, Item.ANY);
+			Metadatum[] values = item.getMetadataWithoutPlaceholder(schema, element, qualifier, Item.ANY);
 
 			if (values.length > 0) {
 
 				String label = null;
 				try {
 					label = I18nUtil.getMessage("metadata." + ("default".equals(style) ? "" : style + ".") + field,
-							context);
+							context.getCurrentLocale(), true);
 				} catch (MissingResourceException e) {
 					// if there is not a specific translation for the style we
 					// use the default one
@@ -227,7 +227,7 @@ public class DisplayItemMetadataUtils {
 					} else if (displayStrategyName.equalsIgnoreCase("resolver")) {
 						strategy = new ResolverDisplayStrategy();
 					} else {
-						strategy = new DefaultDisplayStrategy();
+						strategy = new DefaultDisplayStrategy(displayStrategyName);						
 					}
 				}
 

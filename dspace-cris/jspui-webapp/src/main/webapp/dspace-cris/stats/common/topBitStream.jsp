@@ -32,19 +32,19 @@
 <div id="statstab-content">
 	<div id="statstab-content-continent" class="statstab-content-item statstab-show">
                 <c:set var="pieType" >continent</c:set>
-                <stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/>
+                <stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/>
 	</div>
 	<div id="statstab-content-countryCode" class="statstab-content-item">
                 <c:set var="pieType" >countryCode</c:set>
-                <stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/> 
+                <stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/> 
 	</div>
 	<div id="statstab-content-city" class="statstab-content-item">
                 <c:set var="pieType" >city</c:set>
-                <stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}"/>
+                <stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}"/>
 	</div>
 	<div id="statstab-content-id" class="statstab-content-item">
                 <c:set var="pieType" >id</c:set>
-                <stats:piewithtable mostViewedItem="true" data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useLocalMap="true"/>
+                <stats:piewithtable mostViewedItem="true" data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}" useLocalMap="true"/>
 	</div>
 	<div id="statstab-content-time" class="statstab-content-item">
                 <%@include file="time.jsp"%> 
@@ -66,7 +66,7 @@ j(document).ready(function() {
 			j("li.ui-tabs-active").toggleClass("ui-tabs-active ui-state-active active");
 		},
 		"beforeActivate": function( event, ui ) {
-			 j("li.active").toggleClass("active");
+			 j("#statstab-menu").find("li.active").toggleClass("active");
 		},
    		"create": function( event, ui ) {
                j("div.ui-tabs").toggleClass("ui-tabs ui-widget ui-widget-content ui-corner-all tabbable");
@@ -105,6 +105,6 @@ j(document).ready(function() {
 </div>
         </c:when>
         <c:otherwise> 
-                <fmt:message key="view.${data.jspKey}.${statType}.${objectName}.data.empty" />
+                <fmt:message key="view.${data.jspKey}.${fn:escapeXml(statType)}.${objectName}.data.empty" />
         </c:otherwise>
 </c:choose>

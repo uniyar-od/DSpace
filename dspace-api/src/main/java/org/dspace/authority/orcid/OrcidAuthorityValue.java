@@ -10,13 +10,10 @@ package org.dspace.authority.orcid;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
-import javax.xml.bind.JAXBElement;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -25,13 +22,14 @@ import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.AuthorityValueGenerator;
 import org.dspace.authority.PersonAuthorityValue;
-import org.dspace.authority.orcid.jaxb.ExternalIdentifier;
-import org.dspace.authority.orcid.jaxb.Keyword;
-import org.dspace.authority.orcid.jaxb.Orcid;
-import org.dspace.authority.orcid.jaxb.OrcidBio;
-import org.dspace.authority.orcid.jaxb.OrcidProfile;
-import org.dspace.authority.orcid.jaxb.PersonalDetails;
-import org.dspace.authority.orcid.jaxb.ResearcherUrl;
+import org.orcid.jaxb.model.common_v2.ExternalId;
+import org.orcid.jaxb.model.record_v2.AddressType;
+import org.orcid.jaxb.model.record_v2.Addresses;
+import org.orcid.jaxb.model.record_v2.KeywordType;
+import org.orcid.jaxb.model.record_v2.NameType;
+import org.orcid.jaxb.model.record_v2.OtherNameType;
+import org.orcid.jaxb.model.record_v2.Record;
+import org.orcid.jaxb.model.record_v2.ResearcherUrlType;
 
 /**
  *
@@ -47,8 +45,6 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 	 */
 	private static Logger log = Logger.getLogger(OrcidAuthorityValue.class);
 
-	private String orcid_id;
-	private Map<String, List<String>> otherMetadata = new HashMap<String, List<String>>();
 	private boolean update; // used in setValues(Bio bio)
 
 	/**
@@ -63,25 +59,14 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 		super(document);
 	}
 
+	@Deprecated
 	public String getOrcid_id() {
-		return orcid_id;
+		return getServiceId();
 	}
 
+	@Deprecated
 	public void setOrcid_id(String orcid_id) {
-		this.orcid_id = orcid_id;
-	}
-
-	public Map<String, List<String>> getOtherMetadata() {
-		return otherMetadata;
-	}
-
-	public void addOtherMetadata(String label, String data) {
-		List<String> strings = otherMetadata.get(label);
-		if (strings == null) {
-			strings = new ArrayList<String>();
-		}
-		strings.add(data);
-		otherMetadata.put(label, strings);
+		setServiceId(orcid_id);
 	}
 
 	@Override
@@ -91,8 +76,8 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 			doc.addField("orcid_id", getOrcid_id());
 		}
 
-		for (String t : otherMetadata.keySet()) {
-			List<String> data = otherMetadata.get(t);
+		for (String t : getOtherMetadata().keySet()) {
+			List<String> data = getOtherMetadata().get(t);
 			for (String data_entry : data) {
 				doc.addField("label_" + t, data_entry);
 			}
@@ -103,9 +88,8 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 	@Override
 	public void setValues(SolrDocument document) {
 		super.setValues(document);
-		this.orcid_id = String.valueOf(document.getFieldValue("orcid_id"));
+		setServiceId(String.valueOf(document.getFieldValue("orcid_id")));
 
-		otherMetadata = new HashMap<String, List<String>>();
 		for (String fieldName : document.getFieldNames()) {
 			String labelPrefix = "label_";
 			if (fieldName.startsWith(labelPrefix)) {
@@ -115,7 +99,7 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 				for (Object o : fieldValues) {
 					list.add(String.valueOf(o));
 				}
-				otherMetadata.put(label, list);
+				getOtherMetadata().put(label, list);
 			}
 		}
 	}
@@ -131,7 +115,7 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 	/**
 	 * Create an authority based on a given orcid bio
 	 */
-	public static OrcidAuthorityValue create(OrcidProfile bio) {
+	public static OrcidAuthorityValue create(Record bio) {
 		OrcidAuthorityValue authority = OrcidAuthorityValue.create();
 
 		authority.setValues(bio);
@@ -139,26 +123,27 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 		return authority;
 	}
 
-	public boolean setValues(OrcidProfile profile) {
+	public boolean setValues(Record profile) {
 
-		for (JAXBElement<String> string : profile.getOrcidIdentifier().getContent()) {
-			if ("path".equals(string.getName().getLocalPart())) {
-				if (updateValue(string.getValue(), getOrcid_id())) {
-					setOrcid_id(string.getValue());
-				}
+        if (profile.getOrcidIdentifier() != null)
+        {
+            if (updateValue(profile.getOrcidIdentifier().getUriPath(),
+                    getOrcid_id()))
+            {
+                setOrcid_id(profile.getOrcidIdentifier().getUriPath());
+            }
+        }
+
+		if (profile.getPerson() != null) {
+
+			NameType name = profile.getPerson().getName();
+
+			if (updateValue(name.getFamilyName().getValue(), getLastName())) {
+				setLastName(name.getFamilyName().getValue());
 			}
-		}
 
-		if (profile.getOrcidBio() != null) {
-
-			PersonalDetails name = profile.getOrcidBio().getPersonalDetails();
-
-			if (updateValue(name.getFamilyName(), getLastName())) {
-				setLastName(name.getFamilyName());
-			}
-
-			if (updateValue(name.getGivenNames(), getFirstName())) {
-				setFirstName(name.getGivenNames());
+			if (updateValue(name.getGivenNames().getValue(), getFirstName())) {
+				setFirstName(name.getGivenNames().getValue());
 			}
 
 			if (name.getCreditName() != null) {
@@ -169,56 +154,59 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 					}
 				}
 			}
-			if (name.getOtherNames() != null) {
-				for (String otherName : name.getOtherNames().getOtherName()) {
-					if (!getNameVariants().contains(otherName)) {
-						addNameVariant(otherName);
+			
+			
+			if (profile.getPerson().getOtherNames() != null) {
+				for (OtherNameType otherName : profile.getPerson().getOtherNames().getOtherName()) {
+					if (!getNameVariants().contains(otherName.getContent())) {
+						addNameVariant(otherName.getContent());
 						update = true;
 					}
 				}
 			}
 
-			if (profile.getOrcidBio().getContactDetails() != null) {
-				if (profile.getOrcidBio().getContactDetails().getAddress() != null) {
-					if (profile.getOrcidBio().getContactDetails().getAddress().getCountry() != null) {
+			Addresses addresses = profile.getPerson().getAddresses();
+            if (addresses != null) {
+                for(AddressType address : addresses.getAddress()) {
+                    if (address.getCountry() != null) {
 						if (updateOtherMetadata("country",
-								profile.getOrcidBio().getContactDetails().getAddress().getCountry().getValue())) {
+								address.getCountry())) {
 							addOtherMetadata("country",
-									profile.getOrcidBio().getContactDetails().getAddress().getCountry().getValue());
+									address.getCountry());
 						}
 					}
 				}
 			}
-			if (profile.getOrcidBio().getKeywords() != null) {
-				for (Keyword keyword : profile.getOrcidBio().getKeywords().getKeyword()) {
+			if (profile.getPerson().getKeywords() != null) {
+				for (KeywordType keyword : profile.getPerson().getKeywords().getKeyword()) {
 					if (updateOtherMetadata("keyword", keyword.getContent())) {
 						addOtherMetadata("keyword", keyword.getContent());
 					}
 				}
 			}
 
-			if (profile.getOrcidBio().getExternalIdentifiers() != null) {
-				for (ExternalIdentifier externalIdentifier : profile.getOrcidBio().getExternalIdentifiers()
+			if (profile.getPerson().getExternalIdentifiers() != null) {
+				for (ExternalId externalIdentifier : profile.getPerson().getExternalIdentifiers()
 						.getExternalIdentifier()) {
 					if (updateOtherMetadata("external_identifier",
-							externalIdentifier.getExternalIdCommonName().getContent())) {
+							externalIdentifier.getExternalIdValue())) {
 						addOtherMetadata("external_identifier",
-								externalIdentifier.getExternalIdCommonName().getContent());
+								externalIdentifier.getExternalIdValue());
 					}
 				}
 			}
 
-			if (profile.getOrcidBio().getResearcherUrls() != null) {
-				for (ResearcherUrl researcherUrl : profile.getOrcidBio().getResearcherUrls().getResearcherUrl()) {
-					if (updateOtherMetadata("researcher_url", researcherUrl.toString())) {
-						addOtherMetadata("researcher_url", researcherUrl.toString());
+			if (profile.getPerson().getResearcherUrls() != null) {
+				for (ResearcherUrlType researcherUrl : profile.getPerson().getResearcherUrls().getResearcherUrl()) {
+					if (updateOtherMetadata("researcher_url", researcherUrl.getUrlName())) {
+						addOtherMetadata("researcher_url", researcherUrl.getUrlName());
 					}
 				}
 			}
 
-			if (profile.getOrcidBio().getBiography() != null) {
-				if (updateOtherMetadata("biography", profile.getOrcidBio().getBiography().getValue())) {
-					addOtherMetadata("biography", profile.getOrcidBio().getBiography().getValue());
+			if (profile.getPerson().getBiography() != null) {
+				if (updateOtherMetadata("biography", profile.getPerson().getBiography().getContent())) {
+					addOtherMetadata("biography", profile.getPerson().getBiography().getContent());
 				}
 			}
 
@@ -302,7 +290,8 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 
 		OrcidAuthorityValue that = (OrcidAuthorityValue) o;
 
-		if (orcid_id != null ? !orcid_id.equals(that.orcid_id) : that.orcid_id != null) {
+		String orcid_id = getServiceId();
+		if (orcid_id != null ? !orcid_id.equals(that.getServiceId()) : that.getServiceId() != null) {
 			return false;
 		}
 
@@ -311,6 +300,7 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 
 	@Override
 	public int hashCode() {
+		String orcid_id = getServiceId();
 		return orcid_id != null ? orcid_id.hashCode() : 0;
 	}
 
@@ -327,14 +317,17 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 
 		OrcidAuthorityValue that = (OrcidAuthorityValue) o;
 
-		if (orcid_id != null ? !orcid_id.equals(that.orcid_id) : that.orcid_id != null) {
+		String orcid_id = getServiceId();
+		if (orcid_id != null ? !orcid_id.equals(that.getServiceId()) : that.getServiceId() != null) {
 			return false;
 		}
 
-		for (String key : otherMetadata.keySet()) {
-			if (otherMetadata.get(key) != null) {
-				List<String> metadata = otherMetadata.get(key);
-				List<String> otherMetadata = that.otherMetadata.get(key);
+		Map<String, List<String>> othersMetadata = getOtherMetadata();
+        for (String key : othersMetadata.keySet()) {
+			Map<String, List<String>> thatOtherMetadata = that.getOtherMetadata();
+            if (othersMetadata.get(key) != null) {
+				List<String> metadata = othersMetadata.get(key);
+				List<String> otherMetadata = thatOtherMetadata.get(key);
 				if (otherMetadata == null) {
 					return false;
 				} else {
@@ -345,7 +338,7 @@ public class OrcidAuthorityValue extends PersonAuthorityValue {
 					}
 				}
 			} else {
-				if (that.otherMetadata.get(key) != null) {
+				if (thatOtherMetadata.get(key) != null) {
 					return false;
 				}
 			}

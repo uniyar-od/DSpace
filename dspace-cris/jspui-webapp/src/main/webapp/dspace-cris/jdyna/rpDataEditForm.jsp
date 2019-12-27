@@ -20,6 +20,8 @@
 <%@ taglib uri="http://ajaxtags.org/tags/ajax" prefix="ajax"%>
 
 <%@page import="java.util.List"%>
+<%@ page import="java.util.Locale"%>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@page import="java.util.ArrayList"%>
 <%@page import="it.cilea.osd.jdyna.model.PropertiesDefinition"%>
 <%@page
@@ -31,15 +33,20 @@
 <%@page import="java.net.URL"%>
 <%@page import="org.dspace.eperson.EPerson" %>
 
-
 <%
     // Is anyone logged in?
     EPerson user = (EPerson) request.getAttribute("dspace.current.user");
 
     // Is the logged in user an admin
-    Boolean admin = (Boolean)request.getAttribute("is.admin");
+    Boolean admin = (Boolean)request.getAttribute("isAdmin");
     boolean isAdmin = (admin == null ? false : admin.booleanValue());
     boolean changeStatusAdmin = ConfigurationManager.getBooleanProperty("cris","rp.changestatus.admin");
+
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
+	String currLocale = null;
+	if (sessionLocale != null) {
+		currLocale = sessionLocale.toString();
+	}
 %>
 <c:set var="root"><%=request.getContextPath()%></c:set>
 <c:set var="admin"><%=isAdmin%></c:set>
@@ -362,7 +369,7 @@
 		            	
 		            	var valueCurrentEperson = j("#epersonID").val();
 		            	
-		            	if(ui.item.owneredRP!=0 && (ui.item.owneredRP!=${researcher.id} && ui.item.owneredRP!=valueCurrentEperson) ) {
+		            	if(ui.item.owneredRP!=0 && (ui.item.owneredRP!=${researcher!=null?researcher.id:"-1"} && ui.item.owneredRP!=valueCurrentEperson) ) {
 		            		j("#alert_eperson_dialog").dialog("open");
 		            		j("#alert_eperson_dialog").html(" ");
 		            		j("#alert_eperson_dialog").append("${messagealerteperson}");
@@ -811,7 +818,7 @@
 		</div>
 		</div>
 		</c:if>
-		<% if(!changeStatusAdmin) { %>
+		<% if(!changeStatusAdmin || isAdmin) { %>
 		<div class="col-md-6">	
 		<div class="cris-edit-status">
 		<spring:bind path="status">
@@ -953,7 +960,24 @@
 						  <div>
 						<c:forEach
 							items="${propertiesDefinitionsInHolder[holder.shortName]}"
-							var="tipologiaDaVisualizzare">
+							var="tipologiaDaVisualizzareNoI18n" varStatus="status">
+							<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
+							
+							<c:set var="statuscount" value="${status.count}" scope="request" />
+							<%!public URL fileFieldURL;%>
+
+							<c:set var="urljspcustomfield"
+								value="/dspace-cris/jdyna/custom/field/edit${tipologiaDaVisualizzare.shortName}.jsp" scope="request" />
+
+							<%
+							String fileFieldPath = (String)pageContext.getRequest().getAttribute("urljspcustomfield");
+							fileFieldURL = pageContext.getServletContext().getResource(fileFieldPath);
+							%>
+
+							<%
+							if (fileFieldURL == null) {
+							%>
+							
 							<c:set var="hideLabel">${fn:length(propertiesDefinitionsInHolder[holder.shortName]) le 1}</c:set>
 							<c:set var="disabled" value=" readonly='readonly'"/>
 														
@@ -997,6 +1021,9 @@
 								<span id="nested_${tipologiaDaVisualizzare.real.id}_pageCurrent" class="spandatabind">0</span>
 								<span id="nested_${tipologiaDaVisualizzare.real.id}_editmode" class="spandatabind">false</span>
 								</div>
+								<c:if test="${tipologiaDaVisualizzare.real.newline}">
+									<div class="dynaClear">&nbsp;</div>
+								</c:if>
 							</c:if>
 
 							
@@ -1019,7 +1046,10 @@
 									validationParams="${parameters}" visibility="${visibility}" lock="true"/>								
 									
 							</c:if>
-
+							<% } else { %>
+									<c:set var="tipologiaDaVisualizzare" value="${tipologiaDaVisualizzare}" scope="request" />
+									<c:import url="${urljspcustomfield}" />
+							<% } %>
 						</c:forEach>
 		</div>	
 </div>	

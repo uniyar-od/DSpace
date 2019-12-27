@@ -7,11 +7,6 @@
  */
 package org.dspace.app.webui.cris.controller.jdyna;
 
-import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
-import it.cilea.osd.jdyna.model.AnagraficaObject;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.util.AnagraficaUtils;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -36,7 +31,7 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -47,6 +42,11 @@ import org.dspace.eperson.EPerson;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.web.servlet.ModelAndView;
+
+import it.cilea.osd.jdyna.dto.AnagraficaObjectAreaDTO;
+import it.cilea.osd.jdyna.model.AnagraficaObject;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.util.AnagraficaUtils;
 
 public class FormRPDynamicMetadataController
         extends
@@ -70,36 +70,42 @@ public class FormRPDynamicMetadataController
         // check admin authorization
         boolean isAdmin = false;
         Context context = UIUtil.obtainContext(request);
-        if (AuthorizeManager.isAdmin(context))
-        {
-            isAdmin = true;
+        if(map.containsKey("isAdmin")) {
+            isAdmin = (Boolean)map.get("isAdmin");
         }
 
         // collection of edit tabs (all edit tabs created on system associate to
         // visibility)
-        List<EditTabResearcherPage> tabs = getApplicationService()
-                .getTabsByVisibility(EditTabResearcherPage.class,
-                        isAdmin);
+        Integer entityId = Integer.parseInt(request.getParameter("id"));
 
-        EPerson currentUser = context.getCurrentUser();
-        
-        // if admin but also owner of the profile add the reserved tabs as well
-		if (isAdmin && anagraficaObjectDTO.getEpersonID() != null
-				&& currentUser.getID() == anagraficaObjectDTO.getEpersonID()) {
-			List<EditTabResearcherPage> extratabs = getApplicationService().getTabsByAccessLevel(EditTabResearcherPage.class, VisibilityTabConstant.LOW);
-			if (extratabs != null) {
-				tabs.addAll(extratabs);
+		if (entityId == null) {
+			return null;
+		}
+
+		List<EditTabResearcherPage> tabs = getApplicationService().getList(EditTabResearcherPage.class);
+		List<EditTabResearcherPage> authorizedTabs = new LinkedList<EditTabResearcherPage>();
+
+		for (EditTabResearcherPage tab : tabs) {
+			if (CrisAuthorizeManager.authorize(context, getApplicationService(), ResearcherPage.class,
+					RPPropertiesDefinition.class, entityId, tab)) {
+				authorizedTabs.add(tab);
 			}
-        }
+		}
+        
+        EPerson currentUser = context.getCurrentUser();
         
         // check if request tab from view is active (check on collection before)
         EditTabResearcherPage editT = getApplicationService().get(
                 EditTabResearcherPage.class,
                 anagraficaObjectDTO.getTabId());
-        if (!tabs.contains(editT))
+        if (!authorizedTabs.contains(editT))
         {
-            throw new AuthorizeException(
-                    "You not have needed authorization level to display this tab");
+			if (authorizedTabs.size() > 0) {
+				editT = authorizedTabs.get(0);
+				anagraficaObjectDTO.setTabId(editT.getId());
+			} else {
+				throw new AuthorizeException("You not have needed authorization level to display this tab");
+			}
         }
 
         // collection of boxs
@@ -160,7 +166,7 @@ public class FormRPDynamicMetadataController
         map.put("propertiesHolders", propertyHoldersCurrentAccessLevel);
         map.put("propertiesDefinitionsInTab", pDInTab);
         map.put("propertiesDefinitionsInHolder", mapBoxToContainables);
-        map.put("tabList", tabs);
+        map.put("tabList", authorizedTabs);
         map.put("simpleNameAnagraficaObject", getClazzAnagraficaObject()
                 .getSimpleName());
         map.put("addModeType", "edit");
@@ -194,7 +200,7 @@ public class FormRPDynamicMetadataController
         String paramId = request.getParameter("id");
 
         Integer id = null;
-        Boolean isAdmin = false;
+
         if (paramId != null)
         {
             id = Integer.parseInt(paramId);
@@ -202,34 +208,25 @@ public class FormRPDynamicMetadataController
         ResearcherPage researcher = getApplicationService().get(
                 ResearcherPage.class, id);
         Context context = UIUtil.obtainContext(request);
+
+        boolean canEdit = false;
+		if (CrisAuthorizeManager.canEdit(context, getApplicationService(), EditTabResearcherPage.class, researcher)) {
+			canEdit = true;
+
+		}        
+        
         EPerson currentUser = context.getCurrentUser();
         if ((currentUser==null || (researcher.getEpersonID()!=null && currentUser.getID()!=researcher.getEpersonID()))
-               && !AuthorizeManager.isAdmin(context))
+               && !canEdit)
         {
             throw new AuthorizeException(
                     "Only system admin can edit not personal researcher page");
         }
 
-        if (AuthorizeManager.isAdmin(context))
-        {
-            isAdmin = true;
-        }
-
-        Integer areaId;
+        Integer areaId = null;
         if (paramTabId == null)
         {
-            if (paramFuzzyTabId == null)
-            {
-                List<EditTabResearcherPage> tabs = getApplicationService()
-                        .getTabsByVisibility(
-                                EditTabResearcherPage.class, isAdmin);
-                if (tabs.isEmpty())
-                {
-                    throw new AuthorizeException("No tabs defined!!");
-                }
-                areaId = tabs.get(0).getId();
-            }
-            else
+            if (paramFuzzyTabId != null)
             {
                 EditTabResearcherPage fuzzyEditTab = (EditTabResearcherPage)((ApplicationService)getApplicationService()).<BoxResearcherPage, TabResearcherPage, EditTabResearcherPage, RPPropertiesDefinition>getEditTabByDisplayTab(Integer.parseInt(paramFuzzyTabId),EditTabResearcherPage.class);
                 areaId = fuzzyEditTab.getId();
@@ -240,8 +237,31 @@ public class FormRPDynamicMetadataController
             areaId = Integer.parseInt(paramTabId);
         }
         
-        EditTabResearcherPage editT = getApplicationService().get(
+        EditTabResearcherPage editT = null;
+        
+        if (areaId != null) {
+        	editT = getApplicationService().get(
                 EditTabResearcherPage.class, areaId);
+        }
+        
+		List<EditTabResearcherPage> tabs = getApplicationService().getList(EditTabResearcherPage.class);
+		List<EditTabResearcherPage> authorizedTabs = new LinkedList<EditTabResearcherPage>();
+
+		for (EditTabResearcherPage tab : tabs) {
+			if (CrisAuthorizeManager.authorize(context, getApplicationService(), ResearcherPage.class,
+					RPPropertiesDefinition.class, id, tab)) {
+				authorizedTabs.add(tab);
+			}
+		}
+		if (!authorizedTabs.contains(editT)) {
+			if (authorizedTabs.size() > 0) {
+				editT = authorizedTabs.get(0);
+				areaId = editT.getId();
+			} else {
+				throw new AuthorizeException("You not have needed authorization level to display this tab");
+			}
+		}        
+        
         List<BoxResearcherPage> propertyHolders = new LinkedList<BoxResearcherPage>();
         if (editT.getDisplayTab() != null)
         {

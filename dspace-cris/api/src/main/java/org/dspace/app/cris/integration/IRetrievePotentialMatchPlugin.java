@@ -19,5 +19,7 @@ public interface IRetrievePotentialMatchPlugin
 {
     Set<Integer> retrieve(Context context, Set<Integer> invalidIds, ResearcherPage rp);
     
-    Map<NameResearcherPage, Item[]> retrieveGroupByName(Context context, Map<String, Set<Integer>> mapInvalids, List<ResearcherPage> rps);
+    Map<NameResearcherPage, Item[]> retrieveGroupByName(Context context, Map<String, Set<Integer>> mapInvalids, List<ResearcherPage> rps, boolean partialMatch);
+    
+    Map<NameResearcherPage, Item[]> retrieveGroupByNameExceptAuthority(Context context, Map<String, Set<Integer>> mapInvalids, List<ResearcherPage> rps, boolean partialMatch, boolean excludeMatchForAuthority);
 }

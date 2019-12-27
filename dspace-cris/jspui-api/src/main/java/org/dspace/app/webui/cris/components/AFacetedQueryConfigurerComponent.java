@@ -27,6 +27,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.BadRequestSearchServiceException;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
@@ -36,6 +37,8 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.services.RequestService;
+import org.dspace.utils.DSpace;
 
 public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         extends ASolrConfigurerComponent<T, ICrisBeanComponent> implements
@@ -96,7 +99,7 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
 
     protected DiscoverResult search(Context context, HttpServletRequest request, String type, ACrisObject cris, int start,
             int rpp, String orderfield, boolean ascending)
-            throws SearchServiceException
+            throws SearchServiceException, BadRequestSearchServiceException
     {
         // can't start earlier than 0 in the results!
         if (start < 0)
@@ -169,12 +172,20 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
                 {
                     log.error(
                             LogManager.getHeader(context,
+                                    "Error retrieving object from database using facet query",
+                                    "filter_field: " + f[0] + ",filter_type:"
+                                            + f[1] + ",filer_value:" + f[2]));
+                    throw new SearchServiceException(e);
+                }
+                catch (NullPointerException e)
+                {
+                    log.error(
+                            LogManager.getHeader(context,
                                     "Error in discovery while setting up user facet query",
                                     "filter_field: " + f[0] + ",filter_type:"
-                                            + f[1] + ",filer_value:" + f[2]),
-                            e);
+                                            + f[1] + ",filer_value:" + f[2]));
+                    throw new BadRequestSearchServiceException(e);
                 }
-
             }
 
         }
@@ -225,7 +236,16 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
 
         try
         {
-            context = new Context();
+            if(request == null) {
+                RequestService requestService = new DSpace().getServiceManager().getServiceByName(RequestService.class.getName(), RequestService.class);
+                if(requestService != null && requestService.getCurrentRequest() != null){
+                	request = requestService.getCurrentRequest().getHttpServletRequest();
+                }else{
+                	return -1;
+                }
+                
+            }
+            context = UIUtil.obtainContext(request);
             ACrisObject cris = getApplicationService().get(getTarget(), id);
             List<FacetResult> facetresults = search(context, request, type, cris, 0, 0, null, true).getFacetQueryResult(type);
             if(facetresults.isEmpty()) {
@@ -233,16 +253,10 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
             }
             return facetresults.get(0).getCount();
         }
-
         catch (Exception ex)
         {
-            log.error(ex.getMessage(), ex);
-        }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
+            if(log.isDebugEnabled()) {
+                log.error(ex.getMessage(), ex);
             }
         }
         return -1;

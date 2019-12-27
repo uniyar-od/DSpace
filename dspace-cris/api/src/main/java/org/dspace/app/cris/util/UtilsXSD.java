@@ -7,14 +7,6 @@
  */
 package org.dspace.app.cris.util;
 
-import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
-import it.cilea.osd.jdyna.model.AWidget;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.widget.WidgetDate;
-import it.cilea.osd.jdyna.widget.WidgetLink;
-import it.cilea.osd.jdyna.widget.WidgetTesto;
-
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
@@ -23,10 +15,25 @@ import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.jdyna.DecoratorProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRestrictedField;
+import org.dspace.app.cris.model.jdyna.OUNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.ProjectNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.ProjectPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.RPNestedPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.core.ConfigurationManager;
+
+import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ADecoratorTypeDefinition;
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.AType;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.AWidget;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.widget.WidgetDate;
+import it.cilea.osd.jdyna.widget.WidgetLink;
+import it.cilea.osd.jdyna.widget.WidgetTesto;
 
 /**
  * Utility class to create xsd validation.
@@ -36,25 +43,37 @@ import org.dspace.core.ConfigurationManager;
  */
 public class UtilsXSD
 {
-    public static final String NAMESPACE_TARGET = "http://cineca.github.io/dspace-cris/definitions";
-    public static final String NAMESPACE_CRIS = "http://cineca.github.io/dspace-cris/schemas";
+    public static final String NAMESPACE_TARGET = "http://4science.github.io/dspace-cris/definitions";
+    public static final String NAMESPACE_CRIS = "http://4science.github.io/dspace-cris/schemas";
     public static final String NAMESPACE_PREFIX_CRIS = "cris";
+
+    public static final String NAMESPACE_RPNESTED = "http://4science.github.io/dspace-cris/rpnested/schemas";
+    public static final String NAMESPACE_PREFIX_RPNESTED = "rpnested";
     
-    public static final String NAMESPACE_RP = "http://cineca.github.io/dspace-cris/researcherpage/schemas";
+    public static final String NAMESPACE_PJNESTED = "http://4science.github.io/dspace-cris/pjnested/schemas";
+    public static final String NAMESPACE_PREFIX_PJNESTED = "pjnested";
+    
+    public static final String NAMESPACE_OUNESTED = "http://4science.github.io/dspace-cris/ounested/schemas";
+    public static final String NAMESPACE_PREFIX_OUNESTED = "ounested";
+    
+    public static final String NAMESPACE_RP = "http://4science.github.io/dspace-cris/researcherpage/schemas";
     public static final String NAMESPACE_PREFIX_RP = "rp";
     
-    public static final String NAMESPACE_PJ = "http://cineca.github.io/dspace-cris/grant/schemas";
+    public static final String NAMESPACE_PJ = "http://4science.github.io/dspace-cris/grant/schemas";
     public static final String NAMESPACE_PREFIX_PJ = "grant";
     
-    public static final String NAMESPACE_OU = "http://cineca.github.io/dspace-cris/orgunit/schemas";
+    public static final String NAMESPACE_OU = "http://4science.github.io/dspace-cris/orgunit/schemas";
     public static final String NAMESPACE_PREFIX_OU = "orgunit";
     
-    public static final String NAMESPACE_DO = "http://cineca.github.io/dspace-cris/orgunit/schemas";
+    public static final String NAMESPACE_DO = "http://4science.github.io/dspace-cris/orgunit/schemas";
     public static final String NAMESPACE_PREFIX_DO = "researchobject";
     
-    public static final String NAMESPACE_ITEM = "http://cineca.github.io/dspace-cris/publications/schemas";
+    public static final String NAMESPACE_ITEM = "http://4science.github.io/dspace-cris/publications/schemas";
     public static final String NAMESPACE_PREFIX_ITEM = "item";
 
+    public static final String[] NESTED_DEFAULT_ELEMENT = new String[] {
+            "nesteds", "nested" };
+    
     public static final String[] RP_DEFAULT_ELEMENT = new String[] {
             "researchers", "researcher" };
 
@@ -98,27 +117,46 @@ public class UtilsXSD
         {
         	defaultRootElements = OU_DEFAULT_ELEMENT;
         }
+        else if (clazz.isAssignableFrom(ANestedPropertiesDefinition.class))
+        {
+        	defaultRootElements = NESTED_DEFAULT_ELEMENT;
+    	}
     	return defaultRootElements;
     }
     
     public static <PD extends PropertiesDefinition> String[] getNamespace(Class<PD> clazz) {
-    	String namespacePrefix = NAMESPACE_PREFIX_DO+":";
+    	String namespacePrefix = NAMESPACE_PREFIX_DO;
 	 	String namespace = NAMESPACE_DO;
     	if (clazz.isAssignableFrom(ProjectPropertiesDefinition.class))
         {
-            namespacePrefix = NAMESPACE_PREFIX_PJ+":";
+            namespacePrefix = NAMESPACE_PREFIX_PJ;
     	 	namespace = NAMESPACE_PJ;
         }
         else if (clazz.isAssignableFrom(RPPropertiesDefinition.class))
         {
-            namespacePrefix = NAMESPACE_PREFIX_RP+":";
+            namespacePrefix = NAMESPACE_PREFIX_RP;
             namespace = NAMESPACE_RP;
     	}
         else if (clazz.isAssignableFrom(OUPropertiesDefinition.class))
         {
-            namespacePrefix = NAMESPACE_PREFIX_OU+":";
+            namespacePrefix = NAMESPACE_PREFIX_OU;
             namespace = NAMESPACE_OU;
         }
+        else if (clazz.isAssignableFrom(RPNestedPropertiesDefinition.class))
+        {
+            namespacePrefix = NAMESPACE_PREFIX_RPNESTED;
+            namespace = NAMESPACE_RPNESTED;
+    	}
+        else if (clazz.isAssignableFrom(ProjectNestedPropertiesDefinition.class))
+        {
+            namespacePrefix = NAMESPACE_PREFIX_PJNESTED;
+            namespace = NAMESPACE_PJNESTED;
+    	}
+        else if (clazz.isAssignableFrom(OUNestedPropertiesDefinition.class))
+        {
+            namespacePrefix = NAMESPACE_PREFIX_OUNESTED;
+            namespace = NAMESPACE_OUNESTED;
+    	}    	
     	return new String[]{namespacePrefix, namespace};
     }
     
@@ -155,8 +193,8 @@ public class UtilsXSD
 
         if (namespaceValue == null || targetNamespace == null)
         {
-            namespaceValue = "http://www.cilea.it/researcherpage/schemas";
-            targetNamespace = "http://www.cilea.it/researcherpage/schemas";
+            namespaceValue = "http://4science.github.io/dspace-cris/researcherpage/schemas";
+            targetNamespace = "http://4science.github.io/dspace-cris/researcherpage/schemas";
         }
 
         writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
@@ -205,6 +243,12 @@ public class UtilsXSD
             {
                 this.createRefElement(
                         (ADecoratorPropertiesDefinition) containable,
+                        namespace);
+            }
+            if (containable instanceof ADecoratorTypeDefinition)
+            {
+                this.createRefElement(
+                        (ADecoratorTypeDefinition) containable,
                         namespace);
             }
             if (containable instanceof DecoratorRestrictedField)
@@ -317,13 +361,13 @@ public class UtilsXSD
     }
 
     // method to create type element
-    private void createRefElement(DecoratorProjectPropertiesDefinition decorator,
+    private <PD extends ANestedPropertiesDefinition, TT extends ATypeNestedObject<PD>> void createRefElement(ADecoratorTypeDefinition<TT, PD> decorator,
             String namespace) throws IOException
     {
-        createRefElement(decorator.getReal(), decorator.getRendering(),
-                namespace);
+        createRefSimpleElement(decorator.getShortName(), TYPE_STRING,
+                !decorator.isMandatory(), decorator.getRepeatable(), namespace);
     }
-
+    
     private void createRefElement(DecoratorRestrictedField decorator,
             String namespace) throws IOException, SecurityException,
             NoSuchFieldException

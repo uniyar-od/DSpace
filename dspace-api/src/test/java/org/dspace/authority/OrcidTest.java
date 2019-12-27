@@ -16,18 +16,19 @@ import javax.xml.bind.JAXBException;
 
 import org.apache.log4j.Logger;
 import org.dspace.authority.orcid.OrcidService;
-import org.dspace.authority.orcid.jaxb.Citation;
-import org.dspace.authority.orcid.jaxb.CitationType;
-import org.dspace.authority.orcid.jaxb.OrcidWork;
-import org.dspace.authority.orcid.jaxb.WorkExternalIdentifier;
-import org.dspace.authority.orcid.jaxb.WorkExternalIdentifiers;
-import org.dspace.authority.orcid.jaxb.WorkTitle;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.CrosswalkException;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.Context;
 import org.dspace.core.PluginManager;
+import org.orcid.jaxb.model.common_v2.ExternalId;
+import org.orcid.jaxb.model.common_v2.ExternalIds;
+import org.orcid.jaxb.model.record_v2.Citation;
+import org.orcid.jaxb.model.record_v2.CitationType;
+import org.orcid.jaxb.model.record_v2.Work;
+import org.orcid.jaxb.model.record_v2.WorkTitle;
+import org.orcid.jaxb.model.record_v2.WorkType;
 import org.restlet.resource.ResourceException;
 
 public class OrcidTest {
@@ -40,7 +41,7 @@ public class OrcidTest {
 		Context context = new Context();
 
 		OrcidService orcid = OrcidService.getOrcid();
-		OrcidWork work = new OrcidWork();
+		Work work = new Work();
 
 		Item item = Item.find(context, 211);
 
@@ -52,37 +53,37 @@ public class OrcidTest {
 		String citationFromBTE = outputStream.toString();
 
 		Citation citation = new Citation();
-		citation.setWorkCitationType(CitationType.BIBTEX);
-		citation.setCitation(citationFromBTE);
+		citation.setCitationType(CitationType.BIBTEX);
+		citation.setCitationValue(citationFromBTE);
 
 		WorkTitle title = new WorkTitle();
 		title.setTitle(item.getName());
-		work.setWorkTitle(title);
-		work.setWorkCitation(citation);
-		work.setWorkType("book");
+		work.setTitle(title);
+		work.setCitation(citation);
+		work.setType(WorkType.BOOK);
 
-		WorkExternalIdentifiers externalIdentifiers = new WorkExternalIdentifiers();
+		ExternalIds externalIdentifiers = new ExternalIds();
 		// WorkExternalIdentifier externalIdentifier = new
 		// WorkExternalIdentifier();
 		// externalIdentifier.setWorkExternalIdentifierId(StringEscapeUtils.escapeXml("<![CDATA["+item.getHandle()+"]]>"));
 		// externalIdentifier.setWorkExternalIdentifierType("﻿handle");
 		// externalIdentifiers.getWorkExternalIdentifier().add(externalIdentifier);
 
-		WorkExternalIdentifier externalIdentifier1 = new WorkExternalIdentifier();
-		externalIdentifier1.setWorkExternalIdentifierId("" + item.getID());
-		externalIdentifier1.setWorkExternalIdentifierType("source-work-id");
-		externalIdentifiers.getWorkExternalIdentifier().add(externalIdentifier1);
+		ExternalId externalIdentifier1 = new ExternalId();
+		externalIdentifier1.setExternalIdValue("" + item.getID());
+		externalIdentifier1.setExternalIdType("source-work-id");
+		externalIdentifiers.getExternalId().add(externalIdentifier1);
 
-		work.setWorkExternalIdentifiers(externalIdentifiers);
+		work.setExternalIds(externalIdentifiers);
 
 		try {
-			orcid.appendWork("0000-0001-9753-8285", "d0c29317-cb20-4a39-a475-2bcbf5cf650b", work, item.getHandle());
+			orcid.appendWork("0000-0001-9753-8285", "d0c29317-cb20-4a39-a475-2bcbf5cf650b", work);
 		} catch (Exception ex) {
 			log.error(ex.getMessage(), ex);
 		}
 
 		try {
-			orcid.getProfile("0000-0001-9753-8285", "d0c29317-cb20-4a39-a475-2bcbf5cf650b");
+			orcid.getRecord("0000-0001-9753-8285", "d0c29317-cb20-4a39-a475-2bcbf5cf650b");
 		} catch (Exception ex) {
 			log.error(ex.getMessage(), ex);
 		}

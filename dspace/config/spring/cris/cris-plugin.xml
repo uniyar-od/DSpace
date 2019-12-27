@@ -33,9 +33,25 @@
 				<entry key="orcid">
 					<bean class="org.dspace.app.cris.integration.authority.ORCIDImportFiller" parent="fullitemMetadataConfiguration" />
 				</entry>
+				<entry key="openAireProject">
+					<ref bean="openAIREProjectImportFiller" />
+				</entry>
 				<entry key-ref="CrisConsumer-SOURCE_INTERNAL">
 					<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFiller" parent="fullitemMetadataConfiguration" />
 				</entry>
+				<entry key="zdb">
+					<bean class="org.dspace.app.cris.integration.authority.ZDBImportFiller" parent="fullitemMetadataConfiguration">
+						<property name="mapMetadata">
+							<map>
+								<entry key="journalTitle" value="journalsname"/>
+								<!-- <entry key="journalZDBID" value="journalszdbid"/> -->
+								<!-- <entry key="journalPublisher" value="journalspublisher"/> -->
+								<entry key="journalIssn" value="journalsissn"/>
+								<!-- <entry key="journalAlternativeTitle" value="journalsalternativetitle"/> -->
+							</map>
+						</property>
+					</bean>
+				</entry>				
 			</map>
 		</property>
 	</bean>
@@ -861,6 +877,11 @@
 			</entry>
 		</map>
 		</property>
+	</bean>
+	
+	<bean id="openAIREProjectImportFiller" class="org.dspace.app.cris.integration.authority.OpenAIREProjectImportFiller" parent="fullitemMetadataConfiguration">
+		<property name="searchService" ref="org.dspace.discovery.SearchService" />
+		<property name="openAIREProjectService" ref="org.dspace.authority.openaireproject.OpenAIREProjectService" />
 	</bean>
 
 </beans>

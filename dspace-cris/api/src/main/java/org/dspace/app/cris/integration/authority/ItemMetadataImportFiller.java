@@ -25,11 +25,11 @@ import org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfigu
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.model.ACrisObject;
-import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Metadatum;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -45,7 +45,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
 
     private Map<String, ItemMetadataImportFillerConfiguration> configurations;
 
-    private ApplicationService applicationService;
+    protected ApplicationService applicationService;
 
     private MetricsPersistenceService metricsPersistenceService;
 
@@ -170,6 +170,9 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                         {
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
+                            if(dcvalue!= null && dcvalue.equals(MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+                            	continue;
+                            }
                             if (!containsValue(props, dcvalue))
                             {
                                 ResearcherPageUtils.buildGenericValue(
@@ -192,7 +195,9 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                             }
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
-                            
+                            if(dcvalue!= null && dcvalue.equals(MetadataValue.PARENT_PLACEHOLDER_VALUE)){
+                            	continue;
+                            }
                             if (!containsValue(props, dcvalue))
                             {
                                 ResearcherPageUtils.buildGenericValue(

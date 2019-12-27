@@ -7,22 +7,6 @@
  */
 package org.dspace.app.webui.cris.web.tag;
 
-import it.cilea.osd.jdyna.components.IBeanSubComponent;
-import it.cilea.osd.jdyna.components.IComponent;
-import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ADecoratorTypeDefinition;
-import it.cilea.osd.jdyna.model.ANestedObject;
-import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
-import it.cilea.osd.jdyna.model.ATypeNestedObject;
-import it.cilea.osd.jdyna.model.AWidget;
-import it.cilea.osd.jdyna.model.AccessLevelConstants;
-import it.cilea.osd.jdyna.model.AnagraficaSupport;
-import it.cilea.osd.jdyna.model.Containable;
-import it.cilea.osd.jdyna.model.IContainable;
-import it.cilea.osd.jdyna.model.PropertiesDefinition;
-import it.cilea.osd.jdyna.model.Property;
-import it.cilea.osd.jdyna.web.Box;
-
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -40,7 +24,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.integration.ICRISComponent;
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.ICrisObject;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
@@ -51,6 +37,9 @@ import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
 import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.BoxProject;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
+import org.dspace.app.cris.model.jdyna.DecoratorDynamicPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.DecoratorOUPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.DecoratorProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPTypeNested;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
@@ -63,11 +52,35 @@ import org.dspace.app.cris.model.jdyna.RPNestedProperty;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.RPTypeNestedObject;
+import org.dspace.app.cris.model.jdyna.TabDynamicObject;
+import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
+import org.dspace.app.cris.model.jdyna.TabProject;
+import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.dto.AllMonthsStatsDTO;
 import org.dspace.core.ConfigurationManager;
+
+import it.cilea.osd.common.model.Identifiable;
+import it.cilea.osd.jdyna.components.IBeanSubComponent;
+import it.cilea.osd.jdyna.components.IComponent;
+import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ADecoratorTypeDefinition;
+import it.cilea.osd.jdyna.model.ANestedObject;
+import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
+import it.cilea.osd.jdyna.model.ATypeNestedObject;
+import it.cilea.osd.jdyna.model.AWidget;
+import it.cilea.osd.jdyna.model.AccessLevelConstants;
+import it.cilea.osd.jdyna.model.AnagraficaSupport;
+import it.cilea.osd.jdyna.model.Containable;
+import it.cilea.osd.jdyna.model.IContainable;
+import it.cilea.osd.jdyna.model.IPropertiesDefinition;
+import it.cilea.osd.jdyna.model.PropertiesDefinition;
+import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.PointerValue;
+import it.cilea.osd.jdyna.web.Box;
+import it.cilea.osd.jdyna.widget.WidgetPointer;
 
 public class ResearcherTagLibraryFunctions
 {
@@ -193,6 +206,70 @@ public class ResearcherTagLibraryFunctions
 
         result = isGroupFieldsHidden(researcher.getDynamicField(), logicGroup);
         return result;
+
+    }
+
+
+    public static boolean isTabHidden(Object anagrafica,String tabName)
+            throws IllegalArgumentException, IllegalAccessException,
+            InvocationTargetException{
+
+        boolean hidden = true;
+        if(anagrafica instanceof ResearcherPage){
+            TabResearcherPage tab = applicationService.getTabByShortName(TabResearcherPage.class, tabName);
+            List<BoxResearcherPage> boxes = tab.getMask();
+
+            for(Box b: boxes){
+                if(b.isUnrelevant()){
+                    continue;
+                }
+                if(!isBoxHidden(anagrafica, b.getShortName())){
+                    hidden= false;
+                    break;
+                }
+            }
+        }else if(anagrafica instanceof OrganizationUnit){
+            TabOrganizationUnit tab = applicationService.getTabByShortName(TabOrganizationUnit.class, tabName);
+            List<BoxOrganizationUnit> boxes = tab.getMask();
+
+            for(Box b: boxes){
+                if(b.isUnrelevant()){
+                    continue;
+                }
+                if(!isBoxHidden(anagrafica, b.getShortName())){
+                    hidden= false;
+                    break;
+                }
+            }
+        }else if(anagrafica instanceof Project){
+            TabProject tab = applicationService.getTabByShortName(TabProject.class, tabName);
+            List<BoxProject> boxes = tab.getMask();
+
+            for(Box b: boxes){
+                if(b.isUnrelevant()){
+                    continue;
+                }
+                if(!isBoxHidden(anagrafica, b.getShortName())){
+                    hidden= false;
+                    break;
+                }
+            }
+        }else if(anagrafica instanceof ResearchObject){
+            TabDynamicObject tab = applicationService.getTabByShortName(TabDynamicObject.class, tabName);
+            List<BoxDynamicObject> boxes = tab.getMask();
+
+            for(Box b: boxes){
+                if(b.isUnrelevant()){
+                    continue;
+                }
+                if(!isBoxHidden(anagrafica, b.getShortName())){
+                    hidden= false;
+                    break;
+                }
+            }
+        }
+
+        return hidden;
 
     }
 
@@ -898,5 +975,131 @@ public class ResearcherTagLibraryFunctions
             return pd.getLabel();
         }
         return null;
+    }
+    
+    public static Object getPropertyDefinitionI18N(
+            Object pd, String locale)
+    {
+
+        IContainable ipd = (IContainable) pd;
+        String shortname = ipd.getShortName() + "_" + locale;
+        IContainable pdLocalized = applicationService
+                .findContainableByDecorable(ipd.getClass(), shortname);
+
+        if (pdLocalized != null)
+        {
+            return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                    .getWrapper((IPropertiesDefinition) pdLocalized, locale);
+        }
+        return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) ipd, locale);
+    }
+    
+    public static IPropertiesDefinition getPropertyDefinitionI18NByCrisObject(ICrisObject object,
+            IContainable pd, String locale)
+    {
+        String shortname = pd.getShortName() + "_" + locale;
+        IContainable pdLocalized = applicationService
+                .findContainableByDecorable(pd.getClass(), shortname);
+
+        List<IContainable> pdefs = new ArrayList<IContainable>();
+        // add localized
+        if (pdLocalized != null)
+        {
+            pdefs.add(pdLocalized);
+        }
+        // add normal property definition
+        pdefs.add(pd);
+        String defaultLocales = ConfigurationManager
+                .getProperty("webui.supported.locales");
+        if (defaultLocales != null)
+        {
+            String[] splitted = defaultLocales.split(",");
+            // add all supported localized property definition minus the locale
+            // requested
+            for (String defaultLocale : splitted)
+            {
+                String trim = defaultLocale.trim();
+                if (!trim.equals(locale))
+                {
+                    String defaultShortname = pd.getShortName() + "_" + trim;
+                    IContainable pdSupportedLocale = applicationService
+                            .findContainableByDecorable(pd.getClass(),
+                                    defaultShortname);
+                    if (pdSupportedLocale != null)
+                    {
+                        pdefs.add(pdSupportedLocale);
+                    }
+                }
+            }
+        }
+
+        IPropertiesDefinition result = null;
+        for (IContainable pdef : pdefs)
+        {
+            if(pdef instanceof ADecoratorTypeDefinition) {            
+                // return the first nested type found with values
+                long countAll = getApplicationService().countNestedObjectsByParentIDAndTypoID(object.getID(), ((Identifiable)(((ADecoratorTypeDefinition) pdef).getReal())).getId(), ((ACrisObject)object).getClassNested());
+                if(countAll>0) {
+                    return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                            .getWrapper((IPropertiesDefinition) pdef, locale);
+                }
+            }
+            else {
+                // return the first property definition found with values
+                result = internalGetPropertyDefinitionI18NByCrisObject(locale,
+                        object, pdef);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+        }
+        return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) pd, locale);
+    }
+
+    private static IPropertiesDefinition internalGetPropertyDefinitionI18NByCrisObject(String locale,
+            ICrisObject aobject, IContainable containableLocalized)
+    {
+        IPropertiesDefinition result = (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) containableLocalized,
+                        locale);
+        List values = (List) aobject.getAnagrafica4view()
+                .get(result.getShortName());
+        if (!values.isEmpty())
+        {
+            return result;
+        }
+        return null;
+    }
+    
+    public static String getTranslatedName(
+            ACrisObject cris, String locale)
+    {
+        IContainable pd = null;
+        String shortname = null;
+        switch (cris.getType())
+        {
+        case CrisConstants.RP_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorRPPropertiesDefinition.class, shortname);
+            break;
+        case CrisConstants.PROJECT_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorProjectPropertiesDefinition.class, shortname);
+            break;
+        case CrisConstants.OU_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorOUPropertiesDefinition.class, shortname);
+            break;
+        default:
+            shortname = ((ResearchObject)cris).getTypo().getShortName() + cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorDynamicPropertiesDefinition.class, shortname);
+            break;
+        }
+        // if pd is null something is really wrong, batter an NPE then return null
+        IPropertiesDefinition ipd = (IPropertiesDefinition)getPropertyDefinitionI18N(pd, locale);
+        return ((List)cris.getAnagrafica4view().get(ipd.getShortName())).get(0).toString();
     }
 }

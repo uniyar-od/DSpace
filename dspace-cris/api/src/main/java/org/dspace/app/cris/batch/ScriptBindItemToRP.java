@@ -36,6 +36,12 @@ import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.utils.DSpace;
 
+/**
+ * Script to search and bind potential matches (Items) for all the ResearcherPage (or single) 
+ * 
+ * @author Luigi Andrea Pascarelli
+ *
+ */
 public class ScriptBindItemToRP
 {
     
@@ -187,8 +193,7 @@ public class ScriptBindItemToRP
                                 + rp);
                 rps = new LinkedList<ResearcherPage>();
                 ResearcherPage researcher = applicationService
-                        .get(ResearcherPage.class, Integer.parseInt(rp
-                                .substring(2)));
+                        .getResearcherByAuthorityKey(rp);
                 rps.add(researcher);
                 BindItemToRP.work(rps, relationPreferenceService);
             }

@@ -35,7 +35,7 @@
     	int pageLast    = ((Integer)request.getAttribute("pagelast"   )).intValue();
     	int pageFirst   = ((Integer)request.getAttribute("pagefirst"  )).intValue();
     	int rpp         = ((Integer)request.getAttribute("rpp"  )).intValue();
-    	int total		= ((Integer)request.getAttribute("total"  )).intValue();	
+    	int total		= ((Long)request.getAttribute("total"  )).intValue();	
     	int start		= ((Integer)request.getAttribute("start"  )).intValue();    	
 %>
 
@@ -176,7 +176,7 @@ if (pageTotal > 1)
 	<input id="submitanyreal" type="submit" name="submit" value="<%=DoiPendingServlet.EXCLUDE_ANY%>" />		
 </div>
 	
-	<input id="submitall" type="button" class="submitbutton" value="<fmt:message key="jsp.search.doi.form.button.pendingall"><fmt:param value="<%= results.length %>"></fmt:param></fmt:message>" />
+	<input id="submitall" type="button" class="submitbutton" value="<fmt:message key="jsp.search.doi.form.button.pendingall"><fmt:param value="<%= total %>"></fmt:param></fmt:message>" />
 	<input id="submitany" type="button" class="submitbutton" value="<fmt:message key="jsp.search.doi.form.button.pendingany"/>" />
 
 </form>		
@@ -234,7 +234,13 @@ j('input[name="pendingdoi"]').each(function(index) {
 			j('#' + (j(this).attr('id')) + "real").click();
 		}		
 	);
-	
+
+	j(window).keydown(function(event) {
+		if (event.keyCode == 13) {
+			event.preventDefault();
+			return false;
+		}
+	});
 </script>	
 <% } else { %>	
 	<fmt:message key="jsp.search.doi.form.button.nopending.found"/>

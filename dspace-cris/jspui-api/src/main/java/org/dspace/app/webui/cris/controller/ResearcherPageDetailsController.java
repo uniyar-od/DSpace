@@ -8,9 +8,10 @@
 package org.dspace.app.webui.cris.controller;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -22,13 +23,13 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.RPAuthority;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
-import org.dspace.app.cris.model.jdyna.RPAdditionalFieldStorage;
+import org.dspace.app.cris.model.jdyna.EditTabResearcherPage;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
-import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
@@ -40,12 +41,13 @@ import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.authority.AuthorityDAO;
 import org.dspace.content.authority.AuthorityDAOFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.BadRequestSearchServiceException;
+import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.statistics.SolrLogger;
@@ -67,11 +69,11 @@ import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
  */
 public class ResearcherPageDetailsController
         extends
-        SimpleDynaController<RPProperty, RPPropertiesDefinition, BoxResearcherPage, TabResearcherPage>
+        SimpleDynaController<ResearcherPage, RPProperty, RPPropertiesDefinition, BoxResearcherPage, TabResearcherPage>
 {
 
     public ResearcherPageDetailsController(
-            Class<RPAdditionalFieldStorage> anagraficaObjectClass,
+            Class<ResearcherPage> anagraficaObjectClass,
             Class<RPPropertiesDefinition> classTP,
             Class<TabResearcherPage> classT, Class<BoxResearcherPage> classH)
             throws InstantiationException, IllegalAccessException
@@ -99,44 +101,69 @@ public class ResearcherPageDetailsController
         log.debug("Start handleRequest");
         Map<String, Object> model = new HashMap<String, Object>();
 
-        Integer objectId = extractEntityId(request);
-        if (objectId == -1)
-        {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Researcher page not found");
-            return null;
-        }
-
         ResearcherPage researcher = null;
-        try
-        {
-
-            researcher = ((ApplicationService) applicationService).get(
-                    ResearcherPage.class, objectId);
-
+        try {
+            researcher = extractObject(request, response);
         }
-        catch (NumberFormatException e)
-        {
-        }
-
-        if (researcher == null)
-        {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    "Researcher page not found");
+        catch(Exception ex) {
             return null;
         }
 
         Context context = UIUtil.obtainContext(request);
         EPerson currUser = context.getCurrentUser();
+        
+        model.put("selfClaimRP", new Boolean(false));
+        model.put("publicationSelfClaimRP", new Boolean(false));
         if(currUser != null) {
-            model.put("isLoggedIn", new Boolean(true));    
+            model.put("isLoggedIn", new Boolean(true));
+            ResearcherPage rp = ((ApplicationService) applicationService).getResearcherPageByEPersonId(currUser.getID());
+        	model.put("userID", currUser.getID());
+            if(rp!=null){
+            	model.put("userHasRP", new Boolean(true));
+
+            }else
+            {
+            	model.put("userHasRP", new Boolean(false));
+                String nameGroupSelfClaim = ConfigurationManager.getProperty("cris",
+                        "rp.claim.group.name");
+                if (StringUtils.isNotBlank(nameGroupSelfClaim))
+                {
+                    Group selfClaimGroup = Group.findByName(context,
+                            nameGroupSelfClaim);
+                    if (selfClaimGroup != null)
+                    {
+                        if (Group.isMember(context, selfClaimGroup.getID()))
+                        {
+                            model.put("selfClaimRP", new Boolean(true));
+                        }
+                    }
+                }
+            }
+            
+            
+            String nameGroupPublicationSelfClaim = ConfigurationManager.getProperty("cris",
+                    "publication.claim.group.name");
+            if (StringUtils.isNotBlank(nameGroupPublicationSelfClaim))
+            {
+                Group selfClaimGroup = Group.findByName(context,
+                		nameGroupPublicationSelfClaim);
+                if (selfClaimGroup != null)
+                {
+                    if (Group.isMember(context, selfClaimGroup.getID()))
+                    {
+                        model.put("publicationSelfClaimRP", new Boolean(true));
+                    }
+                }
+            }
         }
         else {
             model.put("isLoggedIn", new Boolean(false));
         }
         
-        boolean isAdmin = AuthorizeManager.isAdmin(context);
-      
+        boolean isAdmin = CrisAuthorizeManager.isAdmin(context,researcher);
+		boolean canEdit = isAdmin
+				|| CrisAuthorizeManager.canEdit(context, applicationService, EditTabResearcherPage.class, researcher);
+        
         if (isAdmin
                 || (currUser != null && (researcher.getEpersonID() != null && currUser
                         .getID() == researcher.getEpersonID())))
@@ -145,16 +172,10 @@ public class ResearcherPageDetailsController
             model.put("authority_key",
                     ResearcherPageUtils.getPersistentIdentifier(researcher));
 
-            if (isAdmin)
-            {
-                AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
-                long pendingItems = dao
-                        .countIssuedItemsByAuthorityValueInAuthority(
-                                RPAuthority.RP_AUTHORITY_NAME,
-                                ResearcherPageUtils
-                                        .getPersistentIdentifier(researcher));
-                model.put("pendingItems", new Long(pendingItems));
-            }
+			AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
+			long pendingItems = dao.countIssuedItemsByAuthorityValueInAuthority(RPAuthority.RP_AUTHORITY_NAME,
+					ResearcherPageUtils.getPersistentIdentifier(researcher));
+			model.put("pendingItems", new Long(pendingItems));
         }
         
         else if ((researcher.getStatus() == null || researcher.getStatus()
@@ -167,14 +188,14 @@ public class ResearcherPageDetailsController
                 // Log the error
                 log.info(LogManager
                         .getHeader(context, "authorize_error",
-                                "Only system administrator can access to disabled researcher page"));
+                                "Only administrator can access to disabled researcher page"));
 
                 JSPManager
                         .showAuthorizeError(
                                 request,
                                 response,
                                 new AuthorizeException(
-                                        "Only system administrator can access to disabled researcher page"));
+                                        "Only administrator can access to disabled researcher page"));
             }
             return null;
         }
@@ -185,9 +206,15 @@ public class ResearcherPageDetailsController
             boolean subscribed = subscribeService.isSubscribed(currUser,
                     researcher);
             model.put("subscribed", subscribed);
-            EPerson eperson = EPerson.findByNetid(context, researcher.getSourceID());
-            if (eperson != null) {
-            	model.put("subscriptions", subscribeService.getSubscriptions(eperson));
+            if (researcher.getEpersonID() != null)
+            {
+                EPerson eperson = EPerson.find(context,
+                        researcher.getEpersonID());
+                if (eperson != null)
+                {
+                    model.put("subscriptions",
+                            subscribeService.getSubscriptions(eperson));
+                }
             }
         }
 
@@ -199,16 +226,14 @@ public class ResearcherPageDetailsController
         }
         catch (RuntimeException e)
         {
-            log.error(e.getMessage(), e);
             return null;
         }
 
         mvc.getModel().putAll(model);
         
-        List<ICrisHomeProcessor<ResearcherPage>> resultProcessors = new ArrayList<ICrisHomeProcessor<ResearcherPage>>();
         Map<String, Object> extraTotal = new HashMap<String, Object>();
         Map<String, ItemMetricsDTO> metricsTotal = new HashMap<String, ItemMetricsDTO>();
-        List<String> metricsTypeTotal = new ArrayList<String>();
+        HashSet<String> metricsTypeTotal = new LinkedHashSet<String>();
         for (ICrisHomeProcessor processor : processors)
         {
             if (ResearcherPage.class.isAssignableFrom(processor.getClazz()))
@@ -216,21 +241,27 @@ public class ResearcherPageDetailsController
                 processor.process(context, request, response, researcher);
                 Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
                 if(extra!=null && !extra.isEmpty()) {
-                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
-                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
-                    if(metrics!=null && !metrics.isEmpty()) {
-                        metricsTotal.putAll(metrics);
-                    }
-                    if(metricTypes!=null && !metricTypes.isEmpty()) {
-                        metricsTypeTotal.addAll(metricTypes);
+                    Object metricsObject = extra.get("metrics");
+                    if(metricsObject!=null) {
+                        Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)metricsObject;
+                        List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                        if(metrics!=null && !metrics.isEmpty()) {
+                            metricsTotal.putAll(metrics);
+                        }
+                        if(metricTypes!=null && !metricTypes.isEmpty()) {
+                            metricsTypeTotal.addAll(metricTypes);
+                        }
                     }
                 }
             }
         }
-        extraTotal.put("metricTypes", metricsTypeTotal);
+        
+        List<String> metricsTypes = new ArrayList<String>( metricsTypeTotal);
+        extraTotal.put("metricTypes",metricsTypes );
         extraTotal.put("metrics", metricsTotal);
         request.setAttribute("extra", extraTotal);  
-        
+        request.setAttribute("components", super.getComponents());
+        request.setAttribute("entity", researcher);        
         mvc.getModel().put("researcher", researcher);
         mvc.getModel().put("exportscitations",
                 ConfigurationManager.getProperty("exportcitation.options"));
@@ -238,7 +269,11 @@ public class ResearcherPageDetailsController
                 .put("showStatsOnlyAdmin",
                         ConfigurationManager
                                 .getBooleanProperty(SolrLogger.CFG_STAT_MODULE,"authorization.admin"));
-        
+        mvc.getModel().put("isAdmin", isAdmin);
+        if (canEdit)
+        {
+        	mvc.getModel().put("canEdit", new Boolean(true));
+        }
         
         // Fire usage event.
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);
@@ -260,11 +295,8 @@ public class ResearcherPageDetailsController
             HttpServletRequest request, Map<String, Object> model,
             HttpServletResponse response) throws Exception
     {
-        Integer researcherId = extractEntityId(request);
+        Integer researcherId = extractEntityId(request, response);
         
-        if(researcherId==null) {
-            return null;
-        }
         Context context = UIUtil.obtainContext(request);
 
         List<TabResearcherPage> tabs = applicationService.getList(TabResearcherPage.class);
@@ -279,14 +311,12 @@ public class ResearcherPageDetailsController
     }
 
     @Override
-    protected Integer getAnagraficaId(HttpServletRequest request)
+    protected Integer getAnagraficaId(HttpServletRequest request, HttpServletResponse response) throws Exception
     {
-        Integer researcherId = extractEntityId(request);
         ResearcherPage researcher = null;
         try
         {
-            researcher = ((ApplicationService) applicationService).get(
-                    ResearcherPage.class, researcherId);
+            researcher = extractObject(request, response);
         }
         catch (NumberFormatException e)
         {
@@ -307,11 +337,6 @@ public class ResearcherPageDetailsController
                 return tab.getId();
         }
         return null;
-    }
-
-    private Integer extractResearcherId(HttpServletRequest request)
-    {
-        return extractEntityId(request);
     }
 
     private String extractTabName(HttpServletRequest request)
@@ -354,15 +379,21 @@ public class ResearcherPageDetailsController
     }
 
     @Override
-    protected void sendRedirect(HttpServletRequest request,
+    protected void showAuthorizeError(HttpServletRequest request,
             HttpServletResponse response, Exception ex, String objectId)
             throws IOException, ServletException
     {
-        JSPManager.showAuthorizeError(request, response,
-                new AuthorizeException(ex.getMessage()));
-        // response.sendRedirect("/cris/rp/" + objectId);
+    	if(ex instanceof BadRequestSearchServiceException) {
+            JSPManager.showIntegrityError(request, response);
+    	}
+    	else if(ex instanceof SearchServiceException) {
+            JSPManager.showInternalError(request, response);
+    	}
+    	else {
+            JSPManager.showAuthorizeError(request, response,
+                    new AuthorizeException(ex.getMessage()));    		
+    	}
     }
-
     
     protected Integer getRealPersistentIdentifier(String persistentIdentifier)
     {
@@ -375,9 +406,9 @@ public class ResearcherPageDetailsController
     }
 
     @Override
-    protected boolean authorize(HttpServletRequest request, BoxResearcherPage box) throws SQLException
+    protected boolean authorize(HttpServletRequest request, HttpServletResponse response, BoxResearcherPage box) throws Exception
     {
-        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearcherPage.class, RPPropertiesDefinition.class, extractEntityId(request), box);        
+        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearcherPage.class, RPPropertiesDefinition.class, extractEntityId(request, response), box);        
     }
 
 }

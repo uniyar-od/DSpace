@@ -19,6 +19,7 @@
 <%@page import="org.dspace.core.Context" %>
 <%@page import="org.dspace.eperson.Group" %>
 <%@page import="org.apache.commons.lang.StringUtils"%>
+<%@ page import="java.util.Locale"%>
 
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 <%@ taglib uri="researchertags" prefix="researcher"%>
@@ -41,9 +42,20 @@
 	</c:if>
 </c:forEach>
 <%
+	Locale sessionLocale = UIUtil.getSessionLocale(request);
+	String currLocale = null;
+	if (sessionLocale != null) {
+		currLocale = sessionLocale.toString();
+	}
+
 	// Is the logged in user an admin
-	Boolean admin = (Boolean)request.getAttribute("is.admin");
+	Boolean admin = (Boolean)request.getAttribute("isAdmin");
 	boolean isAdmin = (admin == null ? false : admin.booleanValue());
+
+	// Can the logged in user edit
+	Boolean bEdit = (Boolean)request.getAttribute("canEdit");
+	boolean canEdit = (bEdit == null ? false : bEdit.booleanValue());
+
     // Get the current page, minus query string
     String currentPage = UIUtil.getOriginalURL(request);
     int c = currentPage.indexOf( '?' );
@@ -69,6 +81,8 @@
 %>
 <c:set var="admin" scope="request"><%= isAdmin %></c:set>
 <c:set var="specialGroup" scope="request"><%= isSpecialGroup %></c:set>
+<c:set var="currLocale"><%= currLocale %></c:set>
+
 <c:set var="dspace.layout.head.last" scope="request">
 	
     <script type="text/javascript"><!--
@@ -112,6 +126,14 @@
 									postfunction();
 								},
 								error : function(data) {
+								},
+								complete: function(data) {
+									j('#' + id).dataTable({
+												searching: false, 
+												info: false, 
+												paging: false,
+												ordering : true
+									});
 								}
 							});		
 						};
@@ -133,6 +155,15 @@
 						postfunction();
 					},
 					error : function(data) {
+					},
+					complete: function(data) {
+						
+						j('#' + id).dataTable({
+									searching: false, 
+									info: false, 
+									paging: false,
+									ordering : true
+						});
 					}
 				});
 			});
@@ -171,14 +202,20 @@
     
 </c:set>
 
-<dspace:layout title="${entity.typo.label} ${entity.name}">
+<c:set var="name" value="${researcher:getTranslatedName(entity, currLocale)}" />
+<fmt:message var="title" key='jsp.layout.do.${entity.typo.label}.detail.name'><fmt:param>${entity.typo.label}</fmt:param><fmt:param>${name}</fmt:param></fmt:message>
+<c:if test="${title eq 'jsp.layout.do.${entity.typo.label}.detail.name'}">
+	<c:set var="title"><fmt:message key='jsp.layout.do.detail.name'><fmt:param>${entity.typo.label}</fmt:param><fmt:param>${name}</fmt:param></fmt:message></c:set>
+</c:if>
+
+<dspace:layout title="${title}">
 
 <div id="content">
 <div class="row">
 	<div class="col-lg-12">
 		<div class="form-inline">
 	         <div class="form-group">
-				 <h1><fmt:message key="jsp.layout.do.detail.name" /> ${entity.name}</h1>
+				 <h1><c:out value="${title}" /></h1>
 			      <%
 			      if (isAdmin) {
 				  %>		
@@ -209,8 +246,8 @@
 					</c:choose>			
 					<a class="btn btn-default" href="<%= request.getContextPath() %>/open-search?query=dc.relation.ispartof_authority:${authority}&amp;format=rss"><i class="fa fa-rss"></i> <fmt:message key="jsp.cris.detail.link.rssfeed" /></a>
 				</div>
-				<c:if test="${ do_page_menu && !empty entity }"> 		
-					<c:if test="${!empty addModeType && addModeType=='display' }">
+				<c:if test="${(do_page_menu || canEdit) && !empty entity}"> 		
+					<c:if test="${!empty addModeType && addModeType=='display'}">
 					<div class="btn-group">
 	      				<a class="btn btn-default" href="<%= request.getContextPath() %>/cris/tools/${specificPartPath}/editDynamicData.htm?id=${entity.id}&anagraficaId=${entity.dynamicField.id}<c:if test='${!empty tabIdForRedirect}'>&tabId=${tabIdForRedirect}</c:if>"><i class="fa fa-pencil-square-o"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.edit.do"><fmt:param>${entity.typo.label}</fmt:param></fmt:message></a>
 		  				<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">

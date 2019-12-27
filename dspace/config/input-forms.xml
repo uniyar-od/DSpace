@@ -251,6 +251,30 @@ it, please enter the types and the actual numbers or codes.</hint>
          <required></required>
        </field>
      </page>
+<!--      <page number="3">
+       <field>
+		 <dc-schema>ec</dc-schema>
+         <dc-element>sale</dc-element>
+         <dc-qualifier></dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Sale availability</label>
+		 <input-type value-pairs-name="sale_info">dropdown</input-type>
+         <hint>Enter the appropriate group to sale the item or empty to open access. </hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>ec</dc-schema>
+         <dc-element>product</dc-element>
+         <dc-qualifier>price</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Product price</label>
+		 <input-type >onebox</input-type>
+         <hint>Enter the price of the product. </hint>
+         <required></required>
+         <validation>^[1-9]\d*(\.\d+)?$</validation>
+       </field>
+     </page>
+      -->
    </form>
 
    <form name="articles">
@@ -3017,6 +3041,25 @@ EXTERNAL systems outside the institution/organisation?</label>
        <stored-value>CERIF</stored-value>
      </pair>
    </value-pairs>     
+<value-pairs value-pairs-name="sale_info" dc-term="sale">
+ 	<pair>
+ 		<displayed-value>Not for sale</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Anyone can buy</displayed-value>
+       <stored-value>Anonymous</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>First Membership</displayed-value>
+       <stored-value>First Membership</stored-value>
+     </pair>
+     <pair>
+       <displayed-value>Second Membership</displayed-value>
+       <stored-value>Second Membership</stored-value>
+     </pair>
+     
+   	</value-pairs>
    <value-pairs value-pairs-name="common_identifiers" dc-term="identifier">
      <pair>
        <displayed-value>DOI</displayed-value>

@@ -291,3 +291,62 @@ footer.container.navbar.navbar-inverse.navbar-bottom.navbar-square {
 footer.container.navbar.navbar-inverse.navbar-bottom.navbar-square a {
 	color: grey;
 } 
+footer .container {
+	background: transparent;
+}
+
+.form-control{
+	color:#000;
+}
+
+.modal.in .modal-dialog {
+	margin:0px auto;
+	left: auto;
+	right:auto;
+}
+.fullheight {min-height: 35em;}
+
+.metadata-divider {
+	margin-top:5px;
+	margin-bottom:5px;
+}
+
+.submit-identifier > .form-control{
+	width:50%;
+}
+
+
+.nav > .researcher-menu-item-hidden {
+	display:none;
+}
+
+.hr-metadata-separator {
+	background-image: -webkit-linear-gradient(left, rgba(15,157,88,.8), rgba(15, 157, 88,.6), rgba(0,0,0,0));
+	height: 2px;	
+}
+
+#connect-orcid-button{
+	border: 1px solid #D3D3D3;
+	padding: .3em;
+	background-color: #fff;
+	border-radius: 8px;
+	box-shadow: 1px 1px 3px #999;
+	cursor: pointer;
+	color: #999;
+	font-weight: bold;
+	font-size: .8em;
+	line-height: 24px;
+	vertical-align: middle;
+}
+
+#connect-orcid-button:hover{
+	border: 1px solid #338caf;
+	color: #338caf;
+}
+
+#orcid-id-icon{
+	display: block;
+	margin: 0 .5em 0 0;
+	padding: 0;
+	float: left;
+}

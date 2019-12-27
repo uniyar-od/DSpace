@@ -12,6 +12,7 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -20,6 +21,7 @@ import org.dspace.content.Item;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.xoai.data.DSpaceItem;
 
@@ -62,82 +64,105 @@ public class ItemUtils
         e.setName(name);
         return e;
     }
-    public static Metadata retrieveMetadata (Item item) {
+    
+    private static Element writeMetadata(Element  schema,Metadatum val) {
+    	
+        Element valueElem = null;
+        valueElem = schema;
+
+        // Has element.. with XOAI one could have only schema and value
+        if (val.element != null && !val.element.equals(""))
+        {
+            Element element = getElement(schema.getElement(),
+                    val.element);
+            if (element == null)
+            {
+                element = create(val.element);
+                schema.getElement().add(element);
+            }
+            valueElem = element;
+
+            // Qualified element?
+            if (val.qualifier != null && !val.qualifier.equals(""))
+            {
+                Element qualifier = getElement(element.getElement(),
+                        val.qualifier);
+                if (qualifier == null)
+                {
+                    qualifier = create(val.qualifier);
+                    element.getElement().add(qualifier);
+                }
+                valueElem = qualifier;
+            }
+        }
+
+        // Language?
+        if (val.language != null && !val.language.equals(""))
+        {
+            Element language = getElement(valueElem.getElement(),
+                    val.language);
+            if (language == null)
+            {
+                language = create(val.language);
+                valueElem.getElement().add(language);
+            }
+            valueElem = language;
+        }
+        else
+        {
+            Element language = getElement(valueElem.getElement(),
+                    "none");
+            if (language == null)
+            {
+                language = create("none");
+                valueElem.getElement().add(language);
+            }
+            valueElem = language;
+        }
+
+        valueElem.getField().add(createValue("value", val.value));
+        if (val.authority != null) {
+            valueElem.getField().add(createValue("authority", val.authority));
+            if (val.confidence != Choices.CF_NOVALUE)
+                valueElem.getField().add(createValue("confidence", val.confidence + ""));
+        }
+        return valueElem;
+
+    }
+    public static Metadata retrieveMetadata (Context context, Item item) {
         Metadata metadata;
         
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
         metadata = new Metadata();
+        
         Metadatum[] vals = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         for (Metadatum val : vals)
         {
-            Element valueElem = null;
+            // Don't expose fields that are hidden by configuration
+            try {
+                if (MetadataExposure.isHidden(context,
+                        val.schema,
+                        val.element,
+                        val.qualifier))
+                {
+                    continue;
+                }
+            } catch(SQLException se) {
+                throw new RuntimeException(se);
+            }
+
             Element schema = getElement(metadata.getElement(), val.schema);
             if (schema == null)
             {
                 schema = create(val.schema);
                 metadata.getElement().add(schema);
             }
-            valueElem = schema;
-
-            // Has element.. with XOAI one could have only schema and value
-            if (val.element != null && !val.element.equals(""))
-            {
-                Element element = getElement(schema.getElement(),
-                        val.element);
-                if (element == null)
-                {
-                    element = create(val.element);
-                    schema.getElement().add(element);
-                }
-                valueElem = element;
-
-                // Qualified element?
-                if (val.qualifier != null && !val.qualifier.equals(""))
-                {
-                    Element qualifier = getElement(element.getElement(),
-                            val.qualifier);
-                    if (qualifier == null)
-                    {
-                        qualifier = create(val.qualifier);
-                        element.getElement().add(qualifier);
-                    }
-                    valueElem = qualifier;
-                }
-            }
-
-            // Language?
-            if (val.language != null && !val.language.equals(""))
-            {
-                Element language = getElement(valueElem.getElement(),
-                        val.language);
-                if (language == null)
-                {
-                    language = create(val.language);
-                    valueElem.getElement().add(language);
-                }
-                valueElem = language;
-            }
-            else
-            {
-                Element language = getElement(valueElem.getElement(),
-                        "none");
-                if (language == null)
-                {
-                    language = create("none");
-                    valueElem.getElement().add(language);
-                }
-                valueElem = language;
-            }
-
-            valueElem.getField().add(createValue("value", val.value));
-            if (val.authority != null) {
-                valueElem.getField().add(createValue("authority", val.authority));
-                if (val.confidence != Choices.CF_NOVALUE)
-                    valueElem.getField().add(createValue("confidence", val.confidence + ""));
-            }
+            Element element = writeMetadata(schema, val);
+            metadata.getElement().add(element);
         }
+
         // Done! Metadata has been read!
         // Now adding bitstream info
         Element bundles = create("bundles");
@@ -161,8 +186,22 @@ public class ItemUtils
                 {
                     Element bitstream = create("bitstream");
                     bitstreams.getElement().add(bitstream);
+                    
+                    Metadatum[] bVals = bit.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+                    for(Metadatum bVal : bVals) {
+                        Element bSchema = getElement(bitstream.getElement(), bVal.schema);
+                        if (bSchema == null)
+                        {
+                            bSchema = create(bVal.schema);
+                            bitstream.getElement().add(bSchema);
+                        }
+                    	Element bElement = writeMetadata(bSchema, bVal);
+                        bitstream.getElement().add(bElement);
+                    }
+                    
                     String url = "";
                     String bsName = bit.getName();
+                    String bitID= Integer.toString(bit.getID());
                     String sid = String.valueOf(bit.getSequenceID());
                     String baseUrl = ConfigurationManager.getProperty("oai",
                             "bitstream.baseUrl");
@@ -202,6 +241,7 @@ public class ItemUtils
                     String name = bit.getName();
                     String description = bit.getDescription();
 
+                    bitstream.getField().add(createValue("id", bitID));
                     if (name != null)
                         bitstream.getField().add(
                                 createValue("name", name));

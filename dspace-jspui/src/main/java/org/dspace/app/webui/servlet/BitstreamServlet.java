@@ -7,6 +7,8 @@
  */
 package org.dspace.app.webui.servlet;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -16,20 +18,29 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.pdfbox.exceptions.COSVisitorException;
+import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.core.PluginManager;
 import org.dspace.core.Utils;
+import org.dspace.disseminate.CitationDocument;
+import org.dspace.disseminate.CoverPageService;
 import org.dspace.handle.HandleManager;
+import org.dspace.plugin.BitstreamHomeProcessor;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
 
@@ -169,7 +180,11 @@ public class BitstreamServlet extends DSpaceServlet
 
         log.info(LogManager.getHeader(context, "view_bitstream",
                 "bitstream_id=" + bitstream.getID()));
-        
+ 
+		if (bitstream.getMetadataValue(IViewer.METADATA_STRING_PROVIDER).contains(IViewer.STOP_DOWNLOAD)
+				&& !AuthorizeManager.isAdmin(context, bitstream)) {
+			throw new AuthorizeException("Download not allowed by viewer policy");
+		}
         //new UsageEvent().fire(request, context, AbstractUsageEvent.VIEW,
 		//		Constants.BITSTREAM, bitstream.getID());
 
@@ -192,7 +207,16 @@ public class BitstreamServlet extends DSpaceServlet
                     .getTime());
 
             // Check for if-modified-since header
-            long modSince = request.getDateHeader("If-Modified-Since");
+            long modSince = -1;
+            try {
+            	modSince = request.getDateHeader("If-Modified-Since");
+            }
+            catch (IllegalArgumentException ex) {
+            	// ignore the exception, the header is invalid 
+            	// we proceed as it was not supplied/supported
+            	// we have some bad web client that provide unvalid values 
+            	// no need to fill our log with such exceptions
+            }
 
             if (modSince != -1 && item.getLastModified().getTime() < modSince)
             {
@@ -203,15 +227,53 @@ public class BitstreamServlet extends DSpaceServlet
             }
         }
         
-        // Pipe the bits
-        InputStream is = bitstream.retrieve();
-     
+        preProcessBitstreamHome(context, request, response, bitstream);
+        
+    	InputStream is = null;
+    	
+    	CoverPageService coverService = new DSpace().getSingletonService(CoverPageService.class);
+    	Collection owningColl = item.getOwningCollection();
+    	String collHandle="";
+    	if(owningColl != null) {
+    		collHandle= owningColl.getHandle();
+    	}
+    	String configFile =coverService.getConfigFile(collHandle);
+        if (StringUtils.isNotBlank(configFile)
+                && coverService.isValidType(bitstream))
+        {
+            // Pipe the bits
+
+            try
+            {
+                CitationDocument citationDocument = new CitationDocument(
+                        configFile);
+                File citedDoc = citationDocument.makeCitedDocument(context,
+                        bitstream, configFile);
+                is = new FileInputStream(citedDoc);
+                response.setHeader("Content-Length",
+                        String.valueOf(citedDoc.length()));
+            }
+            catch (AuthorizeException e)
+            {
+                log.error(e.getMessage(), e);
+                throw e;
+            }
+            catch (Exception e)
+            {
+                log.error(e.getMessage(), e);
+            }
+
+        }
+        
+        if(is == null) {
+        	 is = bitstream.retrieve();
+             response.setHeader("Content-Length", String
+                     .valueOf(bitstream.getSize()));
+        }
+        
 		// Set the response MIME type
         response.setContentType(bitstream.getFormat().getMIMEType());
 
-        // Response length
-        response.setHeader("Content-Length", String
-                .valueOf(bitstream.getSize()));
 
 		if(threshold != -1 && bitstream.getSize() >= threshold)
 		{
@@ -224,5 +286,24 @@ public class BitstreamServlet extends DSpaceServlet
         Utils.bufferedCopy(is, response.getOutputStream());
         is.close();
         response.getOutputStream().flush();
+    }
+    
+    private void preProcessBitstreamHome(Context context, HttpServletRequest request,
+            HttpServletResponse response, Bitstream item)
+        throws ServletException, IOException, SQLException
+    {
+        try
+        {
+            BitstreamHomeProcessor[] chp = (BitstreamHomeProcessor[]) PluginManager.getPluginSequence(BitstreamHomeProcessor.class);
+            for (int i = 0; i < chp.length; i++)
+            {
+                chp[i].process(context, request, response, item);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("caught exception: ", e);
+            throw new ServletException(e);
+        }
     }
 }

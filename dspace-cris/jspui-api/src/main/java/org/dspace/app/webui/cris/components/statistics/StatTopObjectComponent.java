@@ -25,7 +25,6 @@ import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
 import org.dspace.content.DSpaceObject;
-import org.dspace.content.Site;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
@@ -135,7 +134,10 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
         solrQuery.addFacetField(_CONTINENT, _COUNTRY_CODE, _CITY, ID, _LOCATION,
                 _FISCALYEAR, _SOLARYEAR);
         solrQuery.set("facet.missing", true);
-        solrQuery.set("f." + _LOCATION + ".facet.missing", false);
+        solrQuery.set("f." + _LOCATION + ".facet.missing", true);
+        solrQuery.set("f." + _CONTINENT + ".facet.missing", true);
+        solrQuery.set("f." + _COUNTRY_CODE + ".facet.missing", true);
+        solrQuery.set("f." + _CITY + ".facet.missing", true);
         solrQuery.set("f." + ID + ".facet.missing", false);
         solrQuery.set("f." + _FISCALYEAR + ".facet.missing", false);
         solrQuery.set("f." + _SOLARYEAR + ".facet.missing", false);
@@ -166,7 +168,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
 
     @Override
     public Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger, DSpaceObject object,
-            String dateType, String dateStart, String dateEnd, int gap) throws SolrServerException
+            String dateType, String dateStart, String dateEnd, int gap, Context context) throws SolrServerException
     {
         String query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());
         String sID = getObjectId(""+object.getID());
@@ -174,7 +176,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
         Map<String, ObjectCount[]> map = new HashMap<String, ObjectCount[]>();
         
         map.put(getMode(), statsLogger.queryFacetDate(query, "time:[* TO NOW/" + dateType + dateEnd + dateType + "]", 0, dateType, dateStart,
-                dateEnd, gap, true));
+                dateEnd, gap, true, context));
         return map;
 
 

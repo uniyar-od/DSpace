@@ -7,13 +7,10 @@
  */
 package org.dspace.submit.lookup;
 
-import gr.ekt.bte.core.Record;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,6 +36,8 @@ import org.dspace.core.ConfigurationManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
+
+import gr.ekt.bte.core.Record;
 
 /**
  * @author cineca
@@ -122,18 +121,15 @@ public class PubmedEuropeService
                 client.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
 
                 URIBuilder uriBuilder = new URIBuilder(
-                        "http://www.ebi.ac.uk/europepmc/webservices/rest/search");
+                        "https://www.ebi.ac.uk/europepmc/webservices/rest/search");
                 uriBuilder.addParameter("format", "xml");
                 uriBuilder.addParameter("resulttype", "core");
                 uriBuilder.addParameter("pageSize", "1000");
                 uriBuilder.addParameter("query", query);
-                int page =1;
-                uriBuilder.addParameter("page", Integer.toString(page));
                 
                 boolean lastPage= false;
                 while(!lastPage)
                 {
-                	uriBuilder.setParameter("page", Integer.toString(page));	
 	                method = new HttpGet(uriBuilder.build());
 	                if(StringUtils.isNotBlank(proxyHost) && StringUtils.isNotBlank(proxyPort)){
 	                	proxy = new HttpHost(proxyHost, Integer.parseInt(proxyPort),"http");
@@ -162,15 +158,23 @@ public class PubmedEuropeService
 	                    builder = factory.newDocumentBuilder();
 	
 	                    Document inDoc = builder.parse(response.getEntity().getContent());
-	
+	                    
 	                    Element xmlRoot = inDoc.getDocumentElement();
 	                    Element resList = XMLUtils.getSingleElement(xmlRoot,
 	                            "resultList");
 	                    List<Element> res = XMLUtils.getElementList(
-	                            resList, "result");	                    if(!res.isEmpty()){
+	                            resList, "result");	                    
+	                    if(!res.isEmpty()){
 	                    	PMCEuropeResults.addAll( getByPubmedEuropeResults(res) );
-	                    	page++;
-	                    }else{
+	                    	String cursorMark = XMLUtils.getElementValue(xmlRoot,
+		                            "nextCursorMark");
+	                    	if (cursorMark != null && !"*".equals(cursorMark)) {
+	                    		uriBuilder.setParameter("cursorMar", cursorMark);
+	                    	}
+	                    	else{
+		                    	lastPage=true;
+		                    }
+                    	} else{
 	                    	lastPage=true;
 	                    }
 	                }

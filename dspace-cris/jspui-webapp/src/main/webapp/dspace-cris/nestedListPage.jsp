@@ -7,13 +7,17 @@
     https://github.com/CILEA/dspace-cris/wiki/License
 
 --%>
+<%@page import="java.util.Locale"%>
 <%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://displaytag.sf.net" prefix="display"%>
 <%@ taglib uri="jdynatags" prefix="dyna"%>
+<%@ taglib uri="researchertags" prefix="researcher"%>
 <%@page import="it.cilea.osd.jdyna.model.AccessLevelConstants"%>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="java.net.URL"%>
 
 <% 
 	Integer offset = (Integer)request.getAttribute("offset");
@@ -21,8 +25,13 @@
 	Integer totalHit = (Integer)request.getAttribute("totalHit");
 	Integer hitPageSize = (Integer)request.getAttribute("hitPageSize");
 	Integer pageCurrent = (Integer)request.getAttribute("pageCurrent");
+    Locale sessionLocale = UIUtil.getSessionLocale(request);
+	String currLocale = null;
+	if (sessionLocale != null) {
+		currLocale = sessionLocale.toString();
+	}
 %>
-
+<c:set var="currLocale"><%= currLocale %></c:set>
 <c:set var="HIGH_ACCESS" value="<%=  AccessLevelConstants.HIGH_ACCESS %>"></c:set>
 <div id="nestedDetailDiv_${decoratorPropertyDefinition.real.id}" class="dynaField">
 			<span class="spandatabind nestedinfo">${decoratorPropertyDefinition.real.id}</span>
@@ -73,7 +82,16 @@
 	</span>
 	</c:if>
 	
-	<dyna:display-nested values="${results}" typeDefinition="${decoratorPropertyDefinition}" editmode="${editmode}" parentID="${parentID}" specificPartPath="${specificContextPath}${specificPartPath}" admin="${admin}"/>
+	<c:set var="urljspcustom" value="/dspace-cris/jdyna/custom/${decoratorPropertyDefinition.real.shortName}.jsp" scope="request" />
+	<%
+		String filePath = (String)pageContext.getRequest().getAttribute("urljspcustom");
+		URL fileURL = pageContext.getServletContext().getResource(filePath);
+		if (((Boolean)pageContext.getRequest().getAttribute("editmode")) || fileURL == null) {
+	%>
+		<dyna:display-nested values="${results}" typeDefinition="${decoratorPropertyDefinition}" editmode="${editmode}" parentID="${parentID}" specificPartPath="${specificContextPath}${specificPartPath}" admin="${admin}"/>
+	<% } else { %>
+		<c:import url="${urljspcustom}" />
+	<% } %>
 	</c:if>	
 	<c:if test="${(editmode && admin) || ((editmode && decoratorPropertyDefinition.accessLevel eq HIGH_ACCESS) && ((editmode && decoratorPropertyDefinition.repeatable) || (editmode && empty results)))}">
 		<span class="glyphicon glyphicon-plus"id="nested_${decoratorPropertyDefinition.real.id}_addbutton" ></span>

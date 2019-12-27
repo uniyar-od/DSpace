@@ -10,16 +10,18 @@ package org.dspace.app.cris.util;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.oltu.oauth2.common.utils.OAuthUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
+import org.dspace.app.cris.integration.RPAuthorityExtraMetadataGenerator;
 import org.dspace.app.cris.integration.NameResearcherPage;
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.ACrisObject;
@@ -28,7 +30,6 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.RestrictedField;
 import org.dspace.app.cris.model.VisibilityConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
-import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.DCPersonName;
 import org.dspace.content.DSpaceObject;
@@ -67,7 +68,7 @@ public class ResearcherPageUtils
 {
 	
 	/** Maximum query results*/
-	private static final int MAX_RESULTS = 20;
+	public static final int MAX_RESULTS = 20;
 	
 	/** Handler dspace service */
 	private static DSpace dspace = new DSpace();
@@ -394,21 +395,21 @@ return decorator.generateDisplayValue(alternativeName, rp);
     	List<Choice> choiceList = new LinkedList<Choice>();
 		for (DSpaceObject dso : result.getDspaceObjects()) {
 			ResearcherPage rp = (ResearcherPage) dso;
-			choiceList.add(new Choice(getPersistentIdentifier(rp), rp.getFullName(),getLabel(rp.getFullName(), rp)));
+			Map<String, String> extras = buildExtra(rp);
+
+			choiceList.add(new Choice(getPersistentIdentifier(rp), getLabel(rp.getFullName(), rp),rp.getFullName(), extras));
 			if (rp.getTranslatedName() != null
 					&& rp.getTranslatedName().getVisibility() == VisibilityConstants.PUBLIC
 					&& rp.getTranslatedName().getValue() != null) {
-				choiceList.add(new Choice(getPersistentIdentifier(rp), rp
-						.getTranslatedName().getValue(),
-						getLabel(rp.getTranslatedName()
-								.getValue(), rp)));
+				choiceList.add(new Choice(getPersistentIdentifier(rp),getLabel(rp.getTranslatedName()
+						.getValue(), rp), rp.getTranslatedName().getValue(),
+						 extras));
 			}
 			for (RestrictedField variant : rp.getVariants()) {
 				if (variant.getValue() != null
 						&& variant.getVisibility() == VisibilityConstants.PUBLIC) {
-					choiceList.add(new Choice(getPersistentIdentifier(rp), variant
-							.getValue(), getLabel(
-							variant.getValue(), rp)));
+					choiceList.add(new Choice(getPersistentIdentifier(rp), getLabel(
+							variant.getValue(), rp),variant.getValue(),  extras));
 				}
 			}
 	    }
@@ -416,7 +417,20 @@ return decorator.generateDisplayValue(alternativeName, rp);
     }
     
     
-	public static Choices doGetMatches(String field, String query, ConfigurationService _configurationService,
+	public static Map<String, String> buildExtra(ResearcherPage rp)
+    {
+	    Map<String, String> extras = new HashMap<String,String>();
+	    List<RPAuthorityExtraMetadataGenerator> generators = dspace.getServiceManager().getServicesByType(RPAuthorityExtraMetadataGenerator.class);
+	    if(generators!=null) {
+	        for(RPAuthorityExtraMetadataGenerator gg : generators) {
+	            Map<String, String> extrasTmp = gg.build(rp);
+	            extras.putAll(extrasTmp);
+	        }
+	    }
+        return extras;
+    }
+
+    public static Choices doGetMatches(String field, String query, ConfigurationService _configurationService,
 			SearchService _searchService) throws SearchServiceException
 	{
 		Choices choicesResult;
@@ -447,8 +461,9 @@ return decorator.generateDisplayValue(alternativeName, rp);
 		    discoverQuery.setDSpaceObjectFilter(CrisConstants.RP_TYPE_ID);
 		    String surnameQuery = "{!lucene q.op=AND df=rpsurnames}("
     			    + luceneQuery
-    			    + ") OR (\""
-    			    + luceneQuery.substring(0,luceneQuery.length() - 1) + "\")";
+    			    + ") OR ("
+    			    // no need for a phrase search, the default operator is now AND and we want to match surnames in any order
+    			    + luceneQuery.substring(0,luceneQuery.length() - 1) + ")";
 		    
 		    discoverQuery.setQuery(surnameQuery);
 		    discoverQuery.setMaxResults(MAX_RESULTS);
@@ -617,6 +632,15 @@ return decorator.generateDisplayValue(alternativeName, rp);
 		return null;
 	}
 	
+	public static Boolean getBooleanValue(ACrisObject ro, String key) {
+		List<? extends Property> dpList = (List<? extends Property>) ro.getAnagrafica4view().get(key);
+		if (dpList != null && dpList.size() > 0)
+		{
+			return (Boolean) dpList.get(0).getObject();
+		}
+		return null;
+	}
+	
 	public static <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, 
 		ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void buildTextValue(ACrisObject<P, TP, NP, NTP, ACNO, ATNO> ro, 
 				String valueToSet, String pdefKey) {
@@ -691,4 +715,36 @@ return decorator.generateDisplayValue(alternativeName, rp);
             ro.removeProprieta(remove);
         }
     }
+
+	public static void copyNestedObject(ACrisObject targetCrisObject, ACrisNestedObject no) {
+		ACrisNestedObject copy = null;
+		try {
+			copy = (ACrisNestedObject) targetCrisObject.getClassNested().newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+		}
+		copy.setParent(targetCrisObject);
+		copy.setTypo(no.getTypo());
+		copy.setPositionDef(no.getPositionDef());
+		copy.setPreferred(no.getPreferred());
+		copy.setScopeDef(no.getScopeDef());
+		copy.setSourceReference(no.getSourceReference());
+		copy.setAvailabilityInfo(no.getAvailabilityInfo());
+		
+		for (Property p : (List<Property>) no.getAnagrafica()) {
+			AValue avalue = p.getTypo().getRendering().getInstanceValore();
+	        avalue.setOggetto(p.getObject());
+	        Property pc = copy.createProprieta(p.getTypo());
+	        pc.setValue(avalue);
+	        pc.setVisibility(p.getVisibility());
+		}
+		applicationService.saveOrUpdate(targetCrisObject.getClassNested(), copy);
+	}
+
+	public static void cleanNestedObjectByShortname(ACrisObject targetCrisObject, String propName) {
+		List<? extends ACrisNestedObject> nestedObjects = applicationService.getNestedObjectsByParentIDAndShortname(
+				targetCrisObject.getId(), propName, targetCrisObject.getClassNested());
+		for (ACrisNestedObject acno : nestedObjects) {
+			applicationService.delete(targetCrisObject.getClassNested(), acno.getId());
+		}
+	}
 }

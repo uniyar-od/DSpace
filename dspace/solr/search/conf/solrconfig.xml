@@ -813,8 +813,9 @@
     -->
      <searchComponent name="crismetrics-extract" 
       class="org.dspace.solr.handler.component.CrisMetricsExtractComponent"/>
-  <requestHandler name="/select" class="solr.SearchHandler">
-    <!-- default values for query parameters can be specified, these
+
+	 <requestHandler name="/select" class="solr.SearchHandler">
+     <!-- default values for query parameters can be specified, these
          will be overridden by parameters in the request
       -->
      <lst name="defaults">
@@ -1030,17 +1031,22 @@
          <str name="update.chain">dedupe</str>
        </lst>
        -->
+       <lst name="defaults">
+         <str name="update.chain">clones_except_private</str>
+       </lst>      
   </requestHandler>
 
   <!-- for back compat with clients using /update/json and /update/csv -->  
   <requestHandler name="/update/json" class="solr.JsonUpdateRequestHandler">
         <lst name="defaults">
          <str name="stream.contentType">application/json</str>
+         <str name="update.chain">clones_except_private</str>
        </lst>
   </requestHandler>
   <requestHandler name="/update/csv" class="solr.CSVRequestHandler">
         <lst name="defaults">
          <str name="stream.contentType">application/csv</str>
+         <str name="update.chain">clones_except_private</str>
        </lst>
   </requestHandler>
 
@@ -1057,9 +1063,12 @@
       <str name="uprefix">ignored_</str>
 
       <!-- capture link hrefs but ignore div attributes -->
-      <str name="captureAttr">false</str>
+      <str name="captureAttr">true</str>
       <!--<str name="fmap.a">links</str>-->
       <!--<str name="fmap.div">ignored_</str>-->
+      <str name="update.chain">clones_except_private</str>
+      <!-- force MIME type for Tika to avoid automatically attempt to determine the input document type -->
+      <str name="stream.type">text/plain</str>
     </lst>
   </requestHandler>
 
@@ -1775,7 +1784,24 @@
 
        http://wiki.apache.org/solr/UpdateRequestProcessor
 
-    --> 
+    -->
+
+  <!-- Exclude *_private field from default search_text -->    
+   <updateRequestProcessorChain name="clones_except_private">
+     <processor class="solr.CloneFieldUpdateProcessorFactory">
+       <lst name="source">
+         <str name="fieldRegex">.*</str>
+         <lst name="exclude">
+           <str name="fieldRegex">.*_private</str>
+           <str name="fieldRegex">cris-.*</str>
+         </lst>
+       </lst>
+       <str name="dest">search_text</str>
+     </processor>
+       <processor class="solr.LogUpdateProcessorFactory" />
+       <processor class="solr.RunUpdateProcessorFactory" />     
+   </updateRequestProcessorChain>
+      
   <!-- Deduplication
 
        An example dedup update processor that creates the "id" field

@@ -35,6 +35,7 @@ import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.BadRequestSearchServiceException;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
@@ -113,7 +114,9 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
     {
         ACrisObject cris = getCrisObject(request);
         // Get the query from the box name
-        String type = getType(request, cris.getId());
+        String opentype = getType(request, cris.getId());
+        String relationName = this.getShortName();        
+        String type = getTypes().containsKey(opentype)?opentype:relationName;
         List<String[]> activeTypes = addActiveTypeInRequest(request, type);
 
         int start = 0;
@@ -251,6 +254,7 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
                 "appliedFilterQueries"
                         + getRelationConfiguration().getRelationName(),
                 appliedFilterQueries);
+        request.setAttribute("count" + this.getShortName(), docsNumFound);
     }
 
 	private String getOrderField(int sortBy) throws SortException {
@@ -300,7 +304,7 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
 
     public DiscoverResult search(Context context, HttpServletRequest request, String type,
             ACrisObject cris, int start, int rpp, String orderfield,
-            boolean ascending, List<String> extraFields) throws SearchServiceException
+            boolean ascending, List<String> extraFields) throws SearchServiceException, BadRequestSearchServiceException
     {
         // can't start earlier than 0 in the results!
         if (start < 0)
@@ -311,9 +315,15 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         String uuid = cris.getUuid();
         String query = MessageFormat.format(getRelationConfiguration()
                 .getQuery(), authority, uuid);
+        
         List<String> filters = getFilters(type);
 
         DiscoverQuery discoveryQuery = new DiscoverQuery();
+        if(getCommonFilter()!=null) {            
+            String format = MessageFormat.format(getCommonFilter(), getRelationConfiguration().getRelationName(),
+                    cris.getUuid(), authority);
+            discoveryQuery.addFilterQueries(format);
+        }
         try
         {
             discoveryQuery.addFilterQueries("NOT(withdrawn:true)",
@@ -373,10 +383,19 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
                 {
                     log.error(
                             LogManager.getHeader(context,
+                                    "Error retrieving object from database using facet query",
+                                    "filter_field: " + f[0] + ",filter_type:"
+                                            + f[1] + ",filer_value:" + f[2]));
+                    throw new SearchServiceException(e);
+                }
+                catch (NullPointerException e)
+                {
+                    log.error(
+                            LogManager.getHeader(context,
                                     "Error in discovery while setting up user facet query",
                                     "filter_field: " + f[0] + ",filter_type:"
-                                            + f[1] + ",filer_value:" + f[2]),
-                            e);
+                                            + f[1] + ",filer_value:" + f[2]));
+                    throw new BadRequestSearchServiceException(e);
                 }
 
             }
@@ -651,7 +670,7 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
 
     }
 
-    protected String getType(HttpServletRequest request, Integer id)
+    public String getType(HttpServletRequest request, Integer id)
     {
         String type = request.getParameter("open");
         if (type == null)
@@ -687,7 +706,9 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         int rpp = UIUtil.getIntParameter(request, "rpp" + type);
         if (rpp == -1)
         {
-            rpp = getTypes().get(type).getRpp();
+            if(getTypes()!=null && getTypes().containsKey(type)) {
+                rpp = getTypes().get(type).getRpp();
+            }
         }
         return rpp;
     }

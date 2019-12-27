@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.AuthorizeUtil;
 import org.dspace.authorize.AuthorizeConfiguration;
@@ -1341,9 +1342,6 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
         log.info(LogManager.getHeader(ourContext, "delete_item", "item_id="
                 + getID()));
 
-        // Remove from cache
-        ourContext.removeCached(this, getID());
-
         // Remove from browse indices, if appropriate
         /** XXX FIXME
          ** Although all other Browse index updates are managed through
@@ -1390,6 +1388,8 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
         // remove version attached to the item
         removeVersion();
 
+        // Remove from cache
+        ourContext.removeCached(this, getID());
 
         // Finally remove item row
         DatabaseManager.delete(ourContext, itemRow);
@@ -1697,7 +1697,15 @@ public class Item extends DSpaceObject implements BrowsableDSpaceObject
         for (ResourcePolicy rp : defaultCollectionPolicies){
             rp.setAction(Constants.READ);
             // if an identical policy is already in place don't add it
-            if(!AuthorizeManager.isAnIdenticalPolicyAlreadyInPlace(ourContext, dso, rp)){
+            List<ResourcePolicy> policies = AuthorizeManager.getPoliciesActionFilter(ourContext, dso, Constants.READ);
+            boolean customPolicy = false;
+            for(ResourcePolicy policy: policies){
+            	if(StringUtils.equals(ResourcePolicy.TYPE_CUSTOM, policy.getRpType()) ){
+            		customPolicy = true;
+            	}
+            }
+            
+            if(!customPolicy && !AuthorizeManager.isAnIdenticalPolicyAlreadyInPlace(ourContext, dso, rp)){
                 rp.setRpType(ResourcePolicy.TYPE_INHERITED);
                 policiesToAdd.add(rp);
             }

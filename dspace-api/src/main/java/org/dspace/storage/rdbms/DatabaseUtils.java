@@ -10,6 +10,7 @@ package org.dspace.storage.rdbms;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -19,9 +20,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
-
+import java.util.Locale;
 import javax.sql.DataSource;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
@@ -66,6 +68,15 @@ public class DatabaseUtils
                             File.separator + "search" +
                             File.separator + "conf" +
                             File.separator + "reindex.flag";
+    
+    private static final String rebuildCrisConfigFilePath = ConfigurationManager.getProperty("dspace.dir") +
+            File.separator + "etc" +
+            File.separator + "rebuildcrisconfiguration.flag";            
+
+    // Types of databases supported by DSpace. See getDbType()
+    public static final String DBMS_POSTGRES="postgres";
+    public static final String DBMS_ORACLE="oracle";
+    public static final String DBMS_H2="h2";
 
     private static final String baseConfigurationPostgresFilePath = ConfigurationManager.getProperty("dspace.dir") +
             File.separator + "etc" +
@@ -87,7 +98,8 @@ public class DatabaseUtils
         if (argv.length < 1)
         {
             System.out.println("\nDatabase action argument is missing.");
-            System.out.println("Valid actions: 'test', 'info', 'migrate', 'repair', 'clean', 'install-example-cris-base'");
+            System.out.println("Valid actions: 'test', 'info', 'migrate', 'repair', "
+                    + "'update-sequences' or 'clean', 'install-example-cris-base'");
             System.out.println("\nOr, type 'database help' for more information.\n");
             System.exit(1);
         }
@@ -253,17 +265,40 @@ public class DatabaseUtils
                 }
                 System.out.println("Done.");
             }
+            else if(argv[0].equalsIgnoreCase("update-sequences"))
+            {
+                try (Connection connection = dataSource.getConnection()) {
+                    String dbType = getDbType(connection);
+                    String sqlfile = "org/dspace/storage/rdbms/sqlmigration/" + dbType +
+                             "/update-sequences.sql";
+                    InputStream sqlstream = DatabaseUtils.class.getClassLoader().getResourceAsStream(sqlfile);
+                    if (sqlstream != null) {
+                        String s = IOUtils.toString(sqlstream, "UTF-8");
+                        if (!s.isEmpty()) {
+                            System.out.println("Running " + sqlfile);
+                            connection.createStatement().execute(s);
+                            System.out.println("update-sequences complete");
+                        } else {
+                            System.err.println(sqlfile + " contains no SQL to execute");
+                        }
+                    } else {
+                        System.err.println(sqlfile + " not found");
+                    }
+                }
+            }
             else
             {
                 System.out.println("\nUsage: database [action]");
-                System.out.println("Valid actions: 'test', 'info', 'migrate', 'repair' or 'clean'");
-                System.out.println(" - test    = Test database connection is OK");
-                System.out.println(" - info    = Describe basic info about database, including migrations run");
-                System.out.println(" - migrate = Migrate the Database to the latest version");
-                System.out.println("             Optionally, specify \"ignored\" to also run \"Ignored\" migrations");
-                System.out.println(" - repair  = Attempt to repair any previously failed database migrations");
-                System.out.println(" - clean   = DESTROY all data and tables in Database (WARNING there is no going back!)");
-                System.out.println(" - install-example-cris-base  = Install base cris configuration");                
+                System.out.println("Valid actions: 'test', 'info', 'migrate', 'repair', 'update-sequences' or 'clean'");
+                System.out.println(" - test             = Test database connection is OK");
+                System.out.println(" - info             = Describe basic info about database, including migrations run");
+                System.out.println(" - migrate          = Migrate the Database to the latest version");
+                System.out.println("                      Optionally, specify \"ignored\" to also run \"Ignored\" migrations");
+                System.out.println(" - repair           = Attempt to repair any previously failed database migrations");
+                System.out.println(" - update-sequences = Update database sequences after running AIP ingest.");
+                System.out.println(" - clean            = DESTROY all data and tables in Database (WARNING there is no going back!)");
+                System.out.println(" - install-example-cris-base  = Install base cris configuration");           
+
                 System.out.println("");
             }
 
@@ -432,6 +467,12 @@ public class DatabaseUtils
                 flyway.setTarget(targetVersion);
             }
 
+            boolean runDSpaceCRISUpgrade = true;
+            //We have to run DSpace-CRIS configuration upgrade? Or it is a new installation
+            if(!tableExists(connection, "cris_rpage")) {
+                runDSpaceCRISUpgrade = false; 
+            }
+                
             // Does the necessary Flyway table ("schema_version") exist in this database?
             // If not, then this is the first time Flyway has run, and we need to initialize
             // NOTE: search is case sensitive, as flyway table name is ALWAYS lowercase,
@@ -473,6 +514,9 @@ public class DatabaseUtils
 
                 // Flag that Discovery will need reindexing, since database was updated
                 setReindexDiscovery(true);
+                if(runDSpaceCRISUpgrade) {
+                    setRebuildCrisConfiguration(true);
+                }
             }
             else
                 log.info("DSpace database schema is up to date");
@@ -577,7 +621,18 @@ public class DatabaseUtils
             return checkOldVersion(connection, true);
         }
         
+        if(tableExists(connection, "imp_bitstream_metadatavalue")){
+        	return "5.8.0.5";
+        }
+        
+        if(tableColumnExists(connection, "cris_orcid_history", "orcid", null, null)) {
+            return "5.8.0.0";
+        }
+        
         if(tableExists(connection, "cris_rp_box2policygroup")) {
+            if(tableColumnExists(connection, "imp_bitstream", "md5value", null, null)) {
+                return "5.7.0.0";
+            }
             if(tableColumnExists(connection, "cris_rp_box2policygroup", "authorizedgroup_id", null, null)) {
                 return "5.6.0.1";
             }            
@@ -1171,6 +1226,40 @@ public class DatabaseUtils
         }
     }
 
+    public static synchronized void setRebuildCrisConfiguration(boolean reindex)
+    {
+        
+        File reindexFlag = new File(rebuildCrisConfigFilePath);
+
+        // If we need to flag Cris Configuration to rebuild, we'll create a temporary file to do so.
+        if(reindex)
+        {
+            try
+            {
+                //If our flag file doesn't exist, create it as writeable to all
+                if(!reindexFlag.exists())
+                {
+                    reindexFlag.createNewFile();
+                    reindexFlag.setWritable(true, false);
+                }
+            }
+            catch(IOException io)
+            {
+                log.error("Unable to create Cris Configuration rebuild flag file " + reindexFlag.getAbsolutePath() + ". You may need to rebuild manually.", io);
+            }
+        }
+        else // Otherwise, CRIS configuration doesn't need to reindex. Delete the temporary file if it exists
+        {
+            //If our flag file exists, delete it
+            if(reindexFlag.exists())
+            {
+                boolean deleted = reindexFlag.delete();
+                if(!deleted)
+                    log.error("Unable to delete Cris Configuration rebuild flag file " + reindexFlag.getAbsolutePath() + ". You may need to delete it manually.");
+            }
+        }
+    }
+    
     /**
      * Whether or not reindexing is required in Discovery.
      * <P>
@@ -1186,6 +1275,13 @@ public class DatabaseUtils
         return reindexFlag.exists();
     }
 
+    public static boolean getRebuildCrisConfiguration()
+    {
+        // Simply check if the flag file exists
+        File reindexFlag = new File(rebuildCrisConfigFilePath);
+        return reindexFlag.exists();
+    }
+    
     /**
      * Method to check whether we need to reindex in Discovery (i.e. Solr). If
      * reindexing is necessary, it is performed. If not, nothing happens.
@@ -1206,6 +1302,37 @@ public class DatabaseUtils
             // (See ReindexerThread nested class below)
             ReindexerThread go = new ReindexerThread(indexer);
             go.start();
+        }
+    }
+    
+    /**
+     * Determine the type of Database, based on the DB connection.
+     *
+     * @param connection current DB Connection
+     * @return a DB keyword/type (see DatabaseUtils.DBMS_* constants)
+     * @throws SQLException if database error
+     */
+    public static String getDbType(Connection connection)
+            throws SQLException
+    {
+        DatabaseMetaData meta = connection.getMetaData();
+        String prodName = meta.getDatabaseProductName();
+        String dbms_lc = prodName.toLowerCase(Locale.ROOT);
+        if (dbms_lc.contains("postgresql"))
+        {
+            return DBMS_POSTGRES;
+        }
+        else if (dbms_lc.contains("oracle"))
+        {
+            return DBMS_ORACLE;
+        }
+        else if (dbms_lc.contains("h2")) // Used for unit testing only
+        {
+            return DBMS_H2;
+        }
+        else
+        {
+            return dbms_lc;
         }
     }
 
@@ -1278,4 +1405,5 @@ public class DatabaseUtils
             }
         }
     }
+
 }

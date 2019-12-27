@@ -7,15 +7,14 @@
  */
 package org.dspace.rest.common;
 
-import org.atteo.evo.inflector.English;
-import org.dspace.rest.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.servlet.ServletContext;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.atteo.evo.inflector.English;
 
 /**
  * Created with IntelliJ IDEA.
@@ -42,18 +41,15 @@ public class DSpaceObject {
 
     }
 
-    //public DSpaceObject(org.dspace.content.DSpaceObject dso) {
-	public DSpaceObject(org.dspace.content.DSpaceObject dso, ServletContext servletContext) {
+    public DSpaceObject(org.dspace.content.DSpaceObject dso, ServletContext servletContext) {
         setId(dso.getID());
-        //setUUID(dso.getID().toString());
         setName(dso.getName());
         setHandle(dso.getHandle());
         setType(dso.getTypeText().toLowerCase());
-
         link = createLink(servletContext);
     }
 
-	public Integer getId() {
+    public Integer getId() {
         return id;
     }
 
@@ -78,10 +74,13 @@ public class DSpaceObject {
     }
 
     public String getLink() {
-        
         return link;
     }
 
+    public String createLink(ServletContext servletContext) {
+        return servletContext.getContextPath() + "/" + English.plural(getType()) + "/" + getId();
+    }
+    
     public String getType() {
         return this.type;
     }
@@ -90,7 +89,7 @@ public class DSpaceObject {
         this.type = type;
     }
 
-   
+
     public List<String> getExpand() {
         return expand;
     }
@@ -102,8 +101,4 @@ public class DSpaceObject {
     public void addExpand(String expandableAttribute) {
         this.expand.add(expandableAttribute);
     }
-
-     private String createLink(ServletContext context){
-	        return context.getContextPath() + "/" + English.plural(getType()) + "/" + getId();
-   }
 }

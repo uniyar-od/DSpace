@@ -7,13 +7,17 @@
  */
 package org.dspace.discovery;
 
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
-import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.Metadatum;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
-
-import java.util.List;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
 
 /**
  * Created with IntelliJ IDEA.
@@ -25,7 +29,7 @@ import java.util.List;
 public class SolrServiceSpellIndexingPlugin implements SolrServiceIndexPlugin {
 
     @Override
-    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document) {
+    public void additionalIndex(Context context, DSpaceObject dso, SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
         if(dso instanceof Item){
             Item item = (Item) dso;
             Metadatum[] Metadatums = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
@@ -36,7 +40,7 @@ public class SolrServiceSpellIndexingPlugin implements SolrServiceIndexPlugin {
 
                 String value = Metadatum.value;
 
-                if (value == null)
+                if (value == null || StringUtils.equals(value, MetadataValue.PARENT_PLACEHOLDER_VALUE))
                 {
                     continue;
                 }

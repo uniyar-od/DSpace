@@ -34,6 +34,7 @@ import org.dspace.identifier.IdentifierService;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.util.ItemUtils;
 import org.dspace.utils.DSpace;
 
 /**
@@ -594,7 +595,7 @@ public abstract class DSpaceObject implements IGlobalSearchResult
         List<Metadatum> values = new ArrayList<Metadatum>();
         for (Metadatum dcv : getMetadata())
         {
-            if (match(schema, element, qualifier, lang, dcv))
+            if (ItemUtils.match(schema, element, qualifier, lang, dcv))
             {
                 // We will return a copy of the object in case it is altered
                 Metadatum copy = new Metadatum();
@@ -656,6 +657,36 @@ public abstract class DSpaceObject implements IGlobalSearchResult
         return values;
     }
 
+    public Metadatum[] getMetadataWithoutPlaceholder(String schema, String element, String qualifier,
+            String lang)
+	{
+		// Build up list of matching values
+		List<Metadatum> values = new ArrayList<Metadatum>();
+		for (Metadatum dcv : getMetadata())
+		{
+			if (!StringUtils.equals(dcv.value, MetadataValue.PARENT_PLACEHOLDER_VALUE) && ItemUtils.match(schema, element, qualifier, lang, dcv))
+			{
+				// We will return a copy of the object in case it is altered
+				Metadatum copy = new Metadatum();
+				copy.element = dcv.element;
+				copy.qualifier = dcv.qualifier;
+				copy.value = dcv.value;
+				copy.language = dcv.language;
+				copy.schema = dcv.schema;
+				copy.authority = dcv.authority;
+				copy.confidence = dcv.confidence;
+				values.add(copy);
+				}
+		}
+		
+		// Create an array of matching values
+		Metadatum[] valueArray = new Metadatum[values.size()];
+		valueArray = (Metadatum[]) values.toArray(valueArray);
+		
+		return valueArray;
+	}
+
+    
     /**
      * Retrieve first metadata field value
      */
@@ -1109,7 +1140,7 @@ public abstract class DSpaceObject implements IGlobalSearchResult
         List<Metadatum> values = new ArrayList<Metadatum>();
         for (Metadatum dcv : getMetadata())
         {
-            if (!match(schema, element, qualifier, lang, dcv))
+            if (!ItemUtils.match(schema, element, qualifier, lang, dcv))
             {
                 values.add(dcv);
             }
@@ -1120,91 +1151,8 @@ public abstract class DSpaceObject implements IGlobalSearchResult
         modifiedMetadata = true;
     }
 
-    /**
-     * Utility method for pattern-matching metadata elements.  This
-     * method will return <code>true</code> if the given schema,
-     * element, qualifier and language match the schema, element,
-     * qualifier and language of the <code>Metadatum</code> object passed
-     * in.  Any or all of the element, qualifier and language passed
-     * in can be the <code>Item.ANY</code> wildcard.
-     *
-     * @param schema
-     *            the schema for the metadata field. <em>Must</em> match
-     *            the <code>name</code> of an existing metadata schema.
-     * @param element
-     *            the element to match, or <code>Item.ANY</code>
-     * @param qualifier
-     *            the qualifier to match, or <code>Item.ANY</code>
-     * @param language
-     *            the language to match, or <code>Item.ANY</code>
-     * @param dcv
-     *            the Dublin Core value
-     * @return <code>true</code> if there is a match
-     */
-    private boolean match(String schema, String element, String qualifier,
-                          String language, Metadatum dcv)
-    {
-
-		if (StringUtils.isBlank(element) || StringUtils.isBlank(schema)) {
-			return false;
-		}
-
-		// We will attempt to disprove a match - if we can't we have a match
-		if (!element.equals(Item.ANY) && !element.equals(dcv.element)) {
-			// Elements do not match, no wildcard
-			return false;
-		}
-		
-        if (qualifier == null)
-        {
-            // Value must be unqualified
-            if (dcv.qualifier != null)
-            {
-                // Value is qualified, so no match
-                return false;
-            }
-        }
-        else if (!qualifier.equals(Item.ANY))
-        {
-            // Not a wildcard, so qualifier must match exactly
-            if (!qualifier.equals(dcv.qualifier))
-            {
-                return false;
-            }
-        }
-
-        if (language == null)
-        {
-            // Value must be null language to match
-            if (dcv.language != null)
-            {
-                // Value is qualified, so no match
-                return false;
-            }
-        }
-        else if (!language.equals(Item.ANY))
-        {
-            // Not a wildcard, so language must match exactly
-            if (!language.equals(dcv.language))
-            {
-                return false;
-            }
-        }
-
-        if (!schema.equals(Item.ANY))
-        {
-            if (dcv.schema != null && !dcv.schema.equals(schema))
-            {
-                // The namespace doesn't match
-                return false;
-            }
-        }
-
-        // If we get this far, we have a match
-        return true;
-    }
-
     protected transient MetadataField[] allMetadataFields = null;
+    
     protected MetadataField getMetadataField(Metadatum dcv) throws SQLException, AuthorizeException
     {
         if (allMetadataFields == null)
@@ -1392,6 +1340,8 @@ public abstract class DSpaceObject implements IGlobalSearchResult
                 return new String[]{"eperson","phone",null};
             case "language":
                 return new String[]{"eperson","language",null};
+            case "orcid":
+                return new String[]{"eperson","orcid",null};
             default:
                 return new String[]{null, null, null};
         }

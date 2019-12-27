@@ -25,6 +25,7 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
@@ -41,6 +42,7 @@ import org.dspace.discovery.configuration.DiscoveryConfigurationParameters.SORT;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.discovery.configuration.DiscoverySearchMultilanguageFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
@@ -814,7 +816,11 @@ public class DiscoverUtility
                     // add the already selected facet so to have a full
                     // top list
                     // if possible
-					if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
+                    if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
+                        queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+                                DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
+                                .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_", facetPage * facetLimit,false));                    }
+                    else if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
 							globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName())) {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
 								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet

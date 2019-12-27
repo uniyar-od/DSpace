@@ -34,7 +34,6 @@ import java.sql.SQLException;
 @Path("/handle")
 public class HandleResource extends Resource {
     private static Logger log = Logger.getLogger(HandleResource.class);
-    private static org.dspace.core.Context context;
 
     @GET
     @Path("/{prefix}/{suffix}")
@@ -57,13 +56,13 @@ public class HandleResource extends Resource {
             if(AuthorizeManager.authorizeActionBoolean(context, dso, org.dspace.core.Constants.READ)) {
                 switch(dso.getType()) {
                     case Constants.COMMUNITY:
-                        result = new Community((org.dspace.content.Community) dso, servletContext, expand, context);
+                        result = new Community((org.dspace.content.Community) dso, expand, context, servletContext);
                         break;
                     case Constants.COLLECTION:
-                        result = new Collection((org.dspace.content.Collection) dso, servletContext, expand, context, null, null);
+                        result =  new Collection((org.dspace.content.Collection) dso, expand, context, null, null, servletContext);
                         break;
                     case Constants.ITEM:
-                        result =  new Item((org.dspace.content.Item) dso, servletContext, expand, context);
+                        result =  new Item((org.dspace.content.Item) dso, expand, context, servletContext);
                         break;
                     default:
                         result = new DSpaceObject(dso, servletContext);
