@@ -273,10 +273,11 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 		<span class="col-md-9">		
 <%	
 			for (String provider : identifiers2providers.get(identifier))
-			{			
+			{
+			    if (!"localduplicate".equalsIgnoreCase(provider)) {
 %>
 			<img class="img-thumbnail" src="<%= request.getContextPath() %>/image/submission-lookup-small-<%= provider %>.jpg" />
-<% 
+<% 				}
 			}
 %>
 		</span>	 
