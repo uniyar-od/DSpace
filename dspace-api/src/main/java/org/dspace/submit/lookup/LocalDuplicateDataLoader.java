@@ -2,12 +2,12 @@ package org.dspace.submit.lookup;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -26,6 +26,7 @@ import gr.ekt.bte.core.StringValue;
 
 public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
 {
+    private static final String LOCAL_DUPLICATE_DATALOADER_NAME = "localduplicate";
     private SearchService searchService;
     private String doiMetadata;
     private String isbnMetadata;
@@ -98,7 +99,24 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
     @Override
     public List<String> getSupportedIdentifiers()
     {
-        return Arrays.asList(new String[] { WOSID, PUBMED, DOI, SCOPUSEID, ISBN});
+        List<String> supportedIdentifiers = new ArrayList<String>();
+        
+        if (StringUtils.isNotBlank(getDoiMetadata())) {
+            supportedIdentifiers.add(DOI);
+        }
+        if (StringUtils.isNotBlank(getWosMetadata())) {
+            supportedIdentifiers.add(WOSID);
+        }
+        if (StringUtils.isNotBlank(getPubmedMetadata())) {
+            supportedIdentifiers.add(PUBMED);
+        }
+        if (StringUtils.isNotBlank(getScopusMetadata())) {
+            supportedIdentifiers.add(SCOPUSEID);
+        }
+        if (StringUtils.isNotBlank(getIsbnMetadata())) {
+            supportedIdentifiers.add(ISBN);
+        }
+        return supportedIdentifiers;
     }
 
     @Override
@@ -129,143 +147,104 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
         SolrQuery solrQuery = new SolrQuery();
         
         StringBuffer query = new StringBuffer();
+        buildQuery(dois, query, getDoiMetadata());
+        buildQuery(isbnid, query, getIsbnMetadata());
+        buildQuery(scopuseid, query, getScopusMetadata());
+        buildQuery(wosid, query, getWosMetadata());
+        buildQuery(pmids, query, getPubmedMetadata());
 
-        boolean appender = false;
-        
-        if(dois != null && !dois.isEmpty()) {
-        int doicount = 0;
-        for(String doi : dois) {
-            if(doicount>0) {
-                query.append(" OR ");    
-            }
-            query.append(getDoiMetadata() + ":\"" +doi + "\"");
-            doicount++;
-            appender = true;
-            }
-        }
-        
-        if (isbnid != null && !isbnid.isEmpty())
-        {
-            if(appender) query.append(" OR ");
-            int isbncount = 0;
-            for (String isbn : isbnid)
-            {
-                if (isbncount > 0)
-                {
-                    query.append(" OR ");
-                }
-                query.append(getIsbnMetadata() + ":\"" + isbn + "\"");
-                isbncount++;
-                appender = true;
-            }
-        }
-   
-        if (scopuseid != null && !scopuseid.isEmpty())
-        {
-            int scopuscount = 0;
-            for (String scid : scopuseid)
-            {
-                if (scopuscount > 0)
-                {
-                    query.append(" OR ");
-                }
-                query.append(getDoiMetadata() + ":\"" + scid + "\"");
-                scopuscount++;
-                appender = true;
-            }
-        }
+        List<Record> solrRecords = new ArrayList<Record>();
 
-        if (wosid != null && !wosid.isEmpty())
+        if (query.length() > 0)
         {
-            if(appender) query.append(" OR ");
-            int wosidcount = 0;
-            for (String wos : wosid)
+            solrQuery.setQuery(query.toString());
+            try
             {
-                if (wosidcount > 0)
+                QueryResponse response = searchService.search(solrQuery);
+                SolrDocumentList docList = response.getResults();
+                Iterator<SolrDocument> solrDoc = docList.iterator();
+                while (solrDoc.hasNext())
                 {
-                    query.append(" OR ");
-                }
-                query.append(getWosMetadata() + ":\"" + wos + "\"");
-                wosidcount++;
-                appender = true;
-            }
-        }
+                    SolrDocument doc = solrDoc.next();
+                    Integer resourceId = (Integer) doc
+                            .getFirstValue("search.resourceid");
+                    String handle = (String) doc.getFirstValue("handle");
+                    String url = ConfigurationManager.getProperty("dspace.url")
+                            + "/handle/" + handle;
+                    MutableRecord record = new SubmissionLookupPublication(
+                            LOCAL_DUPLICATE_DATALOADER_NAME);
 
-        if (pmids != null && !pmids.isEmpty())
-        {
-            if(appender) query.append(" OR ");
-            int pmcount = 0;
-            for (String pmid : pmids)
+                    record.addValue("id", new StringValue("" + resourceId));
+                    record.addValue("handle", new StringValue(handle));
+                    record.addValue("url", new StringValue(url));
+
+                    Object scopusID = doc.getFirstValue(getScopusMetadata());
+                    Object isbnID = doc.getFirstValue(getIsbnMetadata());
+                    Object wosID = doc.getFirstValue(getWosMetadata());
+                    Object pubmedID = doc.getFirstValue(getPubmedMetadata());
+                    Object doiID = doc.getFirstValue(getDoiMetadata());
+
+                    if (scopusID != null)
+                    {
+                        record.addValue(SCOPUSEID,
+                                new StringValue(scopusID.toString()));
+                    }
+                    if (isbnID != null)
+                    {
+                        record.addValue(ISBN,
+                                new StringValue(isbnID.toString()));
+                    }
+                    if (wosID != null)
+                    {
+                        record.addValue(WOSID,
+                                new StringValue(wosID.toString()));
+                    }
+                    if (doiID != null)
+                    {
+                        record.addValue(DOI, new StringValue(doiID.toString()));
+                    }
+                    if (pubmedID != null)
+                    {
+                        record.addValue(PUBMED,
+                                new StringValue(pubmedID.toString()));
+                    }
+                    solrRecords.add(record);
+                }
+            }
+            catch (SearchServiceException e)
             {
-                if (pmcount > 0)
+                log.error("Error retrieving documents", e);
+            }
+
+            for (Record p : solrRecords)
+            {
+                results.add(convertFields(p));
+            }
+        }
+        return results;
+    }
+
+    private void buildQuery(Set<String> identifiers, StringBuffer query,
+            String metadata)
+    {
+        if (StringUtils.isNotEmpty(metadata) && identifiers != null
+                && !identifiers.isEmpty())
+        {
+            if (query.length() > 0)
+            {
+                query.append(" OR ");
+            }
+            int count = 0;
+            for (String identifier : identifiers)
+            {
+                if (count > 0)
                 {
                     query.append(" OR ");
                 }
-                query.append(getPubmedMetadata() + ":\"" + pmid + "\"");
-                pmcount++;
-                appender = true;
+                query.append(metadata + ":\"" + identifier + "\"");
+                count++;
             }
         }
-       
-       solrQuery.setQuery(query.toString());
-       
-       List<Record> solrRecords = new ArrayList<Record>();
-       try
-       {
-           QueryResponse response = searchService.search(solrQuery);
-           SolrDocumentList docList = response.getResults();
-           Iterator<SolrDocument> solrDoc = docList.iterator();
-           while (solrDoc.hasNext())
-           {    
-               SolrDocument doc = solrDoc.next();
-               Integer resourceId = (Integer) doc
-                       .getFirstValue("search.resourceid");
-               String handle = (String) doc
-                       .getFirstValue("handle");
-               String url = ConfigurationManager.getProperty("dspace.url")
-                       + "/handle/" + handle;
-               MutableRecord record = new SubmissionLookupPublication("solr");
-              
-               record.addValue("id",new StringValue(""+resourceId));
-               record.addValue("handle",new StringValue(handle));
-               record.addValue("url", new StringValue(url));
-               
-               Object scopusID =  doc.getFirstValue(getScopusMetadata());
-               Object isbnID =  doc.getFirstValue(getIsbnMetadata());
-               Object wosID =  doc.getFirstValue(getWosMetadata());
-               Object pubmedID =  doc.getFirstValue(getPubmedMetadata());
-               Object doiID =  doc.getFirstValue(getDoiMetadata());
-              
-               if(scopusID != null) {
-                   record.addValue(SCOPUSEID,  new StringValue(scopusID.toString() ) );
-               }
-               if(isbnID != null) {
-                   record.addValue(ISBN,  new StringValue(isbnID.toString() ) );
-               }
-               if(wosID != null) {
-                   record.addValue(WOSID,  new StringValue(wosID.toString() ) );
-               }
-               if(doiID!= null) {
-                    record.addValue(DOI,  new StringValue(doiID.toString() ) );
-                }
-               if(pubmedID != null) {
-                   record.addValue(PUBMED,  new StringValue(pubmedID.toString() ) );
-               }
-               solrRecords.add(record);
-           }
-       }
-       catch (SearchServiceException e)
-       {
-           log
-           .error("Error retrieving documents", e);
-       }
-       
-       for (Record p : solrRecords)
-       {
-           results.add(convertFields(p));
-       }
-       return results;
-       
     }
     
 }
