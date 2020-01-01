@@ -28,64 +28,10 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
 {
     private static final String LOCAL_DUPLICATE_DATALOADER_NAME = "localduplicate";
     private SearchService searchService;
-    private String doiMetadata;
-    private String isbnMetadata;
-    private String wosMetadata;
-    private String scopusMetadata;
-    private String pubmedMetadata;
+    private Map<String, String> identifiers2metadata;
     
     private static final Logger log = Logger.getLogger(LocalDuplicateDataLoader.class);
     
-    public String getDoiMetadata()
-    {
-        return doiMetadata;
-    }
-
-    public void setDoiMetadata(String doiMetadata)
-    {
-        this.doiMetadata = doiMetadata;
-    }
-
-    public String getIsbnMetadata()
-    {
-        return isbnMetadata;
-    }
-
-    public void setIsbnMetadata(String isbnMetadata)
-    {
-        this.isbnMetadata = isbnMetadata;
-    }
-
-    public String getWosMetadata()
-    {
-        return wosMetadata;
-    }
-
-    public void setWosMetadata(String wosMetadata)
-    {
-        this.wosMetadata = wosMetadata;
-    }
-
-    public String getScopusMetadata()
-    {
-        return scopusMetadata;
-    }
-
-    public void setScopusMetadata(String scopusMetadata)
-    {
-        this.scopusMetadata = scopusMetadata;
-    }
-
-    public String getPubmedMetadata()
-    {
-        return pubmedMetadata;
-    }
-
-    public void setPubmedMetadata(String pubmedMetadata)
-    {
-        this.pubmedMetadata = pubmedMetadata;
-    }
-
     public SearchService getSearchService()
     {
         return searchService;
@@ -96,25 +42,23 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
         this.searchService = searchService;
     }
 
+    public void setIdentifiers2metadata(
+            Map<String, String> identifiers2metadata)
+    {
+        this.identifiers2metadata = identifiers2metadata;
+    }
+    
+    public Map<String, String> getIdentifiers2metadata()
+    {
+        return identifiers2metadata;
+    }
+    
     @Override
     public List<String> getSupportedIdentifiers()
     {
         List<String> supportedIdentifiers = new ArrayList<String>();
-        
-        if (StringUtils.isNotBlank(getDoiMetadata())) {
-            supportedIdentifiers.add(DOI);
-        }
-        if (StringUtils.isNotBlank(getWosMetadata())) {
-            supportedIdentifiers.add(WOSID);
-        }
-        if (StringUtils.isNotBlank(getPubmedMetadata())) {
-            supportedIdentifiers.add(PUBMED);
-        }
-        if (StringUtils.isNotBlank(getScopusMetadata())) {
-            supportedIdentifiers.add(SCOPUSEID);
-        }
-        if (StringUtils.isNotBlank(getIsbnMetadata())) {
-            supportedIdentifiers.add(ISBN);
+        for (String id : identifiers2metadata.keySet()) {
+            supportedIdentifiers.add(id);
         }
         return supportedIdentifiers;
     }
@@ -136,23 +80,15 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
     public List<Record> getByIdentifier(Context context,
             Map<String, Set<String>> keys) throws HttpException, IOException
     {
-        Set<String> dois = keys != null ? keys.get(DOI) : null;
-        Set<String> pmids = keys != null ? keys.get(PUBMED) : null;        
-        Set<String> scopuseid = keys != null ? keys.get(SCOPUSEID) : null;
-        Set<String> wosid = keys != null ? keys.get(WOSID) : null;
-        Set<String> isbnid = keys != null ? keys.get(ISBN) : null;
-        
         List<Record> results = new ArrayList<Record>();
-        
         SolrQuery solrQuery = new SolrQuery();
-        
         StringBuffer query = new StringBuffer();
-        buildQuery(dois, query, getDoiMetadata());
-        buildQuery(isbnid, query, getIsbnMetadata());
-        buildQuery(scopuseid, query, getScopusMetadata());
-        buildQuery(wosid, query, getWosMetadata());
-        buildQuery(pmids, query, getPubmedMetadata());
-
+        
+        for (String id : identifiers2metadata.keySet()) {
+            Set<String> idValues = keys != null ? keys.get(id) : null;    
+            buildQuery(idValues, query, identifiers2metadata.get(id));
+        }
+        
         List<Record> solrRecords = new ArrayList<Record>();
 
         if (query.length() > 0)
@@ -178,35 +114,13 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
                     record.addValue("handle", new StringValue(handle));
                     record.addValue("url", new StringValue(url));
 
-                    Object scopusID = doc.getFirstValue(getScopusMetadata());
-                    Object isbnID = doc.getFirstValue(getIsbnMetadata());
-                    Object wosID = doc.getFirstValue(getWosMetadata());
-                    Object pubmedID = doc.getFirstValue(getPubmedMetadata());
-                    Object doiID = doc.getFirstValue(getDoiMetadata());
-
-                    if (scopusID != null)
-                    {
-                        record.addValue(SCOPUSEID,
-                                new StringValue(scopusID.toString()));
-                    }
-                    if (isbnID != null)
-                    {
-                        record.addValue(ISBN,
-                                new StringValue(isbnID.toString()));
-                    }
-                    if (wosID != null)
-                    {
-                        record.addValue(WOSID,
-                                new StringValue(wosID.toString()));
-                    }
-                    if (doiID != null)
-                    {
-                        record.addValue(DOI, new StringValue(doiID.toString()));
-                    }
-                    if (pubmedID != null)
-                    {
-                        record.addValue(PUBMED,
-                                new StringValue(pubmedID.toString()));
+                    for (String id : identifiers2metadata.keySet()) {
+                        Object idValue = doc.getFirstValue(identifiers2metadata.get(id));
+                        if (idValue != null)
+                        {
+                            record.addValue(id,
+                                    new StringValue(idValue.toString()));
+                        }
                     }
                     solrRecords.add(record);
                 }

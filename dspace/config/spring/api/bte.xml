@@ -119,7 +119,7 @@
 	            <entry key="orcid" value-ref="orcidOnlineDataLoader"/>
 	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
 	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
-			    <entry key="localduplicate" value-ref="LocalDuplicateDataLoader" />
+			    <entry key="localduplicate" value-ref="localDuplicateDataLoader" />
 <!-- 	            depending on your apiKey you should use scopusOnlineDataLoader or scivalOnlineDataLoader or
 					adsOnlineDataLoader 
 		    <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
@@ -857,17 +857,21 @@
 		</constructor-arg>
 	</bean>
 
-	<bean id="LocalDuplicateDataLoader" class="org.dspace.submit.lookup.LocalDuplicateDataLoader">
+	<bean id="localDuplicateDataLoader" class="org.dspace.submit.lookup.LocalDuplicateDataLoader">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 		<property name="fieldMap" ref="solrInputMap" />
-		<property name="doiMetadata" value="dc.identifier.doi" />
-		<property name="isbnMetadata" value="dc.identifier.isbn" />
-		<property name="pubmedMetadata" value="dc.identifier.pmid" />
-		<property name="scopusMetadata" value="dc.identifier.doi" />
-		<property name="wosMetadata" value="dc.identifier.isi" />
-</bean>
+		<property name="identifiers2metadata">
+			<map>
+				<entry key="doi" value="dc.identifier.doi" />
+				<entry key="isbn" value="dc.identifier.isbn" />
+				<entry key="pubmed" value="dc.identifier.pmid" />
+				<entry key="scopuseid" value="dc.identifier.doi" />
+				<entry key="isiid" value="dc.identifier.isi" />
+			</map>
+		</property>
+	</bean>
 
-<bean name="solrInputMap" class="java.util.HashMap" scope="prototype">
+	<bean name="solrInputMap" class="java.util.HashMap" scope="prototype">
 		<constructor-arg>
 			<map key-type="java.lang.String" value-type="java.lang.String">
 				<entry key="url" value="url" />
