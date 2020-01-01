@@ -436,7 +436,8 @@ public class SubmissionLookupJSONRequest extends JSONRequest
                                         .iterator(), ", ") : "");
                 data.put("issued",
                         SubmissionLookupUtils.getFirstValue(pub, "issued"));
-
+                data.put("handle",
+                        SubmissionLookupUtils.getFirstValue(pub, "handle"));
                 publications.add(data);
             }
         }
