@@ -859,7 +859,6 @@
 
 	<bean id="LocalDuplicateDataLoader" class="org.dspace.submit.lookup.LocalDuplicateDataLoader">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
-		<property name="searchProvider" value="false" />
 		<property name="fieldMap" ref="solrInputMap" />
 		<property name="doiMetadata" value="dc.identifier.doi" />
 		<property name="isbnMetadata" value="dc.identifier.isbn" />
