@@ -206,7 +206,7 @@ public class ScriptStatSubscribe
                     Font labelFont = workbook.createFont();
                     labelFont.setFontName("Arial");
                     labelFont.setFontHeight((short)10);
-                    labelFont.setBoldweight((short)10);
+                    labelFont.setBold(true);
                     // TODO: labelFont.setCharset(CP_WINDOWS_1252);
                     CellStyle cfobj = workbook.createCellStyle();
                     cfobj.setFont(labelFont);
