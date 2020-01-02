@@ -865,7 +865,7 @@
 				<entry key="doi" value="dc.identifier.doi" />
 				<entry key="isbn" value="dc.identifier.isbn" />
 				<entry key="pubmed" value="dc.identifier.pmid" />
-				<entry key="scopuseid" value="dc.identifier.doi" />
+				<entry key="scopuseid" value="dc.identifier.scopus" />
 				<entry key="isiid" value="dc.identifier.isi" />
 			</map>
 		</property>
