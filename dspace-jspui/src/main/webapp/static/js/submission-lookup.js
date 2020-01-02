@@ -132,27 +132,27 @@ submissionLookupShowResult = function(info, suffixID){
 		var par = j('<p class="sl-result">');
 		var divImg = j('<div class="submission-lookup-providers">');
 		par.append(divImg);
+		var localDupl = false;
 		for (var k=0;k<info.result[i].providers.length;k++)
 		{
 			var prov = info.result[i].providers[k];
 			divImg.append(j('<img class="img-thumbnail" src="'+dspaceContextPath+'/image/submission-lookup-small-'+prov+'.jpg">'));
+			if(prov == "localduplicate"){
+				localDupl = true;
+			}
 		}	
-		if(prov == "localduplicate"){
+		
 		par
 				.append(checkbox)
 				.append(j('<span class="sl-result-title">').text(info.result[i].title))
 				.append(j('<span class="sl-result-authors">').text(info.result[i].authors))
-				.append(j('<span class="sl-result-date">').text(info.result[i].issued))
-				.append(j('<span class="sl-result-url">').html("<a href='"+ dspaceContextPath +"/handle/" + info.result[i].handle + "' target = 'blank'>"+info.result[i].handle+"</a>" ))
-				.append(bt);
-				}else {
-					par
-					.append(checkbox)
-					.append(j('<span class="sl-result-title">').text(info.result[i].title))
-					.append(j('<span class="sl-result-authors">').text(info.result[i].authors))
-					.append(j('<span class="sl-result-date">').text(info.result[i].issued))
-					.append(bt);
-				}
+				.append(j('<span class="sl-result-date">').text(info.result[i].issued));
+		
+		if(localDupl){
+			par
+				.append(j('<span class="sl-result-url">').html("<a href='"+ dspaceContextPath +"/handle/" + info.result[i].handle + "' target = 'blank'>"+info.result[i].handle+"</a>" ));
+		}
+		par.append(bt);
 
 		j('#result-list').append(par);
 		bt.button();
@@ -203,11 +203,18 @@ submissionLookupShowDetails = function(info){
 	
 	var modalbody = j('#loading-details .modal-body');
 	var divImg = j('<div class="submission-lookup-providers">');
-	
+	var localDupl = false;
 	for (var k=0;k<info.providers.length;k++)
 	{
 		var prov = info.providers[k];
 		divImg.append(j('<img class="img-thumbnail" src="'+dspaceContextPath+'/image/submission-lookup-small-'+prov+'.jpg">'));
+		if(prov == "localduplicate"){
+			localDupl = true;
+		}
+	}
+	if(localDupl){
+		divImg
+			.append(j('<span class="localduplicate-url">').html("<a href='"+ dspaceContextPath +"/handle/" + info.publication.handle + "' target = 'blank'>"+info.publication.handle+"</a>" ));
 	}
 	modalbody.append(divImg);
 	var detailsDiv = j('<div class="submission-lookup-details">');

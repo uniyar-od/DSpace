@@ -98,7 +98,7 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 	.sl-result-title, .sl-result-authors, .sl-result-date, .sl-result-url {display: block;}
 	.sl-result-title {font-weight: bold;}
 	.sl-result-authors {font-style: italic;}
-	.sl-result-url{margin-bottom: 10px;}
+	.sl-result-date, .sl-result-url {margin-bottom: 10px;}
 	.invalid-value {border: 1px solid #FF6600;}
 	.img-thumbnail {height: 35px !important;}
 	</style>	
