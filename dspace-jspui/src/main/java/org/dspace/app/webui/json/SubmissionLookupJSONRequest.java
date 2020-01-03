@@ -98,7 +98,9 @@ public class SubmissionLookupJSONRequest extends JSONRequest
 					String splitRegex = "(\\s*,\\s+|\\s*;\\s+|\\s*;+|\\s*,+|\\s+)";
 					for (String val : parameterValue.split(splitRegex)) {
 						val = StringUtils.trim(val);
-						set.add(val);
+						if (StringUtils.isNotBlank(val)) {
+						    set.add(val);
+						}
 					}                    
                     identifiers.put(
                             parameterName.substring("identifier_".length()),

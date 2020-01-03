@@ -106,6 +106,10 @@ public class PubmedService
     public List<Record> search(String query) throws IOException, HttpException
     {
         List<Record> results = new ArrayList<>();
+        if (StringUtils.isBlank(query)) {
+            // skip empty query
+            return results;
+        }
         if (!ConfigurationManager.getBooleanProperty(SubmissionLookupService.CFG_MODULE, "remoteservice.demo"))
         {
             HttpGet method = null;
