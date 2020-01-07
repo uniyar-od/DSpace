@@ -2667,6 +2667,7 @@
 				<ref bean="searchFilterDRISSoftware" />
 				<ref bean="searchFilterDRISStatus" />
 		</list>
+		</constructor-arg>
 	</bean>
 			
 	<bean id="facetsJournalsConfiguration" class="java.util.ArrayList">
