@@ -143,41 +143,20 @@ public class MultipleSubmissionLookupDataLoader implements DataLoader
                 String providerName = SubmissionLookupUtils.getFirstValue(
                         publication,
                         SubmissionLookupService.PROVIDER_NAME_FIELD);
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.PUBMED))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundPubmeds, foundPubmeds, "pubmedID", NOT_FOUND_PUBMED);
-                }
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.DOI))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundDOIs, foundDOIs, "doi", NOT_FOUND_DOI);
-                }
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.ARXIV))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundArxivs, foundArxivs, "url", NOT_FOUND_ARXIV);
-                }
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.CINII))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundCiniis, foundCiniis, "ncid", NOT_FOUND_CINII);
-                }
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.SCOPUSEID))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundScopuss, foundScopuss, "eid", NOT_FOUND_SCOPUS);
-                }
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.WOSID))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundWOSs, foundWOSs, "isiId", NOT_FOUND_WOS);
-                }
-                if (identifiers != null && !identifiers.containsKey(SubmissionLookupDataLoader.ADSBIBCODE))
-                {
-                    retrieveIdentifier(publication, providerName,
-                            provider2foundAdsbibcodes, foundAdsbibcodes, "adsbibcode", NOT_FOUND_ADSBIBCODE);
-                }
+                retrieveIdentifier(publication, providerName,
+                        provider2foundPubmeds, foundPubmeds, "pubmedID", NOT_FOUND_PUBMED);
+                retrieveIdentifier(publication, providerName,
+                        provider2foundDOIs, foundDOIs, "doi", NOT_FOUND_DOI);
+                retrieveIdentifier(publication, providerName,
+                        provider2foundArxivs, foundArxivs, "url", NOT_FOUND_ARXIV);
+                retrieveIdentifier(publication, providerName,
+                        provider2foundCiniis, foundCiniis, "ncid", NOT_FOUND_CINII);
+                retrieveIdentifier(publication, providerName,
+                        provider2foundScopuss, foundScopuss, "eid", NOT_FOUND_SCOPUS);
+                retrieveIdentifier(publication, providerName,
+                        provider2foundWOSs, foundWOSs, "isiId", NOT_FOUND_WOS);
+                retrieveIdentifier(publication, providerName,
+                        provider2foundAdsbibcodes, foundAdsbibcodes, "adsbibcode", NOT_FOUND_ADSBIBCODE);
             }
 
             for (String providerName : dataloadersMap.keySet())
@@ -214,49 +193,56 @@ public class MultipleSubmissionLookupDataLoader implements DataLoader
                 {
                     Set<String> pubmedToSearch = new HashSet<String>();
                     Set<String> alreadyFoundPubmeds = provider2foundPubmeds.get(providerName);
-                    identifierToSearch(foundPubmeds, pubmedToSearch, alreadyFoundPubmeds);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.PUBMED):null;
+					identifierToSearch(foundPubmeds, pubmedToSearch, alreadyFoundPubmeds, alreadySearched);
                     addIdentifierToKey(pubmedToSearch, SubmissionLookupDataLoader.PUBMED, keys);
                 }
                 if (provider.getSupportedIdentifiers().contains(SubmissionLookupDataLoader.DOI))
                 {
                     Set<String> doiToSearch = new HashSet<String>();
                     Set<String> alreadyFoundDOIs = provider2foundDOIs.get(providerName);
-                    identifierToSearch(foundDOIs, doiToSearch, alreadyFoundDOIs);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.DOI):null;
+					identifierToSearch(foundDOIs, doiToSearch, alreadyFoundDOIs, alreadySearched);
                     addIdentifierToKey(doiToSearch, SubmissionLookupDataLoader.DOI, keys);
                 }
                 if (provider.getSupportedIdentifiers().contains(SubmissionLookupDataLoader.ARXIV))
                 {
                     Set<String> arxivToSearch = new HashSet<String>();
                     Set<String> alreadyFoundArxivs = provider2foundArxivs.get(providerName);
-                    identifierToSearch(foundArxivs, arxivToSearch, alreadyFoundArxivs);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.ARXIV):null;
+					identifierToSearch(foundArxivs, arxivToSearch, alreadyFoundArxivs, alreadySearched);
                     addIdentifierToKey(arxivToSearch, SubmissionLookupDataLoader.ARXIV, keys);
                 }
                 if (provider.getSupportedIdentifiers().contains(SubmissionLookupDataLoader.CINII))
                 {
                     Set<String> ciniiToSearch = new HashSet<String>();
                     Set<String> alreadyFoundCiniis = provider2foundCiniis.get(providerName);
-                    identifierToSearch(foundCiniis, ciniiToSearch, alreadyFoundCiniis);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.CINII):null;
+					identifierToSearch(foundCiniis, ciniiToSearch, alreadyFoundCiniis, alreadySearched);
                     addIdentifierToKey(ciniiToSearch, SubmissionLookupDataLoader.CINII, keys);
                 }
                 if (provider.getSupportedIdentifiers().contains(SubmissionLookupDataLoader.SCOPUSEID))
                 {
                     Set<String> scopusToSearch = new HashSet<String>();
                     Set<String> alreadyFoundScopuss = provider2foundScopuss.get(providerName);
-                    identifierToSearch(foundScopuss, scopusToSearch, alreadyFoundScopuss);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.SCOPUSEID):null;
+					identifierToSearch(foundScopuss, scopusToSearch, alreadyFoundScopuss, alreadySearched);
                     addIdentifierToKey(scopusToSearch, SubmissionLookupDataLoader.SCOPUSEID, keys);
                 }
                 if (provider.getSupportedIdentifiers().contains(SubmissionLookupDataLoader.WOSID))
                 {
                     Set<String> wosToSearch = new HashSet<String>();
                     Set<String> alreadyFoundWOSs = provider2foundWOSs.get(providerName);
-                    identifierToSearch(foundWOSs, wosToSearch, alreadyFoundWOSs);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.WOSID):null;
+					identifierToSearch(foundWOSs, wosToSearch, alreadyFoundWOSs, alreadySearched);
                     addIdentifierToKey(wosToSearch, SubmissionLookupDataLoader.WOSID, keys);
                 }
                 if (provider.getSupportedIdentifiers().contains(SubmissionLookupDataLoader.ADSBIBCODE))
                 {
                     Set<String> adsbibcodeToSearch = new HashSet<String>();
                     Set<String> alreadyFoundAdsbibcodes = provider2foundAdsbibcodes.get(providerName);
-                    identifierToSearch(foundAdsbibcodes, adsbibcodeToSearch, alreadyFoundAdsbibcodes);
+                    Set<String> alreadySearched = identifiers != null?identifiers.get(SubmissionLookupDataLoader.ADSBIBCODE):null;
+					identifierToSearch(foundAdsbibcodes, adsbibcodeToSearch, alreadyFoundAdsbibcodes, alreadySearched);
                     addIdentifierToKey(adsbibcodeToSearch, SubmissionLookupDataLoader.ADSBIBCODE, keys);
                 }
 
@@ -474,14 +460,16 @@ public class MultipleSubmissionLookupDataLoader implements DataLoader
     }
 
     private void identifierToSearch(List<String> foundIdentifiers,
-            Set<String> identifierToSearch, Set<String> alreadyFoundIdentifiers)
+            Set<String> identifierToSearch, Set<String> alreadyFoundIdentifiers, Set<String> alreadySearched)
     {
         if (foundIdentifiers != null && !foundIdentifiers.isEmpty())
         for (String identifier : foundIdentifiers)
         {
             if (alreadyFoundIdentifiers == null || !alreadyFoundIdentifiers.contains(identifier))
             {
-                identifierToSearch.add(identifier);
+            	if (alreadySearched == null || !alreadySearched.contains(identifier)) {
+            		identifierToSearch.add(identifier);
+            	}
             }
         }
     }
