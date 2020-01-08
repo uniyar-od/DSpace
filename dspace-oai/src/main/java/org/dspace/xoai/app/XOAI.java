@@ -49,7 +49,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.ItemIterator;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
@@ -60,11 +59,6 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.xoai.exceptions.CompilingException;
-import org.dspace.xoai.services.api.cache.XOAICacheService;
-import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
-import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
 import org.dspace.xoai.services.api.config.ConfigurationService;
 import org.dspace.xoai.services.api.database.CollectionsService;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
@@ -83,6 +77,10 @@ import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
 public class XOAI {
+    public static final String ITEMTYPE_DEFAULT = "item";
+
+    public static final String ITEMTYPE_SPECIAL = "cfitem";
+
     private static Logger log = LogManager.getLogger(XOAI.class);
 
     private Context context;
@@ -92,10 +90,6 @@ public class XOAI {
 
     @Autowired
     private SolrServerResolver solrServerResolver;
-    @Autowired
-    private XOAILastCompilationCacheService xoaiLastCompilationCacheService;
-    @Autowired
-    private XOAIItemCacheService xoaiItemCacheService;
     @Autowired
     private CollectionsService collectionsService;
 
@@ -162,8 +156,6 @@ public class XOAI {
                 println("Index optimized");
             }
 
-            // Set last compilation date
-            xoaiLastCompilationCacheService.put(new Date());
             return result;
         } catch (DSpaceSolrException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
@@ -194,7 +186,7 @@ public class XOAI {
         String discoverQuery = "lastModified:{%s TO *}";
         discoverQuery = String.format(discoverQuery, df.format(start));
         switch (idxType) {
-        case "item":
+        case ITEMTYPE_DEFAULT:
         case "rp":
         case "project":
         case "ou":
@@ -249,7 +241,7 @@ public class XOAI {
     	String discoverQuery = "";
     	
     	switch (idxType) {
-        case "item":
+        case ITEMTYPE_DEFAULT:
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.item");
         	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
         		discoverQuery = "discoverable:true AND search.resourcetype:2";
@@ -368,12 +360,25 @@ public class XOAI {
             for (DSpaceObject o : result.getDspaceObjects()) {
                 try {
                 	SolrInputDocument solrDoc = null;
-                	if (o instanceof Item)
-                		solrDoc = this.indexResults((Item)o);
-                	else if (o instanceof ACrisObject)
+                	boolean doublingSolrDocument = false;
+                	if (o instanceof Item) {
+                	    Item item = (Item)o;
+                	    String type = (String)item.getExtraInfo().get("item.cerifentitytype");
+                	    solrDoc = this.indexResults(item, false);
+                	    if(StringUtils.isNotBlank(type)) {
+                	        doublingSolrDocument = true;
+                	    }
+                	}
+                	else if (o instanceof ACrisObject) {
                 		solrDoc = this.indexResults((ACrisObject)o);
-                	
+                	}
                 	server.add(solrDoc);
+                	
+                	if(doublingSolrDocument) {
+                	    Item item = (Item)o;
+                	    solrDoc = this.indexResults(item, true);
+                	    server.add(solrDoc);
+                	}
                     context.clearCache();
                 } catch (SQLException ex) {
                     log.error(ex.getMessage(), ex);
@@ -410,7 +415,7 @@ public class XOAI {
      * @throws XMLStreamException
      * @throws WritingXmlException
      */
-    private SolrInputDocument indexResults(Item item) throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
+    private SolrInputDocument indexResults(Item item, boolean specialIdentifier) throws SQLException, MetadataBindException, ParseException, XMLStreamException, WritingXmlException {
         SolrInputDocument doc = new SolrInputDocument();
         doc.addField("item.id", item.getID());
         boolean pub = this.isPublic(item);
@@ -421,15 +426,16 @@ public class XOAI {
         }
         
         String type = (String)item.getExtraInfo().get("item.cerifentitytype");
-        if(StringUtils.isNotBlank(type)) {
+        if(StringUtils.isNotBlank(type) && specialIdentifier) {
             doc.addField("item.identifier", type +"/"+ handle);
+            doc.addField("item.type", ITEMTYPE_SPECIAL);
         }
         else {
             doc.addField("item.identifier", handle);
+            doc.addField("item.type", ITEMTYPE_DEFAULT);
         }
         
         doc.addField("item.handle", handle);
-        doc.addField("item.type", "item");
         doc.addField("item.lastmodified", item.getLastModified());
         if (item.getSubmitter() != null) {
             doc.addField("item.submitter", item.getSubmitter().getEmail());
@@ -462,7 +468,12 @@ public class XOAI {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
-        retrieveMetadata(context, item).write(xmlContext);
+        if(StringUtils.isNotBlank(type) && specialIdentifier) {
+            retrieveMetadata(context, item, true).write(xmlContext);
+        }
+        else {
+            retrieveMetadata(context, item, false).write(xmlContext);
+        }
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
         doc.addField("item.compile", out.toString());
@@ -584,7 +595,7 @@ public class XOAI {
             
             String eraseQuery = "";
             switch (idxType) {
-            case "item":
+            case ITEMTYPE_DEFAULT:
             	eraseQuery = ConfigurationManager.getProperty("oai", "oai.erase.query.item");
             	if (eraseQuery == null || eraseQuery.trim().length() <= 0) {
             		eraseQuery = "item.type:item";
@@ -633,28 +644,13 @@ public class XOAI {
         }
     }
 
-    private static void cleanCache(XOAIItemCacheService xoaiItemCacheService,  XOAICacheService xoaiCacheService) throws IOException {
-        System.out.println("Purging cached OAI responses.");
-        xoaiItemCacheService.deleteAll();
-        xoaiCacheService.deleteAll();
-    }
-
     private static final String COMMAND_IMPORT = "import";
-    private static final String COMMAND_CLEAN_CACHE = "clean-cache";
-    private static final String COMMAND_COMPILE_ITEMS = "compile-items";
-    private static final String COMMAND_ERASE_COMPILED_ITEMS = "erase-compiled-items";
 
     public static void main(String[] argv) throws IOException, ConfigurationException {
-
 
         AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(new Class[]{
                 BasicConfiguration.class
         });
-
-        ConfigurationService configurationService = applicationContext.getBean(ConfigurationService.class);
-        XOAICacheService cacheService = applicationContext.getBean(XOAICacheService.class);
-        XOAIItemCacheService itemCacheService = applicationContext.getBean(XOAIItemCacheService.class);
-
         Context ctx = null;
 
         try {
@@ -669,25 +665,13 @@ public class XOAI {
             options.addOption("t", "type", true, "Type of index (item, rp, project, ou, other, all). The default is 'all'.");
             CommandLine line = parser.parse(options, argv);
 
-            String[] validSolrCommands = {COMMAND_IMPORT, COMMAND_CLEAN_CACHE};
-            String[] validDatabaseCommands = {COMMAND_CLEAN_CACHE, COMMAND_COMPILE_ITEMS, COMMAND_ERASE_COMPILED_ITEMS};
-
-
-            boolean solr = true; // Assuming solr by default
-            solr = !("database").equals(configurationService.getProperty("oai", "storage"));
-
+            String[] validSolrCommands = {COMMAND_IMPORT};
 
             boolean run = false;
             if (line.getArgs().length > 0) {
-                if (solr) {
                     if (Arrays.asList(validSolrCommands).contains(line.getArgs()[0])) {
                         run = true;
                     }
-                } else {
-                    if (Arrays.asList(validDatabaseCommands).contains(line.getArgs()[0])) {
-                        run = true;
-                    }
-                }
             }
 
             if (!line.hasOption('h') && run) {
@@ -708,24 +692,8 @@ public class XOAI {
                     String idxType = line.getOptionValue("t");
                     if (idxType == null || idxType.trim().length() <= 0)
                     	idxType = "all";
-                    int imported = indexer.index(idxType);
-                    if (imported > 0) cleanCache(itemCacheService, cacheService);
-                } else if (COMMAND_CLEAN_CACHE.equals(command)) {
-                    cleanCache(itemCacheService, cacheService);
-                } else if (COMMAND_COMPILE_ITEMS.equals(command)) {
-
-                    ctx = new Context();
-                    XOAI indexer = new XOAI(ctx, line.hasOption('v'));
-                    applicationContext.getAutowireCapableBeanFactory().autowireBean(indexer);
-
-                    indexer.compile();
-
-                    cleanCache(itemCacheService, cacheService);
-                } else if (COMMAND_ERASE_COMPILED_ITEMS.equals(command)) {
-                    cleanCompiledItems(itemCacheService);
-                    cleanCache(itemCacheService, cacheService);
+                    indexer.index(idxType);
                 }
-
                 System.out.println("OAI 2.0 manager action ended. It took "
                         + ((System.currentTimeMillis() - start) / 1000)
                         + " seconds.");
@@ -746,66 +714,18 @@ public class XOAI {
         }
     }
 
-    private static void cleanCompiledItems(XOAIItemCacheService itemCacheService) throws IOException {
-        System.out.println("Purging compiled items");
-        itemCacheService.deleteAll();
-    }
-
-    private void compile() throws CompilingException {
-        ItemIterator iterator;
-        try {
-            Date last = xoaiLastCompilationCacheService.get();
-
-            if (last == null) {
-                System.out.println("Retrieving all items to be compiled");
-                iterator = Item.findAll(context);
-            } else {
-                System.out.println("Retrieving items modified after " + last + " to be compiled");
-                String query = "SELECT * FROM item WHERE last_modified>?";
-                iterator = new ItemIterator(context, DatabaseManager.query(context, query, new java.sql.Date(last.getTime())));
-            }
-
-            while (iterator.hasNext()) {
-                Item item = iterator.next();
-                if (verbose) System.out.println("Compiling item with handle: " + item.getHandle());
-                xoaiItemCacheService.put(item, retrieveMetadata(context, item));
-                context.clearCache();
-            }
-
-            xoaiLastCompilationCacheService.put(new Date());
-        } catch (SQLException e) {
-            throw new CompilingException(e);
-        } catch (IOException e) {
-            throw new CompilingException(e);
-        }
-        System.out.println("Items compiled");
-    }
-
-    private static void usage() {
-        boolean solr = true; // Assuming solr by default
-        solr = !("database").equals(ConfigurationManager.getProperty("oai", "storage"));
-
-        if (solr) {
-            System.out.println("OAI Manager Script");
-            System.out.println("Syntax: oai <action> [parameters]");
-            System.out.println("> Possible actions:");
-            System.out.println("     " + COMMAND_IMPORT + " - To import DSpace items and/or DSpace-CRIS entities into OAI index and cache system");
-            System.out.println("     " + COMMAND_CLEAN_CACHE + " - Cleans the OAI cached responses");
-            System.out.println("> Parameters:");
-            System.out.println("     -o Optimize index after indexing (" + COMMAND_IMPORT + " only)");
-            System.out.println("     -c Clear index (" + COMMAND_IMPORT + " only)");
-            System.out.println("     -v Verbose output");
-            System.out.println("     -h Shows this text");
-        } else {
-            System.out.println("OAI Manager Script");
-            System.out.println("Syntax: oai <action> [parameters]");
-            System.out.println("> Possible actions:");
-            System.out.println("     " + COMMAND_CLEAN_CACHE + " - Cleans the OAI cached responses");
-            System.out.println("     " + COMMAND_COMPILE_ITEMS + " - Compiles all DSpace items");
-            System.out.println("     " + COMMAND_ERASE_COMPILED_ITEMS + " - Erase the OAI compiled items");
-            System.out.println("> Parameters:");
-            System.out.println("     -v Verbose output");
-            System.out.println("     -h Shows this text");
-        }
+    private static void usage()
+    {
+        System.out.println("OAI Manager Script");
+        System.out.println("Syntax: oai <action> [parameters]");
+        System.out.println("> Possible actions:");
+        System.out.println("     " + COMMAND_IMPORT
+                + " - To import DSpace items and/or DSpace-CRIS entities into OAI index and cache system");
+        System.out.println("> Parameters:");
+        System.out.println("     -o Optimize index after indexing ("
+                + COMMAND_IMPORT + " only)");
+        System.out.println("     -c Clear index (" + COMMAND_IMPORT + " only)");
+        System.out.println("     -v Verbose output");
+        System.out.println("     -h Shows this text");
     }
 }

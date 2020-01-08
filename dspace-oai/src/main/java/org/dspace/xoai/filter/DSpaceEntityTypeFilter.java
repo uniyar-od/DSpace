@@ -10,11 +10,8 @@ package org.dspace.xoai.filter;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.StringUtils;
-import org.dspace.core.Context;
 import org.dspace.xoai.data.DSpaceItem;
-import org.dspace.xoai.filter.results.DatabaseFilterResult;
 import org.dspace.xoai.filter.results.SolrFilterResult;
 
 import com.google.common.base.Function;
@@ -54,12 +51,6 @@ public class DSpaceEntityTypeFilter extends DSpaceFilter {
         return values;
     }
 	
-    @Override
-    public DatabaseFilterResult buildDatabaseQuery(Context context)
-    {
-        throw new NotImplementedException("The DSpaceEntityTypeFilter supports only the solr storage");
-    }
-
     @Override
     public boolean isShown(DSpaceItem item)
     {

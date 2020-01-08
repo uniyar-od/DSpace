@@ -192,7 +192,7 @@
    <dynamicField name="random_*" type="random" />
    
  </fields>
- <uniqueKey>item.handle</uniqueKey>
- <defaultSearchField>item.handle</defaultSearchField>
+ <uniqueKey>item.identifier</uniqueKey>
+ <defaultSearchField>item.identifier</defaultSearchField>
  <solrQueryParser defaultOperator="OR"/>
 </schema>

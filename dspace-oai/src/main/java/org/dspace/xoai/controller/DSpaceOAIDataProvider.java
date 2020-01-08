@@ -7,15 +7,24 @@
  */
 package org.dspace.xoai.controller;
 
-import com.lyncode.xoai.dataprovider.OAIDataProvider;
-import com.lyncode.xoai.dataprovider.OAIRequestParameters;
-import com.lyncode.xoai.dataprovider.core.XOAIManager;
-import com.lyncode.xoai.dataprovider.exceptions.InvalidContextException;
-import com.lyncode.xoai.dataprovider.exceptions.OAIException;
-import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
+import static java.util.Arrays.asList;
+import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
+import static org.apache.log4j.Logger.getLogger;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
-import org.dspace.xoai.services.api.cache.XOAICacheService;
 import org.dspace.xoai.services.api.config.XOAIManagerResolver;
 import org.dspace.xoai.services.api.config.XOAIManagerResolverException;
 import org.dspace.xoai.services.api.context.ContextService;
@@ -30,20 +39,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.stream.XMLStreamException;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static java.util.Arrays.asList;
-import static javax.servlet.http.HttpServletResponse.SC_BAD_REQUEST;
-import static org.apache.log4j.Logger.getLogger;
+import com.lyncode.xoai.dataprovider.OAIDataProvider;
+import com.lyncode.xoai.dataprovider.OAIRequestParameters;
+import com.lyncode.xoai.dataprovider.core.XOAIManager;
+import com.lyncode.xoai.dataprovider.exceptions.InvalidContextException;
+import com.lyncode.xoai.dataprovider.exceptions.OAIException;
+import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 
 /**
  * 
@@ -54,7 +55,6 @@ public class DSpaceOAIDataProvider
 {
     private static final Logger log = getLogger(DSpaceOAIDataProvider.class);
 
-    @Autowired XOAICacheService cacheService;
     @Autowired ContextService contextService;
     @Autowired XOAIManagerResolver xoaiManagerResolver;
     @Autowired ItemRepositoryResolver itemRepositoryResolver;
@@ -97,15 +97,7 @@ public class DSpaceOAIDataProvider
             response.setContentType("application/xml");
             response.setCharacterEncoding("UTF-8");
 
-            String identification = xoaiContext + parameters.requestID();
-
-            if (cacheService.isActive()) {
-                if (!cacheService.hasCache(identification))
-                    cacheService.store(identification, dataProvider.handle(parameters));
-
-                cacheService.handle(identification, out);
-            } else dataProvider.handle(parameters, out);
-
+            dataProvider.handle(parameters, out);
 
             out.flush();
             out.close();

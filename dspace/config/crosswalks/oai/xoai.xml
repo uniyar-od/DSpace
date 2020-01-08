@@ -556,7 +556,7 @@
             <Class>org.dspace.xoai.filter.DSpaceEntityTypeFilter</Class>
             <Configuration>
                 <list name="values">
-                    <string>item</string>
+                    <string>cfitem</string>
                     <string>project</string>
                     <string>rp</string>
                     <string>ou</string>

@@ -29,9 +29,7 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Element.Field;
  */
 public abstract class DSpaceItem implements Item
 {
-	public String getEntityType() {
-		return "item";
-	}
+	public abstract String getEntityType();
 
 	private static List<Element> filter (List<Element> input, String name) {
     	return Lists.newArrayList(Collections2.filter(input, new MetadataNamePredicate(name)));
