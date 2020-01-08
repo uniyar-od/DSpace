@@ -10,7 +10,6 @@ package org.dspace.xoai.filter;
 import org.dspace.xoai.data.DSpaceItem;
 import org.dspace.xoai.filter.results.SolrFilterResult;
 
-
 public class OrFilter extends DSpaceFilter {
     private final DSpaceFilter left;
     private final DSpaceFilter right;

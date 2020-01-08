@@ -13,5 +13,7 @@ import com.lyncode.xoai.dataprovider.filter.conditions.Condition;
 import com.lyncode.xoai.dataprovider.services.api.FilterResolver;
 
 public interface DSpaceFilterResolver extends FilterResolver {
+
     String buildSolrQuery(Scope scope, Condition condition);
+    
 }

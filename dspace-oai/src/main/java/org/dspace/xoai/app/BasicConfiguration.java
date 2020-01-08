@@ -7,22 +7,15 @@
  */
 package org.dspace.xoai.app;
 
-import org.dspace.xoai.services.impl.DSpaceFieldResolver;
-import org.dspace.xoai.services.impl.DSpaceHandleResolver;
-import org.dspace.xoai.services.impl.DSpaceEarliestDateResolver;
-import org.dspace.xoai.services.impl.DSpaceCollectionsService;
-import org.dspace.xoai.services.api.EarliestDateResolver;
-import org.dspace.xoai.services.api.CollectionsService;
-import org.dspace.xoai.services.api.HandleResolver;
-import org.dspace.xoai.services.api.FieldResolver;
 import com.lyncode.xoai.dataprovider.services.api.ResourceResolver;
+
 import org.apache.log4j.Logger;
-import org.dspace.xoai.services.api.cache.XOAICacheService;
-import org.dspace.xoai.services.api.cache.XOAIItemCacheService;
-import org.dspace.xoai.services.api.cache.XOAILastCompilationCacheService;
+import org.dspace.xoai.services.api.CollectionsService;
+import org.dspace.xoai.services.api.EarliestDateResolver;
+import org.dspace.xoai.services.api.FieldResolver;
+import org.dspace.xoai.services.api.HandleResolver;
 import org.dspace.xoai.services.api.config.ConfigurationService;
 import org.dspace.xoai.services.api.config.XOAIManagerResolver;
-import org.dspace.xoai.services.api.config.XOAIManagerResolverException;
 import org.dspace.xoai.services.api.context.ContextService;
 import org.dspace.xoai.services.api.solr.SolrQueryResolver;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
@@ -30,10 +23,10 @@ import org.dspace.xoai.services.api.xoai.DSpaceFilterResolver;
 import org.dspace.xoai.services.api.xoai.IdentifyResolver;
 import org.dspace.xoai.services.api.xoai.ItemRepositoryResolver;
 import org.dspace.xoai.services.api.xoai.SetRepositoryResolver;
-import org.dspace.xoai.services.impl.cache.DSpaceEmptyCacheService;
-import org.dspace.xoai.services.impl.cache.DSpaceXOAICacheService;
-import org.dspace.xoai.services.impl.cache.DSpaceXOAIItemCacheService;
-import org.dspace.xoai.services.impl.cache.DSpaceXOAILastCompilationCacheService;
+import org.dspace.xoai.services.impl.DSpaceCollectionsService;
+import org.dspace.xoai.services.impl.DSpaceEarliestDateResolver;
+import org.dspace.xoai.services.impl.DSpaceFieldResolver;
+import org.dspace.xoai.services.impl.DSpaceHandleResolver;
 import org.dspace.xoai.services.impl.config.DSpaceConfigurationService;
 import org.dspace.xoai.services.impl.context.DSpaceContextService;
 import org.dspace.xoai.services.impl.context.DSpaceXOAIManagerResolver;
@@ -72,30 +65,6 @@ public class BasicConfiguration {
     public XOAIManagerResolver xoaiManagerResolver() {
         return new DSpaceXOAIManagerResolver();
     }
-
-    @Bean
-    public XOAICacheService xoaiCacheService() {
-        if (configurationService().getBooleanProperty("oai", "cache.enabled", true)) {
-            try {
-                return new DSpaceXOAICacheService(xoaiManagerResolver().getManager());
-            } catch (XOAIManagerResolverException e) {
-                log.error("Not able to start XOAI normal cache service.", e);
-                return new DSpaceEmptyCacheService();
-            }
-        } else
-            return new DSpaceEmptyCacheService();
-    }
-
-    @Bean
-    public XOAILastCompilationCacheService xoaiLastCompilationCacheService () {
-        return new DSpaceXOAILastCompilationCacheService();
-    }
-
-    @Bean
-    public XOAIItemCacheService xoaiItemCacheService () {
-        return new DSpaceXOAIItemCacheService();
-    }
-
 
     @Bean
     public ResourceResolver resourceResolver() {

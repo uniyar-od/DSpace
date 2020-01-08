@@ -14,6 +14,10 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
 
+import com.lyncode.xoai.dataprovider.xml.xoai.Element;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import com.lyncode.xoai.util.Base64Utils;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -45,11 +49,8 @@ import org.dspace.core.Utils;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.handle.service.HandleService;
 import org.dspace.utils.DSpace;
+import org.dspace.xoai.app.XOAI;
 import org.dspace.xoai.data.DSpaceItem;
-
-import com.lyncode.xoai.dataprovider.xml.xoai.Element;
-import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
-import com.lyncode.xoai.util.Base64Utils;
 
 /**
  * 
@@ -210,8 +211,9 @@ public class ItemUtils
         return valueElem;
 
     }
-    public static Metadata retrieveMetadata (Context context, Item item) {
-        return retrieveMetadata(context, item, false, 0);
+
+    public static Metadata retrieveMetadata (Context context, Item item, boolean specialIdentifier) {
+    	return retrieveMetadata(context, item, false, 0, specialIdentifier);
     }
     
     /***
@@ -221,10 +223,11 @@ public class ItemUtils
      * @param item The cris item
      * @param skipAutority is used to disable relation metadata inclusion.
      * @param deep the recursive dept
+     * @param specialIdentifier TODO
      * @return
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, int deep) {
+	public static Metadata retrieveMetadata (Context context, Item item, boolean skipAutority, int deep, boolean specialIdentifier) {
         Metadata metadata;
         
         // read all metadata into Metadata Object
@@ -297,7 +300,7 @@ public class ItemUtils
                             DSpaceObject dso = handleService.resolveToObject(context, val.getAuthority());
                             
                             if (dso != null && dso instanceof Item) {
-                                Metadata itemMetadata = retrieveMetadata(context, (Item)dso, skipAutority, /*m, dso.getHandle(), Integer.toString(dso.getID()), true, */deep + 1);
+                                Metadata itemMetadata = retrieveMetadata(context, (Item)dso, skipAutority, deep + 1, specialIdentifier);
                                 if (itemMetadata != null && !itemMetadata.getElement().isEmpty()) {
                                     Element root = create(AUTHORITY);
                                     element.getElement().add(root);
@@ -432,13 +435,21 @@ public class ItemUtils
                 createValue("handle", item.getHandle()));
         
         String type = (String)item.getExtraInfo().get("item.cerifentitytype");
-        other.getField().add(
-                createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle(), type)));
+        if(StringUtils.isNotBlank(type) && specialIdentifier) {
+            other.getField().add(
+                    createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle(), type)));
+            other.getField().add(
+                    createValue("type", XOAI.ITEMTYPE_SPECIAL));
+        }
+        else {
+            other.getField().add(
+                    createValue("identifier", DSpaceItem.buildIdentifier(item.getHandle(), null)));
+            other.getField().add(
+                    createValue("type", XOAI.ITEMTYPE_DEFAULT));
+        }
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
-        other.getField().add(
-                createValue("type", "item"));
         metadata.getElement().add(other);
 
         // Repository Info

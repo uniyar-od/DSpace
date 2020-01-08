@@ -8,6 +8,7 @@
 package org.dspace.xoai.filter;
 
 import com.lyncode.xoai.dataprovider.core.ReferenceSet;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
@@ -15,7 +16,6 @@ import org.dspace.xoai.data.DSpaceItem;
 import org.dspace.xoai.filter.results.SolrFilterResult;
 import org.dspace.xoai.services.api.CollectionsService;
 import org.dspace.xoai.services.api.HandleResolver;
-
 
 /**
  *
