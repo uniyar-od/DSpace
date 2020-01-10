@@ -7,6 +7,8 @@
  */
 package org.dspace.app.webui.util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -138,6 +140,34 @@ public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy
         catch (SQLException | DCInputsReaderException e)
         {
             throw new JspException(e);
+        }
+        
+        StringBuffer sb = new StringBuffer();
+        if (!disableCrossLinks && StringUtils.isNotEmpty(browseType))
+        {
+            String[] splittedResult = StringUtils.split(result);
+            int indexSplit = 0;
+            for (Metadatum mm : metadataArray)
+            {
+                try
+                {
+                    sb.append("<a href=\"" + hrq.getContextPath()
+                            + "/browse?type=" + browseType + "&amp;"
+                            + (viewFull ? "vfocus" : "value") + "="
+                            + URLEncoder.encode(mm.value, "UTF-8"));
+                    sb.append("\"\">");
+                    if(indexSplit < splittedResult.length) {
+                        sb.append(splittedResult[indexSplit]);
+                    }
+                    sb.append("</a>");
+                }
+                catch (UnsupportedEncodingException e)
+                {
+                    log.warn(e.getMessage());
+                }
+                indexSplit++;
+            }
+            return sb.toString();
         }
         return result;
     }
