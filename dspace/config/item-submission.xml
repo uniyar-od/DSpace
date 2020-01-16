@@ -235,7 +235,13 @@
            <workflow-editable>true</workflow-editable>
        </step>
        -->
-
+																										<!--  INSERT STEP UNPAYWALL HERE -->
+      <step>
+        <heading>submit.progressbar.upload</heading>
+        <processing-class>org.dspace.app.cris.submit.step.UnpaywallStep</processing-class>
+        <workflow-editable>true</workflow-editable>
+      </step>																										
+      
       <!--Step 4 will be to Upload the item -->
       <step>
         <heading>submit.progressbar.upload</heading>
