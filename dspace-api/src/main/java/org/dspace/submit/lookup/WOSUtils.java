@@ -48,6 +48,12 @@ public class WOSUtils {
 					record.addValue("issn", new StringValue(issn));
 				}
 			}
+			if ("art_no".equals(current.getAttribute("type"))) {
+				String art_no = current.getAttribute("value");
+				if (StringUtils.isNotBlank(art_no)) {
+					record.addValue("articlenumber", new StringValue(art_no));
+				}
+			}
 		}
 
 		Element staticData = XMLUtils.getSingleElement(rec, "static_data");
