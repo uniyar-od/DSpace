@@ -131,6 +131,17 @@ public class WOSUtils {
 			}
 			record.addField("keywords", keyVals);
 		}
+		
+		Element item = XMLUtils.getSingleElement(staticData, "item");
+		Element keywordsPlus = XMLUtils.getSingleElement(item, "keywords_plus");
+		List<String> keywordPlusList = XMLUtils.getElementValueList(keywordsPlus, "keyword");
+		if (keywordPlusList != null && keywordPlusList.size() > 0) {
+			List<Value> keyPlusVals = new LinkedList<Value>();
+			for (String key : keywordPlusList) {
+				keyPlusVals.add(new StringValue(key));
+			}
+			record.addField("keywordsPlus", keyPlusVals);
+		}
 
 		Element languages = XMLUtils.getSingleElement(recordMetadata, "languages");
 		List<Element> languageList = XMLUtils.getElementList(languages, "language");

@@ -98,7 +98,7 @@ public class PubmedOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                 {
                     query.append(" OR ");
                 }
-                query.append(d).append("[AI]");
+                query.append(d).append("[AID]");
             }
 
             List<Record> pubmedResults = pubmedService.search(query.toString());

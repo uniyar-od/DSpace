@@ -165,6 +165,8 @@ public class PubmedService
                 catch (ParserConfigurationException e1)
                 {
                     log.error(e1.getMessage(), e1);
+                    // force to exit
+                    break;
                 }
                 catch (SAXException e1)
                 {
