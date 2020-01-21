@@ -22,6 +22,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.itemexport.ItemExport;
@@ -40,11 +41,15 @@ import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.ItemIterator;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
+import org.dspace.content.Metadatum;
 import org.dspace.content.SupervisedItem;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.core.Utils;
 import org.dspace.core.LogManager;
 import org.dspace.core.PluginManager;
 import org.dspace.eperson.EPerson;
@@ -52,7 +57,10 @@ import org.dspace.eperson.Group;
 import org.dspace.handle.HandleManager;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.util.ItemUtils;
+import org.dspace.util.VersionUtil;
 import org.dspace.utils.DSpace;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
 import org.dspace.workflow.WorkflowItem;
 import org.dspace.workflow.WorkflowManager;
 
@@ -262,6 +270,7 @@ public class MyDSpaceServlet extends DSpaceServlet
                         "workflow_id=" + workflowItem.getID()));
 
                 request.setAttribute("workflow.item", workflowItem);
+                comparedMetadata(context, request,workflowItem);
                 JSPManager.showJSP(request, response,
                         "/mydspace/perform-task.jsp");
                 ok = true;
@@ -291,6 +300,72 @@ public class MyDSpaceServlet extends DSpaceServlet
             JSPManager.showIntegrityError(request, response);
         }
     }
+
+    private void comparedMetadata(Context context, HttpServletRequest request,
+            WorkflowItem workflowItem)
+            throws SQLException, AuthorizeException, IOException
+    {
+        String[] mdToIgnore = ConfigurationManager
+                .getProperty("versioning", "differences.ignore-metadata")
+                .split(",");
+
+        VersionHistory history = VersionUtil.retrieveVersionHistory(context,
+                workflowItem.getItem());
+
+        Version currentVersion = history.getVersion(workflowItem.getItem());
+
+        Version previousVersion = history.getPrevious(currentVersion);
+
+        Item previousItem = previousVersion.getItem();
+        request.setAttribute("previous.item", previousItem);
+
+        String prevHandle = "handle/" + previousVersion.getItem().getHandle();
+        request.setAttribute("previous.handle", prevHandle);
+
+        List<MetadataField> comparedMetadata = new ArrayList<MetadataField>();
+        for (MetadataField md : MetadataField.findAll(context))
+        {
+            String schemaName = MetadataSchema.find(context, md.getSchemaID())
+                    .getName();
+
+            String metadata = Utils.standardize(schemaName, md.getElement(),
+                    md.getQualifier(), ".");
+
+            if (ArrayUtils.contains(mdToIgnore, metadata))
+            {
+                continue;
+            }
+            else
+            {
+                Metadatum[] mdPrevItem = previousItem
+                        .getMetadataByMetadataString(metadata);
+
+                Metadatum[] mdItem = currentVersion.getItem()
+                        .getMetadataByMetadataString(metadata);
+
+                if (mdPrevItem.length != mdItem.length)
+                {
+                    comparedMetadata.add(md);
+                }
+                else
+                {
+                    int length = mdItem.length > mdPrevItem.length
+                            ? mdItem.length
+                            : mdPrevItem.length;
+                    for (int i = 0; i < length; i++)
+                    {
+                        if (!StringUtils.equalsIgnoreCase(mdItem[i].value,
+                                mdPrevItem[i].value))
+                        {
+                            comparedMetadata.add(md);
+                        }
+                    }
+                }
+            }
+        }
+        request.setAttribute("comparedMetadata", comparedMetadata);
+    }
+    
 
     /**
      * Process input from remove item page
@@ -443,6 +518,7 @@ public class MyDSpaceServlet extends DSpaceServlet
                     .getCurrentUser());
 
             // Display "perform task" page
+            comparedMetadata(context, request,workflowItem);
             request.setAttribute("workflow.item", workflowItem);
             JSPManager.showJSP(request, response, "/mydspace/perform-task.jsp");
             context.complete();

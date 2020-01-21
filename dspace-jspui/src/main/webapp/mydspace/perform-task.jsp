@@ -17,21 +17,47 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
-    prefix="fmt" %>
+    prefix="fmt" %> 
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
 <%@ page import="org.dspace.app.webui.servlet.MyDSpaceServlet" %>
 <%@ page import="org.dspace.content.Collection" %>
 <%@ page import="org.dspace.content.Item" %>
+<%@ page import="org.dspace.content.Metadatum"%>
+<%@ page import="org.dspace.content.MetadataField"%>
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="org.dspace.workflow.WorkflowItem" %>
 <%@ page import="org.dspace.workflow.WorkflowManager" %>
+<%@ page import="org.dspace.content.MetadataField" %>
+<%@ page import="org.dspace.content.MetadataSchema" %>
+<%@ page import="org.dspace.core.Context" %>
+<%@ page import="java.util.List" %>
 
 <%
     WorkflowItem workflowItem =
         (WorkflowItem) request.getAttribute("workflow.item");
 
+
+	        String prevHandle = (String) request
+            .getAttribute("previous.handle");
+
+	        String contextPath = (String) request
+            .getAttribute("context.path");
+
+	        Item previousItem = (Item) request
+            .getAttribute("previous.item");
+
+	        Context context = (Context) request
+            .getAttribute("context");
+
+	        List<MetadataField> comparedMetadata  = (List<MetadataField>) request
+            .getAttribute("comparedMetadata");
+	        	        
+	        String url = request.getRequestURL().toString();
+	        String baseURL = url.substring(0, url.length() - request.getRequestURI().length()) + request.getContextPath() + "/";
+			String completeURL = baseURL + prevHandle;
+	        
     Collection collection = workflowItem.getCollection();
     Item item = workflowItem.getItem();
 %>
@@ -71,6 +97,51 @@
 <%
     }
 %>
+  <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#demo"><fmt:message key="jsp.mydspace.preview-task.previous.version"/></button>
+  <br>
+  <div id="demo" class="collapse">
+  <br>		
+      <b><a href ="<%=completeURL %>" target="_blank">Check here the old version</a></b>
+  <table border=1>
+  <br>
+  <tr>
+			<td><b>Changed Field</b></td>
+			<td><b>Old Field</b></td>
+			<td><b>New Field</b></td>
+		</tr>
+		<%
+		if(comparedMetadata != null) {
+		    for(int i=0;i<comparedMetadata.size(); i++){
+		        String schemaName = MetadataSchema.find(context, comparedMetadata.get(i).getSchemaID())
+		                .getName();
+			String completeField = schemaName + "." +comparedMetadata.get(i).getElement()+ (comparedMetadata.get(i).getQualifier()!= null? "." + comparedMetadata.get(i).getQualifier():""); 
+		%>
+			<tr>
+				<td><%=completeField%></td>
+				<td>
+				<%
+		    for(Metadatum m :  previousItem.getMetadataByMetadataString(completeField)) {
+		        %>
+		        <%= m.value %><br>		        
+		        <%
+		    } %>
+				</td>
+				<td>
+								<%
+		    for(Metadatum m :  item.getMetadataByMetadataString(completeField)) {
+		        %>
+		        <%= m.value %><br>		        
+		        <%
+		    } %>
+				
+				
+				</td>
+			</tr>
+			<%} 
+			}%>
+			<br>
+    </table>
+    </div>
     
     <dspace:item item="<%= item %>" />
 
