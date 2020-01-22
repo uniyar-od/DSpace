@@ -1142,6 +1142,7 @@
 		<property name="defaultFilterQueries">
 			<list>
 				<!--Only find items, communities and collections -->
+				<value>resourcetype_authority:semantic</value>
 			</list>
 		</property>
 		<!--The configuration for the recent submissions -->
@@ -1190,7 +1191,8 @@
 		<!--Any default filter queries, these filter queries will be used for all 
 			queries done by discovery for this configuration -->
 		<property name="defaultFilterQueries">
-			<list>
+			<list> 
+				<value>resourcetype_authority:dris</value>
 			</list>
 		</property>
 		<!--The configuration for the recent submissions -->

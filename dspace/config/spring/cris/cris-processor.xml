@@ -169,6 +169,18 @@
 								</list>
 							</property>
 						</bean>
+						<bean class="org.dspace.app.webui.cris.components.TopObjectsProcessor">
+							<property name="viewConfiguration" ref="mapDrisLayoutView" />
+							<property name="type" value="map" />
+							<property name="sortField" value="crisdris.time_creation_dt" />
+							<property name="order" value="desc" />
+							<property name="extraInfo">
+								<list>
+								</list>
+							</property>
+							<property name="num" value="1000" />
+						</bean>
+						
 					</list>
 				</entry>
 			</map>
