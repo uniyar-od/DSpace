@@ -429,6 +429,13 @@
 									<property name="visibility" value="1" />
 								</bean>
 							</entry>
+							<entry key="eurocris.dris.location">
+								<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration.MappingDetails">
+									<property name="shortName" value="latitudelongitude" />
+									<property name="useAll" value="true" />
+									<property name="visibility" value="1" />
+								</bean>
+							</entry>
 						</map>
 					</property>
 				</bean>

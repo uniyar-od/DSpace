@@ -2170,6 +2170,16 @@ it, please enter the types and the actual numbers or codes.</hint>
        <field>
 		 <dc-schema>eurocris</dc-schema>
          <dc-element>dris</dc-element>
+         <dc-qualifier>location</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Geolocation Reference</label>
+         <input-type>onebox</input-type>
+         <hint>Please use this format: latitude;longitude</hint>
+         <required></required>
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
          <dc-qualifier>orgurl</dc-qualifier>
          <repeatable>false</repeatable>
          <label>URL</label>

@@ -354,6 +354,12 @@
 		<qualifier>repnorequests</qualifier>
 		<scope_note></scope_note>
 	</dc-type>
+	<dc-type>
+		<schema>eurocris</schema>
+		<element>dris</element>
+		<qualifier>location</qualifier>
+		<scope_note></scope_note>
+	</dc-type>
 
 
 
