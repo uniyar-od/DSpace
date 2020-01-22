@@ -70,4 +70,23 @@
 			</list>
 		</property>
 	</bean>
+	
+	<bean id="mapDrisLayoutView"
+		class="org.dspace.discovery.configuration.DiscoveryMapConfiguration">
+		<property name="metadataHeadingFields">
+			<list>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="mandatory" value="true" />
+					<property name="preHtml" value="&lt;b&gt;" />
+					<property name="postHtml" value="&lt;/b&gt;" />
+					<property name="field" value="drisname" />
+					<property name="decorator" value="title" />
+				</bean>
+			</list>
+		</property>
+		<property name="latitude" value="drislatitude" />
+		<property name="longitude" value="drislongitude" />
+		<property name="latitudelongitude" value="" />
+	</bean>
 </beans>
