@@ -34,10 +34,9 @@ public class MockSolrLoggerServiceImpl
 
         new FakeDatabaseReader(); // Activate fake
         new FakeDatabaseReader.Builder(); // Activate fake
-        String locationDbPath = configurationService.getProperty("usage-statistics.dbfile");
-        File locationDb = new File(locationDbPath);
-        locationDb.createNewFile();
-        DatabaseReader locationService = new DatabaseReader.Builder(locationDb).build();
+        File locationDb = File.createTempFile("GeoIP", ".db");
+        locationDb.deleteOnExit();
+        locationService = new DatabaseReader.Builder(locationDb).build();
         useProxies = configurationService.getBooleanProperty("useProxies");
     }
 
