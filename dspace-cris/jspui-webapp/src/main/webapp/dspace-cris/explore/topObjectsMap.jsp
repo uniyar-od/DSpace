@@ -71,7 +71,7 @@ if (locations != null && locations.count() > 0)
 				for(String value : obj.getMetadataValue(latLongField)){
 					if(StringUtils.isNotBlank(value) && StringUtils.contains(value,";")){
 						latitude.add( StringUtils.split(value,";")[0]);
-						longitude.add( StringUtils.split(value,";")[1]);
+						longitude.add( StringUtils.split(value,",")[1]);
 					}
 				}
 				
