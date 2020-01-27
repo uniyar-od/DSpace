@@ -85,8 +85,8 @@
 				</bean>
 			</list>
 		</property>
-		<property name="latitude" value="drislatitude" />
-		<property name="longitude" value="drislongitude" />
-		<property name="latitudelongitude" value="" />
+		<property name="latitude" value="" />
+		<property name="longitude" value="" />
+		<property name="latitudelongitude" value="drislatitudelongitude" />
 	</bean>
 </beans>
