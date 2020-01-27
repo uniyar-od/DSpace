@@ -34,7 +34,7 @@ if (locations != null && locations.count() > 0)
    <h6 class="panel-title"><i class="fa fa-map-marker"></i> <fmt:message key="view.stats.map.title" /></h6>
   </div>
   <div class="panel-body">
-	<div id="mapExplore" style="width: 100%; height: 300px;"></div>
+	<div id="mapExplore" style="width: 100%; height: 350px;"></div>
   </div>
 </div>
 
@@ -42,7 +42,7 @@ if (locations != null && locations.count() > 0)
 <!--
     var myOptions = {
       zoom: 2,
-      center: new google.maps.LatLng(51.476467, 0.000900),
+      center: new google.maps.LatLng(40.400231, -3.682978),
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
 	var map = new google.maps.Map(document.getElementById("mapExplore"),myOptions);
@@ -69,8 +69,8 @@ if (locations != null && locations.count() > 0)
 			List<String> longitude= new ArrayList<>();
 			if(StringUtils.isNotBlank(latLongField)){
 				for(String value : obj.getMetadataValue(latLongField)){
-					if(StringUtils.isNotBlank(value) && StringUtils.contains(value,";")){
-						latitude.add( StringUtils.split(value,";")[0]);
+					if(StringUtils.isNotBlank(value) && StringUtils.contains(value,",")){
+						latitude.add( StringUtils.split(value,",")[0]);
 						longitude.add( StringUtils.split(value,",")[1]);
 					}
 				}
