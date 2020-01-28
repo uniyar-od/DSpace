@@ -464,7 +464,7 @@ public class ItemTag extends TagSupport {
 						}
 					}
 				}
-
+                                out.print("<div class=\"table-responsive\">");
 				out.println("<table class=\"table panel-body\"><tr><th id=\"t1\" class=\"standard\">"
 						+ LocaleSupport.getLocalizedMessage(pageContext, "org.dspace.app.webui.jsptag.ItemTag.file")
 						+ "</th>");
@@ -836,6 +836,7 @@ public class ItemTag extends TagSupport {
 				}
 
 				out.println("</table>");
+				out.println("</div>");
 				out.println("</div>");
 
 			}

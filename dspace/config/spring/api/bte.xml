@@ -119,6 +119,7 @@
 	            <entry key="orcid" value-ref="orcidOnlineDataLoader"/>
 	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
 	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
+			    <entry key="localduplicate" value-ref="localDuplicateDataLoader" />
 <!-- 	            depending on your apiKey you should use scopusOnlineDataLoader or scivalOnlineDataLoader or
 					adsOnlineDataLoader 
 		    <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
@@ -856,9 +857,29 @@
 		</constructor-arg>
 	</bean>
 
+	<bean id="localDuplicateDataLoader" class="org.dspace.submit.lookup.LocalDuplicateDataLoader">
+		<property name="searchService" ref="org.dspace.discovery.SearchService" />
+		<property name="fieldMap" ref="solrInputMap" />
+		<property name="identifiers2metadata">
+			<map>
+				<entry key="doi" value="dc.identifier.doi" />
+				<entry key="isbn" value="dc.identifier.isbn" />
+				<entry key="pubmed" value="dc.identifier.pmid" />
+				<entry key="scopuseid" value="dc.identifier.scopus" />
+				<entry key="isiid" value="dc.identifier.isi" />
+			</map>
+		</property>
+	</bean>
 
-
-
+	<bean name="solrInputMap" class="java.util.HashMap" scope="prototype">
+		<constructor-arg>
+			<map key-type="java.lang.String" value-type="java.lang.String">
+				<entry key="url" value="url" />
+				<entry key="handle" value="handle" />
+				<entry key="id" value="internal-id" />
+			</map>
+		</constructor-arg>
+	</bean>
 	<!-- **************************************************************************************************** -->
 	<!-- Output Mapping 																					  -->
 	<!-- **************************************************************************************************** -->
@@ -1079,6 +1100,7 @@
 				<entry key="authors" value="authors" />
 				<entry key="citationCount" value="wosCitation" />
 				<entry key="keywords" value="keywords" />
+				<entry key="keywordsPlus" value="keywords" />
 				<entry key="language" value="language" />
 				<entry key="abstracts" value="abstract" />
 				<entry key="abstractita" value="abstractita" />

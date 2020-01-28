@@ -124,8 +124,6 @@ public class SolrDedupServiceImpl implements DedupService
             + RESOURCE_ID_FIELD + " to=" + RESOURCE_ID_FIELD + "}"
             + RESOURCE_FLAG_FIELD + ":reject_admin)";
     
-    public static final String QUERY_REMOVE = RESOURCE_IDS_FIELD + ":{0}" + " AND " + RESOURCE_RESOURCETYPE_FIELD + ":{1}";
-
     public enum DeduplicationFlag {
 
         FAKE("fake", 0), MATCH("match", 1), REJECTWS("reject_ws", 2), REJECTWF(
@@ -498,8 +496,10 @@ public class SolrDedupServiceImpl implements DedupService
     {
         try
         {
-            delete(MessageFormat.format(QUERY_REMOVE, dso.getID(), dso.getType()));
-
+            int id = dso.getID();
+            int type = dso.getType();
+            delete(RESOURCE_IDS_FIELD + ":" + id + " AND "
+                    + RESOURCE_RESOURCETYPE_FIELD + ":" + type);
         }
         catch (SearchServiceException e)
         {
@@ -1050,8 +1050,8 @@ public class SolrDedupServiceImpl implements DedupService
     {
         try
         {
-            delete(MessageFormat.format(QUERY_REMOVE, id, type));
-
+            delete(RESOURCE_IDS_FIELD + ":" + id + " AND "
+                    + RESOURCE_RESOURCETYPE_FIELD + ":" + type);
         }
         catch (SearchServiceException e)
         {

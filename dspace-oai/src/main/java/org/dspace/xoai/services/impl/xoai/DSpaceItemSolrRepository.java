@@ -7,14 +7,10 @@
  */
 package org.dspace.xoai.services.impl.xoai;
 
-import com.google.common.base.Function;
-import com.lyncode.builder.ListBuilder;
-import com.lyncode.xoai.dataprovider.core.ListItemIdentifiersResult;
-import com.lyncode.xoai.dataprovider.core.ListItemsResults;
-import com.lyncode.xoai.dataprovider.data.Item;
-import com.lyncode.xoai.dataprovider.data.ItemIdentifier;
-import com.lyncode.xoai.dataprovider.exceptions.IdDoesNotExistException;
-import com.lyncode.xoai.dataprovider.filter.ScopedFilter;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -29,9 +25,14 @@ import org.dspace.xoai.solr.DSpaceSolrSearch;
 import org.dspace.xoai.solr.exceptions.DSpaceSolrException;
 import org.dspace.xoai.solr.exceptions.SolrSearchEmptyException;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
+import com.google.common.base.Function;
+import com.lyncode.builder.ListBuilder;
+import com.lyncode.xoai.dataprovider.core.ListItemIdentifiersResult;
+import com.lyncode.xoai.dataprovider.core.ListItemsResults;
+import com.lyncode.xoai.dataprovider.data.Item;
+import com.lyncode.xoai.dataprovider.data.ItemIdentifier;
+import com.lyncode.xoai.dataprovider.exceptions.IdDoesNotExistException;
+import com.lyncode.xoai.dataprovider.filter.ScopedFilter;
 
 /**
  * 
@@ -58,7 +59,7 @@ public class DSpaceItemSolrRepository extends DSpaceItemRepository
         {
             try
             {
-                SolrQuery params = new SolrQuery("item.handle:" + parts[2]);
+                SolrQuery params = new SolrQuery("item.identifier:" + parts[2]);
                 return new DSpaceSolrItem(DSpaceSolrSearch.querySingle(server, params));
             }
             catch (SolrSearchEmptyException ex)

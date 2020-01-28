@@ -73,6 +73,10 @@ public class CrossRefService
         {
             for (String record : dois)
             {
+                //skip empty doi
+                if (StringUtils.isBlank(record)) {
+                    continue;
+                }
             	try
             	{
             		HttpGet method = null;

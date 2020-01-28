@@ -20,11 +20,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.dspace.app.cris.configuration.RelationService;
 import org.dspace.app.cris.integration.ICRISComponent;
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.ICrisObject;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
@@ -35,6 +40,9 @@ import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
 import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.BoxProject;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
+import org.dspace.app.cris.model.jdyna.DecoratorDynamicPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.DecoratorOUPropertiesDefinition;
+import org.dspace.app.cris.model.jdyna.DecoratorProjectPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DecoratorRPTypeNested;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
@@ -54,9 +62,11 @@ import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
 import org.dspace.app.cris.util.ResearcherPageUtils;
+import org.dspace.app.webui.cris.components.AFacetedQueryConfigurerComponent;
 import org.dspace.app.webui.cris.dto.AllMonthsStatsDTO;
 import org.dspace.core.ConfigurationManager;
 
+import it.cilea.osd.common.model.Identifiable;
 import it.cilea.osd.jdyna.components.IBeanSubComponent;
 import it.cilea.osd.jdyna.components.IComponent;
 import it.cilea.osd.jdyna.model.ADecoratorPropertiesDefinition;
@@ -72,7 +82,9 @@ import it.cilea.osd.jdyna.model.IContainable;
 import it.cilea.osd.jdyna.model.IPropertiesDefinition;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.model.Property;
+import it.cilea.osd.jdyna.value.PointerValue;
 import it.cilea.osd.jdyna.web.Box;
+import it.cilea.osd.jdyna.widget.WidgetPointer;
 
 public class ResearcherTagLibraryFunctions
 {
@@ -202,7 +214,7 @@ public class ResearcherTagLibraryFunctions
     }
 
 
-    public static boolean isTabHidden(Object anagrafica,String tabName)
+    public static boolean isTabHidden(HttpServletRequest request, Object anagrafica,String tabName)
             throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException{
 
@@ -215,7 +227,7 @@ public class ResearcherTagLibraryFunctions
                 if(b.isUnrelevant()){
                     continue;
                 }
-                if(!isBoxHidden(anagrafica, b.getShortName())){
+                if(!isBoxHidden(request, anagrafica, b.getShortName())){
                     hidden= false;
                     break;
                 }
@@ -228,7 +240,7 @@ public class ResearcherTagLibraryFunctions
                 if(b.isUnrelevant()){
                     continue;
                 }
-                if(!isBoxHidden(anagrafica, b.getShortName())){
+                if(!isBoxHidden(request, anagrafica, b.getShortName())){
                     hidden= false;
                     break;
                 }
@@ -241,7 +253,7 @@ public class ResearcherTagLibraryFunctions
                 if(b.isUnrelevant()){
                     continue;
                 }
-                if(!isBoxHidden(anagrafica, b.getShortName())){
+                if(!isBoxHidden(request, anagrafica, b.getShortName())){
                     hidden= false;
                     break;
                 }
@@ -254,7 +266,7 @@ public class ResearcherTagLibraryFunctions
                 if(b.isUnrelevant()){
                     continue;
                 }
-                if(!isBoxHidden(anagrafica, b.getShortName())){
+                if(!isBoxHidden(request, anagrafica, b.getShortName())){
                     hidden= false;
                     break;
                 }
@@ -265,14 +277,14 @@ public class ResearcherTagLibraryFunctions
 
     }
 
-    public static boolean isBoxHidden(ResearcherPage anagrafica, String boxName)
+    public static boolean isBoxHidden(HttpServletRequest request, ResearcherPage anagrafica, String boxName)
             throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException
     {
         BoxResearcherPage box = applicationService.getBoxByShortName(
                 BoxResearcherPage.class, boxName);
 
-        return isBoxHidden(anagrafica, box);
+        return isBoxHidden(request, anagrafica, box);
 
     }
 
@@ -287,7 +299,7 @@ public class ResearcherTagLibraryFunctions
 
     }
 
-    public static boolean isBoxHidden(Object anagrafica, String boxName)
+    public static boolean isBoxHidden(HttpServletRequest request, Object anagrafica, String boxName)
             throws IllegalArgumentException, IllegalAccessException,
             InvocationTargetException
     {
@@ -295,31 +307,36 @@ public class ResearcherTagLibraryFunctions
         {
             BoxProject box = applicationService.getBoxByShortName(
                     BoxProject.class, boxName);
-            return isBoxHidden((Project) anagrafica, box);
+            return isBoxHidden(request, (Project) anagrafica, box);
         }
         if (anagrafica instanceof OrganizationUnit)
         {
             BoxOrganizationUnit box = applicationService.getBoxByShortName(
                     BoxOrganizationUnit.class, boxName);
-            return isBoxHidden((OrganizationUnit) anagrafica, box);
+            return isBoxHidden(request, (OrganizationUnit) anagrafica, box);
         }
         if (anagrafica instanceof ResearchObject)
         {
             BoxDynamicObject box = applicationService.getBoxByShortName(
                     BoxDynamicObject.class, boxName);
-            return isBoxHidden((ResearchObject) anagrafica, box);
+            return isBoxHidden(request, (ResearchObject) anagrafica, box);
         }
         BoxResearcherPage box = applicationService.getBoxByShortName(
                 BoxResearcherPage.class, boxName);
 
-        return isBoxHidden((ResearcherPage) anagrafica, box);
+        return isBoxHidden(request, (ResearcherPage) anagrafica, box);
 
     }
 
     public static boolean isBoxHidden(ResearcherPage anagrafica,
             BoxResearcherPage box)
     {
+        return isBoxHidden(null, anagrafica, box);
+    }
 
+    public static boolean isBoxHidden(HttpServletRequest request, ResearcherPage anagrafica,
+            BoxResearcherPage box)
+    {
         Researcher researcher = new Researcher();
 
         Map<String, ICRISComponent> rpComponent = researcher.getRPComponents();
@@ -331,6 +348,11 @@ public class ResearcherTagLibraryFunctions
                 if (box.getShortName().equals(key))
                 {
                     IComponent component = rpComponent.get(key);
+                    if (component instanceof AFacetedQueryConfigurerComponent && ((AFacetedQueryConfigurerComponent)component).forceDisplay(request, anagrafica))
+                    {
+                        return false;
+                    }
+
                     component.setShortName(box.getShortName());
                     Map<String, IBeanSubComponent> comp = component.getTypes();
 
@@ -353,6 +375,11 @@ public class ResearcherTagLibraryFunctions
 
     public static boolean isBoxHidden(Project anagrafica, BoxProject box)
     {
+        return isBoxHidden(null, anagrafica, box);
+    }
+
+    public static boolean isBoxHidden(HttpServletRequest request, Project anagrafica, BoxProject box)
+    {
         Researcher researcher = new Researcher();
 
         Map<String, ICRISComponent> rpComponent = researcher
@@ -365,6 +392,11 @@ public class ResearcherTagLibraryFunctions
                 if (box.getShortName().equals(key))
                 {
                     IComponent component = rpComponent.get(key);
+                    if (component instanceof AFacetedQueryConfigurerComponent && ((AFacetedQueryConfigurerComponent)component).forceDisplay(request, anagrafica))
+                    {
+                        return false;
+                    }
+
                     component.setShortName(box.getShortName());
                     Map<String, IBeanSubComponent> comp = component.getTypes();
 
@@ -387,6 +419,12 @@ public class ResearcherTagLibraryFunctions
     public static boolean isBoxHidden(ResearchObject anagrafica,
             BoxDynamicObject box)
     {
+        return isBoxHidden(null, anagrafica, box);
+    }
+
+    public static boolean isBoxHidden(HttpServletRequest request, ResearchObject anagrafica,
+            BoxDynamicObject box)
+    {
         Researcher researcher = new Researcher();
 
         Map<String, ICRISComponent> rpComponent = researcher.getDOComponents();
@@ -398,6 +436,11 @@ public class ResearcherTagLibraryFunctions
                 if (box.getShortName().equals(key))
                 {
                     IComponent component = rpComponent.get(key);
+                    if (component instanceof AFacetedQueryConfigurerComponent && ((AFacetedQueryConfigurerComponent)component).forceDisplay(request, anagrafica))
+                    {
+                        return false;
+                    }
+
                     component.setShortName(box.getShortName());
                     Map<String, IBeanSubComponent> comp = component.getTypes();
 
@@ -420,6 +463,12 @@ public class ResearcherTagLibraryFunctions
     public static boolean isBoxHidden(OrganizationUnit anagrafica,
             BoxOrganizationUnit box)
     {
+        return isBoxHidden(null, anagrafica, box);
+    }
+
+    public static boolean isBoxHidden(HttpServletRequest request, OrganizationUnit anagrafica,
+            BoxOrganizationUnit box)
+    {
         Researcher researcher = new Researcher();
 
         Map<String, ICRISComponent> rpComponent = researcher.getOUComponents();
@@ -431,6 +480,11 @@ public class ResearcherTagLibraryFunctions
                 if (box.getShortName().equals(key))
                 {
                     IComponent component = rpComponent.get(key);
+                    if (component instanceof AFacetedQueryConfigurerComponent && ((AFacetedQueryConfigurerComponent)component).forceDisplay(request, anagrafica))
+                    {
+                        return false;
+                    }
+
                     component.setShortName(box.getShortName());
                     Map<String, IBeanSubComponent> comp = component.getTypes();
 
@@ -985,5 +1039,113 @@ public class ResearcherTagLibraryFunctions
         }
         return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
                 .getWrapper((IPropertiesDefinition) ipd, locale);
+    }
+    
+    public static IPropertiesDefinition getPropertyDefinitionI18NByCrisObject(ICrisObject object,
+            IContainable pd, String locale)
+    {
+        String shortname = pd.getShortName() + "_" + locale;
+        IContainable pdLocalized = applicationService
+                .findContainableByDecorable(pd.getClass(), shortname);
+
+        List<IContainable> pdefs = new ArrayList<IContainable>();
+        // add localized
+        if (pdLocalized != null)
+        {
+            pdefs.add(pdLocalized);
+        }
+        // add normal property definition
+        pdefs.add(pd);
+        String defaultLocales = ConfigurationManager
+                .getProperty("webui.supported.locales");
+        if (defaultLocales != null)
+        {
+            String[] splitted = defaultLocales.split(",");
+            // add all supported localized property definition minus the locale
+            // requested
+            for (String defaultLocale : splitted)
+            {
+                String trim = defaultLocale.trim();
+                if (!trim.equals(locale))
+                {
+                    String defaultShortname = pd.getShortName() + "_" + trim;
+                    IContainable pdSupportedLocale = applicationService
+                            .findContainableByDecorable(pd.getClass(),
+                                    defaultShortname);
+                    if (pdSupportedLocale != null)
+                    {
+                        pdefs.add(pdSupportedLocale);
+                    }
+                }
+            }
+        }
+
+        IPropertiesDefinition result = null;
+        for (IContainable pdef : pdefs)
+        {
+            if(pdef instanceof ADecoratorTypeDefinition) {            
+                // return the first nested type found with values
+                long countAll = getApplicationService().countNestedObjectsByParentIDAndTypoID(object.getID(), ((Identifiable)(((ADecoratorTypeDefinition) pdef).getReal())).getId(), ((ACrisObject)object).getClassNested());
+                if(countAll>0) {
+                    return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                            .getWrapper((IPropertiesDefinition) pdef, locale);
+                }
+            }
+            else {
+                // return the first property definition found with values
+                result = internalGetPropertyDefinitionI18NByCrisObject(locale,
+                        object, pdef);
+                if (result != null)
+                {
+                    return result;
+                }
+            }
+        }
+        return (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) pd, locale);
+    }
+
+    private static IPropertiesDefinition internalGetPropertyDefinitionI18NByCrisObject(String locale,
+            ICrisObject aobject, IContainable containableLocalized)
+    {
+        IPropertiesDefinition result = (IPropertiesDefinition) PropertyDefinitionI18NWrapper
+                .getWrapper((IPropertiesDefinition) containableLocalized,
+                        locale);
+        List values = (List) aobject.getAnagrafica4view()
+                .get(result.getShortName());
+        if (!values.isEmpty())
+        {
+            return result;
+        }
+        return null;
+    }
+    
+    public static String getTranslatedName(
+            ACrisObject cris, String locale)
+    {
+        IContainable pd = null;
+        String shortname = null;
+        switch (cris.getType())
+        {
+        case CrisConstants.RP_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorRPPropertiesDefinition.class, shortname);
+            break;
+        case CrisConstants.PROJECT_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorProjectPropertiesDefinition.class, shortname);
+            break;
+        case CrisConstants.OU_TYPE_ID:
+            shortname = cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorOUPropertiesDefinition.class, shortname);
+            break;
+        default:
+            shortname = ((ResearchObject)cris).getTypo().getShortName() + cris.getMetadataFieldTitle();
+            pd = applicationService.findContainableByDecorable(DecoratorDynamicPropertiesDefinition.class, shortname);
+            break;
+        }
+        // if pd is null something is really wrong, batter an NPE then return null
+        IPropertiesDefinition ipd = (IPropertiesDefinition)getPropertyDefinitionI18N(pd, locale);
+        return ((List)cris.getAnagrafica4view().get(ipd.getShortName())).get(0).toString();
     }
 }

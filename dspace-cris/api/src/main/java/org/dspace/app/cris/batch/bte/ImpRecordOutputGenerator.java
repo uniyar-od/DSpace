@@ -10,6 +10,7 @@ package org.dspace.app.cris.batch.bte;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,7 +77,6 @@ public class ImpRecordOutputGenerator implements OutputGenerator {
     {
         Record itemLookup = record;
 
-        Set<String> addedMetadata = new HashSet<String>();
         for (String field : itemLookup.getFields())
         {
 			String metadata = getMetadata(formName,itemLookup, field);
@@ -84,7 +84,6 @@ public class ImpRecordOutputGenerator implements OutputGenerator {
             {
                 continue;
             }
-            addedMetadata.add(metadata);
 
             List<Value> values = itemLookup.getValues(field);
             if(StringUtils.equals(metadata, sourceIdMetadata)){
@@ -104,7 +103,7 @@ public class ImpRecordOutputGenerator implements OutputGenerator {
                 item.setSourceRef(providerName);
             }
             
-            Set<ImpRecordMetadata> val = new HashSet<ImpRecordMetadata>();
+            Set<ImpRecordMetadata> val = new LinkedHashSet<ImpRecordMetadata>();
             if (values != null && values.size() > 0)
             {
                 for (Value value : values)

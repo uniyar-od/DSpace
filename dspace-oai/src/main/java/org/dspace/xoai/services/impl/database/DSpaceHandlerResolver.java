@@ -8,6 +8,10 @@
 package org.dspace.xoai.services.impl.database;
 
 
+import java.sql.SQLException;
+
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.util.Researcher;
 import org.dspace.content.DSpaceObject;
 import org.dspace.handle.HandleManager;
 import org.dspace.xoai.services.api.context.ContextService;
@@ -16,8 +20,6 @@ import org.dspace.xoai.services.api.database.HandleResolver;
 import org.dspace.xoai.services.api.database.HandleResolverException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.sql.SQLException;
-
 public class DSpaceHandlerResolver implements HandleResolver {
     @Autowired
     private ContextService contextService;
@@ -25,7 +27,11 @@ public class DSpaceHandlerResolver implements HandleResolver {
     @Override
     public DSpaceObject resolve(String handle) throws HandleResolverException {
         try {
-            return HandleManager.resolveToObject(contextService.getContext(), handle);
+            DSpaceObject dso = HandleManager.resolveToObject(contextService.getContext(), handle);
+            if (dso == null) {
+            	dso = new Researcher().getApplicationService().getEntityByUUID(handle);
+            }
+            return dso;
         } catch (ContextServiceException e) {
             throw new HandleResolverException(e);
         } catch (SQLException e) {
@@ -36,7 +42,11 @@ public class DSpaceHandlerResolver implements HandleResolver {
     @Override
     public String getHandle(DSpaceObject object) throws HandleResolverException {
         try {
-            return HandleManager.findHandle(contextService.getContext(), object);
+            if (object instanceof ACrisObject) {
+            	return ((ACrisObject) object).getUuid();
+            }
+        	return HandleManager.findHandle(contextService.getContext(), object);
+            
         } catch (SQLException e) {
             throw new HandleResolverException(e);
         } catch (ContextServiceException e) {

@@ -40,9 +40,6 @@ public class BrowseItem extends DSpaceObject
 	/** Logger */
     private static Logger log = Logger.getLogger(BrowseItem.class);
     
-	/** a List of all the metadata */
-	private List<Metadatum> metadata = new ArrayList<Metadatum>();
-	
 	/** database id of the item */
 	private int id = -1;
 
@@ -87,75 +84,16 @@ public class BrowseItem extends DSpaceObject
 	public Metadatum[] getMetadata(String schema, String element, String qualifier, String lang) {
         try
         {
-            BrowseItemDAO dao = BrowseDAOFactory.getItemInstance(ourContext);
-
-            // if the qualifier is a wildcard, we have to get it out of the
-            // database
-            if (Item.ANY.equals(qualifier))
+            Item item = Item.find(ourContext, id);
+            if (item != null)
             {
-                try {
-                    return dao.queryMetadata(id, schema, element, qualifier, lang);
-                } catch (SQLException e) {
-                    log.error("caught exception: ", e);
-                }
+                return item.getMetadataWithoutPlaceholder(schema, element, qualifier, lang);
             }
-
-            if (!metadata.isEmpty())
-            {
-                List<Metadatum> values = new ArrayList<Metadatum>();
-                Iterator<Metadatum> i = metadata.iterator();
-
-                while (i.hasNext())
-                {
-                    Metadatum dcv = i.next();
-
-                    if (match(schema, element, qualifier, lang, dcv))
-                    {
-                        values.add(dcv);
-                    }
-                }
-
-                if (values.isEmpty())
-                {
-                    Metadatum[] dcvs = new Metadatum[0];
-                    try {
-                        dcvs = dao.queryMetadata(id, schema, element, qualifier, lang);
-                    } catch (SQLException e) {
-                        log.error("caught exception: ", e);
-                    }
-                    if (dcvs != null)
-                    {
-                    	Collections.addAll(metadata, dcvs);
-                    }
-                    return dcvs;
-                }
-
-                // else, Create an array of matching values
-                Metadatum[] valueArray = new Metadatum[values.size()];
-                valueArray = (Metadatum[]) values.toArray(valueArray);
-
-                return valueArray;
-            }
-            else
-            {
-                Metadatum[] dcvs = new Metadatum[0];
-                try {
-                    dcvs = dao.queryMetadata(id, schema, element, qualifier, lang);
-                } catch (SQLException e) {
-                    log.error("caught exception: ", e);
-                }
-                if (dcvs != null)
-                {
-                	Collections.addAll(metadata, dcvs);
-                }
-                return dcvs;
-            }
-        }
-        catch (BrowseException be)
+        } catch (SQLException e)
         {
-            log.error("caught exception: ", be);
-            return null;
+            log.error(e.getMessage(), e);
         }
+        return null;
     }
 	
 	/**

@@ -336,3 +336,4 @@ footer .container {
 	padding: 0;
 	float: left;
 }
+div.row > label.col-md-2 {clear: left;}

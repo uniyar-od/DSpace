@@ -8,7 +8,6 @@
 
 package org.dspace.xoai.filter;
 
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,9 +16,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.core.Constants;
-import org.dspace.core.Context;
 import org.dspace.xoai.data.DSpaceItem;
-import org.dspace.xoai.exceptions.InvalidMetadataFieldException;
 import org.dspace.xoai.filter.data.DSpaceMetadataFilterOperator;
 import org.dspace.xoai.filter.results.DatabaseFilterResult;
 import org.dspace.xoai.filter.results.SolrFilterResult;
@@ -39,14 +36,21 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
     private String field;
     private DSpaceMetadataFilterOperator operator = DSpaceMetadataFilterOperator.UNDEF;
     private List<String> values;
-
+    
     private String getField() {
         if (field == null) {
             field = getConfiguration().get("field").asSimpleType().asString();
         }
         return field;
     }
-
+    
+    public String getSchema() {
+        if(getConfiguration()!=null && getConfiguration().get("schema")!=null) {
+            return getConfiguration().get("schema").asSimpleType().asString();
+        }
+    	return "metadata";
+    }
+    
     private List<String> getValues() {
         if (values == null) {
             ParameterValue parameterValue = getConfiguration().get("value");
@@ -74,21 +78,6 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
             operator = DSpaceMetadataFilterOperator.valueOf(getConfiguration()
                     .get("operator").asSimpleType().asString().toUpperCase());
         return operator;
-    }
-
-    @Override
-    public DatabaseFilterResult buildDatabaseQuery(Context context) {
-        if (this.getField() != null) {
-            try {
-                int id = fieldResolver.getFieldID(context, this.getField());
-                return this.getWhere(id, this.getValues());
-            } catch (InvalidMetadataFieldException ex) {
-                log.error(ex.getMessage(), ex);
-            } catch (SQLException ex) {
-                log.error(ex.getMessage(), ex);
-            }
-        }
-        return new DatabaseFilterResult();
     }
 
     @Override
@@ -198,8 +187,11 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
         String field = this.getField();
         List<String> parts = new ArrayList<String>();
         if (this.getField() != null) {
+        	String d = "";
+        	if (getSchema() != null && getSchema().length() > 0)
+				d = getSchema() + ".";
             for (String v : this.getValues())
-                this.buildQuery("metadata." + field,
+                this.buildQuery(d + field,
                         ClientUtils.escapeQueryChars(v), parts);
             if (parts.size() > 0) {
                 return new SolrFilterResult(StringUtils.join(parts.iterator(),

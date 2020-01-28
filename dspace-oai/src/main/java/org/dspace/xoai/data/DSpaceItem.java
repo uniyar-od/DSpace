@@ -7,18 +7,21 @@
  */
 package org.dspace.xoai.data;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.core.ConfigurationManager;
+
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
+import com.lyncode.xoai.dataprovider.core.ItemMetadata;
 import com.lyncode.xoai.dataprovider.data.About;
 import com.lyncode.xoai.dataprovider.data.Item;
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
 import com.lyncode.xoai.dataprovider.xml.xoai.Element.Field;
-import org.dspace.core.ConfigurationManager;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * 
@@ -26,6 +29,8 @@ import java.util.regex.Pattern;
  */
 public abstract class DSpaceItem implements Item
 {
+	public abstract String getEntityType();
+
 	private static List<Element> filter (List<Element> input, String name) {
     	return Lists.newArrayList(Collections2.filter(input, new MetadataNamePredicate(name)));
     }
@@ -63,13 +68,21 @@ public abstract class DSpaceItem implements Item
 
     
     private static String _prefix = null;
-    public static String buildIdentifier (String handle) {
+    public static String buildIdentifier (String handle, String entityType) {
         if (_prefix == null)
         {
             _prefix = ConfigurationManager.getProperty("oai",
                     "identifier.prefix");
         }
-        return "oai:" + _prefix + ":" + handle;
+        
+        String result = "";
+        if(StringUtils.isNotBlank(entityType)) {
+             result = "oai:" + _prefix + ":" + entityType + "/" + handle;   
+        }
+        else {
+            result = "oai:" + _prefix + ":" + handle;
+        }
+        return result;
     }
     public static String parseHandle (String oaiIdentifier) {
     	String[] parts = oaiIdentifier.split(Pattern.quote(":"));
@@ -91,12 +104,22 @@ public abstract class DSpaceItem implements Item
         return new ArrayList<About>();
     }
     
-    protected abstract String getHandle ();
+    public abstract String getHandle ();
 
     @Override
     public String getIdentifier()
     {
-    	return buildIdentifier(getHandle());
+        String type = getEntityType();
+        ItemMetadata mm = getMetadata();
+        for(Element element : mm.getMetadata().getElement()) {
+            for(Field field : element.getField()) {
+                if("identifier".equals(field.getName())) {
+                    return field.getValue();
+                }
+            }
+        }
+        
+    	return buildIdentifier(getHandle(), type);
     }
 
     private static class MetadataNamePredicate implements Predicate<Element> {

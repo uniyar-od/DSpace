@@ -45,7 +45,9 @@ public class ItemStatusDedupServiceIndexPlugin
         try
         {
             Item item = Item.find(context, itemId);
-
+            if (item == null) {
+                return;
+            }
             document.addField("itemstatus_i",
                     ItemUtils.getItemStatus(context, item));
         }

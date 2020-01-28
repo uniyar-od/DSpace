@@ -38,11 +38,14 @@
 							<property name="name" value="fundings"/>							
 						</bean>
 						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
-							<property name="name" value="journal"/>							
+							<property name="name" value="journals"/>							
 						</bean>
 						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
 							<property name="name" value="events"/>							
 						</bean>
+						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
+							<property name="name" value="equipment"/>							
+						</bean>						
 					</list>				
 				</entry>
 				<entry key="group-right">

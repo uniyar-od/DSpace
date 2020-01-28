@@ -48,6 +48,12 @@ public class WOSUtils {
 					record.addValue("issn", new StringValue(issn));
 				}
 			}
+			if ("art_no".equals(current.getAttribute("type"))) {
+				String art_no = current.getAttribute("value");
+				if (StringUtils.isNotBlank(art_no)) {
+					record.addValue("articlenumber", new StringValue(art_no));
+				}
+			}
 		}
 
 		Element staticData = XMLUtils.getSingleElement(rec, "static_data");
@@ -130,6 +136,17 @@ public class WOSUtils {
 				keyVals.add(new StringValue(key));
 			}
 			record.addField("keywords", keyVals);
+		}
+		
+		Element item = XMLUtils.getSingleElement(staticData, "item");
+		Element keywordsPlus = XMLUtils.getSingleElement(item, "keywords_plus");
+		List<String> keywordPlusList = XMLUtils.getElementValueList(keywordsPlus, "keyword");
+		if (keywordPlusList != null && keywordPlusList.size() > 0) {
+			List<Value> keyPlusVals = new LinkedList<Value>();
+			for (String key : keywordPlusList) {
+				keyPlusVals.add(new StringValue(key));
+			}
+			record.addField("keywordsPlus", keyPlusVals);
 		}
 
 		Element languages = XMLUtils.getSingleElement(recordMetadata, "languages");
