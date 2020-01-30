@@ -151,6 +151,7 @@ public class LicenseStep extends AbstractProcessingStep
     		    String choiceLicense = request.getParameter("license_chooser");
     			Item item = subInfo.getSubmissionItem().getItem();
     			Item item2 = item.getWrapper();
+    			item.removeDSpaceLicense();
     			LicenseUtils.getLicensePDF(context, item2, choiceLicense);
     		}
             // commit changes
