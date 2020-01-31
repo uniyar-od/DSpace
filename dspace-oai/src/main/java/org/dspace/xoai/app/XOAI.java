@@ -7,10 +7,22 @@
  */
 package org.dspace.xoai.app;
 
-import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
-import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
-import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
-import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
+import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
+import static org.dspace.content.Item.find;
+import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.ConnectException;
+import java.sql.SQLException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import javax.xml.stream.XMLStreamException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
@@ -25,7 +37,13 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.*;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
+import org.dspace.content.Collection;
+import org.dspace.content.Community;
+import org.dspace.content.Item;
+import org.dspace.content.ItemIterator;
+import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -46,20 +64,10 @@ import org.dspace.xoai.solr.exceptions.DSpaceSolrIndexerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
-import javax.xml.stream.XMLStreamException;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.net.ConnectException;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static com.lyncode.xoai.dataprovider.core.Granularity.Second;
-import static org.dspace.content.Item.find;
-import static org.dspace.xoai.util.ItemUtils.retrieveMetadata;
+import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
+import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
+import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
+import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
@@ -277,7 +285,15 @@ public class XOAI {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
-        retrieveMetadata(context, item).write(xmlContext);
+        try
+        {
+            retrieveMetadata(context, item).write(xmlContext);
+        }
+        catch (WritingXmlException | IOException e)
+        {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
         doc.addField("item.compile", out.toString());
@@ -449,7 +465,7 @@ public class XOAI {
         itemCacheService.deleteAll();
     }
 
-    private void compile() throws CompilingException {
+    private void compile() throws CompilingException, AuthorizeException {
         ItemIterator iterator;
         try {
             Date last = xoaiLastCompilationCacheService.get();

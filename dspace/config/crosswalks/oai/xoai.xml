@@ -80,8 +80,21 @@
                 This contexts complies with OpenAIRE rules.
             </Description>
         </Context>
-    </Contexts>
 
+        <Context baseurl="openaire4" name="OpenAIRE v4 Context">
+            <!-- Date format, field prefixes, etc are ensured by the transformer -->
+            <Transformer ref="openaire4Transformer"/>
+            <!-- OpenAIRE filter -->
+            <!-- INSERT HERE -->
+            <!-- Just an alias, in fact it returns all items within the driver context -->
+            <Set ref="driverSet"/>
+            <!-- Metadata Formats -->
+            <Format ref="oai_openaire"/>
+            <Description>
+                This contexts complies with OpenAIRE v4 rules.
+            </Description>
+        </Context>
+    </Contexts>
 
     <Formats>
         <Format id="oaidc">
@@ -165,6 +178,12 @@
             <Namespace>http://irdb.nii.ac.jp/oai</Namespace>
             <SchemaLocation>http://irdb.nii.ac.jp/oai/junii2-3-1.xsd</SchemaLocation>
         </Format>
+        <Format id="oai_openaire">
+            <Prefix>oai_openaire</Prefix>
+            <XSLT>metadataFormats/oai_openaire.xsl</XSLT>
+            <Namespace>http://namespace.openaire.eu/schema/oaire/</Namespace>
+            <SchemaLocation>https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd</SchemaLocation>
+        </Format>
     </Formats>
 
     <Transformers>
@@ -173,6 +192,9 @@
         </Transformer>
         <Transformer id="openaireTransformer">
             <XSLT>transformers/openaire.xsl</XSLT>
+        </Transformer>
+        <Transformer id="openaire4Transformer">
+            <XSLT>transformers/openaire4.xsl</XSLT>
         </Transformer>
     </Transformers>
 

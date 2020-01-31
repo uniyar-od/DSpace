@@ -14,6 +14,8 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Metadatum;
@@ -23,12 +25,17 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.license.CreativeCommons;
 import org.dspace.xoai.data.DSpaceItem;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URISyntaxException;
 import java.sql.SQLException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,6 +45,9 @@ import java.util.List;
 @SuppressWarnings("deprecation")
 public class ItemUtils
 {
+    
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
 
@@ -64,7 +74,7 @@ public class ItemUtils
         e.setName(name);
         return e;
     }
-    public static Metadata retrieveMetadata (Context context, Item item) {
+    public static Metadata retrieveMetadata (Context context, Item item) throws IOException {
         Metadata metadata;
         
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
@@ -168,7 +178,7 @@ public class ItemUtils
                 bundles.getElement().add(bundle);
                 bundle.getField()
                         .add(createValue("name", b.getName()));
-
+                
                 Element bitstreams = create("bitstreams");
                 bundle.getElement().add(bitstreams);
                 Bitstream[] bits = b.getBitstreams();
@@ -258,8 +268,34 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
-        metadata.getElement().add(other);
+        
+        String drm = null;
+        String ccLicense = null;
+        
+        try
+        {
+            drm = buildPermission(context, item);
+            ccLicense = CreativeCommons.getLicenseText(item) + "|||"
+                    + CreativeCommons.getLicenseURL(item) + "|||"
+                    + sdf.format(sdf.parse(
+                            CreativeCommons.getLicenseDate(context, item)));
+        }
+        catch (SQLException | IOException | AuthorizeException
+                | URISyntaxException e)
+        {
+            log.warn(e.getMessage(), e);
+        }
+        catch (ParseException e)
+        {
+            log.warn(e.getMessage(), e);
+        }
 
+        other.getField().add(
+                createValue("drm", drm));        
+        other.getField().add(
+                createValue("cc", ccLicense));        
+        metadata.getElement().add(other);
+        
         // Repository Info
         Element repository = create("repository");
         repository.getField().add(
@@ -317,4 +353,94 @@ public class ItemUtils
         
         return metadata;
     }
-}
+    
+    
+    private static String buildPermission(Context context, Item item) throws SQLException {
+        
+        Bundle[] bnds;
+        try
+        {
+            bnds = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+        }
+        catch (SQLException e)
+        {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        Date now = new Date();
+        
+        boolean openAccess = false;
+        boolean groupRestricted = false;
+        boolean withEmbargo = false;
+        
+        Date embargoStartDate = null;
+        Date embargoEndDate = null;
+        
+        for (Bundle bnd : bnds)
+        {
+            
+            Bitstream bitstream = Bitstream.find(context, bnd.getPrimaryBitstreamID());
+            if(bitstream==null) {
+                for (Bitstream b : bnd.getBitstreams()) {
+                    bitstream = b;
+                    break;
+                }
+            }
+            
+            if(bitstream==null) {
+                return "metadata only access|||http://purl.org/coar/access_right/c_14cb";
+            }
+
+                List<ResourcePolicy> rps = AuthorizeManager
+                        .getPoliciesActionFilter(context, bitstream, Constants.READ);
+
+                if (rps != null)
+                {
+                    for (ResourcePolicy rp : rps)
+                    {
+                        if (rp.getGroupID() == 0)
+                        {
+                            if (rp.isDateValid())
+                            {
+                                openAccess = true;
+                            }
+                            else if (rp.getStartDate() != null
+                                    && rp.getStartDate().after(now))
+                            {
+                                withEmbargo = true;
+                                embargoStartDate=rp.getStartDate();
+                                embargoEndDate=rp.getEndDate();
+                            }
+                        }
+                        else if (rp.getGroupID() != 1)
+                        {
+                            if (rp.isDateValid())
+                            {
+                                groupRestricted = true;
+                            }
+                            else if (rp.getStartDate() == null
+                                    || rp.getStartDate().after(now))
+                            { 
+                                withEmbargo = true;
+                                embargoStartDate=rp.getStartDate();
+                                embargoEndDate=rp.getEndDate();
+                            }
+                        }
+                    }
+            }
+        }
+        String values = "metadata only access";
+        //if there are fulltext build the values
+            if (openAccess) {
+                    // open access
+                    values = "open access";
+            } else if (withEmbargo) {
+                // all embargoed
+                values = "embargoed access" + "|||" + sdf.format(embargoStartDate) + "|||" + sdf.format(embargoEndDate) + "|||";  
+            } else if (groupRestricted) {
+                // all restricted
+                values = "restricted access";
+            } 
+        return values;
+    }
+ }
