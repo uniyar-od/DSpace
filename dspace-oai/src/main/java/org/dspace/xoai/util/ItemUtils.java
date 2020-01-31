@@ -388,7 +388,7 @@ public class ItemUtils
             }
             
             if(bitstream==null) {
-                return "metadata only access|||http://purl.org/coar/access_right/c_14cb";
+                return "metadata only access";
             }
 
                 List<ResourcePolicy> rps = AuthorizeManager

@@ -39,14 +39,10 @@
 
 			<!-- DATES -->
 			<datacite:dates>
-				<datacite:date>
-					<xsl:attribute name="dateType">Issued</xsl:attribute>
-					<xsl:value-of
-						select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:element/doc:field[@name='value']" />
-				</datacite:date>
 				<xsl:for-each
 					select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name!='issued']/doc:element/doc:field[@name='value']">
 					<datacite:date>
+						<xsl:attribute name="dateType">Issued</xsl:attribute>
 						<xsl:value-of select="." />
 					</datacite:date>
 				</xsl:for-each>
@@ -84,9 +80,7 @@
 				<xsl:choose>
 					<xsl:when test="$isHandle = 'true'">
 						<datacite:identifier>
-							<xsl:attribute name="identifierType">
-							<xsl:text>Handle</xsl:text>
-						</xsl:attribute>
+							<xsl:attribute name="identifierType"><xsl:text>Handle</xsl:text></xsl:attribute>
 							<xsl:value-of
 								select="./doc:element[@name='uri']/doc:element/doc:field[@name='value']" />
 						</datacite:identifier>
