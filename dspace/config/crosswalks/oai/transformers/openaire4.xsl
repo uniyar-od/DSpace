@@ -76,43 +76,6 @@
     <xsl:template
         match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:element"/>
 
-    <!-- 
-        Normalizing dc.rights according to COAR Controlled Vocabulary for
-        Access Rights (Version 1.0) (http://vocabularies.coar-repositories.org/documentation/access_rights/)
-        available at
-        https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_accessrights.html#definition-and-usage-instruction
-    -->
-    <xsl:template
-        match="/doc:metadata/doc:element[@name='dc']/doc:element[@name='rights']/doc:element/doc:field/text()">
-        <xsl:variable name="value" select="."/>
-        <xsl:variable name="lc_value">
-            <xsl:call-template name="lowercase">
-                <xsl:with-param name="value" select="."/>
-            </xsl:call-template>
-        </xsl:variable>
-        <xsl:choose>
-            <xsl:when
-                test="$lc_value = 'open access' or $lc_value = 'openaccess' or $value = 'http://purl.org/coar/access_right/c_abf2'">
-                <xsl:text>open access</xsl:text>
-            </xsl:when>
-            <xsl:when
-                test="$lc_value = 'embargoed access' or $lc_value = 'embargoedaccess' or $value = 'http://purl.org/coar/access_right/c_f1cf'">
-                <xsl:text>embargoed access</xsl:text>
-            </xsl:when>
-            <xsl:when
-                test="$lc_value = 'restricted access' or $lc_value = 'restrictedaccess' or $value = 'http://purl.org/coar/access_right/c_16ec'">
-                <xsl:text>restricted access</xsl:text>
-            </xsl:when>
-            <xsl:when
-                test="$lc_value = 'metadata only access' or $lc_value = 'closedaccess' or $value = 'http://purl.org/coar/access_right/c_14cb'">
-                <xsl:text>metadata only access</xsl:text>
-            </xsl:when>
-            <xsl:otherwise>
-                <xsl:value-of select="$value"/>
-            </xsl:otherwise>
-        </xsl:choose>
-    </xsl:template>
-
     <!-- Modifying and normalizing dc.type according to COAR Controlled Vocabulary for Resource Type 
         Genres (Version 2.0) (http://vocabularies.coar-repositories.org/documentation/resource_types/)
         available at 

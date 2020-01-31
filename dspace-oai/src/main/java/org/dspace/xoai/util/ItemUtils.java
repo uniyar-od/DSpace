@@ -373,7 +373,6 @@ public class ItemUtils
         boolean groupRestricted = false;
         boolean withEmbargo = false;
         
-        Date embargoStartDate = null;
         Date embargoEndDate = null;
         
         for (Bundle bnd : bnds)
@@ -408,8 +407,7 @@ public class ItemUtils
                                     && rp.getStartDate().after(now))
                             {
                                 withEmbargo = true;
-                                embargoStartDate=rp.getStartDate();
-                                embargoEndDate=rp.getEndDate();
+                                embargoEndDate=rp.getStartDate();
                             }
                         }
                         else if (rp.getGroupID() != 1)
@@ -422,8 +420,7 @@ public class ItemUtils
                                     || rp.getStartDate().after(now))
                             { 
                                 withEmbargo = true;
-                                embargoStartDate=rp.getStartDate();
-                                embargoEndDate=rp.getEndDate();
+                                embargoEndDate=rp.getStartDate();
                             }
                         }
                     }
@@ -436,7 +433,7 @@ public class ItemUtils
                     values = "open access";
             } else if (withEmbargo) {
                 // all embargoed
-                values = "embargoed access" + "|||" + sdf.format(embargoStartDate) + "|||" + sdf.format(embargoEndDate) + "|||";  
+                values = "embargoed access" + "|||" + sdf.format(embargoEndDate);  
             } else if (groupRestricted) {
                 // all restricted
                 values = "restricted access";

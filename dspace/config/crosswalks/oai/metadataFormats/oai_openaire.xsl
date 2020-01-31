@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<!-- The contents of this file are subject to the license and copyright detailed 
+<!-- 
+	The contents of this file are subject to the license and copyright detailed 
 	in the LICENSE and NOTICE files at the root of the source tree and available 
-	online at http://www.dspace.org/license/ Developed by DSpace @ Lyncode <dspace@lyncode.com> 
-	> http://www.openarchives.org/OAI/2.0/oai_dc.xsd xmlns:oai_oa="https://www.openaire.eu/schema/repo-lit/4.0/openaire.xsd" -->
+	online at http://www.dspace.org/license/ 
+-->
 <xsl:stylesheet
 	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
 	xmlns:doc="http://www.lyncode.com/xoai" version="1.0"
@@ -60,11 +61,11 @@
 				<xsl:if test="contains($drm,'embargoed')">
 					<datacite:date>
 						<xsl:attribute name="dateType">Accepted</xsl:attribute>
-						<xsl:value-of select="substring-before(substring-after($drm,'|||'),'|||')" />
+						<xsl:value-of select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name!='accessioned']/doc:element/doc:field[@name='value']" />
 					</datacite:date>
 					<datacite:date>
 						<xsl:attribute name="dateType">Available</xsl:attribute>
-						<xsl:value-of select="substring-after(substring-after($drm,'|||'),'|||')" />
+						<xsl:value-of select="substring-after($drm,'|||')" />
 					</datacite:date>
 				</xsl:if>
 			</datacite:dates>
@@ -88,9 +89,11 @@
 				</xsl:choose>
 			</xsl:for-each>
 
+			<!-- DRM -->
 			<xsl:apply-templates
 				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='others']/doc:element[@name='drm']"
 				mode="datacite" />
+
 			<xsl:for-each
 				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name!='author']/doc:element/doc:field[@name='value']">
 				<dc:contributor>
@@ -203,9 +206,6 @@
 					<xsl:value-of select="." />
 				</oaire:citationVolume>
 			</xsl:for-each>
-			<!-- DRM -->
-
-
 
 			<!-- CITATION ISSUE -->
 			<xsl:for-each
@@ -609,4 +609,5 @@
 			<xsl:otherwise />
 		</xsl:choose>
 	</xsl:template>
+	
 </xsl:stylesheet>
