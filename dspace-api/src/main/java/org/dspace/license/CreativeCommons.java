@@ -539,19 +539,4 @@ public class CreativeCommons
 		}
 	}
 	
-    public static String getLicenseDate(Context context, Item item)
-            throws SQLException, IOException, AuthorizeException,
-            URISyntaxException
-    {
-        Bitstream bitstream = getBitstream(item, BSN_LICENSE_RDF);
-        URI uri = new URI(
-                BitstreamStorageManager.getPath(context, bitstream.getID()));
-        Path p = Paths.get(uri);
-        BasicFileAttributes view = Files
-                .getFileAttributeView(p, BasicFileAttributeView.class)
-                .readAttributes();
-        FileTime fileTime = view.creationTime();
-        return fileTime.toString();
-    }
-
 }

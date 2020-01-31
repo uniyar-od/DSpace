@@ -889,13 +889,4 @@ public class BitstreamStorageManager
 		return buf.toString();
 	}
 
-    public static String getPath(Context context, int id)
-            throws SQLException, IOException
-    {
-        TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
-
-        GeneralFile file = getFile(bitstream);
-
-        return file.getCanonicalPath();
-    }
 }

@@ -10,6 +10,8 @@ package org.dspace.xoai.util;
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import com.lyncode.xoai.util.Base64Utils;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.MetadataExposure;
@@ -25,6 +27,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
+import org.dspace.license.CCLookup;
 import org.dspace.license.CreativeCommons;
 import org.dspace.xoai.data.DSpaceItem;
 
@@ -275,19 +278,19 @@ public class ItemUtils
         try
         {
             drm = buildPermission(context, item);
-            ccLicense = CreativeCommons.getLicenseText(item) + "|||"
-                    + CreativeCommons.getLicenseURL(item) + "|||"
-                    + sdf.format(sdf.parse(
-                            CreativeCommons.getLicenseDate(context, item)));
+            
+            String licenseURL = CreativeCommons.getLicenseURL(item);
+            if(StringUtils.isNotBlank(licenseURL)) {
+	            CCLookup ccLookup = new CCLookup();
+	            ccLookup.issue(licenseURL);
+	            String licenseName = ccLookup.getLicenseName();
+	            ccLicense = licenseName + "|||"
+	                    + licenseURL;
+            }
         }
-        catch (SQLException | IOException | AuthorizeException
-                | URISyntaxException e)
+        catch (SQLException | IOException | AuthorizeException e)
         {
-            log.warn(e.getMessage(), e);
-        }
-        catch (ParseException e)
-        {
-            log.warn(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
 
         other.getField().add(

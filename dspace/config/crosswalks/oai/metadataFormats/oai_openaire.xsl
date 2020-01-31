@@ -380,7 +380,7 @@
 		<oaire:licenseCondition>
 			<xsl:attribute name="startDate">
 			<xsl:value-of
-				select="substring-after(substring-after(.,'|||'),'|||')" />
+				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='issued']/doc:field[@name='value']" />
 		</xsl:attribute>
 			<xsl:attribute name="uri">
 			<xsl:value-of
