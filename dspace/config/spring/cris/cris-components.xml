@@ -82,7 +82,7 @@
 
 	<bean id="allComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
-		<property name="componentIdentifier" value="selected" />
+		<property name="componentIdentifier" value="all" />
 		<property name="facetQuery"><value>*:*</value></property>
 		<property name="order"><value>desc</value></property>
 		<property name="rpp"><value>20</value></property>		
