@@ -37,15 +37,6 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         {
             WorkspaceItem workspaceItem = WorkspaceItem.create(context, nativeItem.getOwningCollection(), false);
             Item itemNew = workspaceItem.getItem();
-            Bundle[] bundles = nativeItem.getBundles("ORIGINAL");
-            boolean isFullText = false;
-            for (Bundle bnd : bundles) {
-                isFullText = bnd.getBitstreams().length > 0;
-                if (isFullText) {
-                    itemNew.addMetadata("local", "submission", "type", null, "full-text");
-                    break;
-                }
-            }
             itemNew.update();
             return itemNew;
         }catch (SQLException e) {
@@ -90,6 +81,16 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         {
             copyMetadata(itemNew, previousItem);
             createBundlesAndAddBitstreams(c, itemNew, previousItem);
+            Bundle[] bundles = previousItem.getBundles("ORIGINAL");
+            boolean isFullText = false;
+            for (Bundle bnd : bundles) {
+                isFullText = bnd.getBitstreams().length > 0;
+                if (isFullText) {
+                	itemNew.clearMetadata("local", "submission", "type", null);
+                	itemNew.addMetadata("local", "submission", "type", null, "full-text");
+                    break;
+                }
+            }
             IdentifierService identifierService = new DSpace().getSingletonService(IdentifierService.class);
             try
             {

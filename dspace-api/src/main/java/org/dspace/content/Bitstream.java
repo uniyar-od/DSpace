@@ -664,6 +664,15 @@ public class Bitstream extends DSpaceObject
     }
     
     /**
+	 * This return an unique id assigned by the system to the underline bit in this
+	 * bitstream. It is shared among different bitstream versions
+	 * 
+	 * @return
+	 */
+    public String getInternalBitId() {
+    	return bRow.getStringColumn("internal_id");
+    }
+    /**
      * Get the asset store number where this bitstream is stored
      * 
      * @return the asset store number of the bitstream

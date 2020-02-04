@@ -17,21 +17,49 @@
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
-    prefix="fmt" %>
+    prefix="fmt" %> 
+    
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
 <%@ page import="org.dspace.app.webui.servlet.MyDSpaceServlet" %>
 <%@ page import="org.dspace.content.Collection" %>
 <%@ page import="org.dspace.content.Item" %>
+<%@ page import="org.dspace.content.MetadataField"%>
 <%@ page import="org.dspace.eperson.EPerson" %>
 <%@ page import="org.dspace.workflow.WorkflowItem" %>
 <%@ page import="org.dspace.workflow.WorkflowManager" %>
+<%@ page import="org.dspace.content.MetadataField" %>
+<%@ page import="org.dspace.content.MetadataSchema" %>
+<%@ page import="org.dspace.content.Metadatum"%>
+<%@ page import="org.dspace.core.Context" %>
+<%@ page import="org.dspace.authorize.ResourcePolicy"%>
+<%@ page import="org.dspace.authorize.AuthorizeManager"%>
+<%@ page import="org.dspace.app.webui.util.UIUtil" %>
+<%@ page import="org.dspace.app.webui.util.BitstreamDifferencesDTO" %>
+<%@ page import="java.util.List" %>
+<%@ page import="java.util.Map" %>
 
 <%
+	// Obtain DSpace context
+	Context context = UIUtil.obtainContext(request);    
+
     WorkflowItem workflowItem =
         (WorkflowItem) request.getAttribute("workflow.item");
 
+    Item previousItem = (Item) request
+        .getAttribute("previous.item");
+
+    String versionMessage = (String) request
+            .getAttribute("version.message");
+
+    List<MetadataField> modifiedMetadata  = (List<MetadataField>) request
+        .getAttribute("modifiedMetadata");
+    
+    Map<String, BitstreamDifferencesDTO> modifiedFiles  = (Map<String, BitstreamDifferencesDTO>) request
+            .getAttribute("modifiedFiles");
+	        
     Collection collection = workflowItem.getCollection();
     Item item = workflowItem.getItem();
 %>
@@ -71,7 +99,8 @@
 <%
     }
 %>
-    
+<%@ include file="version-differences-component.jsp" %>
+	
     <dspace:item item="<%= item %>" />
 
     <p>&nbsp;</p>
