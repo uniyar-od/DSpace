@@ -7,9 +7,13 @@
  */
 package org.dspace.xoai.util;
 
-import com.lyncode.xoai.dataprovider.xml.xoai.Element;
-import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
-import com.lyncode.xoai.util.Base64Utils;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
@@ -20,8 +24,8 @@ import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
-import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
+import org.dspace.content.Metadatum;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -31,15 +35,9 @@ import org.dspace.license.CCLookup;
 import org.dspace.license.CreativeCommons;
 import org.dspace.xoai.data.DSpaceItem;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.sql.SQLException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import com.lyncode.xoai.dataprovider.xml.xoai.Element;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import com.lyncode.xoai.util.Base64Utils;
 
 /**
  * 
@@ -77,9 +75,9 @@ public class ItemUtils
         e.setName(name);
         return e;
     }
-    public static Metadata retrieveMetadata (Context context, Item item) throws IOException {
+    public static Metadata retrieveMetadata (Context context, Item item) {
         Metadata metadata;
-        
+        String authority = null;
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
@@ -158,14 +156,16 @@ public class ItemUtils
                 }
                 valueElem = language;
             }
-
+            
             valueElem.getField().add(createValue("value", val.value));
             if (val.authority != null) {
                 valueElem.getField().add(createValue("authority", val.authority));
-                if (val.confidence != Choices.CF_NOVALUE)
+                if (val.confidence != Choices.CF_NOVALUE) {
                     valueElem.getField().add(createValue("confidence", val.confidence + ""));
+                }
             }
         }
+        
         // Done! Metadata has been read!
         // Now adding bitstream info
         Element bundles = create("bundles");
@@ -223,13 +223,14 @@ public class ItemUtils
                     {
                         url = URLUtils.encode(bsName);
                     }
-
+                    
                     String cks = bit.getChecksum();
                     String cka = bit.getChecksumAlgorithm();
                     String oname = bit.getSource();
                     String name = bit.getName();
                     String description = bit.getDescription();
-
+                    String drm = getDRM(AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
+                        
                     if (name != null)
                         bitstream.getField().add(
                                 createValue("name", name));
@@ -252,6 +253,9 @@ public class ItemUtils
                     bitstream.getField().add(
                             createValue("sid", bit.getSequenceID()
                                     + ""));
+                    bitstream.getField()
+                            .add(createValue("drm", drm));
+                    bitstream.getField();
                 }
             }
         }
@@ -271,7 +275,21 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
+        Element author = create("author");
         
+        Metadatum[] values= item.getMetadata("dc", "contributor", "author", Item.ANY);
+        for(Metadatum val : values) {
+            if(StringUtils.contains(val.authority, "::")){
+                String[] splitted = StringUtils.split(val.authority, "::");
+                authority = val.value + "|||" + splitted[1] + "|||" + splitted[2];
+            }
+            else {
+            authority = val.value;
+            }
+            author.getField().add(createValue("relation", authority));
+        }
+        other.getElement().add(author);
+       
         String drm = null;
         String ccLicense = null;
         
@@ -357,9 +375,71 @@ public class ItemUtils
         return metadata;
     }
     
+    private static String getDRM(List<ResourcePolicy> rps)
+    {
+        Date now = new Date();
+        Date embargoEndDate = null;
+        boolean openAccess = false;
+        boolean groupRestricted = false;
+        boolean withEmbargo = false;
+
+        if (rps != null)
+        {
+            for (ResourcePolicy rp : rps)
+            {
+                if (rp.getGroupID() == 0)
+                {
+                    if (rp.isDateValid())
+                    {
+                        openAccess = true;
+                    }
+                    else if (rp.getStartDate() != null
+                            && rp.getStartDate().after(now))
+                    {
+                        withEmbargo = true;
+                        embargoEndDate = rp.getStartDate();
+                    }
+                }
+                else if (rp.getGroupID() != 1)
+                {
+                    if (rp.isDateValid())
+                    {
+                        groupRestricted = true;
+                    }
+                    else if (rp.getStartDate() == null
+                            || rp.getStartDate().after(now))
+                    {
+                        withEmbargo = true;
+                        embargoEndDate = rp.getStartDate();
+                    }
+                }
+            }
+        }
+        String values = "metadata only access";
+        // if there are fulltext build the values
+        if (openAccess)
+        {
+            // open access
+            values = "open access";
+        }
+        else if (withEmbargo)
+        {
+            // all embargoed
+            values = "embargoed access" + "|||" + sdf.format(embargoEndDate);
+        }
+        else if (groupRestricted)
+        {
+            // all restricted
+            values = "restricted access";
+        }
+        return values;
+    }
     
-    private static String buildPermission(Context context, Item item) throws SQLException {
-        
+    private static String buildPermission(Context context, Item item)
+            throws SQLException
+    {
+
+        String values = "metadata only access";
         Bundle[] bnds;
         try
         {
@@ -370,77 +450,27 @@ public class ItemUtils
             throw new RuntimeException(e.getMessage(), e);
         }
 
-        Date now = new Date();
-        
-        boolean openAccess = false;
-        boolean groupRestricted = false;
-        boolean withEmbargo = false;
-        
-        Date embargoEndDate = null;
-        
         for (Bundle bnd : bnds)
         {
-            
-            Bitstream bitstream = Bitstream.find(context, bnd.getPrimaryBitstreamID());
-            if(bitstream==null) {
-                for (Bitstream b : bnd.getBitstreams()) {
+
+            Bitstream bitstream = Bitstream.find(context,
+                    bnd.getPrimaryBitstreamID());
+            if (bitstream == null)
+            {
+                for (Bitstream b : bnd.getBitstreams())
+                {
                     bitstream = b;
                     break;
                 }
             }
-            
-            if(bitstream==null) {
+
+            if (bitstream == null)
+            {
                 return "metadata only access";
             }
-
-                List<ResourcePolicy> rps = AuthorizeManager
-                        .getPoliciesActionFilter(context, bitstream, Constants.READ);
-
-                if (rps != null)
-                {
-                    for (ResourcePolicy rp : rps)
-                    {
-                        if (rp.getGroupID() == 0)
-                        {
-                            if (rp.isDateValid())
-                            {
-                                openAccess = true;
-                            }
-                            else if (rp.getStartDate() != null
-                                    && rp.getStartDate().after(now))
-                            {
-                                withEmbargo = true;
-                                embargoEndDate=rp.getStartDate();
-                            }
-                        }
-                        else if (rp.getGroupID() != 1)
-                        {
-                            if (rp.isDateValid())
-                            {
-                                groupRestricted = true;
-                            }
-                            else if (rp.getStartDate() == null
-                                    || rp.getStartDate().after(now))
-                            { 
-                                withEmbargo = true;
-                                embargoEndDate=rp.getStartDate();
-                            }
-                        }
-                    }
-            }
+            values = getDRM(AuthorizeManager.getPoliciesActionFilter(context,
+                    bitstream, Constants.READ));
         }
-        String values = "metadata only access";
-        //if there are fulltext build the values
-            if (openAccess) {
-                    // open access
-                    values = "open access";
-            } else if (withEmbargo) {
-                // all embargoed
-                values = "embargoed access" + "|||" + sdf.format(embargoEndDate);  
-            } else if (groupRestricted) {
-                // all restricted
-                values = "restricted access";
-            } 
         return values;
     }
  }

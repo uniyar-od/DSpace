@@ -12,18 +12,11 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributeView;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileTime;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.xml.transform.Templates;
+import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -41,8 +34,8 @@ import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
-import org.dspace.storage.bitstore.BitstreamStorageManager;
 import org.jdom.Document;
+import org.jdom.transform.JDOMResult;
 import org.jdom.transform.JDOMSource;
 
 public class CreativeCommons
@@ -538,5 +531,5 @@ public class CreativeCommons
 		    }
 		}
 	}
-	
+
 }
