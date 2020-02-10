@@ -96,7 +96,7 @@
 			<datacite:contributors>
 			
 				<xsl:for-each
-					select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name!='author' and @name!='editor' and @name!='distributor']/doc:element">
+					select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name!='author' and @name!='editor']/doc:element">
 					<datacite:contributor>
 						<xsl:attribute name="contributorType">
 							<xsl:text>Other</xsl:text>
