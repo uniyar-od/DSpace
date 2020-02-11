@@ -598,14 +598,7 @@ public abstract class DSpaceObject implements IGlobalSearchResult
             if (ItemUtils.match(schema, element, qualifier, lang, dcv))
             {
                 // We will return a copy of the object in case it is altered
-                Metadatum copy = new Metadatum();
-                copy.element = dcv.element;
-                copy.qualifier = dcv.qualifier;
-                copy.value = dcv.value;
-                copy.language = dcv.language;
-                copy.schema = dcv.schema;
-                copy.authority = dcv.authority;
-                copy.confidence = dcv.confidence;
+                Metadatum copy = dcv.copy();
                 values.add(copy);
             }
         }
@@ -667,16 +660,9 @@ public abstract class DSpaceObject implements IGlobalSearchResult
 			if (!StringUtils.equals(dcv.value, MetadataValue.PARENT_PLACEHOLDER_VALUE) && ItemUtils.match(schema, element, qualifier, lang, dcv))
 			{
 				// We will return a copy of the object in case it is altered
-				Metadatum copy = new Metadatum();
-				copy.element = dcv.element;
-				copy.qualifier = dcv.qualifier;
-				copy.value = dcv.value;
-				copy.language = dcv.language;
-				copy.schema = dcv.schema;
-				copy.authority = dcv.authority;
-				copy.confidence = dcv.confidence;
+				Metadatum copy = dcv.copy();
 				values.add(copy);
-				}
+			}
 		}
 		
 		// Create an array of matching values
@@ -1260,7 +1246,7 @@ public abstract class DSpaceObject implements IGlobalSearchResult
                                     dcv.schema = schema.getName();
                                     dcv.authority = resultRow.getStringColumn("authority");
                                     dcv.confidence = resultRow.getIntColumn("confidence");
-
+                                    dcv.setPlace(resultRow.getIntColumn("place"));
                                     // Add it to the list
                                     metadata.add(dcv);
                                 }
