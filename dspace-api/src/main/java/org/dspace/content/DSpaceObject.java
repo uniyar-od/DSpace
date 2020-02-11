@@ -110,8 +110,8 @@ public abstract class DSpaceObject implements IGlobalSearchResult
             // Work out the place number for ordering
             int current = 0;
 
-            // Key into map is "element" or "element.qualifier"
-            String key = dcv.element + ((dcv.qualifier == null) ? "" : ("." + dcv.qualifier));
+            // Key into map is "schema.element" or "schema.element.qualifier"
+            String key = dcv.schema +"."+ dcv.element + ((dcv.qualifier == null) ? "" : ("." + dcv.qualifier));
 
             Integer currentInteger = elementCount.get(key);
             if (currentInteger != null)
@@ -124,6 +124,8 @@ public abstract class DSpaceObject implements IGlobalSearchResult
 
             // Store the calculated place number, reset the stored flag, and cache the metadatafield
             placeNum[dcIdx] = current;
+            // manage the place also in the memory list
+            dcv.setPlace(current);
             storedDC[dcIdx] = false;
             dcFields[dcIdx] = getMetadataField(dcv);
             if (dcFields[dcIdx] == null)
