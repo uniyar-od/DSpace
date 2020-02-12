@@ -328,24 +328,7 @@
 			</datacite:subject>
 		</xsl:for-each>
 	</xsl:template>
-	
-	<!-- dc.subject.ddc -->
-	<xsl:template
-		match="doc:element[@name='dc']/doc:element[@name='subject']/doc:element[@name='ddc']"
-		mode="datacite">
-		<xsl:for-each select="./doc:element/doc:field[@name='value']">
-			<datacite:subject>
-				<xsl:attribute name="subjectScheme">
-					<xsl:text>DDC</xsl:text>
-				</xsl:attribute>
-				<xsl:attribute name="schemeURI">
-					<xsl:text>http://dewey.info/</xsl:text>
-				</xsl:attribute>
-				<xsl:value-of select="./text()" />
-			</datacite:subject>
-		</xsl:for-each>
-	</xsl:template>
-	
+		
 	<xsl:template
 		match="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']"
 		mode="datacite_ids">
