@@ -54,6 +54,6 @@ public class CollectionConverter
 
     @Override
     public boolean supportsModel(IndexableObject idxo) {
-        return idxo instanceof Collection;
+        return idxo.getIndexedObject() instanceof Collection;
     }
 }
