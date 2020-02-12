@@ -598,4 +598,47 @@
         <qualifier>license</qualifier>
         <scope_note></scope_note>
     </dc-type>
+    
+    <dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+        <qualifier>funder</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+    
+    <dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+        <qualifier>funderid</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+    
+    <dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+        <qualifier>grantno</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+    
+    <dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+        <qualifier>awardURL</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+    
+    <dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+        <qualifier></qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>dc</schema>
+        <element>relation</element>
+		<!-- unqualified -->
+        <scope_note></scope_note>
+    </dc-type>
+    
 </dspace-dc-types>

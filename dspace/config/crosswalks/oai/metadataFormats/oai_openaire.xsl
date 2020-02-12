@@ -50,7 +50,9 @@
 								</datacite:nameIdentifier>
 							</xsl:when>
 							<xsl:otherwise>
-								<xsl:value-of select="." />
+								<datacite:creatorName>
+									<xsl:value-of select="." />
+								</datacite:creatorName>
 							</xsl:otherwise>
 						</xsl:choose>
 					</datacite:creator>
@@ -160,14 +162,6 @@
 				</dc:publisher>
 			</xsl:for-each>
 
-			<!-- FOUNDING REFERENCES -->
-			<xsl:for-each
-				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']">
-				<oaire:fundingReference>
-					<xsl:value-of select="." />
-				</oaire:fundingReference>
-			</xsl:for-each>
-
 			<!-- DC DESCRIPTION ABSTRACT -->
 			<xsl:for-each
 				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='description']/doc:element[@name='abstract']/doc:element/doc:field[@name='value']">
@@ -244,6 +238,56 @@
 					</xsl:for-each>
 				</xsl:if>
 			</xsl:for-each>
+		
+			<!-- select all funding references -->
+					<xsl:variable name="funder" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='funder']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="funderid" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='funderid']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="grantno" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='grantno']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awarduri" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='awardURL']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awardtitle" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='awardTitle']/doc:element/doc:field[@name='value']"/>
+					
+					<xsl:variable name="check_fundingreference">
+						<xsl:for-each select="$funder">
+							<xsl:if test="$funder!=''">
+								<xsl:value-of select="."/>
+							</xsl:if>
+						</xsl:for-each>
+					</xsl:variable>
+					
+					<xsl:if test="$check_fundingreference!=''">
+						<fundingReferences>
+							<xsl:for-each select="$funder">
+								<xsl:if test=".!='' ">
+									<fundingReference>
+										<xsl:variable name="counter" select="position()"/>
+										<funderName>
+											<xsl:value-of select="."/>
+										</funderName>
+										<xsl:if test="$funderid[$counter]!='' ">
+											<funderIdentifier funderIdentifierType="Crossref Funder ID">
+												<xsl:value-of select="$funderid[$counter]"/>	
+											</funderIdentifier>
+										</xsl:if>
+										<xsl:if test="$grantno[$counter]!='' ">
+											<awardNumber>
+												<xsl:if test="$awarduri[$counter]!='' ">
+													<xsl:attribute name="awardURI">
+														<xsl:value-of select="$awarduri"/>
+													</xsl:attribute>
+												</xsl:if>
+												<xsl:value-of select="$grantno[$counter]"/>
+											</awardNumber>
+										</xsl:if>
+										<xsl:if test="$awardtitle[$counter]!='' ">
+											<awardTitle>
+												<xsl:value-of select="$awardtitle[$counter]"/>
+											</awardTitle>
+										</xsl:if>
+									</fundingReference>
+								</xsl:if>
+							</xsl:for-each>
+						</fundingReferences>
+					</xsl:if>
 		</oaire:resource>
 	</xsl:template>
 
@@ -262,7 +306,7 @@
 		</xsl:if>
 	</xsl:template>
 
-	<!-- datacite:subjects -->
+		<!-- datacite:subjects -->
 	<!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_subject.html -->
 			<xsl:template
 		match="doc:element[@name='dc']/doc:element[@name='subject']"
@@ -278,8 +322,25 @@
 	<xsl:template
 		match="doc:element[@name='dc']/doc:element[@name='subject']/doc:element"
 		mode="datacite">
-		<xsl:for-each select="./doc:field[@name='value']">
+		<xsl:for-each select="./doc:element/doc:field[@name='value']">
 			<datacite:subject>
+				<xsl:value-of select="./text()" />
+			</datacite:subject>
+		</xsl:for-each>
+	</xsl:template>
+	
+	<!-- dc.subject.ddc -->
+	<xsl:template
+		match="doc:element[@name='dc']/doc:element[@name='subject']/doc:element[@name='ddc']"
+		mode="datacite">
+		<xsl:for-each select="./doc:element/doc:field[@name='value']">
+			<datacite:subject>
+				<xsl:attribute name="subjectScheme">
+					<xsl:text>DDC</xsl:text>
+				</xsl:attribute>
+				<xsl:attribute name="schemeURI">
+					<xsl:text>http://dewey.info/</xsl:text>
+				</xsl:attribute>
 				<xsl:value-of select="./text()" />
 			</datacite:subject>
 		</xsl:for-each>
@@ -518,7 +579,7 @@
 			</xsl:otherwise>
 		</xsl:choose>
 	</xsl:template>
-
+	
 	<xsl:template name="resolveRightsURI">
 		<xsl:param name="field" />
 		<xsl:variable name="lc_value">
