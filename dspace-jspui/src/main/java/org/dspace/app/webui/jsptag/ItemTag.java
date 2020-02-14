@@ -557,7 +557,7 @@ public class ItemTag extends TagSupport {
 
 						Bitstream[] bitstreams;
 						if (primaryBit != null
-								&& hideNotPrimaryBitstreams(context, request, pageContext, handle, bundles[i], primaryBit)) {
+								&& hideNotPrimaryBitstreams(context, request, pageContext, handle, bunds[i], primaryBit)) {
 							bitstreams = new Bitstream[] { primaryBit };
 						} else {
 							bitstreams = bunds[i].getBitstreams();
