@@ -557,7 +557,7 @@ public class ItemTag extends TagSupport {
 
 						Bitstream[] bitstreams;
 						if (primaryBit != null
-								&& hideNotPrimaryBitstreams(context, request, pageContext, handle, primaryBit)) {
+								&& hideNotPrimaryBitstreams(context, request, pageContext, handle, bundles[i], primaryBit)) {
 							bitstreams = new Bitstream[] { primaryBit };
 						} else {
 							bitstreams = bunds[i].getBitstreams();
@@ -893,9 +893,17 @@ public class ItemTag extends TagSupport {
 	}
 
 	public static boolean hideNotPrimaryBitstreams(Context context, HttpServletRequest request, PageContext pageContext,
-			String handle, Bitstream bit) throws UnsupportedEncodingException {
+			String handle, Bundle bundle, Bitstream bit) throws UnsupportedEncodingException {
 
-		List<String> hideNotPrimary = bit.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
+		List<String> hideNotPrimary = bundle.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
+		for (String h : hideNotPrimary) {
+			if (BooleanUtils.toBoolean(h)) {
+				return true;
+			}
+		}
+
+		// check on bitstream for backward compatibility (related to IIIF-38)
+		hideNotPrimary = bit.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
 		for (String h : hideNotPrimary) {
 			if (BooleanUtils.toBoolean(h)) {
 				return true;

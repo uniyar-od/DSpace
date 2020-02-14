@@ -24,6 +24,11 @@ public class CrisSubscribeService
         this.applicationService = applicationService;
     }
     
+    public void unsubscribe(String uuid)
+    {
+        applicationService.deleteSubscriptionByUUID(uuid);
+    }
+
     public void unsubscribe(EPerson e, String uuid)
     {        
         CrisSubscription rpsub = applicationService.getSubscription(e.getID(),
@@ -34,17 +39,16 @@ public class CrisSubscribeService
         }
     }
     
-    public void subscribe(EPerson e, String uuid)
+    public void subscribe(int epersonID, String uuid, int type)
     {
         
-        CrisSubscription rpsub = applicationService.getSubscription(e.getID(),
+        CrisSubscription rpsub = applicationService.getSubscription(epersonID,
                 uuid);
         if (rpsub == null)
         {
             rpsub = new CrisSubscription();
-            rpsub.setEpersonID(e.getID());
-            ACrisObject aco = applicationService.getEntityByUUID(uuid);
-            rpsub.setTypeDef(aco.getType());
+            rpsub.setEpersonID(epersonID);
+            rpsub.setTypeDef(type);
             rpsub.setUuid(uuid);
             applicationService.saveOrUpdate(CrisSubscription.class, rpsub);
         }
