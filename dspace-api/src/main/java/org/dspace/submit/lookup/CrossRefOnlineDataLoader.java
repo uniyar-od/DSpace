@@ -65,7 +65,7 @@ public class CrossRefOnlineDataLoader extends NetworkSubmissionLookupDataLoader
             List<Record> items = null;
             List<Record> results = new ArrayList<Record>();
             
-            if (StringUtils.isNotBlank(getApiKey())){
+            if (StringUtils.isBlank(getApiKey())){
             	throw new RuntimeException("No CrossRef API key is specified!");
             }
             
