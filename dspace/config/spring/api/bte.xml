@@ -158,7 +158,7 @@
 			<entry key="cinii">
 				<value>ncid</value>
 			</entry>
-			<entry key="scopus">
+<!--  			<entry key="scopus">
 				<value>eid</value>
 			</entry>
 			<entry key="wos">
@@ -166,7 +166,7 @@
 			</entry>
 			<entry key="ads">
 				<value>adsbibcode</value>
-			</entry>
+			</entry>-->
 		</map>
 	</property>
     </bean>
@@ -865,8 +865,8 @@
 				<entry key="doi" value="dc.identifier.doi" />
 				<entry key="isbn" value="dc.identifier.isbn" />
 				<entry key="pubmed" value="dc.identifier.pmid" />
-				<entry key="scopuseid" value="dc.identifier.scopus" />
-				<entry key="isiid" value="dc.identifier.isi" />
+				<!--  <entry key="scopuseid" value="dc.identifier.scopus" />
+				<entry key="isiid" value="dc.identifier.isi" />-->
 			</map>
 		</property>
 	</bean>
