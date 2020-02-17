@@ -534,6 +534,26 @@ footer .container {
 	float: left;
 }
 
+.panel-default>.panel-heading>.panel-title>.btn-group>button , .panel-default>.panel-heading>.panel-title>.btn-group>button:focus , .panel-default>.panel-heading>.panel-title>.btn-group>button:hover{
+	color: #fff;	
+}
+
+.row.horizontal-tab div.panel.panel-default > div.panel-heading > h4.panel-title > div.btn-group.open > ul.dropdown-menu.dropdown-menu-right li a{
+	color: black;
+	font-weight: normal;
+}
+
+.row.horizontal-tab .panel.panel-default > .panel-heading a{
+	color: #fff;
+	font-weight: bold;
+    text-decoration: none;
+}
+.dropdown-menu>li>a:hover, .dropdown-menu>li>a:focus, .dropdown-menu>.active>a, .dropdown-menu>.active>a:hover, .dropdown-menu>.active>a:focus{
+    background-color: #357ebd;
+    background-image: linear-gradient(to bottom,#428bca 0,#357ebd 100%);
+    background-repeat: repeat-x;
+}
+
 html body.undernavigation main#content div#pageContent.container div#content div#researcher div.col-lg-9 div#tab-130 div.row.vertical-tab div#dspaceitems.panel-group.col-md-12 div.panel.panel-default div.panel-heading h4.panel-title div.btn-group button.btn.btn-link.dropdown-toggle {
 	color: white;
 }
