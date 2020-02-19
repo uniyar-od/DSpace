@@ -522,6 +522,17 @@ footer .container {
 	vertical-align: middle;
 }
 
+/*Personalization for HSU */
+div#ou-tree > .panel-primary>.panel-body>.wrapper >.sidebar  {
+	position: -webkit-sticky;
+	position: sticky;
+	top: 150px;
+	overflow: visible;
+	overflow-x: visible;
+}
+div#ou-tree > .panel-primary {
+	overflow: visible;
+}
 #connect-orcid-button:hover{
 	border: 1px solid #338caf;
 	color: #338caf;
