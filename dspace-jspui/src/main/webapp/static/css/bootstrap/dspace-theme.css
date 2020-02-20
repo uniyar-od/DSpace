@@ -13,12 +13,12 @@
 */
 .banner img {background-color: #FFFFFF;padding:15px;margin-top:20px;}
 .brand h4 {color: #00716A}
-@media (min-width: 991px) {
-    #communitylist-top-menu a {
-        padding-top:0.4em;
-        padding-bottom:0.4em;
-    }
+
+#communitylist-top-menu a {
+    padding-top:0.4em;
+    padding-bottom:0.4em;
 }
+
 #userloggedin-top-menu a {padding-top:0.4em;padding-bottom:0.4em;}
 #user-top-menu, #userloggedin-top-menu {margin-right: 15px;}
 footer {padding-top: 1em;}
@@ -526,12 +526,21 @@ footer .container {
 div#ou-tree > .panel-primary>.panel-body>.wrapper >.sidebar  {
 	position: -webkit-sticky;
 	position: sticky;
-	top: 150px;
 	overflow: visible;
 	overflow-x: visible;
 }
 div#ou-tree > .panel-primary {
 	overflow: visible;
+}
+@media ( max-width :940px) {
+	div#ou-tree > .panel-primary>.panel-body>.wrapper >.sidebar {
+		top: 200px;
+	}
+}
+@media ( min-width :941px) {
+	div#ou-tree > .panel-primary>.panel-body>.wrapper >.sidebar {
+		top: 150px;
+	}
 }
 #connect-orcid-button:hover{
 	border: 1px solid #338caf;
@@ -554,4 +563,26 @@ div#ou-tree > .panel-primary {
 .row.horizontal-tab div.panel.panel-default > div.panel-heading > h4.panel-title > div.btn-group.open > ul.dropdown-menu.dropdown-menu-right li a {
 	color: black;
 	font-weight: normal;
+}
+@media (max-width: 1014px) {
+    #dropdown-explore {
+    	display: block!important;
+    }
+    #publications-top-menu {
+    	display: none!important;
+    }
+    #researcherprofiles-top-menu {
+    	display: none!important;
+    }
+    #fundings-top-menu {
+    	display: none!important;
+    }
+    #orgunits-top-menu {
+    	display: none!important;
+    }
+}
+@media (min-width: 1015px) {
+    #dropdown-explore {
+    	display: none!important;
+    }
 }
