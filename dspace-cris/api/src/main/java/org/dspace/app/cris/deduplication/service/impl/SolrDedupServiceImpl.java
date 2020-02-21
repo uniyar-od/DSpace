@@ -51,7 +51,10 @@ import org.dspace.handle.HandleManager;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.util.VersionUtil;
 import org.dspace.utils.DSpace;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
 
 public class SolrDedupServiceImpl implements DedupService
 {
@@ -253,6 +256,22 @@ public class SolrDedupServiceImpl implements DedupService
         build(ctx, iu.getID(), iu.getID(), DeduplicationFlag.FAKE, iu.getType(),
                 tmpMapFilter, searchSignature, null);
 
+        if (iu instanceof Item) {
+	        // build rejects for all the previous versions (if any)
+	        VersionHistory history = VersionUtil.retrieveVersionHistory(ctx,
+			        (Item) iu);
+	
+			if (history != null) {
+				for (Version version : history.getVersions()) {
+					if (version.getItemID() != iu.getID()) {
+						buildReject(ctx, iu.getID(),
+				                version.getItemID(),
+						                iu.getType(), DeduplicationFlag.REJECTADMIN, "versioning");		
+					}
+				}
+			}
+        }
+        
         // remove previous potential match
         removeMatch(iu.getID(), iu.getType());
 
@@ -928,6 +947,21 @@ public class SolrDedupServiceImpl implements DedupService
                                             SearchDeduplication.class);
                             if(onlyFake) {                                
                                 buildFromDedupReject(context, item, tmpMapFilter, tmpFilter, searchSignature);                                
+                                if (item instanceof Item) {
+                        	        // build rejects for all the previous versions (if any)
+                        	        VersionHistory history = VersionUtil.retrieveVersionHistory(context,
+                        			        (Item) item);
+                        	
+                        			if (history != null) {
+                        				for (Version version : history.getVersions()) {
+                        					if (version.getItemID() != item.getID()) {
+                        						buildReject(context, item.getID(),
+                        				                version.getItemID(),
+                        						                item.getType(), DeduplicationFlag.REJECTADMIN, "versioning");		
+                        					}
+                        				}
+                        			}
+                                }
                                 build(context, item.getID(), item.getID(), DeduplicationFlag.FAKE, itemtype, tmpMapFilter, searchSignature, null);
                             }
                             else {                              

@@ -32,6 +32,7 @@ import org.dspace.app.webui.util.FileUploadRequest;
 import org.dspace.app.webui.util.JSONUploadResponse;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
+import org.dspace.app.webui.util.VersionDifferencesUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -595,6 +596,7 @@ public class SubmissionController extends DSpaceServlet
             if(subInfo.isInWorkflow())
             {
                 request.setAttribute("workflow.item", subInfo.getSubmissionItem());
+                VersionDifferencesUtil.addVersioningInformation(context, request, (WorkflowItem) subInfo.getSubmissionItem());
                 JSPManager.showJSP(request, response,
                         "/mydspace/perform-task.jsp");
             }
@@ -905,6 +907,7 @@ public class SubmissionController extends DSpaceServlet
             if (result == AbstractProcessingStep.STATUS_COMPLETE)
             {
                 request.setAttribute("workflow.item", subInfo.getSubmissionItem());
+                VersionDifferencesUtil.addVersioningInformation(context, request, (WorkflowItem) subInfo.getSubmissionItem());
                 JSPManager.showJSP(request, response, "/mydspace/perform-task.jsp");                
             }
             else
