@@ -222,7 +222,7 @@
 %>
             <div class="container-fluid">
                 <div class="row header-background">
-                    <div class="col-sm-4 hidden-xs" style="padding-left:80px; margin-top:5px;">
+                    <div class="col-sm-3 hidden-xs hidden-sm" style="padding-left:80px; margin-top:5px;">
                         <a href="https://www.hsu-hh.de/" target="_blank">
                             <img class="header-logo" src="<%= request.getContextPath() %>/image/header-logo-hsu.png">
                         </a>
