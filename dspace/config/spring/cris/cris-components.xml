@@ -30,6 +30,7 @@
 				<entry key="dspaceitems" value-ref="publicationlist" />
 				<entry key="projects" value-ref="projectlist" />
 				<entry key="bibliometrics" value-ref="bibliometrics" />
+				<entry key="advisedtheses" value-ref="advisedtheses" />
 			</map>
 		</property>
 	</bean>
@@ -69,6 +70,59 @@
 			</map>
 		</property>
 	</bean>
+	
+	<bean id="advisedtheses"
+		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		<property name="relationConfiguration" ref="relationRPVSAdvisedItemConfiguration" />
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>				
+		<property name="target" value="org.dspace.app.cris.model.ResearcherPage" />
+		<property name="facets" ref="facetsItemConfiguration" />
+		<property name="types">
+			<map>
+				<entry key="all" value-ref="allThesesComponent" />
+				<entry key="selectedTheses" value-ref="selectedThesesComponent" />
+				<!--entry key="refereedThesis" value-ref="refereedThesesComponent" />
+				<entry key="advisedTheses" value-ref="advisedThesesComponent" /-->
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="allThesesComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="all" />
+		<property name="facetQuery"><value>*:*</value></property>
+		<property name="order"><value>desc</value></property>
+		<property name="rpp"><value>20</value></property>		
+	    <property name="sortby"><value>1</value></property>		
+	</bean>
+
+	<bean id="selectedThesesComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="selectedthesis" />
+		<property name="facetQuery"><value>relationpreferences.crisrp.advisedtheses.selected:{1}</value></property>
+		<property name="order"><value>desc</value></property>
+		<property name="rpp"><value>20</value></property>		
+		<!-- selected component should be sorted by score (-1) -->
+	    <property name="sortby"><value>1</value></property>		
+	</bean>
+
+	<!--bean id="refereedThesesComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="selected" />
+		<property name="facetQuery"><value>dc.contributor.referee_authority:{0}</value></property>
+		<property name="order"><value>desc</value></property>
+		<property name="rpp"><value>20</value></property>		
+	    <property name="sortby"><value>1</value></property>		
+	</bean>
+
+	<bean id="advisedThesesComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="selected" />
+		<property name="facetQuery"><value>dc.contributor.advisor_authority:{0}</value></property>
+		<property name="order"><value>desc</value></property>
+		<property name="rpp"><value>20</value></property>		
+	    <property name="sortby"><value>1</value></property>		
+	</bean-->
 
 	<bean id="selectedComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
