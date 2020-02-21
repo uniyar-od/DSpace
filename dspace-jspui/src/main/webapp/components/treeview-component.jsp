@@ -125,7 +125,7 @@
 			</h3>
 		</div>
 		<div class="panel-body">
-			<div class="wrapper">
+			<div class="wrapper row">
 				<div class="main col-md-7">
 					<div id="data-tree"></div>
 				</div>
