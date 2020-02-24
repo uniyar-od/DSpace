@@ -38,14 +38,15 @@ public class OrcidExtraEmploymentAuthorityMetadataGenerator
         
         String access_token = getAccessToken(source);
         
-        Employment employment = source.getEmployment(value, access_token, null);
-        if(employment != null) {
-            extras.put("data-" + getRelatedInputformMetadata(), employment.getOrganization().getName());    
+        Employments employments = source.getEmployments(value, access_token);
+        if(employments != null) {
+        	List<EmploymentSummary> empSummary = employments.getEmploymentSummary();
+        	if (empSummary != null && !empSummary.isEmpty()) {				
+        		extras.put("data-" + getRelatedInputformMetadata(), empSummary.get(0).getOrganization().getName());    
+        		return extras;
+			}
         }
-        else {
-            //manage value to empty html element
-            extras.put("data-" + getRelatedInputformMetadata(), "");
-        }
+        extras.put("data-" + getRelatedInputformMetadata(), "");
         return extras;
     }
 

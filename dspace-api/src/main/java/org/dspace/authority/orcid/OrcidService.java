@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.client.Client;
@@ -407,25 +409,25 @@ public class OrcidService extends RestSource
     {
         DCPersonName tmpPersonName = new DCPersonName(text);
 
-        String query = "";
+        StringBuilder query = new StringBuilder();
         if (StringUtils.isNotBlank(tmpPersonName.getLastName()))
         {
-            query += "family-name:(" + tmpPersonName.getLastName().trim()
-                    + (StringUtils.isNotBlank(tmpPersonName.getFirstNames())
-                            ? "" : "*")
-                    + ")";
+            query.append("family-name:(").append(tmpPersonName.getLastName().trim())
+            		.append( (StringUtils.isNotBlank(tmpPersonName.getFirstNames()) 
+            				? "" : "*") )
+            					.append(")");
         }
 
         if (StringUtils.isNotBlank(tmpPersonName.getFirstNames()))
         {
-            query += (query.length() > 0 ? " AND given-names:("
-                    : "given-names:(") + tmpPersonName.getFirstNames().trim()
-                    + "*)";
+            query.append( (query.length() > 0 
+            		? " AND given-names:(" : "given-names:(") )
+            			.append(tmpPersonName.getFirstNames().trim()).append("*)");
         }
 
-        query += " OR other-names:(" + text + ")";
+        query.append(" OR other-names:(").append(text).append(")");
 
-        List<Result> results = search(query, start, max);
+        List<Result> results = search(query.toString(), start, max);
 
         return getAuthorityValuesFromOrcidResults(results);
     }
@@ -557,11 +559,79 @@ public class OrcidService extends RestSource
             List<Result> results)
     {
         List<AuthorityValue> authorities = new ArrayList<AuthorityValue>();
-        for (Result result : results)
-        {
-            authorities.add(OrcidAuthorityValue.create(
-                    get(result.getOrcidIdentifier().getUriPath(), null, null)
-                            .readEntity(Record.class)));
+        Integer maxThreads = ConfigurationManager.getIntProperty("orcid.addexternalresults.thread.max");
+        if (maxThreads == 0) {
+        	maxThreads = 5;
+        }
+        
+        final Integer maxItems;
+        Double size = (double) results.size();
+        Double res = Math.ceil(size / maxThreads);
+        maxItems = res.intValue();
+        final Map<Integer, List<AuthorityValue>> threadResultsMap = new HashMap<>();
+        List<Thread> threads = new ArrayList<Thread>();
+
+        for (int i = 0; i < maxThreads; i++) {
+
+        	final List<Result> resultsToWork = new ArrayList<>();
+
+        	size = (double) results.size();
+        	for (int j = 0; j < maxItems; j++) {
+
+        		if (results.size() <= 0) {
+        			break;
+        		}
+        		if ((j == (maxItems - 1)) && ((size / (maxThreads - i)) <= (maxItems - 1))) {
+        			break;
+        		}
+        		resultsToWork.add(results.remove(0));
+        	}
+
+        	final Integer threadNumber = i;
+        	threads.add(new Thread() {
+
+        		int num = threadNumber;
+        		List<Result> results = resultsToWork;
+
+        		@Override
+        		public void run()
+        		{
+        			threadResultsMap.put(num, new ArrayList<AuthorityValue>());
+        			for (Result result : results) {
+        				threadResultsMap.get(num).add(OrcidAuthorityValue.create(
+        						get(result.getOrcidIdentifier().getUriPath(), null, null)
+        						.readEntity(Record.class)));
+        				Thread.yield();
+        			}
+        		}
+        	});
+        }
+
+        List<Thread> threadsStarted = new ArrayList<Thread>();
+
+        while (!threads.isEmpty() || !threadsStarted.isEmpty()) {
+        	if (!threads.isEmpty() && threadsStarted.size() < maxThreads) {
+        		Thread t = threads.remove(0);
+        		t.start();
+        		threadsStarted.add(t);
+        	}else {
+        		Thread t = threadsStarted.remove(0);
+        		try {
+        			t.join();
+        		} catch (InterruptedException e) {
+
+        		}
+        	}
+        }
+
+
+        for (int i = 0; i < threadResultsMap.size(); i++) {
+        	if(!threadResultsMap.get(i).isEmpty())
+        	{
+        		for (AuthorityValue authValue : threadResultsMap.get(i)) {
+        			authorities.add(authValue);
+        		}
+        	}
         }
         return authorities;
     }
