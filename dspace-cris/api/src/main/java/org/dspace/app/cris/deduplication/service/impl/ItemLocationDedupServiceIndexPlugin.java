@@ -51,6 +51,9 @@ public class ItemLocationDedupServiceIndexPlugin
 
             Item item = Item.find(context, itemId);
 
+            if (item == null) {
+                return;
+            }
             // build list of community ids
             Community[] communities;
             // build list of collection ids

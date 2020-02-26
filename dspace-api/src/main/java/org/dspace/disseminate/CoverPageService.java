@@ -7,14 +7,18 @@
  */
 package org.dspace.disseminate;
 
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
 import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 
 public class CoverPageService {
 	
+	private static Logger log = Logger.getLogger(CoverPageService.class);
 	private boolean includeMappedCollections;
 	private HashMap<String,String> configurationFileMap;
 	private String defaultConfigFile; 
@@ -56,6 +60,21 @@ public class CoverPageService {
 			}
 		}
 		return configFile;
+	}
+	
+	public boolean canCreateCover(Bitstream bitstream) {
+		try {
+			if(isValidType(bitstream)) {
+				for(Bundle bndl:bitstream.getBundles()) {
+					if(StringUtils.equals(bndl.getName(),"ORIGINAL")) {
+						return true;
+					}
+				}
+			}
+		} catch (SQLException e) {
+			log.error(e.getMessage(), e);
+		}
+		return false;
 	}
 	
 	public boolean isValidType(String type) {

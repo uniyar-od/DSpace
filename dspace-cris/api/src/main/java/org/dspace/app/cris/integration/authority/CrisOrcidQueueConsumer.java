@@ -12,7 +12,7 @@ import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.app.cris.integration.ORCIDAuthority;
+import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -48,7 +48,7 @@ public class CrisOrcidQueueConsumer implements Consumer {
 					for (String metadata : listMetadata) {
 						ChoiceAuthority choiceAuthority = ChoiceAuthorityManager.getManager()
 								.getChoiceAuthority(metadata);
-						if (ORCIDAuthority.class.isAssignableFrom(choiceAuthority.getClass())) {
+						if (RPAuthority.class.isAssignableFrom(choiceAuthority.getClass())) {
 							// 2)check for each internal contributors if has
 							// authority
 							Metadatum[] Metadatums = item.getMetadataByMetadataString(metadata);

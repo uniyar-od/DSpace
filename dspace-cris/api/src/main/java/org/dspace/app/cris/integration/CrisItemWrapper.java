@@ -73,14 +73,7 @@ public final class CrisItemWrapper
                     {
                         // We will return a copy of the object in case it is
                         // altered
-                        Metadatum copy = new Metadatum();
-                        copy.element = dcv.element;
-                        copy.qualifier = dcv.qualifier;
-                        copy.value = dcv.value;
-                        copy.language = dcv.language;
-                        copy.schema = dcv.schema;
-                        copy.authority = dcv.authority;
-                        copy.confidence = dcv.confidence;
+                        Metadatum copy = dcv.copy();
                         values.add(copy);
                     }
                 }

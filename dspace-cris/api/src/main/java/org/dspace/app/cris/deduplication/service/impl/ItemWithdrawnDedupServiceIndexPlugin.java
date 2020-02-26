@@ -45,7 +45,9 @@ public class ItemWithdrawnDedupServiceIndexPlugin
         try
         {
             Item item = Item.find(context, itemId);
-
+            if (item == null) {
+                return false;
+            }
             Integer status = ItemUtils.getItemStatus(context, item);
             if (status == 3)
             {

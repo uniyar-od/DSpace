@@ -101,9 +101,17 @@ public class DiscoverUtility
             HttpServletRequest request, DSpaceObject scope, 
             String configurationName, boolean enableFacet)
     {
-        DiscoverQuery queryArgs = new DiscoverQuery();
         DiscoveryConfiguration discoveryConfiguration = SearchUtils
                 .getDiscoveryConfigurationByName(configurationName);
+
+        return getDiscoverQuery(context, request, scope, discoveryConfiguration, enableFacet);
+    }
+
+    public static DiscoverQuery getDiscoverQuery(Context context,
+            HttpServletRequest request, DSpaceObject scope,
+            DiscoveryConfiguration discoveryConfiguration, boolean enableFacet)
+    {
+        DiscoverQuery queryArgs = new DiscoverQuery();
 
         List<String> userFilters = setupBasicQuery(context,
                 discoveryConfiguration, request, queryArgs);

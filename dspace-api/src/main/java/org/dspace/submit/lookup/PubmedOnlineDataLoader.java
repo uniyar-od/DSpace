@@ -15,11 +15,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.xml.sax.SAXException;
 
 /**
  * @author Andrea Bollini
@@ -64,57 +69,42 @@ public class PubmedOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         Set<String> pmids = keys != null ? keys.get(PUBMED) : null;
         Set<String> dois = keys != null ? keys.get(DOI) : null;
         List<Record> results = new ArrayList<Record>();
-        if (pmids != null && pmids.size() > 0
-                && (dois == null || dois.size() == 0))
+        if (pmids != null && pmids.size() > 0)
         {
-            for (String pmid : pmids)
+            try
             {
-                Record p = null;
-                try
-                {
-                    p = pubmedService.getByPubmedID(pmid);
+                List<Record> byPubmedIDs = pubmedService.getByPubmedIDs(new ArrayList<String>(pmids));
+                for (Record p : byPubmedIDs) {
+                    if (p != null)
+                        results.add(convertFields(p));
                 }
-                catch (Exception e)
-                {
-                    log.error(LogManager.getHeader(context, "getByIdentifier",
-                            "pmid=" + pmid), e);
-                }
-                if (p != null)
-                    results.add(convertFields(p));
+            }
+            catch (Exception e)
+            {
+                log.error(LogManager.getHeader(context, "getByIdentifier",
+                        "pmids=" + StringUtils.join(pmids, ",")), e);
             }
         }
-        else if (dois != null && dois.size() > 0
-                && (pmids == null || pmids.size() == 0))
+        
+        if (dois != null && dois.size() > 0)
         {
             StringBuffer query = new StringBuffer();
             for (String d : dois)
             {
+                if (StringUtils.isBlank(d)) {
+                    continue;
+                }
                 if (query.length() > 0)
                 {
                     query.append(" OR ");
                 }
-                query.append(d).append("[AI]");
+                query.append(d).append("[AID]");
             }
 
             List<Record> pubmedResults = pubmedService.search(query.toString());
             for (Record p : pubmedResults)
             {
                 results.add(convertFields(p));
-            }
-        }
-        else if (dois != null && dois.size() > 0 && pmids != null
-                && pmids.size() > 0)
-        {
-            // EKT:ToDo: support list of dois and pmids in the search method of
-            // pubmedService
-            List<Record> pubmedResults = pubmedService.search(dois.iterator()
-                    .next(), pmids.iterator().next());
-            if (pubmedResults != null)
-            {
-                for (Record p : pubmedResults)
-                {
-                    results.add(convertFields(p));
-                }
             }
         }
 

@@ -16,11 +16,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.FormulaParseException;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Comment;
 import org.apache.poi.ss.usermodel.Hyperlink;
 import org.apache.poi.ss.usermodel.RichTextString;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.util.CellAddress;
+import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFRichTextString;
 import org.dspace.app.cris.util.UtilsXLS;
 
@@ -164,6 +167,11 @@ public class ExcelBulkChange implements IBulkChange {
 		}
 
 		@Override
+		public void setCellType(CellType cellType)
+		{
+		}
+		
+		@Override
 		public void setCellType(int cellType) {
 		}
 
@@ -279,5 +287,40 @@ public class ExcelBulkChange implements IBulkChange {
 		@Override
 		public void setHyperlink(Hyperlink link) {			
 		}
+		
+		@Override
+		public void removeHyperlink()
+		{
+		}
+
+        @Override
+        public CellType getCellTypeEnum()
+        {
+            return CellType.BLANK;
+        }
+
+        @Override
+        public CellType getCachedFormulaResultTypeEnum()
+        {
+            return null;
+        }
+
+        @Override
+        public CellAddress getAddress()
+        {
+            return null;
+        }
+
+        @Override
+        public CellRangeAddress getArrayFormulaRange()
+        {
+            return null;
+        }
+
+        @Override
+        public boolean isPartOfArrayFormulaGroup()
+        {
+            return false;
+        }
     }
 }

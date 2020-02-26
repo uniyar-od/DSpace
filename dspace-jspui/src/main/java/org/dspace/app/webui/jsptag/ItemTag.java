@@ -26,7 +26,7 @@ import javax.servlet.jsp.PageContext;
 import javax.servlet.jsp.jstl.fmt.LocaleSupport;
 import javax.servlet.jsp.tagext.TagSupport;
 
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
@@ -417,11 +417,13 @@ public class ItemTag extends TagSupport {
 		Locale locale = UIUtil.getSessionLocale(request);
 		
 		try {
-			Bundle[] bundles = item.getBundles("ORIGINAL");
-
+			Bundle[] obundles = item.getBundles("ORIGINAL");
+			Bundle[] dbundles = item.getBundles("DISPLAY");
+			Bundle[] bunds = (Bundle[]) ArrayUtils.addAll(obundles,dbundles);
+			
 			boolean filesExist = false;
 
-			for (Bundle bnd : bundles) {
+			for (Bundle bnd : bunds) {
 				filesExist = bnd.getBitstreams().length > 0;
 				if (filesExist) {
 					break;
@@ -439,7 +441,6 @@ public class ItemTag extends TagSupport {
 				String handle = item.getHandle();
 				Bitstream primaryBitstream = null;
 
-				Bundle[] bunds = item.getBundles("ORIGINAL");
 				Bundle[] thumbs = item.getBundles("THUMBNAIL");
 
 				// if item contains multiple bitstreams, display bitstream
@@ -484,7 +485,7 @@ public class ItemTag extends TagSupport {
 				EPerson user = context.getCurrentUser();
 				if (user == null) {
 					// if no user logged in and no anonymous read
-					Bitstream[] bitstreams = bundles[0].getBitstreams();
+					Bitstream[] bitstreams = bunds[0].getBitstreams();
 					boolean authorizedToView = AuthorizeManager.authorizeActionBoolean(context,bitstreams[0], Constants.READ);
 					if (!authorizedToView) {
 						out.println("</th><th style=\"text-align: center;\">");
@@ -547,8 +548,8 @@ public class ItemTag extends TagSupport {
 						showRequestCopy = true;
 					}
 
-					for (int i = 0; i < bundles.length; i++) {
-						int primaryBitID = bundles[i].getPrimaryBitstreamID();
+					for (int i = 0; i < bunds.length; i++) {
+						int primaryBitID = bunds[i].getPrimaryBitstreamID();
 						Bitstream primaryBit = null;
 						if (primaryBitID != -1) {
 							primaryBit = Bitstream.find(context, primaryBitID);
@@ -556,10 +557,10 @@ public class ItemTag extends TagSupport {
 
 						Bitstream[] bitstreams;
 						if (primaryBit != null
-								&& hideNotPrimaryBitstreams(context, request, pageContext, handle, primaryBit)) {
+								&& hideNotPrimaryBitstreams(context, request, pageContext, handle, bunds[i], primaryBit)) {
 							bitstreams = new Bitstream[] { primaryBit };
 						} else {
-							bitstreams = bundles[i].getBitstreams();
+							bitstreams = bunds[i].getBitstreams();
 						}
 
 						for (int k = 0; k < bitstreams.length; k++) {
@@ -892,9 +893,17 @@ public class ItemTag extends TagSupport {
 	}
 
 	public static boolean hideNotPrimaryBitstreams(Context context, HttpServletRequest request, PageContext pageContext,
-			String handle, Bitstream bit) throws UnsupportedEncodingException {
+			String handle, Bundle bundle, Bitstream bit) throws UnsupportedEncodingException {
 
-		List<String> hideNotPrimary = bit.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
+		List<String> hideNotPrimary = bundle.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
+		for (String h : hideNotPrimary) {
+			if (BooleanUtils.toBoolean(h)) {
+				return true;
+			}
+		}
+
+		// check on bitstream for backward compatibility (related to IIIF-38)
+		hideNotPrimary = bit.getMetadataValue(IViewer.METADATA_STRING_HIDENOTPRIMARY);
 		for (String h : hideNotPrimary) {
 			if (BooleanUtils.toBoolean(h)) {
 				return true;

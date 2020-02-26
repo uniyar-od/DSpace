@@ -45,6 +45,12 @@ public class ComponentInfoDTO<T extends DSpaceObject>
 	
 	private String browseType;
 
+	private String crisID;
+
+	private boolean addRelations;
+
+	private boolean removeRelations;
+
     private String buildCommonURL()
     {
 
@@ -289,5 +295,35 @@ public class ComponentInfoDTO<T extends DSpaceObject>
     public void setBrowseType(String browseType)
     {
         this.browseType = browseType;
+    }
+
+    public String getCrisID()
+    {
+        return crisID;
+    }
+
+    public void setCrisID(String crisID)
+    {
+        this.crisID = crisID;
+    }
+
+    public boolean isAddRelations()
+    {
+        return addRelations;
+    }
+
+    public void setAddRelations(boolean addRelations)
+    {
+        this.addRelations = addRelations;
+    }
+
+    public boolean isRemoveRelations()
+    {
+        return removeRelations;
+    }
+
+    public void setRemoveRelations(boolean removeRelations)
+    {
+        this.removeRelations = removeRelations;
     }
 }

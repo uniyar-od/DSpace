@@ -24,5 +24,6 @@ public interface CrisSubscriptionDao extends PaginableObjectDao<CrisSubscription
 	public List<String> findUUIDByEpersonID(int epersonID);
 	public CrisSubscription uniqueByEpersonIDandUUID(int epersonID, String uuid);
 	public void deleteByEpersonID(int id);
+	public void deleteByUUID(String uuid);
 	public long countByEpersonIDandUUID(int epersonID, String uuid);
 }

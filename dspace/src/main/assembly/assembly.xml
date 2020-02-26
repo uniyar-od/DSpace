@@ -57,6 +57,7 @@
             <exclude>config/dspace.cfg</exclude>
             <exclude>config/hibernate.properties</exclude>
             <exclude>config/crosswalks/oai/description.xml</exclude>
+            <exclude>config/crosswalks/oai/service-description.xml</exclude>
             <exclude>solr/search/conf/database.properties</exclude>
             <exclude>config/log4j.properties</exclude>
             <exclude>config/modules/**</exclude>
@@ -91,9 +92,14 @@
       </file>
       <file>
          <source>config/crosswalks/oai/description.xml</source>
-         <outputDirectory>config</outputDirectory>
+         <outputDirectory>config/crosswalks/oai/</outputDirectory>
          <filtered>true</filtered>
       </file>
+      <file>
+         <source>config/crosswalks/oai/service-description.xml</source>
+         <outputDirectory>config/crosswalks/oai/</outputDirectory>
+         <filtered>true</filtered>
+      </file>      
 	  <file>
          <source>solr/search/conf/database.properties</source>
          <outputDirectory>solr/search/conf</outputDirectory>

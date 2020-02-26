@@ -38,13 +38,19 @@
 							<property name="name" value="events"/>							
 						</bean>
 						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
-							<property name="name" value="crisfonds"/>							
+							<property name="name" value="crisfonds"/>
+						</bean>
+						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
+							<property name="name" value="journals"/>							
 						</bean>
 						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
                                                         <property name="name" value="concept"/>
 						</bean>
 						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
                                                         <property name="name" value="interpretation"/>
+						</bean>
+						<bean class="org.dspace.app.webui.discovery.GlobalFacetProcessorConfigurator.InnerGlobalFacetProcessorConfigurator">
+							<property name="name" value="equipment"/>							
 						</bean>
 					</list>				
 				</entry>

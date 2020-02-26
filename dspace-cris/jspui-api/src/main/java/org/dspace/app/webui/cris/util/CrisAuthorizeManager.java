@@ -103,14 +103,6 @@ public class CrisAuthorizeManager
                                 Integer.parseInt(data));
                         if (group != null)
                         {
-                            if (currUser == null && group.getID() == 0)
-                            {
-                                boolean isMember = Group.isMember(context, 0);
-                                if (isMember)
-                                {
-                                    return true;
-                                }
-                            }
                             if (Group.isMember(context, group.getID()))
                             {
                                 return true;

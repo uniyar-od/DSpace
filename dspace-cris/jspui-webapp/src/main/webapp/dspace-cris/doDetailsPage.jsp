@@ -185,7 +185,7 @@
 
 <c:set var="name" value="${researcher:getTranslatedName(entity, currLocale)}" />
 <fmt:message var="title" key='jsp.layout.do.${entity.typo.label}.detail.name'><fmt:param>${entity.typo.label}</fmt:param><fmt:param>${name}</fmt:param></fmt:message>
-<c:if test="${title eq 'jsp.layout.do.${entity.typo.label}.detail.name'}">
+<c:if test="${fn:contains(title,'???')}">
 	<c:set var="title"><fmt:message key='jsp.layout.do.detail.name'><fmt:param>${entity.typo.label}</fmt:param><fmt:param>${name}</fmt:param></fmt:message></c:set>
 </c:if>
 

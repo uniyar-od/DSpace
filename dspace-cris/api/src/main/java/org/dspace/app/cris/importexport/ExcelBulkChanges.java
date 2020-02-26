@@ -12,9 +12,9 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.dspace.app.cris.util.UtilsXLS;
 
 
@@ -46,13 +46,13 @@ public class ExcelBulkChanges implements IBulkChanges
             HEADER_CRISID_PARENT, HEADER_SOURCEREF_PARENT, HEADER_SOURCEID_PARENT, HEADER_UUID, HEADER_SOURCEREF,
             HEADER_SOURCEID };
 	
-	private HSSFSheet mainObjects;
-	private HSSFSheet nestedObjects;
+	private Sheet mainObjects;
+	private Sheet nestedObjects;
 	
 	private List<String> mainHeaders = new ArrayList<String>();
 	private List<String> nestedHeaders = new ArrayList<String>();
 
-    public ExcelBulkChanges(HSSFWorkbook workbook)
+    public ExcelBulkChanges(Workbook workbook)
     {
         Row row;
         this.mainObjects = workbook.getSheet("main_entities");

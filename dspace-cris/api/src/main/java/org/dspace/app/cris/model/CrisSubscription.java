@@ -33,6 +33,7 @@ import javax.persistence.Table;
         @NamedQuery(name = "CrisSubscription.countByUUID", query = "select count(*) from CrisSubscription where uuid = ? order by id"),
         @NamedQuery(name = "CrisSubscription.findUUIDByEpersonID", query = "select uuid from CrisSubscription sub where sub.epersonID = ?"),        
         @NamedQuery(name = "CrisSubscription.deleteByEpersonID", query = "delete from CrisSubscription sub where sub.epersonID = ?"),
+        @NamedQuery(name = "CrisSubscription.deleteByUUID", query = "delete from CrisSubscription sub where sub.uuid = ?"),
         @NamedQuery(name = "CrisSubscription.uniqueByEpersonIDandUUID", query = "from CrisSubscription sub where sub.epersonID = ? and uuid = ?"),
         @NamedQuery(name = "CrisSubscription.countByEpersonIDandUUID", query = "select count(*) from CrisSubscription sub where sub.epersonID = ? and uuid = ?") })
 public class CrisSubscription extends IdentifiableObject {

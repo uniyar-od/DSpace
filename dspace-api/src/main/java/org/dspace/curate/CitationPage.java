@@ -145,13 +145,12 @@ public class CitationPage extends AbstractCurationTask {
             for (Bitstream bitstream : bitstreams) {
                 BitstreamFormat format = bitstream.getFormat();
 
-                //If bitstream is a PDF document then it is citable.
-                CitationDocument citationDocument = new CitationDocument();
-
                 if(StringUtils.isNotBlank(configuration) && coverService.isValidType(bitstream)) {
                     this.resBuilder.append(item.getHandle() + " - "
                             + bitstream.getName() + " is citable.");
                     try {
+                        //If bitstream is a PDF document then it is citable.
+                        CitationDocument citationDocument = new CitationDocument(configuration);
                         //Create the cited document
                         File citedDocument = citationDocument.makeCitedDocument(bitstream,configuration);
                         //Add the cited document to the approiate bundle

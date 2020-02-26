@@ -30,8 +30,11 @@ import java.util.List;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
@@ -80,13 +83,13 @@ public class ExcelBulkChangesService implements IBulkChangesService
         Utils.bufferedCopy(input, out);
         out.close();
         
-        HSSFWorkbook workbook = null;
+        Workbook workbook = null;
         try
         {
-        	InputStream ios = new FileInputStream(fileXls);
-        				workbook = (HSSFWorkbook)WorkbookFactory.create(ios);
+            workbook = WorkbookFactory.create(fileXls);
         }
-        catch (Exception e)
+        catch (EncryptedDocumentException | InvalidFormatException
+                | IOException e)
         {
             throw new IOException("Invalid excel file: " + e.getMessage());
         }

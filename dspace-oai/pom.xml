@@ -139,6 +139,11 @@
             <groupId>org.dspace</groupId>
             <artifactId>dspace-api</artifactId>
         </dependency>
+        
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-cris-api</artifactId>
+        </dependency>
 
         <!-- Solr (Datasource) -->
         <dependency>

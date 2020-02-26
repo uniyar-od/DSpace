@@ -51,6 +51,13 @@ public class PubmedService
 
     private int timeout = 1000;
 
+    /**
+     * the api key for the Entrez ws. If null access to the ws is still allowed with a reduced rate
+     */
+    public String getApiKey() {
+    	return ConfigurationManager.getProperty("entrez.e-utilities.api-key");
+    }
+    
     public void setTimeout(int timeout)
     {
         this.timeout = timeout;
@@ -101,71 +108,87 @@ public class PubmedService
         List<Record> results = new ArrayList<>();
         if (!ConfigurationManager.getBooleanProperty(SubmissionLookupService.CFG_MODULE, "remoteservice.demo"))
         {
-            HttpGet method = null;
-            try
-            {
-                HttpClient client = new DefaultHttpClient();
-                client.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
-
-                URIBuilder uriBuilder = new URIBuilder(
-                        "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi");
-                uriBuilder.addParameter("db", "pubmed");
-                uriBuilder.addParameter("datetype", "edat");
-                uriBuilder.addParameter("retmax", "10");
-                uriBuilder.addParameter("term", query);
-                method = new HttpGet(uriBuilder.build());
-
-                // Execute the method.
-                HttpResponse response = client.execute(method);
-                StatusLine statusLine = response.getStatusLine();
-                int statusCode = statusLine.getStatusCode();
-
-                if (statusCode != HttpStatus.SC_OK)
-                {
-                    throw new RuntimeException("WS call failed: "
-                            + statusLine);
-                }
-
-                DocumentBuilderFactory factory = DocumentBuilderFactory
-                        .newInstance();
-                factory.setValidating(false);
-                factory.setIgnoringComments(true);
-                factory.setIgnoringElementContentWhitespace(true);
-
-                DocumentBuilder builder;
+            HttpClient client = new DefaultHttpClient();
+            client.getParams().setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, timeout);
+            
+            int maxResults = ConfigurationManager.getIntProperty("pubmed.max-results", 10);
+            int pageSize = 50 > maxResults?maxResults:50;
+            int count = Integer.MAX_VALUE;
+            int page = 0;
+            
+            while (results.size() < maxResults && results.size() < count && page < count / pageSize) {
+                HttpGet method = null;        
                 try
                 {
-                    builder = factory.newDocumentBuilder();
+                    // set count to 0 to be sure to exit if the search has problems
+                    URIBuilder uriBuilder = new URIBuilder(
+                            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi");
+                    if (getApiKey() != null) {
+                    	uriBuilder.addParameter("api_key", getApiKey());	
+                    }
+                    uriBuilder.addParameter("db", "pubmed");
+                    uriBuilder.addParameter("datetype", "edat");
+                    uriBuilder.addParameter("retstart", String.valueOf(page*pageSize));
+                    uriBuilder.addParameter("retmax", String.valueOf(pageSize));
+                    uriBuilder.addParameter("term", query);
+                    method = new HttpGet(uriBuilder.build());
 
-                    Document inDoc = builder.parse(response.getEntity().getContent());
+                    // Execute the method.
+                    HttpResponse response = client.execute(method);
+                    page++;
+                    StatusLine statusLine = response.getStatusLine();
+                    int statusCode = statusLine.getStatusCode();
+    
+                    if (statusCode != HttpStatus.SC_OK)
+                    {
+                        throw new RuntimeException("WS call failed: "
+                                + statusLine);
+                    }
 
-                    Element xmlRoot = inDoc.getDocumentElement();
-                    Element idList = XMLUtils.getSingleElement(xmlRoot,
-                            "IdList");
-                    List<String> pubmedIDs = XMLUtils.getElementValueList(
-                            idList, "Id");
-                    if(pubmedIDs!=null) {
-                        results = getByPubmedIDs(pubmedIDs);
+                    DocumentBuilderFactory factory = DocumentBuilderFactory
+                            .newInstance();
+                    factory.setValidating(false);
+                    factory.setIgnoringComments(true);
+                    factory.setIgnoringElementContentWhitespace(true);
+    
+                    DocumentBuilder builder;
+                    try
+                    {
+                        builder = factory.newDocumentBuilder();
+    
+                        Document inDoc = builder.parse(response.getEntity().getContent());
+    
+                        Element xmlRoot = inDoc.getDocumentElement();
+                        count = Integer.parseInt(XMLUtils.getElementValue(xmlRoot, "Count"));
+                        Element idList = XMLUtils.getSingleElement(xmlRoot,
+                                "IdList");
+                        List<String> pubmedIDs = XMLUtils.getElementValueList(
+                                idList, "Id");
+                        if(pubmedIDs!=null) {
+                            results.addAll(getByPubmedIDs(pubmedIDs));
+                        }
+                    }
+                    catch (ParserConfigurationException | SAXException e1)
+                    {
+                        log.error(e1.getMessage(), e1);
+                        if (count == Integer.MAX_VALUE) {
+                        	// if we haven't really read the count yet set to -1 to exit from the loop
+                        	count = -1;
+                        }
                     }
                 }
-                catch (ParserConfigurationException e1)
+                catch (Exception e1)
                 {
                     log.error(e1.getMessage(), e1);
+                    // force to exit
+                    break;
                 }
-                catch (SAXException e1)
+                finally
                 {
-                    log.error(e1.getMessage(), e1);
-                }
-            }
-            catch (Exception e1)
-            {
-                log.error(e1.getMessage(), e1);
-            }
-            finally
-            {
-                if (method != null)
-                {
-                    method.releaseConnection();
+                    if (method != null)
+                    {
+                        method.releaseConnection();
+                    }
                 }
             }
         }
@@ -229,6 +252,9 @@ public class PubmedService
             try {
                 URIBuilder uriBuilder = new URIBuilder(
                         "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi");
+                if (getApiKey() != null) {
+                    uriBuilder.addParameter("api_key", getApiKey()); 
+                }
                 uriBuilder.addParameter("db", "pubmed");
                 uriBuilder.addParameter("retmode", "xml");
                 uriBuilder.addParameter("rettype", "full");

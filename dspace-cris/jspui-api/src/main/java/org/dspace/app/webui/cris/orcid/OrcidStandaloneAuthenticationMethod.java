@@ -26,6 +26,7 @@ import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authenticate.StandaloneMethod;
 import org.dspace.authority.orcid.OrcidService;
+import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
@@ -108,6 +109,14 @@ public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
                         break;
                     }
                 }
+                if (!found) {
+                    // the user has already a different orcid
+                    log.error("Failed to connect " + context.getCrisID()
+                            + " with orcid: " + orcid + " the current eperson "
+                            + currentUser.getID() + " has a different orcid "
+                            + md[0].value);
+                    return AuthenticationMethod.BAD_ARGS;
+                }
             }
 
             SolrQuery query = new SolrQuery();
@@ -176,6 +185,7 @@ public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
             {
                 currentUser.addMetadata("eperson", "orcid", null, null, orcid);
             }
+            currentUser.clearMetadata("eperson", "orcid", "accesstoken", Item.ANY);
             currentUser.addMetadata("eperson", "orcid", "accesstoken", null,
                     token);
 

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.orcid.OrcidService;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -196,10 +197,17 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
                 			break;
                 		}
                 	}
+                	if (!found) {
+                        throw new AuthorizeException(
+                                "ORCID mismatch the eperson " + eperson.getID()
+                                        + " is already associated with the ORCID "
+                                        + md[0].value);
+                	}
                 }
                 if (!found) {
                 	eperson.addMetadata("eperson", "orcid", null, null, orcid);
                 }
+                eperson.clearMetadata("eperson", "orcid", "accesstoken", Item.ANY);
                 eperson.addMetadata("eperson", "orcid", "accesstoken", null, token);
                 eperson.update();
                 context.commit();
@@ -207,7 +215,7 @@ public class OAuthAuthenticationMethod implements AuthenticationMethod{
         }
         catch (AuthorizeException e)
         {
-            log.warn("Fail to authorize user with orcid: "+orcid + " email:" + email, e);
+            log.warn("Failed to authorize user with orcid: "+orcid + " email:" + email, e);
             eperson = null;
         }
         finally

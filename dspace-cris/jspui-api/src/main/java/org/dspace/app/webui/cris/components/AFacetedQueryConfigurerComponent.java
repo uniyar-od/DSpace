@@ -20,6 +20,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.configuration.RelationService;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
@@ -275,5 +276,26 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         this.facets = facets;
     }
 
+    public boolean forceDisplay(HttpServletRequest request, DSpaceObject object)
+    {
+        try {
+            if (request != null) {
+                Context context = UIUtil.obtainContext(request);
+                RelationService relationService = getRelationServiceConfiguration()
+                        .getRelationService(
+                                getRelationConfiguration()
+                                .getRelationName());
+                if (relationService != null) {
+                    return relationService
+                            .isAuthorized(
+                                    context,
+                                    object);
+                }
+            }
+        } catch (SQLException ex) {
+            log.error(ex.getMessage(), ex);
+        }
 
+        return false;
+    }
 }

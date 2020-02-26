@@ -10,6 +10,7 @@ package org.dspace.app.cris.deduplication.service.impl;
 import org.apache.log4j.Logger;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.deduplication.service.SolrDedupServiceIndexPlugin;
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.core.Context;
@@ -40,7 +41,11 @@ public class CrisObjectInactiveDedupServiceIndexPlugin
     private boolean internal(Context context, Integer id, Integer type,
             SolrInputDocument document)
     {
-        if (!applicationService.getEntityById(id, type).getStatus())
+        ACrisObject entityById = applicationService.getEntityById(id, type);
+        if (entityById == null) {
+            return false;
+        }
+        if (!entityById.getStatus())
         {
             document.addField(SolrDedupServiceImpl.RESOURCE_WITHDRAWN_FIELD, true);
             return true;

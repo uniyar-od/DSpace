@@ -7,11 +7,7 @@
  */
 package org.dspace.xoai.tests;
 
-import com.lyncode.xoai.dataprovider.services.api.ItemRepository;
-import com.lyncode.xoai.dataprovider.services.api.ResourceResolver;
-import com.lyncode.xoai.dataprovider.services.api.SetRepository;
 import org.dspace.core.Context;
-import org.dspace.xoai.services.api.cache.XOAICacheService;
 import org.dspace.xoai.services.api.config.XOAIManagerResolver;
 import org.dspace.xoai.services.api.context.ContextService;
 import org.dspace.xoai.services.api.context.ContextServiceException;
@@ -19,7 +15,6 @@ import org.dspace.xoai.services.api.database.EarliestDateResolver;
 import org.dspace.xoai.services.api.xoai.IdentifyResolver;
 import org.dspace.xoai.services.api.xoai.ItemRepositoryResolver;
 import org.dspace.xoai.services.api.xoai.SetRepositoryResolver;
-import org.dspace.xoai.services.impl.cache.DSpaceEmptyCacheService;
 import org.dspace.xoai.services.impl.xoai.DSpaceIdentifyResolver;
 import org.dspace.xoai.tests.helpers.stubs.StubbedEarliestDateResolver;
 import org.dspace.xoai.tests.helpers.stubs.StubbedResourceResolver;
@@ -32,6 +27,10 @@ import org.springframework.web.servlet.ViewResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+
+import com.lyncode.xoai.dataprovider.services.api.ItemRepository;
+import com.lyncode.xoai.dataprovider.services.api.ResourceResolver;
+import com.lyncode.xoai.dataprovider.services.api.SetRepository;
 
 @Import(DSpaceBasicTestConfiguration.class)
 @Configuration
@@ -73,11 +72,6 @@ public class DSpaceTestConfiguration extends WebMvcConfigurerAdapter {
     @Bean
     public XOAIManagerResolver xoaiManagerResolver() {
         return new StubbedXOAIManagerResolver();
-    }
-
-    @Bean
-    public XOAICacheService xoaiCacheService() {
-        return new DSpaceEmptyCacheService();
     }
 
     private StubbedSetRepository setRepository = new StubbedSetRepository();

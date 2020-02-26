@@ -1190,9 +1190,13 @@
     	for (int i = 0; i < unfiltered.length; i++)
     	{
     		String unfilteredFieldName = unfiltered[i].element;
-    		if(unfiltered[i].qualifier != null && unfiltered[i].qualifier.length()>0)
+    		String qualifierToCheck = "";
+    		if(unfiltered[i].qualifier != null && unfiltered[i].qualifier.length()>0) {
     			unfilteredFieldName += "." + unfiltered[i].qualifier;
-    		if ( ! inputs.isFieldPresent(unfilteredFieldName) )
+    			qualifierToCheck = unfiltered[i].qualifier;
+    		}
+    		int foundPos = qualMap.indexOf(qualifierToCheck);
+    		if ( foundPos != -1 && foundPos % 2 == 1 )
     		{
     			filtered.add( unfiltered[i] );
    			}

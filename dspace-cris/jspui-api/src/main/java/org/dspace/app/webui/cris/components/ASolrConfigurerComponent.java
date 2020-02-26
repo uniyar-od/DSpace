@@ -21,6 +21,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.configuration.RelationService;
+import org.dspace.app.cris.configuration.RelationServiceConfiguration;
 import org.dspace.app.cris.configuration.RelationConfiguration;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.ICRISComponent;
@@ -61,6 +63,8 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
 
     private SearchService searchService;
 
+    private RelationServiceConfiguration relationServiceConfiguration;
+
     private RelationConfiguration relationConfiguration;
 
     private String commonFilter;
@@ -87,6 +91,17 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
                     SearchService.class.getName(), CrisSearchService.class);
         }
         return searchService;
+    }
+
+    public RelationServiceConfiguration getRelationServiceConfiguration()
+    {
+        if (relationServiceConfiguration == null)
+        {
+            DSpace dspace = new DSpace();
+            relationServiceConfiguration = dspace.getServiceManager().getServiceByName(
+                    RelationServiceConfiguration.class.getName(), RelationServiceConfiguration.class);
+        }
+        return relationServiceConfiguration;
     }
 
     private Map<String, IBC> types = new HashMap<String, IBC>();
@@ -204,6 +219,20 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
             sortOption = SortOption.getSortOption(sortBy);
         }
 
+        RelationService relationService = getRelationServiceConfiguration()
+                .getRelationService(getRelationConfiguration()
+                        .getRelationName());
+        boolean addRelations = false;
+        boolean removeRelations = false;
+        if (relationService != null && relationService.isAuthorized(context, cris)) {
+            if (relationService.getAddAction() != null) {
+                addRelations = true;
+            }
+            if (relationService.getRemoveAction() != null) {
+                removeRelations = true;
+            }
+        }
+
         // Pass the results to the display JSP
 
         Map<String, ComponentInfoDTO<T>> componentInfoMap = (Map<String, ComponentInfoDTO<T>>) request
@@ -223,7 +252,7 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         ComponentInfoDTO<T> componentInfo = buildComponentInfo(docs, context,
                 type, start, order, rpp, etAl, docsNumFound, pageTotal,
 				pageCurrent, pageLast, pageFirst, sortOption,
-				searchTime);
+				searchTime, cris.getCrisID(), addRelations, removeRelations);
 
         componentInfoMap.put(getShortName(), componentInfo);
         request.setAttribute("componentinfomap", componentInfoMap);
@@ -254,7 +283,10 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
                 "appliedFilterQueries"
                         + getRelationConfiguration().getRelationName(),
                 appliedFilterQueries);
-        request.setAttribute("count" + this.getShortName(), docsNumFound);
+        if (!addRelations)
+        {
+            request.setAttribute("count" + this.getShortName(), docsNumFound);
+        }
     }
 
 	private String getOrderField(int sortBy) throws SortException {
@@ -272,7 +304,8 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
     private ComponentInfoDTO<T> buildComponentInfo(DiscoverResult docs,
             Context context, String type, int start, String order, int rpp,
             int etAl, long docsNumFound, int pageTotal, int pageCurrent,
-			int pageLast, int pageFirst, SortOption sortOption, int searchTime)
+			int pageLast, int pageFirst, SortOption sortOption, int searchTime,
+			String crisID, boolean addRelations, boolean removeRelations)
             throws Exception
     {
         ComponentInfoDTO<T> componentInfo = new ComponentInfoDTO<T>();
@@ -296,6 +329,9 @@ public abstract class ASolrConfigurerComponent<T extends DSpaceObject, IBC exten
         componentInfo.setType(type);
 		componentInfo.setSearchTime(searchTime);
 		componentInfo.setBrowseType(getRelationConfiguration().getType());
+		componentInfo.setCrisID(crisID);
+		componentInfo.setAddRelations(addRelations);
+		componentInfo.setRemoveRelations(removeRelations);
         return componentInfo;
     }
 

@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.orcid.OrcidAuthorityValue;
@@ -49,8 +50,16 @@ public class ORCIDAuthority extends RPAuthority {
 						Map<String, String> extras = ((OrcidAuthorityValue)val).choiceSelectMap();
 						extras.put("insolr", "false");
 						extras.put("link", getLink((OrcidAuthorityValue)val));
-						extras.putAll(buildExtra(val.getValue()));
-						results.add(new Choice(val.generateString(), val.getValue(), val.getValue(), extras));
+						String serviceId = ((OrcidAuthorityValue)val).getServiceId();
+						String inst = ((OrcidAuthorityValue)val).getInstitution();
+                        StringBuffer sb = new StringBuffer(val.getValue());
+                        if (StringUtils.isNotBlank(inst))
+                        {
+                            sb.append(" (").append(inst).append(")");
+                        }
+                        sb.append(" - ").append(serviceId);
+						extras.putAll(buildExtra(serviceId));
+						results.add(new Choice(val.generateString(), sb.toString(), val.getValue(), extras));
 						added++;
 					}
 				}

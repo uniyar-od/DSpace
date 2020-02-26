@@ -734,7 +734,7 @@ public class ImportCRISDataModelConfiguration
 			riga = sheet.getRow(indexRiga);
 			String key = UtilsXLS.stringCellValue(riga.getCell(2)).trim();
             if (key.equals("rp") || key.equals("pj") || key.equals("ou")
-                    || key.equals("###"))
+                    || key.equals("###") || key.length() <= 0)
             {
 				indexRiga++;
 				continue;

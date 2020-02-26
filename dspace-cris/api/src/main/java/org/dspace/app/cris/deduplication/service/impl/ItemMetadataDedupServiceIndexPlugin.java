@@ -55,7 +55,9 @@ public class ItemMetadataDedupServiceIndexPlugin
         {
 
             Item item = Item.find(context, itemId);
-
+            if (item == null) {
+                return;
+            }
             for (String meta : metadata)
             {
                 for (Metadatum mm : item.getMetadataByMetadataString(meta))

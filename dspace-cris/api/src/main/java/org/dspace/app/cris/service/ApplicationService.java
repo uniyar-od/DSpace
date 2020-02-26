@@ -258,6 +258,11 @@ public class ApplicationService extends ExtendedTabService
         crisSubscriptionDao.deleteByEpersonID(id);
     }
 
+    public void deleteSubscriptionByUUID(String uuid)
+    {
+        crisSubscriptionDao.deleteByUUID(uuid);
+    }
+
     public long countByEpersonIDandUUID(int epersonID, String uuid,
             Class<CrisSubscription> className)
     {
