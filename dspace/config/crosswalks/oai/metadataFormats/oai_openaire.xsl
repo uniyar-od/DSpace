@@ -190,22 +190,30 @@
 				mode="datacite">
 			</xsl:apply-templates>
 			
-			<!-- CITATION TITLE -->
 			<xsl:for-each
 				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartofseries']/doc:element/doc:field[@name='value']">
-				<oaire:citationTitle>
-					<xsl:value-of select="." />
-				</oaire:citationTitle>
+				<xsl:choose>
+					<xsl:when test="contains(.,';')">
+						<!-- CITATION TITLE -->
+						<oaire:citationTitle>
+							<xsl:value-of select="substring-before(.,';')"/>
+						</oaire:citationTitle>
+						<!-- CITATION VOLUME -->
+						<oaire:citationVolume>
+							<xsl:value-of select="substring-after(.,';')" />
+						</oaire:citationVolume>
+					</xsl:when>
+					<xsl:when test=".!=''">
+						<!-- CITATION TITLE -->
+						<oaire:citationTitle>
+							<xsl:value-of select="."/>
+						</oaire:citationTitle>
+					</xsl:when>
+					<xsl:otherwise>
+					</xsl:otherwise>
+				</xsl:choose>
 			</xsl:for-each>
 			
-			<!-- CITATION VOLUME -->
-			<xsl:for-each
-				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='ispartofseries']/doc:element/doc:field[@name='value']">
-				<oaire:citationVolume>
-					<xsl:value-of select="." />
-				</oaire:citationVolume>
-			</xsl:for-each>
-
 			<!-- CITATION ISSUE -->
 			<xsl:for-each
 				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element/doc:field[@name='value']">
@@ -240,53 +248,53 @@
 			</xsl:for-each>
 		
 			<!-- select all funding references -->
-					<xsl:variable name="funder" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='funder']/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="funderid" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='funderid']/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="grantno" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='grantno']/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="awarduri" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='awardURL']/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="awardtitle" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element[@name='awardTitle']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="funder" select="doc:metadata/doc:element[@name='project']/doc:element[@name='funder']/doc:element[@name='name']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="funderid" select="doc:metadata/doc:element[@name='project']/doc:element[@name='funder']/doc:element[@name='identifier']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awardnumber" select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='awardNumber']/doc:element/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awarduri" select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='awardURI']/doc:element/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awardtitle" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:element/doc:field[@name='value']"/>
 					
-					<xsl:variable name="check_fundingreference">
-						<xsl:for-each select="$funder">
-							<xsl:if test="$funder!=''">
+					<xsl:variable name="check_fundingreference"> 
+						<xsl:for-each select="$awardtitle">
+							<xsl:if test="$awardtitle!=''">
 								<xsl:value-of select="."/>
 							</xsl:if>
 						</xsl:for-each>
 					</xsl:variable>
 					
 					<xsl:if test="$check_fundingreference!=''">
-						<fundingReferences>
-							<xsl:for-each select="$funder">
+						<oaire:fundingReferences>
+							<xsl:for-each select="$awardtitle">
 								<xsl:if test=".!='' ">
-									<fundingReference>
+									<oaire:fundingReference>
 										<xsl:variable name="counter" select="position()"/>
-										<funderName>
-											<xsl:value-of select="."/>
-										</funderName>
+										<oaire:funderName>
+											<xsl:value-of select="$funder[$counter]"/>
+										</oaire:funderName>
 										<xsl:if test="$funderid[$counter]!='' ">
-											<funderIdentifier funderIdentifierType="Crossref Funder ID">
+											<oaire:funderIdentifier funderIdentifierType="Crossref Funder ID">
 												<xsl:value-of select="$funderid[$counter]"/>	
-											</funderIdentifier>
+											</oaire:funderIdentifier>
 										</xsl:if>
-										<xsl:if test="$grantno[$counter]!='' ">
-											<awardNumber>
+										<xsl:if test="$awardnumber[$counter]!='' ">
+											<oaire:awardNumber>
 												<xsl:if test="$awarduri[$counter]!='' ">
 													<xsl:attribute name="awardURI">
 														<xsl:value-of select="$awarduri"/>
 													</xsl:attribute>
 												</xsl:if>
-												<xsl:value-of select="$grantno[$counter]"/>
-											</awardNumber>
+												<xsl:value-of select="$awardnumber[$counter]"/>
+											</oaire:awardNumber>
 										</xsl:if>
-										<xsl:if test="$awardtitle[$counter]!='' ">
-											<awardTitle>
-												<xsl:value-of select="$awardtitle[$counter]"/>
-											</awardTitle>
+										<xsl:if test=".!='' ">
+											<oaire:awardTitle>
+												<xsl:value-of select="."/>
+											</oaire:awardTitle>
 										</xsl:if>
-									</fundingReference>
+									</oaire:fundingReference>
 								</xsl:if>
 							</xsl:for-each>
-						</fundingReferences>
+						</oaire:fundingReferences>
 					</xsl:if>
 		</oaire:resource>
 	</xsl:template>

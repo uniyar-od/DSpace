@@ -203,9 +203,9 @@ it, please enter the types and the actual numbers or codes.</hint>
      
      <page number="3">
      	  <field>
-         <dc-schema>dc</dc-schema>
-         <dc-element>relation</dc-element>
-         <dc-qualifier>funder</dc-qualifier>
+         <dc-schema>project</dc-schema>
+         <dc-element>funder</dc-element>
+         <dc-qualifier>name</dc-qualifier>
          <repeatable>false</repeatable>
          <label>Funder Name</label>
          <input-type>textarea</input-type>
@@ -214,9 +214,8 @@ it, please enter the types and the actual numbers or codes.</hint>
        </field>
 
      	  <field>
-         <dc-schema>dc</dc-schema>
-         <dc-element>relation</dc-element>
-         <dc-qualifier>grantno</dc-qualifier>
+         <dc-schema>oaire</dc-schema>
+         <dc-element>awardnumber</dc-element>
          <repeatable>false</repeatable>
          <label>Funder Grant</label>
          <input-type>textarea</input-type>
@@ -225,9 +224,9 @@ it, please enter the types and the actual numbers or codes.</hint>
        </field>
 
        <field>
-         <dc-schema>dc</dc-schema>
-         <dc-element>relation</dc-element>
-         <dc-qualifier>funderid</dc-qualifier>
+         <dc-schema>project</dc-schema>
+         <dc-element>funder</dc-element>
+         <dc-qualifier>identifier</dc-qualifier>
          <repeatable>false</repeatable>
          <label>Funder Identifier</label>
          <input-type>textarea</input-type>
@@ -247,9 +246,8 @@ it, please enter the types and the actual numbers or codes.</hint>
        </field>
 
        <field>
-         <dc-schema>dc</dc-schema>
-         <dc-element>relation</dc-element>
-         <dc-qualifier>awardURL</dc-qualifier>
+         <dc-schema>oaire</dc-schema>
+         <dc-element>awardURI</dc-element>
          <repeatable>false</repeatable>
          <label>Award URI.</label>
          <input-type>textarea</input-type>
