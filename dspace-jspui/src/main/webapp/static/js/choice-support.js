@@ -436,10 +436,10 @@ function DSpaceChoicesSelectOnChange ()
     }
     else{
         form.elements['text1'].value = so.value;
+    }
         var details = document.getElementsByClassName("detail-info"); 
         for (var i = 0; i < details.length; i ++) {
             details[i].style.display = 'none';
-        }
         document.getElementById("detail"+select.selectedIndex).show();
     }
   
