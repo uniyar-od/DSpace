@@ -339,17 +339,12 @@ function DSpaceChoicesLoad(form)
             }
             var ovalue = opt.getAttributeNode('value').value;
             var oauthority = opt.getAttributeNode('authority').value;
-            var re = /(.*)::(.*)::(.*)/; 
-            
-            var subst = '$3'; 
-             
-            var result = oauthority.replace(re, subst);
-            var option = new Option(olabel + '(' + result +')', ovalue);
+            var option = new Option(olabel, ovalue);
             option.authority = opt.getAttributeNode('authority').value;
-
+            
             //transfer all data attributes on the option element 
 			option.data = jQuery(opt).data();
-            
+			
             select.add(option, null);
             if (value == ovalue)
                 selectedByValue = select.options.length - 1;
@@ -434,9 +429,6 @@ function DSpaceChoicesSelectOnChange ()
     var so = select.options[select.selectedIndex];
     var isName = form.elements['paramIsName'].value == 'true';
 
-    
-    //document.getElementByID("aspect_general_ChoiceLookup_detailed_info").innerHTML = textDetails;
-    
     if (isName)
     {
         form.elements['text1'].value = lastNameOf(so.value);
@@ -449,7 +441,6 @@ function DSpaceChoicesSelectOnChange ()
             details[i].style.display = 'none';
         }
         document.getElementById("detail"+select.selectedIndex).show();
-        //document.getElementById("aspect_general_ChoiceLookup_details").innerHTML = textDetails;
     }
   
 }
