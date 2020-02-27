@@ -52,7 +52,7 @@ public class ItemUtils
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
 
-    private static Element getElement(List<Element> list, String name)
+    public static Element getElement(List<Element> list, String name)
     {
         for (Element e : list)
             if (name.equals(e.getName()))
@@ -60,14 +60,14 @@ public class ItemUtils
 
         return null;
     }
-    private static Element create(String name)
+    public static Element create(String name)
     {
         Element e = new Element();
         e.setName(name);
         return e;
     }
 
-    private static Element.Field createValue(
+    public static Element.Field createValue(
             String name, String value)
     {
         Element.Field e = new Element.Field();
@@ -275,20 +275,6 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
-        Element author = create("author");
-        
-        Metadatum[] values= item.getMetadata("dc", "contributor", "author", Item.ANY);
-        for(Metadatum val : values) {
-            if(StringUtils.contains(val.authority, "::")){
-                String[] splitted = StringUtils.split(val.authority, "::");
-                authority = val.value + "|||" + splitted[1] + "|||" + splitted[2];
-            }
-            else {
-            authority = val.value;
-            }
-            author.getField().add(createValue("relation", authority));
-        }
-        other.getElement().add(author);
        
         String drm = null;
         String ccLicense = null;

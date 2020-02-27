@@ -18,9 +18,9 @@
 
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
-	<!-- Additional item.compile plugin to enrich field with information about virtual metadata -->
-<!-- 	<bean id="virtualElementAdditional" scope="prototype"
-		class="org.dspace.xoai.app.VirtualElementAdditional">
-	</bean> -->
+	<!-- Additional item.compile plugin to enrich field with information about orcid metadata -->
+ 	<bean id="orcidVirtualElementAdditional" scope="prototype"
+		class="org.dspace.xoai.app.OrcidVirtualElementAdditional">
+	</bean>
 	
 </beans>

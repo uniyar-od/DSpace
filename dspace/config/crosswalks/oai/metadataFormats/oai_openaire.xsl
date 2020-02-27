@@ -12,7 +12,10 @@
 	xmlns:oaire="http://namespace.openaire.eu/schema/oaire/">
 	<xsl:output omit-xml-declaration="yes" method="xml"
 		indent="yes" />
-
+    
+    <!--  Please note that this crosswalk is mostly a backport from the DSpace 7 version 
+    	  available here https://github.com/DSpace/DSpace/blob/master/dspace/config/crosswalks/oai/metadataFormats/oai_openaire.xsl
+          adapted to work with the limitation of the flat data model of DSpace pre version 7 -->	
 	<xsl:template match="/">
 		<oaire:resource
 			xmlns:vc="http://www.w3.org/2007/XMLSchema-versioning"
@@ -27,37 +30,10 @@
 				</datacite:title>
 			</xsl:for-each>
 			
-			<!-- DC CONTRIBUTOR AUTHOR -->
-			<datacite:creators>
-				<xsl:for-each
-					select="doc:metadata/doc:element[@name='others']/doc:element[@name='author']/doc:field[@name='relation']">
-					<datacite:creator>
-						<xsl:choose>
-							<xsl:when test="contains(.,'|||')">
-								<datacite:creatorName>
-									<xsl:value-of select="substring-before(.,'|||')" />
-								</datacite:creatorName>
-								<datacite:nameIdentifier>
-									<xsl:attribute name="nameIdentifierScheme">
-										<xsl:value-of
-										select="substring-before(substring-after(. ,'|||'),'|||')" />
-									</xsl:attribute>
-									<xsl:attribute name="schemeURI">
-										<xsl:text>http://orcid.org</xsl:text>
-									</xsl:attribute>
-									<xsl:value-of
-										select="substring-after(substring-after(.,'|||'),'|||')" />
-								</datacite:nameIdentifier>
-							</xsl:when>
-							<xsl:otherwise>
-								<datacite:creatorName>
-									<xsl:value-of select="." />
-								</datacite:creatorName>
-							</xsl:otherwise>
-						</xsl:choose>
-					</datacite:creator>
-				</xsl:for-each>
-			</datacite:creators>
+            <!-- datacite:creator -->
+            <xsl:apply-templates
+                select="doc:metadata/doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']"
+                mode="datacite"/>			
 
 			<!-- ISSUE DATE -->
 			<datacite:date>
@@ -853,5 +829,138 @@
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
-	
+    
+    <!-- datacite.creators -->
+    <!-- https://openaire-guidelines-for-literature-repository-managers.readthedocs.io/en/v4.0.0/field_creator.html -->
+    <xsl:template
+        match="doc:element[@name='dc']/doc:element[@name='contributor']/doc:element[@name='author']" mode="datacite">
+        <datacite:creators>
+            <!-- datacite.creator -->
+            <xsl:for-each select="./doc:element/doc:field[@name='value']">
+                <xsl:variable name="isRelatedEntity">
+                    <xsl:call-template name="isRelatedEntity">
+                        <xsl:with-param name="element" select="."/>
+                    </xsl:call-template>
+                </xsl:variable>
+                <xsl:choose>
+                    <!-- if next sibling is authority and starts with virtual:: -->
+                    <xsl:when test="$isRelatedEntity = 'true'">
+                        <xsl:variable name="entity">
+                            <xsl:call-template name="buildEntityNode">
+                                <xsl:with-param name="element" select="."/>
+                            </xsl:call-template>
+                        </xsl:variable>
+                        <xsl:apply-templates select="$entity" mode="entity_creator"/>
+                    </xsl:when>
+                    <!-- simple text metadata -->
+                    <xsl:otherwise>
+                        <datacite:creator>
+                            <datacite:creatorName>
+                                <xsl:value-of select="./text()"/>
+                            </datacite:creatorName>
+                        </datacite:creator>
+                    </xsl:otherwise>
+                </xsl:choose>
+            </xsl:for-each>
+        </datacite:creators>
+    </xsl:template>
+    
+   <!--  -->
+   <!-- Auxiliary templates -->
+   <!--  -->
+
+    <!-- 
+        this template will verify if a field name with "authority"
+        is present and if it is not empty
+        if it occurs, than we are in a presence of a related entity 
+     -->
+    <xsl:template name="isRelatedEntity">
+        <xsl:param name="element"/>
+        <xsl:variable name="sibling1" select="$element/following-sibling::*[1]"/>
+        <!-- if next sibling is authority and is not empty -->
+        <xsl:choose>
+            <xsl:when test="$sibling1[@name='authority' and text()!='')]">
+                <xsl:value-of select="true()"/>
+            </xsl:when>
+            <xsl:otherwise>
+                <xsl:value-of select="false()"/>
+            </xsl:otherwise>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- 
+        this template will try to look for all "virtual" 
+        This will retrieve something like:
+        <element name="authorityvalue">
+           <field name="dc.contributor.author.none">Doe, John</field>
+           <field name="person.identifier.orcid">3f685bbd-07d9-403e-9de2-b8f0fabe27a7</field>
+        </element>
+     -->
+    <xsl:template name="buildEntityNode">
+        <xsl:param name="element"/>
+        <!-- authority? -->
+        <xsl:variable name="sibling1" select="$element/following-sibling::*[1]"/>
+        <!-- confidence? -->
+        <xsl:variable name="sibling2" select="$element/following-sibling::*[2]"/>
+        <!-- if next sibling is authority and is not empty -->
+        <xsl:if test="$sibling1[@name='authority' and text()!='')]">
+            <xsl:variable name="relation_id" select="$sibling1[1]/text()"/>
+            <xsl:element name="element" namespace="http://www.lyncode.com/xoai">
+                <xsl:attribute name="name">
+                    <xsl:value-of select="$relation_id"/>
+                </xsl:attribute>
+                <!-- search for all virtual relations elements in XML -->
+                <xsl:for-each select="//doc:field[text()=$relation_id]/preceding-sibling::*[1]">
+                    <xsl:element name="field" namespace="http://www.lyncode.com/xoai">
+                        <xsl:attribute name="name">
+                        <xsl:call-template name="buildEntityFieldName">
+                        <xsl:with-param name="element" select="."/>
+                          </xsl:call-template>
+                        </xsl:attribute>
+                        <!-- field value -->
+                        <xsl:value-of select="./text()"/>
+                    </xsl:element>
+                </xsl:for-each>
+            </xsl:element>
+        </xsl:if>
+    </xsl:template>
+    
+   <!-- 
+        This template will recursively create the field name based on parent node names
+        to be something like this:
+        person.familyName.*
+    -->
+    <xsl:template name="buildEntityFieldName">
+        <xsl:param name="element"/>
+        <xsl:choose>
+            <xsl:when test="$element/..">
+                <xsl:call-template name="buildEntityFieldName">
+                    <xsl:with-param name="element" select="$element/.."/>
+                </xsl:call-template>
+                <!-- if parent isn't an element then don't include '.' -->
+                <xsl:if test="local-name($element/../..) = 'element'">
+                    <xsl:text>.</xsl:text>
+                </xsl:if>
+                <xsl:value-of select="$element/../@name"/>
+            </xsl:when>
+            <xsl:otherwise/>
+        </xsl:choose>
+    </xsl:template>
+    
+    <!-- datacite:creator -->
+    <xsl:template match="doc:element" mode="entity_creator">
+        <datacite:creator>
+            <datacite:creatorName>
+                <xsl:value-of select="doc:field[starts-with(@name,'dc.contributor.author')]"/>
+            </datacite:creatorName>
+            <xsl:apply-templates select="doc:field" mode="entity_author"/>
+        </datacite:creator>
+    </xsl:template>
+    
+    <!-- This template creates the sub-element <datacite:nameIdentifier> of type ORCID from a Person built entity -->
+    <xsl:template match="doc:field[starts-with(@name,'person.identifier.orcid')]" mode="entity_author">
+        <datacite:nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org">
+            <xsl:value-of select="./text()"/>
+        </datacite:nameIdentifier>
+    </xsl:template>                    	
 </xsl:stylesheet>
