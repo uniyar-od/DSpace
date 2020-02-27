@@ -45,6 +45,8 @@
     String isRepeatingValue = getDefaultedRequestParameter(request,"isRepeating", "false");
     boolean isName = isNameValue.equalsIgnoreCase("true");
     boolean isRepeating = isRepeatingValue.equalsIgnoreCase("true");
+    
+    boolean canEditValue = ConfigurationManager.getBooleanProperty("webui.lookup."+mdfield+"editvalue", false);
 %>
 
 <dspace:layout titlekey="jsp.tools.lookup.title"
@@ -103,12 +105,12 @@
             <% String help2 = LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.field."+mdfield+".help.first"); %>
             <label class="ds-composite-component">
               <input class="ds-text-field choices-lookup" name="text1" type="text" value=""
-                  title="<%= help1 %>" />
+                  title="<%= help1 %>" <%= canEditValue ? "":"readonly" %> />
               <br/><%= help1 %>
             </label>
             <label class="ds-composite-component last">
               <input class="ds-text-field choices-lookup" name="text2" type="text" value=""
-                  title="<%= help2 %>" />
+                  title="<%= help2 %>" <%= canEditValue ? "":"readonly" %>/>
               <br/><%= help2 %>
             </label>
           <% } else { %>
@@ -116,11 +118,11 @@
             <% String help = LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.field."+mdfield+".help"); %>
             <label class="ds-composite-component">
               <input class="ds-text-field choices-lookup" name="text1" type="text" value=""
-                  title="<%= help %>" />
+                  title="<%= help %>" <%= canEditValue ? "":"readonly" %> />
               <br/><%= help %>
             </label>
           <% } %>
-          <div class="spacer"> </div>
+          <div id="aspect_general_ChoiceLookup_detailed_info" class=""> </div>
         </div>
       </li>
       <li class="ds-form-item last choices-lookup"> 
