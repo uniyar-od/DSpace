@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE dspace-dc-types SYSTEM "dspace-dc-types.dtd">
 
 <!--
   This document was based on the OpenAIRE4 Guidelines for Literature Repositories
@@ -27,19 +26,5 @@
         <element>awardURI</element>
         <scope_note>URI of the project landing page provided by the funder for more information about the award (grant).</scope_note>
     </dc-type>
-	
-    <dc-type>
-        <schema>project</schema>
-        <element>funder</element>
-        <qualifier>identifier</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-	
-    <dc-type>
-        <schema>project</schema>
-        <element>funder</element>
-        <qualifier>name</qualifier>
-        <scope_note></scope_note>
-    </dc-type>
-        
+
 </dspace-dc-types>

@@ -879,7 +879,7 @@
         <xsl:variable name="sibling1" select="$element/following-sibling::*[1]"/>
         <!-- if next sibling is authority and is not empty -->
         <xsl:choose>
-            <xsl:when test="$sibling1[@name='authority' and text()!='')]">
+            <xsl:when test="$sibling1[@name='authority' and text()!='']">
                 <xsl:value-of select="true()"/>
             </xsl:when>
             <xsl:otherwise>
@@ -903,7 +903,7 @@
         <!-- confidence? -->
         <xsl:variable name="sibling2" select="$element/following-sibling::*[2]"/>
         <!-- if next sibling is authority and is not empty -->
-        <xsl:if test="$sibling1[@name='authority' and text()!='')]">
+        <xsl:if test="$sibling1[@name='authority' and text()!='']">
             <xsl:variable name="relation_id" select="$sibling1[1]/text()"/>
             <xsl:element name="element" namespace="http://www.lyncode.com/xoai">
                 <xsl:attribute name="name">

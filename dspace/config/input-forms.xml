@@ -215,7 +215,7 @@ it, please enter the types and the actual numbers or codes.</hint>
 
      	  <field>
          <dc-schema>oaire</dc-schema>
-         <dc-element>awardnumber</dc-element>
+         <dc-element>awardNumber</dc-element>
          <repeatable>false</repeatable>
          <label>Funder Grant</label>
          <input-type>textarea</input-type>
