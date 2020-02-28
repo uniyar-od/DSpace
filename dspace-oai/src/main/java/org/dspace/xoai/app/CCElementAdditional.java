@@ -52,7 +52,6 @@ public class CCElementAdditional implements XOAIItemCompilePlugin {
 			log.error(e.getMessage(), e);
 		}
 		other.getField().add(ItemUtils.createValue("cc", ccLicense));
-		elements.add(other);
 		return metadata;
 	}
 }

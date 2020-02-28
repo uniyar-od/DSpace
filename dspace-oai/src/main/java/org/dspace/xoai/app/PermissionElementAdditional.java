@@ -47,7 +47,6 @@ public class PermissionElementAdditional implements XOAIItemCompilePlugin {
 		}
 
 		other.getField().add(ItemUtils.createValue("drm", drm));
-		elements.add(other);
 
 		return metadata;
 	}

@@ -362,11 +362,12 @@ function DSpaceChoicesLoad(form)
             	for(var z = 0; z < attrs.length; ++z)
             	{
 	            	var attr = attrs.item(z);
-	                var newItem = document.createElement("li");
+	                var newItem = document.createElement("p");
 	                
 	                var newItemValue = document.createTextNode(attr.value);
 	                newItem.appendChild(newItemValue);
 	                var newLabel = document.createElement("label");
+	                newLabel.setAttribute("style", "font-weight: bold;") 
 	                var newLabelValue = document.createTextNode(attr.name);
 	                newLabel.classList.add("label-detail-info");
 	                newLabel.appendChild(newLabelValue);
