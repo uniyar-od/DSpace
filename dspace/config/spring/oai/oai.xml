@@ -19,15 +19,17 @@
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
 	<!-- Additional item.compile plugin to enrich field with information about orcid metadata -->
- 	<bean id="orcidVirtualElementAdditional" scope="prototype"
+ 	<bean id="orcidVirtualElementAdditional"
 		class="org.dspace.xoai.app.OrcidVirtualElementAdditional">
 		<property name="metadata" value="dc.contributor.author"/>
 		<property name="authorityService" ref="org.dspace.authority.AuthoritySearchService"/>
 	</bean>
 	
-	<bean id="PermissionElementAdditional" scope="prototype"
+	<!-- Additional item.compile plugin to enrich field with information about DRM metadata -->
+	<bean id="PermissionElementAdditional"
 	class="org.dspace.xoai.app.PermissionElementAdditional"/>
 
-	<bean id="CCElementAdditional" scope="prototype"
+	<!-- Additional item.compile plugin to enrich field with information about Creative Commons License metadata -->
+	<bean id="CCElementAdditional"
 	class="org.dspace.xoai.app.CCElementAdditional"/>
 </beans>

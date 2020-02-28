@@ -9,6 +9,7 @@ package org.dspace.xoai.app;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
@@ -25,37 +26,33 @@ import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 
 public class CCElementAdditional implements XOAIItemCompilePlugin {
 
-    private static Logger log = LogManager.getLogger(CCElementAdditional.class);
+	private static Logger log = LogManager.getLogger(CCElementAdditional.class);
 
 	@Override
 	public Metadata additionalMetadata(Context context, Metadata metadata, Item item) {
 
 		Element other;
-		if(ItemUtils.getElement(metadata.getElement(),"others") != null){
-			other = ItemUtils.getElement(metadata.getElement(),"others");
-		}else {
+		List<Element> elements = metadata.getElement();
+		if (ItemUtils.getElement(elements, "others") != null) {
+			other = ItemUtils.getElement(elements, "others");
+		} else {
 			other = ItemUtils.create("others");
 		}
-        String ccLicense = null;
- 
-		try
-	        {
-	            String licenseURL = CreativeCommons.getLicenseURL(item);
-	            if(StringUtils.isNotBlank(licenseURL)) {
-		            CCLookup ccLookup = new CCLookup();
-		            ccLookup.issue(licenseURL);
-		            String licenseName = ccLookup.getLicenseName();
-		            ccLicense = licenseName + "|||"
-		                    + licenseURL;
-	            }
-	        }
-	        catch (SQLException | IOException | AuthorizeException e)
-	        {
-	        	log.error(e.getMessage(), e);
-	        }
-			other.getField().add(
-					ItemUtils.createValue("cc", ccLicense));        
-			metadata.getElement().add(other);
+		String ccLicense = null;
+
+		try {
+			String licenseURL = CreativeCommons.getLicenseURL(item);
+			if (StringUtils.isNotBlank(licenseURL)) {
+				CCLookup ccLookup = new CCLookup();
+				ccLookup.issue(licenseURL);
+				String licenseName = ccLookup.getLicenseName();
+				ccLicense = licenseName + "|||" + licenseURL;
+			}
+		} catch (SQLException | IOException | AuthorizeException e) {
+			log.error(e.getMessage(), e);
+		}
+		other.getField().add(ItemUtils.createValue("cc", ccLicense));
+		elements.add(other);
 		return metadata;
 	}
 }

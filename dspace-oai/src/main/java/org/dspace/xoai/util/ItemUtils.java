@@ -11,6 +11,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.LogManager;
@@ -18,6 +20,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
+import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -45,6 +48,8 @@ public class ItemUtils
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
 
+    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    
     public static Element getElement(List<Element> list, String name)
     {
         for (Element e : list)
@@ -70,7 +75,7 @@ public class ItemUtils
     }
     public static Metadata retrieveMetadata (Context context, Item item) {
         Metadata metadata;
-        String authority = null;
+        
         //DSpaceDatabaseItem dspaceItem = new DSpaceDatabaseItem(item);
         
         // read all metadata into Metadata Object
@@ -149,16 +154,14 @@ public class ItemUtils
                 }
                 valueElem = language;
             }
-            
+
             valueElem.getField().add(createValue("value", val.value));
             if (val.authority != null) {
                 valueElem.getField().add(createValue("authority", val.authority));
-                if (val.confidence != Choices.CF_NOVALUE) {
+                if (val.confidence != Choices.CF_NOVALUE)
                     valueElem.getField().add(createValue("confidence", val.confidence + ""));
-                }
             }
         }
-        
         // Done! Metadata has been read!
         // Now adding bitstream info
         Element bundles = create("bundles");
@@ -174,7 +177,7 @@ public class ItemUtils
                 bundles.getElement().add(bundle);
                 bundle.getField()
                         .add(createValue("name", b.getName()));
-                
+
                 Element bitstreams = create("bitstreams");
                 bundle.getElement().add(bitstreams);
                 Bitstream[] bits = b.getBitstreams();
@@ -216,13 +219,13 @@ public class ItemUtils
                     {
                         url = URLUtils.encode(bsName);
                     }
-                    
+
                     String cks = bit.getChecksum();
                     String cka = bit.getChecksumAlgorithm();
                     String oname = bit.getSource();
                     String name = bit.getName();
                     String description = bit.getDescription();
-                    String drm = PermissionElementAdditional.getDRM(AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
+                    String drm = ItemUtils.getDRM(AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
                         
                     if (name != null)
                         bitstream.getField().add(
@@ -248,7 +251,6 @@ public class ItemUtils
                                     + ""));
                     bitstream.getField()
                             .add(createValue("drm", drm));
-                    bitstream.getField();
                 }
             }
         }
@@ -268,7 +270,8 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
-        
+        metadata.getElement().add(other);
+
         // Repository Info
         Element repository = create("repository");
         repository.getField().add(
@@ -326,4 +329,46 @@ public class ItemUtils
         
         return metadata;
     }
+    
+	public static String getDRM(List<ResourcePolicy> rps) {
+		Date now = new Date();
+		Date embargoEndDate = null;
+		boolean openAccess = false;
+		boolean groupRestricted = false;
+		boolean withEmbargo = false;
+
+		if (rps != null) {
+			for (ResourcePolicy rp : rps) {
+				if (rp.getGroupID() == 0) {
+					if (rp.isDateValid()) {
+						openAccess = true;
+					} else if (rp.getStartDate() != null && rp.getStartDate().after(now)) {
+						withEmbargo = true;
+						embargoEndDate = rp.getStartDate();
+					}
+				} else if (rp.getGroupID() != 1) {
+					if (rp.isDateValid()) {
+						groupRestricted = true;
+					} else if (rp.getStartDate() == null || rp.getStartDate().after(now)) {
+						withEmbargo = true;
+						embargoEndDate = rp.getStartDate();
+					}
+				}
+			}
+		}
+		String values = "metadata only access";
+		// if there are fulltext build the values
+		if (openAccess) {
+			// open access
+			values = "open access";
+		} else if (withEmbargo) {
+			// all embargoed
+			values = "embargoed access" + "|||" + sdf.format(embargoEndDate);
+		} else if (groupRestricted) {
+			// all restricted
+			values = "restricted access";
+		}
+		return values;
+	}
+
  }
