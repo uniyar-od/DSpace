@@ -79,9 +79,11 @@ public class OrcidVirtualElementAdditional implements XOAIItemCompilePlugin {
 						} catch (Exception e) {
 							log.error("couldn't get field value for key orcid_id", e);
 						}
-						noneElement.getField().add(ItemUtils.createValue("value", orcid));
-						noneElement.getField().add(ItemUtils.createValue("authority", val.authority));
-						noneElement.getField().add(ItemUtils.createValue("confidence", "" + val.confidence));
+						if(StringUtils.isNotBlank(orcid)) {
+							noneElement.getField().add(ItemUtils.createValue("value", orcid));
+							noneElement.getField().add(ItemUtils.createValue("authority", val.authority));
+							noneElement.getField().add(ItemUtils.createValue("confidence", "" + val.confidence));
+						}
 					}
 				} catch (MalformedURLException | SolrServerException e1) {
 					log.error(e1.getMessage(), e1);
