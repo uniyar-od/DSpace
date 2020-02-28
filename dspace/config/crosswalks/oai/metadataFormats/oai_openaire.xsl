@@ -837,20 +837,20 @@
         <datacite:creators>
             <!-- datacite.creator -->
             <xsl:for-each select="./doc:element/doc:field[@name='value']">
-                <xsl:variable name="isRelatedEntity">
-                    <xsl:call-template name="isRelatedEntity">
+                <xsl:variable name="isAuthorityValue">
+                    <xsl:call-template name="isAuthorityValue">
                         <xsl:with-param name="element" select="."/>
                     </xsl:call-template>
                 </xsl:variable>
                 <xsl:choose>
                     <!-- if next sibling is authority and starts with virtual:: -->
-                    <xsl:when test="$isRelatedEntity = 'true'">
+                    <xsl:when test="$isAuthorityValue = 'true'">
                         <xsl:variable name="entity">
-                            <xsl:call-template name="buildEntityNode">
+                            <xsl:call-template name="buildAuthorityNode">
                                 <xsl:with-param name="element" select="."/>
                             </xsl:call-template>
                         </xsl:variable>
-                        <xsl:apply-templates select="$entity" mode="entity_creator"/>
+                        <xsl:apply-templates select="$entity" mode="authority_creator"/>
                     </xsl:when>
                     <!-- simple text metadata -->
                     <xsl:otherwise>
@@ -874,12 +874,12 @@
         is present and if it is not empty
         if it occurs, than we are in a presence of a related entity 
      -->
-    <xsl:template name="isRelatedEntity">
+    <xsl:template name="isAuthorityValue">
         <xsl:param name="element"/>
         <xsl:variable name="sibling1" select="$element/following-sibling::*[1]"/>
         <!-- if next sibling is authority and is not empty -->
         <xsl:choose>
-            <xsl:when test="$sibling1[@name='authority' and text()!='']">
+            <xsl:when test="$sibling1[@name='authority' and (text()!='')]">
                 <xsl:value-of select="true()"/>
             </xsl:when>
             <xsl:otherwise>
@@ -889,21 +889,21 @@
     </xsl:template>
     
     <!-- 
-        this template will try to look for all "virtual" 
+        this template will try to look for all "additional metadata" 
         This will retrieve something like:
-        <element name="authorityvalue">
+        <element name="10f8e9ba-6d4f-4550-beae-53e5d07c66fc">
            <field name="dc.contributor.author.none">Doe, John</field>
            <field name="person.identifier.orcid">3f685bbd-07d9-403e-9de2-b8f0fabe27a7</field>
         </element>
      -->
-    <xsl:template name="buildEntityNode">
+    <xsl:template name="buildAuthorityNode">
         <xsl:param name="element"/>
         <!-- authority? -->
         <xsl:variable name="sibling1" select="$element/following-sibling::*[1]"/>
         <!-- confidence? -->
         <xsl:variable name="sibling2" select="$element/following-sibling::*[2]"/>
         <!-- if next sibling is authority and is not empty -->
-        <xsl:if test="$sibling1[@name='authority' and text()!='']">
+        <xsl:if test="$sibling1[@name='authority' and (text()!='')]">
             <xsl:variable name="relation_id" select="$sibling1[1]/text()"/>
             <xsl:element name="element" namespace="http://www.lyncode.com/xoai">
                 <xsl:attribute name="name">
@@ -913,7 +913,7 @@
                 <xsl:for-each select="//doc:field[text()=$relation_id]/preceding-sibling::*[1]">
                     <xsl:element name="field" namespace="http://www.lyncode.com/xoai">
                         <xsl:attribute name="name">
-                        <xsl:call-template name="buildEntityFieldName">
+                        <xsl:call-template name="buildAuthorityFieldName">
                         <xsl:with-param name="element" select="."/>
                           </xsl:call-template>
                         </xsl:attribute>
@@ -930,11 +930,11 @@
         to be something like this:
         person.familyName.*
     -->
-    <xsl:template name="buildEntityFieldName">
+    <xsl:template name="buildAuthorityFieldName">
         <xsl:param name="element"/>
         <xsl:choose>
             <xsl:when test="$element/..">
-                <xsl:call-template name="buildEntityFieldName">
+                <xsl:call-template name="buildAuthorityFieldName">
                     <xsl:with-param name="element" select="$element/.."/>
                 </xsl:call-template>
                 <!-- if parent isn't an element then don't include '.' -->
@@ -948,19 +948,20 @@
     </xsl:template>
     
     <!-- datacite:creator -->
-    <xsl:template match="doc:element" mode="entity_creator">
+    <xsl:template match="doc:element" mode="authority_creator">
         <datacite:creator>
             <datacite:creatorName>
                 <xsl:value-of select="doc:field[starts-with(@name,'dc.contributor.author')]"/>
             </datacite:creatorName>
-            <xsl:apply-templates select="doc:field" mode="entity_author"/>
+            <xsl:choose>
+            <xsl:when test="doc:field[starts-with(@name,'person.identifier.orcid')]">
+		        <datacite:nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org">
+		        	<xsl:value-of select="doc:field[starts-with(@name,'person.identifier.orcid')]"/>
+		        </datacite:nameIdentifier>            
+            </xsl:when>
+            <xsl:otherwise/>
+        	</xsl:choose>
         </datacite:creator>
     </xsl:template>
     
-    <!-- This template creates the sub-element <datacite:nameIdentifier> of type ORCID from a Person built entity -->
-    <xsl:template match="doc:field[starts-with(@name,'person.identifier.orcid')]" mode="entity_author">
-        <datacite:nameIdentifier nameIdentifierScheme="ORCID" schemeURI="http://orcid.org">
-            <xsl:value-of select="./text()"/>
-        </datacite:nameIdentifier>
-    </xsl:template>                    	
 </xsl:stylesheet>
