@@ -20,6 +20,7 @@ public class OrcidVirtualElementAdditional implements XOAIItemCompilePlugin {
 
 	@Override
 	public Metadata additionalMetadata(Context context, Metadata metadata, Item item) {
+		System.out.println("##############HERE#################");
         Element personElement = ItemUtils.create("person");
         Element identifierElement = ItemUtils.create("identifier");
         Element orcidElement = ItemUtils.create("orcid");
