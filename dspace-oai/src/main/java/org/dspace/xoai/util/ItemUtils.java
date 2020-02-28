@@ -11,17 +11,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
-import org.dspace.authorize.ResourcePolicy;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
@@ -31,8 +27,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
-import org.dspace.license.CCLookup;
-import org.dspace.license.CreativeCommons;
+import org.dspace.xoai.app.PermissionElementAdditional;
 import org.dspace.xoai.data.DSpaceItem;
 
 import com.lyncode.xoai.dataprovider.xml.xoai.Element;
@@ -46,8 +41,6 @@ import com.lyncode.xoai.util.Base64Utils;
 @SuppressWarnings("deprecation")
 public class ItemUtils
 {
-    
-    private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
     
     private static Logger log = LogManager
             .getLogger(ItemUtils.class);
@@ -229,7 +222,7 @@ public class ItemUtils
                     String oname = bit.getSource();
                     String name = bit.getName();
                     String description = bit.getDescription();
-                    String drm = getDRM(AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
+                    String drm = PermissionElementAdditional.getDRM(AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
                         
                     if (name != null)
                         bitstream.getField().add(
@@ -275,33 +268,6 @@ public class ItemUtils
         other.getField().add(
                 createValue("lastModifyDate", item
                         .getLastModified().toString()));
-       
-        String drm = null;
-        String ccLicense = null;
-        
-        try
-        {
-            drm = buildPermission(context, item);
-            
-            String licenseURL = CreativeCommons.getLicenseURL(item);
-            if(StringUtils.isNotBlank(licenseURL)) {
-	            CCLookup ccLookup = new CCLookup();
-	            ccLookup.issue(licenseURL);
-	            String licenseName = ccLookup.getLicenseName();
-	            ccLicense = licenseName + "|||"
-	                    + licenseURL;
-            }
-        }
-        catch (SQLException | IOException | AuthorizeException e)
-        {
-            log.error(e.getMessage(), e);
-        }
-
-        other.getField().add(
-                createValue("drm", drm));        
-        other.getField().add(
-                createValue("cc", ccLicense));        
-        metadata.getElement().add(other);
         
         // Repository Info
         Element repository = create("repository");
@@ -359,104 +325,5 @@ public class ItemUtils
         }
         
         return metadata;
-    }
-    
-    private static String getDRM(List<ResourcePolicy> rps)
-    {
-        Date now = new Date();
-        Date embargoEndDate = null;
-        boolean openAccess = false;
-        boolean groupRestricted = false;
-        boolean withEmbargo = false;
-
-        if (rps != null)
-        {
-            for (ResourcePolicy rp : rps)
-            {
-                if (rp.getGroupID() == 0)
-                {
-                    if (rp.isDateValid())
-                    {
-                        openAccess = true;
-                    }
-                    else if (rp.getStartDate() != null
-                            && rp.getStartDate().after(now))
-                    {
-                        withEmbargo = true;
-                        embargoEndDate = rp.getStartDate();
-                    }
-                }
-                else if (rp.getGroupID() != 1)
-                {
-                    if (rp.isDateValid())
-                    {
-                        groupRestricted = true;
-                    }
-                    else if (rp.getStartDate() == null
-                            || rp.getStartDate().after(now))
-                    {
-                        withEmbargo = true;
-                        embargoEndDate = rp.getStartDate();
-                    }
-                }
-            }
-        }
-        String values = "metadata only access";
-        // if there are fulltext build the values
-        if (openAccess)
-        {
-            // open access
-            values = "open access";
-        }
-        else if (withEmbargo)
-        {
-            // all embargoed
-            values = "embargoed access" + "|||" + sdf.format(embargoEndDate);
-        }
-        else if (groupRestricted)
-        {
-            // all restricted
-            values = "restricted access";
-        }
-        return values;
-    }
-    
-    private static String buildPermission(Context context, Item item)
-            throws SQLException
-    {
-
-        String values = "metadata only access";
-        Bundle[] bnds;
-        try
-        {
-            bnds = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
-        }
-        catch (SQLException e)
-        {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-
-        for (Bundle bnd : bnds)
-        {
-
-            Bitstream bitstream = Bitstream.find(context,
-                    bnd.getPrimaryBitstreamID());
-            if (bitstream == null)
-            {
-                for (Bitstream b : bnd.getBitstreams())
-                {
-                    bitstream = b;
-                    break;
-                }
-            }
-
-            if (bitstream == null)
-            {
-                return "metadata only access";
-            }
-            values = getDRM(AuthorizeManager.getPoliciesActionFilter(context,
-                    bitstream, Constants.READ));
-        }
-        return values;
     }
  }

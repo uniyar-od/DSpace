@@ -25,4 +25,9 @@
 		<property name="authorityService" ref="org.dspace.authority.AuthoritySearchService"/>
 	</bean>
 	
+	<bean id="PermissionElementAdditional" scope="prototype"
+	class="org.dspace.xoai.app.PermissionElementAdditional"/>
+
+	<bean id="CCElementAdditional" scope="prototype"
+	class="org.dspace.xoai.app.CCElementAdditional"/>
 </beans>
