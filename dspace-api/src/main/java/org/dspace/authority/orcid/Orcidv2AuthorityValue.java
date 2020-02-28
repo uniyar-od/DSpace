@@ -7,6 +7,7 @@
  */
 package org.dspace.authority.orcid;
 
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
@@ -326,5 +327,11 @@ public class Orcidv2AuthorityValue extends PersonAuthorityValue {
         }
 
         return true;
+    }
+    
+    @Override
+    public void setValues(SolrDocument document) {
+        super.setValues(document);
+        this.orcid_id = ObjectUtils.toString(document.getFieldValue("orcid_id"));
     }
 }
