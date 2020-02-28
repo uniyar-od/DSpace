@@ -21,6 +21,8 @@
 	<!-- Additional item.compile plugin to enrich field with information about orcid metadata -->
  	<bean id="orcidVirtualElementAdditional" scope="prototype"
 		class="org.dspace.xoai.app.OrcidVirtualElementAdditional">
+		<property name="metadata" value="dc.contributor.author"/>
+		<property name="authorityService" ref="org.dspace.authority.AuthoritySearchService"/>
 	</bean>
 	
 </beans>
