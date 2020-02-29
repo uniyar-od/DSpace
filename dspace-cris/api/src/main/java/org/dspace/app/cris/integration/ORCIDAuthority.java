@@ -45,10 +45,7 @@ public class ORCIDAuthority extends RPAuthority {
 				List<Choice> results = new ArrayList<Choice>();
 				List<AuthorityValue> values = source.queryOrcidBioByFamilyNameAndGivenName(text, start, max);
 				
-				Integer maxThreads = ConfigurationManager.getIntProperty("orcid.addexternalresults.thread.max");
-	        	if (maxThreads == 0) {
-	        		maxThreads = 5;
-	        	}
+				int maxThreads = ConfigurationManager.getIntProperty("orcid.addexternalresults.thread.max", 5);
 	        	
 	        	final Integer maxItems;
 				Double size = (double) values.size();
@@ -117,7 +114,7 @@ public class ORCIDAuthority extends RPAuthority {
 						try {
 							t.join();
 						} catch (InterruptedException e) {
-							
+							log.error(e.getMessage(), e);			
 						}
 					}
 				}

@@ -559,10 +559,7 @@ public class OrcidService extends RestSource
             List<Result> results)
     {
         List<AuthorityValue> authorities = new ArrayList<AuthorityValue>();
-        Integer maxThreads = ConfigurationManager.getIntProperty("orcid.addexternalresults.thread.max");
-        if (maxThreads == 0) {
-        	maxThreads = 5;
-        }
+        int maxThreads = ConfigurationManager.getIntProperty("orcid.addexternalresults.thread.max", 5);
         
         final Integer maxItems;
         Double size = (double) results.size();
@@ -619,7 +616,7 @@ public class OrcidService extends RestSource
         		try {
         			t.join();
         		} catch (InterruptedException e) {
-
+        			log.error(e.getMessage(), e);
         		}
         	}
         }

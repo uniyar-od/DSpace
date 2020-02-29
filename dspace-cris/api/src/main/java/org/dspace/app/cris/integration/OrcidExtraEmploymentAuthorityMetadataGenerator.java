@@ -11,7 +11,6 @@ import org.dspace.authority.orcid.OrcidAccessToken;
 import org.dspace.authority.orcid.OrcidAuthorityValue;
 import org.dspace.authority.orcid.OrcidService;
 import org.dspace.content.authority.Choice;
-import org.orcid.jaxb.model.record_v2.Employment;
 import org.orcid.jaxb.model.record_v2.EmploymentSummary;
 import org.orcid.jaxb.model.record_v2.Employments;
 
