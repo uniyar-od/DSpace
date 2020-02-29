@@ -188,10 +188,17 @@ function DSpaceSetupAutocomplete(formID, args)
 function DSpaceChoiceLookup(url, field, formID, valueInput, authInput,
     confIndicatorID, collectionID, isName, isRepeating)
 {
-    // fill in URL
-    url += '?field='+field+'&formID='+formID+'&valueInput='+valueInput+
-             '&authorityInput='+authInput+'&collection='+collectionID+
-             '&isName='+isName+'&isRepeating='+isRepeating+'&confIndicatorID='+confIndicatorID;
+	// fill in URL
+	if(url.indexOf('?') > -1)
+	{
+		url += '&field='+field+'&formID='+formID+'&valueInput='+valueInput+
+		'&authorityInput='+authInput+'&collection='+collectionID+
+		'&isName='+isName+'&isRepeating='+isRepeating+'&confIndicatorID='+confIndicatorID;
+	}else{
+		url += '?field='+field+'&formID='+formID+'&valueInput='+valueInput+
+		'&authorityInput='+authInput+'&collection='+collectionID+
+		'&isName='+isName+'&isRepeating='+isRepeating+'&confIndicatorID='+confIndicatorID;
+	}
 
     // primary input field - for positioning popup.
     var inputFieldName = isName ? dspace_makeFieldInput(valueInput,'_last') : valueInput;
@@ -219,6 +226,14 @@ function DSpaceChoiceLookup(url, field, formID, valueInput, authInput,
     return false;
 }
 
+function DSpaceChoiceLookupOnlyLocal(url, field, formID, valueInput, authInput,
+		confIndicatorID, collectionID, isName, isRepeating)
+{
+	url += '?onlyLocal=true';
+	return DSpaceChoiceLookup(url, field, formID, valueInput, authInput,
+			confIndicatorID, collectionID, isName, isRepeating);
+}
+
 // Run this as the Lookup page is loaded to initialize DOM objects, load choices
 function DSpaceChoicesSetup(form)
 {
@@ -244,6 +259,7 @@ function DSpaceChoicesSetup(form)
 // the last start index to query for next set of results.
 function DSpaceChoicesLoad(form)
 {
+	var onlyLocal = form.elements['onlyLocal'].value;
     var field = form.elements['paramField'].value;
     var value = form.elements['paramValue'].value;
     var start = form.elements['paramStart'].value;
@@ -294,7 +310,7 @@ function DSpaceChoicesLoad(form)
       {
         method: "get",
         parameters: {query: value, format: 'select', collection: collID,
-                     start: start, limit: limit},
+                     start: start, limit: limit, onlyLocal: onlyLocal},
         // triggered by any exception, even in success
         onException: function(req, e) {
           window.alert(fail+" Exception="+e);

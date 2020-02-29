@@ -255,4 +255,10 @@ public class SolrAuthority implements ChoiceAuthority {
     public void addExternalResultsInNextMatches() {
         this.externalResults = true;
     }
+
+	@Override
+	public Choices getMatches(String field, String text, int collection, int start, int limit, String locale,
+			String extra) {
+		return getMatches(field, text, collection, start, limit, locale);
+	}
 }
