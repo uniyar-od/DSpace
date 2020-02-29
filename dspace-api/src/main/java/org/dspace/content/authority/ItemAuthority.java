@@ -130,7 +130,7 @@ public class ItemAuthority implements ChoiceAuthority
 
 	@Override
 	public Choices getMatches(String field, String text, int collection, int start, int limit, String locale,
-			String extra) {
+			boolean extra) {
 		return getMatches(field, text, collection, start, limit, locale);
 	}
 }

@@ -39,12 +39,13 @@ public class ORCIDAuthority extends RPAuthority {
 		return new Choices(addExternalResults(field, query, choices, start, limit<=0?DEFAULT_MAX_ROWS:limit), choices.start, choices.total, choices.confidence, choices.more);
 	}
 	
-	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale, String extra) {
-		if(StringUtils.contains(extra, "onlyLocal"))
+	@Override
+	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale, boolean extra) {
+		if(extra)
 		{
-			return super.getMatches(field, query, collection, start, limit, locale);
-		}else {
 			return getMatches(field, query, collection, start, limit, locale);
+		} else {
+			return super.getMatches(field, query, collection, start, limit, locale);
 		}
 	} 
 	

@@ -226,10 +226,10 @@ function DSpaceChoiceLookup(url, field, formID, valueInput, authInput,
     return false;
 }
 
-function DSpaceChoiceLookupOnlyLocal(url, field, formID, valueInput, authInput,
+function DSpaceChoiceLookupOnlyLocal(onlyLocal, url, field, formID, valueInput, authInput,
 		confIndicatorID, collectionID, isName, isRepeating)
 {
-	url += '?onlyLocal=true';
+	url += '?onlyLocal=' + onlyLocal;
 	return DSpaceChoiceLookup(url, field, formID, valueInput, authInput,
 			confIndicatorID, collectionID, isName, isRepeating);
 }

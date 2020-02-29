@@ -244,7 +244,7 @@ public class DSpaceControlledVocabulary extends SelfNamedPlugin implements Choic
 
 	@Override
 	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale,
-			String extra) {
+			boolean extra) {
 		return getMatches(field, query, collection, start, limit, locale);
 	}
 }

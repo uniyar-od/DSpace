@@ -185,7 +185,7 @@ public abstract class CRISAuthority<T extends ACrisObject> implements ChoiceAuth
     }
 
     public Choices getMatches(String field, String query, int collection,
-            int start, int limit, String locale, String extra)
+            int start, int limit, String locale, boolean extra)
     {
     	return getMatches(field, query, collection, start, limit, locale);
     }

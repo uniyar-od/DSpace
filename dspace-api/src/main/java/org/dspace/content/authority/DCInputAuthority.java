@@ -177,7 +177,7 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
 
 	@Override
 	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale,
-			String extra) {
+			boolean extra) {
 		return getMatches(field, query, collection, start, limit, locale);
 	}
 }
