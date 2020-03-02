@@ -353,26 +353,29 @@ function DSpaceChoicesLoad(form)
             //GET DETAILS
             var attrs = opt.attributes;
             var info = document.getElementById("aspect_general_ChoiceLookup_detailed_info");
-            var divDetails = document.createElement("ul");
+            
+            var divDetails = document.createElement("div");
             divDetails.setAttribute("id","detail"+i);
             divDetails.style.display = 'none';
             divDetails.classList.add("detail-info");
-            
+                        
             if(attrs != null){
             	for(var z = 0; z < attrs.length; ++z)
             	{
 	            	var attr = attrs.item(z);
-	                var newItem = document.createElement("p");
-	                
+	            	
+	            	var newRow = document.createElement("div");    	
+	                var newItem = document.createElement("span");	                
 	                var newItemValue = document.createTextNode(attr.value);
 	                newItem.appendChild(newItemValue);
-	                var newLabel = document.createElement("label");
+	                var newLabel = document.createElement("span");
 	                newLabel.setAttribute("style", "font-weight: bold;") 
-	                var newLabelValue = document.createTextNode(attr.name);
+	                var newLabelValue = document.createTextNode(attr.name + " ");
 	                newLabel.classList.add("label-detail-info");
 	                newLabel.appendChild(newLabelValue);
-	                divDetails.appendChild(newLabel);
-	                divDetails.appendChild(newItem);
+	                newRow.appendChild(newLabel);	                
+	                newRow.appendChild(newItem);
+	                divDetails.appendChild(newRow);
 	            }
             }
             //divDetails.innerHTML = details;
@@ -438,12 +441,14 @@ function DSpaceChoicesSelectOnChange ()
     else{
         form.elements['text1'].value = so.value;
     }
-        var details = document.getElementsByClassName("detail-info"); 
-        for (var i = 0; i < details.length; i ++) {
-            details[i].style.display = 'none';
-        document.getElementById("detail"+select.selectedIndex).show();
+    var details = document.getElementsByClassName("detail-info"); 
+	for (var i = 0; i < details.length; i ++) {
+        details[i].style.display = 'none';
     }
-  
+	
+    document.getElementById("detail"+select.selectedIndex).show();
+    document.getElementById("aspect_general_ChoiceLookup_detailed_info").show();
+      
 }
 
 // handler for lookup popup's accept (or add) button

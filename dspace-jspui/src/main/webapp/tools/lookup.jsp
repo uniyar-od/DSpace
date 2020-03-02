@@ -122,7 +122,9 @@
               <br/><%= help %>
             </label>
           <% } %>
-          <div id="aspect_general_ChoiceLookup_detailed_info" class=""> </div>
+          <fieldset id="aspect_general_ChoiceLookup_detailed_info" style="display: none"> 
+              <legend><fmt:message key="jsp.tools.lookup.results.extradetails"/></legend>
+          </fieldset>
         </div>
       </li>
       <li class="ds-form-item last choices-lookup"> 
