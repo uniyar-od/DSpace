@@ -371,7 +371,10 @@
 								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/publications"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-publication"/></a>								
 							</li>
 							<li>
-								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/projects"><i class="fa fa-book"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-project"/></a>								
+								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/projects"><i class="fa fa-suitcase"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-project"/></a>								
+							</li>
+							<li>
+								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/advisedtheses"><i class="fa fa-graduation-cap"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-advisedtheses"/></a>								
 							</li>							
 							</c:if>
 							</c:if>

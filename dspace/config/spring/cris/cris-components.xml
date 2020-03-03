@@ -81,8 +81,8 @@
 			<map>
 				<entry key="all" value-ref="allThesesComponent" />
 				<entry key="selectedTheses" value-ref="selectedThesesComponent" />
-				<!--entry key="refereedThesis" value-ref="refereedThesesComponent" />
-				<entry key="advisedTheses" value-ref="advisedThesesComponent" /-->
+				<entry key="refereedThesis" value-ref="refereedThesesComponent" />
+				<entry key="advisedTheses" value-ref="advisedThesesComponent" />
 			</map>
 		</property>
 	</bean>
@@ -106,7 +106,7 @@
 	    <property name="sortby"><value>1</value></property>		
 	</bean>
 
-	<!--bean id="refereedThesesComponent"
+	<bean id="refereedThesesComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
 		<property name="componentIdentifier" value="selected" />
 		<property name="facetQuery"><value>dc.contributor.referee_authority:{0}</value></property>
@@ -122,7 +122,7 @@
 		<property name="order"><value>desc</value></property>
 		<property name="rpp"><value>20</value></property>		
 	    <property name="sortby"><value>1</value></property>		
-	</bean-->
+	</bean>
 
 	<bean id="selectedComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
