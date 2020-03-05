@@ -81,8 +81,61 @@
 					<property name="preHtml" value="&lt;b&gt;" />
 					<property name="postHtml" value="&lt;/b&gt;" />
 					<property name="field" value="drisname" />
-					<property name="decorator" value="title" />
+					<property name="decorator" value="cristitle" />
 				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="mandatory" value="true" />
+					<property name="preHtml" value=" - &lt;i&gt;" />
+					<property name="postHtml" value="&lt;/i&gt;" />
+					<property name="field" value="drisacronym" />
+				</bean>
+			</list>
+		</property>
+		<property name="metadataDescriptionFields">
+			<list>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="field" value="drisdescription" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="preHtml" value="&lt;b&gt;Status:&lt;/b&gt;" />
+					<property name="field" value="drisstatus" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="preHtml" value="&lt;b&gt;URI:&lt;/b&gt;" />
+					<property name="field" value="drisuri" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="preHtml" value="&lt;b&gt;Insitution/Organization:&lt;/b&gt;" />
+					<property name="field" value="drisprovierOrgUnit" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="preHtml" value="&lt;b&gt;Insitution/Organization:&lt;/b&gt;" />
+					<property name="field" value="drisproviderOrgUnit" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="preHtml" value="&lt;b&gt;Software:&lt;/b&gt;" />
+					<property name="field" value="drisrepsoftware" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="preHtml" value="&lt;b&gt;Country:&lt;/b&gt;" />
+					<property name="field" value="driscountry" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+				
 			</list>
 		</property>
 		<property name="latitude" value="" />

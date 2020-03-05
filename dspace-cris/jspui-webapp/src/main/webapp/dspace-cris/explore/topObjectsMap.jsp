@@ -34,7 +34,7 @@ if (locations != null && locations.count() > 0)
    <h6 class="panel-title"><i class="fa fa-map-marker"></i> <fmt:message key="view.stats.map.title" /></h6>
   </div>
   <div class="panel-body">
-	<div id="mapExplore" style="width: 100%; height: 350px;"></div>
+	<div id="mapExplore"></div>
   </div>
 </div>
 
@@ -50,6 +50,7 @@ if (locations != null && locations.count() > 0)
 <%
 	DiscoveryMapConfiguration mapConf = (DiscoveryMapConfiguration) locations.getConfiguration();
 	List<DiscoveryViewFieldConfiguration> headings = locations.getConfiguration().getMetadataHeadingFields();
+	List<DiscoveryViewFieldConfiguration> descriptions = locations.getConfiguration().getMetadataDescriptionFields();
 	if( headings != null ){
 		for (IGlobalSearchResult obj : locations.getRecentSubmissions()) {
 			String heading = "";
@@ -61,7 +62,14 @@ if (locations != null && locations.count() > 0)
 					heading +=val + dvfc.getSeparator();
 				}
 			}
-			
+			String description = "";
+			for(DiscoveryViewFieldConfiguration dvfc: descriptions){
+				String field = dvfc.getField();
+				values = obj.getMetadataValue(field);
+				for(String val :values){
+					description +=val + dvfc.getSeparator();
+				}
+			}
 			String latLongField = mapConf.getLatitudelongitude();
 			String latitudeField = mapConf.getLatitude();
 			String longitudeField = mapConf.getLongitude();
@@ -87,6 +95,10 @@ if (locations != null && locations.count() > 0)
 			for(int x=0; x<latitude.size();x++){
 				
 %>
+			var infowindow = new google.maps.InfoWindow({
+    							content: <%= StringUtils.replace(description,"\'","\\\'") %>,
+    							maxWidth: 200
+  								});
 			var myLatlng = new google.maps.LatLng(<%=latitude.get(x) %>,<%=longitude.get(x) %>);
 			var marker = new google.maps.Marker({
 			      position: myLatlng, 
@@ -95,6 +107,9 @@ if (locations != null && locations.count() > 0)
 			  });
 			// To add the marker to the map, call setMap();
 			marker.setMap(map);
+			marker.addListener('mouseover',funcrion(){
+				infowindow.open(map,marker);
+			});
 
 <%
 			}	
@@ -104,7 +119,8 @@ if (locations != null && locations.count() > 0)
 %>
 
 -->
-</script>		
+</script>
+	
 <%
 }
 %>
