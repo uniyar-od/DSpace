@@ -802,6 +802,7 @@ if (dedupEnabled && admin_button) { %>
 						  </div>
 						</div>
 					</div>
+					
 			    	<div id="fulltext-usertools">
 			    		<c:choose>
 				    		<c:when test="<%= !isFullText %>">								
@@ -826,24 +827,10 @@ if (dedupEnabled && admin_button) { %>
             <div class="panel panel-warning">
             	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
             	<div class="panel-body">
-			    	<div id="greenopenaccess-usertools">
-						<a href="<%=request.getContextPath()+"/login-in-page?url="+request.getContextPath()+"/handle/" + handle%>" class="btn btn-primary col-md-12" data-toggle="modal"><fmt:message key="jsp.display-item.question-modal.button" /></a>
-					</div
-			    	<div id="fulltext-usertools">
-						<a href="<%=request.getContextPath()+"/login-in-page?url="+request.getContextPath()+"/handle/" + handle%>" class="btn btn-primary col-md-12" data-toggle="modal">
-			    		<c:choose>
-				    		<c:when test="<%= !isFullText %>">
-								<fmt:message key="jsp.display-item.fulltext.button" />
-							</c:when>
-							<c:otherwise>
-								<fmt:message key="jsp.display-item.createnewversion.button" />
-							</c:otherwise>
-						</c:choose>
-						</a>
-			    	</div>			    	
+						<a href="<%=request.getContextPath()+"/login-in-page?url="+request.getContextPath()+"/handle/" + handle%>" class="btn btn-primary col-md-12" data-toggle="modal"><fmt:message key="jsp.display-item.login.button" /></a>
             	</div>
             </div>
-            </div>    
+           </div>    
     <% } %>
 </div>
 </div>

@@ -19,6 +19,7 @@
     padding-bottom:0.4em;
 }
 
+#fulltext-usertools , #greenopenaccess-usertools , .panel-warning > .panel-body .btn {margin-bottom: 10px;}
 #userloggedin-top-menu a {padding-top:0.4em;padding-bottom:0.4em;}
 #user-top-menu, #userloggedin-top-menu {margin-right: 15px;}
 footer {padding-top: 1em;}

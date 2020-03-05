@@ -26,6 +26,7 @@
 
 <%
     Integer itemID = (Integer)request.getAttribute("itemID");	
+	String itemTitle = (String)request.getAttribute("itemTitle");
 	String versionID = (String)request.getAttribute("versionID");
 	
 	Context context = UIUtil.obtainContext(request);
@@ -39,7 +40,7 @@
  <form action="<%= request.getContextPath() %>/tools/history" method="post">
 		<input type="hidden" name="itemID" value="<%= itemID %>" />
 		<input type="hidden" name="versionID" value="<%= versionID %>" />
-        <p><fmt:message key="jsp.dspace-admin.version-summary.text3"><fmt:param><%= itemID%></fmt:param></fmt:message></p>
+        <p><fmt:message key="jsp.dspace-admin.version-summary.text3"><fmt:param><%= itemTitle%></fmt:param></fmt:message></p>
                    <%--  <td class="submitFormLabel">News:</td> --%>
                    	<div class="form-group"> 
                     	<label for="summary"><fmt:message key="jsp.dspace-admin.version-summary.text"/></label>
