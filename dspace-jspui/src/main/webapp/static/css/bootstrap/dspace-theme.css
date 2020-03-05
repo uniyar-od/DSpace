@@ -19,7 +19,15 @@
     padding-bottom:0.4em;
 }
 
-#fulltext-usertools , #greenopenaccess-usertools , .panel-warning > .panel-body .btn {margin-bottom: 10px;}
+.panel .panel-default > .table .panel-body > .standard > a:hover , .panel-warning > .panel-body > a:hover , #fulltext-usertools input[type="submit"]:hover , .globalsearch:hover , #greenopenaccess-usertools .btn:hover , #itemtag-view .btn:hover {
+	color: #000 !important;
+    background-color: #fff !important;
+    border: 2px solid #a50034 !important;
+    transition: 350ms !important;
+    background-image: none !important;
+}
+
+#fulltext-usertools.btn , #greenopenaccess-usertools.btn , .panel-warning > .panel-body .btn {margin-bottom: 5px !important;}
 #userloggedin-top-menu a {padding-top:0.4em;padding-bottom:0.4em;}
 #user-top-menu, #userloggedin-top-menu {margin-right: 15px;}
 footer {padding-top: 1em;}
