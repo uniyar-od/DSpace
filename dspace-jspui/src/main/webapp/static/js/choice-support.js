@@ -420,6 +420,12 @@ function DSpaceChoicesLoad(form)
           form.statline.innerHTML =
             dspace_formatMessage(form.statline_template,
               oldStart+1, statLast, Math.max(lastTotal,statLast), value);
+          
+        },
+        onComplete: function(response) {
+        	if (200 == response.status) {
+        		jQuery( "#aspect_general_ChoiceLookupTransformer_field_chooser" ).change();	
+        	}
         }
       });
 }

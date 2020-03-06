@@ -30,3 +30,6 @@ META-INF/
 
 ##Mac noise
 .DS_Store
+
+## Ignore other tools files
+rebel.xml

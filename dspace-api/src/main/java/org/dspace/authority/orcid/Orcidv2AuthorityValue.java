@@ -328,10 +328,19 @@ public class Orcidv2AuthorityValue extends PersonAuthorityValue {
 
         return true;
     }
-    
-    @Override
-    public void setValues(SolrDocument document) {
-        super.setValues(document);
-        this.orcid_id = ObjectUtils.toString(document.getFieldValue("orcid_id"));
-    }
+
+	@Override
+	public void setValues(SolrDocument document) {
+		super.setValues(document);
+		this.orcid_id = ObjectUtils.toString(document.getFieldValue("orcid_id"));
+		for (String key : document.getFieldNames()) {
+			if (key.startsWith("label_")) {
+				String keyInternalMap = key.substring(key.indexOf("_") + 1);
+				Collection<Object> valuesSolr = document.getFieldValues(key);
+				for (Object valueInternal : valuesSolr) {
+					addOtherMetadata(keyInternalMap, (String) valueInternal);
+				}
+			}
+		}
+	}
 }
