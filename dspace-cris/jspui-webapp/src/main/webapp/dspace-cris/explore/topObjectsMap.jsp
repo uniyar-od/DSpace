@@ -23,6 +23,7 @@
 
 <c:set var="dspace.layout.head" scope="request">
 <script src="//maps.googleapis.com/maps/api/js?key=<%= ConfigurationManager.getProperty("key.googleapi.maps") %>&sensor=true&v=3" type="text/javascript"></script>
+<script src="https://unpkg.com/@google/markerclustererplus@4.0.1/dist/markerclustererplus.min.js"></script>
 </c:set>
 <%
 if (locations != null && locations.count() > 0)
@@ -49,36 +50,24 @@ if (locations != null && locations.count() > 0)
 	
 <%
 DiscoveryMapConfiguration mapConf = (DiscoveryMapConfiguration) locations.getConfiguration();
-for (IGlobalSearchResult obj : locations.getRecentSubmissions()) {
-	String latLongField = mapConf.getLatitudelongitude();
-	String latitudeField = mapConf.getLatitude();
-	String longitudeField = mapConf.getLongitude();
-	List<String> latitude = new ArrayList<>();
-	List<String> longitude= new ArrayList<>();
-	if(StringUtils.isNotBlank(latLongField)){
-		for(String value : obj.getMetadataValue(latLongField)){
-			if(StringUtils.isNotBlank(value) && StringUtils.contains(value,",")){
-				latitude.add( StringUtils.split(value,",")[0]);
-				longitude.add( StringUtils.split(value,",")[1]);
-			}
-		}
-		
-	}else if(StringUtils.isNotBlank(latitudeField) && StringUtils.isNotBlank(longitudeField)){
-		latitude = 	obj.getMetadataValue(latitudeField);
-		longitude =	obj.getMetadataValue(latitudeField);
-	}
-	
-	if(latitude.isEmpty() || longitude.isEmpty() || latitude.size()!=longitude.size()){
-		continue;
-	}
-	
-	for(int x=0; x<latitude.size();x++){
-		String location =latitude.get(x) + ","+ longitude.get(x);
-		%>
-		<dspace:map-artifact style="global" artifact="<%= obj %>" view="<%= mapConf %>" location="<%= location %>" />
-	<%}
-}
 %>
+<dspace:map-artifact style="global" artifact="<%= locations.getRecentSubmissions() %>" view="<%= mapConf %>" />
+
+var markers = locations.map(function(location, i) {
+    var marker = new google.maps.Marker({
+      position: location,
+      label: labels[i % labels.length]
+    });
+    var infowindow = new google.maps.InfoWindow({ 
+    	content:contents[i % contents.length]
+    });
+    marker.addListener('mouseover',function(){	infowindow.open(map,marker);});
+    return marker;
+  });
+
+  // Add a marker clusterer to manage the markers.
+  var markerCluster = new MarkerClusterer(map, markers,
+      {imagePath: '<%= request.getContextPath()%>/image/m'});
 -->
 </script>
 	

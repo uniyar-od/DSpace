@@ -79,15 +79,15 @@
 					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
 					<property name="mandatory" value="true" />
 					<property name="preHtml" value="&lt;b&gt;" />
-					<property name="postHtml" value="&lt;/b&gt;" />
+					<property name="postHtml" value="&lt;/b&gt;&lt;br /&gt;" />
 					<property name="field" value="drisname" />
 					<property name="decorator" value="cristitle" />
 				</bean>
 				<bean
 					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
 					<property name="mandatory" value="true" />
-					<property name="preHtml" value=" - &lt;i&gt;" />
-					<property name="postHtml" value="&lt;/i&gt;" />
+					<property name="preHtml" value="&lt;i&gt;" />
+					<property name="postHtml" value="&lt;/i&gt;&lt;br /&gt;" />
 					<property name="field" value="drisacronym" />
 				</bean>
 			</list>
@@ -96,7 +96,6 @@
 			<list>
 				<bean
 					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
-					<property name="preHtml" value="&lt;hr /&gt;" />
 					<property name="field" value="drisdescription" />
 					<property name="postHtml" value="&lt;hr /&gt;" />
 				</bean>
@@ -115,11 +114,6 @@
 					<property name="field" value="drisprovierOrgUnit" />
 					<property name="postHtml" value="&lt;hr /&gt;" />
 					<property name="decorator" value="cristitle" />
-				</bean>
-				<bean
-					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
-					<property name="field" value="drisproviderOrgUnit" />
-					<property name="postHtml" value="&lt;hr /&gt;" />
 				</bean>
 				<bean
 					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
