@@ -56,7 +56,7 @@ DiscoveryMapConfiguration mapConf = (DiscoveryMapConfiguration) locations.getCon
 var markers = locations.map(function(location, i) {
     var marker = new google.maps.Marker({
       position: location,
-      label: labels[i % labels.length]
+      title: labels[i % labels.length]
     });
     var infowindow = new google.maps.InfoWindow({ 
     	content:contents[i % contents.length]
