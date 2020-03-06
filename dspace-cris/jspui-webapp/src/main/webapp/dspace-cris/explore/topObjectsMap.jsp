@@ -46,78 +46,39 @@ if (locations != null && locations.count() > 0)
       mapTypeId: google.maps.MapTypeId.ROADMAP
     };
 	var map = new google.maps.Map(document.getElementById("mapExplore"),myOptions);
-
+	
 <%
-	DiscoveryMapConfiguration mapConf = (DiscoveryMapConfiguration) locations.getConfiguration();
-	List<DiscoveryViewFieldConfiguration> headings = locations.getConfiguration().getMetadataHeadingFields();
-	List<DiscoveryViewFieldConfiguration> descriptions = locations.getConfiguration().getMetadataDescriptionFields();
-	if( headings != null ){
-		for (IGlobalSearchResult obj : locations.getRecentSubmissions()) {
-			String heading = "";
-			List<String> values =new ArrayList<String>();
-			for(DiscoveryViewFieldConfiguration dvfc: headings){
-				String field = dvfc.getField();
-				values = obj.getMetadataValue(field);
-				for(String val :values){
-					heading +=val + dvfc.getSeparator();
-				}
+DiscoveryMapConfiguration mapConf = (DiscoveryMapConfiguration) locations.getConfiguration();
+for (IGlobalSearchResult obj : locations.getRecentSubmissions()) {
+	String latLongField = mapConf.getLatitudelongitude();
+	String latitudeField = mapConf.getLatitude();
+	String longitudeField = mapConf.getLongitude();
+	List<String> latitude = new ArrayList<>();
+	List<String> longitude= new ArrayList<>();
+	if(StringUtils.isNotBlank(latLongField)){
+		for(String value : obj.getMetadataValue(latLongField)){
+			if(StringUtils.isNotBlank(value) && StringUtils.contains(value,",")){
+				latitude.add( StringUtils.split(value,",")[0]);
+				longitude.add( StringUtils.split(value,",")[1]);
 			}
-			String description = "";
-			for(DiscoveryViewFieldConfiguration dvfc: descriptions){
-				String field = dvfc.getField();
-				values = obj.getMetadataValue(field);
-				for(String val :values){
-					description +=val + dvfc.getSeparator();
-				}
-			}
-			String latLongField = mapConf.getLatitudelongitude();
-			String latitudeField = mapConf.getLatitude();
-			String longitudeField = mapConf.getLongitude();
-			List<String> latitude = new ArrayList<>();
-			List<String> longitude= new ArrayList<>();
-			if(StringUtils.isNotBlank(latLongField)){
-				for(String value : obj.getMetadataValue(latLongField)){
-					if(StringUtils.isNotBlank(value) && StringUtils.contains(value,",")){
-						latitude.add( StringUtils.split(value,",")[0]);
-						longitude.add( StringUtils.split(value,",")[1]);
-					}
-				}
-				
-			}else if(StringUtils.isNotBlank(latitudeField) && StringUtils.isNotBlank(longitudeField)){
-				latitude = 	obj.getMetadataValue(latitudeField);
-				longitude =	obj.getMetadataValue(latitudeField);
-			}
-			
-			if(latitude.isEmpty() || longitude.isEmpty() || latitude.size()!=longitude.size()){
-				continue;
-			}
-			
-			for(int x=0; x<latitude.size();x++){
-				
-%>
-			var infowindow = new google.maps.InfoWindow({
-    							content: <%= StringUtils.replace(description,"\'","\\\'") %>,
-    							maxWidth: 200
-  								});
-			var myLatlng = new google.maps.LatLng(<%=latitude.get(x) %>,<%=longitude.get(x) %>);
-			var marker = new google.maps.Marker({
-			      position: myLatlng, 
-			      map: map, 
-			      title:'<%= StringUtils.replace(heading,"\'","\\\'") %>'
-			  });
-			// To add the marker to the map, call setMap();
-			marker.setMap(map);
-			marker.addListener('mouseover',funcrion(){
-				infowindow.open(map,marker);
-			});
-
-<%
-			}	
 		}
- 	}
-
+		
+	}else if(StringUtils.isNotBlank(latitudeField) && StringUtils.isNotBlank(longitudeField)){
+		latitude = 	obj.getMetadataValue(latitudeField);
+		longitude =	obj.getMetadataValue(latitudeField);
+	}
+	
+	if(latitude.isEmpty() || longitude.isEmpty() || latitude.size()!=longitude.size()){
+		continue;
+	}
+	
+	for(int x=0; x<latitude.size();x++){
+		String location =latitude.get(x) + ","+ longitude.get(x);
+		%>
+		<dspace:map-artifact style="global" artifact="<%= obj %>" view="<%= mapConf %>" location="<%= location %>" />
+	<%}
+}
 %>
-
 -->
 </script>
 	
