@@ -45,7 +45,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
 
     private Map<String, ItemMetadataImportFillerConfiguration> configurations;
 
-    private ApplicationService applicationService;
+    protected ApplicationService applicationService;
 
     private MetricsPersistenceService metricsPersistenceService;
 

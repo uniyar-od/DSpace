@@ -23,6 +23,7 @@ import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.MetadataValueVolatile;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
@@ -135,8 +136,11 @@ public class CrisItemEnhancerUtility {
 									: dc.getAuthority().startsWith(newInstance.getAuthorityPrefix()))) {
 						if (mam.getMinConfidence(dc.getMetadataField()) <= dc.getConfidence()) {
 							validAuthorities.add(dc.getAuthority());
+							continue;
 						}
 					}
+					// force the placeholder to assure at least one value for linked cris object
+					validAuthorities.add(MetadataValue.PARENT_PLACEHOLDER_VALUE);
 				} catch (InstantiationException e) {
 					log.error(e.getMessage(), e);
 				} catch (IllegalAccessException e) {
@@ -155,12 +159,21 @@ public class CrisItemEnhancerUtility {
 			ApplicationService as = dspace.getServiceManager().getServiceByName("applicationService",
 					ApplicationService.class);
 			for (String authKey : validAuthorities) {
-
-				result.addAll(
-						getPathAsMetadata(as,
-								as.get(enh.getClazz(),
-										ResearcherPageUtils.getRealPersistentIdentifier(authKey, enh.getClazz())),
-						path));
+				if (MetadataValue.PARENT_PLACEHOLDER_VALUE.equals(authKey)) {
+					result.add(new String[] {MetadataValue.PARENT_PLACEHOLDER_VALUE, null});
+				}
+				else {
+				    try {
+					result.addAll(
+							getPathAsMetadata(as,
+									as.get(enh.getClazz(),
+											ResearcherPageUtils.getRealPersistentIdentifier(authKey, enh.getClazz())),
+							path));
+				    }
+				    catch(Exception ex) {
+				        log.error(ex.getMessage());
+				    }
+				}
 			}
 
 		}
@@ -185,15 +198,23 @@ public class CrisItemEnhancerUtility {
 				}
 
 			}
-			for (P prop : props) {
-				if (prop.getObject() instanceof ACrisObject) {
-					ACrisObject val = (ACrisObject) prop.getObject();
-					result.add(new String[] { val.getName(), ResearcherPageUtils.getPersistentIdentifier(val) });
-				} else {
-					PropertyEditor editor = prop.getTypo().getRendering().getPropertyEditor(as);
-					editor.setValue(prop.getObject());
-
-					result.add(new String[] { editor.getAsText(), aCrisObject.getCrisID() });
+			else {
+				if (props.size() > 0) {
+					for (P prop : props) {
+						if (prop.getObject() instanceof ACrisObject) {
+							ACrisObject val = (ACrisObject) prop.getObject();
+							result.add(new String[] { val.getName(), ResearcherPageUtils.getPersistentIdentifier(val) });
+						} else {
+							PropertyEditor editor = prop.getTypo().getRendering().getPropertyEditor(as);
+							editor.setValue(prop.getObject());
+		
+							result.add(new String[] { editor.getAsText(), null });
+						}
+					}
+				}
+				else {
+					// force the placeholder to assure at least one value for linked cris object
+					result.add(new String[] { MetadataValue.PARENT_PLACEHOLDER_VALUE, null });
 				}
 			}
 		}

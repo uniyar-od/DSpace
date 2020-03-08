@@ -7,14 +7,14 @@
  */
 package org.dspace.xoai.filter;
 
-import com.lyncode.xoai.dataprovider.data.Filter;
-import com.lyncode.xoai.dataprovider.data.ItemIdentifier;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterMap;
-
 import org.dspace.core.Context;
 import org.dspace.xoai.data.DSpaceItem;
 import org.dspace.xoai.filter.results.SolrFilterResult;
 import org.dspace.xoai.services.api.FieldResolver;
+
+import com.lyncode.xoai.dataprovider.data.Filter;
+import com.lyncode.xoai.dataprovider.data.ItemIdentifier;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterMap;
 
 /**
  * 

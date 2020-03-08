@@ -164,8 +164,18 @@ public abstract class ACrisObject<P extends Property<TP>, TP extends PropertiesD
 		return result;
 	}
 
-	@Override
-	public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+    @Override
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang) {
+        return internalGetMetadata(schema, element, qualifier, false, false);
+    }
+
+    public List<IMetadataValue> getMetadata(String schema, String element, String qualifier, String lang, boolean onlyPub) {
+        return internalGetMetadata(schema, element, qualifier, false, onlyPub);
+    }
+    
+    private List<IMetadataValue> internalGetMetadata(String schema, String element,
+            String qualifier, boolean singleValue, boolean onlyPub)
+    {	
 		Map<Integer, Object> mapResultsVal = new HashMap<Integer, Object>();
 		Map<Integer, String> mapResultsAuth = new HashMap<Integer, String>();
 	    String authority = null;

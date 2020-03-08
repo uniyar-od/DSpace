@@ -10,8 +10,10 @@ package org.dspace.content.integration.crosswalks;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.core.ConfigurationManager;
 
 /**
  * Implements virtual field processing for split pagenumber range information.
@@ -33,9 +35,20 @@ public class VirtualFieldPageNumber implements VirtualFieldDisseminator, Virtual
 		if (qualifier.equals("bibtex")) {
 			separator = "--";
 		}
-		// Get the citation from the item
-		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat("dc.relation.firstpage");
-		List<IMetadataValue> dcvs2 = item.getMetadataValueInDCFormat("dc.relation.lastpage");
+
+		// Get metadata 
+		String firstpage = (StringUtils.isNotEmpty(
+				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.firstpage.metadata"))) ?
+				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.firstpage.metadata") :
+				"dc.relation.firstpage";
+		String lastpage = (StringUtils.isNotEmpty(
+				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.lastpage.metadata"))) ?
+				ConfigurationManager.getProperty("crosswalk.virtualfieldpage.lastpage.metadata") :
+				"dc.relation.lastpage";		
+
+		// Get pages from the item
+		List<IMetadataValue> dcvs = item.getMetadataValueInDCFormat(firstpage);
+		List<IMetadataValue> dcvs2 = item.getMetadataValueInDCFormat(lastpage);
 
 		if ((dcvs != null && dcvs.size() > 0) && (dcvs2 != null && dcvs2.size() > 0)) {
 			String value = dcvs.get(0).getValue() + separator + dcvs2.get(0).getValue();

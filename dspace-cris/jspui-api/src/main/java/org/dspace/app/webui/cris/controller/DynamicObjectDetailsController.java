@@ -59,7 +59,7 @@ import it.cilea.osd.jdyna.web.controller.SimpleDynaController;
  */
 public class DynamicObjectDetailsController
         extends
-        SimpleDynaController<DynamicProperty, DynamicPropertiesDefinition, BoxDynamicObject, TabDynamicObject>
+        SimpleDynaController<ResearchObject, DynamicProperty, DynamicPropertiesDefinition, BoxDynamicObject, TabDynamicObject>
 {
     private CrisSubscribeService subscribeService;
     
@@ -84,15 +84,15 @@ public class DynamicObjectDetailsController
         Map<String, Object> model = new HashMap<String, Object>();
         
         setSpecificPartPath(Utils.getSpecificPath(request, null));
-        ResearchObject dyn = extractDynamicObject(request);
 
-        if (dyn == null)
-        {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND,
-                    getSpecificPartPath() + " page not found");
+        ResearchObject dyn = null;
+        try {
+            dyn = extractObject(request, response);
+        }
+        catch(Exception ex) {
             return null;
         }
-
+        
         Context context = UIUtil.obtainContext(request);
         
         EPerson currUser = context.getCurrentUser();
@@ -140,7 +140,7 @@ public class DynamicObjectDetailsController
         }
         catch (Exception e)
         {
-            throw new RuntimeException(e);
+            return null;
         }
         
         
@@ -162,13 +162,16 @@ public class DynamicObjectDetailsController
                 processor.process(context, request, response, dyn);
                 Map<String, Object> extra = (Map<String, Object>)request.getAttribute("extra");
                 if(extra!=null && !extra.isEmpty()) {
-                    Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)extra.get("metrics");
-                    List<String> metricTypes = (List<String>)extra.get("metricTypes");
-                    if(metrics!=null && !metrics.isEmpty()) {
-                        metricsTotal.putAll(metrics);
-                    }
-                    if(metricTypes!=null && !metricTypes.isEmpty()) {
-                        metricsTypeTotal.addAll(metricTypes);
+                    Object metricsObject = extra.get("metrics");
+                    if(metricsObject!=null) {
+                        Map<String, ItemMetricsDTO> metrics = (Map<String, ItemMetricsDTO>)metricsObject;
+                        List<String> metricTypes = (List<String>)extra.get("metricTypes");
+                        if(metrics!=null && !metrics.isEmpty()) {
+                            metricsTotal.putAll(metrics);
+                        }
+                        if(metricTypes!=null && !metricTypes.isEmpty()) {
+                            metricsTypeTotal.addAll(metricTypes);
+                        }
                     }
                 }
             }
@@ -188,7 +191,10 @@ public class DynamicObjectDetailsController
                         dyn));
         
         mvc.getModel().putAll(model);
+        mvc.getModel().put("isAdmin", isAdmin);
         mvc.getModel().put("entity", dyn);
+        request.setAttribute("components", super.getComponents());
+        request.setAttribute("entity", dyn);
         return mvc;
     }
 
@@ -198,14 +204,14 @@ public class DynamicObjectDetailsController
             HttpServletResponse response) throws SQLException, Exception
     {
        
-        Integer entityId = extractEntityId(request);
+        Integer entityId = extractEntityId(request, response);
         
         if(entityId==null) {
             return null;
         }
         Context context = UIUtil.obtainContext(request);
 
-        List<TabDynamicObject> tabs = applicationService.findTabByType(tabClass, extractDynamicObject(request).getTypo());
+        List<TabDynamicObject> tabs = applicationService.findTabByType(tabClass, extractObject(request, response).getTypo());
         List<TabDynamicObject> authorizedTabs = new LinkedList<TabDynamicObject>();
         
         for(TabDynamicObject tab : tabs) {
@@ -257,21 +263,22 @@ public class DynamicObjectDetailsController
     }
 
     @Override
-    protected void sendRedirect(HttpServletRequest request,
+    protected void showAuthorizeError(HttpServletRequest request,
             HttpServletResponse response, Exception ex, String objectId)
             throws IOException, ServletException
     {
-        JSPManager.showAuthorizeError(request, response, new AuthorizeException(ex.getMessage()));
-        //response.sendRedirect("/cris/dyn/details?id=" + objectId);
+        JSPManager.showAuthorizeError(request, response,
+                new AuthorizeException(ex.getMessage()));
     }
 
+
     @Override
-    protected Integer getAnagraficaId(HttpServletRequest request)
+    protected Integer getAnagraficaId(HttpServletRequest request, HttpServletResponse response) throws Exception
     {
         ResearchObject dyn = null;
         try
         {
-            dyn = extractDynamicObject(request);
+            dyn = extractObject(request, response);
         }
         catch (NumberFormatException e)
         {
@@ -280,15 +287,6 @@ public class DynamicObjectDetailsController
         return dyn.getDynamicField().getId();
     }
 
-    private ResearchObject extractDynamicObject(HttpServletRequest request)
-    {
-
-        Integer id = extractEntityId(request);
-        return ((ApplicationService) applicationService).get(ResearchObject.class,
-                id);
-
-    }
-    
     protected Integer getRealPersistentIdentifier(String persistentIdentifier)
     {
         return ResearcherPageUtils.getRealPersistentIdentifier(persistentIdentifier, ResearchObject.class);
@@ -304,8 +302,8 @@ public class DynamicObjectDetailsController
 	}
     
     @Override
-    protected boolean authorize(HttpServletRequest request, BoxDynamicObject box) throws SQLException
+    protected boolean authorize(HttpServletRequest request, HttpServletResponse response, BoxDynamicObject box) throws Exception
     {
-        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearchObject.class, DynamicPropertiesDefinition.class, extractEntityId(request), box);
+        return CrisAuthorizeManager.authorize(UIUtil.obtainContext(request), getApplicationService(), ResearchObject.class, DynamicPropertiesDefinition.class, extractEntityId(request, response), box);
     }
 }

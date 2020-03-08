@@ -58,7 +58,7 @@ public class DSpaceItemSolrRepository extends DSpaceItemRepository
         {
             try
             {
-                SolrQuery params = new SolrQuery("item.handle:" + parts[2]);
+                SolrQuery params = new SolrQuery("item.identifier:" + parts[2]);
                 return new DSpaceSolrItem(DSpaceSolrSearch.querySingle(server, params));
             }
             catch (SolrSearchEmptyException ex)

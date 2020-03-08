@@ -7,10 +7,6 @@
  */
 package org.dspace.app.cris.model;
 
-import it.cilea.osd.common.core.TimeStampInfo;
-import it.cilea.osd.jdyna.model.AType;
-
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,11 +30,12 @@ import org.dspace.app.cris.model.jdyna.DynamicObjectType;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
-import org.dspace.app.cris.model.jdyna.OUAdditionalFieldStorage;
-import org.dspace.app.cris.model.jdyna.ProjectAdditionalFieldStorage;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.core.Context;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.eperson.EPerson;
+
+import it.cilea.osd.common.core.TimeStampInfo;
+import it.cilea.osd.jdyna.model.AType;
 
 
 @Entity
@@ -310,13 +307,25 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     @Override
     public boolean isOwner(EPerson eperson)
     {
-        // TODO not implemented
-        return false;
+		String ownerProperty = ConfigurationManager.getProperty("cris",
+				getTypeText() + ".owner");
+		if (ownerProperty != null) {
+			for (String propConf : ownerProperty.split("\\s*,\\s*")) {
+	    		List<DynamicProperty> props = getAnagrafica4view().get(propConf);
+	    		for (DynamicProperty p : props) {
+	    			ResearcherPage rp = (ResearcherPage) p.getObject();
+	    			if (eperson != null && rp.getEpersonID()!= null && eperson.getID() == rp.getEpersonID()) {
+	    				return true;
+	    			}
+	    		}
+			}
+    	}
+    	return false;
     }
 
     
     public String getMetadataFieldName(Locale locale) {
-        return getAuthorityPrefix()+ getMetadataFieldTitle() + locale.getLanguage();
+        return getAuthorityPrefix()+ getMetadataFieldTitle() + locale==null?"":locale.getLanguage();
     }
 
 	@Override

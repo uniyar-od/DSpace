@@ -46,6 +46,7 @@
                     <excludes>
                         <exclude>src/main/webapp/**</exclude>
                         <exclude>**/*.xsl</exclude>
+                        <exclude>**/rebel.xml</exclude>
                     </excludes>
                 </configuration>
             </plugin>
@@ -171,6 +172,11 @@
         <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>dspace-api</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.dspace</groupId>
+            <artifactId>dspace-cris-api</artifactId>
         </dependency>
 
         <!-- Solr (Datasource) -->

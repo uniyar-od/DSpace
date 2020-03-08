@@ -37,16 +37,16 @@
 		<org.hibernate.annotations.version>4.0.2.Final</org.hibernate.annotations.version>
 		<org.hibernate.jpa.version>1.0.1.Final</org.hibernate.jpa.version>
 		
-		<org.jdyna.version>5.9-SNAPSHOT</org.jdyna.version>		
-		<it.cilea.ccommons.version>2.4-SNAPSHOT</it.cilea.ccommons.version>
+		<org.jdyna.version>5.16</org.jdyna.version>
+		<it.cilea.ccommons.version>2.5</it.cilea.ccommons.version>
 		
-		<ckan.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ckan.addon.modules>
-		<iiif.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</iiif.addon.modules>
-		<commons.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</commons.addon.modules>
-		<annoiiif.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</annoiiif.addon.modules>
-		<ocr.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</ocr.addon.modules>
-		<docviewer.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</docviewer.addon.modules>		
-		<av.addon.modules>[6.0-SNAPSHOT,7.0-SNAPSHOT)</av.addon.modules>
+		<ckan.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</ckan.addon.modules>
+		<iiif.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</iiif.addon.modules>
+		<commons.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</commons.addon.modules>
+		<annoiiif.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</annoiiif.addon.modules>
+		<ocr.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</ocr.addon.modules>
+		<docviewer.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</docviewer.addon.modules>
+		<av.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</av.addon.modules>
 		
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>${project.build.sourceEncoding}</project.reporting.outputEncoding>
@@ -821,6 +821,12 @@
 						 <version>${ckan.addon.modules}</version>
 						 <type>jar</type>
 			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-ckan-jspui</artifactId>
+						 <version>${ckan.addon.modules}</version>
+						 <type>war</type>
+			        </dependency>
 		        </dependencies>		                    
             </dependencyManagement>
         </profile>
@@ -883,6 +889,12 @@
 						 <artifactId>addon-docviewer-api</artifactId>
 						 <version>${docviewer.addon.modules}</version>
 						 <type>jar</type>
+			        </dependency>
+			        <dependency>
+			             <groupId>it.4science.dspace</groupId>
+						 <artifactId>addon-docviewer-jspui</artifactId>
+						 <version>${docviewer.addon.modules}</version>
+						 <type>war</type>
 			        </dependency>
 			        <dependency>
 			             <groupId>it.4science.dspace</groupId>
@@ -966,6 +978,10 @@
 				<exclusion>
 					<groupId>it.4science.dspace</groupId>
 					<artifactId>addon-docviewer-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-docviewer-jspui</artifactId>
 				</exclusion>
 				<exclusion>
 					<groupId>it.4science.dspace</groupId>
@@ -1826,12 +1842,18 @@
       <connection>scm:git:https://github.com/4Science/DSpace.git</connection>
       <developerConnection>scm:git:https://github.com/4Science/DSpace.git</developerConnection>
       <url>https://github.com/4Science/DSpace.git</url>
-      <tag>dspace-cris-master</tag>
+      <tag>dspace-6_x_x-cris</tag>
    </scm>
 
    <repositories>
        <repository>
-			<id>4science-repo</id>
+			<id>4science-repo-nexus</id>
+			<name>4Science Maven Repository</name>
+			<url>https://nexus.4science.it/repository/maven-public/</url>
+		</repository>
+
+       <repository>
+			<id>4science-repo-github</id>
 			<name>4Science Maven Repository</name>
 			<url>https://github.com/4Science/mvn-repo/raw/master/releases</url>
 			<releases>
@@ -1845,7 +1867,7 @@
 		</repository>
 		
 		<repository>
-			<id>4science-repo-snapshot</id>
+			<id>4science-repo-github-snapshot</id>
 			<name>4Science Maven Repository</name>
 			<url>https://github.com/4Science/mvn-repo/raw/master/snapshots</url>
 			<releases>
@@ -1857,64 +1879,44 @@
 				<checksumPolicy>never</checksumPolicy>
 			</snapshots>
 		</repository>
-		
+				
 		<repository>
 	         <id>sonatype-releases</id>
 	         <name>Sonatype Releases Repository</name>
-	         <url>http://oss.sonatype.org/content/repositories/releases/</url>
+	         <url>https://oss.sonatype.org/content/repositories/releases/</url>
 	    </repository>
-   
    </repositories>
    
    <pluginRepositories>
         <pluginRepository>
-            <id>4science-repo</id>
+			<id>4science-repo</id>
 			<name>4Science Maven Repository</name>
-			<url>https://github.com/4Science/mvn-repo/raw/master/releases</url>
-			<releases>
-				<enabled>true</enabled>
-				<checksumPolicy>never</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>false</enabled>
-				<checksumPolicy>never</checksumPolicy>
-			</snapshots>
-        </pluginRepository>
-        
-        <pluginRepository>
-            <id>4science-repo-snapshot</id>
-			<name>4Science Maven Repository</name>
-			<url>https://github.com/4Science/mvn-repo/raw/master/snapshots</url>
-			<releases>
-				<enabled>false</enabled>
-				<checksumPolicy>never</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<checksumPolicy>never</checksumPolicy>
-			</snapshots>
+			<url>https://nexus.4science.it/repository/maven-public/</url>
         </pluginRepository>
         
         <pluginRepository>
             <id>sonatype-releases</id>
 	         <name>Sonatype Releases Repository</name>
-	         <url>http://oss.sonatype.org/content/repositories/releases/</url>
+	         <url>https://oss.sonatype.org/content/repositories/releases/</url>
         </pluginRepository>
     </pluginRepositories>
     
     <!--
-      Information about the SCM repository where source code exists.
+        Distribution Management is currently used by the Continuum
+        server to update snapshots it generates. This will also be used
+        on release to deploy release versions to the repository by the
+        release manager.
     -->
    	<distributionManagement>
-    	<repository>
-        	<id>repo</id>
-        	<name>4Science Maven Repository</name>
-        	<url>https://github.com/4Science/mvn-repo/raw/master/releases</url>
-    	</repository>
+		<repository>
+			<id>4science-nexus</id>
+			<name>4Science Public Releases</name>
+			<url>https://nexus.4science.it/repository/maven-releases/</url>
+		</repository>
     	<snapshotRepository>
-        	<id>snapshot-repo</id>
-        	<name>4Science Maven Repository</name>
-        	<url>https://github.com/4Science/mvn-repo/raw/master/snapshots</url>
+        	<id>4science-snapshot</id>
+        	<name>4Science Public Snapshot</name>
+        	<url>https://nexus.4science.it/repository/maven-snapshots/</url>
     	</snapshotRepository>
     	<site>
             <id>website</id>

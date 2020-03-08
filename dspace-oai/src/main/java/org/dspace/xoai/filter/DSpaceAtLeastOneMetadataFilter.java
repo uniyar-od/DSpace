@@ -11,6 +11,12 @@ package org.dspace.xoai.filter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Function;
+import com.lyncode.builder.ListBuilder;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterList;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterValue;
+import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.SimpleType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -18,12 +24,6 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.xoai.data.DSpaceItem;
 import org.dspace.xoai.filter.data.DSpaceMetadataFilterOperator;
 import org.dspace.xoai.filter.results.SolrFilterResult;
-
-import com.google.common.base.Function;
-import com.lyncode.builder.ListBuilder;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterList;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.ParameterValue;
-import com.lyncode.xoai.dataprovider.xml.xoaiconfig.parameters.SimpleType;
 
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
@@ -34,21 +34,28 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
     private String field;
     private DSpaceMetadataFilterOperator operator = DSpaceMetadataFilterOperator.UNDEF;
     private List<String> values;
-
+    
     private String getField() {
         if (field == null) {
             field = getConfiguration().get("field").asSimpleType().asString();
         }
         return field;
     }
-
+    
+    public String getSchema() {
+        if(getConfiguration()!=null && getConfiguration().get("schema")!=null) {
+            return getConfiguration().get("schema").asSimpleType().asString();
+        }
+    	return "metadata";
+    }
+    
     private List<String> getValues() {
         if (values == null) {
             ParameterValue parameterValue = getConfiguration().get("value");
             if (parameterValue == null) parameterValue = getConfiguration().get("values");
 
             if (parameterValue instanceof SimpleType) {
-                values = new ArrayList<>();
+                values = new ArrayList<String>();
                 values.add(((SimpleType) parameterValue).asString());
             } else if (parameterValue instanceof ParameterList) {
                 values = new ListBuilder<ParameterValue>()
@@ -59,7 +66,7 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
                                 return elem.asSimpleType().asString();
                             }
                         });
-            } else values = new ArrayList<>();
+            } else values = new ArrayList<String>();
         }
         return values;
     }
@@ -121,10 +128,13 @@ public class DSpaceAtLeastOneMetadataFilter extends DSpaceFilter {
     @Override
     public SolrFilterResult buildSolrQuery() {
         String field = this.getField();
-        List<String> parts = new ArrayList<>();
+        List<String> parts = new ArrayList<String>();
         if (this.getField() != null) {
+        	String d = "";
+        	if (getSchema() != null && getSchema().length() > 0)
+				d = getSchema() + ".";
             for (String v : this.getValues())
-                this.buildQuery("metadata." + field,
+                this.buildQuery(d + field,
                         ClientUtils.escapeQueryChars(v), parts);
             if (parts.size() > 0) {
                 return new SolrFilterResult(StringUtils.join(parts.iterator(),

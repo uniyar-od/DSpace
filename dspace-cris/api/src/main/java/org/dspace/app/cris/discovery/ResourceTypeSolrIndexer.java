@@ -19,7 +19,9 @@ import org.dspace.app.cris.model.ACrisObjectWithTypeSupport;
 import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.jdyna.ACrisNestedObject;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceImpl;
 import org.dspace.discovery.SolrServiceIndexPlugin;
@@ -79,10 +81,18 @@ public class ResourceTypeSolrIndexer implements CrisServiceIndexPlugin,
 	@Override
 	public void additionalIndex(Context context, DSpaceObject dso,
 			SolrInputDocument document, Map<String, List<DiscoverySearchFilter>> searchFilters) {
-
+	    //in certain condition the object passed on getTypeText is obfuscated by Hibernate Proxy and wrapper result to be false 
+	    String type = "";
+	    if(dso.getType() == Constants.ITEM) {
+	        Item item = (Item)dso; //the cast should be safe to obtain the wrapper enabled
+	        type = item.getTypeText();
+	    }
+	    else {
+	        type = dso.getTypeText();
+	    }
 		String acvalue = ConfigurationManager.getProperty(
 				CrisConstants.CFG_MODULE, "facet.type."
-						+ StringUtils.deleteWhitespace(dso.getTypeText().toLowerCase()));
+						+ StringUtils.deleteWhitespace(type.toLowerCase()));
 		String fvalue = acvalue;
 		addResourceTypeIndex(document, acvalue, fvalue);
 
