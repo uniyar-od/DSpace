@@ -110,7 +110,7 @@ public class GlobalFacetProcessor implements SiteHomeProcessor
             if (scope !=null)
             {
                 request.setAttribute("discovery.searchScope",
-                        "/handle/" + scope.getHandle());
+                       scope.getHandle());
             }
         }
         catch (SearchServiceException e)
