@@ -84,9 +84,7 @@ public class TopObjectsProcessor implements ExploreProcessor {
 		if(dsos.isEmpty()) {
 		    return null;
 		}
-		List<BrowsableDSpaceObject> dsoArray = new ArrayList<>();
-		
-		RecentSubmissions rs = new RecentSubmissions(dsoArray);
+		RecentSubmissions rs = new RecentSubmissions(dsos);
 		rs.setConfiguration(viewConfiguration);
 
 		Map<String, Object> model = new HashMap<String, Object>();
