@@ -660,8 +660,8 @@ public class XOAI {
     private Date getMostRecentModificationDate(Item item) throws SQLException {
         List<Date> dates = new LinkedList<Date>();
         List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, item, Constants.READ);
-        for (ResourcePolicy policy : policies) {
-            if (policy.getGroup().getName().equals("Anonymous")) {
+        for (ResourcePolicy policy : policies) {        	
+        	if ((policy.getGroup()!=null) && (policy.getGroup().getName().equals("Anonymous"))) {
                 if (policy.getStartDate() != null) {
                     dates.add(policy.getStartDate());
                 }
@@ -669,6 +669,7 @@ public class XOAI {
                     dates.add(policy.getEndDate());
                 }
             }
+        	context.uncacheEntity(policy);
         }
         dates.add(item.getLastModified());
         Collections.sort(dates);
@@ -686,7 +687,7 @@ public class XOAI {
 
         List<ResourcePolicy> policies = authorizeService.getPoliciesActionFilter(context, item, Constants.READ);
         for (ResourcePolicy policy : policies) {
-            if (policy.getGroup().getName().equals("Anonymous")) {
+        	if ((policy.getGroup()!=null) && (policy.getGroup().getName().equals("Anonymous"))) {
                 
                 if (policy.getStartDate() != null && policy.getStartDate().after(new Date())) {
                     
@@ -697,6 +698,7 @@ public class XOAI {
                     return true;
                 }
             }
+        	context.uncacheEntity(policy);
         }
         
         return false;
