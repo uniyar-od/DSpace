@@ -820,7 +820,7 @@ public class XOAI {
                 String command = line.getArgs()[0];
 
                 if (COMMAND_IMPORT.equals(command)) {
-                    ctx = new Context(Context.Mode.READ_ONLY);
+                    ctx = new Context(Context.Mode.BATCH_READ);
                     XOAI indexer = new XOAI(ctx, 
                             line.hasOption('o'), 
                             line.hasOption('c'), 

@@ -117,7 +117,8 @@ public class Context
     public enum Mode {
         READ_ONLY,
         READ_WRITE,
-        BATCH_EDIT
+        BATCH_EDIT,
+        BATCH_READ
     }
 
     static
@@ -736,6 +737,9 @@ public class Context
         try {
             //update the database settings
             switch (newMode) {
+            	case BATCH_READ:
+            		dbConnection.setConnectionMode(true, true);
+            	    break;            
                 case BATCH_EDIT:
                     dbConnection.setConnectionMode(true, false);
                     break;

@@ -463,42 +463,44 @@ public class ItemUtils
         metadata.getElement().add(repository);
 
         // Licensing info
-        Element license = create("license");
-        List<Bundle> licBundles;
-        try
-        {
-            licBundles = itemService.getBundles(item, Constants.LICENSE_BUNDLE_NAME);
-            if (!licBundles.isEmpty())
-            {
-                Bundle licBundle = licBundles.get(0);
-                List<Bitstream> licBits = licBundle.getBitstreams();
-                if (!licBits.isEmpty())
-                {
-                    Bitstream licBit = licBits.get(0);
-                    InputStream in;
-                    try
-                    {
-                        in = bitstreamService.retrieve(context, licBit);
-                        ByteArrayOutputStream out = new ByteArrayOutputStream();
-                        Utils.bufferedCopy(in, out);
-                        license.getField().add(
-                                createValue("bin",
-                                        Base64Utils.encode(out.toString())));
-                        metadata.getElement().add(license);
-                    }
-                    catch (AuthorizeException | IOException | SQLException e)
-                    {
-                        log.warn(e.getMessage(), e);
-                    }
-
-                }
-            }
-        }
-        catch (SQLException e1)
-        {
-            log.warn(e1.getMessage(), e1);
-        }
-        
+        boolean exposeLicense = ConfigurationManager.getBooleanProperty("oai", "license.expose", true);
+        if(exposeLicense) {
+	        Element license = create("license");
+	        List<Bundle> licBundles;
+	        try
+	        {
+	            licBundles = itemService.getBundles(item, Constants.LICENSE_BUNDLE_NAME);
+	            if (!licBundles.isEmpty())
+	            {
+	                Bundle licBundle = licBundles.get(0);
+	                List<Bitstream> licBits = licBundle.getBitstreams();
+	                if (!licBits.isEmpty())
+	                {
+	                    Bitstream licBit = licBits.get(0);
+	                    InputStream in;
+	                    try
+	                    {
+	                        in = bitstreamService.retrieve(context, licBit);
+	                        ByteArrayOutputStream out = new ByteArrayOutputStream();
+	                        Utils.bufferedCopy(in, out);
+	                        license.getField().add(
+	                                createValue("bin",
+	                                        Base64Utils.encode(out.toString())));
+	                        metadata.getElement().add(license);
+	                    }
+	                    catch (AuthorizeException | IOException | SQLException e)
+	                    {
+	                        log.warn(e.getMessage(), e);
+	                    }
+	
+	                }
+	            }
+	        }
+	        catch (SQLException e1)
+	        {
+	            log.warn(e1.getMessage(), e1);
+	        }
+        }        
         return metadata;
     }
     
