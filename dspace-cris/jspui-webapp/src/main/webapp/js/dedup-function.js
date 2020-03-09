@@ -124,9 +124,9 @@ function renderingDedupSummary(data, type, full) {
 		result = result + " vol. "+full.duplicateItem['dc.relation.volume'];
 	}
 	
-	if(full.duplicateItem['dc.contributor.author']!=null && full.duplicateItem['dc.contributor.author'] != null)
+	if(full.duplicateItem['dc.contributor.author']!=null && full.duplicateItem['dc.contributor.author'].length > 0)
 	{
-		var contrib = full.duplicateItem['dc.contributor.author'];
+		var contrib = "" + full.duplicateItem['dc.contributor.author'];
 		if (contrib.length > 100) {
 			contrib= contrib.substring(0, 100)+"<b>...</b>";
 		}
