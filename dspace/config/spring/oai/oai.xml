@@ -19,10 +19,10 @@
     <context:annotation-config /> <!-- allows us to use spring annotations in beans -->
 
 	<!-- Additional item.compile plugin to enrich field with information about orcid metadata: to use it activate ORCID based authority control on dspace.cfg-->
-<!--  	<bean id="orcidVirtualElementAdditional"
+	<bean id="orcidVirtualElementAdditional"
 		class="org.dspace.xoai.app.OrcidVirtualElementAdditional">
 		<property name="metadata" value="dc.contributor.author"/>
-	</bean> -->
+	</bean>
 	
 	<!-- Additional item.compile plugin to enrich field with information about DRM metadata -->
 	<bean id="PermissionElementAdditional"
