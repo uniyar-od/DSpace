@@ -62,4 +62,33 @@
 			</list>
 		</property>
 	</bean>
+<!-- 	
+	<bean id="mapSampleLayoutView"
+		class="org.dspace.discovery.configuration.DiscoveryMapConfiguration">
+		<property name="metadataHeadingFields">
+			<list>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="mandatory" value="true" />
+					<property name="preHtml" value="&lt;b&gt;" />
+					<property name="postHtml" value="&lt;/b&gt;&lt;br /&gt;" />
+					<property name="field" value="name" />
+					<property name="decorator" value="cristitle" />
+				</bean>
+			</list>
+		</property>
+		<property name="metadataDescriptionFields">
+			<list>
+				<bean
+					class="org.dspace.discovery.configuration.DiscoveryViewFieldConfiguration">
+					<property name="field" value="description" />
+					<property name="postHtml" value="&lt;hr /&gt;" />
+				</bean>
+			</list>
+		</property>
+		<property name="latitude" value="" />
+		<property name="longitude" value="" />
+		<property name="latitudelongitude" value="latitudelongitude" />
+	</bean>
+	 -->
 </beans>
