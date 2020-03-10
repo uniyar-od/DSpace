@@ -430,7 +430,7 @@ public class ItemTag extends TagSupport {
 
 			// if user already has uploaded at least one file
 			if (filesExist) {
-				out.print("<div class=\"panel panel-default\">");
+				out.print("<div id=\"itemtag-bitstreams\" class=\"panel panel-default\">");
 				out.println("<div class=\"panel-heading\"><h6 class=\"panel-title\">"
 						+ LocaleSupport.getLocalizedMessage(pageContext, "org.dspace.app.webui.jsptag.ItemTag.files")
 						+ "</h6></div>");
