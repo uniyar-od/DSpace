@@ -22,7 +22,8 @@
 
 
 <%
-    Integer itemID = (Integer)request.getAttribute("itemID");	
+    Integer itemID = (Integer)request.getAttribute("itemID");
+	String itemTitle = (String)request.getAttribute("itemTitle");
 	request.setAttribute("LanguageSwitch", "hide");
 %>
 
@@ -32,7 +33,7 @@
 
  <form action="<%= request.getContextPath() %>/tools/version" method="post">
 		<input type="hidden" name="itemID" value="<%= itemID %>" />
-        <p><fmt:message key="jsp.dspace-admin.version-summary.text3"><fmt:param><%= itemID%></fmt:param></fmt:message></p>
+        <p><fmt:message key="jsp.dspace-admin.version-summary.text3"><fmt:param><%= itemTitle%></fmt:param></fmt:message></p>
 				
                    <%--  <td class="submitFormLabel">News:</td> --%>
                    <div class="form-group">

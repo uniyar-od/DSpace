@@ -44,12 +44,14 @@ public class VersionItemServlet extends DSpaceServlet
         context.turnOffItemWrapper();
     	Integer itemID = UIUtil.getIntParameter(request,"itemID");
         Item item = Item.find(context,itemID);
+        String itemTitle = item.getName();
         String submit = UIUtil.getSubmitButton(request,"submit");
         if (submit!=null && submit.equals("submit")){
             if (AuthorizeManager.authorizeActionBoolean(context, item,
                     Constants.WRITE) || item.canEdit() || item.isOriginalSubmitter(context) || item.isAuthor(context))
             {
                 request.setAttribute("itemID", itemID);
+                request.setAttribute("itemTitle", itemTitle);
                 JSPManager.showJSP(request, response,
                         "/tools/version-summary.jsp");
             }
@@ -75,6 +77,7 @@ public class VersionItemServlet extends DSpaceServlet
             String versionID = request.getParameter("versionID");
             request.setAttribute("itemID", itemID);
             request.setAttribute("versionID", versionID);
+            request.setAttribute("itemTitle", itemTitle);
             JSPManager.showJSP(request, response,
                     "/tools/version-update-summary.jsp");
             return;
