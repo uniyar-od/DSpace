@@ -19,7 +19,7 @@
     padding-bottom:0.4em;
 }
 
-.panel .panel-default > .table .panel-body > .standard > a:hover , .panel-warning > .panel-body > a:hover , #fulltext-usertools input[type="submit"]:hover , .globalsearch:hover , #greenopenaccess-usertools .btn:hover , #my-mouseover .btn:hover , .main-query-submit .btn:hover{
+.panel .panel-default > .table .panel-body > .standard > a:hover , .panel-warning > .panel-body > a:hover , #fulltext-usertools input[type="submit"]:hover , .globalsearch:hover, #greenopenaccess-usertools .btn:hover , #itemtag-bitstreams .btn:hover , #explore-search-button .btn:hover , .main-query-submit .btn:hover {
 	color: #000 !important;
     background-color: #fff !important;
     border: 2px solid #a50034 !important;

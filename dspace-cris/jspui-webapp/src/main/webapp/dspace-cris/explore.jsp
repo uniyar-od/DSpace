@@ -199,7 +199,7 @@ function submitForm() {
 			<input type="reset" onclick="javascript:resetForm()"
 				class="btn btn-default col-xs-12" value="<fmt:message key="jsp.explore.index.reset" />" />
 		</div>
-		<div id="my-mouseover" class="col-md-3 col-sm-4 col-xs-6">
+		<div id="explore-search-button" class="col-md-3 col-sm-4 col-xs-6">
 			<input type="submit" onclick="javascript:submitForm()"
 				class="btn btn-primary col-xs-12" value="<fmt:message key="jsp.explore.index.search" />" />
 		</div>
