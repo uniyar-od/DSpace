@@ -139,7 +139,7 @@ public class GeoRefAdditionalStatisticsData implements
                     service = new DatabaseReader.Builder(dbFile).build();
                 } catch (FileNotFoundException fe) {
                     log.error(
-                        "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
+                        "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics has been generated without location " +
                             "based reports! GeoLite databases are now managed outside of DSpace. " +
                             "Please see the DSpace installation instructions for more information.",
                         fe);
