@@ -201,9 +201,9 @@ it, please enter the types and the actual numbers or codes.</hint>
        </field>
      </page>
      
-<!-- Please enable follow page element to support OpenAIRE v.4 Literature context
+	  <!-- element to support OpenAIRE v.4 Literature context -->
 
-      <page number="3">
+	  <page number="3">
      	  <field>
          <dc-schema>project</dc-schema>
          <dc-element>funder</dc-element>
@@ -256,7 +256,7 @@ it, please enter the types and the actual numbers or codes.</hint>
          <hint>URI of the project landing page provided by the funder for more information about the award.</hint>
          <required></required>
        </field>
-	</page> -->
+	</page>
 	
    </form>
 
