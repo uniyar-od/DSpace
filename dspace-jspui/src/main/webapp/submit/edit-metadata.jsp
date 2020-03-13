@@ -780,7 +780,7 @@
         sb.append("<textarea class=\"form-control\" name=\"").append(fieldNameIdx)
           .append("\" rows=\"4\" cols=\"45\" id=\"")
           .append(fieldNameIdx).append("_id\" ")
-          .append((hasVocabulary(vocabulary)&&closedVocabulary)||readonly?" disabled=\"disabled\" ":"")
+          .append((hasVocabulary(vocabulary)&&closedVocabulary)||readonly?" readonly=\"readonly\" ":"")
           .append(">")
           .append(val)
           .append("</textarea>")
@@ -1005,7 +1005,7 @@
           .append("\" id=\"")
           .append(fieldNameIdx).append("\" size=\"50\" value=\"")
           .append(val +"\"")
-          .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" disabled=\"disabled\" ":"")
+          .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" readonly=\"readonly\" ":"")
           .append("/>")
 			 .append(doControlledVocabulary(fieldNameIdx, pageContext, vocabulary, readonly))             
           .append("</div>");
@@ -1086,7 +1086,7 @@
              .append("\" size=\"15\" value=\"")
              .append(defaults[i].value.replaceAll("\"", "&quot;"))
              .append("\"")
-             .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" disabled=\"disabled\" ":"")
+             .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" readonly=\"readonly\" ":"")
              .append("\" />");
           
            sb.append(doControlledVocabulary(fieldParam, pageContext, vocabulary, readonly));
@@ -1110,7 +1110,7 @@
            sb.append("<span class=\"col-md-4\"><input class=\"form-control\" type=\"text\" name=\"")
              .append(fieldParam)
              .append("\" size=\"15\"")
-             .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" disabled=\"disabled\" ":"")
+             .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" readonly=\"readonly\" ":"")
              .append("/>")
              .append(doControlledVocabulary(fieldParam, pageContext, vocabulary, readonly))
              .append("</span>\n")
@@ -1137,7 +1137,7 @@
                      .append("\" size=\"15\" value=\"")
                      .append(defaults[i].value.replaceAll("\"", "&quot;"))
                          .append("\"")
-                         .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" disabled=\"disabled\" ":"")
+                         .append((hasVocabulary(vocabulary)&&closedVocabulary) || readonly?" readonly=\"readonly\" ":"")
                          .append("/>");
                    sb.append(doControlledVocabulary(fieldParam, pageContext, vocabulary, readonly));      
                    sb.append("</span>");
@@ -1160,7 +1160,7 @@
                    sb.append("<span class=\"col-md-4\"><input class=\"form-control\" type=\"text\" name=\"")
                      .append(fieldParam)
                      .append("\" size=\"15\"")
-                     .append((hasVocabulary(vocabulary)&&closedVocabulary)||readonly?" disabled=\"disabled\" ":"")
+                     .append((hasVocabulary(vocabulary)&&closedVocabulary)||readonly?" readonly=\"readonly\" ":"")
                      .append("/>")
                      .append(doControlledVocabulary(fieldParam, pageContext, vocabulary, readonly))
         			 .append("</span>\n");
