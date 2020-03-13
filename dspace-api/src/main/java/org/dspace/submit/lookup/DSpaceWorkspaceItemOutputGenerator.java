@@ -326,7 +326,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return mdSplit;
     }
 
-    protected boolean isValidMetadata(String formName, String[] md)
+    protected boolean isValidMetadata(String handle, String[] md)
     {
         try
         {
@@ -336,7 +336,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
             {
                 return true;
             }
-            return getDCInput(formName, md[0], md[1], md[2]) != null;
+            return getDCInput(handle, md[0], md[1], md[2]) != null;
         }
         catch (Exception e)
         {
@@ -361,16 +361,26 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
                 {
                     return dcinput;
                 }
+                else if(dcinput.getSchema().equals(schema)
+                        && dcinput.getElement().equals(element)
+                        && StringUtils.equals("qualdrop_value", dcinput.getInputType())) {
+                	List<String> pairs = (List<String>) dcinput.getPairs();
+                	for(String pair: pairs) {
+                		if(StringUtils.equals(pair, qualifier)) {
+                			return dcinput;
+                		}
+                	}
+                }
             }
         }
         return null;
     }
 
-    protected boolean isRepeatableMetadata(String formName, String[] md)
+    protected boolean isRepeatableMetadata(String handle, String[] md)
     {
         try
         {
-            DCInput dcinput = getDCInput(formName, md[0], md[1], md[2]);
+            DCInput dcinput = getDCInput(handle, md[0], md[1], md[2]);
             if (dcinput != null)
             {
                 return dcinput.isRepeatable();
