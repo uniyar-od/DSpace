@@ -75,7 +75,7 @@ public class TopCommunitiesSiteProcessor implements SiteHomeProcessor
                 {
                     List<Group> groups = AuthorizeServiceFactory.getInstance().getAuthorizeService().getAuthorizedGroups(context, com, Constants.READ);
                     for(Group group : groups){
-                        if(group.getName().equals(Group.ADMIN) || EPersonServiceFactory.getInstance().getGroupService().isMember(context, group)){
+                        if(group.getName().equals(Group.ANONYMOUS) || EPersonServiceFactory.getInstance().getGroupService().isMember(context, group)){
                             topCom.add(com);
                             break;
                         }
@@ -88,7 +88,7 @@ public class TopCommunitiesSiteProcessor implements SiteHomeProcessor
         {
             throw new PluginException(e.getMessage(), e);
         }
-        request.setAttribute("communities", communities);
+        request.setAttribute("communities", topCom);
     }
 
 }
