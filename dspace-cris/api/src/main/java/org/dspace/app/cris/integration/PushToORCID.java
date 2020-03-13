@@ -460,7 +460,20 @@ public class PushToORCID
             for (WrapperEducation wrapperEducation : wrapperEducations)
             {
                 Education education = wrapperEducation.getEducation();
-                String md5ContentPartOfResearcher = getMd5Hash(education.getOrganization().getName() + education.getStartDate().toString() + education.getEndDate().toString());
+                String value = "";
+                if(education.getOrganization()!=null) {
+                    value += education.getOrganization().getName();
+                }
+                if(education.getStartDate()!=null) {
+                    value += education.getStartDate().toString();
+                }
+                if(education.getEndDate()!=null) {    
+                    value += education.getEndDate().toString();    
+                }
+                if(StringUtils.isBlank(value)) {
+                    value = education.toString();
+                }
+                String md5ContentPartOfResearcher = getMd5Hash(value);
                 sendPartOfResearcher(orcidService, applicationService, crisId, token, orcid, OrcidService.CONSTANT_EDUCATION_UUID, md5ContentPartOfResearcher, education, delete, timestampAttempt);
             }
 
@@ -478,7 +491,21 @@ public class PushToORCID
             for (WrapperEmployment wrapperEmployment : wrapperEmployments)
             {
                 Employment employment = wrapperEmployment.getEmployment();
-                String md5ContentPartOfResearcher = getMd5Hash(employment.getOrganization().getName() + employment.getStartDate().toString() + employment.getEndDate().toString());
+                String value = "";
+                if(employment.getOrganization()!=null) {
+                    value += employment.getOrganization().getName();
+                }
+                if(employment.getStartDate()!=null) {
+                    value += employment.getStartDate().toString();
+                }
+                if(employment.getEndDate()!=null) {    
+                    value += employment.getEndDate().toString();    
+                }
+                if(StringUtils.isBlank(value)) {
+                    value = employment.toString();
+                }
+                String md5ContentPartOfResearcher = getMd5Hash(value);
+
                 sendPartOfResearcher(orcidService, applicationService, crisId, token, orcid, OrcidService.CONSTANT_EMPLOYMENT_UUID, md5ContentPartOfResearcher, employment, delete, timestampAttempt);
             }
 
