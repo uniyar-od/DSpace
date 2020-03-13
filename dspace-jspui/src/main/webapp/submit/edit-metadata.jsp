@@ -785,7 +785,7 @@
         sb.append("<textarea class=\"form-control\" name=\"").append(fieldNameIdx)
           .append("\" rows=\"4\" cols=\"45\" id=\"")
           .append(fieldNameIdx).append("_id\" ")
-          .append((hasVocabulary(vocabulary)&&closedVocabulary)||readonly?" disabled=\"disabled\" ":"")
+          .append((hasVocabulary(vocabulary)&&closedVocabulary)||readonly?" readonly=\"readonly\" ":"")
           .append(">")
           .append(val)
           .append("</textarea>")
@@ -1033,7 +1033,7 @@
 		}
 		sb.append("<input class=\"form-control\" type=\"text\" name=\"").append(fieldNameIdx).append("\" id=\"")
 				.append(fieldNameIdx).append("\" size=\"50\" value=\"").append(val + "\"")
-				.append((hasVocabulary(vocabulary) && closedVocabulary) || readonly ? " disabled=\"disabled\" " : "")
+				.append((hasVocabulary(vocabulary) && closedVocabulary) || readonly ? " readonly=\"readonly\" " : "")
 				.append("/>").append(doControlledVocabulary(fieldNameIdx, pageContext, vocabulary, readonly))
 				.append("</div>");
 
