@@ -95,6 +95,7 @@ import org.orcid.jaxb.model.record_v3.FundingSummary;
 import org.orcid.jaxb.model.record_v3.Fundings;
 import org.orcid.jaxb.model.record_v3.KeywordType;
 import org.orcid.jaxb.model.record_v3.Keywords;
+import org.orcid.jaxb.model.record_v3.NameType;
 import org.orcid.jaxb.model.record_v3.NameType.FamilyName;
 import org.orcid.jaxb.model.record_v3.NameType.GivenNames;
 import org.orcid.jaxb.model.record_v3.OtherNameType;
@@ -976,42 +977,44 @@ public class OrcidPreferencesUtils
                 }
                 
                 // special case for the ORCID principal name stored as family + given
-                if (mapMetadata.containsKey("$fullname")) {
-                	FamilyName surname = orcidProfile.getName().getFamilyName();
-                	GivenNames firstname = orcidProfile.getName().getGivenNames();
-                	if (surname != null) {
-                		String fullname = surname.getValue();
-	                	if (firstname != null) {
-	                		fullname += ", " + firstname.getValue();
+                NameType name = orcidProfile.getName();
+                if (name != null) {
+					if (mapMetadata.containsKey("$fullname")) {
+	                	FamilyName surname = name.getFamilyName();
+	                	GivenNames firstname = name.getGivenNames();
+	                	if (surname != null) {
+	                		String fullname = surname.getValue();
+		                	if (firstname != null) {
+		                		fullname += ", " + firstname.getValue();
+		                	}
+		                	if (checkSyncAllowed(crisObject, mapMetadata.get("$fullname"), propsToReplace)) {
+		                		ResearcherPageUtils.buildTextValue(crisObject,
+		                                fullname,
+		                                mapMetadata.get("$fullname"),
+		                                name
+		                                        .getVisibility() == Visibility.PUBLIC
+		                                                ? VisibilityConstants.PUBLIC
+		                                                : VisibilityConstants.HIDE);
+		                	}
 	                	}
-	                	if (checkSyncAllowed(crisObject, mapMetadata.get("$fullname"), propsToReplace)) {
-	                		ResearcherPageUtils.buildTextValue(crisObject,
-	                                fullname,
-	                                mapMetadata.get("$fullname"),
-	                                orcidProfile.getName()
+	                }
+	
+	                if (mapMetadata.containsKey("credit-name"))
+	                {
+	                    CreditName creditName = name
+	                            .getCreditName();
+	                    if (creditName != null && checkSyncAllowed(crisObject, mapMetadata.get("credit-name"), propsToReplace))
+	                    {
+	                        ResearcherPageUtils.buildTextValue(crisObject,
+	                                creditName.getValue(),
+	                                mapMetadata.get("credit-name"),
+	                                name
 	                                        .getVisibility() == Visibility.PUBLIC
 	                                                ? VisibilityConstants.PUBLIC
 	                                                : VisibilityConstants.HIDE);
-	                	}
-                	}
-                }
-
-                if (mapMetadata.containsKey("credit-name"))
-                {
-                    CreditName creditName = orcidProfile.getName()
-                            .getCreditName();
-                    if (creditName != null && checkSyncAllowed(crisObject, mapMetadata.get("credit-name"), propsToReplace))
-                    {
-                        ResearcherPageUtils.buildTextValue(crisObject,
-                                creditName.getValue(),
-                                mapMetadata.get("credit-name"),
-                                orcidProfile.getName()
-                                        .getVisibility() == Visibility.PUBLIC
-                                                ? VisibilityConstants.PUBLIC
-                                                : VisibilityConstants.HIDE);
-                    }
-                }
-                
+	                    }
+	                }
+                }                
                 if (mapMetadata.containsKey("other-names"))
                 {
                     OtherNames otherNames = orcidProfile.getOtherNames();
