@@ -130,7 +130,13 @@ implements StreamGenericDisseminationCrosswalk, FileNameDisseminator {
 			}
 
 			// FIXME: Still need to fix for metadata language?
-			Metadatum[] values = dso.getMetadata(schema, element, qualifier, Item.ANY);
+			Metadatum[] values;
+			if(ConfigurationManager.getBooleanProperty("pdf.export.showplaceholder"))
+			{
+				values = dso.getMetadata(schema, element, qualifier, Item.ANY);
+			}else {
+				values = dso.getMetadataWithoutPlaceholder(schema, element, qualifier, Item.ANY);
+			}
 
 			if (values.length > 0) {
 
