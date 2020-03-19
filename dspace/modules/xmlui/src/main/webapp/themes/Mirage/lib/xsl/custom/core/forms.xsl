@@ -32,11 +32,13 @@
 
     <xsl:output indent="yes"/>
 
-    <xsl:template match="dri:help" mode="compositeComponent">
-        <span class="composite-help">
-            <i18n:text>
-                <xsl:apply-templates/>
-            </i18n:text></span>
+    <xsl:template match="dri:help" mode="help">
+        <!--Only create the <span> if there is content in the <dri:help> node-->
+        <xsl:if test="./text() or ./node()">
+            <p class="help-block">
+                <i18n:text><xsl:value-of select="."/></i18n:text>
+            </p>
+        </xsl:if>
     </xsl:template>
 
 </xsl:stylesheet>

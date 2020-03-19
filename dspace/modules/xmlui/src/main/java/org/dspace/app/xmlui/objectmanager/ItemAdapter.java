@@ -17,6 +17,7 @@ import org.dspace.content.*;
 import org.dspace.content.authority.*;
 import org.dspace.content.crosswalk.*;
 import org.dspace.core.*;
+import org.dspace.utils.*;
 import org.jdom.*;
 import org.jdom.output.*;
 import org.xml.sax.*;
@@ -70,6 +71,8 @@ public class ItemAdapter extends AbstractAdapter
 
     // DSpace DB context
     private Context context;
+
+    private List<MetaDatumEnricher> metaDatumEnrichers = new DSpace().getServiceManager().getServicesByType(MetaDatumEnricher.class);
 
     /**
      * Construct a new ItemAdapter
@@ -247,6 +250,8 @@ public class ItemAdapter extends AbstractAdapter
             startElement(DIM,"dim",attributes);
 
             Metadatum[] dcvs = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            dcvs = enrichMetaData(dcvs, context);
+
             for (Metadatum dcv : dcvs)
             {
                 if (!MetadataExposure.isHidden(context, dcv.schema, dcv.element, dcv.qualifier))
@@ -440,6 +445,16 @@ public class ItemAdapter extends AbstractAdapter
             }
         }
 
+    }
+
+    private Metadatum[] enrichMetaData(final Metadatum[] dcvs, final Context context) {
+        List<Metadatum> enrichedList = new ArrayList<>(Arrays.asList(dcvs));
+
+        for (MetaDatumEnricher metaDatumEnricher : metaDatumEnrichers) {
+            metaDatumEnricher.enrichMetadata(context, enrichedList);
+        }
+
+        return enrichedList.toArray(dcvs);
     }
 
     /**

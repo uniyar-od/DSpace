@@ -126,4 +126,9 @@
     <scope_note>The type of the item, as defined by the eprints application profile</scope_note>
   </dc-type>
 
+    <dc-type>
+        <schema>dc</schema>
+        <element>sword</element>
+        <qualifier>submission</qualifier>
+    </dc-type>
 </dspace-dc-types>

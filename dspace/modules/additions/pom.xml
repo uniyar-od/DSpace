@@ -103,6 +103,12 @@
                 </exclusion>
             </exclusions>
         </dependency>
+       <dependency>
+           <groupId>org.dspace</groupId>
+           <artifactId>dspace-oai</artifactId>
+           <classifier>classes</classifier>
+           <scope>provided</scope>
+       </dependency>
 
     </dependencies>
 

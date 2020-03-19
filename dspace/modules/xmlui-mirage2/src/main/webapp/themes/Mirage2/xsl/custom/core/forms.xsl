@@ -10,6 +10,7 @@
 
 <!--
     Templates to cover the forms and forms fields.
+    Rendering of the authority control related pages.
 
     Author: art.lowel at atmire.com
     Author: lieven.droogmans at atmire.com
@@ -31,6 +32,7 @@
                 exclude-result-prefixes="i18n dri mets xlink xsl dim xhtml mods dc">
 
     <xsl:output indent="yes"/>
+
 
     <xsl:template match="dri:help" mode="help">
         <!--Only create the <span> if there is content in the <dri:help> node-->

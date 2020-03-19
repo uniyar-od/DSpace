@@ -49,8 +49,10 @@
     <xsl:import href="aspect/artifactbrowser/one-offs.xsl"/>
     <xsl:import href="aspect/submission/submission.xsl"/>
     <xsl:import href="custom/core/page-structure.xsl"/>
-    <xsl:import href="custom/core/forms.xsl"/>
     <xsl:import href="custom/compliance/item-compliance.xsl"/>
+    <xsl:import href="custom/core/forms.xsl"/>
+    <xsl:import href="custom/multiple-funders.xsl"/>
+    <xsl:import href="custom/aspect/general/choice-authority-control.xsl"/>
     <xsl:output indent="yes"/>
 
 
