@@ -694,10 +694,10 @@ else if( qResults != null)
 		</label>
 			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" radioButton="false" inputName="item_id" order="<%= order %>" sortOption="<%= sortOption %>"/>
+		<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" radioButton="false" inputName="item_id" order="<%= order %>" sortOption="<%= sortOption %>" itemStart="<%= qResults.getStart()+1%>"/>
 		</form>
 <% } else { %>
-	<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" order="<%= order %>" sortOption="<%= sortOption %>"/>
+	<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" order="<%= order %>" sortOption="<%= sortOption %>" itemStart="<%= qResults.getStart()+1%>"/>
 <% } %>
    
     </div>
