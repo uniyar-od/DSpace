@@ -84,10 +84,12 @@ public class Navigation extends AbstractDSpaceTransformer implements CacheablePr
             compliance.setHead(T_head_compliance);
 
             for (ComplianceUI complianceUI : complianceUIs) {
-                if(org.apache.commons.lang3.StringUtils.isNotBlank(complianceUI.getNavigationKey())) {
-                    compliance.addItemXref(contextPath + "/handle/" + dso.getHandle() + "/" + complianceUI.getIdentifier()
-                            + "-compliance", new Message("default", complianceUI.getNavigationKey()));
-                }
+            	if(complianceUI.isEnabled()) {
+	                if(org.apache.commons.lang3.StringUtils.isNotBlank(complianceUI.getNavigationKey())) {
+	                    compliance.addItemXref(contextPath + "/handle/" + dso.getHandle() + "/" + complianceUI.getIdentifier()
+	                            + "-compliance", new Message("default", complianceUI.getNavigationKey()));
+	                }
+            	}
             }
         }
 

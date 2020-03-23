@@ -32,22 +32,25 @@ public class FirstComplianceDepositConsumer implements Consumer {
 
     @Override
     public void consume(Context context, Event event) throws Exception {
-        int subjectType = event.getSubjectType();
-        int eventType = event.getEventType();
-
-        DSpaceObject dso = event.getSubject(context);
-
-        switch (subjectType) {
-            case Constants.ITEM:
-                Item item = (Item) dso;
-                //If we are updating the metadata and [ the item is archived or the submitter completed his submission ]
-                if (eventType == Event.MODIFY_METADATA  && !item.isWithdrawn() && (item.isArchived() || WorkspaceItem.findByItem(context, item)==null )) {
-                    itemIDs.add(dso.getID());
-                }
-                break;
-            default:
-                log.debug("consume() got unrecognized event: " + event.toString());
-        }
+    	boolean refEnabled = ConfigurationManager.getBooleanProperty("rioxx", "ref.enabled", true);
+    	if(refEnabled) {
+	        int subjectType = event.getSubjectType();
+	        int eventType = event.getEventType();
+	
+	        DSpaceObject dso = event.getSubject(context);
+	
+	        switch (subjectType) {
+	            case Constants.ITEM:
+	                Item item = (Item) dso;
+	                //If we are updating the metadata and [ the item is archived or the submitter completed his submission ]
+	                if (eventType == Event.MODIFY_METADATA  && !item.isWithdrawn() && (item.isArchived() || WorkspaceItem.findByItem(context, item)==null )) {
+	                    itemIDs.add(dso.getID());
+	                }
+	                break;
+	            default:
+	                log.debug("consume() got unrecognized event: " + event.toString());
+	        }
+    	}
     }
 
     /**

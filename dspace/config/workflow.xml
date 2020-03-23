@@ -23,6 +23,7 @@
                 <action id="reviewaction"/>
             </actions>
         </step>
+        <!-- Please comment in this step if REF is not enabled -->
         <step id="editstep" role="editor" userSelectionMethod="claimaction">
             <outcomes>
                 <step status="0">refcompliancestep</step>
@@ -31,6 +32,16 @@
                 <action id="editaction"/>
             </actions>
         </step>
+        <!-- Please comment out this step if REF is not enabled -->
+<!--         <step id="editstep" role="editor" userSelectionMethod="claimaction">
+            <outcomes>
+                <step status="0">finaleditstep</step>
+            </outcomes>
+            <actions>
+                <action id="editaction"/>
+            </actions>
+        </step> -->
+        <!-- Please comment in this step if REF is not enabled -->        
         <step id="refcompliancestep" role="finaleditor" userSelectionMethod="claimaction">
             <outcomes>
                 <step status="0">finaleditstep</step>

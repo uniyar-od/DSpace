@@ -84,6 +84,21 @@
          <required>You must enter at least the year.</required>
        </field>
 
+		<!-- the refterms.dateFirstOnline is not mandatory when REF is disabled, please comment in -->
+       <field>
+          <dc-schema>refterms</dc-schema>
+          <dc-element>dateFirstOnline</dc-element>
+          <dc-qualifier></dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Date of Online Publication</label>
+          <input-type>date</input-type>
+          <hint>Please give the date of online publication or public distribution
+            here. You can leave out the day and/or month if they aren't
+            applicable.
+          </hint>
+          <required></required>
+        </field>
+        
        <field>
          <dc-schema>dc</dc-schema>
          <dc-element>publisher</dc-element>
@@ -219,6 +234,18 @@ it, please enter the types and the actual numbers or codes.</hint>
          <required></required>
        </field>
 
+		<!-- the refterms.panel is not mandatory when REF is disabled, please comment in -->
+        <field>
+          <dc-schema>refterms</dc-schema>
+          <dc-element>panel</dc-element>
+          <dc-qualifier></dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>REF Panel</label>
+          <type-bind>Conference Paper/Proceeding/Abstract,Journal Article/Review</type-bind>
+          <input-type value-pairs-name="refterms_panels">dropdown</input-type>
+          <hint>aspect.submission.StepTransformer.field.refterms.panel.hint</hint>
+          <required></required>
+        </field>
 
      </page>
 
@@ -475,6 +502,10 @@ it, please enter the types and the actual numbers or codes.</hint>
      -->
    <value-pairs value-pairs-name="common_iso_languages" dc-term="language_iso">
      <pair>
+       <displayed-value>N/A</displayed-value>
+       <stored-value></stored-value>
+     </pair>
+     <pair>
        <displayed-value>English (United States)</displayed-value>
        <stored-value>en_US</stored-value>
       </pair>
@@ -551,6 +582,28 @@ it, please enter the types and the actual numbers or codes.</hint>
      </pair>
    </value-pairs>
 
+    <value-pairs value-pairs-name="refterms_panels" dc-term="refterms_panels">
+      <pair>
+        <displayed-value>Unspecified</displayed-value>
+        <stored-value>Unspecified</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>REF Main Panel A</displayed-value>
+        <stored-value>A</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>REF Main Panel B</displayed-value>
+        <stored-value>B</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>REF Main Panel C</displayed-value>
+        <stored-value>C</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>REF Main Panel D</displayed-value>
+        <stored-value>D</stored-value>
+      </pair>
+    </value-pairs>
 
  </form-value-pairs>
 

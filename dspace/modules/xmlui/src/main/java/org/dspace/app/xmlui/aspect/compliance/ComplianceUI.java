@@ -6,6 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.dspace.app.xmlui.wing.Message;
 import org.dspace.app.xmlui.wing.WingException;
 import org.dspace.app.xmlui.wing.element.*;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.ref.compliance.result.CategoryComplianceResult;
 import org.dspace.ref.compliance.result.ComplianceResult;
@@ -94,6 +95,8 @@ public class ComplianceUI {
     private ComplianceRelatedData complianceRelatedData;
 
     private ComplianceCheckService complianceCheckService;
+    
+    private Boolean enabled;
 
     public void addComplianceSections(Division div, org.dspace.content.Item item, org.dspace.core.Context context) throws WingException {
         ComplianceResult result = complianceCheckService.checkCompliance(context, item);
@@ -372,5 +375,16 @@ public class ComplianceUI {
 
     public void setComplianceRelatedData(ComplianceRelatedData complianceRelatedData) {
         this.complianceRelatedData = complianceRelatedData;
+    }
+    
+    public boolean isEnabled() {
+    	if(enabled==null) {
+    		enabled = ConfigurationManager.getBooleanProperty("item-compliance", getIdentifier()+".enabled", true);
+    	}
+    	return enabled;
+    }
+    
+    public void setEnabled(boolean enabled) {
+    	this.enabled = enabled;
     }
 }

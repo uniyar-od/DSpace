@@ -27,22 +27,25 @@ public class DateOfCompliantOpenAccessConsumer implements Consumer {
 
     @Override
     public void consume(Context ctx, Event event) throws Exception {
-        DSpaceObject dso = event.getSubject(ctx);
-        int et = event.getEventType();
-
-        Item item = null;
-
-        if(dso instanceof Bitstream && et == Event.MODIFY){
-            Bitstream bitstream = (Bitstream) dso;
-             item = getParentItem(bitstream);
-        }
-        else if(dso instanceof Item && et == Event.INSTALL){
-            item = (Item) dso;
-        }
-
-        if(item!=null && item.isArchived()){
-            itemsToUpdate.add(item.getID());
-        }
+    	boolean refEnabled = ConfigurationManager.getBooleanProperty("rioxx", "ref.enabled", true);
+    	if(refEnabled) {
+	        DSpaceObject dso = event.getSubject(ctx);
+	        int et = event.getEventType();
+	
+	        Item item = null;
+	
+	        if(dso instanceof Bitstream && et == Event.MODIFY){
+	            Bitstream bitstream = (Bitstream) dso;
+	             item = getParentItem(bitstream);
+	        }
+	        else if(dso instanceof Item && et == Event.INSTALL){
+	            item = (Item) dso;
+	        }
+	
+	        if(item!=null && item.isArchived()){
+	            itemsToUpdate.add(item.getID());
+	        }
+    	}
     }
 
     @Override

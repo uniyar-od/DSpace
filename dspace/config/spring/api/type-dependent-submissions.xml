@@ -28,7 +28,7 @@
         </property>
     </bean>
 
-    <bean id="refComplianceVersion" class="com.atmire.submission.typebound.condition.MetadataCondition">
+    <bean id="refComplianceVersion" class="com.atmire.submission.typebound.condition.RefMetadataCondition">
         <property name="metadatum" value="rioxxterms.type"/>
         <property name="allowedValues">
             <list>
