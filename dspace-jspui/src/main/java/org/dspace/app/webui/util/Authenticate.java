@@ -317,7 +317,6 @@ public class Authenticate
             if (shibbolethSpecialGroups != null) {
                 session.setAttribute("shib.specialgroup", shibbolethSpecialGroups);
             }
-        }
 
 			List<PostLoggedInAction> postLoggedInActions = new DSpace().getServiceManager().getServicesByType(
 					PostLoggedInAction.class);
@@ -329,6 +328,7 @@ public class Authenticate
 
 			}
 		
+        }
         context.setCurrentUser(eperson);
         
         boolean isAdmin = false;
