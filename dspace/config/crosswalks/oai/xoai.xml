@@ -299,76 +299,83 @@
         <Filter id="rioxxFilter">
             <Definition>
                 <And>
-                    <LeftCondition>
-                        <And>
-                            <LeftCondition>
-                                <Custom ref="titleExistsCondition"/>
-                            </LeftCondition>
-                            <RightCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <Custom ref="authorExistsCondition"/>
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <And>
-                                            <LeftCondition>
-                                                <Custom ref="rioxxProjectExistsCondition"/>
-                                            </LeftCondition>
-                                            <RightCondition>
-                                                <Custom ref="rioxxFunderExistsCondition"/>
-                                            </RightCondition>
-                                        </And>
-                                    </RightCondition>
-                                </And>
-                            </RightCondition>
-                        </And>
+                	<LeftCondition>
+						<Custom ref="itemNotWithdrawnCondition"/>
                     </LeftCondition>
-                    <RightCondition>
-                        <And>
-                            <LeftCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <Custom ref="rioxxTypeExistsCondition"/>
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <Custom ref="rioxxLicenseExistsCondition"/>
-                                    </RightCondition>
-                                </And>
-                            </LeftCondition>
-                            <RightCondition>
-                                <And>
-                                    <LeftCondition>
-                                        <And>
-                                            <LeftCondition>
-                                                <Custom ref="rioxxDctermsdateacceptedExistsCondition"/>
-                                            </LeftCondition>
-                                            <RightCondition>
-                                                <Custom ref="rioxxtermsversionCondition"/>
-                                            </RightCondition>
-                                        </And>
-                                    </LeftCondition>
-                                    <RightCondition>
-                                        <And>
-                                            <LeftCondition>
-                                                <Or>
-                                                    <LeftCondition>
-                                                        <Custom ref="openAccessUriAvailable"/>
-                                                    </LeftCondition>
-                                                    <RightCondition>
-                                                        <Custom ref="itemsWithBitstreamsFilter"/>
-                                                    </RightCondition>
-                                                </Or>
-                                            </LeftCondition>
-                                            <RightCondition>
-                                                <Custom ref="rioxxLangExistsCondition"/>
-                                            </RightCondition>
-                                        </And>
-                                    </RightCondition>
-                                </And>
-                            </RightCondition>
-                        </And>
-                    </RightCondition>
-                </And>
+					<RightCondition>                	
+		                <And>
+		                    <LeftCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <Custom ref="titleExistsCondition"/>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Custom ref="authorExistsCondition"/>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <And>
+		                                            <LeftCondition>
+		                                                <Custom ref="rioxxProjectExistsCondition"/>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="rioxxFunderExistsCondition"/>
+		                                            </RightCondition>
+		                                        </And>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </LeftCondition>
+		                    <RightCondition>
+		                        <And>
+		                            <LeftCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <Custom ref="rioxxTypeExistsCondition"/>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <Custom ref="rioxxLicenseExistsCondition"/>
+		                                    </RightCondition>
+		                                </And>
+		                            </LeftCondition>
+		                            <RightCondition>
+		                                <And>
+		                                    <LeftCondition>
+		                                        <And>
+		                                            <LeftCondition>
+		                                                <Custom ref="rioxxDctermsdateacceptedExistsCondition"/>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="rioxxtermsversionCondition"/>
+		                                            </RightCondition>
+		                                        </And>
+		                                    </LeftCondition>
+		                                    <RightCondition>
+		                                        <And>
+		                                            <LeftCondition>
+		                                                <Or>
+		                                                    <LeftCondition>
+		                                                        <Custom ref="openAccessUriAvailable"/>
+		                                                    </LeftCondition>
+		                                                    <RightCondition>
+		                                                        <Custom ref="itemsWithBitstreamsFilter"/>
+		                                                    </RightCondition>
+		                                                </Or>
+		                                            </LeftCondition>
+		                                            <RightCondition>
+		                                                <Custom ref="rioxxLangExistsCondition"/>
+		                                            </RightCondition>
+		                                        </And>
+		                                    </RightCondition>
+		                                </And>
+		                            </RightCondition>
+		                        </And>
+		                    </RightCondition>
+		                </And>
+					</RightCondition>
+				</And>	                
             </Definition>
 
         </Filter>
@@ -552,6 +559,17 @@
         <CustomCondition id="bitstreamAccessCondition">
             <Class>org.dspace.xoai.filter.DSpaceAuthorizationFilter</Class>
         </CustomCondition>
+
+        <!-- This condition determines if an Item is withdrawn. This condition
+             ensures a basic "tombstone" record is shown for withdrawn items,
+             as recommended by OAI-PMH spec. This "tombstone" doesn't display
+             any metadata or content files.  -->
+        <CustomCondition id="itemWithdrawnCondition">
+            <Class>org.dspace.xoai.filter.DSpaceWithdrawnFilter</Class>
+        </CustomCondition>
+        <CustomCondition id="itemNotWithdrawnCondition">
+            <Class>org.dspace.xoai.filter.DSpaceNotWithdrawnFilter</Class>
+        </CustomCondition>        
 
         <!-- This condition determines if an Item has a "dc.relation" field
              which specifies the openAIRE project ID. -->
