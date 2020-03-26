@@ -425,7 +425,13 @@ public class DSpaceCSV implements Serializable
         }
 
         // Populate it
-        Metadatum md[] = i.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        Metadatum md[];
+        if(ConfigurationManager.getBooleanProperty("csv.export.showplaceholder"))
+        {        	
+        	md = i.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        }else {
+        	md = i.getMetadataWithoutPlaceholder(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+		}
         for (Metadatum value : md)
         {
             // Get the key (schema.element)

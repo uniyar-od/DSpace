@@ -65,9 +65,14 @@
 			}
 			node = getParentTextNode(node);
 		}
-		
+		var input = window.opener.document.edit_metadata.<%=session.getAttribute("controlledvocabulary.ID")%>;
+		if(input.readonly){
+			input.readonly=false;
+			input.value=resultPath;
+			input.readonly=true;
+		}else{
 		window.opener.document.edit_metadata.<%=session.getAttribute("controlledvocabulary.ID")%>.value= resultPath;
-		
+		}
 		self.close();
 		return false;
 	}
