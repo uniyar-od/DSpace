@@ -11,7 +11,6 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.StatusLine;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.config.SocketConfig;
@@ -23,11 +22,8 @@ import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.app.cris.unpaywall.services.UnpaywallPersistenceService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.utils.DSpace;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import it.cilea.osd.common.core.SingleTimeStampInfo;
-import it.cilea.osd.common.core.TimeStampInfo;
 
 public class UnpaywallService 
 {
@@ -49,29 +45,21 @@ public class UnpaywallService
                 .build();
     }
 
-    public Unpaywall unpaywallCall(String doi) throws HttpException
+    private String unpaywallCall(String doi) throws HttpException
     {
         String endpoint = ConfigurationManager.getProperty("unpaywall", "url");
         String apiKey = ConfigurationManager.getProperty("unpaywall", "apikey");
 
-        Unpaywall unpaywall = new Unpaywall();
-        UnpaywallRecord unpaywallRecord = new UnpaywallRecord();
+        String source = null;
 
         HttpGet method = null;
 
-        try
-        {
+        try {
             endpoint = endpoint + doi;
             URIBuilder uriBuilder = new URIBuilder(endpoint);
             uriBuilder.addParameter("email", apiKey);
             method = new HttpGet(uriBuilder.build());
-        }
-        catch (URISyntaxException ex)
-        {
-            throw new HttpException("Request not sent", ex);
-        }
-        try
-        {
+            
             HttpResponse response = client.execute(method);
             StatusLine statusLine = response.getStatusLine();
             int statusCode = response.getStatusLine().getStatusCode();
@@ -80,83 +68,17 @@ public class UnpaywallService
                 throw new RuntimeException("Http call failed: " + statusLine);
             }
 
-            /*
-             * aggiorna riga sul DB
-             */
-            UnpaywallBestOA unpBestOA = new UnpaywallBestOA();
-
             InputStream is = response.getEntity().getContent();
             StringWriter writer = new StringWriter();
             IOUtils.copy(is, writer, "UTF-8");
-            String source = writer.toString();
-            JSONObject obj = new JSONObject(source);
-
-//            SPOSTARE IN UNPAYWALLSTEP
-            JSONObject bestOA = obj.getJSONObject("best_oa_location");
-            unpBestOA.setUrl_for_pdf(bestOA.getString("url_for_pdf"));
-            unpBestOA.setHost_type(bestOA.getString("host_type"));
-            unpBestOA.setVersion(bestOA.getString("version"));
-            unpBestOA.setEvidence(bestOA.getString("evidence"));
-
-            JSONArray oaLocations = obj.getJSONArray("oa_locations");
-            UnpaywallOA[] unpaywallOAArray = new UnpaywallOA[oaLocations
-                    .length()];
-            UnpaywallOA unpaywallOA = new UnpaywallOA();
-
-//            SETTING UNPAYWALL OA LOCATIONS
-            for (int i = 0; i < oaLocations.length(); i++)
-            {
-                unpaywallOA.setEndpoint_id(
-                        oaLocations.getJSONObject(i).optString("endpoint_id"));
-                unpaywallOA.setEvidence(
-                        oaLocations.getJSONObject(i).optString("evidence"));
-                unpaywallOA.setHost_type(
-                        oaLocations.getJSONObject(i).optString("host_type"));
-                unpaywallOA.setIs_best(
-                        oaLocations.getJSONObject(i).optBoolean("is_best"));
-                unpaywallOA.setLicense(
-                        oaLocations.getJSONObject(i).optString("license"));
-                unpaywallOA.setPmh_id(
-                        oaLocations.getJSONObject(i).optString("pmh_id"));
-                unpaywallOA.setRepository_institution(oaLocations
-                        .getJSONObject(i).optString("repository_institution"));
-                unpaywallOA.setUpdated(
-                        oaLocations.getJSONObject(i).optString("updated"));
-                unpaywallOA
-                        .setUrl(oaLocations.getJSONObject(i).optString("url"));
-                unpaywallOA.setUrl_for_landing_page(oaLocations.getJSONObject(i)
-                        .optString("url_for_landing_page"));
-                unpaywallOA.setUrl_for_pdf(
-                        oaLocations.getJSONObject(i).optString("url_for_pdf"));
-                unpaywallOA.setVersion(
-                        oaLocations.getJSONObject(i).optString("version"));
-                unpaywallOAArray[i] = unpaywallOA;
-            }
-
-            unpaywallRecord.setDoi(doi);
-            unpaywallRecord.setPublished_date(obj.optString("published_date"));
-            unpaywallRecord.setUpdated("updated");
-            unpaywallRecord.setUnpaywallBestOA(unpBestOA);
-            unpaywallRecord.setUnpaywallOA(unpaywallOAArray);
-
-            unpaywall.setDOI(doi);
-            unpaywall.setTimeStampInfo(new TimeStampInfo());
-            unpaywall.setDOI(doi);
-            unpaywall.setUnpaywallRecord(unpaywallRecord);
-            unpaywall.setUnpaywallJson(obj);
+            source = writer.toString();
+             
             method.releaseConnection();
-            getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
-        }
-        catch (ClientProtocolException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        catch (IOException e)
-        {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
+//            getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
+        } catch (IOException | URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
         finally
         {
             if (method != null)
@@ -164,10 +86,26 @@ public class UnpaywallService
                 method.releaseConnection();
             }
         }
-        return unpaywall;
+        return source;
     }
 
-    public Unpaywall internalCall(String doi) throws HttpException
+    /**
+     * Execute a call to Unpaywall with local cache
+     * @param doi The DOI
+     * @throws HttpException
+     */
+    public Unpaywall searchByDOI(String doi) throws HttpException
+    {
+    	return searchByDOI(doi, true);
+    }
+    
+    /**
+     * Execute a call to Unpaywall
+     * @param doi The DOI
+     * @param useCache Whether to use the local cache
+     * @throws HttpException
+     */
+    public Unpaywall searchByDOI(String doi, Boolean useCache) throws HttpException
     {
         Long cacheTime = ConfigurationManager.getLongProperty("unpaywall",
                 "cachetime") * 1000;
@@ -182,12 +120,16 @@ public class UnpaywallService
         
         unpaywall = getUnpaywallPersistenceService().uniqueByDOI(doi);
 
+        if (!useCache && unpaywall != null) {
+        	return callAndUpdate(unpaywall);
+        }
+        
         // If nothing is found locally call the service and exit
         if (unpaywall == null)
         {
-            unpaywall = unpaywallCall(doi);
-            return unpaywall;
+            return makeCall(doi);
         }
+        
         
         Long currentDate = System.currentTimeMillis();
         SingleTimeStampInfo lastModified = unpaywall.getTimeStampInfo().getTimestampLastModified();
@@ -206,10 +148,28 @@ public class UnpaywallService
         }
         else
         {
-            unpaywall = unpaywallCall(doi);
-            return unpaywall;
+            return callAndUpdate(unpaywall);
         }
     }
+    
+    private Unpaywall callAndUpdate(Unpaywall unpaywall) throws HttpException {
+    	unpaywall.setUnpaywallJsonString(
+    				unpaywallCall(
+    							unpaywall.getDOI()));
+    	
+    	getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
+    	
+    	return unpaywall;
+	}
+    
+    private Unpaywall makeCall(String doi) throws HttpException {
+    	
+    	String jsonString = unpaywallCall(doi);
+    	Unpaywall unpaywall = UnpaywallUtils.makeUnpaywall(jsonString);
+    	
+        getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
+        return unpaywall;
+	}
 
     public void setTimeout(int timeout)
     {

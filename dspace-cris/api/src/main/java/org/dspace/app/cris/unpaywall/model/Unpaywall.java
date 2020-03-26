@@ -9,10 +9,8 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 
-import org.dspace.app.cris.unpaywall.UnpaywallRecord;
-import org.json.JSONObject;
+import org.hibernate.annotations.Type;
 
 import it.cilea.osd.common.core.HasTimeStampInfo;
 import it.cilea.osd.common.core.ITimeStampInfo;
@@ -25,8 +23,9 @@ import it.cilea.osd.common.model.Identifiable;
         @NamedQuery(name = "Unpaywall.uniqueByDOI", query = "from Unpaywall where doi =:par0") })
 public class Unpaywall implements Identifiable, HasTimeStampInfo
 {
+	private static final long serialVersionUID = 1L;
 
-    /** timestamp info for creation and last modify */
+	/** timestamp info for creation and last modify */
     @Embedded
     private TimeStampInfo timeStampInfo;
 
@@ -36,24 +35,12 @@ public class Unpaywall implements Identifiable, HasTimeStampInfo
     @Column(name="unpaywall_id")
     private int resourceID;
 
-    @Column(name = "doi")
+    @Column(name = "doi"/*, unique=true*/)
     private String DOI;
-
-    @Transient
-    private UnpaywallRecord unpaywallRecord; // JSON
     
-    @Transient
-    private JSONObject unpaywallJson;
-
-    public JSONObject getUnpaywallJson()
-    {
-        return unpaywallJson;
-    }
-
-    public void setUnpaywallJson(JSONObject unpaywallJson)
-    {
-        this.unpaywallJson = unpaywallJson;
-    }
+    @Column(name="record") 
+    @Type(type="org.hibernate.type.StringClobType")
+    private String unpaywallJsonString;
 
     public String getDOI()
     {
@@ -63,16 +50,6 @@ public class Unpaywall implements Identifiable, HasTimeStampInfo
     public void setDOI(String dOI)
     {
         DOI = dOI;
-    }
-
-    public UnpaywallRecord getUnpaywallRecord()
-    {
-        return unpaywallRecord;
-    }
-
-    public void setUnpaywallRecord(UnpaywallRecord unpaywallRecord)
-    {
-        this.unpaywallRecord = unpaywallRecord;
     }
 
     public int getResourceID()
@@ -101,5 +78,13 @@ public class Unpaywall implements Identifiable, HasTimeStampInfo
     {
         return resourceID;
     }
+
+	public String getUnpaywallJsonString() {
+		return unpaywallJsonString;
+	}
+
+	public void setUnpaywallJsonString(String unpaywallJsonString) {
+		this.unpaywallJsonString = unpaywallJsonString;
+	}
 
 }

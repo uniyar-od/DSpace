@@ -1,50 +1,43 @@
 package org.dspace.app.cris.integration.authority;
 
+import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.cris.integration.ORCIDAuthority;
+import org.dspace.app.cris.unpaywall.model.Unpaywall;
+import org.dspace.app.cris.unpaywall.services.UnpaywallPersistenceService;
+import org.dspace.content.Bundle;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
+import org.dspace.content.Metadatum;
+import org.dspace.content.authority.ChoiceAuthority;
+import org.dspace.content.authority.ChoiceAuthorityManager;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
+import org.dspace.utils.DSpace;
 
 public class UnpaywallConsumer implements Consumer
 {
     
-    
-//    private UnpaywallPersistenceService unpaywallPersistenceServices = new DSpace().getServiceManager().getServiceByName("unpaywallPersistenceServices", UnpaywallPersistenceService.class);
     public void consume(Context ctx, Event event) throws Exception {
-//    DSpaceObject dso = event.getSubject(ctx);
-//    if (dso instanceof Item) {
-//        Item item = (Item) dso;
-//        if (item.isArchived()) {
-//            // 1)check the internal contributors
-//            Set<String> listAuthoritiesManager = ChoiceAuthorityManager.getManager().getAuthorities();
-//            for (String crisAuthority : listAuthoritiesManager) {
-//                List<String> listMetadata = ChoiceAuthorityManager.getManager()
-//                        .getAuthorityMetadataForAuthority(crisAuthority);
-//
-//                for (String metadata : listMetadata) {
-//                    ChoiceAuthority choiceAuthority = ChoiceAuthorityManager.getManager()
-//                            .getChoiceAuthority(metadata);
-//                    if (ORCIDAuthority.class.isAssignableFrom(choiceAuthority.getClass())) {
-//                        // 2)check for each internal contributors if has
-//                        // authority
-//                        Metadatum[] Metadatums = item.getMetadataByMetadataString(metadata);
-//                        for (Metadatum dcval : Metadatums) {
-//                            String authority = dcval.authority;
-//                            if (StringUtils.isNotBlank(authority)) {
-//                                // 3)check the orcid preferences
-//                                boolean isAPreferiteWork = unpaywallPersistenceServices.findByDOI(doi);
-//                                        // 4)if the publications match the
-//                                // preference add publication to queue
-//                                if (isAPreferiteWork) {
-//                                    unpaywallPersistenceServices.(authority, dso);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-}
+
+    UnpaywallPersistenceService unpaywallPersistenceServices = new DSpace().getServiceManager().getServiceByName("unpaywallPersistenceServices", UnpaywallPersistenceService.class);
+    
+    DSpaceObject dso = event.getSubject(ctx);
+    if (dso instanceof Item) {
+        Item item = (Item) dso;
+        	Bundle[] bundle = item.getBundles("ORIGINAL");
+        	if(bundle.length < 0) {
+        		String md = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "unpaywall.metadata.doi"));
+        		List<String> mdValue = item.getMetadataValue(md);
+        		Unpaywall unpaywall = unpaywallPersistenceServices.uniqueByDOI(mdValue.get(0));
+        		unpaywallPersistenceServices.delete(Unpaywall.class, unpaywall.getId());
+        	}
+    	}
+	}
 
     @Override
     public void initialize() throws Exception

@@ -65,10 +65,7 @@ public class UnpaywallStep extends AbstractProcessingStep
         if (subInfo != null)
         {
             Unpaywall unpaywall = new Unpaywall();
-//        UnpaywallRecord unpaywallRecord = new UnpaywallRecord();
-            UnpaywallService unpaywallService = new DSpace().getServiceManager()
-                    .getServiceByName(UnpaywallService.class.getCanonicalName(),
-                            UnpaywallService.class);
+            UnpaywallService unpaywallService = new UnpaywallService();
             String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                     "metadata.doi");
             Item item = subInfo.getSubmissionItem().getItem();
@@ -77,19 +74,11 @@ public class UnpaywallStep extends AbstractProcessingStep
             {
                 if (StringUtils.isNotBlank(item.getMetadata(metadataDOI)))
                 {
-                    unpaywall = unpaywallService.internalCall(item.getMetadata(metadataDOI));
+               		unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI));
                     unpaywall.setResourceID(item.getID());
 
-                    // 5* deve caricare il pdf recuperato da unpaywall : creare
-                    // un
-                    // bitstream dall'inputstream generato dalla url(pdf) e
-                    // creare
-                    // un bundle "ORIGINAL"
-                    // ed aggiungere a questo bundle il file
-
                     GetMethod method = new GetMethod(
-                            unpaywall.getUnpaywallRecord().getUnpaywallBestOA()
-                                    .getUrl_for_pdf());
+                    		unpaywall.getUnpaywallJsonString());
                     HttpClient client = new HttpClient();
                     client.executeMethod(method);
                     InputStream is = method.getResponseBodyAsStream();
@@ -103,12 +92,10 @@ public class UnpaywallStep extends AbstractProcessingStep
                     {
                         bundle = item.createBundle("ORIGINAL");
                     }
-                    bundle.createBitstream(is);
-                    item.addBundle(bundle);
-                    item.update();
+                  bundle.createBitstream(is);
+                  item.addBundle(bundle);
+                  item.update();
                 }
-                // SCARICARE FILE DA URL (URL_FOR_PDF) E CARICARLO SULL'ITEM NEL
-                // BUNDLE "ORIGINAL"
 
             }
             catch (HttpException e1)
