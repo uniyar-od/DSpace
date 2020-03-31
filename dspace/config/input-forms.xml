@@ -234,6 +234,9 @@ it, please enter the types and the actual numbers or codes.</hint>
          <required></required>
        </field>
 
+     </page>
+
+     <page number="2">
 		<!-- the refterms.panel is not mandatory when REF is disabled, please comment in -->
         <field>
           <dc-schema>refterms</dc-schema>
@@ -245,11 +248,8 @@ it, please enter the types and the actual numbers or codes.</hint>
           <input-type value-pairs-name="refterms_panels">dropdown</input-type>
           <hint>aspect.submission.StepTransformer.field.refterms.panel.hint</hint>
           <required></required>
-        </field>
-
-     </page>
-
-     <page number="2">
+        </field>     
+     
        <field>
          <dc-schema>dc</dc-schema>
          <dc-element>subject</dc-element>
