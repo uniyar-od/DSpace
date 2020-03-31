@@ -21,6 +21,11 @@ public class UnpaywallPersistenceService extends PersistenceService
         return unpaywallDAO.uniqueByDOI(DOI);
     }
 
+    public Unpaywall uniqueByDOIAndItemID(String DOI, Integer ID)
+    {
+        return unpaywallDAO.uniqueByDOIAndItemID(DOI, ID);
+    }
+    
     @Override
     public void evict(Identifiable identifiable)
     {

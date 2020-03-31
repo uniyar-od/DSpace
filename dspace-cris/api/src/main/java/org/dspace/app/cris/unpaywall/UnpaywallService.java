@@ -94,9 +94,9 @@ public class UnpaywallService
      * @param doi The DOI
      * @throws HttpException
      */
-    public Unpaywall searchByDOI(String doi) throws HttpException
+    public Unpaywall searchByDOI(String doi, Integer id) throws HttpException
     {
-    	return searchByDOI(doi, true);
+    	return searchByDOI(doi, id, true);
     }
     
     /**
@@ -105,20 +105,20 @@ public class UnpaywallService
      * @param useCache Whether to use the local cache
      * @throws HttpException
      */
-    public Unpaywall searchByDOI(String doi, Boolean useCache) throws HttpException
+    public Unpaywall searchByDOI(String doi, Integer id, Boolean useCache) throws HttpException
     {
         Long cacheTime = ConfigurationManager.getLongProperty("unpaywall",
                 "cachetime") * 1000;
 
         Unpaywall unpaywall = null;
 
-        if (StringUtils.isBlank(doi))
+        if (StringUtils.isBlank(doi) || id == null)
         {
-            log.warn("trying to call unpaywall service with blank or null DOI");
+            log.warn("trying to call unpaywall service with blank or null DOI/ID");
             return null;
         }
         
-        unpaywall = getUnpaywallPersistenceService().uniqueByDOI(doi);
+        unpaywall = getUnpaywallPersistenceService().uniqueByDOIAndItemID(doi, id);
 
         if (!useCache && unpaywall != null) {
         	return callAndUpdate(unpaywall);
@@ -127,7 +127,7 @@ public class UnpaywallService
         // If nothing is found locally call the service and exit
         if (unpaywall == null)
         {
-            return makeCall(doi);
+            return makeCall(doi, id);
         }
         
         
@@ -162,10 +162,10 @@ public class UnpaywallService
     	return unpaywall;
 	}
     
-    private Unpaywall makeCall(String doi) throws HttpException {
+    private Unpaywall makeCall(String doi, Integer id) throws HttpException {
     	
     	String jsonString = unpaywallCall(doi);
-    	Unpaywall unpaywall = UnpaywallUtils.makeUnpaywall(jsonString);
+    	Unpaywall unpaywall = UnpaywallUtils.makeUnpaywall(jsonString, id);
     	
         getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
         return unpaywall;

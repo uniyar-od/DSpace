@@ -11,8 +11,8 @@ public class UnpaywallTest
     {
         UnpaywallService service = new UnpaywallService();
 
-//        Unpaywall unpaywall = service.searchByDOI("10.1038/nature12373", false);
-        Unpaywall unpaywall = service.searchByDOI("10.1038/nature12373");
+//        Unpaywall unpaywall = service.searchByDOI("10.1038/nature12373", 3, false);
+        Unpaywall unpaywall = service.searchByDOI("10.1038/nature12373", 3);
         UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
         UnpaywallBestOA unpaywallBestOA = rec.getUnpaywallBestOA();
         UnpaywallOA[] unpOAA = rec.getUnpaywallOA();

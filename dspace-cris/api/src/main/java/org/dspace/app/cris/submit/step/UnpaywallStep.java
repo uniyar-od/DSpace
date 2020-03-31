@@ -19,7 +19,9 @@ import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpException;
+import org.dspace.app.cris.unpaywall.UnpaywallRecord;
 import org.dspace.app.cris.unpaywall.UnpaywallService;
+import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.authorize.AuthorizeException;
@@ -74,11 +76,13 @@ public class UnpaywallStep extends AbstractProcessingStep
             {
                 if (StringUtils.isNotBlank(item.getMetadata(metadataDOI)))
                 {
-               		unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI));
-                    unpaywall.setResourceID(item.getID());
+               		unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI), item.getID());
 
+               		UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
+               		
                     GetMethod method = new GetMethod(
-                    		unpaywall.getUnpaywallJsonString());
+                    		record.getUnpaywallBestOA()
+                    				.getUrl_for_pdf());
                     HttpClient client = new HttpClient();
                     client.executeMethod(method);
                     InputStream is = method.getResponseBodyAsStream();

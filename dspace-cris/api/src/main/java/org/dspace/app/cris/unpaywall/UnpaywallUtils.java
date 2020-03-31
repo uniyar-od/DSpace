@@ -69,7 +69,7 @@ public class UnpaywallUtils {
         return unpaywallRecord;
     }
 
-    public static Unpaywall makeUnpaywall(String source)
+    public static Unpaywall makeUnpaywall(String source, Integer id)
     {
     	Unpaywall destination = new Unpaywall();
     	JSONObject obj = convertUnpaywallStringToJson(source);
@@ -77,6 +77,7 @@ public class UnpaywallUtils {
     	destination.setTimeStampInfo(new TimeStampInfo());
         destination.setDOI(obj.optString("doi"));
         destination.setUnpaywallJsonString(source);
+        destination.setItem_id(id);
         
         return destination;
     }

@@ -7,5 +7,7 @@ import it.cilea.osd.common.dao.PaginableObjectDao;
 public interface UnpaywallDAO extends PaginableObjectDao<Unpaywall, Integer> {
     
     public Unpaywall uniqueByDOI(String DOI);
+    
+    public Unpaywall uniqueByDOIAndItemID(String DOI, Integer ItemID);
 
 }
