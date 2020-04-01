@@ -10,10 +10,13 @@ package org.dspace.app.cris.unpaywall.script;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.mail.MessagingException;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -44,6 +47,7 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
@@ -78,7 +82,7 @@ public class UnpaywallScript {
     private static int MAX_QUERY_RESULTS = 50;
 
     public static void main(String[] args)
-            throws SearchServiceException, SQLException, AuthorizeException, ParseException, IOException {
+            throws SearchServiceException, SQLException, AuthorizeException, ParseException, IOException, MessagingException {
 
     	context = new Context();
     	
@@ -94,7 +98,7 @@ public class UnpaywallScript {
                 "Override the default query to retrieve puntual publication (used for test scope, the default query will be deleted");
         
         options.addOption("m", "mail", true,
-                "send dem mails");
+                "Sena a mail notification to the selected user group (ex: \"authors\" or \"administrators\")");
 
         options.addOption("f", "nofulltext", true,
         		"Call Unpaywall Service for every item without fulltext");
@@ -111,19 +115,66 @@ public class UnpaywallScript {
             System.exit(0);
         }
 
-        DSpace dspace = new DSpace();
-        int itemWorked = 0;
-        int itemForceWorked = 0;
+        
 
-        if (line.hasOption('q')) {
-            queryDefault = line.getOptionValue('q').trim();
-        }
 
         if (line.hasOption('t')) {
             cacheTime  = Long.valueOf(line.getOptionValue('t').trim()) * 1000; // option
                                                                                 // is
                                                                                 // in
                                                                                 // seconds
+        }
+        if (line.hasOption('q')) {
+        	
+        	DSpace dspace = new DSpace();
+            int itemWorked = 0;
+            int itemForceWorked = 0;
+        	
+        	queryDefault = line.getOptionValue('q').trim();
+        	
+        	ServiceManager serviceManager = dspace.getServiceManager();
+
+            searcher = serviceManager.getServiceByName(SearchService.class.getName(), SearchService.class);
+
+            pService = serviceManager.getServiceByName(UnpaywallPersistenceService.class.getName(),
+                    UnpaywallPersistenceService.class);
+
+            sService = serviceManager.getServiceByName(UnpaywallService.class.getName(), UnpaywallService.class);
+
+            Context context = null;
+            long resultsTot = -1;
+            try {
+                context = new Context();
+                context.turnOffAuthorisationSystem();
+                all: for (int page = 0;; page++) {
+                    int start = page * MAX_QUERY_RESULTS;
+                    if (resultsTot != -1 && start >= resultsTot) {
+                        break all;
+                    }
+                    if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
+                        break all;
+
+                    // get all items that contains DOI 
+                    DiscoverQuery query = new DiscoverQuery();
+                    query.setStart(start);
+                    query.setQuery(queryDefault);
+                    query.setDSpaceObjectFilter(Constants.ITEM);
+                    
+                    DiscoverResult qresp = searcher.search(context, query);
+                    resultsTot = qresp.getTotalSearchResults();
+
+                    context.commit();
+                    context.clearCache();
+                }
+            } catch (Exception ex) {
+                log.error(ex.getMessage(), ex);
+            } finally {
+
+                if (context != null && context.isValid()) {
+                    context.abort();
+                }
+            }
+        	
         }
         if(line.hasOption('f')) {
         	updateUnpaywallCiting();
@@ -133,52 +184,6 @@ public class UnpaywallScript {
         	removeFromUnpaywall();
         	
         }
-        
-        /*
-        
-        ServiceManager serviceManager = dspace.getServiceManager();
-
-        searcher = serviceManager.getServiceByName(SearchService.class.getName(), SearchService.class);
-
-        pService = serviceManager.getServiceByName(UnpaywallPersistenceService.class.getName(),
-                UnpaywallPersistenceService.class);
-
-        sService = serviceManager.getServiceByName(UnpaywallService.class.getName(), UnpaywallService.class);
-
-        Context context = null;
-        long resultsTot = -1;
-        try {
-            context = new Context();
-            context.turnOffAuthorisationSystem();
-            all: for (int page = 0;; page++) {
-                int start = page * MAX_QUERY_RESULTS;
-                if (resultsTot != -1 && start >= resultsTot) {
-                    break all;
-                }
-                if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
-                    break all;
-
-                // get all items that contains DOI 
-                DiscoverQuery query = new DiscoverQuery();
-                query.setStart(start);
-                query.setQuery(queryDefault);
-                query.setDSpaceObjectFilter(Constants.ITEM);
-                
-                DiscoverResult qresp = searcher.search(context, query);
-                resultsTot = qresp.getTotalSearchResults();
-
-                context.commit();
-                context.clearCache();
-            }
-        } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-        } finally {
-
-            if (context != null && context.isValid()) {
-                context.abort();
-            }
-        }
-     */
         
         
         if (line.hasOption('m')) {
@@ -190,17 +195,17 @@ public class UnpaywallScript {
         }
     }
     
-    private static void notifyUsers(String option) throws SearchServiceException, SQLException, IOException {
+    private static void notifyUsers(String option) throws SearchServiceException, SQLException, IOException, MessagingException {
 		
-        SolrDocumentList docList = query1();
+        SolrDocumentList docList = getUserListFromSOLR();
         
-        Map<String, Integer> researcherList = new HashMap<>();
+        Map<Integer, String> researcherList = new HashMap<>();
         
         if (docList.size() > 0)
         {
         	for (SolrDocument result : docList) {
         		
-        		researcherList.put(result.getFieldValue("cris-id").toString(), (Integer) result.getFieldValue("owner_i"));
+        		researcherList.put((Integer) result.getFieldValue("owner_i"), result.getFieldValue("cris-id").toString());
         		
         	}
         }else {
@@ -208,57 +213,59 @@ public class UnpaywallScript {
 		}        
         
         
-        Map<String, Map<Integer, String>> itemIdMap = new HashMap<>();
-        List<String> res = new ArrayList<>(researcherList.keySet());
+        Map<Integer, Map<Integer, Map<String, String>>> itemMap = new HashMap<>();
+        List<Integer> res = new ArrayList<>(researcherList.keySet());
         
         for (int i = 0; i < res.size(); i++) {
 			
-        	String currResearcher = res.get(i);
-        	docList = query2(currResearcher);
+        	String currResearcher = researcherList.get(res.get(i));
+        	docList = getItemListFromSolr(currResearcher);
             
             if (docList.size() > 0)
             {
             	for (SolrDocument result : docList) {
-            		
-            		Object value = result.getFieldValue("dc.identifier.doi");
-            		
-            		if (value != null && StringUtils.isNotBlank(value.toString())) {
-						if(itemIdMap.get(currResearcher) == null) {
-							
-							Map<Integer, String> tempMap = new HashMap<>();
-							tempMap.put((Integer) result.getFieldValue("search.resourceid"), 
-										result.getFieldValue("dc.identifier.doi").toString());
-							itemIdMap.put(res.get(i).toString(), tempMap);
-							
-						}else {
-							
-							itemIdMap.get(currResearcher)
-										.put(
-											(Integer) result.getFieldValue("search.resourceid"), 
-											result.getFieldValue("dc.identifier.doi").toString()
-												);
-							
-						}
-					}
+            		if(itemMap.get(res.get(i)) == null) {
+
+            			Map<Integer, Map<String, String>> tempMap = new HashMap<>();
+            			Map<String, String> tempMap2 = new HashMap<>();
+            			
+            			tempMap2.put("doi", StringUtils.strip(result.getFieldValue("dc.identifier.doi").toString(), "[]"));
+            			tempMap2.put("handle", result.getFieldValue("handle").toString());
+            			tempMap.put((Integer) result.getFieldValue("search.resourceid"), 
+            					tempMap2);
+            			itemMap.put(res.get(i), tempMap);
+
+            		}else {
+            			Map<String, String> tempMap2 = new HashMap<>();
+            			
+            			tempMap2.put("doi", StringUtils.strip(result.getFieldValue("dc.identifier.doi").toString(), "[]"));
+            			tempMap2.put("handle", result.getFieldValue("handle").toString());
+            			itemMap.get(res.get(i))
+            					.put(
+            							(Integer) result.getFieldValue("search.resourceid"), 
+            							tempMap2);
+
+            		}
             	}
+            	
             }else {
             	
-				researcherList.remove(currResearcher);
+				researcherList.remove(res.get(i));
 				
 			}
 		}
         
-        if(itemIdMap.isEmpty())
+        if(itemMap.isEmpty())
         {
         	return;
         }
         
         UnpaywallService unpaywallService = new UnpaywallService();
         Map<Integer, Unpaywall> foundUnpaywalls = new HashMap<>();
-        for(String researcher : itemIdMap.keySet())
+        for(Integer eper : itemMap.keySet())
         {
         	
-        	Map<Integer, String> tempMap = itemIdMap.get(researcher);
+        	Map<Integer, Map<String, String>> tempMap = itemMap.get(eper);
         	for (Integer id : tempMap.keySet()) {
         		
         		if(foundUnpaywalls.containsKey(id))
@@ -266,7 +273,7 @@ public class UnpaywallScript {
         			continue;
         		}
         		
-        		String doi = tempMap.get(id);
+        		String doi = tempMap.get(id).get("doi");
         		Unpaywall unpaywall = unpaywallService.getUnpaywallPersistenceService().uniqueByDOIAndItemID(doi, id);
         		
         		if(unpaywall == null)
@@ -279,11 +286,15 @@ public class UnpaywallScript {
 			}
         }
         
+        if (foundUnpaywalls.isEmpty()) {
+			return;
+		}
+        
     	if(StringUtils.equals(option, "authors"))
     	{
     		
     		List<EPerson> ePersonList = new ArrayList<>();
-    		for (Integer id : researcherList.values()) {
+    		for (Integer id : researcherList.keySet()) {
     			
     			ePersonList.add(EPerson.find(context, id));
     			
@@ -291,7 +302,7 @@ public class UnpaywallScript {
     		
     		for (EPerson ePerson : ePersonList) {
 				
-    			Email mail = Email.getEmail("unpaywall_alert");
+    			Email mail = getUnpaywallMailTemplate();
     			String email = ePerson.getEmail();
     			
     			if (StringUtils.isBlank(email)) {
@@ -299,34 +310,94 @@ public class UnpaywallScript {
 				}
     			
     			mail.addRecipient(email);
-//    			mail.addArgument(arg);
-    			//finish building mail
+    			
+    			Map<Integer, Map<String, String>> tempMap = itemMap.get(ePerson.getID());
+    			
+
+    	    	StringBuilder stringBuilder = new StringBuilder();
+    			String itemString = makeItemListBuilder(stringBuilder, tempMap, foundUnpaywalls, 0).toString();
+    			
+    			if (StringUtils.isBlank(itemString)) {
+    				continue;
+				}
+    			
+    			mail.addArgument(itemString);
+    			System.out.println("Sending mail to: " + email);
+    			mail.send();
     			
 			}
     		
-    		mailToAuthors();
-    		
     	}
     	
-    	if(StringUtils.equals(option, "administrators"))
+    	if(StringUtils.equals(option, "administrators") || StringUtils.isBlank(option))
     	{
     	
+    		List<EPerson> ePersonList = Arrays.asList(Group.allMembers(context, 
+    											Group.find(context, Group.ADMIN_ID)));
     		
-    		Email mail = new Email();
+    		for (EPerson ePerson : ePersonList) {
+				
+        		Email mail = getUnpaywallMailTemplate();
+        		String email = ePerson.getEmail();
+        		
+        		if (StringUtils.isBlank(email)) {
+					continue;
+				}
+    			
+    			mail.addRecipient(email);
+    			List<Map<Integer, Map<String, String>>> tempList = new ArrayList<>(itemMap.values());
+    			StringBuilder stringBuilder = new StringBuilder();
+    			Integer i = 0;
+    			
+    			for (Map<Integer, Map<String, String>> tempMap : tempList) {
+    				
+    				stringBuilder = makeItemListBuilder(stringBuilder, tempMap, foundUnpaywalls, i);
+    				
+				}
+    			
+    			String itemString = stringBuilder.toString();
+    			
+    			if (StringUtils.isBlank(itemString)) {
+    				continue;
+				}
+    			
+    			mail.addArgument(itemString);
+    			System.out.println("Sending mail to: " + email);
+    			mail.send();
+    			
+			}
     		
-    		//finish building email
-    		
-    		mailToAdmin(option);
     	}
     	
 	}
     
-    private static SolrDocumentList query1() throws SearchServiceException
+    private static Email getUnpaywallMailTemplate() throws IOException
+    {
+    	return Email.getEmail(ConfigurationManager.getProperty("dspace.dir") + "/config/emails/" + ConfigurationManager.getProperty("unpaywall", "script.email_template.name"));
+    }
+    
+    private static StringBuilder makeItemListBuilder(StringBuilder stringBuilder, Map<Integer, Map<String, String>> itemMap, Map<Integer, Unpaywall> unpaywalls, Integer index) {
+    	
+		for (Integer itemId : itemMap.keySet()) {
+			if (unpaywalls.get(itemId) != null) {
+				
+				index++;
+				String handle = itemMap.get(itemId).get("handle");
+				stringBuilder.append(index).append(". ");
+				stringBuilder.append("DOI: ").append(itemMap.get(itemId).get("doi")).append(" - ");
+				stringBuilder.append("Link: ").append(ConfigurationManager.getProperty("dspace.url")).append("handle/").append(handle).append(" \n");
+				
+			}
+		}
+		
+		return stringBuilder;
+	}
+    
+    private static SolrDocumentList getUserListFromSOLR() throws SearchServiceException
     {
     	
     	SolrQuery query = new SolrQuery();
-        query.setRequestHandler("/select");
-        query.setRows(10000);
+    	query.setRows(Integer.MAX_VALUE);
         
         query.setQuery("search.resourcetype:9");
         
@@ -344,23 +415,23 @@ public class UnpaywallScript {
     	
     }
     
-    private static SolrDocumentList query2(String id) throws SearchServiceException
+    private static SolrDocumentList getItemListFromSolr(String id) throws SearchServiceException
     {
     	
     	SolrQuery query = new SolrQuery();
-        query.setRequestHandler("/select");
-        query.setRows(10000);
+        query.setRows(Integer.MAX_VALUE);
         
         query.setQuery("search.resourcetype:2");
         
         query.addField("search.resourceid");
         query.addField("dc.identifier.doi");
+        query.addField("handle");
         
         query.addFilterQuery("author_authority:\"" + id + "\"");
         query.addFilterQuery("dc.identifier.doi:[* TO *]");
         String fulltext = I18nUtil
-    			.getMessage("defaultvalue.fulltextdescription.nofulltext");  //TODO Does not do a exact match??
-        query.addFilterQuery("item.fulltext:\"" + fulltext + "\"");
+    			.getMessage("defaultvalue.fulltextdescription.nofulltext");
+        query.addFilterQuery("infofulltext_keyword:\"" + fulltext + "\"");
         
         //execute and parse the query
         SearchService searcher = new DSpace().getServiceManager()
@@ -370,18 +441,6 @@ public class UnpaywallScript {
         return qResp.getResults();
     	
     }
-    
-    private static void mailToAdmin(String option) {
-		
-    	
-    	
-	}
-    
-    private static void mailToAuthors() {
-		
-    	
-    	
-	}
     
     private static void updateUnpaywallCiting() throws SearchServiceException{
 
