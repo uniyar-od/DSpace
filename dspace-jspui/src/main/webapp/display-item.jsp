@@ -217,6 +217,22 @@ j(document).ready(function() {
 			}
 		});
 	<% } %> 
+	j.ajax({
+		url : "<%=request.getContextPath()%>/json/unpaywall",
+		data : {																			
+			"itemid" : <%= item.getID()%>,
+		},
+		success : function(data) {
+			if(data.iTotalDisplayRecords==0) {
+				j('div.unpaywall').hide();
+			}
+			else {
+				j('#unpaywalljson').attr('href', data.urlJSON');
+			}			
+		},
+		error : function(data) {
+		}
+	});
 	<% 
 		if(StringUtils.isNotBlank(crisID)) {
 	%>
@@ -713,6 +729,23 @@ if (dedupEnabled && admin_button) { %>
 	</div>
 	<div class="media-body media-middle text-center">
 		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.altmetric"/></h4>
+	</div>
+</div>
+</div>
+<% } 
+  if(altMetricDimensionsEnabled/*unpaywall*/) { %>
+<div class="col-lg-12 col-md-4 col-sm-6">
+<div class="unpaywall">
+	<div class="media-left">
+      	<fmt:message key="jsp.display-item.citation.unpaywawll.icon">
+			<fmt:param value="<%=request.getContextPath()%>" />
+		</fmt:message>
+	</div>
+	<div id="unpaywallCitedResult" class="media-body text-center">
+		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.unpaywall"/></h4>
+		
+		
+   		    <span class="metric-counter"><a id="unpaywalljson" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.citation.unpaywall.tooltip"/>" href="https://scholar.google.com/scholar?as_q=&as_epq=<%= title %>&as_occt=any"><fmt:message key="jsp.display-item.citation.unpaywall.check"/></a></span>
 	</div>
 </div>
 </div>

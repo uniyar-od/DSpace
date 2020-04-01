@@ -391,7 +391,7 @@ public class UnpaywallScript {
     	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                 "metadata.doi");
     	
-    	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+fulltext);
+    	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+fulltext+"\"");
 		QueryResponse qResp = searcher.search(sQuery);
 		
 		if (qResp.getResults() != null) {
@@ -406,11 +406,14 @@ public class UnpaywallScript {
     }
     
     private static void removeFromUnpaywall(){
-
+    	
+    	String nofulltext = I18nUtil
+    			.getMessage("defaultvalue.fulltextdescription.nofulltext");
+    	
     	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                 "metadata.doi");
     	
-    	SolrQuery sQuery = new SolrQuery("!item.fulltext:*");
+    	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+nofulltext+"\"");
 		QueryResponse qResp;
 		try {
 			qResp = searcher.search(sQuery);
@@ -418,7 +421,8 @@ public class UnpaywallScript {
 			SolrDocumentList solrDocList = qResp.getResults();
 			for(SolrDocument result : solrDocList) {
 				String doiValue = result.getFieldValue(metadataDOI).toString();
-				sService.searchByDOI(doiValue);
+				int itemID = (int)result.getFieldValue("search.resourceid");
+				sService.searchByDOI(doiValue, itemID);
 				}
 			}
 		} catch (SearchServiceException | HttpException e) {
