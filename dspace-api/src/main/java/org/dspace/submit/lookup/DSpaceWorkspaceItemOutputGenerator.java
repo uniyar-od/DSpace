@@ -329,10 +329,11 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
 	        	int schemaID = schema.getSchemaID();
 	        	MetadataField foundField = MetadataField.findByElement(context, schemaID, md[1], md[2]);
 	            if(foundField != null) {
-	            
+	           
+     		            int range = StringUtils.isNotBlank(md[2])? 3:2; 
 		            if (extraMetadataToKeep != null
 		                    && extraMetadataToKeep.contains(StringUtils.join(
-		                            Arrays.copyOfRange(md, 0, 3), ".")))
+		                            Arrays.copyOfRange(md, 0, range), ".")))
 		            {
 		                return true;
 		            }
