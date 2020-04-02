@@ -115,6 +115,7 @@ public class Authenticate
         String originalURL = (String) session
                 .getAttribute("interrupted.request.url");
 
+        
         if (originalURL == null)
         {
             // If for some reason we don't have the original URL, redirect
@@ -125,6 +126,7 @@ public class Authenticate
         {
             // Set the flag in the session, so that when the redirect is
             // followed, we'll know to resume the interrupted request
+        	originalURL =UIUtil.checkRedirectURL(originalURL);
             session.setAttribute("resuming.request", Boolean.TRUE);
         }
 
