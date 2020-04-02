@@ -234,6 +234,7 @@ public class UIUtil extends Util
     {
         String orig = (String) request.getAttribute("dspace.original.url");
 
+        String repoURL = ConfigurationManager.getProperty("dspace.url");
         if (orig == null)
         {
             String fullURL = request.getRequestURL().toString();
@@ -242,9 +243,32 @@ public class UIUtil extends Util
             {
                 fullURL = fullURL + "?" + request.getQueryString();
             }
-
-            request.setAttribute("dspace.original.url", fullURL);
+            orig =fullURL;
+            
+        }else {
+        	orig = checkRedirectURL(orig);
         }
+        
+        
+        request.setAttribute("dspace.original.url", orig);
+    }
+    
+    /**
+     *  Controls the url starts with repository URL
+     *  if dspaceurl is returned
+     * 
+     * @param url
+     * 			the string url to check
+     * 
+     * @return the url to redirect
+     */
+    public static String checkRedirectURL(String url) {
+    	String repoURL = ConfigurationManager.getProperty("dspace.url");
+		if(!StringUtils.startsWith(url,repoURL)) {
+			log.warn("Attempting redirect to: "+ url +"redirecting to base URL instead");
+			url= repoURL;
+		}
+		return url;
     }
 
     /**
