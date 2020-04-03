@@ -72,67 +72,69 @@ import org.dspace.handle.HandleManager;
 import org.dspace.util.SimpleMapConverter;
 import org.dspace.utils.DSpace;
 import org.joda.time.DateTime;
-import org.orcid.jaxb.model.common_v2.Amount;
-import org.orcid.jaxb.model.common_v2.ContributorEmail;
-import org.orcid.jaxb.model.common_v2.CreditName;
-import org.orcid.jaxb.model.common_v2.CurrencyCode;
-import org.orcid.jaxb.model.common_v2.ExternalId;
-import org.orcid.jaxb.model.common_v2.ExternalIds;
-import org.orcid.jaxb.model.common_v2.FuzzyDate;
-import org.orcid.jaxb.model.common_v2.FuzzyDate.Day;
-import org.orcid.jaxb.model.common_v2.FuzzyDate.Month;
-import org.orcid.jaxb.model.common_v2.FuzzyDate.Year;
-import org.orcid.jaxb.model.common_v2.Iso3166Country;
-import org.orcid.jaxb.model.common_v2.LanguageCode;
-import org.orcid.jaxb.model.common_v2.OrcidId;
-import org.orcid.jaxb.model.common_v2.Organization;
-import org.orcid.jaxb.model.common_v2.OrganizationAddress;
-import org.orcid.jaxb.model.common_v2.RelationshipType;
-import org.orcid.jaxb.model.common_v2.TranslatedTitle;
-import org.orcid.jaxb.model.common_v2.Url;
-import org.orcid.jaxb.model.record_v2.Address;
-import org.orcid.jaxb.model.record_v2.AddressType;
-import org.orcid.jaxb.model.record_v2.Addresses;
-import org.orcid.jaxb.model.record_v2.Citation;
-import org.orcid.jaxb.model.record_v2.CitationType;
-import org.orcid.jaxb.model.record_v2.Contributor;
-import org.orcid.jaxb.model.record_v2.ContributorAttributes;
-import org.orcid.jaxb.model.record_v2.ContributorRole;
-import org.orcid.jaxb.model.record_v2.ContributorSequence;
-import org.orcid.jaxb.model.record_v2.Education;
-import org.orcid.jaxb.model.record_v2.EducationSummary;
-import org.orcid.jaxb.model.record_v2.Educations;
-import org.orcid.jaxb.model.record_v2.Employment;
-import org.orcid.jaxb.model.record_v2.EmploymentSummary;
-import org.orcid.jaxb.model.record_v2.Employments;
-import org.orcid.jaxb.model.record_v2.ExternalIdentifier;
-import org.orcid.jaxb.model.record_v2.ExternalIdentifiers;
-import org.orcid.jaxb.model.record_v2.Funding;
-import org.orcid.jaxb.model.record_v2.FundingContributor;
-import org.orcid.jaxb.model.record_v2.FundingContributorAttributes;
-import org.orcid.jaxb.model.record_v2.FundingContributorRole;
-import org.orcid.jaxb.model.record_v2.FundingContributors;
-import org.orcid.jaxb.model.record_v2.FundingGroup;
-import org.orcid.jaxb.model.record_v2.FundingSummary;
-import org.orcid.jaxb.model.record_v2.FundingTitle;
-import org.orcid.jaxb.model.record_v2.FundingType;
-import org.orcid.jaxb.model.record_v2.Fundings;
-import org.orcid.jaxb.model.record_v2.Keyword;
-import org.orcid.jaxb.model.record_v2.KeywordType;
-import org.orcid.jaxb.model.record_v2.Keywords;
-import org.orcid.jaxb.model.record_v2.OtherName;
-import org.orcid.jaxb.model.record_v2.OtherNameType;
-import org.orcid.jaxb.model.record_v2.OtherNames;
-import org.orcid.jaxb.model.record_v2.ResearcherUrl;
-import org.orcid.jaxb.model.record_v2.ResearcherUrlType;
-import org.orcid.jaxb.model.record_v2.ResearcherUrls;
-import org.orcid.jaxb.model.record_v2.Work;
-import org.orcid.jaxb.model.record_v2.WorkContributors;
-import org.orcid.jaxb.model.record_v2.WorkGroup;
-import org.orcid.jaxb.model.record_v2.WorkSummary;
-import org.orcid.jaxb.model.record_v2.WorkTitle;
-import org.orcid.jaxb.model.record_v2.WorkType;
-import org.orcid.jaxb.model.record_v2.Works;
+import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.common_v3.Amount;
+import org.orcid.jaxb.model.common_v3.ContributorEmail;
+import org.orcid.jaxb.model.common_v3.CreditName;
+import java.util.Currency;
+import org.orcid.jaxb.model.common_v3.ExternalId;
+import org.orcid.jaxb.model.common_v3.ExternalIds;
+import org.orcid.jaxb.model.common_v3.FuzzyDate;
+import org.orcid.jaxb.model.common_v3.FuzzyDate.Day;
+import org.orcid.jaxb.model.common_v3.FuzzyDate.Month;
+import org.orcid.jaxb.model.common_v3.FuzzyDate.Year;
+import org.orcid.jaxb.model.common_v3.OrcidId;
+import org.orcid.jaxb.model.common_v3.Organization;
+import org.orcid.jaxb.model.common_v3.OrganizationAddress;
+import org.orcid.jaxb.model.common_v3.TranslatedTitle;
+import org.orcid.jaxb.model.common_v3.Url;
+import org.orcid.jaxb.model.record_v3.Address;
+import org.orcid.jaxb.model.record_v3.AddressType;
+import org.orcid.jaxb.model.record_v3.Addresses;
+import org.orcid.jaxb.model.record_v3.AffiliationGroup;
+import org.orcid.jaxb.model.record_v3.Citation;
+import org.orcid.jaxb.model.utils.CitationType;
+import org.orcid.jaxb.model.utils.Iso3166Country;
+import org.orcid.jaxb.model.utils.LanguageCode;
+import org.orcid.jaxb.model.utils.Relationship;
+import org.orcid.jaxb.model.record_v3.Contributor;
+import org.orcid.jaxb.model.record_v3.ContributorAttributes;
+import org.orcid.jaxb.model.utils.ContributorRole;
+import org.orcid.jaxb.model.record_v3.ContributorSequence;
+import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.common_v3.AffiliationSummary;
+import org.orcid.jaxb.model.record_v3.Educations;
+import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.common_v3.AffiliationSummary;
+import org.orcid.jaxb.model.record_v3.Employments;
+import org.orcid.jaxb.model.record_v3.ExternalIdentifier;
+import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
+import org.orcid.jaxb.model.record_v3.Funding;
+import org.orcid.jaxb.model.record_v3.FundingContributor;
+import org.orcid.jaxb.model.record_v3.FundingContributorAttributes;
+import org.orcid.jaxb.model.utils.FundingContributorRole;
+import org.orcid.jaxb.model.record_v3.FundingContributors;
+import org.orcid.jaxb.model.record_v3.FundingGroup;
+import org.orcid.jaxb.model.record_v3.FundingSummary;
+import org.orcid.jaxb.model.record_v3.FundingTitle;
+import org.orcid.jaxb.model.utils.FundingType;
+import org.orcid.jaxb.model.record_v3.Fundings;
+import org.orcid.jaxb.model.record_v3.Keyword;
+import org.orcid.jaxb.model.record_v3.KeywordType;
+import org.orcid.jaxb.model.record_v3.Keywords;
+import org.orcid.jaxb.model.record_v3.OtherName;
+import org.orcid.jaxb.model.record_v3.OtherNameType;
+import org.orcid.jaxb.model.record_v3.OtherNames;
+import org.orcid.jaxb.model.record_v3.ResearcherUrl;
+import org.orcid.jaxb.model.record_v3.ResearcherUrlType;
+import org.orcid.jaxb.model.record_v3.ResearcherUrls;
+import org.orcid.jaxb.model.record_v3.Work;
+import org.orcid.jaxb.model.record_v3.WorkContributors;
+import org.orcid.jaxb.model.record_v3.WorkGroup;
+import org.orcid.jaxb.model.record_v3.WorkSummary;
+import org.orcid.jaxb.model.record_v3.WorkTitle;
+import org.orcid.jaxb.model.utils.WorkType;
+import org.orcid.jaxb.model.record_v3.Works;
 
 import it.cilea.osd.common.core.SingleTimeStampInfo;
 import it.cilea.osd.jdyna.value.BooleanValue;
@@ -465,7 +467,7 @@ public class PushToORCID
         {
             for (WrapperEducation wrapperEducation : wrapperEducations)
             {
-                Education education = wrapperEducation.getEducation();
+                Affiliation education = wrapperEducation.getEducation();
                 String value = "";
                 if(education.getOrganization()!=null) {
                     value += education.getOrganization().getName();
@@ -496,7 +498,7 @@ public class PushToORCID
         {
             for (WrapperEmployment wrapperEmployment : wrapperEmployments)
             {
-                Employment employment = wrapperEmployment.getEmployment();
+                Affiliation employment = wrapperEmployment.getEmployment();
                 String value = "";
                 if(employment.getOrganization()!=null) {
                     value += employment.getOrganization().getName();
@@ -686,11 +688,11 @@ public class PushToORCID
                             break;
                         case OrcidService.CONSTANT_EMPLOYMENT_UUID:
                             putCode = orcidService.appendEmployment(orcid, token,
-                                    (Employment) partOfResearcher);
+                                    (Affiliation) partOfResearcher);
                             break;
                         case OrcidService.CONSTANT_EDUCATION_UUID:
                             putCode = orcidService.appendEducation(orcid, token,
-                                    (Education) partOfResearcher);
+                                    (Affiliation) partOfResearcher);
                             break;                               
                         }
                         orcidHistory.setPutCode(putCode);
@@ -749,14 +751,14 @@ public class PushToORCID
                                 keyword);
                         break;
                     case OrcidService.CONSTANT_EMPLOYMENT_UUID:
-                        Employment employment = (Employment) partOfResearcher;
+                        Affiliation employment = (Affiliation) partOfResearcher;
                         employment.setPutCode(
                                 new BigInteger(putCode));
                         status = orcidService.putEmployment(orcid, token, putCode,
                                 employment);
                         break;
                     case OrcidService.CONSTANT_EDUCATION_UUID:
-                        Education education = (Education) partOfResearcher;
+                        Affiliation education = (Affiliation) partOfResearcher;
                         education.setPutCode(
                                 new BigInteger(putCode));
                         status = orcidService.putEducation(orcid, token, putCode,
@@ -1449,18 +1451,16 @@ public class PushToORCID
         if (StringUtils.isNotBlank(itemMetadata.getAmount()))
         {
             Amount amount = new Amount();
-            CurrencyCode currencyCode = CurrencyCode.EUR;
+            Currency currencyCode = Currency.getInstance("EUR");
             String amountCurrencyCode = itemMetadata.getAmountCurrencyCode();
             if(StringUtils.isNotBlank(amountCurrencyCode)) {
-                currencyCode = CurrencyCode.fromValue(amountCurrencyCode);
+                currencyCode = Currency.getInstance(amountCurrencyCode);
             }
             amount.setValue(itemMetadata.getAmount());
-            amount.setCurrencyCode(currencyCode);
+            amount.setCurrencyCode(currencyCode.getCurrencyCode());
             funding.setAmount(amount);
         }
 
-        DecimalFormat dateMonthAndDayFormat = new DecimalFormat("00");
-        
         if (StringUtils.isNotBlank(itemMetadata.getStartYear())
                 || StringUtils.isNotBlank(itemMetadata.getStartMonth())
                 || StringUtils.isNotBlank(itemMetadata.getStartDay()))
@@ -1469,21 +1469,19 @@ public class PushToORCID
             if (StringUtils.isNotBlank(itemMetadata.getStartYear()))
             {
                 Year year = new Year();
-                year.setValue(itemMetadata.getStartYear());
+                year.setValue(Integer.parseInt(itemMetadata.getStartYear()));
                 fuzzyDate.setYear(year);
             }
             if (StringUtils.isNotBlank(itemMetadata.getStartMonth()))
             {
                 Month month = new Month();
-                month.setValue(dateMonthAndDayFormat
-                        .format(Long.parseLong(itemMetadata.getStartMonth())));
+                month.setValue(Integer.parseInt(itemMetadata.getStartMonth()));
                 fuzzyDate.setMonth(month);
             }
             if (StringUtils.isNotBlank(itemMetadata.getStartDay()))
             {
                 Day day = new Day();
-                day.setValue(dateMonthAndDayFormat
-                        .format(Long.parseLong(itemMetadata.getStartDay())));
+                day.setValue(Integer.parseInt(itemMetadata.getStartDay()));
                 fuzzyDate.setDay(day);
             }
             funding.setStartDate(fuzzyDate);
@@ -1496,21 +1494,19 @@ public class PushToORCID
             if (StringUtils.isNotBlank(itemMetadata.getEndYear()))
             {
                 Year year = new Year();
-                year.setValue(itemMetadata.getEndYear());
+                year.setValue(Integer.parseInt(itemMetadata.getEndYear()));
                 fuzzyDate.setYear(year);
             }
             if (StringUtils.isNotBlank(itemMetadata.getEndMonth()))
             {
                 Month month = new Month();
-                month.setValue(dateMonthAndDayFormat
-                        .format(Long.parseLong(itemMetadata.getEndMonth())));
+                month.setValue(Integer.parseInt(itemMetadata.getEndMonth()));
                 fuzzyDate.setMonth(month);
             }
             if (StringUtils.isNotBlank(itemMetadata.getEndDay()))
             {
                 Day day = new Day();
-                day.setValue(dateMonthAndDayFormat
-                        .format(Long.parseLong(itemMetadata.getEndDay())));
+                day.setValue(Integer.parseInt(itemMetadata.getEndDay()));
                 fuzzyDate.setDay(day);
             }
             funding.setEndDate(fuzzyDate);
@@ -1526,7 +1522,7 @@ public class PushToORCID
                 fundingExternalIdentifier.setExternalIdType(
                         itemMetadata.getExternalIdentifierType(valIdentifier));
                 fundingExternalIdentifier.setExternalIdValue(valIdentifier);
-                fundingExternalIdentifier.setExternalIdRelationship(RelationshipType.SELF);
+                fundingExternalIdentifier.setExternalIdRelationship(Relationship.SELF.toString());
                 fundingExternalIdentifiers.getExternalId()
                         .add(fundingExternalIdentifier);
             }
@@ -1542,7 +1538,7 @@ public class PushToORCID
 
         if (StringUtils.isNotBlank(itemMetadata.getType()))
         {
-            funding.setType(FundingType.fromValue(itemMetadata.getType()));
+            funding.setType(itemMetadata.getType());
         }
 
         if (StringUtils.isNotBlank(itemMetadata.getAbstract()))
@@ -1588,8 +1584,7 @@ public class PushToORCID
             organization.setName(itemMetadata.getOrganization());
             OrganizationAddress organizationAddress = new OrganizationAddress();
             organizationAddress.setCity(itemMetadata.getOrganizationCity());
-            organizationAddress.setCountry(Iso3166Country
-                    .fromValue(itemMetadata.getOrganizationCountry()));
+            organizationAddress.setCountry(itemMetadata.getOrganizationCountry());
             organization.setAddress(organizationAddress);
             funding.setOrganization(organization);
         }
@@ -1637,9 +1632,7 @@ public class PushToORCID
         contributor.setCreditName(creditName);
 
         FundingContributorAttributes attributes = new FundingContributorAttributes();
-        attributes.setContributorRole(
-                FundingContributorRole
-                        .fromValue(type));
+        attributes.setContributorRole(type);
         contributor.setContributorAttributes(attributes);
         fundingContributors.getContributor().add(contributor);
     }
@@ -1760,13 +1753,11 @@ public class PushToORCID
 
             try
             {
-                LanguageCode langCode = LanguageCode
-                        .fromValue(translatedLanguageCode);
-                translatedTitle.setLanguageCode(langCode);
+                translatedTitle.setLanguageCode(translatedLanguageCode);
             }
             catch (Exception ex)
             {
-                translatedTitle.setLanguageCode(LanguageCode.EN);
+                translatedTitle.setLanguageCode(LanguageCode.en.toString());
             }
             worktitle.setTranslatedTitle(translatedTitle);
         }
@@ -1775,8 +1766,7 @@ public class PushToORCID
         if (StringUtils.isNotBlank(citationVal))
         {
             Citation citation = new Citation();
-            citation.setCitationType(
-                    CitationType.fromValue(itemMetadata.getCitationType()));
+            citation.setCitationType(itemMetadata.getCitationType());
             citation.setCitationValue(citationVal);
             orcidWork.setCitation(citation);
         }
@@ -1798,21 +1788,19 @@ public class PushToORCID
             if (StringUtils.isNotBlank(itemMetadata.getYear()))
             {
                 Year year = new Year();
-                year.setValue(itemMetadata.getYear());
+                year.setValue(Integer.parseInt(itemMetadata.getYear()));
                 publicationDate.setYear(year);
             }
             if (StringUtils.isNotBlank(itemMetadata.getMonth()))
             {
                 Month month = new Month();
-                month.setValue(dateMonthAndDayFormat
-                        .format(Long.parseLong(itemMetadata.getMonth())));
+                month.setValue(Integer.parseInt(itemMetadata.getMonth()));
                 publicationDate.setMonth(month);
             }
             if (StringUtils.isNotBlank(itemMetadata.getDay()))
             {
                 Day day = new Day();
-                day.setValue(dateMonthAndDayFormat
-                        .format(Long.parseLong(itemMetadata.getDay())));
+                day.setValue(Integer.parseInt(itemMetadata.getDay()));
                 publicationDate.setDay(day);
             }
             orcidWork.setPublicationDate(publicationDate);
@@ -1843,7 +1831,7 @@ public class PushToORCID
                 workExternalIdentifier.setExternalIdUrl(resolver+valIdentifier);
                 workExternalIdentifier.setExternalIdType(
                         itemMetadata.getExternalIdentifierType(valIdentifier));
-                workExternalIdentifier.setExternalIdRelationship(RelationshipType.SELF);
+                workExternalIdentifier.setExternalIdRelationship(Relationship.SELF.toString());
                 workExternalIdentifiers.getExternalId()
                         .add(workExternalIdentifier);
             }
@@ -1862,7 +1850,7 @@ public class PushToORCID
                     OrcidExternalIdentifierType.SOURCE_ID.toString());
             workExternalIdentifierInternal.setExternalIdUrl("" + item.getID());
             workExternalIdentifierInternal
-                    .setExternalIdRelationship(RelationshipType.SELF);
+                    .setExternalIdRelationship(Relationship.SELF.toString());
             workExternalIdentifiers.getExternalId()
                     .add(workExternalIdentifierInternal);
         }
@@ -1878,7 +1866,7 @@ public class PushToORCID
                 workExternalIdentifier.setExternalIdUrl(valIdentifier);
                 workExternalIdentifier.setExternalIdType(
                         itemMetadata.getExternalIdentifierType(valIdentifier));
-                workExternalIdentifier.setExternalIdRelationship(RelationshipType.PART_OF);
+                workExternalIdentifier.setExternalIdRelationship(Relationship.PART_OF.toString());
                 workExternalIdentifiers.getExternalId()
                         .add(workExternalIdentifier);
             }
@@ -1908,7 +1896,7 @@ public class PushToORCID
 
                 if (StringUtils.isNotBlank(email))
                 {
-                    org.orcid.jaxb.model.record_v2.ContributorEmail contributorEmail = new org.orcid.jaxb.model.record_v2.ContributorEmail();
+                    org.orcid.jaxb.model.record_v3.ContributorEmail contributorEmail = new org.orcid.jaxb.model.record_v3.ContributorEmail();
                     contributorEmail.setValue(email);
                     contributor.setContributorEmail(contributorEmail);
                 }
@@ -1932,7 +1920,7 @@ public class PushToORCID
 
             ContributorAttributes attributes = new ContributorAttributes();
             // TODO now supported only author/additional
-            attributes.setContributorRole(ContributorRole.AUTHOR);
+            attributes.setContributorRole(ContributorRole.AUTHOR.toString());
             attributes.setContributorSequence(ContributorSequence.ADDITIONAL);
             contributor.setContributorAttributes(attributes);
             workContributors.getContributor().add(contributor);
@@ -1945,9 +1933,7 @@ public class PushToORCID
 
         if (StringUtils.isNotBlank(itemMetadata.getLanguage()))
         {
-            LanguageCode language = LanguageCode
-                    .fromValue(itemMetadata.getLanguage());
-            orcidWork.setLanguageCode(language);
+            orcidWork.setLanguageCode(itemMetadata.getLanguage());
         }
 
         SimpleMapConverter mapConverterModifier = new DSpace()
@@ -1955,12 +1941,11 @@ public class PushToORCID
                         "mapConverterOrcidWorkType", SimpleMapConverter.class);
         if (mapConverterModifier == null)
         {
-            orcidWork.setType(WorkType.valueOf(itemMetadata.getWorkType()));
+            orcidWork.setType(itemMetadata.getWorkType());
         }
         else
         {
-            orcidWork.setType(WorkType.fromValue(
-                    mapConverterModifier.getValue(itemMetadata.getWorkType())));
+            orcidWork.setType(mapConverterModifier.getValue(itemMetadata.getWorkType()));
         }
 
         return orcidWork;
@@ -1988,7 +1973,7 @@ public class PushToORCID
             for (Map<String, List<String>> employment : employments)
             {
                 WrapperEmployment wrapper = new WrapperEmployment();
-                Employment affiliation = new Employment();
+                Affiliation affiliation = new Affiliation();
 
                 wrapper.setEmployment(affiliation);
                 wrapper.setId(Integer.parseInt(employment.get("id").get(0)));
@@ -2037,9 +2022,8 @@ public class PushToORCID
                     FuzzyDate fuzzyStartDate = new FuzzyDate();
                     try
                     {
-                        int yearSD = cal1.getYear();
                         Year year = new Year();
-                        year.setValue(String.valueOf(yearSD));
+                        year.setValue(cal1.getYear());
                         fuzzyStartDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2050,10 +2034,8 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
-                            int monthSD = cal1.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(dateMonthAndDayFormat
-                                    .format(monthSD));
+                            month.setValue(cal1.getMonthOfYear());
                             fuzzyStartDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2065,10 +2047,8 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
-                            int daySD = cal1.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(dateMonthAndDayFormat
-                                    .format(daySD));
+                            day.setValue(cal1.getDayOfMonth());
                             fuzzyStartDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2118,9 +2098,8 @@ public class PushToORCID
                     FuzzyDate fuzzyEndDate = new FuzzyDate();
                     try
                     {
-                        int yearED = cal2.getYear();
                         Year year = new Year();
-                        year.setValue(String.valueOf(yearED));
+                        year.setValue(cal2.getYear());
                         fuzzyEndDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2131,10 +2110,8 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
-                            int monthED = cal2.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(dateMonthAndDayFormat
-                                    .format(monthED));
+                            month.setValue(cal2.getMonthOfYear());
                             fuzzyEndDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2146,10 +2123,8 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
-                            int dayED = cal2.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(dateMonthAndDayFormat
-                                    .format(dayED));
+                            day.setValue(cal2.getDayOfMonth());
                             fuzzyEndDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2216,9 +2191,7 @@ public class PushToORCID
                         .get("affiliationorgunit.iso-country");
                 if (listOrgunitcountry != null && !listOrgunitcountry.isEmpty())
                 {
-                    Iso3166Country isoCountry = Iso3166Country
-                            .fromValue(listOrgunitcountry.get(0));
-                    organizationAddress.setCountry(isoCountry);
+                    organizationAddress.setCountry(listOrgunitcountry.get(0));
                 }
 
                 List<String> listOrgunitregion = employment
@@ -2260,7 +2233,7 @@ public class PushToORCID
             {
                 WrapperEducation wrapper = new WrapperEducation();
 
-                Education affiliation = new Education();
+                Affiliation affiliation = new Affiliation();
 
                 wrapper.setEducation(affiliation);
                 wrapper.setId(Integer.parseInt(education.get("id").get(0)));
@@ -2308,9 +2281,8 @@ public class PushToORCID
 
                     try
                     {
-                        int yearSD = cal1.getYear();
                         Year year = new Year();
-                        year.setValue(String.valueOf(yearSD));
+                        year.setValue(cal1.getYear());
                         fuzzyStartDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2321,10 +2293,8 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
-                            int monthSD = cal1.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(MessageFormat.format("{0,number,#00}",
-                                    new Object[] { new Integer(monthSD) }));
+                            month.setValue(cal1.getMonthOfYear());
                             fuzzyStartDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2336,10 +2306,8 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
-                            int daySD = cal1.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(MessageFormat.format("{0,number,#00}",
-                                    new Object[] { new Integer(daySD) }));
+                            day.setValue(cal1.getDayOfMonth());
                             fuzzyStartDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2390,9 +2358,8 @@ public class PushToORCID
 
                     try
                     {
-                        int yearED = cal2.getYear();
                         Year year = new Year();
-                        year.setValue(String.valueOf(yearED));
+                        year.setValue(cal2.getYear());
                         fuzzyEndDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2403,10 +2370,8 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
-                            int monthED = cal2.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(MessageFormat.format("{0,number,#00}",
-                                    new Object[] { new Integer(monthED) }));
+                            month.setValue(cal2.getMonthOfYear());
                             fuzzyEndDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2418,10 +2383,8 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
-                            int dayED = cal2.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(MessageFormat.format("{0,number,#00}",
-                                    new Object[] { new Integer(dayED) }));
+                            day.setValue(cal2.getDayOfMonth());
                             fuzzyEndDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2488,9 +2451,7 @@ public class PushToORCID
                         .get("educationorgunit.iso-country");
                 if (listOrgunitcountry != null && !listOrgunitcountry.isEmpty())
                 {
-                    Iso3166Country isoCountry = Iso3166Country
-                            .fromValue(listOrgunitcountry.get(0));
-                    organizationAddress.setCountry(isoCountry);
+                    organizationAddress.setCountry(listOrgunitcountry.get(0));
                 }
 
                 List<String> listOrgunitregion = education
@@ -2614,27 +2575,29 @@ public class PushToORCID
     {
         Employments employmentsOrcid = orcidService.getEmployments(orcid, token);
         if(employmentsOrcid!=null) {
-            for(EmploymentSummary nctype : employmentsOrcid.getEmploymentSummary()) {
-                String orcidSourceName = nctype.getSource().getSourceName().getContent();
-                if(orcidSourceName.equals(currentSourceName)) {
-                    String value = "";
-                    if(nctype.getOrganization()!=null) {
-                        value += nctype.getOrganization().getName();
-                    }
-                    if(nctype.getStartDate()!=null) {
-                        value += nctype.getStartDate().toString();
-                    }
-                    if(nctype.getEndDate()!=null) {    
-                        value += nctype.getEndDate().toString();    
-                    }
-                    if(StringUtils.isBlank(value)) {
-                        value = nctype.toString();
-                    }
-                    Integer constantType = OrcidService.CONSTANT_PART_OF_RESEARCHER_TYPE;
-                    registerHistoryStillInOrcid(applicationService, crisId, orcid,
-                            timestampAttemptToRetrieve, value, nctype.getPutCode().toString(), constantType, OrcidService.CONSTANT_EMPLOYMENT_UUID);
-                }
-            }
+        	for(AffiliationGroup group : employmentsOrcid.getAffiliationGroup()) {
+	            for(AffiliationSummary nctype : group.getEmploymentSummary()) {
+	                String orcidSourceName = nctype.getSource().getSourceName().getContent();
+	                if(orcidSourceName.equals(currentSourceName)) {
+	                    String value = "";
+	                    if(nctype.getOrganization()!=null) {
+	                        value += nctype.getOrganization().getName();
+	                    }
+	                    if(nctype.getStartDate()!=null) {
+	                        value += nctype.getStartDate().toString();
+	                    }
+	                    if(nctype.getEndDate()!=null) {    
+	                        value += nctype.getEndDate().toString();    
+	                    }
+	                    if(StringUtils.isBlank(value)) {
+	                        value = nctype.toString();
+	                    }
+	                    Integer constantType = OrcidService.CONSTANT_PART_OF_RESEARCHER_TYPE;
+	                    registerHistoryStillInOrcid(applicationService, crisId, orcid,
+	                            timestampAttemptToRetrieve, value, nctype.getPutCode().toString(), constantType, OrcidService.CONSTANT_EMPLOYMENT_UUID);
+	                }
+	            }
+        	}
         }
     }
 
@@ -2646,27 +2609,29 @@ public class PushToORCID
     {
         Educations educationsOrcid = orcidService.getEducations(orcid, token);
         if(educationsOrcid!=null) {
-            for(EducationSummary nctype : educationsOrcid.getEducationSummary()) {
-                String orcidSourceName = nctype.getSource().getSourceName().getContent();
-                if(orcidSourceName.equals(currentSourceName)) {
-                    String value = "";
-                    if(nctype.getOrganization()!=null) {
-                        value += nctype.getOrganization().getName();
-                    }
-                    if(nctype.getStartDate()!=null) {
-                        value += nctype.getStartDate().toString();
-                    }
-                    if(nctype.getEndDate()!=null) {    
-                        value += nctype.getEndDate().toString();    
-                    }
-                    if(StringUtils.isBlank(value)) {
-                        value = nctype.toString();
-                    }
-                    Integer constantType = OrcidService.CONSTANT_PART_OF_RESEARCHER_TYPE;
-                    registerHistoryStillInOrcid(applicationService, crisId, orcid,
-                            timestampAttemptToRetrieve, value, nctype.getPutCode().toString(), constantType, OrcidService.CONSTANT_EDUCATION_UUID);
-                }
-            }
+        	for(AffiliationGroup group : educationsOrcid.getAffiliationGroup()) {
+	            for(AffiliationSummary nctype : group.getEducationSummary()) {
+	                String orcidSourceName = nctype.getSource().getSourceName().getContent();
+	                if(orcidSourceName.equals(currentSourceName)) {
+	                    String value = "";
+	                    if(nctype.getOrganization()!=null) {
+	                        value += nctype.getOrganization().getName();
+	                    }
+	                    if(nctype.getStartDate()!=null) {
+	                        value += nctype.getStartDate().toString();
+	                    }
+	                    if(nctype.getEndDate()!=null) {    
+	                        value += nctype.getEndDate().toString();    
+	                    }
+	                    if(StringUtils.isBlank(value)) {
+	                        value = nctype.toString();
+	                    }
+	                    Integer constantType = OrcidService.CONSTANT_PART_OF_RESEARCHER_TYPE;
+	                    registerHistoryStillInOrcid(applicationService, crisId, orcid,
+	                            timestampAttemptToRetrieve, value, nctype.getPutCode().toString(), constantType, OrcidService.CONSTANT_EDUCATION_UUID);
+	                }
+	            }
+        	}
         }
     }
 
@@ -2797,7 +2762,7 @@ public class PushToORCID
                     {
                         ExternalIdentifier externalIdentifier = new ExternalIdentifier();
                         externalIdentifier.setExternalIdRelationship(
-                                RelationshipType.SELF);
+                                Relationship.SELF.toString());
                         
                         String[] splittedLink = value.split("###");
                         if (splittedLink.length == 2) {

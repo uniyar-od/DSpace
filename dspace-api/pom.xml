@@ -738,11 +738,11 @@
             <artifactId>jackson-annotations</artifactId>
         </dependency>
 
-        <!-- For ORCID v2 integration -->
+        <!-- For ORCID v3 integration -->
         <dependency>
             <groupId>org.dspace</groupId>
             <artifactId>orcid-jaxb-api</artifactId>
-            <version>2.1.0</version>
+            <version>3.0.0</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>

@@ -1,6 +1,6 @@
 package org.dspace.app.cris.integration.orcid;
 
-import org.orcid.jaxb.model.record_v2.Employment;
+import org.orcid.jaxb.model.common_v3.Affiliation;
 
 public class WrapperEmployment
 {
@@ -10,7 +10,7 @@ public class WrapperEmployment
 
     Integer type;
 
-    Employment employment;
+    Affiliation employment;
 
     public Integer getId()
     {
@@ -30,12 +30,12 @@ public class WrapperEmployment
         this.uuid = uuid;
     }
 
-    public Employment getEmployment()
+    public Affiliation getEmployment()
     {
         return employment;
     }
 
-    public void setEmployment(Employment employment)
+    public void setEmployment(Affiliation employment)
     {
         this.employment = employment;
     }

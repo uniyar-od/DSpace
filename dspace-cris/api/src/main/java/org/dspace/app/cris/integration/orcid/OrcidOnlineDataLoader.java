@@ -19,27 +19,27 @@ import org.dspace.core.Context;
 import org.dspace.submit.lookup.NetworkSubmissionLookupDataLoader;
 import org.dspace.submit.util.SubmissionLookupPublication;
 import org.dspace.utils.DSpace;
-import org.orcid.jaxb.model.common_v2.CreditName;
-import org.orcid.jaxb.model.common_v2.ExternalId;
-import org.orcid.jaxb.model.common_v2.ExternalIds;
-import org.orcid.jaxb.model.common_v2.FuzzyDate;
-import org.orcid.jaxb.model.common_v2.LanguageCode;
-import org.orcid.jaxb.model.common_v2.OrcidId;
-import org.orcid.jaxb.model.common_v2.SourceType;
-import org.orcid.jaxb.model.common_v2.Url;
-import org.orcid.jaxb.model.record_v2.Citation;
-import org.orcid.jaxb.model.record_v2.CitationType;
-import org.orcid.jaxb.model.record_v2.Contributor;
-import org.orcid.jaxb.model.record_v2.NameType;
-import org.orcid.jaxb.model.record_v2.NameType.GivenNames;
-import org.orcid.jaxb.model.record_v2.PersonalDetails;
-import org.orcid.jaxb.model.record_v2.Work;
-import org.orcid.jaxb.model.record_v2.WorkContributors;
-import org.orcid.jaxb.model.record_v2.WorkGroup;
-import org.orcid.jaxb.model.record_v2.WorkSummary;
-import org.orcid.jaxb.model.record_v2.WorkTitle;
-import org.orcid.jaxb.model.record_v2.WorkType;
-import org.orcid.jaxb.model.record_v2.Works;
+import org.orcid.jaxb.model.common_v3.CreditName;
+import org.orcid.jaxb.model.common_v3.ExternalId;
+import org.orcid.jaxb.model.common_v3.ExternalIds;
+import org.orcid.jaxb.model.common_v3.FuzzyDate;
+import org.orcid.jaxb.model.utils.LanguageCode;
+import org.orcid.jaxb.model.common_v3.OrcidId;
+import org.orcid.jaxb.model.common_v3.SourceType;
+import org.orcid.jaxb.model.common_v3.Url;
+import org.orcid.jaxb.model.record_v3.Citation;
+import org.orcid.jaxb.model.utils.CitationType;
+import org.orcid.jaxb.model.record_v3.Contributor;
+import org.orcid.jaxb.model.record_v3.NameType;
+import org.orcid.jaxb.model.record_v3.NameType.GivenNames;
+import org.orcid.jaxb.model.record_v3.PersonalDetails;
+import org.orcid.jaxb.model.record_v3.Work;
+import org.orcid.jaxb.model.record_v3.WorkContributors;
+import org.orcid.jaxb.model.record_v3.WorkGroup;
+import org.orcid.jaxb.model.record_v3.WorkSummary;
+import org.orcid.jaxb.model.record_v3.WorkTitle;
+import org.orcid.jaxb.model.utils.WorkType;
+import org.orcid.jaxb.model.record_v3.Works;
 
 import com.google.api.client.util.Charsets;
 import com.google.common.io.Files;
@@ -172,10 +172,10 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
             record.addValue("title", new StringValue(workTitle.getTitle()));
         }
 
-        WorkType workType = orcidWork.getType();
-        if (workType != null && StringUtils.isNotBlank(workType.value()))
+        String workType = orcidWork.getType();
+        if (workType != null && StringUtils.isNotBlank(workType))
         {
-            record.addValue("providerType", new StringValue(workType.value()));
+            record.addValue("providerType", new StringValue(workType));
         }
 
         ExternalIds identifiers = orcidWork.getExternalIds();
@@ -205,13 +205,13 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         if (issued != null)
         {
             record.addValue("issued",
-                    new StringValue(issued.getYear().getValue()));
+                    new StringValue(String.valueOf(issued.getYear().getValue())));
         }
 
-        LanguageCode language = orcidWork.getLanguageCode();
+        String language = orcidWork.getLanguageCode();
         if (language != null)
         {
-            record.addValue("language", new StringValue(language.value()));
+            record.addValue("language", new StringValue(language));
         }
 
         LinkedList<Value> authNames = new LinkedList<Value>();
@@ -274,7 +274,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         Citation citation = orcidWork.getCitation();
         if (citation != null)
         {
-            CitationType citationType = citation.getCitationType();
+            String citationType = citation.getCitationType();
             if (citationType != null)
             {
                 // Get all the possible data loaders from the Spring
@@ -284,7 +284,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                 List<String> dataLoaderTypes = dls.getFileDataLoaders();
                 for (String dataLoaderType : dataLoaderTypes)
                 {
-                    if (dataLoaderType.equals(citationType.value()))
+                    if (dataLoaderType.equals(citationType))
                     {
                         File file = File.createTempFile("tmp", ".json");
                         Files.write(citation.getCitationValue(), file,
