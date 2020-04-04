@@ -11,9 +11,10 @@ import org.dspace.authority.orcid.OrcidAccessToken;
 import org.dspace.authority.orcid.OrcidAuthorityValue;
 import org.dspace.authority.orcid.OrcidService;
 import org.dspace.content.authority.Choice;
-import org.orcid.jaxb.model.common_v3.Affiliation;
 import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.record_v3.AffiliationGroup;
+import org.orcid.jaxb.model.record_v3.Employment;
+import org.orcid.jaxb.model.record_v3.EmploymentSummary;
 import org.orcid.jaxb.model.record_v3.Employments;
 
 /**
@@ -39,9 +40,9 @@ public class OrcidExtraEmploymentAuthorityMetadataGenerator
         
         String access_token = getAccessToken(source);
         
-        Affiliation employment = source.getEmployment(value, access_token, null);
+        Employment employment = source.getEmployment(value, access_token, null);
         if(employment != null) {
-            extras.put("data-" + getRelatedInputformMetadata(), employment.getOrganization().getName());    
+            extras.put("data-" + getRelatedInputformMetadata(), employment.getValue().getOrganization().getName());    
         }
         else {
             //manage value to empty html element
@@ -95,11 +96,11 @@ public class OrcidExtraEmploymentAuthorityMetadataGenerator
             Employments employments = source.getEmployments(serviceId, access_token);
             for (AffiliationGroup group : employments.getAffiliationGroup())
             {
-	            for (AffiliationSummary employment : group.getEmploymentSummary())
+	            for (EmploymentSummary employment : group.getEmploymentSummary())
 	            {
 	                Map<String, String> extras = new HashMap<String, String>();
 	                if(employment != null) {
-	                    extras.put("data-" + getRelatedInputformMetadata(), employment.getOrganization().getName());    
+	                    extras.put("data-" + getRelatedInputformMetadata(), employment.getValue().getOrganization().getName());    
 	                }
 	                else {
 	                    //manage value to empty html element

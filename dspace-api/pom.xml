@@ -744,6 +744,12 @@
             <artifactId>orcid-jaxb-api</artifactId>
             <version>3.0.0</version>
         </dependency>
+		<!-- JAXB2 Commons -->
+		<dependency>
+			<groupId>org.jvnet.jaxb2_commons</groupId>
+			<artifactId>jaxb2-basics-runtime</artifactId>
+			<version>0.9.5</version>
+		</dependency>        
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>

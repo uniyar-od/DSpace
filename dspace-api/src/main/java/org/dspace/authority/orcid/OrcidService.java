@@ -50,6 +50,7 @@ import org.orcid.jaxb.model.record_v3.SourceReference;
 import org.orcid.jaxb.model.common_v3.Affiliation;
 import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.record_v3.Emails;
+import org.orcid.jaxb.model.record_v3.Employment;
 import org.orcid.jaxb.model.record_v3.Funding;
 import org.orcid.jaxb.model.record_v3.Keyword;
 import org.orcid.jaxb.model.record_v3.Keywords;
@@ -854,7 +855,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getEmployment(String id, final String token, final String putCode)
+    public Employment getEmployment(String id, final String token, final String putCode)
     {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
@@ -862,7 +863,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(Employment.class);
         }
         finally
         {

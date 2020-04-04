@@ -20,6 +20,7 @@ import java.text.MessageFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Currency;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -73,10 +74,10 @@ import org.dspace.util.SimpleMapConverter;
 import org.dspace.utils.DSpace;
 import org.joda.time.DateTime;
 import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.common_v3.Amount;
 import org.orcid.jaxb.model.common_v3.ContributorEmail;
 import org.orcid.jaxb.model.common_v3.CreditName;
-import java.util.Currency;
 import org.orcid.jaxb.model.common_v3.ExternalId;
 import org.orcid.jaxb.model.common_v3.ExternalIds;
 import org.orcid.jaxb.model.common_v3.FuzzyDate;
@@ -93,31 +94,24 @@ import org.orcid.jaxb.model.record_v3.AddressType;
 import org.orcid.jaxb.model.record_v3.Addresses;
 import org.orcid.jaxb.model.record_v3.AffiliationGroup;
 import org.orcid.jaxb.model.record_v3.Citation;
-import org.orcid.jaxb.model.utils.CitationType;
-import org.orcid.jaxb.model.utils.Iso3166Country;
-import org.orcid.jaxb.model.utils.LanguageCode;
-import org.orcid.jaxb.model.utils.Relationship;
 import org.orcid.jaxb.model.record_v3.Contributor;
 import org.orcid.jaxb.model.record_v3.ContributorAttributes;
-import org.orcid.jaxb.model.utils.ContributorRole;
 import org.orcid.jaxb.model.record_v3.ContributorSequence;
-import org.orcid.jaxb.model.common_v3.Affiliation;
-import org.orcid.jaxb.model.common_v3.AffiliationSummary;
+import org.orcid.jaxb.model.record_v3.Education;
+import org.orcid.jaxb.model.record_v3.EducationSummary;
 import org.orcid.jaxb.model.record_v3.Educations;
-import org.orcid.jaxb.model.common_v3.Affiliation;
-import org.orcid.jaxb.model.common_v3.AffiliationSummary;
+import org.orcid.jaxb.model.record_v3.Employment;
+import org.orcid.jaxb.model.record_v3.EmploymentSummary;
 import org.orcid.jaxb.model.record_v3.Employments;
 import org.orcid.jaxb.model.record_v3.ExternalIdentifier;
 import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
 import org.orcid.jaxb.model.record_v3.Funding;
 import org.orcid.jaxb.model.record_v3.FundingContributor;
 import org.orcid.jaxb.model.record_v3.FundingContributorAttributes;
-import org.orcid.jaxb.model.utils.FundingContributorRole;
 import org.orcid.jaxb.model.record_v3.FundingContributors;
 import org.orcid.jaxb.model.record_v3.FundingGroup;
 import org.orcid.jaxb.model.record_v3.FundingSummary;
 import org.orcid.jaxb.model.record_v3.FundingTitle;
-import org.orcid.jaxb.model.utils.FundingType;
 import org.orcid.jaxb.model.record_v3.Fundings;
 import org.orcid.jaxb.model.record_v3.Keyword;
 import org.orcid.jaxb.model.record_v3.KeywordType;
@@ -133,8 +127,10 @@ import org.orcid.jaxb.model.record_v3.WorkContributors;
 import org.orcid.jaxb.model.record_v3.WorkGroup;
 import org.orcid.jaxb.model.record_v3.WorkSummary;
 import org.orcid.jaxb.model.record_v3.WorkTitle;
-import org.orcid.jaxb.model.utils.WorkType;
 import org.orcid.jaxb.model.record_v3.Works;
+import org.orcid.jaxb.model.utils.ContributorRole;
+import org.orcid.jaxb.model.utils.LanguageCode;
+import org.orcid.jaxb.model.utils.Relationship;
 
 import it.cilea.osd.common.core.SingleTimeStampInfo;
 import it.cilea.osd.jdyna.value.BooleanValue;
@@ -467,16 +463,17 @@ public class PushToORCID
         {
             for (WrapperEducation wrapperEducation : wrapperEducations)
             {
-                Affiliation education = wrapperEducation.getEducation();
+                Education education = wrapperEducation.getEducation();
                 String value = "";
-                if(education.getOrganization()!=null) {
-                    value += education.getOrganization().getName();
+                Affiliation affiliation = education.getValue();
+                if(affiliation.getOrganization()!=null) {
+                    value += affiliation.getOrganization().getName();
                 }
-                if(education.getStartDate()!=null) {
-                    value += education.getStartDate().toString();
+                if(affiliation.getStartDate()!=null) {
+                    value += affiliation.getStartDate().toString();
                 }
-                if(education.getEndDate()!=null) {    
-                    value += education.getEndDate().toString();    
+                if(affiliation.getEndDate()!=null) {    
+                    value += affiliation.getEndDate().toString();    
                 }
                 if(StringUtils.isBlank(value)) {
                     value = education.toString();
@@ -498,16 +495,17 @@ public class PushToORCID
         {
             for (WrapperEmployment wrapperEmployment : wrapperEmployments)
             {
-                Affiliation employment = wrapperEmployment.getEmployment();
+                Employment employment = wrapperEmployment.getEmployment();
                 String value = "";
-                if(employment.getOrganization()!=null) {
-                    value += employment.getOrganization().getName();
+                Affiliation affiliation = employment.getValue();
+                if(affiliation.getOrganization()!=null) {
+                    value += affiliation.getOrganization().getName();
                 }
-                if(employment.getStartDate()!=null) {
-                    value += employment.getStartDate().toString();
+                if(affiliation.getStartDate()!=null) {
+                    value += affiliation.getStartDate().toString();
                 }
-                if(employment.getEndDate()!=null) {    
-                    value += employment.getEndDate().toString();    
+                if(affiliation.getEndDate()!=null) {    
+                    value += affiliation.getEndDate().toString();    
                 }
                 if(StringUtils.isBlank(value)) {
                     value = employment.toString();
@@ -1973,9 +1971,11 @@ public class PushToORCID
             for (Map<String, List<String>> employment : employments)
             {
                 WrapperEmployment wrapper = new WrapperEmployment();
+                
                 Affiliation affiliation = new Affiliation();
+                Employment employmentObject = new Employment(affiliation);
 
-                wrapper.setEmployment(affiliation);
+                wrapper.setEmployment(employmentObject);
                 wrapper.setId(Integer.parseInt(employment.get("id").get(0)));
                 wrapper.setUuid(employment.get("uuid").get(0));
                 wrapper.setType(
@@ -2232,10 +2232,11 @@ public class PushToORCID
             for (Map<String, List<String>> education : educations)
             {
                 WrapperEducation wrapper = new WrapperEducation();
-
+                
                 Affiliation affiliation = new Affiliation();
+                Education educationObject = new Education(affiliation);
 
-                wrapper.setEducation(affiliation);
+                wrapper.setEducation(educationObject);
                 wrapper.setId(Integer.parseInt(education.get("id").get(0)));
                 wrapper.setUuid(education.get("uuid").get(0));
                 wrapper.setType(Integer.parseInt(education.get("type").get(0)));
@@ -2576,7 +2577,8 @@ public class PushToORCID
         Employments employmentsOrcid = orcidService.getEmployments(orcid, token);
         if(employmentsOrcid!=null) {
         	for(AffiliationGroup group : employmentsOrcid.getAffiliationGroup()) {
-	            for(AffiliationSummary nctype : group.getEmploymentSummary()) {
+	            for(EmploymentSummary summary : group.getEmploymentSummary()) {
+	                AffiliationSummary nctype = summary.getValue();
 	                String orcidSourceName = nctype.getSource().getSourceName().getContent();
 	                if(orcidSourceName.equals(currentSourceName)) {
 	                    String value = "";
@@ -2610,7 +2612,8 @@ public class PushToORCID
         Educations educationsOrcid = orcidService.getEducations(orcid, token);
         if(educationsOrcid!=null) {
         	for(AffiliationGroup group : educationsOrcid.getAffiliationGroup()) {
-	            for(AffiliationSummary nctype : group.getEducationSummary()) {
+	            for(EducationSummary summary : group.getEducationSummary()) {
+	                AffiliationSummary nctype = summary.getValue();
 	                String orcidSourceName = nctype.getSource().getSourceName().getContent();
 	                if(orcidSourceName.equals(currentSourceName)) {
 	                    String value = "";

@@ -1,13 +1,13 @@
 package org.dspace.app.cris.integration.orcid;
 
-import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.record_v3.Education;
 
 public class WrapperEducation {
     
     Integer id;
     String uuid;
     Integer type;
-    Affiliation education;
+    Education education;
     
     public Integer getId()
     {
@@ -25,11 +25,11 @@ public class WrapperEducation {
     {
         this.uuid = uuid;
     }
-    public Affiliation getEducation()
+    public Education getEducation()
     {
         return education;
     }
-    public void setEducation(Affiliation education)
+    public void setEducation(Education education)
     {
         this.education = education;
     }
