@@ -409,12 +409,12 @@ public class ItemImportOA
 
                 if(StringUtils.isNotBlank(myLoader.getSourceRef())) {
                     getHibernateSession(context).createSQLQuery(
-                        "INSERT INTO imp_record_to_item " + "VALUES ( ?, ?, ?)").setParameter(0, 
-                        imp_record_id).setParameter(1, item_id).setParameter(2, myLoader.getSourceRef()).executeUpdate();
+                        "INSERT INTO imp_record_to_item " + "VALUES ( ?, ?, ?)").setParameter(0,
+   		        imp_record_id).setParameter(1,myLoader.getSourceRef() ).setParameter(2, item_id).executeUpdate();	
                 }
                 else {
                     getHibernateSession(context).createSQLQuery(
-                            "INSERT INTO imp_record_to_item " + "VALUES ( ?, ?, null)").setParameter(0, 
+			    "INSERT INTO imp_record_to_item " + "VALUES ( ?, null,?)").setParameter(0,
                             imp_record_id).setParameter(1, item_id).executeUpdate();                	
                 }
             }
@@ -444,7 +444,7 @@ public class ItemImportOA
             getHibernateSession(context).createSQLQuery(
                     "UPDATE imp_record " + "SET last_modified = LOCALTIMESTAMP"
                             + " WHERE imp_id = ?").setParameter(0,
-                    imp_id);
+	    	     imp_id).executeUpdate();
             context.restoreAuthSystemState();
             return item_id;
         }
