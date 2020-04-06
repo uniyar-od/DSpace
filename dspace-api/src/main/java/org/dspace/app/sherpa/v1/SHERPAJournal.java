@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.sherpa;
+package org.dspace.app.sherpa.v1;
 
 /**
  * POJO representation for a SHERPA journal
@@ -13,6 +13,7 @@ package org.dspace.app.sherpa;
  * @author Andrea Bollini
  * 
  */
+@Deprecated
 public class SHERPAJournal
 {
     private String title;
