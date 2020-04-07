@@ -223,6 +223,11 @@
         <Filter id="driverFilter">
             <Definition>
                 <And>
+               	<LeftCondition>
+					<Custom ref="itemNotWithdrawnCondition"/>
+                </LeftCondition>
+				<RightCondition>                	
+                <And>
                     <LeftCondition>
                         <And>
                             <LeftCondition>
@@ -251,6 +256,8 @@
                         </And>
                     </RightCondition>
                 </And>
+                </RightCondition>
+                </And>                
             </Definition>
         </Filter>
 
@@ -264,6 +271,11 @@
         -->
         <Filter id="openAireFilter">
             <Definition>
+                <And>
+               	<LeftCondition>
+					<Custom ref="itemNotWithdrawnCondition"/>
+                </LeftCondition>
+				<RightCondition>                	
                 <And>
                     <LeftCondition>
                         <And>
@@ -293,6 +305,8 @@
                         </And>
                     </RightCondition>
                 </And>
+                </RightCondition>
+                </And>                
             </Definition>
         </Filter>
 
