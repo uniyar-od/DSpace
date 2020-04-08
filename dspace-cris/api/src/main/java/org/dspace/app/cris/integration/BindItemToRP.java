@@ -400,8 +400,9 @@ public class BindItemToRP
                         int matches = 0;
 
                         if (value.authority == null
-                                && (value.value.equals(tempName.getName()) || value.value
-                                        .startsWith(tempName.getName() + ";")))
+                                && (StringUtils.equalsIgnoreCase(value.value, tempName.getName()) 
+                                		|| StringUtils.startsWithIgnoreCase(value.value, tempName.getName() + ";"))
+                                )
                         {
                             matches = countNamesMatching(cacheCount,
                                     tempName.getName());
