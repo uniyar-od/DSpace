@@ -709,35 +709,38 @@ public final class BrowseIndex
     	throws BrowseException
     {
 
-        ArrayList<BrowseIndex> browseIndices = new ArrayList<BrowseIndex>();
         String commBrowseIdx = ConfigurationManager.getProperty("webui.browse.community.index");
         
         if(!StringUtils.isNotBlank(commBrowseIdx)){
         	return getBrowseIndices();
         }
         
-        String[] browseIdxs = StringUtils.split(commBrowseIdx, ",");
+        return getBrowseIndicesByString(commBrowseIdx);
+    } 
+
+    
+    /**
+     * Get an array of the browse indices for the current configuration of the community with the handle 
+     * 
+     * @param String handle 
+     * @return	an array of all the current browse indices for communities
+     * @throws BrowseException
+     */
+    public static BrowseIndex[] getBrowseCommunityIndices(String handle)
+    	throws BrowseException
+    {
+
+    	String commBrowseIdx = ConfigurationManager.getProperty("webui.browse.community.index."+handle);
         
-        for(String idx: browseIdxs){
-        	String definition = ConfigurationManager.getProperty("webui.browse.index." + idx);
-        	if(StringUtils.isNotBlank(definition)){
-                BrowseIndex bi = new BrowseIndex(definition, Integer.parseInt(idx));
-    			bi.displayFrequencies = Boolean.valueOf(ConfigurationManager
-    					.getBooleanProperty("webui.browse.metadata.show-freq."
-    							+ idx, true));
-
-                browseIndices.add(bi);
-        	}
-        	
+        if(!StringUtils.isNotBlank(commBrowseIdx)){
+        	return getBrowseCommunityIndices();
         }
-        BrowseIndex[] bis = new BrowseIndex[browseIndices.size()];
-        bis = browseIndices.toArray(bis);
-
-        return bis;
+        
+        return getBrowseIndicesByString(commBrowseIdx);
     } 
     
     /**
-     * Get an array of the browse indices for the current configuration of the communities 
+     * Get an array of the browse indices for the current configuration of the collections
      * 
      * @return	an array of all the current browse indices for communities
      * @throws BrowseException
@@ -746,14 +749,44 @@ public final class BrowseIndex
     	throws BrowseException
     {
 
-        ArrayList<BrowseIndex> browseIndices = new ArrayList<BrowseIndex>();
-        String commBrowseIdx = ConfigurationManager.getProperty("webui.browse.collection.index");
+        String collBrowseIdx = ConfigurationManager.getProperty("webui.browse.collection.index");
         
-        if(!StringUtils.isNotBlank(commBrowseIdx)){
+        if(!StringUtils.isNotBlank(collBrowseIdx)){
         	return getBrowseIndices();
         }
+
+        return getBrowseIndicesByString(collBrowseIdx);
+    }       
+
+    /**
+     * Get an array of the browse indices for the current configuration of the collection handle 
+     * 
+     * @return	an array of all the current browse indices for communities
+     * @throws BrowseException
+     */
+    public static BrowseIndex[] getBrowseCollectionIndices(String handle)
+    	throws BrowseException
+    {
+        String collBrowseIdx = ConfigurationManager.getProperty("webui.browse.collection.index."+handle);
         
-        String[] browseIdxs = StringUtils.split(commBrowseIdx, ",");
+        if(!StringUtils.isNotBlank(collBrowseIdx)){
+        	return getBrowseCollectionIndices();
+        }
+        
+        return getBrowseIndicesByString(collBrowseIdx);
+    }
+    
+    /**
+     * Get an array of browse indices base on the comma-separated string with browse progressive ids
+     * 
+     * @param browseString A comma separated string with browse index
+     * @return an array of the browse indices 
+     * @throws BrowseException
+     */
+    private static BrowseIndex[] getBrowseIndicesByString(String browseString) throws BrowseException {
+
+    	ArrayList<BrowseIndex> browseIndices = new ArrayList<BrowseIndex>();
+    	String[] browseIdxs = StringUtils.split(browseString, ",");
         
         for(String idx: browseIdxs){
         	String definition = ConfigurationManager.getProperty("webui.browse.index." + idx);
@@ -771,8 +804,9 @@ public final class BrowseIndex
         bis = browseIndices.toArray(bis);
 
         return bis;
-    }       
-
+    	
+    }
+    
     /**
      * Get the browse index from configuration with the specified name.
      * The name is the first part of the browse configuration
