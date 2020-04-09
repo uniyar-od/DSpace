@@ -11,6 +11,7 @@ import java.awt.ComponentOrientation;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -234,7 +235,6 @@ public class UIUtil extends Util
     {
         String orig = (String) request.getAttribute("dspace.original.url");
 
-        String repoURL = ConfigurationManager.getProperty("dspace.url");
         if (orig == null)
         {
             String fullURL = request.getRequestURL().toString();
@@ -254,8 +254,7 @@ public class UIUtil extends Util
     }
     
     /**
-     *  Controls the url starts with repository URL
-     *  if dspaceurl is returned
+     * Controls if the url provided owns by the dspace.hostname 
      * 
      * @param url
      * 			the string url to check
@@ -263,11 +262,16 @@ public class UIUtil extends Util
      * @return the url to redirect
      */
     public static String checkRedirectURL(String url) {
-    	String repoURL = ConfigurationManager.getProperty("dspace.url");
-		if(!StringUtils.startsWith(url,repoURL)) {
-			log.warn("Attempting redirect to: "+ url +"redirecting to base URL instead");
-			url= repoURL;
-		}
+    	String dspaceHost = ConfigurationManager.getProperty("dspace.hostname");
+    	if(StringUtils.isNotBlank(url)) {
+	    	URI uri = URI.create(url);
+	    	String requestHost = uri.getHost();
+			if(!StringUtils.equals(requestHost, dspaceHost) && !StringUtils.equals(requestHost, "127.0.0.1") && !StringUtils.equals(requestHost, "[::1]")) {
+				log.warn("Attempting redirect to: "+ url +" redirecting to DSpace URL instead");
+				String dspaceUrl = ConfigurationManager.getProperty("dspace.url");
+				return dspaceUrl;
+			}
+    	}
 		return url;
     }
 

@@ -115,7 +115,6 @@ public class Authenticate
         String originalURL = (String) session
                 .getAttribute("interrupted.request.url");
 
-        
         if (originalURL == null)
         {
             // If for some reason we don't have the original URL, redirect
