@@ -11,16 +11,23 @@ package org.dspace.identifier;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Metadatum;
+import org.dspace.content.WorkspaceItem;
+import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.identifier.doi.DOIConnector;
 import org.dspace.identifier.doi.DOIIdentifierException;
+import org.dspace.identifier.doi.IdentifierRegisterValidation;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
+import org.dspace.utils.DSpace;
+import org.dspace.workflow.WorkflowItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -107,10 +114,10 @@ public class DOIIdentifierProvider
     
     protected String getNamespaceSeparator()
     {
-        if (null == this.NAMESPACE_SEPARATOR)
+        if (StringUtils.isBlank(this.NAMESPACE_SEPARATOR))
         {
             this.NAMESPACE_SEPARATOR = this.configurationService.getProperty(CFG_NAMESPACE_SEPARATOR);
-            if (null == this.NAMESPACE_SEPARATOR)
+            if (StringUtils.isBlank(this.NAMESPACE_SEPARATOR))
             {
                 this.NAMESPACE_SEPARATOR = "";
             }
@@ -165,15 +172,36 @@ public class DOIIdentifierProvider
     public String register(Context context, DSpaceObject dso)
             throws IdentifierException
     {
-        String doi = mint(context, dso);
+    	String doi = null;
+        List<IdentifierRegisterValidation> validations = new DSpace().getServiceManager()
+                .getServicesByType(IdentifierRegisterValidation.class);
+        for (IdentifierRegisterValidation validation: validations) {
+        	if (!validation.canRegister(context,dso)) {
+        		return doi;
+        	}
+        }
+        doi = mint(context, dso);
         // register tries to reserve doi if it's not already.
         // So we don't have to reserve it here.
-        this.register(context, dso, doi);
+        this.registerInternal(context, dso, doi);
         return doi;
     }
 
     @Override
     public void register(Context context, DSpaceObject dso, String identifier)
+            throws IdentifierException
+    {
+        List<IdentifierRegisterValidation> validations = new DSpace().getServiceManager()
+                .getServicesByType(IdentifierRegisterValidation.class);
+        for (IdentifierRegisterValidation validation: validations) {
+        	if(!validation.canRegister(context,dso)) {
+        		return ;
+        	}
+        }
+        registerInternal(context, dso, identifier);
+    }
+ 
+    private void registerInternal(Context context, DSpaceObject dso, String identifier)
             throws IdentifierException
     {
         String doi = DOI.formatIdentifier(identifier);
@@ -816,8 +844,48 @@ public class DOIIdentifierProvider
             // We need to generate a new DOI.
             doiRow = DatabaseManager.create(context, "Doi");
 
-            doi = this.getPrefix() + "/" + this.getNamespaceSeparator() + 
-                    doiRow.getIntColumn("doi_id");
+            // search for the appropriate namespace separator
+            String namespaceSeparator = null;
+            // if we have an item, try to load any collection specific namespace separator first
+            if (dso instanceof Item)
+            {
+                Item item = (Item) dso;
+                // normaly items have an owning collection, workflow and workspace item don't
+                Collection col = item.getOwningCollection();
+                if (col == null)
+                {
+                    // check if we have a workspace item, they store the collection separately.
+                    WorkspaceItem wsi = WorkspaceItem.findByItem(context, item);
+                    if (wsi != null)
+                    {
+                        col = wsi.getCollection();
+                    }
+                    if (col == null)
+                    {
+                        // same for the workflow item
+                        WorkflowItem wfi = WorkflowItem.findByItem(context, item);
+                        if (wfi != null)
+                        {
+                            col = wfi.getCollection();
+                        }
+                    }
+                }
+                // if we got the collection, check if a specific namespaceseparator is configured for it
+                if (col != null)
+                {
+                    String configkey = CFG_NAMESPACE_SEPARATOR + "." + col.getHandle();
+                    namespaceSeparator = this.configurationService.getProperty(configkey);
+                }
+            }
+
+            // fallback to default namespace separator if no collection specific one was configured
+            if (StringUtils.isEmpty(namespaceSeparator))
+            {
+                namespaceSeparator = getNamespaceSeparator();
+            }
+
+            doi = this.getPrefix() + "/" + namespaceSeparator + doiRow.getIntColumn("doi_id");
+            log.debug("Generated doi '" + doi + "'.");
         }
                     
         doiRow.setColumn("doi", doi);
