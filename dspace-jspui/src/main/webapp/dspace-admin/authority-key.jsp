@@ -17,14 +17,14 @@
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%
-	Item[] items = (Item[]) request.getAttribute("items");
-    Item[] items_uncertain = (Item[]) request.getAttribute("items_uncertain");
-	Item[] items_ambiguos = (Item[]) request.getAttribute("items_ambiguos");
-	Item[] items_novalue = (Item[]) request.getAttribute("items_novalue");
-	Item[] items_failed = (Item[]) request.getAttribute("items_failed");
-	Item[] items_notfound = (Item[]) request.getAttribute("items_notfound");
-	Item[] items_unset = (Item[]) request.getAttribute("items_unset");
-	Item[] items_reject = (Item[]) request.getAttribute("items_reject");
+	List<Item> items = (List<Item>) request.getAttribute("items");
+    List<Item> items_uncertain = (List<Item>) request.getAttribute("items_uncertain");
+	List<Item> items_ambiguos = (List<Item>) request.getAttribute("items_ambiguos");
+	List<Item> items_novalue = (List<Item>) request.getAttribute("items_novalue");
+	List<Item> items_failed = (List<Item>) request.getAttribute("items_failed");
+	List<Item> items_notfound = (List<Item>) request.getAttribute("items_notfound");
+	List<Item> items_unset = (List<Item>) request.getAttribute("items_unset");
+	List<Item> items_reject = (List<Item>) request.getAttribute("items_reject");
 	
     String authKey = (String) request.getAttribute("authKey");
     String label = (String) request.getAttribute("label");

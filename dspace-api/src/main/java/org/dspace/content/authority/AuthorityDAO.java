@@ -142,7 +142,7 @@ public abstract class AuthorityDAO {
 		List<String> keys = new ArrayList<String>();
 
 		List<Object[]> tri = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlAuthkeyIssued(), fieldId))
-				.addScalar("authority").setParameter(0, page + limit).setParameter(1, limit).list();
+				.addScalar("authority").setParameter("par0", page + limit).setParameter(1, limit).list();
 		for (Object[] obj : tri) {
 			String row = (String) obj[0];
 			keys.add(row);
@@ -181,7 +181,7 @@ public abstract class AuthorityDAO {
 	}
 
 	private List<Item> findIssuedByAuthorityValueAndFieldId(String authority, int[] fieldId) throws SQLException {
-		List<Item> rows = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlFindissuedbyauthorityvalueandfieldid(), fieldId)).addEntity(Item.class).setParameter(0,authority).list();
+		List<Item> rows = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlFindissuedbyauthorityvalueandfieldid(), fieldId)).addEntity(Item.class).setParameter("par0",authority).list();
 		return rows;
 	}
 
@@ -213,7 +213,7 @@ public abstract class AuthorityDAO {
 	}
 
 	private String findNextIssuedAuthorityKeyByFieldId(String focusKey, int[] fieldId) throws SQLException {
-		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNextIssuedAuthkey(), fieldId)).setParameter(0, focusKey).uniqueResult();
+		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNextIssuedAuthkey(), fieldId)).setParameter("par0", focusKey).uniqueResult();
 		if (row != null) {
 			return (String)row;
 		}
@@ -231,7 +231,7 @@ public abstract class AuthorityDAO {
 	}
 
 	private String findPreviousIssuedAuthorityKeyByFieldId(String focusKey, int[] fieldId) throws SQLException {
-		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlPrevIssuedAuthkey(), fieldId)).setParameter(0, focusKey).uniqueResult();
+		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlPrevIssuedAuthkey(), fieldId)).setParameter("par0", focusKey).uniqueResult();
 		if (row != null) {
 			return (String)row;
 		}
@@ -254,7 +254,7 @@ public abstract class AuthorityDAO {
 
 	private List<Item> findIssuedByAuthorityValueAndConfidenceAndFieldId(String authority, int confidence,
 			int[] fieldId) throws SQLException {
-		List<Item> rows = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlItemsissuedBykeyAndConfidence(), fieldId)).addEntity(Item.class).setParameter(0,authority).setParameter(1,confidence).list();
+		List<Item> rows = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlItemsissuedBykeyAndConfidence(), fieldId)).addEntity(Item.class).setParameter("par0",authority).setParameter("par1",confidence).list();
 		return rows;
 	}
 

@@ -42,6 +42,7 @@ import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.utils.DSpace;
@@ -484,7 +485,7 @@ public class BindItemToRP
         {
             return cacheCount.get(name);
         }
-        ChoiceAuthority ca = (ChoiceAuthority) ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService().getChoiceAuthority(RPAuthority.RP_AUTHORITY_NAME);
+        ChoiceAuthority ca = (ChoiceAuthority) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(ChoiceAuthority.class,RPAuthority.RP_AUTHORITY_NAME);
         Choices choices = ca.getBestMatch(null, name, null, null);
         cacheCount.put(name, choices.total);
         return choices.total;
