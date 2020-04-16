@@ -8,12 +8,10 @@
 package org.dspace.authority.orcid;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -36,42 +34,48 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
-import org.orcid.jaxb.model.record_v2.Educations;
-import org.orcid.jaxb.model.record_v2.Employments;
-import org.orcid.jaxb.model.record_v2.Fundings;
-import org.orcid.jaxb.model.record_v2.WorkGroup;
-import org.orcid.jaxb.model.record_v2.Works;
-import org.orcid.jaxb.model.record_v2.Address;
-import org.orcid.jaxb.model.record_v2.Addresses;
-import org.orcid.jaxb.model.record_v2.WorkBulk;
-import org.orcid.jaxb.model.record_v2.SourceReference;
-import org.orcid.jaxb.model.record_v2.Education;
-import org.orcid.jaxb.model.record_v2.EducationSummary;
-import org.orcid.jaxb.model.record_v2.Emails;
-import org.orcid.jaxb.model.record_v2.Employment;
-import org.orcid.jaxb.model.record_v2.EmploymentSummary;
-import org.orcid.jaxb.model.record_v2.Funding;
-import org.orcid.jaxb.model.record_v2.Keyword;
-import org.orcid.jaxb.model.record_v2.Keywords;
-import org.orcid.jaxb.model.record_v2.OtherName;
-import org.orcid.jaxb.model.record_v2.OtherNames;
-import org.orcid.jaxb.model.record_v2.Person;
-import org.orcid.jaxb.model.record_v2.ExternalIdentifier;
-import org.orcid.jaxb.model.record_v2.ExternalIdentifiers;
-import org.orcid.jaxb.model.record_v2.PersonalDetails;
-import org.orcid.jaxb.model.record_v2.ResearcherUrl;
-import org.orcid.jaxb.model.record_v2.ResearcherUrls;
-import org.orcid.jaxb.model.record_v2.Work;
-import org.orcid.jaxb.model.record_v2.WorkSummary;
 import org.dspace.authority.rest.RestSource;
 import org.dspace.content.DCPersonName;
-import org.dspace.content.DSpaceObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.utils.DSpace;
-import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
-import org.orcid.jaxb.model.record_v2.Record;
-import org.orcid.jaxb.model.search_v2.Result;
-import org.orcid.jaxb.model.search_v2.Search;
+import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.common_v3.AffiliationSummary;
+import org.orcid.jaxb.model.record_v3.Address;
+import org.orcid.jaxb.model.record_v3.Addresses;
+import org.orcid.jaxb.model.record_v3.Distinctions;
+import org.orcid.jaxb.model.record_v3.Education;
+import org.orcid.jaxb.model.record_v3.EducationSummary;
+import org.orcid.jaxb.model.record_v3.Educations;
+import org.orcid.jaxb.model.record_v3.Emails;
+import org.orcid.jaxb.model.record_v3.Employment;
+import org.orcid.jaxb.model.record_v3.EmploymentSummary;
+import org.orcid.jaxb.model.record_v3.Employments;
+import org.orcid.jaxb.model.record_v3.ExternalIdentifier;
+import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
+import org.orcid.jaxb.model.record_v3.Funding;
+import org.orcid.jaxb.model.record_v3.Fundings;
+import org.orcid.jaxb.model.record_v3.InvitedPositions;
+import org.orcid.jaxb.model.record_v3.Keyword;
+import org.orcid.jaxb.model.record_v3.Keywords;
+import org.orcid.jaxb.model.record_v3.Memberships;
+import org.orcid.jaxb.model.record_v3.OtherName;
+import org.orcid.jaxb.model.record_v3.OtherNames;
+import org.orcid.jaxb.model.record_v3.Person;
+import org.orcid.jaxb.model.record_v3.PersonalDetails;
+import org.orcid.jaxb.model.record_v3.Qualification;
+import org.orcid.jaxb.model.record_v3.QualificationSummary;
+import org.orcid.jaxb.model.record_v3.Qualifications;
+import org.orcid.jaxb.model.record_v3.Record;
+import org.orcid.jaxb.model.record_v3.ResearcherUrl;
+import org.orcid.jaxb.model.record_v3.ResearcherUrls;
+import org.orcid.jaxb.model.record_v3.Services;
+import org.orcid.jaxb.model.record_v3.Work;
+import org.orcid.jaxb.model.record_v3.WorkBulk;
+import org.orcid.jaxb.model.record_v3.WorkGroup;
+import org.orcid.jaxb.model.record_v3.WorkSummary;
+import org.orcid.jaxb.model.record_v3.Works;
+import org.orcid.jaxb.model.search_v3.Result;
+import org.orcid.jaxb.model.search_v3.Search;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -123,6 +127,36 @@ public class OrcidService extends RestSource
     public static final String EMPLOYMENT_ENDPOINT = "/employment";
 
     public static final String EMPLOYMENT_SUMMARY_ENDPOINT = "/employment/summary";
+
+    public static final String DISTINCTIONS_ENDPOINT = "/distinctions";
+
+    public static final String DISTINCTION_ENDPOINT = "/distinction";
+
+    public static final String DISTINCTION_SUMMARY_ENDPOINT = "/distinction/summary";
+
+    public static final String INVITED_POSITIONS_ENDPOINT = "/invited-positions";
+
+    public static final String INVITED_POSITION_ENDPOINT = "/invited-position";
+
+    public static final String INVITED_POSITION_SUMMARY_ENDPOINT = "/invited-position/summary";
+
+    public static final String MEMBERSHIPS_ENDPOINT = "/memberships";
+
+    public static final String MEMBERSHIP_ENDPOINT = "/membership";
+
+    public static final String MEMBERSHIP_SUMMARY_ENDPOINT = "/membership/summary";
+
+    public static final String QUALIFICATIONS_ENDPOINT = "/qualifications";
+
+    public static final String QUALIFICATION_ENDPOINT = "/qualification";
+
+    public static final String QUALIFICATION_SUMMARY_ENDPOINT = "/qualification/summary";
+
+    public static final String SERVICES_ENDPOINT = "/services";
+
+    public static final String SERVICE_ENDPOINT = "/service";
+
+    public static final String SERVICE_SUMMARY_ENDPOINT = "/service/summary";
 
     public static final String EXTERNAL_IDENTIFIERS_ENDPOINT = "/external-identifiers";
 
@@ -844,6 +878,296 @@ public class OrcidService extends RestSource
             final String putCode)
     {
         String endpoint = id + EMPLOYMENT_SUMMARY_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(EmploymentSummary.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Distinctions getDistinctions(String id, final String token)
+    {
+        String endpoint = id + DISTINCTIONS_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, null);
+
+            return response.readEntity(Distinctions.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Affiliation getDistinction(String id, final String token, final String putCode)
+    {
+        String endpoint = id + DISTINCTION_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(Affiliation.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public AffiliationSummary getDistinctionSummary(String id, final String token,
+            final String putCode)
+    {
+        String endpoint = id + DISTINCTION_SUMMARY_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(AffiliationSummary.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public InvitedPositions getInvitedPositions(String id, final String token)
+    {
+        String endpoint = id + INVITED_POSITIONS_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, null);
+
+            return response.readEntity(InvitedPositions.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Affiliation getInvitedPosition(String id, final String token, final String putCode)
+    {
+        String endpoint = id + INVITED_POSITION_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(Affiliation.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public AffiliationSummary getInvitedPositionSummary(String id, final String token,
+            final String putCode)
+    {
+        String endpoint = id + INVITED_POSITION_SUMMARY_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(AffiliationSummary.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Memberships getMemberships(String id, final String token)
+    {
+        String endpoint = id + MEMBERSHIPS_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, null);
+
+            return response.readEntity(Memberships.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Affiliation getMembership(String id, final String token, final String putCode)
+    {
+        String endpoint = id + MEMBERSHIP_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(Affiliation.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public AffiliationSummary getMembershipSummary(String id, final String token,
+            final String putCode)
+    {
+        String endpoint = id + MEMBERSHIP_SUMMARY_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(AffiliationSummary.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Qualifications getQualifications(String id, final String token)
+    {
+        String endpoint = id + QUALIFICATIONS_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, null);
+
+            return response.readEntity(Qualifications.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Qualification getQualification(String id, final String token, final String putCode)
+    {
+        String endpoint = id + QUALIFICATION_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(Qualification.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public QualificationSummary getQualificationSummary(String id, final String token,
+            final String putCode)
+    {
+        String endpoint = id + QUALIFICATION_SUMMARY_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(QualificationSummary.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Services getServices(String id, final String token)
+    {
+        String endpoint = id + SERVICES_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, null);
+
+            return response.readEntity(Services.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public Employment getService(String id, final String token, final String putCode)
+    {
+        String endpoint = id + SERVICE_ENDPOINT;
+        Response response = null;
+        try
+        {
+            response = get(endpoint, token, putCode);
+
+            return response.readEntity(Employment.class);
+        }
+        finally
+        {
+            if (response != null)
+            {
+                response.close();
+            }
+        }
+    }
+
+    public EmploymentSummary getServiceSummary(String id, final String token,
+            final String putCode)
+    {
+        String endpoint = id + SERVICE_SUMMARY_ENDPOINT;
         Response response = null;
         try
         {
