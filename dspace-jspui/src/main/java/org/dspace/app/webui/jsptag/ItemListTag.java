@@ -282,6 +282,14 @@ public class ItemListTag extends TagSupport {
                 // Output the known column widths
                 out.print("<colgroup>");
 
+                // add col for checkbox column if exists
+                if (inputName != null) {
+                	out.print("<col width=\"*\" />");
+                }
+
+                // add col for id column
+                out.print("<col width=\"*\" />");
+
                 for (int w = 0; w < browseWidths.length; w++)
                 {
                     out.print("<col width=\"");
