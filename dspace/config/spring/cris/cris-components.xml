@@ -80,9 +80,9 @@
 		<property name="types">
 			<map>
 				<entry key="all" value-ref="allThesesComponent" />
-				<entry key="selectedTheses" value-ref="selectedThesesComponent" />
-				<entry key="refereedThesis" value-ref="refereedThesesComponent" />
-				<entry key="advisedTheses" value-ref="advisedThesesComponent" />
+				<entry key="selectedtheses" value-ref="selectedThesesComponent" />
+				<entry key="refereedtheses" value-ref="refereedThesesComponent" />
+				<entry key="advisedtheses" value-ref="advisedThesesComponent" />
 			</map>
 		</property>
 	</bean>
@@ -98,7 +98,7 @@
 
 	<bean id="selectedThesesComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
-		<property name="componentIdentifier" value="selectedthesis" />
+		<property name="componentIdentifier" value="selectedtheses" />
 		<property name="facetQuery"><value>relationpreferences.crisrp.advisedtheses.selected:{1}</value></property>
 		<property name="order"><value>desc</value></property>
 		<property name="rpp"><value>20</value></property>		
@@ -108,7 +108,7 @@
 
 	<bean id="refereedThesesComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
-		<property name="componentIdentifier" value="selected" />
+		<property name="componentIdentifier" value="refereedtheses" />
 		<property name="facetQuery"><value>dc.contributor.referee_authority:{0}</value></property>
 		<property name="order"><value>desc</value></property>
 		<property name="rpp"><value>20</value></property>		
@@ -117,7 +117,7 @@
 
 	<bean id="advisedThesesComponent"
 		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
-		<property name="componentIdentifier" value="selected" />
+		<property name="componentIdentifier" value="advisedtheses" />
 		<property name="facetQuery"><value>dc.contributor.advisor_authority:{0}</value></property>
 		<property name="order"><value>desc</value></property>
 		<property name="rpp"><value>20</value></property>		
