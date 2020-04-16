@@ -485,29 +485,20 @@ public class MetadataImport
             language = bits[1].substring(0, bits[1].length() - 1);
         }
 
-        AuthorityValue fromAuthority = authorityValueService.getAuthorityValueType(md);
+        String mdWithoutLang= StringUtils.contains(md, "[")? StringUtils.substringBefore(md, "["): md;
+        AuthorityValue fromAuthority = authorityValueService.getAuthorityValueType(mdWithoutLang);
         if (md.indexOf(':') > 0) {
             md = md.substring(md.indexOf(':') + 1);
         }
 
-        String[] bits = md.split("\\.");
+        String[] bits = mdWithoutLang.split("\\.");
         String schema = bits[0];
         String element = bits[1];
-        // If there is a language on the element, strip if off
-        if (element.contains("["))
-        {
-            element = element.substring(0, element.indexOf('['));
-        }
+        
         String qualifier = null;
         if (bits.length > 2)
         {
             qualifier = bits[2];
-
-            // If there is a language, strip if off
-            if (qualifier.contains("["))
-            {
-                qualifier = qualifier.substring(0, qualifier.indexOf('['));
-            }
         }
         log.debug(LogManager.getHeader(c, "metadata_import",
                                        "item_id=" + item.getID() + ",fromCSV=" + all +
@@ -1192,7 +1183,7 @@ public class MetadataImport
      */
     private static boolean isAuthorityControlledField(String md)
     {
-        String mdf = StringUtils.substringAfter(md, ":");
+		String mdf = StringUtils.contains(md, ":") ? StringUtils.substringAfter(md, ":") : md;
         mdf = StringUtils.substringBefore(mdf, "[");
         return authorityControlled.contains(mdf);
     }
