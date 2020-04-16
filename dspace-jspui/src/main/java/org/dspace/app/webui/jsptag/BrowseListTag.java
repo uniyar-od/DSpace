@@ -43,7 +43,6 @@ import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -153,7 +152,7 @@ public class BrowseListTag extends TagSupport
 
     static
     {
-        showThumbs = ConfigurationManager
+        showThumbs = DSpaceServicesFactory.getInstance().getConfigurationService()
                 .getBooleanProperty("webui.browse.thumbnail.show");
 
         if (showThumbs)
@@ -383,6 +382,11 @@ public class BrowseListTag extends TagSupport
 
                 // Output the known column widths
                 out.print("<colgroup>");
+
+                // add col for checkbox column if exists
+                if (inputName != null) {
+                	out.print("<col width=\"*\" />");
+                }
 
                 for (int w = 0; w < browseWidths.length; w++)
                 {
