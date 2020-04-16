@@ -9,6 +9,7 @@ package org.dspace.content.authority.service;
 
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 import org.dspace.content.Collection;
 import org.dspace.content.IMetadataValue;
@@ -137,12 +138,27 @@ public interface ChoiceAuthorityService
      */
     public List<String> getVariants(IMetadataValue metadataValue);
     
-    
+    /**
+     * @deprecated
+     * 
+     */
     public void notifyAccept(int itemID, String schema, String element,
 			String qualifier, String authorityKey, int confidence);
+    /**
+     * @deprecated
+     */
     public void notifyReject(int itemID, String schema, String element,
             String qualifier, String authorityKey);
-	public void notifyReject(int[] ids, String schema, String element, String qualifier, String key);
+    /**
+     * @deprecated
+     */
+   public void notifyReject(int[] ids, String schema, String element, String qualifier, String key);
+   
+    public void notifyAccept(UUID itemUUID, String schema, String element,
+			String qualifier, String authorityKey, int confidence);
+    public void notifyReject(UUID itemUUID, String schema, String element,
+            String qualifier, String authorityKey);
+	public void notifyReject(UUID[] itemUUIDs, String schema, String element, String qualifier, String key);	
 	public Set<String> getAuthorities();
 	public List<String> getAuthorityMetadataForAuthority(String authorityName);
 	

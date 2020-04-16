@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
@@ -359,6 +360,8 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
 
 
     /**
+     * @deprecated
+     * 
      * Wrapper that calls reject method of the plugin corresponding
      * 
      */
@@ -379,6 +382,8 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     }
 
     /**
+     * @deprecated
+     * 
      * Wrapper that calls accept potential method of the plugin corresponding
      * 
      */
@@ -399,6 +404,8 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
     }
         
     /**
+     * @deprecated
+     * 
      * Wrapper that calls reject method of the plugin corresponding
      * 
      */
@@ -418,6 +425,66 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
         }
     }
 
+    /**
+     * Wrapper that calls reject method of the plugin corresponding
+     * 
+     */
+    public void notifyReject(UUID itemID, String schema, String element,
+            String qualifier, String authorityKey)
+    {
+        String makeFieldKey = makeFieldKey(schema, element,
+                qualifier);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(makeFieldKey);
+        if(ma == null) {
+            reloadCache(makeFieldKey);
+        }
+        if (ma instanceof NotificableAuthority)
+        {
+            NotificableAuthority avs = (NotificableAuthority) ma;
+            avs.reject(itemID, authorityKey);
+        }
+    }
+
+    /**
+     * Wrapper that calls accept potential method of the plugin corresponding
+     * 
+     */
+    public void notifyAccept(UUID itemID, String schema, String element,
+			String qualifier, String authorityKey, int confidence)
+    {
+        String makeFieldKey = makeFieldKey(schema, element,
+                qualifier);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(makeFieldKey);
+        if(ma == null) {
+            reloadCache(makeFieldKey);
+        }
+        if (ma instanceof NotificableAuthority)
+        {
+            NotificableAuthority avs = (NotificableAuthority) ma;
+			avs.accept(itemID, authorityKey, confidence);
+        }
+    }
+        
+    /**
+     * Wrapper that calls reject method of the plugin corresponding
+     * 
+     */
+    public void notifyReject(UUID[] itemIDs, String schema, String element,
+            String qualifier, String authorityKey)
+    {
+        String makeFieldKey = makeFieldKey(schema, element,
+                qualifier);
+        ChoiceAuthority ma = getChoiceAuthorityMap().get(makeFieldKey);
+        if(ma == null) {
+            reloadCache(makeFieldKey);
+        }
+        if (ma instanceof NotificableAuthority)
+        {
+            NotificableAuthority avs = (NotificableAuthority) ma;
+            avs.reject(itemIDs, authorityKey);
+        }
+    }
+    
     public Object getDetailsInfo(String field, String key, String locale)
     {
         ChoiceAuthority ma = getChoiceAuthorityMap().get(field);

@@ -10,6 +10,7 @@ package org.dspace.app.cris.integration;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
@@ -298,6 +299,8 @@ public class RPAuthority extends CRISAuthority implements
     }
 
     /**
+     * @deprecated
+     * 
      * Record the reject of a potential match so to avoid the same proposal to
      * happen in future.
      * 
@@ -311,8 +314,26 @@ public class RPAuthority extends CRISAuthority implements
         int[] itemIDs = {itemID};
         reject(itemIDs, authorityKey);
     }
-
     /**
+    * 
+    * Record the reject of a potential match so to avoid the same proposal to
+    * happen in future.
+    * 
+    * @param itemID
+    *            the UUID of the item that has been rejected
+    * @param authorityKey
+    *            the researcher identifier (i.e. rp00024)
+    */
+
+    public void reject(UUID itemID, String authorityKey)
+    {
+        UUID[] itemIDs = {itemID};
+        reject(itemIDs, authorityKey);
+    }
+    
+    /**
+     * @deprecated
+     * 
      * Record the reject of a potential match so to avoid the same proposal to
      * happen in future.
      * 
@@ -361,6 +382,57 @@ public class RPAuthority extends CRISAuthority implements
         
     }
 
+    /**
+     * 
+     * Record the reject of a potential match so to avoid the same proposal to
+     * happen in future.
+     * 
+     * @param itemIDs
+     *            the UUID of the items that has been rejected
+     * @param authorityKey
+     *            the researcher identifier (i.e. rp00024)
+     */
+
+    public void reject(UUID[] itemIDs, String authorityKey)
+    {
+        init();
+        ResearcherPage cris = applicationService
+                .getResearcherByAuthorityKey(authorityKey);
+        Context context = null;
+        try
+        {
+            context = new Context();
+            context.turnOffAuthorisationSystem();
+            List<String> list = new ArrayList<String>();
+            for(UUID itemID : itemIDs) {
+                list.add(String.valueOf(itemID));    
+                getHibernateSession(context).createSQLQuery(
+                        "delete from potentialmatches where rp like :par0 and item_id = :par1").setParameter("par0", cris.getCrisID()).setParameter("par1", itemID).executeUpdate();
+            }
+            
+			// FIXME this should be performed by the AuthorityManagementServlet
+			// and not here!
+			// when done in the proper way, the relationpreference should invoke
+			// the notify to provide hack
+			// for external authority services
+            relationPreferenceService.unlink(context, cris, PUBLICATIONS_RELATION_NAME,
+                    list);
+            context.commit();
+            context.restoreAuthSystemState();
+        }
+        catch (SQLException e)
+        {
+            log.error(e.getMessage(), e);
+        }
+        finally
+        {
+            if(context!=null && context.isValid()) {
+                context.abort();
+            }
+        }
+        
+    }
+
     
     @Override
     public int getCRISTargetTypeID()
@@ -378,6 +450,9 @@ public class RPAuthority extends CRISAuthority implements
     	return "rp";
     }
 
+    /**
+     * @deprecated
+     */
     @Override
 	public void accept(int itemID, String authorityKey, int confidence)
     {
@@ -426,6 +501,54 @@ public class RPAuthority extends CRISAuthority implements
         
     }
 
+    @Override
+	public void accept(UUID itemID, String authorityKey, int confidence)
+    {
+		init();
+        Context context = null;
+        try
+        {
+			context = new Context();
+			context.turnOffAuthorisationSystem();
+			if (confidence != Choices.CF_ACCEPTED) {
+				int resultUpdate = getHibernateSession(context).createSQLQuery(
+						"update potentialmatches set pending= :pending where rp like :rp and uuid = :item_id").setParameter("pending", true).setParameter("rp", authorityKey).setParameter("item_id", itemID).executeUpdate();
+				if (resultUpdate != 1) {
+					Query row = getHibernateSession(context).createQuery(
+							"INSERT INTO potentialmatches (pending, rp, uuid) VALUES (:pending,:rp,:item_id");
+					row.setParameter("pending", true);
+					row.setParameter("rp", authorityKey);
+					row.setParameter("uuid", itemID);
+					row.executeUpdate();
+				}
+			} else {
+				getHibernateSession(context).createSQLQuery(
+								"delete from potentialmatches where rp like ? and uuid = ?").setParameter(0, authorityKey).setParameter(1, itemID).executeUpdate();
+			}
+			context.commit();
+			// FIXME this should be performed by the AuthorityManagementServlet
+			// and not here!
+			// when done in the proper way, the relationpreference should invoke
+			// the notify to provide hack
+			// for external authority services
+			ResearcherPage rp = applicationService
+					.getResearcherByAuthorityKey(authorityKey);
+			List<String> list = new ArrayList<String>();
+			list.add(String.valueOf(itemID));
+			relationPreferenceService.active(context, rp,
+					PUBLICATIONS_RELATION_NAME,
+                    list);
+			context.restoreAuthSystemState();
+		} catch (SQLException e) {
+			log.error(e.getMessage(), e);
+		} finally {
+            if(context!=null && context.isValid()) {
+                context.abort();
+            }
+        }
+        
+    }
+    
 	public Session getHibernateSession(Context context) throws SQLException {
 		return ((Session) context.getDBConnection().getSession());
 	}

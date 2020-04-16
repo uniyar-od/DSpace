@@ -102,8 +102,8 @@
 <form method="post">
     <input type="hidden" name="issued" value="<%= request.getParameter("issued") %>" />
     <input type="hidden" name="key" value="<%= authKey %>" />
-    <% if(items_ambiguos.length>0 || items_uncertain.length>0 || items_notfound.length>0 || items_failed.length>0 || items_unset.length>0 || items_reject.length>0 || items_novalue.length>0 ) { %>
-    <% if(items_ambiguos.length>0) { %>
+    <% if(!items_ambiguos.isEmpty() || !items_uncertain.isEmpty() || !items_notfound.isEmpty() || !items_failed.isEmpty() || !items_unset.isEmpty() || !items_reject.isEmpty() || !items_novalue.isEmpty() ) { %>
+    <% if(!items_ambiguos.isEmpty()) { %>
     <h3>	<fmt:message key="jsp.dspace-admin.authority-key.items-ambiguos">				
 				<fmt:param><img src="../image/confidence/4-question.gif" title="Ambiguos" alt=""/></fmt:param>
 			</fmt:message></h3>
@@ -119,7 +119,7 @@
 <%
     } 
     }
-     if(items_uncertain.length>0) { %>
+     if(!items_uncertain.isEmpty()) { %>
     <h3><fmt:message key="jsp.dspace-admin.authority-key.items-uncertain" >				
 				<fmt:param><img src="../image/confidence/5-pinion.gif" title="Uncertain" alt=""/></fmt:param>
 			</fmt:message></h3>
@@ -135,7 +135,7 @@
 <%
     }
     }
-     if(items_novalue.length>0) { %>
+     if(!items_novalue.isEmpty()) { %>
     <h3><fmt:message key="jsp.dspace-admin.authority-key.items-novalue" >				
 				<fmt:param><img src="../image/authority/bug.png" title="No Value" alt=""/></fmt:param>
 			</fmt:message></h3>
@@ -151,7 +151,7 @@
 <%
     }
     }
-     if(items_failed.length>0) { %>
+     if(!items_failed.isEmpty()) { %>
     <h3><fmt:message key="jsp.dspace-admin.authority-key.items-failed">				
 				<fmt:param><img src="../image/confidence/2-errortriangle.gif" title="Failed" alt=""/></fmt:param>
 			</fmt:message></h3>
@@ -168,7 +168,7 @@
     }
     }
      
-     if(items_notfound.length>0) { %>
+     if(!items_notfound.isEmpty()) { %>
      <h3><fmt:message key="jsp.dspace-admin.authority-key.items-notfound">				
  				<fmt:param><img src="../image/confidence/2-errortriangle.gif" title="Failed" alt=""/></fmt:param>
  			</fmt:message></h3>
@@ -184,7 +184,7 @@
  <%
      }
      }
-     if(items_unset.length>0) { %>
+     if(!items_unset.isEmpty()) { %>
     <h3><fmt:message key="jsp.dspace-admin.authority-key.items-unset" >				
 				<fmt:param><img src="../image/confidence/0-unauthored.gif" title="Unset" alt=""/></fmt:param>
 			</fmt:message></h3>
@@ -200,7 +200,7 @@
 <%
     }
     }
-     if(items_reject.length>0) { %>
+     if(!items_reject.isEmpty()) { %>
     <h3><fmt:message key="jsp.dspace-admin.authority-key.items-reject" >				
 				<fmt:param><img src="../image/confidence/3-circleslash.gif" title="Reject" alt=""/></fmt:param>
 			</fmt:message></h3>

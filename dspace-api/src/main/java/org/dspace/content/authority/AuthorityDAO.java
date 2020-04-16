@@ -91,15 +91,32 @@ public abstract class AuthorityDAO {
 			if (conf < Choices.CF_NOVALUE || conf > Choices.CF_ACCEPTED) {
 				conf = 0;
 			}
-			BigInteger numMetadataInt = (BigInteger) row[1];
-			int numMetadata = numMetadataInt!=null ? numMetadataInt.intValue() :0;
+	        long numMetadata;
+	        if (row[1] instanceof Integer)
+	        {
+	            numMetadata = (Integer) row[1];
+	        }
+	        else
+	        {
+	            BigInteger numMetadataInt = (BigInteger) row[1];
+	            numMetadata = numMetadataInt!=null ? numMetadataInt.intValue() :0;
+	        }
 			numMetadataByConfidence[conf / 100] = numMetadata;
 		}
 
 		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthoredItems(), fieldIds))
 				.addScalar("num").uniqueResult();
-		BigInteger numItemsInt = (BigInteger) row;
-		long numItems = numItemsInt != null ? numItemsInt.longValue(): 0;
+		
+        long numItems;
+        if (row instanceof Integer)
+        {
+            numItems = (Integer) row;
+        }
+        else
+        {
+            BigInteger numItemsInt = (BigInteger) row;
+            numItems = numItemsInt != null ? numItemsInt.longValue(): 0;
+        }
 		
 		if (numItems == -1) {
 			numItems = 0;
@@ -107,20 +124,51 @@ public abstract class AuthorityDAO {
 
 		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumIssuedItems(), fieldIds))
 				.addScalar("num").uniqueResult();
-		BigInteger numIssuedItemsInt = (BigInteger) row;
-		long numIssuedItems = numIssuedItemsInt != null ? numIssuedItemsInt.longValue(): 0;
+
+        long numIssuedItems;
+        if (row instanceof Integer)
+        {
+            numIssuedItems = (Integer) row;
+        }
+        else
+        {
+            BigInteger numIssuedItemsInt = (BigInteger) row;
+            numIssuedItems = numIssuedItemsInt != null
+                    ? numIssuedItemsInt.longValue()
+                    : 0;
+        }
+		
+
 		if (numIssuedItems == -1) {
 			numIssuedItems = 0;
 		}
 
 		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumMetadata(), fieldIds)).addScalar("num").uniqueResult();
-		BigInteger numTotMetadataInt = (BigInteger) row;
-		long numTotMetadata = numTotMetadataInt != null ? numTotMetadataInt.longValue(): 0;
 		
-		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthkey(), fieldIds)).addScalar("num").uniqueResult();
-		BigInteger numAuthorityKeyInt = (BigInteger) row;
-		long numAuthorityKey = numAuthorityKeyInt != null ? numAuthorityKeyInt.longValue(): 0;
+        long numTotMetadata;
+        if (row instanceof Integer)
+        {
+            numTotMetadata = (Integer) row;
+        }
+        else
+        {
+            BigInteger numTotMetadataInt = (BigInteger) row;
+            numTotMetadata = numTotMetadataInt != null ? numTotMetadataInt.longValue(): 0;
+        }		
 
+		row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthkey(), fieldIds)).addScalar("num").uniqueResult();
+
+        long numAuthorityKey;
+        if (row instanceof Integer)
+        {
+            numAuthorityKey = (Integer) row;
+        }
+        else
+        {
+            BigInteger numAuthorityKeyInt = (BigInteger) row;
+            numAuthorityKey = numAuthorityKeyInt != null ? numAuthorityKeyInt.longValue(): 0;
+        }
+		
 		long numAuthorityIssued = countIssuedAuthorityKeys(fieldIds);
 
 		return new AuthorityInfo(scope, fieldIds.length > 1, numMetadataByConfidence, numTotMetadata, numAuthorityKey,
@@ -142,7 +190,7 @@ public abstract class AuthorityDAO {
 		List<String> keys = new ArrayList<String>();
 
 		List<Object[]> tri = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlAuthkeyIssued(), fieldId))
-				.addScalar("authority").setParameter("par0", page + limit).setParameter(1, limit).list();
+				.addScalar("authority").setParameter("par0", page + limit).setParameter("par1", limit).list();
 		for (Object[] obj : tri) {
 			String row = (String) obj[0];
 			keys.add(row);
@@ -161,8 +209,18 @@ public abstract class AuthorityDAO {
 	private long countIssuedAuthorityKeys(int... fieldId) throws SQLException {
 		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumAuthkeyIssued(), fieldId))
 				.addScalar("num").uniqueResult();
-		BigInteger numAuthorityIssuedInt = (BigInteger) row;
-		long numAuthorityIssued = numAuthorityIssuedInt!= null ? numAuthorityIssuedInt.longValue() :0;
+		long numAuthorityIssued;
+        if (row instanceof Integer)
+        {
+            numAuthorityIssued = (Integer) row;
+        }
+        else
+        {
+            BigInteger numAuthorityIssuedInt = (BigInteger) row;
+            numAuthorityIssued = numAuthorityIssuedInt != null
+                    ? numAuthorityIssuedInt.longValue()
+                    : 0;
+        }
 		return numAuthorityIssued;
 	}
 
@@ -197,8 +255,14 @@ public abstract class AuthorityDAO {
 
 	private long countIssuedItemsByAuthorityValueAndFieldId(String key, int[] fieldId) throws SQLException {
 		Object row = getHibernateSession().createSQLQuery(getFinalQueryString(getSqlNumItemsissuedBykey(), fieldId)).addScalar("num", IntegerType.INSTANCE).setParameter("authority",key).uniqueResult();
-		BigInteger numAuthorityIssuedInt = (BigInteger)row;
-		long numAuthorityIssued = numAuthorityIssuedInt != null ? numAuthorityIssuedInt.longValue() :0;
+		long numAuthorityIssued;
+		if(row instanceof Integer) {
+		    numAuthorityIssued = (Integer) row;
+		}
+		else {
+		    BigInteger numAuthorityIssuedInt = (BigInteger)row;
+		    numAuthorityIssued = numAuthorityIssuedInt != null ? numAuthorityIssuedInt.longValue() :0;
+		}
 		return numAuthorityIssued;
 	}
 

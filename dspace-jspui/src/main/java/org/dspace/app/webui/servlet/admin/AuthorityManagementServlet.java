@@ -21,6 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -117,67 +118,84 @@ public class AuthorityManagementServlet extends DSpaceServlet
             metadataList.add(issuedParam);
         }
         
-        int[] items_uncertain = UIUtil.getIntParameters(request,
+        List<UUID> items_uncertain = UIUtil.getUUIDParameters(request,
                 "items_uncertain");
-        int[] items_ambiguos = UIUtil.getIntParameters(request,
+        List<UUID> items_ambiguos = UIUtil.getUUIDParameters(request,
                 "items_ambiguos");
-        int[] items_novalue = UIUtil.getIntParameters(request, "items_novalue");
-        int[] items_failed = UIUtil.getIntParameters(request, "items_failed");
-        int[] items_unset = UIUtil.getIntParameters(request, "items_unset");
-        int[] items_reject = UIUtil.getIntParameters(request, "items_reject");
-        int[] items_notfound = UIUtil.getIntParameters(request, "items_notfound");
+        List<UUID> items_novalue = UIUtil.getUUIDParameters(request, "items_novalue");
+        List<UUID> items_failed = UIUtil.getUUIDParameters(request, "items_failed");
+        List<UUID> items_unset = UIUtil.getUUIDParameters(request, "items_unset");
+        List<UUID> items_reject = UIUtil.getUUIDParameters(request, "items_reject");
+        List<UUID> items_notfound = UIUtil.getUUIDParameters(request, "items_notfound");
         
-        int[][] items = { items_uncertain, items_ambiguos, items_notfound,
-                items_failed, items_unset, items_reject, items_novalue };
         
         final String submitButton = UIUtil.getSubmitButton(request,
                 "submit_accept");
 
-        Set<Integer> itemRejectedIDs = new HashSet<Integer>();
-        for (int[] items_uanfur : items)
+        List<UUID> items = new ArrayList<UUID>();
+        if(items_uncertain!= null && !items_uncertain.isEmpty()) {
+        	items.addAll(items_uncertain);
+        }
+        if(items_ambiguos!= null && !items_ambiguos.isEmpty()) {
+        	items.addAll(items_ambiguos);
+        }
+        if(items_novalue!= null && !items_novalue.isEmpty()) {
+        	items.addAll(items_novalue);
+        }
+        if(items_failed!= null && !items_failed.isEmpty()) {
+        	items.addAll(items_failed);
+        }
+        if(items_unset!= null && !items_unset.isEmpty()) {
+        	items.addAll(items_unset);
+        }
+        if(items_reject!= null && !items_reject.isEmpty()) {
+        	items.addAll(items_reject);
+        }
+        if(items_notfound!= null && !items_notfound.isEmpty()) {
+        	items.addAll(items_notfound);
+        }
+        Set<UUID> itemRejectedIDs = new HashSet<UUID>();
+        for (UUID itemID : items)
         {
-            if (items_uanfur!=null)
+            if (itemID!=null)
             {
-                for (int itemID : items_uanfur)
+                Item item = ContentServiceFactory.getInstance().getItemService().find(context, itemID);
+                
+                for (String issued : metadataList)
                 {
-                    Item item = ContentServiceFactory.getInstance().getItemService().findByLegacyId(context, itemID);
-                    
-                    for (String issued : metadataList)
+                    String[] metadata = issued.split("\\.");
+                    List<IMetadataValue> original = item.getMetadataValueInDCFormat(issued);
+                    item.getItemService().clearMetadata(context, item, metadata[0], metadata[1],
+                            metadata.length > 2 ? metadata[2] : null, Item.ANY);
+                    for (IMetadataValue md : original)
                     {
-                        String[] metadata = issued.split("\\.");
-                        List<IMetadataValue> original = item.getMetadataValueInDCFormat(issued);
-                        item.getItemService().clearMetadata(context, item, metadata[0], metadata[1],
-                                metadata.length > 2 ? metadata[2] : null, Item.ANY);
-                        for (IMetadataValue md : original)
+                        if (key.equals(md.getAuthority()))
                         {
-                            if (key.equals(md.getAuthority()))
+                            if ("submit_accept".equalsIgnoreCase(submitButton))
                             {
-                                if ("submit_accept".equalsIgnoreCase(submitButton))
-                                {
-                                    log.debug(LogManager.getHeader(context,
-                                            "confirm_authority_key", "item_id: "
-                                                    + itemID + ", authority_key: "
-                                                    + key));
-                                    md.setConfidence(Choices.CF_ACCEPTED);
-                                }
-                                else
-                                {
-                                    log.debug(LogManager.getHeader(context,
-                                            "reject_authority_key", "item_id: "
-                                                    + itemID + ", authority_key: "
-                                                    + key));
-                                    md.setConfidence(Choices.CF_UNSET);
-                                    md.setAuthority(null);
-                                    itemRejectedIDs.add(itemID);
-                                }
+                                log.debug(LogManager.getHeader(context,
+                                        "confirm_authority_key", "item_id: "
+                                                + itemID + ", authority_key: "
+                                                + key));
+                                md.setConfidence(Choices.CF_ACCEPTED);
                             }
-                            item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
-                                    md.getLanguage(), md.getValue(), md.getAuthority(),
-                                    md.getConfidence());
+                            else
+                            {
+                                log.debug(LogManager.getHeader(context,
+                                        "reject_authority_key", "item_id: "
+                                                + itemID + ", authority_key: "
+                                                + key));
+                                md.setConfidence(Choices.CF_UNSET);
+                                md.setAuthority(null);
+                                itemRejectedIDs.add(itemID);
+                            }
                         }
+                        item.getItemService().addMetadata(context, item, md.getSchema(), md.getElement(), md.getQualifier(),
+                                md.getLanguage(), md.getValue(), md.getAuthority(),
+                                md.getConfidence());
                     }
-                    item.getItemService().update(context, item);
                 }
+                item.getItemService().update(context, item);
             }
         }
 
@@ -185,12 +203,12 @@ public class AuthorityManagementServlet extends DSpaceServlet
         if (itemRejectedIDs.size() > 0)
         {
             // notify reject
-            int[] ids = new int[itemRejectedIDs.size()];
-            Iterator<Integer> iter = itemRejectedIDs.iterator();
+            UUID[] ids = new UUID[itemRejectedIDs.size()];
+            Iterator<UUID> iter = itemRejectedIDs.iterator();
             int i = 0;
             while (iter.hasNext())
             {
-                ids[i] = (Integer) iter.next();
+                ids[i] = (UUID) iter.next();
                 i++;
             }
             
@@ -202,7 +220,7 @@ public class AuthorityManagementServlet extends DSpaceServlet
                     .notifyReject(ids, schema, element, qualifier, key);
         }
         log.info(LogManager.getHeader(context, "validate_authority_key",
-                "action: " + submitButton + " #items: " + items.length));
+                "action: " + submitButton + " #items: " + items.size()));
         String message = I18nUtil.getMessage(
                 "org.dspace.app.webui.AuthorityManagementServlet."
                         + submitButton, UIUtil.getSessionLocale(request));
