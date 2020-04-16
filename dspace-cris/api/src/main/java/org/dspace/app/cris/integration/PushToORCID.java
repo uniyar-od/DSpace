@@ -686,11 +686,11 @@ public class PushToORCID
                             break;
                         case OrcidService.CONSTANT_EMPLOYMENT_UUID:
                             putCode = orcidService.appendEmployment(orcid, token,
-                                    (Affiliation) partOfResearcher);
+                                    (Employment) partOfResearcher);
                             break;
                         case OrcidService.CONSTANT_EDUCATION_UUID:
                             putCode = orcidService.appendEducation(orcid, token,
-                                    (Affiliation) partOfResearcher);
+                                    (Education) partOfResearcher);
                             break;                               
                         }
                         orcidHistory.setPutCode(putCode);
@@ -749,15 +749,15 @@ public class PushToORCID
                                 keyword);
                         break;
                     case OrcidService.CONSTANT_EMPLOYMENT_UUID:
-                        Affiliation employment = (Affiliation) partOfResearcher;
-                        employment.setPutCode(
+                        Employment employment = (Employment) partOfResearcher;
+                        employment.getValue().setPutCode(
                                 new BigInteger(putCode));
                         status = orcidService.putEmployment(orcid, token, putCode,
                                 employment);
                         break;
                     case OrcidService.CONSTANT_EDUCATION_UUID:
-                        Affiliation education = (Affiliation) partOfResearcher;
-                        education.setPutCode(
+                        Education education = (Education) partOfResearcher;
+                        education.getValue().setPutCode(
                                 new BigInteger(putCode));
                         status = orcidService.putEducation(orcid, token, putCode,
                                 education);

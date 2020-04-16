@@ -8,12 +8,10 @@
 package org.dspace.authority.orcid;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -36,44 +34,46 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
-import org.orcid.jaxb.model.record_v3.Educations;
-import org.orcid.jaxb.model.record_v3.Employments;
-import org.orcid.jaxb.model.record_v3.Fundings;
-import org.orcid.jaxb.model.record_v3.InvitedPositions;
-import org.orcid.jaxb.model.record_v3.WorkGroup;
-import org.orcid.jaxb.model.record_v3.Works;
+import org.dspace.authority.rest.RestSource;
+import org.dspace.content.DCPersonName;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.utils.DSpace;
+import org.orcid.jaxb.model.common_v3.Affiliation;
+import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.record_v3.Address;
 import org.orcid.jaxb.model.record_v3.Addresses;
 import org.orcid.jaxb.model.record_v3.Distinctions;
-import org.orcid.jaxb.model.record_v3.WorkBulk;
-import org.orcid.jaxb.model.record_v3.SourceReference;
-import org.orcid.jaxb.model.common_v3.Affiliation;
-import org.orcid.jaxb.model.common_v3.AffiliationSummary;
+import org.orcid.jaxb.model.record_v3.Education;
+import org.orcid.jaxb.model.record_v3.EducationSummary;
+import org.orcid.jaxb.model.record_v3.Educations;
 import org.orcid.jaxb.model.record_v3.Emails;
 import org.orcid.jaxb.model.record_v3.Employment;
+import org.orcid.jaxb.model.record_v3.EmploymentSummary;
+import org.orcid.jaxb.model.record_v3.Employments;
+import org.orcid.jaxb.model.record_v3.ExternalIdentifier;
+import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
 import org.orcid.jaxb.model.record_v3.Funding;
+import org.orcid.jaxb.model.record_v3.Fundings;
+import org.orcid.jaxb.model.record_v3.InvitedPositions;
 import org.orcid.jaxb.model.record_v3.Keyword;
 import org.orcid.jaxb.model.record_v3.Keywords;
 import org.orcid.jaxb.model.record_v3.Memberships;
 import org.orcid.jaxb.model.record_v3.OtherName;
 import org.orcid.jaxb.model.record_v3.OtherNames;
 import org.orcid.jaxb.model.record_v3.Person;
-import org.orcid.jaxb.model.record_v3.ExternalIdentifier;
-import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
 import org.orcid.jaxb.model.record_v3.PersonalDetails;
+import org.orcid.jaxb.model.record_v3.Qualification;
+import org.orcid.jaxb.model.record_v3.QualificationSummary;
 import org.orcid.jaxb.model.record_v3.Qualifications;
+import org.orcid.jaxb.model.record_v3.Record;
 import org.orcid.jaxb.model.record_v3.ResearcherUrl;
 import org.orcid.jaxb.model.record_v3.ResearcherUrls;
 import org.orcid.jaxb.model.record_v3.Services;
 import org.orcid.jaxb.model.record_v3.Work;
+import org.orcid.jaxb.model.record_v3.WorkBulk;
+import org.orcid.jaxb.model.record_v3.WorkGroup;
 import org.orcid.jaxb.model.record_v3.WorkSummary;
-import org.dspace.authority.rest.RestSource;
-import org.dspace.content.DCPersonName;
-import org.dspace.content.DSpaceObject;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.utils.DSpace;
-import org.glassfish.jersey.message.internal.MessageBodyProviderNotFoundException;
-import org.orcid.jaxb.model.record_v3.Record;
+import org.orcid.jaxb.model.record_v3.Works;
 import org.orcid.jaxb.model.search_v3.Result;
 import org.orcid.jaxb.model.search_v3.Search;
 
@@ -874,7 +874,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public AffiliationSummary getEmploymentSummary(String id, final String token,
+    public EmploymentSummary getEmploymentSummary(String id, final String token,
             final String putCode)
     {
         String endpoint = id + EMPLOYMENT_SUMMARY_ENDPOINT;
@@ -883,7 +883,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(AffiliationSummary.class);
+            return response.readEntity(EmploymentSummary.class);
         }
         finally
         {
@@ -1087,7 +1087,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getQualification(String id, final String token, final String putCode)
+    public Qualification getQualification(String id, final String token, final String putCode)
     {
         String endpoint = id + QUALIFICATION_ENDPOINT;
         Response response = null;
@@ -1095,7 +1095,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(Qualification.class);
         }
         finally
         {
@@ -1106,7 +1106,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public AffiliationSummary getQualificationSummary(String id, final String token,
+    public QualificationSummary getQualificationSummary(String id, final String token,
             final String putCode)
     {
         String endpoint = id + QUALIFICATION_SUMMARY_ENDPOINT;
@@ -1115,7 +1115,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(AffiliationSummary.class);
+            return response.readEntity(QualificationSummary.class);
         }
         finally
         {
@@ -1145,7 +1145,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getService(String id, final String token, final String putCode)
+    public Employment getService(String id, final String token, final String putCode)
     {
         String endpoint = id + SERVICE_ENDPOINT;
         Response response = null;
@@ -1153,7 +1153,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(Employment.class);
         }
         finally
         {
@@ -1164,7 +1164,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public AffiliationSummary getServiceSummary(String id, final String token,
+    public EmploymentSummary getServiceSummary(String id, final String token,
             final String putCode)
     {
         String endpoint = id + SERVICE_SUMMARY_ENDPOINT;
@@ -1173,7 +1173,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(AffiliationSummary.class);
+            return response.readEntity(EmploymentSummary.class);
         }
         finally
         {
@@ -1198,7 +1198,7 @@ public class OrcidService extends RestSource
      * @throws JAXBException
      */
     public StatusType putEmployment(String id, String token, String putCode,
-            Affiliation employment) throws IOException, JAXBException
+            Employment employment) throws IOException, JAXBException
     {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
@@ -1236,7 +1236,7 @@ public class OrcidService extends RestSource
     }
 
     public String appendEmployment(String id, String token,
-            Affiliation employment) throws IOException, JAXBException
+            Employment employment) throws IOException, JAXBException
     {
         String endpoint = id + EMPLOYMENT_ENDPOINT;
         Response response = null;
@@ -1278,7 +1278,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getEducation(String id, final String token, final String putCode)
+    public Education getEducation(String id, final String token, final String putCode)
     {
         String endpoint = id + EDUCATION_ENDPOINT;
         Response response = null;
@@ -1286,7 +1286,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(Education.class);
         }
         finally
         {
@@ -1297,7 +1297,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public AffiliationSummary getEducationSummary(String id, final String token,
+    public EducationSummary getEducationSummary(String id, final String token,
             final String putCode)
     {
         String endpoint = id + EDUCATION_SUMMARY_ENDPOINT;
@@ -1306,7 +1306,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(AffiliationSummary.class);
+            return response.readEntity(EducationSummary.class);
         }
         finally
         {
@@ -1318,7 +1318,7 @@ public class OrcidService extends RestSource
     }
 
     public StatusType putEducation(String id, String token, String putCode,
-            Affiliation education) throws IOException, JAXBException
+            Education education) throws IOException, JAXBException
     {
         String endpoint = id + EDUCATION_ENDPOINT;
         Response response = null;
@@ -1355,7 +1355,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public String appendEducation(String id, String token, Affiliation education)
+    public String appendEducation(String id, String token, Education education)
             throws IOException, JAXBException
     {
         String endpoint = id + EDUCATION_ENDPOINT;
