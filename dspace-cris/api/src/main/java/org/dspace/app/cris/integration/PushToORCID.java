@@ -1459,6 +1459,8 @@ public class PushToORCID
             funding.setAmount(amount);
         }
 
+        DecimalFormat dateMonthAndDayFormat = new DecimalFormat("00");
+
         if (StringUtils.isNotBlank(itemMetadata.getStartYear())
                 || StringUtils.isNotBlank(itemMetadata.getStartMonth())
                 || StringUtils.isNotBlank(itemMetadata.getStartDay()))
@@ -1467,19 +1469,21 @@ public class PushToORCID
             if (StringUtils.isNotBlank(itemMetadata.getStartYear()))
             {
                 Year year = new Year();
-                year.setValue(Integer.parseInt(itemMetadata.getStartYear()));
+                year.setValue(itemMetadata.getStartYear());
                 fuzzyDate.setYear(year);
             }
             if (StringUtils.isNotBlank(itemMetadata.getStartMonth()))
             {
                 Month month = new Month();
-                month.setValue(Integer.parseInt(itemMetadata.getStartMonth()));
+                month.setValue(dateMonthAndDayFormat
+                        .format(Long.parseLong(itemMetadata.getStartMonth())));
                 fuzzyDate.setMonth(month);
             }
             if (StringUtils.isNotBlank(itemMetadata.getStartDay()))
             {
                 Day day = new Day();
-                day.setValue(Integer.parseInt(itemMetadata.getStartDay()));
+                day.setValue(dateMonthAndDayFormat
+                        .format(Long.parseLong(itemMetadata.getStartDay())));
                 fuzzyDate.setDay(day);
             }
             funding.setStartDate(fuzzyDate);
@@ -1492,19 +1496,21 @@ public class PushToORCID
             if (StringUtils.isNotBlank(itemMetadata.getEndYear()))
             {
                 Year year = new Year();
-                year.setValue(Integer.parseInt(itemMetadata.getEndYear()));
+                year.setValue(itemMetadata.getEndYear());
                 fuzzyDate.setYear(year);
             }
             if (StringUtils.isNotBlank(itemMetadata.getEndMonth()))
             {
                 Month month = new Month();
-                month.setValue(Integer.parseInt(itemMetadata.getEndMonth()));
+                month.setValue(dateMonthAndDayFormat
+                        .format(Long.parseLong(itemMetadata.getEndMonth())));
                 fuzzyDate.setMonth(month);
             }
             if (StringUtils.isNotBlank(itemMetadata.getEndDay()))
             {
                 Day day = new Day();
-                day.setValue(Integer.parseInt(itemMetadata.getEndDay()));
+                day.setValue(dateMonthAndDayFormat
+                        .format(Long.parseLong(itemMetadata.getEndDay())));
                 fuzzyDate.setDay(day);
             }
             funding.setEndDate(fuzzyDate);
@@ -1786,19 +1792,21 @@ public class PushToORCID
             if (StringUtils.isNotBlank(itemMetadata.getYear()))
             {
                 Year year = new Year();
-                year.setValue(Integer.parseInt(itemMetadata.getYear()));
+                year.setValue(itemMetadata.getYear());
                 publicationDate.setYear(year);
             }
             if (StringUtils.isNotBlank(itemMetadata.getMonth()))
             {
                 Month month = new Month();
-                month.setValue(Integer.parseInt(itemMetadata.getMonth()));
+                month.setValue(dateMonthAndDayFormat
+                        .format(Long.parseLong(itemMetadata.getMonth())));
                 publicationDate.setMonth(month);
             }
             if (StringUtils.isNotBlank(itemMetadata.getDay()))
             {
                 Day day = new Day();
-                day.setValue(Integer.parseInt(itemMetadata.getDay()));
+                day.setValue(dateMonthAndDayFormat
+                        .format(Long.parseLong(itemMetadata.getDay())));
                 publicationDate.setDay(day);
             }
             orcidWork.setPublicationDate(publicationDate);
@@ -2022,8 +2030,9 @@ public class PushToORCID
                     FuzzyDate fuzzyStartDate = new FuzzyDate();
                     try
                     {
+                        int yearSD = cal1.getYear();
                         Year year = new Year();
-                        year.setValue(cal1.getYear());
+                        year.setValue(String.valueOf(yearSD));
                         fuzzyStartDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2034,8 +2043,10 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
+                            int monthSD = cal1.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(cal1.getMonthOfYear());
+                            month.setValue(dateMonthAndDayFormat
+                                    .format(monthSD));
                             fuzzyStartDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2047,8 +2058,10 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
+                            int daySD = cal1.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(cal1.getDayOfMonth());
+                            day.setValue(dateMonthAndDayFormat
+                                    .format(daySD));
                             fuzzyStartDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2098,8 +2111,9 @@ public class PushToORCID
                     FuzzyDate fuzzyEndDate = new FuzzyDate();
                     try
                     {
+                        int yearED = cal2.getYear();
                         Year year = new Year();
-                        year.setValue(cal2.getYear());
+                        year.setValue(String.valueOf(yearED));
                         fuzzyEndDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2110,8 +2124,10 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
+                            int monthED = cal2.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(cal2.getMonthOfYear());
+                            month.setValue(dateMonthAndDayFormat
+                                    .format(monthED));
                             fuzzyEndDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2123,8 +2139,10 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
+                            int dayED = cal2.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(cal2.getDayOfMonth());
+                            day.setValue(dateMonthAndDayFormat
+                                    .format(dayED));
                             fuzzyEndDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2282,8 +2300,9 @@ public class PushToORCID
 
                     try
                     {
+                        int yearSD = cal1.getYear();
                         Year year = new Year();
-                        year.setValue(cal1.getYear());
+                        year.setValue(String.valueOf(yearSD));
                         fuzzyStartDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2294,8 +2313,10 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
+                            int monthSD = cal1.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(cal1.getMonthOfYear());
+                            month.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(monthSD) }));
                             fuzzyStartDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2307,8 +2328,10 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
+                            int daySD = cal1.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(cal1.getDayOfMonth());
+                            day.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(daySD) }));
                             fuzzyStartDate.setDay(day);
                         }
                         catch (Exception ex)
@@ -2359,8 +2382,9 @@ public class PushToORCID
 
                     try
                     {
+                        int yearED = cal2.getYear();
                         Year year = new Year();
-                        year.setValue(cal2.getYear());
+                        year.setValue(String.valueOf(yearED));
                         fuzzyEndDate.setYear(year);
                     }
                     catch (Exception ex)
@@ -2371,8 +2395,10 @@ public class PushToORCID
                     if(isMonthly || isFull) {
                         try
                         {
+                            int monthED = cal2.getMonthOfYear();
                             Month month = new Month();
-                            month.setValue(cal2.getMonthOfYear());
+                            month.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(monthED) }));
                             fuzzyEndDate.setMonth(month);
                         }
                         catch (Exception ex)
@@ -2384,8 +2410,10 @@ public class PushToORCID
                     if(isFull) {
                         try
                         {
+                            int dayED = cal2.getDayOfMonth();
                             Day day = new Day();
-                            day.setValue(cal2.getDayOfMonth());
+                            day.setValue(MessageFormat.format("{0,number,#00}",
+                                    new Object[] { new Integer(dayED) }));
                             fuzzyEndDate.setDay(day);
                         }
                         catch (Exception ex)
