@@ -78,6 +78,7 @@ import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.common_v3.Amount;
 import org.orcid.jaxb.model.common_v3.ContributorEmail;
 import org.orcid.jaxb.model.common_v3.CreditName;
+import org.orcid.jaxb.model.common_v3.DisambiguatedOrganization;
 import org.orcid.jaxb.model.common_v3.ExternalId;
 import org.orcid.jaxb.model.common_v3.ExternalIds;
 import org.orcid.jaxb.model.common_v3.FuzzyDate;
@@ -1590,6 +1591,11 @@ public class PushToORCID
             organizationAddress.setCity(itemMetadata.getOrganizationCity());
             organizationAddress.setCountry(itemMetadata.getOrganizationCountry());
             organization.setAddress(organizationAddress);
+            DisambiguatedOrganization disambiguatedOrganization = new DisambiguatedOrganization();
+            disambiguatedOrganization.setDisambiguatedOrganizationIdentifier(
+            		itemMetadata.getOrganizationDisambiguationIdentifier());
+            disambiguatedOrganization.setDisambiguationSource(
+            		itemMetadata.getOrganizationDisambiguationIdentifierSource());
             funding.setOrganization(organization);
         }
         return funding;
@@ -2175,6 +2181,7 @@ public class PushToORCID
                 List<String> listOrgUnitname = employment
                         .get("affiliationorgunit.parentorgunit");
                 Organization organization = new Organization();
+                DisambiguatedOrganization disambiguatedOrganization = new DisambiguatedOrganization();
                 String stringOUname = "";
                 if (listOrgUnitname != null && !listOrgUnitname.isEmpty())
                 {
@@ -2219,8 +2226,27 @@ public class PushToORCID
                     organizationAddress.setRegion(listOrgunitregion.get(0));
                 }
 
+                List<String> listOrgunitDisambiguatedOrganizationIdentifier = employment
+                        .get("affiliationorgunit.disambiguation-identifier");
+                if (listOrgunitDisambiguatedOrganizationIdentifier != null
+                        && !listOrgunitDisambiguatedOrganizationIdentifier.isEmpty())
+                {
+                    disambiguatedOrganization.setDisambiguatedOrganizationIdentifier(
+                            listOrgunitDisambiguatedOrganizationIdentifier.get(0));
+                }
+
+                List<String> listOrgunitDisambiguatedSource = employment
+                        .get("affiliationorgunit.disambiguation-identifier-source");
+                if (listOrgunitDisambiguatedSource != null
+                        && !listOrgunitDisambiguatedSource.isEmpty())
+                {
+                    disambiguatedOrganization.setDisambiguationSource(
+                            listOrgunitDisambiguatedSource.get(0));
+                }
+
                 organization.setName(stringOUname);
                 organization.setAddress(organizationAddress);
+                organization.setDisambiguatedOrganization(disambiguatedOrganization);
                 affiliation.setOrganization(organization);
                 affiliations.add(wrapper);
             }
@@ -2445,6 +2471,7 @@ public class PushToORCID
                 List<String> listOrgUnitname = education
                         .get("educationorgunit.parentorgunit");
                 Organization organization = new Organization();
+                DisambiguatedOrganization disambiguatedOrganization = new DisambiguatedOrganization();
 
                 String stringOUname = "";
                 if (listOrgUnitname != null && !listOrgUnitname.isEmpty())
@@ -2490,8 +2517,27 @@ public class PushToORCID
                     organizationAddress.setRegion(listOrgunitregion.get(0));
                 }
 
+                List<String> listOrgunitDisambiguatedOrganizationIdentifier = education
+                        .get("educationorgunit.disambiguation-identifier");
+                if (listOrgunitDisambiguatedOrganizationIdentifier != null
+                        && !listOrgunitDisambiguatedOrganizationIdentifier.isEmpty())
+                {
+                    disambiguatedOrganization.setDisambiguatedOrganizationIdentifier(
+                            listOrgunitDisambiguatedOrganizationIdentifier.get(0));
+                }
+
+                List<String> listOrgunitDisambiguatedSource = education
+                        .get("educationorgunit.disambiguation-identifier-source");
+                if (listOrgunitDisambiguatedSource != null
+                        && !listOrgunitDisambiguatedSource.isEmpty())
+                {
+                    disambiguatedOrganization.setDisambiguationSource(
+                            listOrgunitDisambiguatedSource.get(0));
+                }
+
                 organization.setName(stringOUname);
                 organization.setAddress(organizationAddress);
+                organization.setDisambiguatedOrganization(disambiguatedOrganization);
                 affiliation.setOrganization(organization);
                 affiliations.add(wrapper);
             }
@@ -3433,6 +3479,24 @@ public class PushToORCID
         }
     }
 
+    private static void prepareDisambiguatedOrganization(
+            List<String> listMetadataParentOrgunitDisambiguatedOrganizationIdentifier,
+            List<String> listMetadataParentOrgunitDisambiguationSource, OrganizationUnit ou)
+    {
+        List<OUProperty> disambiguatedOrganizationIdentifier = ou.getAnagrafica4view()
+                .get("disambiguation-identifier");
+        for (OUProperty pp : disambiguatedOrganizationIdentifier)
+        {
+            listMetadataParentOrgunitDisambiguatedOrganizationIdentifier.add(pp.toString());
+        }
+        List<OUProperty> disambiguationSource = ou.getAnagrafica4view()
+                .get("disambiguation-identifier-source");
+        for (OUProperty pp : disambiguationSource)
+        {
+            listMetadataParentOrgunitDisambiguationSource.add(pp.toString());
+        }
+    }
+
     private static String getMd5Hash(String value) throws NoSuchAlgorithmException, UnsupportedEncodingException
     {
         MessageDigest digester = MessageDigest.getInstance("MD5");
@@ -3644,6 +3708,8 @@ public class PushToORCID
             List<String> listMetadataParentOrgunitCity = new ArrayList<String>();
             List<String> listMetadataParentOrgunitCountry = new ArrayList<String>();
             List<String> listMetadataParentOrgunitRegion = new ArrayList<String>();
+            List<String> listMetadataParentOrgunitDisambiguatedOrganizationIdentifier = new ArrayList<String>();
+            List<String> listMetadataParentOrgunitDisambiguationSource = new ArrayList<String>();
             List<String> listMetadata = new ArrayList<String>();
             for (RPNestedProperty metadata : nestedMetadatas)
             {
@@ -3682,6 +3748,10 @@ public class PushToORCID
                                         listMetadataParentOrgunitCountry,
                                         listMetadataParentOrgunitRegion,
                                         parentOU);
+                                prepareDisambiguatedOrganization(
+                                        listMetadataParentOrgunitDisambiguatedOrganizationIdentifier,
+                                        listMetadataParentOrgunitDisambiguationSource,
+                                        parentOU);
                             }
                             else
                             {
@@ -3689,6 +3759,10 @@ public class PushToORCID
                                         listMetadataParentOrgunitCity,
                                         listMetadataParentOrgunitCountry,
                                         listMetadataParentOrgunitRegion, ou);
+                                prepareDisambiguatedOrganization(
+                                        listMetadataParentOrgunitDisambiguatedOrganizationIdentifier,
+                                        listMetadataParentOrgunitDisambiguationSource,
+                                        ou);
                             }
                             listMetadata.add(metadata.toString());
                             break;
@@ -3731,6 +3805,16 @@ public class PushToORCID
                 {
                     mapMetadata.put(metadataNestedShortname + ".region",
                             listMetadataParentOrgunitRegion);
+                }
+                if (!listMetadataParentOrgunitDisambiguatedOrganizationIdentifier.isEmpty())
+                {
+                    mapMetadata.put(metadataNestedShortname + ".disambiguation-identifier",
+                            listMetadataParentOrgunitDisambiguatedOrganizationIdentifier);
+                }
+                if (!listMetadataParentOrgunitDisambiguationSource.isEmpty())
+                {
+                    mapMetadata.put(metadataNestedShortname + ".disambiguation-identifier-source",
+                            listMetadataParentOrgunitDisambiguationSource);
                 }
             }
 
