@@ -42,6 +42,7 @@ import org.orcid.jaxb.model.common_v3.Affiliation;
 import org.orcid.jaxb.model.common_v3.AffiliationSummary;
 import org.orcid.jaxb.model.record_v3.Address;
 import org.orcid.jaxb.model.record_v3.Addresses;
+import org.orcid.jaxb.model.record_v3.Distinction;
 import org.orcid.jaxb.model.record_v3.Distinctions;
 import org.orcid.jaxb.model.record_v3.Education;
 import org.orcid.jaxb.model.record_v3.EducationSummary;
@@ -54,9 +55,11 @@ import org.orcid.jaxb.model.record_v3.ExternalIdentifier;
 import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
 import org.orcid.jaxb.model.record_v3.Funding;
 import org.orcid.jaxb.model.record_v3.Fundings;
+import org.orcid.jaxb.model.record_v3.InvitedPosition;
 import org.orcid.jaxb.model.record_v3.InvitedPositions;
 import org.orcid.jaxb.model.record_v3.Keyword;
 import org.orcid.jaxb.model.record_v3.Keywords;
+import org.orcid.jaxb.model.record_v3.Membership;
 import org.orcid.jaxb.model.record_v3.Memberships;
 import org.orcid.jaxb.model.record_v3.OtherName;
 import org.orcid.jaxb.model.record_v3.OtherNames;
@@ -68,6 +71,7 @@ import org.orcid.jaxb.model.record_v3.Qualifications;
 import org.orcid.jaxb.model.record_v3.Record;
 import org.orcid.jaxb.model.record_v3.ResearcherUrl;
 import org.orcid.jaxb.model.record_v3.ResearcherUrls;
+import org.orcid.jaxb.model.record_v3.Service;
 import org.orcid.jaxb.model.record_v3.Services;
 import org.orcid.jaxb.model.record_v3.Work;
 import org.orcid.jaxb.model.record_v3.WorkBulk;
@@ -913,7 +917,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getDistinction(String id, final String token, final String putCode)
+    public Distinction getDistinction(String id, final String token, final String putCode)
     {
         String endpoint = id + DISTINCTION_ENDPOINT;
         Response response = null;
@@ -921,7 +925,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(Distinction.class);
         }
         finally
         {
@@ -971,7 +975,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getInvitedPosition(String id, final String token, final String putCode)
+    public InvitedPosition getInvitedPosition(String id, final String token, final String putCode)
     {
         String endpoint = id + INVITED_POSITION_ENDPOINT;
         Response response = null;
@@ -979,7 +983,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(InvitedPosition.class);
         }
         finally
         {
@@ -1029,7 +1033,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Affiliation getMembership(String id, final String token, final String putCode)
+    public Membership getMembership(String id, final String token, final String putCode)
     {
         String endpoint = id + MEMBERSHIP_ENDPOINT;
         Response response = null;
@@ -1037,7 +1041,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Affiliation.class);
+            return response.readEntity(Membership.class);
         }
         finally
         {
@@ -1145,7 +1149,7 @@ public class OrcidService extends RestSource
         }
     }
 
-    public Employment getService(String id, final String token, final String putCode)
+    public Service getService(String id, final String token, final String putCode)
     {
         String endpoint = id + SERVICE_ENDPOINT;
         Response response = null;
@@ -1153,7 +1157,7 @@ public class OrcidService extends RestSource
         {
             response = get(endpoint, token, putCode);
 
-            return response.readEntity(Employment.class);
+            return response.readEntity(Service.class);
         }
         finally
         {
