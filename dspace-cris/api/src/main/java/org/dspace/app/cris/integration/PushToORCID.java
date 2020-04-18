@@ -1600,6 +1600,7 @@ public class PushToORCID
             		itemMetadata.getOrganizationDisambiguationIdentifier());
             disambiguatedOrganization.setDisambiguationSource(
             		itemMetadata.getOrganizationDisambiguationIdentifierSource());
+            organization.setDisambiguatedOrganization(disambiguatedOrganization);
             funding.setOrganization(organization);
         }
         return funding;
