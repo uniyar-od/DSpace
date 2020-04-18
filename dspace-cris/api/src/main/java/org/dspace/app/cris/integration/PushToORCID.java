@@ -1531,7 +1531,7 @@ public class PushToORCID
                 fundingExternalIdentifier.setExternalIdType(
                         itemMetadata.getExternalIdentifierType(valIdentifier));
                 fundingExternalIdentifier.setExternalIdValue(valIdentifier);
-                fundingExternalIdentifier.setExternalIdRelationship(Relationship.SELF.toString());
+                fundingExternalIdentifier.setExternalIdRelationship(Relationship.SELF.value());
                 fundingExternalIdentifiers.getExternalId()
                         .add(fundingExternalIdentifier);
             }
@@ -1848,7 +1848,7 @@ public class PushToORCID
                 workExternalIdentifier.setExternalIdUrl(resolver+valIdentifier);
                 workExternalIdentifier.setExternalIdType(
                         itemMetadata.getExternalIdentifierType(valIdentifier));
-                workExternalIdentifier.setExternalIdRelationship(Relationship.SELF.toString());
+                workExternalIdentifier.setExternalIdRelationship(Relationship.SELF.value());
                 workExternalIdentifiers.getExternalId()
                         .add(workExternalIdentifier);
             }
@@ -1867,7 +1867,7 @@ public class PushToORCID
                     OrcidExternalIdentifierType.SOURCE_ID.toString());
             workExternalIdentifierInternal.setExternalIdUrl("" + item.getID());
             workExternalIdentifierInternal
-                    .setExternalIdRelationship(Relationship.SELF.toString());
+                    .setExternalIdRelationship(Relationship.SELF.value());
             workExternalIdentifiers.getExternalId()
                     .add(workExternalIdentifierInternal);
         }
@@ -1883,7 +1883,7 @@ public class PushToORCID
                 workExternalIdentifier.setExternalIdUrl(valIdentifier);
                 workExternalIdentifier.setExternalIdType(
                         itemMetadata.getExternalIdentifierType(valIdentifier));
-                workExternalIdentifier.setExternalIdRelationship(Relationship.PART_OF.toString());
+                workExternalIdentifier.setExternalIdRelationship(Relationship.PART_OF.value());
                 workExternalIdentifiers.getExternalId()
                         .add(workExternalIdentifier);
             }
@@ -1937,7 +1937,7 @@ public class PushToORCID
 
             ContributorAttributes attributes = new ContributorAttributes();
             // TODO now supported only author/additional
-            attributes.setContributorRole(ContributorRole.AUTHOR.toString());
+            attributes.setContributorRole(ContributorRole.AUTHOR.value());
             attributes.setContributorSequence(ContributorSequence.ADDITIONAL);
             contributor.setContributorAttributes(attributes);
             workContributors.getContributor().add(contributor);
@@ -2844,7 +2844,7 @@ public class PushToORCID
                     {
                         ExternalIdentifier externalIdentifier = new ExternalIdentifier();
                         externalIdentifier.setExternalIdRelationship(
-                                Relationship.SELF.toString());
+                                Relationship.SELF.value());
                         
                         String[] splittedLink = value.split("###");
                         if (splittedLink.length == 2) {
