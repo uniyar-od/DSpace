@@ -53,14 +53,14 @@ public class OrcidTest {
 		String citationFromBTE = outputStream.toString();
 
 		Citation citation = new Citation();
-		citation.setCitationType(CitationType.BIBTEX.toString());
+		citation.setCitationType(CitationType.BIBTEX.value());
 		citation.setCitationValue(citationFromBTE);
 
 		WorkTitle title = new WorkTitle();
 		title.setTitle(item.getName());
 		work.setTitle(title);
 		work.setCitation(citation);
-		work.setType(WorkType.BOOK.toString());
+		work.setType(WorkType.BOOK.value());
 
 		ExternalIds externalIdentifiers = new ExternalIds();
 		// WorkExternalIdentifier externalIdentifier = new
