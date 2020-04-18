@@ -903,12 +903,13 @@ public class PushToORCID
         return result;
     }
 
-    private static void sendFunding(OrcidService orcidService,
+    private static boolean sendFunding(OrcidService orcidService,
             ApplicationService applicationService, String crisId, String token,
             String orcid, String constantUuidPrefix, String constantUuid, 
             Funding funding,
             boolean delete, SingleTimeStampInfo timestampAttempt)
     {
+        boolean result = true;
         if (funding != null)
         {
             Integer constantType = CrisConstants.PROJECT_TYPE_ID;
@@ -942,6 +943,7 @@ public class PushToORCID
                     catch (Exception ex)
                     {
                         errorMessage = ex.getMessage();
+                        result = false;
                     }
 
                     orcidHistory.setEntityUuid(constantUuidPartOf);
@@ -985,6 +987,7 @@ public class PushToORCID
             {
                 log.error("ERROR!!! (E0)::PUSHORCID::" + constantUuidPartOf
                         + " for ResearcherPage crisID:" + crisId, e);
+                result = false;
             }
             finally
             {
@@ -992,6 +995,7 @@ public class PushToORCID
             }
         }
 
+        return result;
     }
     
     public static void prepareAndSend(Context context, List<ResearcherPage> rps,
@@ -1395,7 +1399,7 @@ public class PushToORCID
 
             log.info("(Q4)Send Work for ResearcherPage crisID:" + crisId);
             String value = project.getUuid();
-            sendFunding(orcidService, applicationService, crisId, token, orcid,
+            result = sendFunding(orcidService, applicationService, crisId, token, orcid,
                     getMd5Hash(value), value, funding, deleteAndPost,
                     timestampAttempt);
 
