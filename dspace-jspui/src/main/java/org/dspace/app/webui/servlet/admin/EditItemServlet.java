@@ -51,9 +51,16 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.handle.HandleManager;
+import org.dspace.identifier.DOI;
+import org.dspace.identifier.DOIIdentifierProvider;
+import org.dspace.identifier.IdentifierException;
+import org.dspace.identifier.doi.DOIIdentifierException;
+import org.dspace.identifier.doi.DOIIdentifierNotApplicableException;
 import org.dspace.license.CCLicense;
 import org.dspace.license.CCLookup;
 import org.dspace.license.CreativeCommons;
+import org.dspace.storage.rdbms.TableRow;
+import org.dspace.utils.DSpace;
 
 /**
  * Servlet for editing and deleting (expunging) items
@@ -98,7 +105,13 @@ public class EditItemServlet extends DSpaceServlet
 
     /** User updates Creative Commons License */
     public static final int UPDATE_CC = 12;
-    
+
+    /** User registers DOI */
+    public static final int REGISTER_DOI = 13;
+
+    /** User reserves a DOI */
+    public static final int RESERVE_DOI = 14;
+
     /** Logger */
     private static Logger log = Logger.getLogger(EditCommunitiesServlet.class);
 
@@ -123,6 +136,7 @@ public class EditItemServlet extends DSpaceServlet
         if (internalID > 0)
         {
             itemToEdit = Item.find(context, internalID);
+
             showError = (itemToEdit == null);
         }
         else if ((handle != null) && !handle.equals(""))
@@ -161,6 +175,7 @@ public class EditItemServlet extends DSpaceServlet
         }
     }
 
+    @Override
     protected void doDSPost(Context context, HttpServletRequest request,
             HttpServletResponse response) throws ServletException, IOException,
             SQLException, AuthorizeException
@@ -420,6 +435,34 @@ public class EditItemServlet extends DSpaceServlet
 
             break;
 
+        case REGISTER_DOI:
+
+            DOIIdentifierProvider provider = new DSpace().getSingletonService(
+                DOIIdentifierProvider.class);
+
+            try {
+                String newDoi = provider.register(context, item, true);
+                if(newDoi != null) {
+                    request.setAttribute("registered-doi", newDoi);
+                }
+                else {
+                    log.error("Got a null DOI after registering...");
+                }
+            } catch (DOIIdentifierNotApplicableException ex) {
+                log.error(ex);
+            } catch (IllegalArgumentException ex) {
+                log.error(ex);
+            } catch (IllegalStateException ex) {
+                log.error(ex);
+            } catch (IdentifierException ex) {
+                log.error(ex);
+            }
+
+            showEditForm(context, request, response, item);
+            context.complete();
+
+            break;
+
         default:
 
             // Erm... weird action value received.
@@ -597,7 +640,16 @@ public class EditItemServlet extends DSpaceServlet
 			request.setAttribute("publicize_button", AuthorizeManager
 					.authorizeActionBoolean(context, item, Constants.WRITE));
 		}
-        
+
+        // Only show register DOI if the item doesn't already have one
+        try {
+            request.setAttribute("register_doi_button", DOI.findDOIByDSpaceObject(context, item) == null);
+        } catch(DOIIdentifierException e) {
+            log.error("Error checking for existing DOI: " + e.getMessage());
+            // To be safe, do NOT show the button if we've hit an exception
+            request.setAttribute("register_doi_button", false);
+        }
+
         request.setAttribute("item", item);
         request.setAttribute("handle", handle);
         request.setAttribute("collections", collections);
