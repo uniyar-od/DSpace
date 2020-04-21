@@ -267,7 +267,7 @@
                    .append("_id\" name=\"").append(fieldInput)
                    .append("\" size=\"").append(String.valueOf(repeatable ? 6 : 1))
                    .append(repeatable ? "\" multiple>\n" :"\">\n");
-                Choices cs = cam.getMatches(fieldName, "", collection, 0, 0, null);
+                Choices cs = cam.getMatches(fieldName, null, collection, 0, 0, null);
                 // prepend unselected empty value when nothing can be selected.
                 if (!repeatable && cs.defaultSelected < 0 && dcvs.size() == 0)
                     sb.append("<option value=\"\"><!-- empty --></option>\n");
