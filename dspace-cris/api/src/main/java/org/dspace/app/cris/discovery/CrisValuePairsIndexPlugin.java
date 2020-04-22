@@ -11,11 +11,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.common.SolrInputDocument;
@@ -67,11 +67,11 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
 
     private ConfigurationService configurationService;
 
-    private Map<String,DCInputsReader> dcInputsReader = new HashMap<>();
+    private Map<String, DCInputsReader> dcInputsReader = new HashMap<>();
 
     private String separator;
 
-    private void init(String language) throws DCInputsReaderException
+    private void init() throws DCInputsReaderException
     {
         if (separator == null)
         {
@@ -82,12 +82,15 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                 separator = SolrServiceImpl.FILTER_SEPARATOR;
             }
         }
-        if(StringUtils.isNotBlank(language)) {
-            if (!dcInputsReader.containsKey(language))
+        
+        if(dcInputsReader.isEmpty()) {
+            for (Locale locale : I18nUtil.getSupportedLocales())
             {
-                dcInputsReader.put(language, new DCInputsReader(I18nUtil.getInputFormsFileName(LocaleUtils.toLocale(language))));
+                dcInputsReader.put(locale.getLanguage(),
+                    new DCInputsReader(I18nUtil.getInputFormsFileName(locale)));
             }
         }
+
     }
 
     @Override
@@ -98,7 +101,7 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
     {
         try
         {
-            init(null);
+            init();
         }
         catch (DCInputsReaderException e)
         {
@@ -106,33 +109,49 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
         }
         if (crisObject != null)
         {
-            String schema = "cris" + crisObject.getPublicPath();
-            List<TP> allPropertiesDefinition = applicationService
-                    .getAllPropertiesDefinitionWithRadioCheckDropdown(
-                            crisObject.getClassPropertiesDefinition());
-            for (TP pd : allPropertiesDefinition)
-            {
-                List<P> storedP = crisObject.getAnagrafica4view()
-                        .get(pd.getShortName());
-                for (P stored_value : storedP)
+            Map<String, String> authorityMapToWrite = new HashMap<String, String>();
+//            for (Locale locale : I18nUtil.getSupportedLocales())
+//            {
+//                String language = locale.getLanguage();
+            	String language = I18nUtil.getDefaultLocale().getLanguage();
+                String schema = "cris" + crisObject.getPublicPath();
+                List<TP> allPropertiesDefinition = applicationService
+                        .getAllPropertiesDefinitionWithRadioCheckDropdown(
+                                crisObject.getClassPropertiesDefinition());
+                for (TP pd : allPropertiesDefinition)
                 {
-                    String field = schema + "."
-                            + stored_value.getTypo().getShortName();
-                    String displayVal = getCheckRadioDisplayValue(
-                            (((WidgetCheckRadio) pd.getRendering())
-                                    .getStaticValues()),
-                            stored_value.toString());
-                    if(StringUtils.isBlank(displayVal)) {
-                        displayVal = stored_value.toString();
+                    List<P> storedP = crisObject.getAnagrafica4view()
+                            .get(pd.getShortName());
+                    for (P stored_value : storedP)
+                    {
+                        String field = schema + "."
+                                + stored_value.getTypo().getShortName();
+                        String displayVal = getCheckRadioDisplayValue(
+                                (((WidgetCheckRadio) pd.getRendering())
+	                                    .getStaticValues()),
+                                stored_value.toString());
+                        if (StringUtils.isBlank(displayVal))
+                        {
+                            displayVal = stored_value.toString();
+                        }
+                        String prefixedDisplayVal = language + "_" + displayVal;
+                        
+//	                    document.removeField(field + "_authority");
+//	                    document.addField(field + "_authority",
+//	                            stored_value.toString());
+	                    document.removeField(field);
+	                    document.addField(field, stored_value.getValue().toString());
+	                    document.addField(field + "." + language, displayVal);
+                        
+                        buildSearchFilter(document, searchFilters,
+                                stored_value.toString(), field, field,
+                                displayVal, prefixedDisplayVal, authorityMapToWrite);
+                        
                     }
-                    document.removeField(field + "_authority");
-                    document.addField(field + "_authority",
-                            stored_value.toString());
-                    document.removeField(field);
-                    document.addField(field, displayVal);
-                    buildSearchFilter(document, searchFilters,
-                            stored_value.toString(), field, field, displayVal);
                 }
+//            }
+            for(String indexFieldName : authorityMapToWrite.keySet()) {
+                document.addField(indexFieldName, authorityMapToWrite.get(indexFieldName));
             }
         }
     }
@@ -188,6 +207,14 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
             SolrInputDocument document,
             Map<String, List<DiscoverySearchFilter>> searchFilters)
     {
+        try
+        {
+            init();
+        }
+        catch (DCInputsReaderException e)
+        {
+            log.error(e.getMessage(), e);
+        }
         if (dso != null)
         {
             if (dso.getType() == Constants.ITEM)
@@ -195,55 +222,62 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                 Item item = (Item) dso;
                 try
                 {
-                    String language = item.getSubmitter().getLanguage();
-                    if(StringUtils.isBlank(language)) {
-                        language = configurationService.getProperty("default.locale");
-                    }
-                    init(language);
-                    DCInputSet dcInputSet = dcInputsReader.get(language)
-                            .getInputs(item.getOwningCollection().getHandle());
-
-                    for (int i = 0; i < dcInputSet.getNumberPages(); i++)
+                    Map<String, String> authorityMapToWrite = new HashMap<String, String>();
+                    for (String language : dcInputsReader.keySet())
                     {
-                        DCInput[] dcInput = dcInputSet.getPageRows(i, false,
-                                false);
-                        for (DCInput myInput : dcInput)
+                        DCInputSet dcInputSet = dcInputsReader.get(language)
+                                .getInputs(
+                                        item.getOwningCollection().getHandle());
+
+                        for (int i = 0; i < dcInputSet.getNumberPages(); i++)
                         {
-                            if (StringUtils.isNotBlank(myInput.getPairsType()))
+                            DCInput[] dcInput = dcInputSet.getPageRows(i, false,
+                                    false);
+                            for (DCInput myInput : dcInput)
                             {
-                                for (IMetadataValue metadatum : item.getMetadata(
-                                        myInput.getSchema(),
-                                        myInput.getElement(),
-                                        myInput.getQualifier(), Item.ANY))
+                                if (StringUtils
+                                        .isNotBlank(myInput.getPairsType()))
                                 {
-                                    String stored_value = metadatum.getValue();
-                                    String displayVal = myInput
-                                            .getDisplayString(null,
-                                                    stored_value);
-                                    if(StringUtils.isBlank(displayVal)) {
-                                        displayVal = stored_value;
+                                    for (IMetadataValue metadatum : item.getMetadata(
+                                            myInput.getSchema(),
+                                            myInput.getElement(),
+                                            myInput.getQualifier(), Item.ANY))
+                                    {
+                                        String stored_value = metadatum.getValue();
+                                        String displayVal = myInput
+                                                .getDisplayString(null,
+                                                        stored_value);
+                                        String prefixedDisplayVal = language
+                                                + "_" + displayVal;
+                                        if (StringUtils.isBlank(displayVal))
+                                        {
+                                            displayVal = stored_value;
+                                        }
+                                        document.removeField(metadatum.getMetadataField().toString('.'));
+                                        document.addField(metadatum.getMetadataField().toString('.'),
+	                                            stored_value);
+                                        document.addField(metadatum.getMetadataField().toString('.') + "." + language, displayVal);
+//                                        document.addField("valuepairsname_"+myInput.getPairsType(),
+//	                                            stored_value);
+                                        String unqualifiedField = myInput
+                                                .getSchema() + "."
+                                                + myInput.getElement() + "."
+                                                + Item.ANY;
+                                        
+                                        buildSearchFilter(document,
+                                                searchFilters,
+                                                stored_value.toString(),
+                                                metadatum.getMetadataField().toString('.'),
+                                                unqualifiedField, displayVal,
+                                                prefixedDisplayVal, authorityMapToWrite);
+                                        
                                     }
-                                    document.removeField(metadatum.getMetadataField().toString('.')
-                                            + "_authority");
-                                    document.addField(
-                                    		metadatum.getMetadataField().toString('.') + "_authority",
-                                            stored_value);
-                                    document.removeField(metadatum.getMetadataField().toString('.'));
-                                    document.addField(metadatum.getMetadataField().toString('.'),
-                                            displayVal);
-                                    document.addField("valuepairsname_"+myInput.getPairsType(),
-                                            displayVal);
-                                    String unqualifiedField = myInput
-                                            .getSchema() + "."
-                                            + myInput.getElement() + "."
-                                            + Item.ANY;
-                                    buildSearchFilter(document, searchFilters,
-                                            stored_value.toString(),
-                                            metadatum.getMetadataField().toString('.'),
-                                            unqualifiedField, displayVal);
                                 }
                             }
                         }
+                    }
+                    for(String indexFieldName : authorityMapToWrite.keySet()) {
+                        document.addField(indexFieldName, authorityMapToWrite.get(indexFieldName));
                     }
                 }
                 catch (Exception e)
@@ -269,7 +303,7 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
             if(StringUtils.isBlank(language)) {
                 language = configurationService.getProperty("default.locale");
             }
-            init(language);            
+            init();            
         }
         catch (Exception e)
         {
@@ -375,7 +409,7 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
     private void buildSearchFilter(SolrInputDocument document,
             Map<String, List<DiscoverySearchFilter>> searchFilters,
             String stored_value, String field, String unqualifiedField,
-            String displayVal)
+            String displayVal, String prefixedDisplayVal, Map<String, String> authorityMapToWrite)
     {
         if (searchFilters.containsKey(field))
         {
@@ -389,40 +423,22 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
 
             for (DiscoverySearchFilter searchFilter : searchFilterConfigs)
             {
-                document.removeField(searchFilter.getIndexFieldName());
-                document.addField(searchFilter.getIndexFieldName(), displayVal);
-
-                document.removeField(
-                        searchFilter.getIndexFieldName() + "_keyword");
                 document.addField(searchFilter.getIndexFieldName() + "_keyword",
-                        displayVal);
-                document.addField(searchFilter.getIndexFieldName() + "_keyword",
-                        displayVal + SolrServiceImpl.AUTHORITY_SEPARATOR
+                        prefixedDisplayVal + SolrServiceImpl.AUTHORITY_SEPARATOR
                                 + stored_value);
-
-                document.removeField(searchFilter.getIndexFieldName() + "_ac");
                 document.addField(searchFilter.getIndexFieldName() + "_ac",
-                        displayVal.toLowerCase() + separator + displayVal);
-
-                document.removeField(
-                        searchFilter.getIndexFieldName() + "_authority");
-                document.addField(
-                        searchFilter.getIndexFieldName() + "_authority",
-                        stored_value);
-
-                document.removeField(
-                        searchFilter.getIndexFieldName() + "_acid");
+                        prefixedDisplayVal.toLowerCase() + separator
+                                + displayVal);
                 document.addField(searchFilter.getIndexFieldName() + "_acid",
-                        displayVal.toLowerCase() + separator + displayVal
+                        prefixedDisplayVal.toLowerCase() + separator
+                                + displayVal
                                 + SolrServiceImpl.AUTHORITY_SEPARATOR
                                 + stored_value);
-
-                document.removeField(
-                        searchFilter.getIndexFieldName() + "_filter");
                 document.addField(searchFilter.getIndexFieldName() + "_filter",
-                        displayVal.toLowerCase() + separator + displayVal
+                        prefixedDisplayVal.toLowerCase() + separator + displayVal
                                 + SolrServiceImpl.AUTHORITY_SEPARATOR
                                 + stored_value);
+                authorityMapToWrite.put(searchFilter.getIndexFieldName() + "_authority", stored_value);
             }
         }
     }
@@ -447,4 +463,5 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
     {
         this.separator = separator;
     }
+    
 }
