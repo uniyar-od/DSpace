@@ -78,7 +78,7 @@ public class AuthorityEntryRest extends RestAddressableModel {
 
     @Override
     public String getType() {
-        return AuthorityRest.NAME;
+        return AuthorityEntryRest.NAME;
     }
 
     @Override
