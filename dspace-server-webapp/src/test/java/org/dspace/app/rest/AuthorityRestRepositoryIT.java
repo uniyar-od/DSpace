@@ -433,6 +433,7 @@ public class AuthorityRestRepositoryIT extends AbstractControllerIntegrationTest
                  .andExpect(jsonPath("$.page.totalElements", Matchers.is(12)));
 
         configurationService.setProperty("webui.supported.locales",null);
+        configurationService.setProperty("default.locale","en");
         DCInputAuthority.reset();
         legacyPluginService.clearNamedPluginClasses();
         choiceAuthorityServiceImpl.clearCache();

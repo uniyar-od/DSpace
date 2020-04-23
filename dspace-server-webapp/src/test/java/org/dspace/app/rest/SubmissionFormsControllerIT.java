@@ -408,11 +408,12 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                             "\u00C8 necessario inserire un titolo principale per questo item", false,
                             "Inserisci titolo principale di questo item", "dc.title"))));
 
-                  resetPropertyFile();
+       resetPropertyFile();
     }
 
     private void resetPropertyFile() throws DCInputsReaderException {
         configurationService.setProperty("webui.supported.locales",null);
+        configurationService.setProperty("default.locale","en");
         submissionFormRestRepository.reload();
     }
 }
