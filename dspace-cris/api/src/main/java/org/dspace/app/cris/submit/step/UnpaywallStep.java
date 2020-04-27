@@ -9,14 +9,13 @@ package org.dspace.app.cris.submit.step;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpException;
 import org.dspace.app.cris.unpaywall.UnpaywallRecord;
@@ -80,13 +79,9 @@ public class UnpaywallStep extends AbstractProcessingStep
                		unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI), item.getID());
 
                		UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
-               		
-                    GetMethod method = new GetMethod(
-                    		record.getUnpaywallBestOA()
-                    				.getUrl_for_pdf());
-                    HttpClient client = new HttpClient();
-                    client.executeMethod(method);
-                    InputStream is = method.getResponseBodyAsStream();
+
+                    InputStream is = new URL(record.getUnpaywallBestOA().getUrl_for_pdf()).openStream();
+
                     Bundle[] bundles = item.getBundles("ORIGINAL");
                     Bundle bundle = null;
                     if (bundles != null && bundles.length > 0)
