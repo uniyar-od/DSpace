@@ -8,6 +8,8 @@ import it.cilea.osd.common.core.TimeStampInfo;
 
 public class UnpaywallUtils {
 
+    private static final String DOI_DEFAULT_BASEURL = "https://doi.org/";
+
     public static JSONObject convertUnpaywallStringToJson(String source)
     {
     	return new JSONObject(source);
@@ -80,6 +82,14 @@ public class UnpaywallUtils {
         destination.setItem_id(id);
         
         return destination;
+    }
+
+    public static String resolveDoi(String doi) {
+        if (doi.startsWith(DOI_DEFAULT_BASEURL)) {
+            doi = doi.replace(DOI_DEFAULT_BASEURL, "");
+        }
+
+        return doi;
     }
 	
 }

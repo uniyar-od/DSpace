@@ -36,7 +36,7 @@ public class UnpaywallJSONRequest extends JSONRequest {
 		UnpaywallItemInfoJSONResponse jsonresp = new UnpaywallItemInfoJSONResponse();
 
 		int itemID = UIUtil.getIntParameter(req, "itemid");
-		String doi = req.getParameter("doi");
+		String doi = UnpaywallUtils.resolveDoi(req.getParameter("doi"));
 		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doi, itemID);
 		if (unpaywall != null) {
 			UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
