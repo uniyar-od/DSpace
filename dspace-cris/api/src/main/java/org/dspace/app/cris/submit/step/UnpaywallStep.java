@@ -67,7 +67,8 @@ public class UnpaywallStep extends AbstractProcessingStep
         if (subInfo != null)
         {
             Unpaywall unpaywall = new Unpaywall();
-            UnpaywallService unpaywallService = new UnpaywallService();
+            UnpaywallService unpaywallService = new DSpace().getServiceManager().getServiceByName(
+                    "unpaywallService", UnpaywallService.class);
             String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                     "metadata.doi");
             Item item = subInfo.getSubmissionItem().getItem();
