@@ -1,9 +1,7 @@
 package org.dspace.app.cris.integration.authority;
 
-import java.util.List;
-
+import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
-import org.dspace.app.cris.unpaywall.services.UnpaywallPersistenceService;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -18,7 +16,8 @@ public class UnpaywallConsumer implements Consumer
     
     public void consume(Context ctx, Event event) throws Exception {
 
-    UnpaywallPersistenceService unpaywallPersistenceServices = new DSpace().getServiceManager().getServiceByName("unpaywallPersistenceServices", UnpaywallPersistenceService.class);
+        ApplicationService applicationService = new DSpace().getServiceManager().getServiceByName(
+                "applicationService", ApplicationService.class);
     
     DSpaceObject dso = event.getSubject(ctx);
     if (dso instanceof Item) {
@@ -27,8 +26,8 @@ public class UnpaywallConsumer implements Consumer
         		Bundle[] bundle = item.getBundles("ORIGINAL");
         		if(bundle.length < 0) {
 	        		String md = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi"));
-	        		Unpaywall unpaywall = unpaywallPersistenceServices.uniqueByDOI(md);
-	        		unpaywallPersistenceServices.delete(unpaywall.getId());
+	        		Unpaywall unpaywall = applicationService.uniqueByDOI(md);
+	        		applicationService.delete(Unpaywall.class, unpaywall.getId());
         		}
     		}
 		}

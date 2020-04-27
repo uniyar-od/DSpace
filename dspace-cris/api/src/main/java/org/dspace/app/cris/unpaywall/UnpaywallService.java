@@ -18,10 +18,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
-import org.dspace.app.cris.unpaywall.services.UnpaywallPersistenceService;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.utils.DSpace;
 
 import it.cilea.osd.common.core.SingleTimeStampInfo;
 
@@ -29,8 +28,8 @@ public class UnpaywallService
 {
     private CloseableHttpClient client = null;
 
-    private UnpaywallPersistenceService unpaywallPersistenceService;
-    
+    private ApplicationService applicationService;
+
     private int timeout;
 
     /** log4j category */
@@ -118,7 +117,7 @@ public class UnpaywallService
             return null;
         }
         
-        unpaywall = getUnpaywallPersistenceService().uniqueByDOIAndItemID(doi, id);
+        unpaywall = applicationService.uniqueByDOIAndItemID(doi, id);
 
         if (!useCache && unpaywall != null) {
         	return callAndUpdate(unpaywall);
@@ -157,7 +156,7 @@ public class UnpaywallService
     				unpaywallCall(
     							unpaywall.getDOI()));
     	
-    	getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
+    	applicationService.saveOrUpdate(Unpaywall.class, unpaywall);
     	
     	return unpaywall;
 	}
@@ -167,7 +166,7 @@ public class UnpaywallService
     	String jsonString = unpaywallCall(doi);
     	Unpaywall unpaywall = UnpaywallUtils.makeUnpaywall(jsonString, id);
     	
-        getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
+    	applicationService.saveOrUpdate(Unpaywall.class, unpaywall);
         return unpaywall;
 	}
 
@@ -176,16 +175,9 @@ public class UnpaywallService
         this.timeout = timeout;
     }
 
-	public UnpaywallPersistenceService getUnpaywallPersistenceService() {
-		if(unpaywallPersistenceService == null)
-		{
-			unpaywallPersistenceService = new DSpace().getSingletonService(UnpaywallPersistenceService.class);
-		}
-		return unpaywallPersistenceService;
-	}
-
-	public void setUnpaywallPersistenceService(UnpaywallPersistenceService unpaywallPersistenceService) {
-		this.unpaywallPersistenceService = unpaywallPersistenceService;
-	}
+    public void setApplicationService(ApplicationService applicationService)
+    {
+        this.applicationService = applicationService;
+    }
 
 }

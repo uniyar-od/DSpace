@@ -12,12 +12,11 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.unpaywall.UnpaywallBestOA;
 import org.dspace.app.cris.unpaywall.UnpaywallRecord;
-import org.dspace.app.cris.unpaywall.UnpaywallService;
 import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
-import org.dspace.app.cris.unpaywall.services.UnpaywallPersistenceService;
 import org.dspace.app.webui.json.JSONRequest;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
@@ -31,13 +30,13 @@ public class UnpaywallJSONRequest extends JSONRequest {
 	@Override
 	public void doJSONRequest(Context context, HttpServletRequest req, HttpServletResponse resp)
 			throws IOException, AuthorizeException {
-		UnpaywallService unpaywallService = new DSpace().getServiceManager().getServiceByName("unpaywallService",
-				UnpaywallService.class);
+		ApplicationService applicationService = new DSpace().getServiceManager().getServiceByName(
+				"applicationService", ApplicationService.class);
 		
 		UnpaywallItemInfoJSONResponse jsonresp = new UnpaywallItemInfoJSONResponse();
 		
 		int itemID = UIUtil.getIntParameter(req, "itemid");
-		Unpaywall unpaywall = unpaywallService.getUnpaywallPersistenceService().uniqueByDOIAndItemID("*", itemID);
+		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID("*", itemID);
 		UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
 		UnpaywallBestOA unpaywallBestOA = rec.getUnpaywallBestOA();
 		

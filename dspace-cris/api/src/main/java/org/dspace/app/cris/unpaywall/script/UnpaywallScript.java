@@ -14,7 +14,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.mail.MessagingException;
 
@@ -31,12 +30,10 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
+import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.unpaywall.UnpaywallService;
-import org.dspace.app.cris.unpaywall.dao.UnpaywallDAO;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
-import org.dspace.app.cris.unpaywall.services.UnpaywallPersistenceService;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -51,8 +48,6 @@ import org.dspace.eperson.Group;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
-import com.fasterxml.jackson.annotation.JsonFormat.Value;
-
 public class UnpaywallScript {
 
     private static Long cacheTime = ConfigurationManager.getLongProperty("unpaywall", "cachetime");
@@ -65,9 +60,7 @@ public class UnpaywallScript {
 
     private static Context context;
     
-    private static UnpaywallPersistenceService pService;
-
-    private static UnpaywallDAO unpaywallDAO;
+    private static ApplicationService applicationService;
 
     private static UnpaywallService sService;
 
@@ -136,10 +129,11 @@ public class UnpaywallScript {
 
             searcher = serviceManager.getServiceByName(SearchService.class.getName(), SearchService.class);
 
-            pService = serviceManager.getServiceByName(UnpaywallPersistenceService.class.getName(),
-                    UnpaywallPersistenceService.class);
+            applicationService = serviceManager.getServiceByName(
+                    "applicationService", ApplicationService.class);
 
-            sService = serviceManager.getServiceByName(UnpaywallService.class.getName(), UnpaywallService.class);
+            sService = serviceManager.getServiceByName(
+                    "unpaywallService", UnpaywallService.class);
 
             Context context = null;
             long resultsTot = -1;
@@ -274,7 +268,7 @@ public class UnpaywallScript {
         		}
         		
         		String doi = tempMap.get(id).get("doi");
-        		Unpaywall unpaywall = unpaywallService.getUnpaywallPersistenceService().uniqueByDOIAndItemID(doi, id);
+        		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doi, id);
         		
         		if(unpaywall == null)
         		{
@@ -458,8 +452,8 @@ public class UnpaywallScript {
 			for(SolrDocument result : solrDocList) {
 				int itemID = (int)result.getFieldValue("search.resourceid");
 				String doiValue = result.getFieldValue(metadataDOI).toString();
-					Unpaywall unpaywall = pService.uniqueByDOIAndItemID(doiValue, itemID);
-					pService.delete(Unpaywall.class, unpaywall.getId());
+					Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doiValue, itemID);
+					applicationService.delete(Unpaywall.class, unpaywall.getId());
 			}
 		}
     }
