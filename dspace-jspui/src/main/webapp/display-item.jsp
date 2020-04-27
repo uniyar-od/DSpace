@@ -223,14 +223,14 @@ j(document).ready(function() {
 		j.ajax({
 			url : "<%=request.getContextPath()%>/json/unpaywall",
 			data : {																			
-				"itemid" : <%= item.getID()%>,
+				"itemid" : <%= item.getID()%>
 			},
 			success : function(data) {
 				if(data.iTotalDisplayRecords==0) {
 					j('div.unpaywall').hide();
 				}
 				else {
-					j('#unpaywalljson').attr('href', data.urlJSON');
+					j('#unpaywalljson').attr('href', data.urlJSON);
 				}			
 			},
 			error : function(data) {
