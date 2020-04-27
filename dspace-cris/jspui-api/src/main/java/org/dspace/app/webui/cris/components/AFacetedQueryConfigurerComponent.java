@@ -32,7 +32,9 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.DiscoverResult.FacetResult;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
+import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.discovery.configuration.DiscoverySearchMultilanguageFilterFacet;
 import org.dspace.services.RequestService;
 import org.dspace.utils.DSpace;
 
@@ -141,9 +143,14 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpace
         }
 
         for (DiscoverySearchFilterFacet facet : getFacets()) {
-
-            discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+            if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
+            	discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+                        DiscoveryConfigurationParameters.TYPE_TEXT, facet.getFacetLimit(), facet
+                        .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_",false));
+			} else {
+				discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                     facet.getType(), facet.getFacetLimit(), facet.getSortOrder(), false));
+			}
         }
         
         

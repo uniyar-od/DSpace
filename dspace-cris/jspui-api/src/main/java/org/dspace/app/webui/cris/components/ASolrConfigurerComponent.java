@@ -34,6 +34,7 @@ import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
+import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
@@ -44,6 +45,7 @@ import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.discovery.configuration.DiscoverySearchMultilanguageFilterFacet;
 import org.dspace.sort.SortException;
 import org.dspace.sort.SortOption;
 import org.dspace.utils.DSpace;
@@ -642,9 +644,16 @@ public abstract class ASolrConfigurerComponent<T extends BrowsableDSpaceObject, 
                 // add the already selected facet so to have a full
                 // top list
                 // if possible
-                discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+                
+                if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
+                	discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+                            DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
+                            .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_", facetPage * facetLimit,false));
+				} else {
+					discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                         facet.getType(), facetLimit + 1 + alreadySelected, facet
                                 .getSortOrder(), facetPage * facetLimit, false));
+				}
             }
 
         }

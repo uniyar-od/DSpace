@@ -23,6 +23,7 @@ import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
+import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverHitHighlightingField;
@@ -38,6 +39,7 @@ import org.dspace.discovery.configuration.DiscoveryConfigurationParameters;
 import org.dspace.discovery.configuration.DiscoveryHitHighlightFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
+import org.dspace.discovery.configuration.DiscoverySearchMultilanguageFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
@@ -837,23 +839,20 @@ public class DiscoverUtility
                     // add the already selected facet so to have a full
                     // top list
                     // if possible
-					
-                    int limit = 0;
-                    if (type==TYPE_FACETS){
-                    	limit = facetLimit + 1 + alreadySelected;
-                    }
-                    else 
-                    	limit = facetLimit;
 
-					if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
+                    if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
+                        queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
+                                DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
+                                .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_", facetPage * facetLimit,false));                    }
+                    else if (discoveryConfiguration.isGlobalConfigurationEnabled() && facet.getIndexFieldName().equals(
 							globalConfiguration.getCollapsingConfiguration().getGroupIndexFieldName())) {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
-								DiscoveryConfigurationParameters.TYPE_TEXT, limit, facet
-										.getSortOrderSidebar(), facetPage * limit, true));
+								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
+										.getSortOrder(), facetPage * facetLimit, true));
 					} else {
 						queryArgs.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
-								DiscoveryConfigurationParameters.TYPE_TEXT, limit, facet
-										.getSortOrderSidebar(), facetPage * limit, false));
+								DiscoveryConfigurationParameters.TYPE_TEXT, facetLimit + 1 + alreadySelected, facet
+										.getSortOrder(), facetPage * facetLimit, false));
 					}
                 }
             }
