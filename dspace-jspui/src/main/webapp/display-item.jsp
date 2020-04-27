@@ -750,7 +750,7 @@ if (dedupEnabled && admin_button) { %>
 		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.unpaywall"/></h4>
 		
 		
-   		    <span class="metric-counter"><a id="unpaywalljson" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.citation.unpaywall.tooltip"/>" href="https://scholar.google.com/scholar?as_q=&as_epq=<%= title %>&as_occt=any"><fmt:message key="jsp.display-item.citation.unpaywall.check"/></a></span>
+   		    <span class="metric-counter"><a id="unpaywalljson" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.citation.unpaywall.tooltip"/>"><fmt:message key="jsp.display-item.citation.unpaywall.check"/></a></span>
 	</div>
 </div>
 </div>
