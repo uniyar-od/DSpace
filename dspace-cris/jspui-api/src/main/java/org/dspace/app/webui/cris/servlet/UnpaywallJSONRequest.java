@@ -34,19 +34,23 @@ public class UnpaywallJSONRequest extends JSONRequest {
 				"applicationService", ApplicationService.class);
 		
 		UnpaywallItemInfoJSONResponse jsonresp = new UnpaywallItemInfoJSONResponse();
-		
-		int itemID = UIUtil.getIntParameter(req, "itemid");
-		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID("*", itemID);
-		UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
-		UnpaywallBestOA unpaywallBestOA = rec.getUnpaywallBestOA();
-		
-		jsonresp.setUrlJSON(unpaywallBestOA.getUrl_for_pdf());
-		jsonresp.setFullJSON(unpaywall.getUnpaywallJsonString());
 
+		int itemID = UIUtil.getIntParameter(req, "itemid");
+		String doi = req.getParameter("doi");
+		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doi, itemID);
 		if (unpaywall != null) {
-			JSONSerializer serializer = new JSONSerializer();
-			serializer.deepSerialize(jsonresp, resp.getWriter());
+			UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
+			UnpaywallBestOA unpaywallBestOA = rec.getUnpaywallBestOA();
+			jsonresp.setUrlJSON(unpaywallBestOA.getUrl_for_pdf());
+			jsonresp.setFullJSON(unpaywall.getUnpaywallJsonString());
+			jsonresp.setIsFounded(true);
 		}
+		else {
+			jsonresp.setIsFounded(false);
+		}
+
+		JSONSerializer serializer = new JSONSerializer();
+		serializer.deepSerialize(jsonresp, resp.getWriter());
 	}
 }
 
@@ -54,6 +58,7 @@ class UnpaywallItemInfoJSONResponse {
 
 	String fullJSON;
 	String urlJSON;
+	boolean isFounded;
 	
 	public String getFullJSON() {
 		return fullJSON;
@@ -66,6 +71,12 @@ class UnpaywallItemInfoJSONResponse {
 	}
 	public void setUrlJSON(String urlJSON) {
 		this.urlJSON = urlJSON;
+	}
+	public boolean getIsFounded() {
+		return isFounded;
+	}
+	public void setIsFounded(boolean isFounded) {
+		this.isFounded = isFounded;
 	}
 
 }

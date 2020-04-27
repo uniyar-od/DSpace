@@ -223,10 +223,11 @@ j(document).ready(function() {
 		j.ajax({
 			url : "<%=request.getContextPath()%>/json/unpaywall",
 			data : {																			
-				"itemid" : <%= item.getID()%>
+				"itemid" : <%= item.getID()%>,
+				"doi" : "<%= item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi")) %>"
 			},
 			success : function(data) {
-				if(data.iTotalDisplayRecords==0) {
+				if(!data.isFounded) {
 					j('div.unpaywall').hide();
 				}
 				else {
