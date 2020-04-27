@@ -10,6 +10,8 @@ package org.dspace.app.cris.submit.step;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 
 import javax.servlet.ServletException;
@@ -24,6 +26,7 @@ import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
@@ -92,7 +95,11 @@ public class UnpaywallStep extends AbstractProcessingStep
                     {
                         bundle = item.createBundle("ORIGINAL");
                     }
-                  bundle.createBitstream(is);
+                  Bitstream bs = bundle.createBitstream(is);
+                  bs.setName(URLDecoder.decode(
+                      Paths.get(record.getUnpaywallBestOA().getUrl_for_pdf()).getFileName().toString(),
+                      "UTF-8"));
+
                   item.addBundle(bundle);
                   item.update();
                 }
