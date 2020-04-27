@@ -219,7 +219,7 @@ j(document).ready(function() {
 		});
 	<% } %> 
 	
-	<% if (unpaywallEnabled) %>
+	<% if (unpaywallEnabled) { %>
 		j.ajax({
 			url : "<%=request.getContextPath()%>/json/unpaywall",
 			data : {																			
