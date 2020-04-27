@@ -235,9 +235,9 @@
            <workflow-editable>true</workflow-editable>
        </step>
        -->
-																										<!--  INSERT STEP UNPAYWALL HERE -->
+      <!--  Step 3 will be to retrieve openaccess fulltext from Unpaywall -->
       <step>
-        <heading>submit.progressbar.upload</heading>
+        <heading>submit.progressbar.unpaywall</heading>
         <processing-class>org.dspace.app.cris.submit.step.UnpaywallStep</processing-class>
         <workflow-editable>true</workflow-editable>
       </step>																										
