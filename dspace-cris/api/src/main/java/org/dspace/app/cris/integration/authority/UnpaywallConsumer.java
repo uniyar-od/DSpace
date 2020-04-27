@@ -26,10 +26,9 @@ public class UnpaywallConsumer implements Consumer
     		Item item = (Item) dso;
         		Bundle[] bundle = item.getBundles("ORIGINAL");
         		if(bundle.length < 0) {
-	        		String md = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "unpaywall.metadata.doi"));
-	        		List<String> mdValue = item.getMetadataValue(md);
-	        		Unpaywall unpaywall = unpaywallPersistenceServices.uniqueByDOI(mdValue.get(0));
-	        		unpaywallPersistenceServices.delete(Unpaywall.class, unpaywall.getId());
+	        		String md = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi"));
+	        		Unpaywall unpaywall = unpaywallPersistenceServices.uniqueByDOI(md);
+	        		unpaywallPersistenceServices.delete(unpaywall.getId());
         		}
     		}
 		}
