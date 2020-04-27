@@ -37,9 +37,8 @@ public class DOAuthorityForCRIS extends CRISAuthorityForCRIS<ResearchObject>
 
 	@Override
 	public Choices getMatches(String field, String text, int collection, int start, int limit, String locale,
-			String extra) {
-		// TODO Auto-generated method stub
-		return null;
+			boolean extra) {
+		return getMatches(field, text, collection, start, limit, locale);
 	}  
 
 }
