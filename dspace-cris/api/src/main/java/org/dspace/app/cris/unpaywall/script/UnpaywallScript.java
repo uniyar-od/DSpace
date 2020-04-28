@@ -441,7 +441,7 @@ public class UnpaywallScript {
     	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                 "metadata.doi");
     	
-    	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+fulltext+"\"");
+    	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+fulltext+"\"");
     	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp = searcher.search(sQuery);
 		
@@ -464,7 +464,7 @@ public class UnpaywallScript {
     	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                 "metadata.doi");
     	
-    	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+nofulltext+"\"");
+    	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+nofulltext+"\"");
     	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp;
 		try {
