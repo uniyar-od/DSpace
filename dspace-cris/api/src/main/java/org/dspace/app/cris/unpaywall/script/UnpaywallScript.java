@@ -94,10 +94,10 @@ public class UnpaywallScript {
         options.addOption("m", "mail", true,
                 "Sena a mail notification to the selected user group (ex: \"authors\" or \"administrators\")");
 
-        options.addOption("f", "nofulltext", true,
+        options.addOption("f", "nofulltext", false,
         		"Call Unpaywall Service for every item without fulltext");
 
-        options.addOption("i", "fulltext", true,
+        options.addOption("i", "fulltext", false,
         		"Delete line on Unpaywall table for every item with fulltext");
         
         CommandLine line = parser.parse(options, args);
