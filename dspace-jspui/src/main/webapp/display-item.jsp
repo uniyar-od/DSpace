@@ -739,18 +739,12 @@ if (dedupEnabled && admin_button) { %>
 <% } 
   if(unpaywallEnabled) { %>
 <div class="col-lg-12 col-md-4 col-sm-6">
-<div class="unpaywall" hidden>
-	<div class="media-left">
-      	<fmt:message key="jsp.display-item.citation.unpaywawll.icon">
-			<fmt:param value="<%=request.getContextPath()%>" />
-		</fmt:message>
-	</div>
-	<div id="unpaywallCitedResult" class="media-body text-center">
-		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.unpaywall"/></h4>
-		
-		
-   		    <span class="metric-counter"><a id="unpaywalljson" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.citation.unpaywall.tooltip"/>"><fmt:message key="jsp.display-item.citation.unpaywall.check"/></a></span>
-	</div>
+<div class="media unpaywall" hidden>
+	<span class="metric-counter">
+		<a id="unpaywalljson" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.unpaywall.tooltip"/>">
+			<img src="<%= request.getContextPath() %>/image/unpaywall-icon.png">
+		</a>
+	</span>
 </div>
 </div>
 <% } %>

@@ -426,6 +426,12 @@ footer.navbar-bottom {
 	background: gray;
 }
 
+.media.unpaywall, .media.unpaywall a {
+	color: white;
+	background: green;
+	text-align: center;
+}
+
 .container{
 	background-color: #fff;
 }
