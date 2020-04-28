@@ -138,17 +138,6 @@ public class RetrieveServlet extends DSpaceServlet
             log.info(LogManager.getHeader(context, "view_bitstream",
                     "bitstream_id=" + bitstream.getID()));
 
-            DSpaceServicesFactory.getInstance().getEventService().fireEvent(
-            		new UsageEvent(
-            				UsageEvent.Action.VIEW,
-            				request, 
-            				context, 
-            				bitstream));
-            
-            //UsageEvent ue = new UsageEvent();
-           // ue.fire(request, context, AbstractUsageEvent.VIEW,
-		   //Constants.BITSTREAM, bitstream.getID());
-
             // Pipe the bits
             InputStream is = bitstreamService.retrieve(context, bitstream);
 
@@ -167,6 +156,13 @@ public class RetrieveServlet extends DSpaceServlet
             Utils.bufferedCopy(is, response.getOutputStream());
             is.close();
             response.getOutputStream().flush();
+            DSpaceServicesFactory.getInstance().getEventService().fireEvent(
+            		new UsageEvent(
+            				UsageEvent.Action.VIEW,
+            				request, 
+            				context, 
+            				bitstream));
+
         }
         else
         {
