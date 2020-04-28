@@ -38,7 +38,7 @@ public class UnpaywallJSONRequest extends JSONRequest {
 		int itemID = UIUtil.getIntParameter(req, "itemid");
 		String doi = UnpaywallUtils.resolveDoi(req.getParameter("doi"));
 		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doi, itemID);
-		if (unpaywall != null) {
+		if (unpaywall != null && unpaywall.getUnpaywallJsonString() != null) {
 			UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
 			UnpaywallBestOA unpaywallBestOA = rec.getUnpaywallBestOA();
 			jsonresp.setUrlJSON(unpaywallBestOA.getUrl_for_pdf());

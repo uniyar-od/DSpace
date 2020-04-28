@@ -432,6 +432,11 @@ footer.navbar-bottom {
 	text-align: center;
 }
 
+.unpaywall-button {
+	background-color: Transparent;
+	border: none;
+}
+
 .container{
 	background-color: #fff;
 }

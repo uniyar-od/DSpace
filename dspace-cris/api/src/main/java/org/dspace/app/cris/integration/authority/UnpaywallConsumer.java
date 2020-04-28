@@ -29,15 +29,13 @@ public class UnpaywallConsumer implements Consumer
                 Item[] items = bundle.getItems();
                 if (items != null && items.length > 0) {
                     Item item = items[0];
-                    if (!item.isInProgressSubmission()) {
-	                    String doi = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi"));
-	                    if (StringUtils.isNotBlank(doi)) {
-	                        Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), item.getID());
-	                        if (unpaywall != null) {
-	                            applicationService.delete(Unpaywall.class, unpaywall.getId());
-	                        }
+	                String doi = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi"));
+	                if (StringUtils.isNotBlank(doi)) {
+	                    Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), item.getID());
+	                    if (unpaywall != null) {
+	                        applicationService.delete(Unpaywall.class, unpaywall.getId());
 	                    }
-                    }
+	                }
                 }
             }
         }

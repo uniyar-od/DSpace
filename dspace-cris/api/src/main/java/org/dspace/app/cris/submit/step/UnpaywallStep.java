@@ -83,27 +83,11 @@ public class UnpaywallStep extends AbstractProcessingStep
                 {
                     Bundle[] bundles = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
                     if (bundles == null || bundles.length == 0) {
-                        Unpaywall unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI), item.getID());
-                        if (unpaywall != null) {
-                            Bundle bundle = item.createBundle("ORIGINAL");
-
-                            UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
-                            InputStream is = new URL(record.getUnpaywallBestOA().getUrl_for_pdf()).openStream();
-
-                            Bitstream bs = bundle.createBitstream(is);
-                            bs.setName(URLDecoder.decode(
-                                Paths.get(record.getUnpaywallBestOA().getUrl_for_pdf()).getFileName().toString(),
-                                "UTF-8"));
-                            BitstreamFormat bf = FormatIdentifier.guessFormat(context, bs);
-                            bs.setFormat(bf);
-
-                            item.addBundle(bundle);
-                            item.update();
-                        }
+                        unpaywallService.searchByDOI(item.getMetadata(metadataDOI), item.getID());
                     }
                 }
             }
-            catch (HttpException e)
+            catch (Exception e)
             {
                 log.error(e.getMessage(), e);
             }

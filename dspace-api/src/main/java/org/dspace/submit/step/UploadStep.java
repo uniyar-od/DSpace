@@ -55,6 +55,9 @@ public class UploadStep extends AbstractProcessingStep
     /** Button to upload a file * */
     public static final String SUBMIT_UPLOAD_BUTTON = "submit_upload";
 
+    /** Button to import file from Unpaywall */
+    public static final String SUBMIT_UNPAYWALL_BUTTON = "submit_unpaywall";
+
     /** Button to skip uploading a file * */
     public static final String SUBMIT_SKIP_BUTTON = "submit_skip";
 
