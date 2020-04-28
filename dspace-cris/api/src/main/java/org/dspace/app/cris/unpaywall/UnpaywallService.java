@@ -116,7 +116,7 @@ public class UnpaywallService
             return null;
         }
         
-        unpaywall = applicationService.uniqueByDOIAndItemID(doi, id);
+        unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), id);
 
         if (!useCache && unpaywall != null) {
         	return callAndUpdate(unpaywall);

@@ -32,6 +32,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.unpaywall.UnpaywallService;
+import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
@@ -268,7 +269,7 @@ public class UnpaywallScript {
         		}
         		
         		String doi = tempMap.get(id).get("doi");
-        		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doi, id);
+        		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), id);
         		
         		if(unpaywall == null)
         		{
@@ -452,7 +453,7 @@ public class UnpaywallScript {
 			for(SolrDocument result : solrDocList) {
 				int itemID = (int)result.getFieldValue("search.resourceid");
 				String doiValue = result.getFieldValue(metadataDOI).toString();
-					Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doiValue, itemID);
+					Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doiValue), itemID);
 					applicationService.delete(Unpaywall.class, unpaywall.getId());
 			}
 		}
