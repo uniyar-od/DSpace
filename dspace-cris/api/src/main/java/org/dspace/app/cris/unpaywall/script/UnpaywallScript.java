@@ -436,7 +436,7 @@ public class UnpaywallScript {
     	
     }
     
-    private static void updateUnpaywallCiting() throws SearchServiceException{
+    private static void removeFromUnpaywall() throws SearchServiceException{
 
     	String fulltext = I18nUtil
     			.getMessage("defaultvalue.fulltextdescription.fulltext");
@@ -458,7 +458,7 @@ public class UnpaywallScript {
 		}
     }
     
-    private static void removeFromUnpaywall(){
+    private static void updateUnpaywallCiting(){
     	
     	String nofulltext = I18nUtil
     			.getMessage("defaultvalue.fulltextdescription.nofulltext");
