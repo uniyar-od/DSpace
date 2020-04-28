@@ -227,12 +227,10 @@ j(document).ready(function() {
 				"doi" : "<%= item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi")) %>"
 			},
 			success : function(data) {
-				if(!data.isFounded) {
-					j('div.unpaywall').hide();
-				}
-				else {
+				if(data.isFounded) {
+					j('div.unpaywall').show();
 					j('#unpaywalljson').attr('href', data.urlJSON);
-				}			
+				}
 			},
 			error : function(data) {
 			}
@@ -741,7 +739,7 @@ if (dedupEnabled && admin_button) { %>
 <% } 
   if(unpaywallEnabled) { %>
 <div class="col-lg-12 col-md-4 col-sm-6">
-<div class="unpaywall">
+<div class="unpaywall" hidden>
 	<div class="media-left">
       	<fmt:message key="jsp.display-item.citation.unpaywawll.icon">
 			<fmt:param value="<%=request.getContextPath()%>" />
