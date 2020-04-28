@@ -88,8 +88,11 @@ public class UnpaywallUtils {
         if (doi.startsWith(DOI_DEFAULT_BASEURL)) {
             doi = doi.replace(DOI_DEFAULT_BASEURL, "");
         }
+        else if (doi.startsWith("http")) {
+            doi = doi.substring(doi.indexOf("10."));
+        }
 
-        return doi;
+        return doi.toLowerCase();
     }
 	
 }
