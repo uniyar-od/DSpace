@@ -1,11 +1,14 @@
 package org.dspace.app.cris.integration.authority;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.content.Bundle;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
@@ -19,18 +22,25 @@ public class UnpaywallConsumer implements Consumer
         ApplicationService applicationService = new DSpace().getServiceManager().getServiceByName(
                 "applicationService", ApplicationService.class);
     
-    DSpaceObject dso = event.getSubject(ctx);
-    if (dso instanceof Item) {
-    	if (event.getEventType() == Event.ADD) {
-    		Item item = (Item) dso;
-        		Bundle[] bundle = item.getBundles("ORIGINAL");
-        		if(bundle.length < 0) {
-	        		String md = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi"));
-	        		Unpaywall unpaywall = applicationService.uniqueByDOI(md);
-	        		applicationService.delete(Unpaywall.class, unpaywall.getId());
-        		}
-    		}
-		}
+        DSpaceObject dso = event.getSubject(ctx);
+        if (dso instanceof Bundle && event.getEventType() == Event.ADD) {
+            Bundle bundle = (Bundle) dso;
+            if (bundle.getName().equals(Constants.DEFAULT_BUNDLE_NAME)) {
+                Item[] items = bundle.getItems();
+                if (items != null && items.length > 0) {
+                    Item item = items[0];
+                    if (!item.isInProgressSubmission()) {
+	                    String doi = item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi"));
+	                    if (StringUtils.isNotBlank(doi)) {
+	                        Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), item.getID());
+	                        if (unpaywall != null) {
+	                            applicationService.delete(Unpaywall.class, unpaywall.getId());
+	                        }
+	                    }
+                    }
+                }
+            }
+        }
     }
     
     @Override
