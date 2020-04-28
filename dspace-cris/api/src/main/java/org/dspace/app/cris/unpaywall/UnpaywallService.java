@@ -74,7 +74,7 @@ public class UnpaywallService
              
             method.releaseConnection();
 //            getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
-        } catch (IOException | URISyntaxException e) {
+        } catch (Exception e) {
             log.error(e.getMessage(), e);
 		}
         finally
@@ -163,10 +163,14 @@ public class UnpaywallService
     private Unpaywall makeCall(String doi, Integer id) throws HttpException {
     	
     	String jsonString = unpaywallCall(doi);
-    	Unpaywall unpaywall = UnpaywallUtils.makeUnpaywall(jsonString, id);
-    	
-    	applicationService.saveOrUpdate(Unpaywall.class, unpaywall);
-        return unpaywall;
+    	if (StringUtils.isNotBlank(jsonString)) {
+	    	Unpaywall unpaywall = UnpaywallUtils.makeUnpaywall(jsonString, id);
+
+	    	applicationService.saveOrUpdate(Unpaywall.class, unpaywall);
+	        return unpaywall;
+    	}
+
+    	return null;
 	}
 
     public void setTimeout(int timeout)
