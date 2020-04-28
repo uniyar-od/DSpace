@@ -27,7 +27,9 @@ import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.app.util.SubmissionInfo;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
+import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
@@ -99,7 +101,8 @@ public class UnpaywallStep extends AbstractProcessingStep
                   bs.setName(URLDecoder.decode(
                       Paths.get(record.getUnpaywallBestOA().getUrl_for_pdf()).getFileName().toString(),
                       "UTF-8"));
-
+                  BitstreamFormat bf = FormatIdentifier.guessFormat(context, bs);
+                  bs.setFormat(bf);
                   item.addBundle(bundle);
                   item.update();
                 }
