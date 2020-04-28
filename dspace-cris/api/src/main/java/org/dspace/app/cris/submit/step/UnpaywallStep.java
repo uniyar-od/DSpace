@@ -105,9 +105,9 @@ public class UnpaywallStep extends AbstractProcessingStep
                 }
 
             }
-            catch (HttpException e1)
+            catch (HttpException e)
             {
-                e1.printStackTrace();
+                log.error(e.getMessage(), e);
             }
         }
         return 0;

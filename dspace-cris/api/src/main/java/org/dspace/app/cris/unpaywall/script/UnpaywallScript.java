@@ -479,8 +479,7 @@ public class UnpaywallScript {
 				}
 			}
 		} catch (SearchServiceException | HttpException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			log.error(e.getMessage(), e);
 		}
     }
 }

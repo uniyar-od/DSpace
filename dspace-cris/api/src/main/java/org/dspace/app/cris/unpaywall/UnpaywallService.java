@@ -75,8 +75,7 @@ public class UnpaywallService
             method.releaseConnection();
 //            getUnpaywallPersistenceService().saveOrUpdate(Unpaywall.class, unpaywall);
         } catch (IOException | URISyntaxException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+            log.error(e.getMessage(), e);
 		}
         finally
         {

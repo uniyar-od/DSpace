@@ -2,7 +2,9 @@ package org.dspace.app.cris.unpaywall;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -12,6 +14,8 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize
 public class UnpaywallRecord
 {
+    private static Logger log = LoggerFactory.getLogger(UnpaywallRecord.class);
+
     @JsonProperty(value = "best_oa_location")
     private UnpaywallBestOA unpaywallBestOA;
 
@@ -139,8 +143,7 @@ public class UnpaywallRecord
         }
         catch (IOException e)
         {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
         }
         return response;
     }
