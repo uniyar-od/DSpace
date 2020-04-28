@@ -441,17 +441,21 @@ public class UnpaywallScript {
     	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
                 "metadata.doi");
     	
-    	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+fulltext+"\"");
+    	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+fulltext+"\" AND "+metadataDOI+":*");
     	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp = searcher.search(sQuery);
 		
 		if (qResp.getResults() != null) {
 			SolrDocumentList solrDocList = qResp.getResults();
 			for(SolrDocument result : solrDocList) {
-				int itemID = (int)result.getFieldValue("search.resourceid");
-				String doiValue = result.getFieldValue(metadataDOI).toString();
-					Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doiValue), itemID);
-					applicationService.delete(Unpaywall.class, unpaywall.getId());
+				Integer itemID = (Integer)result.getFieldValue("search.resourceid");
+				String doi = ((List<Object>)result.getFieldValues(metadataDOI)).get(0).toString();
+				if (itemID != null && StringUtils.isNotBlank(doi)) {
+					Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
+					if (unpaywall != null) {
+						applicationService.delete(Unpaywall.class, unpaywall.getId());
+					}
+				}
 			}
 		}
     }
