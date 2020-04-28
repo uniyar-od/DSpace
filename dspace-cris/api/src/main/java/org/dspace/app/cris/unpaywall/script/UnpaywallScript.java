@@ -442,6 +442,7 @@ public class UnpaywallScript {
                 "metadata.doi");
     	
     	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+fulltext+"\"");
+    	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp = searcher.search(sQuery);
 		
 		if (qResp.getResults() != null) {
@@ -464,6 +465,7 @@ public class UnpaywallScript {
                 "metadata.doi");
     	
     	SolrQuery sQuery = new SolrQuery("item.fulltext:\""+nofulltext+"\"");
+    	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp;
 		try {
 			qResp = searcher.search(sQuery);
