@@ -32,6 +32,7 @@ import org.dspace.content.Bundle;
 import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.utils.DSpace;
@@ -70,7 +71,6 @@ public class UnpaywallStep extends AbstractProcessingStep
     {
         if (subInfo != null)
         {
-            Unpaywall unpaywall = new Unpaywall();
             UnpaywallService unpaywallService = new DSpace().getServiceManager().getServiceByName(
                     "unpaywallService", UnpaywallService.class);
             String metadataDOI = ConfigurationManager.getProperty("unpaywall",
@@ -81,32 +81,27 @@ public class UnpaywallStep extends AbstractProcessingStep
             {
                 if (StringUtils.isNotBlank(item.getMetadata(metadataDOI)))
                 {
-               		unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI), item.getID());
+                    Bundle[] bundles = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+                    if (bundles == null || bundles.length == 0) {
+                        Unpaywall unpaywall = unpaywallService.searchByDOI(item.getMetadata(metadataDOI), item.getID());
+                        if (unpaywall != null) {
+                            Bundle bundle = item.createBundle("ORIGINAL");
 
-               		UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
+                            UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
+                            InputStream is = new URL(record.getUnpaywallBestOA().getUrl_for_pdf()).openStream();
 
-                    InputStream is = new URL(record.getUnpaywallBestOA().getUrl_for_pdf()).openStream();
+                            Bitstream bs = bundle.createBitstream(is);
+                            bs.setName(URLDecoder.decode(
+                                Paths.get(record.getUnpaywallBestOA().getUrl_for_pdf()).getFileName().toString(),
+                                "UTF-8"));
+                            BitstreamFormat bf = FormatIdentifier.guessFormat(context, bs);
+                            bs.setFormat(bf);
 
-                    Bundle[] bundles = item.getBundles("ORIGINAL");
-                    Bundle bundle = null;
-                    if (bundles != null && bundles.length > 0)
-                    {
-                        bundle = bundles[0];
+                            item.addBundle(bundle);
+                            item.update();
+                        }
                     }
-                    else
-                    {
-                        bundle = item.createBundle("ORIGINAL");
-                    }
-                  Bitstream bs = bundle.createBitstream(is);
-                  bs.setName(URLDecoder.decode(
-                      Paths.get(record.getUnpaywallBestOA().getUrl_for_pdf()).getFileName().toString(),
-                      "UTF-8"));
-                  BitstreamFormat bf = FormatIdentifier.guessFormat(context, bs);
-                  bs.setFormat(bf);
-                  item.addBundle(bundle);
-                  item.update();
                 }
-
             }
             catch (HttpException e)
             {
