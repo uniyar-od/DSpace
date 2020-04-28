@@ -109,7 +109,15 @@ public class UnpaywallScript {
             System.exit(0);
         }
 
-        
+        ServiceManager serviceManager = new DSpace().getServiceManager();
+
+        searcher = serviceManager.getServiceByName(SearchService.class.getName(), SearchService.class);
+
+        applicationService = serviceManager.getServiceByName(
+                "applicationService", ApplicationService.class);
+
+        sService = serviceManager.getServiceByName(
+                "unpaywallService", UnpaywallService.class);
 
 
         if (line.hasOption('t')) {
@@ -120,23 +128,11 @@ public class UnpaywallScript {
         }
         if (line.hasOption('q')) {
         	
-        	DSpace dspace = new DSpace();
             int itemWorked = 0;
             int itemForceWorked = 0;
         	
         	queryDefault = line.getOptionValue('q').trim();
-        	
-        	ServiceManager serviceManager = dspace.getServiceManager();
 
-            searcher = serviceManager.getServiceByName(SearchService.class.getName(), SearchService.class);
-
-            applicationService = serviceManager.getServiceByName(
-                    "applicationService", ApplicationService.class);
-
-            sService = serviceManager.getServiceByName(
-                    "unpaywallService", UnpaywallService.class);
-
-            Context context = null;
             long resultsTot = -1;
             try {
                 context = new Context();
