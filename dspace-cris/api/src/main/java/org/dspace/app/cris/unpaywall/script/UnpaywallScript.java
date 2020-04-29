@@ -408,6 +408,11 @@ public class UnpaywallScript {
     
     private static SolrDocumentList getItemListFromSolr(String id) throws SearchServiceException
     {
+        String nofulltext = I18nUtil
+            .getMessage("defaultvalue.fulltextdescription.nofulltext");
+
+        String metadataDOI = ConfigurationManager.getProperty("unpaywall",
+            "metadata.doi");
     	
     	SolrQuery query = new SolrQuery();
         query.setRows(Integer.MAX_VALUE);
@@ -415,15 +420,13 @@ public class UnpaywallScript {
         query.setQuery("search.resourcetype:2");
         
         query.addField("search.resourceid");
-        query.addField("dc.identifier.doi");
+        query.addField(metadataDOI);
         query.addField("handle");
         
         query.addFilterQuery("author_authority:\"" + id + "\"");
-        query.addFilterQuery("dc.identifier.doi:[* TO *]");
-        String fulltext = I18nUtil
-    			.getMessage("defaultvalue.fulltextdescription.nofulltext");
-        query.addFilterQuery("infofulltext_keyword:\"" + fulltext + "\"");
         
+        query.addFilterQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
+
         //execute and parse the query
         SearchService searcher = new DSpace().getServiceManager()
                 .getServiceByName(SearchService.class.getName(),
