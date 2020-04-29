@@ -4,8 +4,10 @@
 #
 # Parameters: {0} List of Items
 #
-Subject:Some of your Research Outputs are missing their Fulltext
-Dear user, some of your Research Outputs are missing their Fulltext but they are present in the local UnPaywall cache.
+Subject:Some Research Outputs are missing their fulltext
+Dear administrators,
+
+Here the list of the Research Outputs without fulltext found in the Unpaywall registry.
 The interested items are:
 
 {0}

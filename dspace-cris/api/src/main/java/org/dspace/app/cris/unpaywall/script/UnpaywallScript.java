@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -202,243 +203,157 @@ public class UnpaywallScript {
     }
     
     private static void notifyUsers(String option) throws SearchServiceException, SQLException, IOException, MessagingException {
-		
-        SolrDocumentList docList = getUserListFromSOLR();
-        
-        Map<Integer, String> researcherList = new HashMap<>();
-        
-        if (docList.size() > 0)
-        {
-        	for (SolrDocument result : docList) {
-        		
-        		researcherList.put((Integer) result.getFieldValue("owner_i"), result.getFieldValue("cris-id").toString());
-        		
-        	}
-        }else {
-			return;
-		}        
-        
-        
-        Map<Integer, Map<Integer, Map<String, String>>> itemMap = new HashMap<>();
-        List<Integer> res = new ArrayList<>(researcherList.keySet());
-        
-        for (int i = 0; i < res.size(); i++) {
-			
-        	String currResearcher = researcherList.get(res.get(i));
-        	docList = getItemListFromSolr(currResearcher);
-            
-            if (docList.size() > 0)
-            {
-            	for (SolrDocument result : docList) {
-            		if(itemMap.get(res.get(i)) == null) {
+        // retrieve items without fulltext and with doi from Solr
+        SolrDocumentList documents = retrieveItemFromSolr();
 
-            			Map<Integer, Map<String, String>> tempMap = new HashMap<>();
-            			Map<String, String> tempMap2 = new HashMap<>();
-            			
-            			tempMap2.put("doi", StringUtils.strip(result.getFieldValue("dc.identifier.doi").toString(), "[]"));
-            			tempMap2.put("handle", result.getFieldValue("handle").toString());
-            			tempMap.put((Integer) result.getFieldValue("search.resourceid"), 
-            					tempMap2);
-            			itemMap.put(res.get(i), tempMap);
+        // for each item check local Unpaywall table
+        List<UnpaywallItem> unpaywallItems = checkItemOnUnpaywall(documents);
 
-            		}else {
-            			Map<String, String> tempMap2 = new HashMap<>();
-            			
-            			tempMap2.put("doi", StringUtils.strip(result.getFieldValue("dc.identifier.doi").toString(), "[]"));
-            			tempMap2.put("handle", result.getFieldValue("handle").toString());
-            			itemMap.get(res.get(i))
-            					.put(
-            							(Integer) result.getFieldValue("search.resourceid"), 
-            							tempMap2);
+        if (option.equalsIgnoreCase(EMAIL_TO_AUTHORS)) {
+            // for each item retrieve owner and create map owner2Items
+            Map<Integer, List<UnpaywallItem>> owner2Items = retrieveOwnerFromSolr(unpaywallItems);
 
-            		}
-            	}
-            	
-            }else {
-            	
-				researcherList.remove(res.get(i));
-				
-			}
-		}
-        
-        if(itemMap.isEmpty())
-        {
-        	return;
+            // for each owner send email
+            for (Integer ownerI : owner2Items.keySet()) {
+                EPerson ePerson = EPerson.find(context, ownerI);
+
+                Email mail = getUnpaywallMailTemplate(EMAIL_TO_AUTHORS);
+
+                if (StringUtils.isBlank(ePerson.getEmail())) continue;
+
+                mail.addRecipient(ePerson.getEmail());
+
+                String emailBody = makeItemListBuilder(owner2Items.get(ownerI)).toString();
+                mail.addArgument(emailBody);
+
+                System.out.println("Sending mail to: " + ePerson.getEmail());
+                mail.send();
+            }
         }
-        
-        UnpaywallService unpaywallService = new UnpaywallService();
-        Map<Integer, Unpaywall> foundUnpaywalls = new HashMap<>();
-        for(Integer eper : itemMap.keySet())
-        {
-        	
-        	Map<Integer, Map<String, String>> tempMap = itemMap.get(eper);
-        	for (Integer id : tempMap.keySet()) {
-        		
-        		if(foundUnpaywalls.containsKey(id))
-        		{
-        			continue;
-        		}
-        		
-        		String doi = tempMap.get(id).get("doi");
-        		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), id);
-        		
-        		if(unpaywall == null)
-        		{
-        			continue;
-        		}
-        		
-        		foundUnpaywalls.put(id, unpaywall);
-        		
-			}
+        else {
+            // send email to administrators
+            Email mail = getUnpaywallMailTemplate(EMAIL_TO_ADMINISTRATORS);
+
+            String adminEmail = ConfigurationManager.getProperty("mail.admin");
+            mail.addRecipient(adminEmail);
+
+            List<String> adminEmails = new ArrayList<>();
+            for (EPerson admin : Arrays.asList(Group.allMembers(context, Group.find(context, Group.ADMIN_ID)))) {
+                adminEmails.add(admin.getEmail());
+                mail.addRecipientCC(admin.getEmail());
+            }
+
+            String emailBody = makeItemListBuilder(unpaywallItems).toString();
+            mail.addArgument(emailBody);
+
+            System.out.println("Sending mail to: " + adminEmail + " with CC: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
+            mail.send();
         }
-        
-        if (foundUnpaywalls.isEmpty()) {
-			return;
-		}
-        
-    	if(StringUtils.equals(option, "authors"))
-    	{
-    		
-    		List<EPerson> ePersonList = new ArrayList<>();
-    		for (Integer id : researcherList.keySet()) {
-    			
-    			ePersonList.add(EPerson.find(context, id));
-    			
-    		}
-    		
-    		for (EPerson ePerson : ePersonList) {
-				
-    			Email mail = getUnpaywallMailTemplate();
-    			String email = ePerson.getEmail();
-    			
-    			if (StringUtils.isBlank(email)) {
-					continue;
-				}
-    			
-    			mail.addRecipient(email);
-    			
-    			Map<Integer, Map<String, String>> tempMap = itemMap.get(ePerson.getID());
-    			
+    }
 
-    	    	StringBuilder stringBuilder = new StringBuilder();
-    			String itemString = makeItemListBuilder(stringBuilder, tempMap, foundUnpaywalls, 0).toString();
-    			
-    			if (StringUtils.isBlank(itemString)) {
-    				continue;
-				}
-    			
-    			mail.addArgument(itemString);
-    			System.out.println("Sending mail to: " + email);
-    			mail.send();
-    			
-			}
-    		
-    	}
-    	
-    	if(StringUtils.equals(option, "administrators") || StringUtils.isBlank(option))
-    	{
-    	
-    		List<EPerson> ePersonList = Arrays.asList(Group.allMembers(context, 
-    											Group.find(context, Group.ADMIN_ID)));
-    		
-    		for (EPerson ePerson : ePersonList) {
-				
-        		Email mail = getUnpaywallMailTemplate();
-        		String email = ePerson.getEmail();
-        		
-        		if (StringUtils.isBlank(email)) {
-					continue;
-				}
-    			
-    			mail.addRecipient(email);
-    			List<Map<Integer, Map<String, String>>> tempList = new ArrayList<>(itemMap.values());
-    			StringBuilder stringBuilder = new StringBuilder();
-    			Integer i = 0;
-    			
-    			for (Map<Integer, Map<String, String>> tempMap : tempList) {
-    				
-    				stringBuilder = makeItemListBuilder(stringBuilder, tempMap, foundUnpaywalls, i);
-    				
-				}
-    			
-    			String itemString = stringBuilder.toString();
-    			
-    			if (StringUtils.isBlank(itemString)) {
-    				continue;
-				}
-    			
-    			mail.addArgument(itemString);
-    			System.out.println("Sending mail to: " + email);
-    			mail.send();
-    			
-			}
-    		
-    	}
-    	
-	}
-    
-    private static Email getUnpaywallMailTemplate() throws IOException
-    {
-    	return Email.getEmail(ConfigurationManager.getProperty("dspace.dir") + "/config/emails/" + ConfigurationManager.getProperty("unpaywall", "script.email_template.name"));
-    }
-    
-    private static StringBuilder makeItemListBuilder(StringBuilder stringBuilder, Map<Integer, Map<String, String>> itemMap, Map<Integer, Unpaywall> unpaywalls, Integer index) {
-    	
-		for (Integer itemId : itemMap.keySet()) {
-			if (unpaywalls.get(itemId) != null) {
-				
-				index++;
-				String handle = itemMap.get(itemId).get("handle");
-				stringBuilder.append(index).append(". ");
-				stringBuilder.append("DOI: ").append(itemMap.get(itemId).get("doi")).append(" - ");
-				stringBuilder.append("Link: ").append(ConfigurationManager.getProperty("dspace.url")).append("handle/").append(handle).append(" \n");
-				
-			}
-		}
-		
-		return stringBuilder;
-	}
-    
-    private static SolrDocumentList getUserListFromSOLR() throws SearchServiceException
-    {
-    	
-    	SolrQuery query = new SolrQuery();
-    	query.setRows(Integer.MAX_VALUE);
-        
-        query.setQuery("search.resourcetype:9");
-        
-        query.addField("owner_i");
-        query.addField("cris-id");
-        
-        query.addFilterQuery("owner_i:[* TO *]");
-        
-        //execute and parse the query
-        QueryResponse qResp = searcher.search(query);
-        return qResp.getResults();
-    	
-    }
-    
-    private static SolrDocumentList getItemListFromSolr(String id) throws SearchServiceException
-    {
-    	SolrQuery query = new SolrQuery();
-        query.setRows(Integer.MAX_VALUE);
-        
-        query.setQuery("search.resourcetype:2");
-        
-        query.addField("search.resourceid");
-        query.addField(metadataDOI);
-        query.addField("handle");
-        
-        query.addFilterQuery("author_authority:\"" + id + "\"");
-        
-        query.addFilterQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
+    private static SolrDocumentList retrieveItemFromSolr() throws SearchServiceException {
+        SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
+        sQuery.setRows(Integer.MAX_VALUE);
+        sQuery.addField("search.resourceid");
+        sQuery.addField("handle");
+        sQuery.addField(metadataDOI);
+        sQuery.addField("author_authority");
 
-        //execute and parse the query
-        QueryResponse qResp = searcher.search(query);
-        return qResp.getResults();
-    	
+        QueryResponse qResp;
+        try {
+            qResp = searcher.search(sQuery);
+            if (qResp.getResults() != null && qResp.getResults().size() > 0) {
+                return qResp.getResults();
+            }
+        } catch (SearchServiceException e) {
+            log.error(e.getMessage(), e);
+        }
+
+        return null;
+    }
+
+    private static List<UnpaywallItem> checkItemOnUnpaywall(SolrDocumentList documents) {
+        List<UnpaywallItem> unpaywallItems = new ArrayList<>();
+
+        for(SolrDocument document : documents) {
+            Integer itemID = (Integer)document.getFieldValue("search.resourceid");
+            String handle = (String)document.getFieldValue("handle");
+            String doi = ((List<Object>)document.getFieldValues(metadataDOI)).get(0).toString();
+
+            HashSet<Object> authors = new HashSet<>();
+            List<Object> authorsList = (List<Object>)document.getFieldValues("author_authority");
+            if (authorsList != null) {
+                authors = new HashSet<>(authorsList);
+            }
+
+            if (itemID != null && StringUtils.isNotBlank(doi)) {
+                Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
+                if (unpaywall != null && unpaywall.getUnpaywallJsonString() != null) {
+                    unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
+                }
+            }
+        }
+
+        return unpaywallItems;
+    }
+
+    private static Map<Integer, List<UnpaywallItem>> retrieveOwnerFromSolr(List<UnpaywallItem> unpaywallItems) {
+        Map<Integer, List<UnpaywallItem>> owner2Items = new HashMap<>();
+
+        for (UnpaywallItem unpaywallItem : unpaywallItems) {
+            StringBuilder authorsQuery = new StringBuilder();
+            for (Object author : unpaywallItem.getAuthors()) {
+                authorsQuery.append("cris-id:" + author + " OR ");
+            }
+
+            if (StringUtils.isBlank(authorsQuery.toString())) continue;
+
+            String sAuthorsQuery = authorsQuery.toString();
+            sAuthorsQuery = sAuthorsQuery.substring(0, sAuthorsQuery.length()-4);
+
+            SolrQuery sQuery = new SolrQuery("search.resourcetype:9 AND owner_i:* AND (" + sAuthorsQuery + ")");
+            sQuery.setRows(Integer.MAX_VALUE);
+            sQuery.addField("owner_i");
+
+            QueryResponse qResp;
+            try {
+                qResp = searcher.search(sQuery);
+                if (qResp.getResults() != null && qResp.getResults().size() > 0) {
+                    for(SolrDocument document : qResp.getResults()) {
+                        Integer ownerI = (Integer) document.getFieldValue("owner_i");
+
+                        if (!owner2Items.containsKey(ownerI)) {
+                            owner2Items.put(ownerI, new ArrayList<UnpaywallItem>());
+                        }
+                        owner2Items.get(ownerI).add(unpaywallItem);
+                    }
+                }
+            } catch (SearchServiceException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
+
+        return owner2Items;
     }
     
+    private static Email getUnpaywallMailTemplate(String option) throws IOException
+    {
+        return Email.getEmail(ConfigurationManager.getProperty("dspace.dir") + "/config/emails/" + ConfigurationManager.getProperty("unpaywall", "script." + option + "_email_template.name"));
+    }
+    
+    private static String makeItemListBuilder(List<UnpaywallItem> unpaywallItems) {
+        int index = 1;
+        StringBuilder stringBuilder = new StringBuilder();
+        for (UnpaywallItem unpaywallItem : unpaywallItems) {
+            String handleLink = ConfigurationManager.getProperty("dspace.url") + "/handle/" + unpaywallItem.getHandle();
+            stringBuilder.append(index++).append(". ")
+                .append("DOI: ").append(unpaywallItem.getDoi()).append(" - ")
+                .append("Link: ").append(handleLink).append("\n");
+        }
+
+        return stringBuilder.toString();
+    }
+
     private static void removeFromUnpaywall() throws SearchServiceException{
 
     	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+fulltext+"\" AND "+metadataDOI+":*");
@@ -480,6 +395,44 @@ public class UnpaywallScript {
 		} catch (SearchServiceException | HttpException e) {
 			log.error(e.getMessage(), e);
 		}
+    }
+
+    private static class UnpaywallItem {
+        private Integer id;
+        private String handle;
+        private String doi;
+        private HashSet<Object> authors;
+
+        public UnpaywallItem(Integer id, String handle, String doi, HashSet<Object> authors) {
+            this.id = id;
+            this.handle = handle;
+            this.doi = doi;
+            this.authors = authors;
+        }
+        public Integer getId() {
+            return id;
+        }
+        public void setId(Integer id) {
+            this.id = id;
+        }
+        public String getHandle() {
+            return handle;
+        }
+        public void setHandle(String handle) {
+            this.handle = handle;
+        }
+        public String getDoi() {
+            return doi;
+        }
+        public void setDoi(String doi) {
+            this.doi = doi;
+        }
+        public HashSet<Object> getAuthors() {
+            return authors;
+        }
+        public void setAuthors(HashSet<Object> authors) {
+            this.authors = authors;
+        }
     }
 }
     
