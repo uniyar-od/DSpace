@@ -52,9 +52,6 @@ import org.dspace.utils.DSpace;
 public class UnpaywallScript {
 
     private static Long cacheTime = ConfigurationManager.getLongProperty("unpaywall", "cachetime");
-    private static final String DOI = ConfigurationManager.getProperty("unpaywall", "metadata.doi");
-    private static final String apiKey = ConfigurationManager.getProperty("unpaywall", "apikey");
-    private static final String url = ConfigurationManager.getProperty("unpaywall", "url");
 
     /** log4j logger */
     private static Logger log = Logger.getLogger(UnpaywallScript.class);
@@ -75,11 +72,19 @@ public class UnpaywallScript {
 
     private static int MAX_QUERY_RESULTS = 50;
 
+    private static String fulltext;
+
+    private static String nofulltext;
+
+    private static String metadataDOI;
+
+    private static final String EMAIL_TO_AUTHORS = "authors";
+
+    private static final String EMAIL_TO_ADMINISTRATORS = "administrators";
+
     public static void main(String[] args)
             throws SearchServiceException, SQLException, AuthorizeException, ParseException, IOException, MessagingException {
 
-    	context = new Context();
-    	
         CommandLineParser parser = new PosixParser();
 
         Options options = new Options();
@@ -109,6 +114,8 @@ public class UnpaywallScript {
             System.exit(0);
         }
 
+        context = new Context();
+
         ServiceManager serviceManager = new DSpace().getServiceManager();
 
         searcher = serviceManager.getServiceByName(SearchService.class.getName(), SearchService.class);
@@ -119,6 +126,14 @@ public class UnpaywallScript {
         sService = serviceManager.getServiceByName(
                 "unpaywallService", UnpaywallService.class);
 
+        fulltext = I18nUtil
+            .getMessage("defaultvalue.fulltextdescription.fulltext");
+
+        nofulltext = I18nUtil
+            .getMessage("defaultvalue.fulltextdescription.nofulltext");
+
+        metadataDOI = ConfigurationManager.getProperty("unpaywall",
+                "metadata.doi");
 
         if (line.hasOption('t')) {
             cacheTime  = Long.valueOf(line.getOptionValue('t').trim()) * 1000; // option
@@ -398,9 +413,6 @@ public class UnpaywallScript {
         query.addFilterQuery("owner_i:[* TO *]");
         
         //execute and parse the query
-        SearchService searcher = new DSpace().getServiceManager()
-                .getServiceByName(SearchService.class.getName(),
-                        SearchService.class);
         QueryResponse qResp = searcher.search(query);
         return qResp.getResults();
     	
@@ -408,12 +420,6 @@ public class UnpaywallScript {
     
     private static SolrDocumentList getItemListFromSolr(String id) throws SearchServiceException
     {
-        String nofulltext = I18nUtil
-            .getMessage("defaultvalue.fulltextdescription.nofulltext");
-
-        String metadataDOI = ConfigurationManager.getProperty("unpaywall",
-            "metadata.doi");
-    	
     	SolrQuery query = new SolrQuery();
         query.setRows(Integer.MAX_VALUE);
         
@@ -428,9 +434,6 @@ public class UnpaywallScript {
         query.addFilterQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
 
         //execute and parse the query
-        SearchService searcher = new DSpace().getServiceManager()
-                .getServiceByName(SearchService.class.getName(),
-                        SearchService.class);
         QueryResponse qResp = searcher.search(query);
         return qResp.getResults();
     	
@@ -438,12 +441,6 @@ public class UnpaywallScript {
     
     private static void removeFromUnpaywall() throws SearchServiceException{
 
-    	String fulltext = I18nUtil
-    			.getMessage("defaultvalue.fulltextdescription.fulltext");
-		
-    	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
-                "metadata.doi");
-    	
     	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+fulltext+"\" AND "+metadataDOI+":*");
     	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp = searcher.search(sQuery);
@@ -464,13 +461,7 @@ public class UnpaywallScript {
     }
     
     private static void updateUnpaywallCiting(){
-    	
-    	String nofulltext = I18nUtil
-    			.getMessage("defaultvalue.fulltextdescription.nofulltext");
-    	
-    	String metadataDOI = ConfigurationManager.getProperty("unpaywall",
-                "metadata.doi");
-    	
+
     	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
     	sQuery.setRows(Integer.MAX_VALUE);
 		QueryResponse qResp;
