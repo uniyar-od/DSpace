@@ -3,7 +3,7 @@
  * detailed in the LICENSE and NOTICE files at the root of the source
  * tree and available online at
  *
- * https://github.com/CILEA/dspace-cris/wiki/License
+ * http://www.dspace.org/license/
  */
 package org.dspace.app.cris.unpaywall.script;
 
@@ -37,12 +37,9 @@ import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
@@ -51,8 +48,6 @@ import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
 public class UnpaywallScript {
-
-    private static Long cacheTime = ConfigurationManager.getLongProperty("unpaywall", "cachetime");
 
     /** log4j logger */
     private static Logger log = Logger.getLogger(UnpaywallScript.class);
@@ -64,14 +59,6 @@ public class UnpaywallScript {
     private static UnpaywallService sService;
 
     private static SearchService searcher;
-
-    private static long timeElapsed = 3600000 * 24 * 7; // 1 week
-
-    private static int maxItemToWork = 100;
-
-    private static String queryDefault = "";
-
-    private static int MAX_QUERY_RESULTS = 50;
 
     private static String fulltext;
 
@@ -91,14 +78,8 @@ public class UnpaywallScript {
         Options options = new Options();
         options.addOption("h", "help", false, "help");
 
-        options.addOption("t", "time", true,
-                "Limit to update only citation more old than <t> seconds. Use 0 to force update of all record");
-
-        options.addOption("q", "query", true,
-                "Override the default query to retrieve puntual publication (used for test scope, the default query will be deleted");
-        
         options.addOption("m", "mail", true,
-                "Sena a mail notification to the selected user group (ex: \"authors\" or \"administrators\")");
+                "Send a mail notification to the selected user group (ex: \"authors\" or \"administrators\")");
 
         options.addOption("f", "nofulltext", false,
         		"Call Unpaywall Service for every item without fulltext");
@@ -111,7 +92,7 @@ public class UnpaywallScript {
         if (line.hasOption('h')) {
             HelpFormatter myhelp = new HelpFormatter();
             myhelp.printHelp("Unpaywall \n", options);
-            System.out.println("\n\nUSAGE:\n Unpaywall [-t 3600] [-x 100]\n");
+            System.out.println("\n\nUSAGE:\n Unpaywall [-m authors|administrators] [-f] [-i]\n");
             System.exit(0);
         }
 
@@ -136,53 +117,6 @@ public class UnpaywallScript {
         metadataDOI = ConfigurationManager.getProperty("unpaywall",
                 "metadata.doi");
 
-        if (line.hasOption('t')) {
-            cacheTime  = Long.valueOf(line.getOptionValue('t').trim()) * 1000; // option
-                                                                                // is
-                                                                                // in
-                                                                                // seconds
-        }
-        if (line.hasOption('q')) {
-        	
-            int itemWorked = 0;
-            int itemForceWorked = 0;
-        	
-        	queryDefault = line.getOptionValue('q').trim();
-
-            long resultsTot = -1;
-            try {
-                context = new Context();
-                context.turnOffAuthorisationSystem();
-                all: for (int page = 0;; page++) {
-                    int start = page * MAX_QUERY_RESULTS;
-                    if (resultsTot != -1 && start >= resultsTot) {
-                        break all;
-                    }
-                    if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
-                        break all;
-
-                    // get all items that contains DOI 
-                    DiscoverQuery query = new DiscoverQuery();
-                    query.setStart(start);
-                    query.setQuery(queryDefault);
-                    query.setDSpaceObjectFilter(Constants.ITEM);
-                    
-                    DiscoverResult qresp = searcher.search(context, query);
-                    resultsTot = qresp.getTotalSearchResults();
-
-                    context.commit();
-                    context.clearCache();
-                }
-            } catch (Exception ex) {
-                log.error(ex.getMessage(), ex);
-            } finally {
-
-                if (context != null && context.isValid()) {
-                    context.abort();
-                }
-            }
-        	
-        }
         if(line.hasOption('f')) {
         	updateUnpaywallCiting();
  	
