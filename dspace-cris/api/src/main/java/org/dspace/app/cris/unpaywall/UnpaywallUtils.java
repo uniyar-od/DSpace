@@ -29,6 +29,8 @@ public class UnpaywallUtils {
     	UnpaywallBestOA unpBestOA = new UnpaywallBestOA();
     	UnpaywallRecord unpaywallRecord = new UnpaywallRecord();
     	
+    	if (obj.isNull("best_oa_location")) return null;
+
     	JSONObject bestOA = obj.getJSONObject("best_oa_location");
 		unpBestOA.setUrl_for_pdf(bestOA.getString("url_for_pdf"));
         unpBestOA.setHost_type(bestOA.getString("host_type"));
