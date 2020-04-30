@@ -7,6 +7,6 @@ CREATE TABLE IF NOT EXISTS cris_unpaywall
 	timestampCreated timestamp without time zone, 
 	timestampLastModified timestamp without time zone,	 
 	primary key (id)
-)
+);
 
 create sequence CRIS_UNPAYWALL_SEQ;

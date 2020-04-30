@@ -7,6 +7,6 @@ CREATE TABLE cris_unpaywall
   timestampCreated TIMESTAMP(6),
   timestampLastModified TIMESTAMP(6),  
   PRIMARY KEY (id)
-)
+);
 
 CREATE sequence CRIS_UNPAYWALL_SEQ;
