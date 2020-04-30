@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -73,6 +74,8 @@ public class UnpaywallScript {
     public static void main(String[] args)
             throws SearchServiceException, SQLException, AuthorizeException, ParseException, IOException, MessagingException {
 
+        log.info("#### START UnpaywallScript: -----" + new Date() + " ----- ####");
+
         CommandLineParser parser = new PosixParser();
 
         Options options = new Options();
@@ -134,6 +137,9 @@ public class UnpaywallScript {
         	notifyUsers(opt);
         	
         }
+
+        log.info("#### END UnpaywallScript: -----" + new Date() + " ----- ####");
+        System.exit(0);
     }
     
     private static void notifyUsers(String option) throws SearchServiceException, SQLException, IOException, MessagingException {
@@ -160,7 +166,8 @@ public class UnpaywallScript {
                 String emailBody = makeItemListBuilder(owner2Items.get(ownerI)).toString();
                 mail.addArgument(emailBody);
 
-                System.out.println("Sending mail to: " + ePerson.getEmail());
+                System.out.println("Sending mail to user: " + ePerson.getEmail());
+                log.info("Sending mail to user: " + ePerson.getEmail());
                 mail.send();
             }
         }
@@ -180,7 +187,8 @@ public class UnpaywallScript {
             String emailBody = makeItemListBuilder(unpaywallItems).toString();
             mail.addArgument(emailBody);
 
-            System.out.println("Sending mail to: " + adminEmail + " with CC: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
+            System.out.println("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
+            log.info("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
             mail.send();
         }
     }
@@ -302,6 +310,8 @@ public class UnpaywallScript {
 				if (itemID != null && StringUtils.isNotBlank(doi)) {
 					Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
 					if (unpaywall != null) {
+						System.out.println("Delete item from local Unpaywall registry with id: " + itemID + " and doi: " + doi);
+						log.info("Delete item from local Unpaywall registry with id: " + itemID + " and doi: " + doi);
 						applicationService.delete(Unpaywall.class, unpaywall.getId());
 					}
 				}
@@ -322,6 +332,8 @@ public class UnpaywallScript {
 					Integer itemID = (Integer)result.getFieldValue("search.resourceid");
 					String doi = ((List<Object>)result.getFieldValues(metadataDOI)).get(0).toString();
 					if (itemID != null && StringUtils.isNotBlank(doi)) {
+						System.out.println("Update item with id: " + itemID + " and doi: " + doi);
+						log.info("Update item with id: " + itemID + " and doi: " + doi);
 						sService.searchByDOI(doi, itemID);
 					}
 				}
