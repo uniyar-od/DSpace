@@ -28,7 +28,7 @@ import it.cilea.osd.common.model.Identifiable;
 @Table(name = "cris_unpaywall")
 @NamedQueries({
         @NamedQuery(name = "Unpaywall.uniqueByDOI", query = "from Unpaywall where doi =:par0"),
-        @NamedQuery(name = "Unpaywall.uniqueByDOIAndItemID", query = "from Unpaywall where doi =:par0 AND resource_id =:par1")})
+        @NamedQuery(name = "Unpaywall.uniqueByDOIAndItemID", query = "from Unpaywall where doi =:par0 AND itemId =:par1")})
 public class Unpaywall implements Identifiable, HasTimeStampInfo
 {
 	private static final long serialVersionUID = 1L;
@@ -40,27 +40,26 @@ public class Unpaywall implements Identifiable, HasTimeStampInfo
     @Id
     @GeneratedValue(generator = "CRIS_UNPAYWALL_SEQ")
     @SequenceGenerator(name = "CRIS_UNPAYWALL_SEQ", sequenceName = "CRIS_UNPAYWALL_SEQ", allocationSize = 1)
-    @Column(name="id")
     private int id;
 
-    @Column(name = "doi"/*, unique=true*/)
-    private String DOI;
+    @Column(name = "doi")
+    private String doi;
     
-    @Column(name="record") 
+    @Column 
     @Type(type="org.hibernate.type.StringClobType")
-    private String unpaywallJsonString;
+    private String jsonRecord;
     
-    @Column(name="resource_id", unique=true)
-    private Integer item_id;
+    @Column(unique = true)
+    private Integer itemId;
 
-    public String getDOI()
+    public String getDoi()
     {
-        return DOI;
+        return doi;
     }
 
-    public void setDOI(String dOI)
+    public void setDoi(String dOI)
     {
-        DOI = dOI;
+        doi = dOI;
     }
 
     public void setTimeStampInfo(TimeStampInfo timeStampInfo)
@@ -85,20 +84,20 @@ public class Unpaywall implements Identifiable, HasTimeStampInfo
     	this.id = id;
     }
 
-	public String getUnpaywallJsonString() {
-		return unpaywallJsonString;
+	public String getJsonRecord() {
+		return jsonRecord;
 	}
 
-	public void setUnpaywallJsonString(String unpaywallJsonString) {
-		this.unpaywallJsonString = unpaywallJsonString;
+	public void setJsonRecord(String unpaywallJsonString) {
+		this.jsonRecord = unpaywallJsonString;
 	}
 
-	public Integer getItem_id() {
-		return item_id;
+	public Integer getItemId() {
+		return itemId;
 	}
 
-	public void setItem_id(Integer item_id) {
-		this.item_id = item_id;
+	public void setItemId(Integer item_id) {
+		this.itemId = item_id;
 	}
 
 }

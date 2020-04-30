@@ -230,7 +230,7 @@ public class UnpaywallScript {
 
             if (itemID != null && StringUtils.isNotBlank(doi)) {
                 Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
-                if (unpaywall != null && unpaywall.getUnpaywallJsonString() != null) {
+                if (unpaywall != null && unpaywall.getJsonRecord() != null) {
                     unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
                 }
             }

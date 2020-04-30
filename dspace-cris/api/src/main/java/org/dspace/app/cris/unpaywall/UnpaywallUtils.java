@@ -86,9 +86,9 @@ public class UnpaywallUtils {
     	JSONObject obj = convertUnpaywallStringToJson(source);
     	
     	destination.setTimeStampInfo(new TimeStampInfo());
-        destination.setDOI(obj.optString("doi"));
-        destination.setUnpaywallJsonString(source);
-        destination.setItem_id(id);
+        destination.setDoi(obj.optString("doi"));
+        destination.setJsonRecord(source);
+        destination.setItemId(id);
         
         return destination;
     }

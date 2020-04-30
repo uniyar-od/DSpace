@@ -156,9 +156,9 @@ public class UnpaywallService
     }
     
     private Unpaywall callAndUpdate(Unpaywall unpaywall) throws HttpException {
-    	unpaywall.setUnpaywallJsonString(
+    	unpaywall.setJsonRecord(
     				unpaywallCall(
-    							unpaywall.getDOI()));
+    							unpaywall.getDoi()));
     	
     	applicationService.saveOrUpdate(Unpaywall.class, unpaywall);
     	

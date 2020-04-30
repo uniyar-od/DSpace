@@ -39,13 +39,13 @@ public class UnpaywallJSONRequest extends JSONRequest {
 		int itemID = UIUtil.getIntParameter(req, "itemid");
 		String doi = UnpaywallUtils.resolveDoi(req.getParameter("doi"));
 		Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(doi, itemID);
-		if (unpaywall != null && unpaywall.getUnpaywallJsonString() != null) {
-			UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getUnpaywallJsonString());
+		if (unpaywall != null && unpaywall.getJsonRecord() != null) {
+			UnpaywallRecord rec = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getJsonRecord());
 			if (rec != null) {
 				UnpaywallBestOA unpaywallBestOA = rec.getUnpaywallBestOA();
 				if (unpaywallBestOA != null) {
 					jsonresp.setUrlJSON(unpaywallBestOA.getUrl_for_pdf());
-					jsonresp.setFullJSON(unpaywall.getUnpaywallJsonString());
+					jsonresp.setFullJSON(unpaywall.getJsonRecord());
 					isFounded = true;
 				}
 			}
