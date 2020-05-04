@@ -240,18 +240,19 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		        conn = DriverManager.getConnection(dbprops.get("database.url"),
 		                dbprops.get("database.username"),
 		                dbprops.get("database.password"));
-		        
-		        String statement ="select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true limit 1000 offset ";
+
 		        int x =0;
-		        rs = ps.executeQuery(statement + x);
-		        while(rs.first()) { 
-			        ps = conn.prepareStatement(statement
-			                );
-			        rs = ps.executeQuery();
+		        String statement ="select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true order by metriccount,enddate limit 1000 offset ?";
+		        ps = conn.prepareStatement(statement);
+		        ps.setInt(1, x);
+		        boolean end =false;
+		        while(!end) {
+		        	rs = ps.executeQuery();
 			        log.debug("QUERY TIME:" + (new Date().getTime()-startQuery.getTime()));
-			        
+			        end=true;
 			        while (rs.next())
 			        {
+			        	end=false;
 			        	if (stop) {
 			        		return;
 			        	}
@@ -287,14 +288,16 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 			                    metricsRemarksCopy.put(key, tmpSubRemarkMap);
 			                }
 			            }
-			            rs.close();
 			        }
+			        rs.close();
 		        	x=x+1000;
-		        	rs = ps.executeQuery(statement + x);
+			        ps = conn.prepareStatement(statement);
+			        ps.setInt(1, x);
+			        
 		        }
 		        rs.close();
-		        Date end = new Date();
-		        long runningTime = end.getTime()-start.getTime();
+		        Date endThread = new Date();
+		        long runningTime = endThread.getTime()-start.getTime();
 		        log.debug("SEARCH TIME: "+searcherTime);
 		        log.debug("RENEW CACHE TIME: "+(runningTime));
 
