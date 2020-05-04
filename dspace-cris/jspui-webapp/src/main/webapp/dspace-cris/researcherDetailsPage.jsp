@@ -375,7 +375,10 @@
 							</li>
 							<li>
 								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/advisedtheses"><i class="fa fa-graduation-cap"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-advisedtheses"/></a>								
-							</li>							
+							</li>
+							<li>
+								<a href="${root}/cris/uuid/${researcher.uuid}/relMgmt/refereedtheses"><i class="fa fa-graduation-cap"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.manage-refereedtheses"/></a>								
+							</li>
 							</c:if>
 							</c:if>
 							<c:if test="${admin}">				
