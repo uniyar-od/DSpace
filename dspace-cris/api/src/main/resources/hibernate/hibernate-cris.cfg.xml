@@ -202,7 +202,10 @@
 		<mapping class="org.dspace.app.cris.metrics.pmc.model.PMCCitation" />
 		
 		<!-- STATS METRICS -->
-		<mapping class="org.dspace.app.cris.metrics.common.model.CrisMetrics" />		
+		<mapping class="org.dspace.app.cris.metrics.common.model.CrisMetrics" />
+	
+		<!-- Unpaywall  -->
+		<mapping class="org.dspace.app.cris.unpaywall.model.Unpaywall" />
 	</session-factory>
 
 </hibernate-configuration>

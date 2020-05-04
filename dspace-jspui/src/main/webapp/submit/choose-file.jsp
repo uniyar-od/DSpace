@@ -57,6 +57,8 @@
 
  	Boolean sherpa = (Boolean) request.getAttribute("sherpa");
     boolean bSherpa = sherpa != null?sherpa:false;
+
+    boolean unpaywallEnabled = ConfigurationManager.getBooleanProperty("unpaywall","submit.import.enabled",true);
 %>
 
 
@@ -76,6 +78,25 @@
                 });
             </script>
         <% } %>
+
+        <% if (unpaywallEnabled) { %>
+        <script type="text/javascript">
+            j.ajax({
+                url : "<%=request.getContextPath()%>/json/unpaywall",
+                data : {
+                    "itemid" : <%= subInfo.getSubmissionItem().getItem().getID()%>,
+                    "doi" : "<%= subInfo.getSubmissionItem().getItem().getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi")) %>"
+                },
+                success : function(data) {
+                    if(data.isFounded) {
+                        j('div.unpaywall').show();
+                        $('#ajaxUpload').val(false);
+                        $('div.unpaywall').append('<input type="hidden" id="unpaywallUrl" name="unpaywallUrl" value="'+data.urlJSON+'" />');
+                    }
+                }
+            });
+		</script>
+	<% } %>
 
         <% if (ajaxProgress) { %>
             <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/jquery.fileupload-ui.css">
@@ -422,6 +443,21 @@
                           <a class="resumable-browse"><fmt:message key="jsp.submit.choose-file.upload-resumable.button.select-file"/></a>
                       </div>
                 </div>
+
+                <% if (unpaywallEnabled) { %>
+                <div class="col-lg-12 col-md-4 col-sm-6 unpaywall" hidden>
+                    <span><fmt:message key="jsp.submit.choose-file.unpaywall.title"/></span>
+                    <div class="media unpaywall">
+	                    <button class="col-lg-12 col-md-4 col-sm-6 unpaywall-button" type="submit" name="submit_unpaywall">
+	                        <span class="metric-counter">
+	                            <a id="unpaywalljson" data-toggle="tooltip" target="_blank" style="text-decoration:none" title="<fmt:message key="jsp.submit.choose-file.unpaywall.tooltip"/>">
+	                                <fmt:message key="jsp.submit.choose-file.unpaywall.button"/> <img src="<%= request.getContextPath() %>/image/unpaywall-icon.png">
+	                            </a>
+	                        </span>
+	                    </button>
+                    </div>
+                </div>
+                <% } %>
             
                 <div class="resumable-progress">
                     <table>
