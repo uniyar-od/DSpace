@@ -37,6 +37,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
     private static Map<String, Long> cacheVersion = new HashMap<String, Long>();
     
     private static final int cacheValidity = 24*60*60000;
+    
+    private static final long timeoutThread = 60*5*1000;
 
     private static final Map<String, PopulateRanksThread> underRebuild = new HashMap<String, PopulateRanksThread>();
     
@@ -202,7 +204,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 
 		private void populateRanks(String coreName, SolrIndexSearcher searcher)
 		        throws IOException
-		{	
+		{
+			
 			Integer numDocs = (Integer) searcher.getStatistics().get("numDocs");
 			Date start = new Date();
 		    Map<String, Map<Integer, Double>> metricsCopy = new HashMap<String, Map<Integer, Double>>(numDocs);
@@ -232,57 +235,73 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		        Date endSearch = new Date();            
 		        long searcherTime = endSearch.getTime() - startSearch.getTime();
 		        Map<String, String> dbprops = getDBProps(searcher.getCore());
-		        
+
 		        Date startQuery = new Date();
 		        conn = DriverManager.getConnection(dbprops.get("database.url"),
 		                dbprops.get("database.username"),
 		                dbprops.get("database.password"));
-		        ps = conn.prepareStatement(
-		                "select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true");
-		        rs = ps.executeQuery();
-		        log.debug("QUERY TIME:" + (new Date().getTime()-startQuery.getTime()));
 		        
-		        while (rs.next())
-		        {
-		        	if (stop) {
-		        		return;
-		        	}
-		            UUID resourceId = (UUID)rs.getObject(1);
-		            int resourceTypeId = rs.getInt(2);
-		            double count = rs.getDouble(5);
-		            String type = rs.getString(3);
-		            String remark = rs.getString(4);
-		            Date acqTime = rs.getDate(6);
-		            Date startTime = rs.getDate(7);
-		            Date endTime = rs.getDate(8);
-		            Integer docId = searchIDCache.get(resourceTypeId+"-"+resourceId);
-		            if (docId != null) {
-		                String key = new StringBuffer("crismetrics_").append(type.toLowerCase()).toString();
-		                Map<Integer, Double> tmpSubMap;
-		                Map<Integer, ExtraInfo> tmpSubRemarkMap;
-		                boolean add = false;
-		                if(metricsCopy.containsKey(key)) {
-		                    tmpSubMap = metricsCopy.get(key);
-		                    tmpSubRemarkMap = metricsRemarksCopy.get(key);
-		                }
-		                else {
-		                	add = true;
-		                	tmpSubMap = new HashMap<Integer, Double>();
-			                tmpSubRemarkMap = new HashMap<Integer, ExtraInfo>();
-		                }
-		            
-		                tmpSubMap.put(docId, count);
-		                tmpSubRemarkMap.put(docId, new ExtraInfo(remark, acqTime, startTime, endTime));
-		
-		                if(add) {
-		                    metricsCopy.put(key, tmpSubMap);
-		                    metricsRemarksCopy.put(key, tmpSubRemarkMap);
-		                }
-		            }
+		        String statement ="select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true limit 1000 offset ";
+		        int x =0;
+		        rs = ps.executeQuery(statement + x);
+		        while(rs.first()) { 
+			        ps = conn.prepareStatement(statement
+			                );
+			        rs = ps.executeQuery();
+			        log.debug("QUERY TIME:" + (new Date().getTime()-startQuery.getTime()));
+			        
+			        while (rs.next())
+			        {
+			        	if (stop) {
+			        		return;
+			        	}
+			            UUID resourceId = (UUID)rs.getObject(1);
+			            int resourceTypeId = rs.getInt(2);
+			            double count = rs.getDouble(5);
+			            String type = rs.getString(3);
+			            String remark = rs.getString(4);
+			            Date acqTime = rs.getDate(6);
+			            Date startTime = rs.getDate(7);
+			            Date endTime = rs.getDate(8);
+			            Integer docId = searchIDCache.get(resourceTypeId+"-"+resourceId);
+			            if (docId != null) {
+			                String key = new StringBuffer("crismetrics_").append(type.toLowerCase()).toString();
+			                Map<Integer, Double> tmpSubMap;
+			                Map<Integer, ExtraInfo> tmpSubRemarkMap;
+			                boolean add = false;
+			                if(metricsCopy.containsKey(key)) {
+			                    tmpSubMap = metricsCopy.get(key);
+			                    tmpSubRemarkMap = metricsRemarksCopy.get(key);
+			                }
+			                else {
+			                	add = true;
+			                	tmpSubMap = new HashMap<Integer, Double>();
+				                tmpSubRemarkMap = new HashMap<Integer, ExtraInfo>();
+			                }
+			            
+			                tmpSubMap.put(docId, count);
+			                tmpSubRemarkMap.put(docId, new ExtraInfo(remark, acqTime, startTime, endTime));
+			
+			                if(add) {
+			                    metricsCopy.put(key, tmpSubMap);
+			                    metricsRemarksCopy.put(key, tmpSubRemarkMap);
+			                }
+			            }
+			            rs.close();
+			        }
+		        	x=x+1000;
+		        	rs = ps.executeQuery(statement + x);
 		        }
+		        rs.close();
 		        Date end = new Date();
+		        long runningTime = end.getTime()-start.getTime();
 		        log.debug("SEARCH TIME: "+searcherTime);
-		        log.debug("RENEW CACHE TIME: "+(end.getTime()-start.getTime()));
+		        log.debug("RENEW CACHE TIME: "+(runningTime));
+
+		        if(runningTime > timeoutThread) {
+		        	this.stopGraceful();
+		        }
+
 		    }
 		    catch (Exception e)
 		    {
@@ -291,6 +310,13 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		    }
 		    finally
 		    {
+		    	if(rs!=null ) {
+		    		try {
+		    			rs.close();
+		    		}catch (SQLException e) {
+		    			e.printStackTrace();
+		    		}
+		    	}
 		        if (conn != null)
 		        {
 		            try
