@@ -8,6 +8,10 @@
 package org.dspace.app.webui.submit.step;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +38,9 @@ import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.FormatIdentifier;
+import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.submit.step.UploadStep;
@@ -223,7 +229,39 @@ public class JSPUploadStep extends JSPStep
             return;
         }
 
-        
+        if (buttonPressed.equalsIgnoreCase(UploadStep.SUBMIT_UNPAYWALL_BUTTON)) {
+            String unpaywallUrl = (String)request.getParameter("unpaywallUrl");
+            if (StringUtils.isNotBlank(unpaywallUrl)) {
+                Item item = subInfo.getSubmissionItem().getItem();
+
+                Bundle[] bundles = item.getBundles(Constants.DEFAULT_BUNDLE_NAME);
+                Bundle bundle;
+                if (bundles != null && bundles.length > 0) {
+                    bundle = bundles[0];
+                }
+                else {
+                    bundle = item.createBundle("ORIGINAL");
+                }
+
+                InputStream is = new URL(unpaywallUrl).openStream();
+
+                Bitstream bs = bundle.createBitstream(is);
+                bs.setName(URLDecoder.decode(
+                    Paths.get(unpaywallUrl).getFileName().toString(),
+                    "UTF-8"));
+                BitstreamFormat bf = FormatIdentifier.guessFormat(context, bs);
+                bs.setFormat(bf);
+
+                item.addBundle(bundle);
+                item.update();
+
+                showUploadFileList(context, request, response, subInfo, true,
+                        false);
+
+                return;
+            }
+        }
+
         if (buttonPressed.equalsIgnoreCase(UploadStep.SUBMIT_SKIP_BUTTON) ||
             (buttonPressed.equalsIgnoreCase(UploadStep.SUBMIT_UPLOAD_BUTTON) && !fileRequired))
         {

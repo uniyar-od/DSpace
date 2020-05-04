@@ -426,6 +426,17 @@ footer.navbar-bottom {
 	background: gray;
 }
 
+.media.unpaywall, .media.unpaywall a {
+	color: white;
+	background: green;
+	text-align: center;
+}
+
+.unpaywall-button {
+	background-color: Transparent;
+	border: none;
+}
+
 .container{
 	background-color: #fff;
 }

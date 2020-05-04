@@ -32,6 +32,9 @@
 		abstract="true">		
 		<property name="modelDaos">
 			<map>
+				<entry key="org.dspace.app.cris.unpaywall.model.Unpaywall">
+					<ref bean="unpaywallDao" />
+				</entry>
 				<entry key="org.dspace.app.cris.model.orcid.OrcidHistory">
 					<ref bean="orcidHistoryDao" />
 				</entry>
@@ -764,6 +767,23 @@
 				<constructor-arg>
 					<value>
 						org.dspace.app.cris.model.orcid.OrcidHistory
+					</value>
+				</constructor-arg>
+			</bean>
+		</property>
+	</bean>
+	
+	<bean id="unpaywallDao" parent="abstractDao">
+		<property name="proxyInterfaces">
+			<value>
+				org.dspace.app.cris.unpaywall.dao.UnpaywallDao
+			</value>
+		</property>
+		<property name="target">
+			<bean parent="abstractDaoTarget">
+				<constructor-arg>
+					<value>
+						org.dspace.app.cris.unpaywall.model.Unpaywall
 					</value>
 				</constructor-arg>
 			</bean>

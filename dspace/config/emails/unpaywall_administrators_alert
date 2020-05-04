@@ -1,0 +1,17 @@
+# EMail to alert user of unpaywall
+#
+# write something
+#
+# Parameters: {0} List of Items
+#
+Subject:Some Research Outputs are missing their fulltext
+Dear administrators,
+
+Here the list of the Research Outputs without fulltext found in the Unpaywall registry.
+The interested items are:
+
+{0}
+Please update these Research Outputs as soon as possible, if it's instead intentional please ignore this mail.
+
+Best Regards,
+The DSpace Team.
