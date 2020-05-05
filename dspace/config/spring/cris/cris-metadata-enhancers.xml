@@ -229,6 +229,20 @@
 	</bean>
 	
 	<bean class="org.dspace.content.ItemEnhancer">
+		<property name="alias" value="fulltext_s" />
+		<property name="metadata">
+			<list>
+				<value>placeholder.placeholder.placeholder</value>
+			</list>
+		</property>
+		<property name="generators">
+			<list>
+			    <ref bean="enhancerFulltext"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean class="org.dspace.content.ItemEnhancer">
 		<property name="alias" value="grantfulltext" />
 		<property name="metadata">
 			<list>

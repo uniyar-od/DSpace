@@ -49,6 +49,8 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.orcid.OrcidHistory;
 import org.dspace.app.cris.model.orcid.OrcidQueue;
 import org.dspace.app.cris.model.ws.User;
+import org.dspace.app.cris.unpaywall.dao.UnpaywallDao;
+import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.util.Util;
 import org.dspace.core.ConfigurationManager;
@@ -90,6 +92,8 @@ public class ApplicationService extends ExtendedTabService
     
     private OrcidHistoryDao orcidHistoryDao;
     
+    private UnpaywallDao unpaywallDao;
+    
     private ConfigurationService configurationService;
     
     private CacheManager cacheManager;
@@ -121,6 +125,7 @@ public class ApplicationService extends ExtendedTabService
         researchDao = (DynamicObjectDao) getDaoByModel(ResearchObject.class);
         orcidQueueDao = (OrcidQueueDao) getDaoByModel(OrcidQueue.class);
         orcidHistoryDao = (OrcidHistoryDao) getDaoByModel(OrcidHistory.class);
+        unpaywallDao = (UnpaywallDao) getDaoByModel(Unpaywall.class);
         
 		if (configurationService.getPropertyAsType("cris.applicationServiceCache.enabled", true, true))
         {
@@ -1140,6 +1145,16 @@ public class ApplicationService extends ExtendedTabService
     {
         return orcidHistoryDao.uniqueOrcidHistoryByOwnerAndEntityUUIDAndTypeId(
                 crisID, entityUUID, typeID);
+    }
+
+    public Unpaywall uniqueByDOI(String DOI)
+    {
+        return unpaywallDao.uniqueByDOI(DOI);
+    }
+
+    public Unpaywall uniqueByDOIAndItemID(String DOI, Integer ID)
+    {
+        return unpaywallDao.uniqueByDOIAndItemID(DOI, ID);
     }
 
     public List<DynamicTypeNestedObject> findNestedMaskById(Class<DynamicObjectType> clazz, Integer id)

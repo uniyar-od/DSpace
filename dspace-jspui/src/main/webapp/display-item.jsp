@@ -136,6 +136,7 @@
     boolean scholarEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.google.scholar.enabled",false);
     boolean altMetricEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.enabled",false) && (StringUtils.isNotBlank(doi) || StringUtils.isNotBlank(isbn));
     boolean altMetricDimensionsEnabled = ConfigurationManager.getBooleanProperty("cris","ametrics.altmetric.dimensionsbadges.enabled",false) && (StringUtils.isNotBlank(doi) || StringUtils.isNotBlank(pmid));
+    boolean unpaywallEnabled = ConfigurationManager.getBooleanProperty("unpaywall","badge.enabled",true);
     
     Boolean versioningEnabledBool = (Boolean)request.getAttribute("versioning.enabled");
     boolean versioningEnabled = (versioningEnabledBool!=null && versioningEnabledBool.booleanValue());
@@ -172,7 +173,7 @@
 
 <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/abbreviatetext.js'></script>
 
-<% if(pmcEnabled || scopusEnabled || wosEnabled || scholarEnabled || altMetricEnabled) { %>
+<% if(pmcEnabled || scopusEnabled || wosEnabled || scholarEnabled || altMetricEnabled || unpaywallEnabled) { %>
 <c:set var="dspace.layout.head.last" scope="request">
 <% if(altMetricEnabled) { %> 
 <script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
@@ -217,6 +218,25 @@ j(document).ready(function() {
 			}
 		});
 	<% } %> 
+	
+	<% if (unpaywallEnabled) { %>
+		j.ajax({
+			url : "<%=request.getContextPath()%>/json/unpaywall",
+			data : {																			
+				"itemid" : <%= item.getID()%>,
+				"doi" : "<%= item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi")) %>"
+			},
+			success : function(data) {
+				if(data.isFounded) {
+					j('div.unpaywall').show();
+					j('#unpaywalljson').attr('href', data.urlJSON);
+				}
+			},
+			error : function(data) {
+			}
+		});
+	<% } %>
+	
 	<% 
 		if(StringUtils.isNotBlank(crisID)) {
 	%>
@@ -714,6 +734,17 @@ if (dedupEnabled && admin_button) { %>
 	<div class="media-body media-middle text-center">
 		<h4 class="media-heading"><fmt:message key="jsp.display-item.citation.altmetric"/></h4>
 	</div>
+</div>
+</div>
+<% } 
+  if(unpaywallEnabled) { %>
+<div class="col-lg-12 col-md-4 col-sm-6">
+<div class="media unpaywall" hidden>
+	<span class="metric-counter">
+		<a id="unpaywalljson" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.unpaywall.tooltip"/>">
+			<img src="<%= request.getContextPath() %>/image/unpaywall-icon.png">
+		</a>
+	</span>
 </div>
 </div>
 <% } %>
