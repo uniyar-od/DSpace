@@ -13,6 +13,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +23,8 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.time.DateUtils;
+import org.apache.log4j.Logger;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.solr.common.util.NamedList;
@@ -47,6 +50,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
     private static final Map<String, Map<String, Map<Integer, ExtraInfo>>> extraInfo = new HashMap<String, Map<String, Map<Integer, ExtraInfo>>>();
     
     private SolrCore core;
+    
+    private static Logger log = Logger.getLogger(CrisMetricsUpdateListener.class);
 
     public CrisMetricsUpdateListener(SolrCore core)
     {
@@ -208,8 +213,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 			
 			Integer numDocs = (Integer) searcher.getStatistics().get("numDocs");
 			Date start = new Date();
-		    Map<String, Map<Integer, Double>> metricsCopy = new HashMap<String, Map<Integer, Double>>(numDocs);
-		    Map<String, Map<Integer, ExtraInfo>> metricsRemarksCopy = new HashMap<String, Map<Integer, ExtraInfo>>(numDocs);
+		    Map<String, Map<Integer, Double>> metricsCopy = metrics.get(coreName);
+		    Map<String, Map<Integer, ExtraInfo>> metricsRemarksCopy = extraInfo.get(coreName);
 		    Connection conn = null;
 		    PreparedStatement ps = null;
 		    ResultSet rs = null;
@@ -241,18 +246,16 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		                dbprops.get("database.username"),
 		                dbprops.get("database.password"));
 
+		        Date d = DateUtils.addDays(startQuery, -1);
+		        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+		        
 		        int x =0;
-		        String statement ="select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true order by metriccount,enddate limit 1000 offset ?";
+		        String statement ="select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true and enddate >= '"+sdf.format(d)+"'";
 		        ps = conn.prepareStatement(statement);
-		        ps.setInt(1, x);
-		        boolean end =false;
-		        while(!end) {
 		        	rs = ps.executeQuery();
 			        log.debug("QUERY TIME:" + (new Date().getTime()-startQuery.getTime()));
-			        end=true;
 			        while (rs.next())
 			        {
-			        	end=false;
 			        	if (stop) {
 			        		return;
 			        	}
@@ -279,28 +282,25 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 			                	tmpSubMap = new HashMap<Integer, Double>();
 				                tmpSubRemarkMap = new HashMap<Integer, ExtraInfo>();
 			                }
-			            
+			                
 			                tmpSubMap.put(docId, count);
 			                tmpSubRemarkMap.put(docId, new ExtraInfo(remark, acqTime, startTime, endTime));
-			
+			                
 			                if(add) {
 			                    metricsCopy.put(key, tmpSubMap);
 			                    metricsRemarksCopy.put(key, tmpSubRemarkMap);
+			                }else {
+			                	metricsCopy.get(key).putAll(tmpSubMap);
+			                	metricsRemarksCopy.get(key).putAll(tmpSubRemarkMap);
 			                }
 			            }
 			        }
 			        rs.close();
-		        	x=x+1000;
-			        ps = conn.prepareStatement(statement);
-			        ps.setInt(1, x);
-			        
-		        }
-		        rs.close();
 		        Date endThread = new Date();
 		        long runningTime = endThread.getTime()-start.getTime();
 		        log.debug("SEARCH TIME: "+searcherTime);
 		        log.debug("RENEW CACHE TIME: "+(runningTime));
-
+		        
 		        if(runningTime > timeoutThread) {
 		        	this.stopGraceful();
 		        }
@@ -336,19 +336,17 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		    
 		    Map<String, Map<Integer, Double>> m = metrics.get(coreName); 
 		    Map<String, Map<Integer, ExtraInfo>> ei = extraInfo.get(coreName);
-		    
-		    if (ei != null) {
+		    if(ei != null) {
 		    	ei.clear();
 		    }
-		
-		    ei = metricsRemarksCopy;
+		    ei=metricsRemarksCopy;
+		    
 		    extraInfo.put(coreName, ei);
-		
-		    if (m != null) {
+		    
+		    if(m != null) {
 		    	m.clear();
 		    }
-		    
-		    m = metricsCopy;
+		    m=metricsCopy;
 		    metrics.put(coreName, m);
 		}
 
