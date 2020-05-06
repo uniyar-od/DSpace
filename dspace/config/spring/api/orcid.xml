@@ -54,7 +54,7 @@
 		<constructor-arg value="mapConverterOrcidEducationRoleType" />
 		<property name="converterNameFile" value="mapConverter-orcid-educationrole.properties" />
 		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
-		<property name="defaultValue" value="n/a"/>
+		<property name="defaultValue" value="@@ident@@"/>
 	</bean>
 	
 	<bean name="mapConverterOrcidEmploymentRoleType" class="org.dspace.util.SimpleMapConverter"
