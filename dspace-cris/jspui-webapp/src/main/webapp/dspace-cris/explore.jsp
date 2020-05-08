@@ -79,10 +79,10 @@ function submitForm() {
 		
 		if (terms == '') return;
 		if (index != '') {
-			query += ' '+conj+ ' ' + index+':(' + terms + ')';
+			query += ' '+conj+ ' ' + index+':' + terms;
 		}
 		else {
-			query += ' '+conj+ ' (' + terms + ')';
+			query += ' '+conj+ ' ' + terms;
 		}
 		conj = jQuery(this).find('select.conjuction').val();
 	});
