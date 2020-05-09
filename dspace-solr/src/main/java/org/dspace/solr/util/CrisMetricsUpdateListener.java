@@ -39,10 +39,12 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 
     private static final Map<String, PopulateRanksThread> underRebuild = new HashMap<String, PopulateRanksThread>();
     
-    private static final Map<String, Map<String, Map<Integer, Double>>> metrics = new HashMap<String, Map<String, Map<Integer, Double>>>();
+    private static final Map<String, Map<String, Map<String, Double>>> metrics = new HashMap<>();
 
-    private static final Map<String, Map<String, Map<Integer, ExtraInfo>>> extraInfo = new HashMap<String, Map<String, Map<Integer, ExtraInfo>>>();
+    private static final Map<String, Map<String, Map<String, ExtraInfo>>> extraInfo = new HashMap<>();
     
+    private static Map<Integer, String> docIdToUniqueId = new HashMap<>();
+
     private SolrCore core;
 
     public CrisMetricsUpdateListener(SolrCore core)
@@ -85,13 +87,16 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		if (underRebuildThread != null) {
     		return null;
     	}
-    	Map<String, Map<Integer, Double>> m = metrics.get(coreName);
+    	Map<String, Map<String, Double>> m = metrics.get(coreName);
         if (m != null && m.containsKey(metric))
         {
-            Map<Integer, Double> values = m.get(metric);
-            if (values.containsKey(docId))
-            {
-                return values.get(docId);
+            Map<String, Double> values = m.get(metric);
+            if (docIdToUniqueId.containsKey(docId)) {
+                String uniqueId = docIdToUniqueId.get(docId);
+                if (values.containsKey(uniqueId))
+                {
+                    return values.get(uniqueId);
+                }
             }
         }
         return null;
@@ -103,13 +108,16 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		if (underRebuildThread != null) {
     		return null;
     	}
-    	Map<String, Map<Integer, ExtraInfo>> ei = extraInfo.get(coreName);
+    	Map<String, Map<String, ExtraInfo>> ei = extraInfo.get(coreName);
         if (ei != null && ei.containsKey(metric))
         {
-            Map<Integer, ExtraInfo> values = ei.get(metric);
-            if (values.containsKey(docId))
-            {
-                return values.get(docId);
+            Map<String, ExtraInfo> values = ei.get(metric);
+            if (docIdToUniqueId.containsKey(docId)) {
+                String uniqueId = docIdToUniqueId.get(docId);
+                if (values.containsKey(uniqueId))
+                {
+                    return values.get(uniqueId);
+                }
             }
         }
         return null;
@@ -151,12 +159,12 @@ public class CrisMetricsUpdateListener implements SolrEventListener
     	underRebuild.put(coreName, underRebuildThread);
     }
 
-    public static Map<String, Map<Integer, Double>> getMetrics(String coreName)
+    public static Map<String, Map<String, Double>> getMetrics(String coreName)
     {
         return metrics.get(coreName);
     }
 
-    public static Map<String, Map<Integer, ExtraInfo>> getExtrainfo(String coreName)
+    public static Map<String, Map<String, ExtraInfo>> getExtrainfo(String coreName)
     {
         return extraInfo.get(coreName);
     }
@@ -203,8 +211,9 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		{	
 			Integer numDocs = (Integer) searcher.getStatistics().get("numDocs");
 			Date start = new Date();
-		    Map<String, Map<Integer, Double>> metricsCopy = new HashMap<String, Map<Integer, Double>>(numDocs);
-		    Map<String, Map<Integer, ExtraInfo>> metricsRemarksCopy = new HashMap<String, Map<Integer, ExtraInfo>>(numDocs);
+		    Map<String, Map<String, Double>> metricsCopy = new HashMap<>(numDocs);
+		    Map<String, Map<String, ExtraInfo>> metricsRemarksCopy = new HashMap<>(numDocs);
+		    Map<Integer, String> docIdToUniqueIdCopy = new HashMap<>();
 		    Connection conn = null;
 		    PreparedStatement ps = null;
 		    ResultSet rs = null;
@@ -256,8 +265,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		            Integer docId = searchIDCache.get(resourceTypeId+"-"+resourceId);
 		            if (docId != null) {
 		                String key = new StringBuffer("crismetrics_").append(type.toLowerCase()).toString();
-		                Map<Integer, Double> tmpSubMap;
-		                Map<Integer, ExtraInfo> tmpSubRemarkMap;
+		                Map<String, Double> tmpSubMap;
+		                Map<String, ExtraInfo> tmpSubRemarkMap;
 		                boolean add = false;
 		                if(metricsCopy.containsKey(key)) {
 		                    tmpSubMap = metricsCopy.get(key);
@@ -265,12 +274,13 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		                }
 		                else {
 		                	add = true;
-		                	tmpSubMap = new HashMap<Integer, Double>();
-			                tmpSubRemarkMap = new HashMap<Integer, ExtraInfo>();
+		                	tmpSubMap = new HashMap<>();
+			                tmpSubRemarkMap = new HashMap<>();
 		                }
 		            
-		                tmpSubMap.put(docId, count);
-		                tmpSubRemarkMap.put(docId, new ExtraInfo(remark, acqTime, startTime, endTime));
+		                tmpSubMap.put(resourceTypeId+"-"+resourceId, count);
+		                tmpSubRemarkMap.put(resourceTypeId+"-"+resourceId, new ExtraInfo(remark, acqTime, startTime, endTime));
+		                docIdToUniqueIdCopy.put(docId, resourceTypeId+"-"+resourceId);
 		
 		                if(add) {
 		                    metricsCopy.put(key, tmpSubMap);
@@ -303,8 +313,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		        }
 		    }
 		    
-		    Map<String, Map<Integer, Double>> m = metrics.get(coreName); 
-		    Map<String, Map<Integer, ExtraInfo>> ei = extraInfo.get(coreName);
+		    Map<String, Map<String, Double>> m = metrics.get(coreName);
+		    Map<String, Map<String, ExtraInfo>> ei = extraInfo.get(coreName);
 		    
 		    if (ei != null) {
 		    	ei.clear();
@@ -319,6 +329,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		    
 		    m = metricsCopy;
 		    metrics.put(coreName, m);
+
+		    docIdToUniqueId = docIdToUniqueIdCopy;
 		}
 
 	}
