@@ -144,7 +144,17 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		return dbprops;
     }
 
-	public static void renewCache(SolrIndexSearcher newSearcher) throws IOException
+    public static void updateCache(SolrIndexSearcher newSearcher) throws IOException
+    {
+        renewOrUpdateCache(newSearcher, false);
+    }
+
+    public static void renewCache(SolrIndexSearcher newSearcher) throws IOException
+    {
+        renewOrUpdateCache(newSearcher, true);
+    }
+
+    private static void renewOrUpdateCache(SolrIndexSearcher newSearcher, boolean force) throws IOException
     {
 		String coreName = newSearcher.getCore().getName();
 		PopulateRanksThread underRebuildThread = null;
@@ -155,7 +165,7 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 				underRebuildThread.stopGraceful();
 			}
 		}
-		underRebuildThread = new PopulateRanksThread(newSearcher);
+		underRebuildThread = new PopulateRanksThread(newSearcher, force);
 		underRebuildThread.start();
     	underRebuild.put(coreName, underRebuildThread);
     }
@@ -170,22 +180,28 @@ public class CrisMetricsUpdateListener implements SolrEventListener
         return extraInfo.get(coreName);
     }
     
+    public static boolean isCacheUpdated(SolrIndexSearcher searcher) {
+        String coreName = searcher.getCore().getName();
+        Long cv = cacheVersion.get(coreName);
+        return cv.longValue() == searcher.getOpenTime();
+    }
+
 	public static boolean isCacheInvalid(SolrIndexSearcher searcher) {
 		String coreName = searcher.getCore().getName();
 		Date ca = cacheAcquisition.get(coreName);
-		Long cv = cacheVersion.get(coreName);
 		Date now = new Date();
-		return ca == null || (now.getTime() - ca.getTime() > cacheValidity)
-				|| cv.longValue() != searcher.getOpenTime();
+		return ca == null || (now.getTime() - ca.getTime() > cacheValidity);
 	}
 
 	public static class PopulateRanksThread extends Thread {
 		private boolean stop = false;
 		
 		private SolrIndexSearcher newSearcher;
+		private boolean force;
 		
-		public PopulateRanksThread(SolrIndexSearcher newSearcher) {
+		public PopulateRanksThread(SolrIndexSearcher newSearcher, boolean force) {
 			this.newSearcher = newSearcher;
+			this.force = force;
 		}
 		
 		public void stopGraceful() {
@@ -199,7 +215,12 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 				log.debug("Building the rank chache...");
 	    		cacheVersion.put(coreName, newSearcher.getOpenTime());
 	            cacheAcquisition.put(coreName, new Date());
-				populateRanks(coreName, newSearcher);
+	            if (force) {
+	                populateRanks(coreName, newSearcher);
+	            }
+	            else {
+	                updateIdsMap(coreName, newSearcher);
+	            }
 			} catch (IOException e) {
 				// This is thrown every time cache is invalidated during rebuild 
 				log.debug(e.getMessage(), e);
@@ -207,6 +228,39 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 				underRebuild.put(coreName, null);
 			}
 		}
+
+        private void updateIdsMap(String coreName, SolrIndexSearcher searcher)
+                throws IOException
+        {
+            Map<Integer, String> docIdToUniqueIdCopy = new HashMap<>();
+            Date start = new Date();
+            try
+            {
+                ScoreDoc[] hits = searcher.search(
+                        new MatchAllDocsQuery(),
+                        Integer.MAX_VALUE
+                        ).scoreDocs;
+
+                Set<String> fields = new HashSet<String>();
+                fields.add("search.uniqueid");
+                for (ScoreDoc doc : hits) {
+                    if (stop) {
+                        return;
+                    }
+                    docIdToUniqueIdCopy.put(doc.doc, searcher.doc(doc.doc, fields).getValues("search.uniqueid")[0]);
+                }
+
+                docIdToUniqueId = docIdToUniqueIdCopy;
+
+                Date end = new Date();
+                log.debug("UPDATE CACHE TIME: "+(end.getTime()-start.getTime()));
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+                throw new IOException(e);
+            }
+        }
 
 		private void populateRanks(String coreName, SolrIndexSearcher searcher)
 		        throws IOException

@@ -50,6 +50,10 @@ public class CrisMetricsExtractComponent extends SearchComponent
         {
             CrisMetricsUpdateListener.renewCache(searcher);
         }
+        else if (!CrisMetricsUpdateListener.isCacheUpdated(searcher))
+        {
+            CrisMetricsUpdateListener.updateCache(searcher);
+        }
         List<String> metricsField = CrisMetricsExtractComponent
                 .containsWord(returnFields, "crismetrics_");
         if (!metricsField.isEmpty())
