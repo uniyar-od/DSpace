@@ -353,6 +353,20 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		    }
 		    finally
 		    {
+		        if(rs != null) {
+		            try {
+		                rs.close();
+		            }catch (SQLException e) {
+		                e.printStackTrace();
+		            }
+		        }
+		        if (ps != null) {
+		            try {
+		                ps.close();
+		            } catch (SQLException e) {
+		                e.printStackTrace();
+		            }
+		        }
 		        if (conn != null)
 		        {
 		            try
