@@ -51,6 +51,7 @@ function DSpaceSetupAutocomplete(formID, args)
     // AJAX menu source, can add &query=TEXT
     var choiceURL = args.contextPath+"/choices/"+args.metadataField;
     var collID = args.collection == null ? -1 : args.collection;
+    var onlyLocal = args.onlyLocal == null ? false : args.onlyLocal;
     if (authInput != null)
 	{
     	input.data('previousData', {authority: authInput.val(), value: input.val()});
@@ -67,7 +68,8 @@ function DSpaceSetupAutocomplete(formID, args)
     				data: {
     					query: request.term,
     					collection: collID,
-    					format: 'ul'
+    					format: 'ul',
+    					onlyLocal: onlyLocal
     				},    			
     				success: function( data ) {
     					jQuery('#'+args.indicatorID).hide();

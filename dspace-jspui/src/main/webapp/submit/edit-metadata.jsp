@@ -250,20 +250,60 @@
             {
                 if (inputBlock != null)
                     sb.insert(0, inputBlock);
-                sb.append("<span id=\"").append(fieldInput).append("_indicator\" style=\"display: none;\">")
-                  .append("<img src=\"").append(contextPath).append("/image/authority/load-indicator.gif\" alt=\"Loading...\"/>")
-                  .append("</span><div id=\"").append(fieldInput).append("_autocomplete\" class=\"autocomplete\" style=\"display: none;\"> </div>");
+                
+                Boolean onlyLocal = ConfigurationManager.getBooleanProperty("choices.extralookup." + fieldName);
+                if(onlyLocal)
+                {
+                    sb.append("<span id=\"").append(fieldInput).append("_indicator\" style=\"display: none;\">")
+                      .append("<img src=\"").append(contextPath).append("/image/authority/load-indicator.gif\" alt=\"Loading...\"/>")
+                      .append("</span><div id=\"").append(fieldInput).append("_autocomplete\" class=\"autocomplete\" style=\"display: none;\"> </div>");
 
-                sb.append("<script type=\"text/javascript\">")
-                  .append("var gigo = DSpaceSetupAutocomplete('edit_metadata',")
-                  .append("{ metadataField: '").append(fieldName).append("', isClosed: '").append(required?"true":"false").append("', inputName: '")
-                  .append(fieldInput).append("', authorityName: '").append(authorityName).append("', containerID: '")
-                  .append(fieldInput).append("_autocomplete', indicatorID: '").append(fieldInput).append("_indicator', ")
-                  .append("contextPath: '").append(contextPath)
-                  .append("', confidenceName: '").append(confidenceName)
-                  .append("', confidenceIndicatorID: '").append(confIndID)
-                  .append("', collection: ").append(String.valueOf(collectionID))
-                  .append(" }); </script>");
+                    sb.append("<script type=\"text/javascript\">")
+                      .append("var gigo = DSpaceSetupAutocomplete('edit_metadata',")
+                      .append("{ metadataField: '").append(fieldName).append("', isClosed: '").append(required?"true":"false").append("', inputName: '")
+                      .append(fieldInput).append("', authorityName: '").append(authorityName).append("', containerID: '")
+                      .append(fieldInput).append("_autocomplete', indicatorID: '").append(fieldInput).append("_indicator', ")
+                      .append("contextPath: '").append(contextPath)
+                      .append("', confidenceName: '").append(confidenceName)
+                      .append("', confidenceIndicatorID: '").append(confIndID)
+                      .append("', collection: ").append(String.valueOf(collectionID))
+                      .append(", onlyLocal: true")
+                      .append(" }); </script>");
+                	
+                	sb.append("&nbsp<button class=\"btn btn-default\" name=\"").append(fieldInput).append("_lookup\" ")
+                	.append("onclick=\"javascript: return DSpaceChoiceLookupOnlyLocal(false, '")
+                	.append(contextPath).append("/tools/lookup.jsp','")
+                	.append(fieldName).append("','edit_metadata','")
+                	.append(fieldInput).append("','").append(authorityName).append("','")
+                	.append(confIndID).append("',")
+                	.append(String.valueOf(collectionID)).append(",")
+                	.append(String.valueOf(isName)).append(",false);\"")
+                	.append(" title=\"")
+                	.append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.lookup"))
+                	.append("\"><span class=\"glyphicon ");
+                	sb.append("glyphicon-zoom-in");
+                    sb.append("\"></span></button>");
+                }
+                else {
+
+                    sb.append("<span id=\"").append(fieldInput).append("_indicator\" style=\"display: none;\">")
+                      .append("<img src=\"").append(contextPath).append("/image/authority/load-indicator.gif\" alt=\"Loading...\"/>")
+                      .append("</span><div id=\"").append(fieldInput).append("_autocomplete\" class=\"autocomplete\" style=\"display: none;\"> </div>");
+
+                    sb.append("<script type=\"text/javascript\">")
+                      .append("var gigo = DSpaceSetupAutocomplete('edit_metadata',")
+                      .append("{ metadataField: '").append(fieldName).append("', isClosed: '").append(required?"true":"false").append("', inputName: '")
+                      .append(fieldInput).append("', authorityName: '").append(authorityName).append("', containerID: '")
+                      .append(fieldInput).append("_autocomplete', indicatorID: '").append(fieldInput).append("_indicator', ")
+                      .append("contextPath: '").append(contextPath)
+                      .append("', confidenceName: '").append(confidenceName)
+                      .append("', confidenceIndicatorID: '").append(confIndID)
+                      .append("', collection: ").append(String.valueOf(collectionID))
+                      .append(" }); </script>");
+                }
+
+                
+
             }
 
             // put up a SELECT element containing all choices
