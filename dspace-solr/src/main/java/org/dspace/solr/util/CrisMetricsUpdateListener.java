@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.log4j.Logger;
 import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.solr.common.util.NamedList;
@@ -32,6 +33,8 @@ import org.apache.solr.search.SolrIndexSearcher;
 
 public class CrisMetricsUpdateListener implements SolrEventListener
 {
+    private static Logger log = Logger.getLogger(CrisMetricsUpdateListener.class);
+
     private static Map<String, Date> cacheAcquisition = new HashMap<String, Date>();
     
     private static Map<String, Long> cacheVersion = new HashMap<String, Long>();
