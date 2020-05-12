@@ -789,7 +789,7 @@
     		String qualifier, boolean repeatable, boolean required, boolean readonly, int fieldCountIncr, PageContext pageContext,String vocabulary,
     		boolean closedVocabulary,int collectionID,boolean hasParent){
         StringBuffer sb = new StringBuffer();
-        
+        boolean doubleLookupEnabled = ConfigurationManager.getBooleanProperty("choices.extralookup."+fieldName);
         String auth,val;
         int conf=0;
     	if (count < defaults.length)
@@ -808,7 +808,11 @@
         sb.append("<div class=\"col-md-10\">");
         if (authorityType != null)
         {
-       	 sb.append("<div class=\"col-md-10\">");
+        	if(doubleLookupEnabled){
+       	 		sb.append("<div class=\"col-md-9\">");
+        	}else{
+        		sb.append("<div class=\"col-md-10\">");
+        	}        
         }
         sb.append("<textarea class=\"form-control\" name=\"").append(fieldNameIdx)
           .append("\" rows=\"4\" cols=\"45\" id=\"")
@@ -820,7 +824,11 @@
           .append(doControlledVocabulary(fieldNameIdx, pageContext, vocabulary, readonly));
         if (authorityType != null)
         {
-       	 sb.append("</div><div class=\"col-md-2\">");
+        	if(doubleLookupEnabled){
+       	 		sb.append("</div><div class=\"col-md-3\">");
+        	}else{
+        		sb.append("</div><div class=\"col-md-2\">");
+        	}
 	         sb.append(doAuthority(pageContext, fieldName, count, fieldCount, fieldName,
                            auth, conf, false, repeatable,
                            defaults, null, collectionID));
@@ -899,6 +907,7 @@
     		int collectionID,boolean hasParent){
 
     	StringBuffer sb = new StringBuffer();
+    	boolean doubleLookupEnabled = ConfigurationManager.getBooleanProperty("choices.extralookup."+fieldName);
     	String val,auth;
     	int conf =0;
     	
@@ -921,7 +930,11 @@
         sb.append("<div class=\"col-md-10\">");
         if (authorityType != null)
         {
-     	   sb.append("<div class=\"row col-md-10\">");
+        	if(doubleLookupEnabled){
+       	 		sb.append("<div class=\"col-md-9\">");
+        	}else{
+        		sb.append("<div class=\"col-md-10\">");
+        	}        
         }
         
         sb.append("<div class=\"row col-md-4\">");
@@ -936,7 +949,11 @@
         
         if (authorityType != null)
         {
-     	   sb.append("<div class=\"col-md-2\">");
+        	if(doubleLookupEnabled){
+       	 		sb.append("</div><div class=\"col-md-3\">");
+        	}else{
+        		sb.append("</div><div class=\"col-md-2\">");
+        	}
 	           sb.append(doAuthority(pageContext, fieldName, count,  fieldCount,
                            fieldName, auth, conf, false, repeatable,
                            defaults, null, collectionID));
@@ -1009,6 +1026,7 @@
     		boolean repeatable, boolean required, boolean readonly, int fieldCountIncr, PageContext pageContext,String vocabulary, boolean closedVocabulary,int collectionID,boolean hasParent){
 
     	StringBuffer sb = new StringBuffer();
+    	boolean doubleLookupEnabled = ConfigurationManager.getBooleanProperty("choices.extralookup."+fieldName);
         String val, auth;
         int conf= 0;
 
@@ -1031,7 +1049,14 @@
         sb.append("<div class=\"col-md-10\">");
         if (authorityType != null)
         {
-     	   sb.append("<div class=\"row col-md-10\">");
+            if (authorityType != null)
+            {
+            	if(doubleLookupEnabled){
+           	 		sb.append("<div class=\"col-md-9\">");
+            	}else{
+            		sb.append("<div class=\"col-md-10\">");
+            	}        
+            }
         }
         sb.append("<input class=\"form-control\" type=\"text\" name=\"")
           .append(fieldNameIdx)
@@ -1045,7 +1070,15 @@
         
         if (authorityType != null)
         {
-     	   sb.append("<div class=\"col-md-2\">");
+            if (authorityType != null)
+            {
+            	if(doubleLookupEnabled){
+           	 		sb.append("<div class=\"col-md-3\">");
+            	}else{
+            		sb.append("<div class=\"col-md-2\">");
+            	}        
+            }
+
 	           sb.append(doAuthority(pageContext, fieldName, count,  fieldCount,
                            fieldName, auth, conf, false, repeatable,
                            defaults, null, collectionID));
