@@ -11,7 +11,6 @@
   - Display the results of browsing a full hit list
   --%>
 
-<%@page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -28,6 +27,7 @@
 <%@ page import="org.dspace.content.DCDate" %>
 <%@ page import="org.dspace.app.webui.util.UIUtil" %>
 <%@ page import="org.dspace.eperson.EPerson" %>
+<%@ page import="org.apache.commons.lang3.StringUtils"%>
 
 <c:set var="dspace.layout.head" scope="request">
 <script type="text/javascript">
@@ -124,7 +124,7 @@ function sortBy(idx, ord)
 	}
 
 	String valueString = "";
-	if (value != null)
+	if (StringUtils.isNotBlank(value))
 	{
 		valueString = "&amp;" + argument + "=" + URLEncoder.encode(value, "UTF-8");
 	}

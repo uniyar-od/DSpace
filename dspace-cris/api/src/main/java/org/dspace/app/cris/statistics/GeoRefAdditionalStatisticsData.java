@@ -8,11 +8,9 @@
 package org.dspace.app.cris.statistics;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
-import java.util.Properties;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -85,30 +83,33 @@ public class GeoRefAdditionalStatisticsData implements
 
         try {
             InetAddress ipAddress = InetAddress.getByName(ip);
-            CityResponse location = getLocationService().city(ipAddress);
-            String countryCode = location.getCountry().getIsoCode();
-            double latitude = location.getLocation().getLatitude();
-            double longitude = location.getLocation().getLongitude();
-            if (!(
-                    "--".equals(countryCode)
-                    && latitude == -180
-                    && longitude == -180)
-            ) {
-
-                doc1.addField("countryCode", countryCode);
-                doc1.addField("city", location.getCity().getName());
-                doc1.addField("latitude", latitude);
-                doc1.addField("longitude", longitude);
-                doc1.addField("location", latitude + ","
-                        + longitude);
-                if (countryCode != null)
+            DatabaseReader locationService = getLocationService();
+            if (locationService != null)
+            {
+                CityResponse location = locationService.city(ipAddress);
+                String countryCode = location.getCountry().getIsoCode();
+                double latitude = location.getLocation().getLatitude();
+                double longitude = location.getLocation().getLongitude();
+                if (!("--".equals(countryCode) && latitude == -180
+                        && longitude == -180))
                 {
-                    try {
-                        doc1.addField("continent", LocationUtils
-                            .getContinentCode(countryCode));
-                    } catch (Exception e) {
-                        System.out
-                            .println("COUNTRY ERROR: " + countryCode);
+
+                    doc1.addField("countryCode", countryCode);
+                    doc1.addField("city", location.getCity().getName());
+                    doc1.addField("latitude", latitude);
+                    doc1.addField("longitude", longitude);
+                    doc1.addField("location", latitude + "," + longitude);
+                    if (countryCode != null)
+                    {
+                        try
+                        {
+                            doc1.addField("continent", LocationUtils
+                                    .getContinentCode(countryCode));
+                        }
+                        catch (Exception e)
+                        {
+                            System.out.println("COUNTRY ERROR: " + countryCode);
+                        }
                     }
                 }
             }
@@ -128,33 +129,34 @@ public class GeoRefAdditionalStatisticsData implements
 
         if (locationService == null)
         {
-        	
+            
             DatabaseReader service = null;
             // Get the db file for the location
-            String dbPath = ConfigurationManager.getProperty(
-                    SolrLogger.CFG_USAGE_MODULE, "dbfile");
+            String dbPath = ConfigurationManager.getProperty(SolrLogger.CFG_USAGE_MODULE, "dbfile");
             if (dbPath != null) {
                 try {
                     File dbFile = new File(dbPath);
                     service = new DatabaseReader.Builder(dbFile).build();
                 } catch (FileNotFoundException fe) {
                     log.error(
-                        "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics cannot generate location " +
-                            "based reports! Please see the DSpace installation instructions for instructions to install " +
-                            "this file.",
+                        "The GeoLite Database file is missing (" + dbPath + ")! Solr Statistics has been generated without location " +
+                            "based reports! GeoLite databases are now managed outside of DSpace. " +
+                            "Please see the DSpace installation instructions for more information.",
                         fe);
                 } catch (IOException e) {
                     log.error(
-                        "Unable to load GeoLite Database file (" + dbPath + ")! You may need to reinstall it. See the " +
-                            "DSpace installation instructions for more details.",
+                        "Unable to load GeoLite Database file (" + dbPath + ")! You may need to reinstall it. " +
+                                "GeoLite databases are now managed outside of DSpace. " +
+                                "Please see the DSpace installation instructions for more information.",
                         e);
                 }
             }
             else
             {
-                log.error("The required 'dbfile' configuration is missing in solr-statistics.cfg!");
+                log.error("The required 'dbfile' configuration is missing in usage-statistics.cfg! " +
+                        "GeoLite databases are now managed outside of DSpace. " +
+                        "Please see the DSpace installation instructions for more information.");
             }
-        	        	
             locationService = service;
         }
         return locationService;

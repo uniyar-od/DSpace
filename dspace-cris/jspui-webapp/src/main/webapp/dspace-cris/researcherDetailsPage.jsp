@@ -372,14 +372,18 @@
 							</li>							
 							</c:if>
 							</c:if>
-							<c:if test="${admin}">				
-								<li>
-									<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}"><i class="fa fa-search"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.bind.items"/></a>
-								</li>
-							</c:if>
-							<li>
-								<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}&operation=list"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-claim.choice.list.items"/></a>
-							</li>
+                                                       <c:choose>
+                                                               <c:when test="${admin}">                                
+                                                                       <li>
+                                                                               <a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}"><i class="fa fa-search"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.bind.items"/></a>
+                                                                       </li>
+                                                               </c:when>
+                                                               <c:otherwise>
+                                                                       <li>
+                                                                               <a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}&operation=list"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-claim.choice.list.items"/></a>
+                                                                       </li>
+                                                               </c:otherwise>
+                                                       </c:choose>
 							<c:if test="${!empty anagraficaObject.anagrafica4view['orcid'] && canDisconnectOrcid}">
 							<li>
 								<a href="#" id="disconnect-orcid-rp"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-orcid.disconnect"/></a>

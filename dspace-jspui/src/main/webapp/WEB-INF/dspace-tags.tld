@@ -660,6 +660,29 @@
   </tag>  
 
   <tag>
+    <name>map-artifact</name>
+    <tagclass>org.dspace.app.webui.jsptag.MapArtifactTag</tagclass>
+    <info>
+      Tag for displaying an artifact result into google map
+    </info>
+    <attribute>
+      <name>artifact</name>
+      <required>true</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+     <attribute>
+      <name>view</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+    <attribute>
+      <name>style</name>
+      <required>false</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>
+  </tag>
+  
+  <tag>
     <name>discovery-artifact</name>
     <tagclass>org.dspace.app.webui.jsptag.DiscoveryArtifactTag</tagclass>
     <info>

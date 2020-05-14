@@ -220,11 +220,13 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy implement
 					type = split[1];
 					info = split[2];
 					String externalContextPath = ConfigurationManager.getProperty("cris","external.domainname.authority.service."+type);
-					startLink = "<a target=\"_blank\" href=\"" + externalContextPath + info;
-					startLink += "\" class=\"authority\">&nbsp;<img style=\"width: 16px; height: 16px;\" src=\""+ hrq.getContextPath() +"/images/mini-icon-orcid.png\" alt=\"\">";
-					endLink = "</a>";
-					sb.append(startLink);
-					sb.append(endLink);
+					if(StringUtils.isNotBlank(externalContextPath)) {
+						startLink = "<a target=\"_blank\" href=\"" + externalContextPath + info;
+						startLink += "\" class=\"authority\">"+I18nUtil.getMessage("ItemCrisRefDisplayStrategy.willbegenerated."+type,UIUtil.getSessionLocale(hrq));
+						endLink = "</a>";
+						sb.append(startLink);
+						sb.append(endLink);
+					}
 				}
 			}
 			else {
