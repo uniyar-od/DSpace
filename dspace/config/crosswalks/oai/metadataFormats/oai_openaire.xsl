@@ -4,14 +4,11 @@
 	in the LICENSE and NOTICE files at the root of the source tree and available 
 	online at http://www.dspace.org/license/ 
 -->
-<xsl:stylesheet
-	xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-	xmlns:doc="http://www.lyncode.com/xoai" version="1.0"
-	xmlns:dc="http://purl.org/dc/elements/1.1/"
-	xmlns:datacite="http://datacite.org/schema/kernel-4"
-	xmlns:oaire="http://namespace.openaire.eu/schema/oaire/">
-	<xsl:output omit-xml-declaration="yes" method="xml"
-		indent="yes" />
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:oaire="http://namespace.openaire.eu/schema/oaire/" xmlns:datacite="http://datacite.org/schema/kernel-4"
+    xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:doc="http://www.lyncode.com/xoai"
+    xmlns:rdf="http://www.w3.org/TR/rdf-concepts/" version="1.0">
+    <xsl:output omit-xml-declaration="yes" method="xml" indent="yes"/>
     
     <!--  Please note that this crosswalk is mostly a backport from the DSpace 7 version 
     	  available here https://github.com/DSpace/DSpace/blob/master/dspace/config/crosswalks/oai/metadataFormats/oai_openaire.xsl
@@ -132,7 +129,7 @@
 			
 			<!-- DC PUBLISHER -->
 			<xsl:for-each
-				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:element/doc:field[@name='value']">
+				select="doc:metadata/doc:element[@name='dc']/doc:element[@name='publisher']/doc:element/doc:field[@name='value']">
 				<dc:publisher>
 					<xsl:value-of select="." />
 				</dc:publisher>
@@ -226,9 +223,9 @@
 			<!-- select all funding references -->
 					<xsl:variable name="funder" select="doc:metadata/doc:element[@name='project']/doc:element[@name='funder']/doc:element[@name='name']/doc:element/doc:field[@name='value']"/>
 					<xsl:variable name="funderid" select="doc:metadata/doc:element[@name='project']/doc:element[@name='funder']/doc:element[@name='identifier']/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="awardnumber" select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='awardNumber']/doc:element/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="awarduri" select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='awardURI']/doc:element/doc:element/doc:field[@name='value']"/>
-					<xsl:variable name="awardtitle" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awardnumber" select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='awardNumber']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awarduri" select="doc:metadata/doc:element[@name='oaire']/doc:element[@name='awardURI']/doc:element/doc:field[@name='value']"/>
+					<xsl:variable name="awardtitle" select="doc:metadata/doc:element[@name='dc']/doc:element[@name='relation']/doc:element/doc:field[@name='value']"/>
 					
 					<xsl:variable name="check_fundingreference"> 
 						<xsl:for-each select="$awardtitle">
@@ -296,23 +293,14 @@
 		match="doc:element[@name='dc']/doc:element[@name='subject']"
 		mode="datacite">
 		<datacite:subjects>
-			<xsl:for-each select="./doc:element">
-				<xsl:apply-templates select="." mode="datacite" />
+			<xsl:for-each select="./doc:element/doc:field[@name='value']">
+				<datacite:subject>
+					<xsl:value-of select="./text()" />
+				</datacite:subject>
 			</xsl:for-each>
 		</datacite:subjects>
 	</xsl:template>
 
-	<!-- datacite:subject -->
-	<xsl:template
-		match="doc:element[@name='dc']/doc:element[@name='subject']/doc:element"
-		mode="datacite">
-		<xsl:for-each select="./doc:element/doc:field[@name='value']">
-			<datacite:subject>
-				<xsl:value-of select="./text()" />
-			</datacite:subject>
-		</xsl:for-each>
-	</xsl:template>
-		
 	<xsl:template
 		match="doc:element[@name='dc']/doc:element[@name='identifier']/doc:element[@name='issn']"
 		mode="datacite_ids">
