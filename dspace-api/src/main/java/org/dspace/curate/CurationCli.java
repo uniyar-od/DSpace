@@ -17,6 +17,7 @@ import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +45,10 @@ public class CurationCli
                 "curation task name");
         options.addOption("T", "taskfile", true,
                 "file containing curation task names");
-        options.addOption("i", "id", true,
+        Option idOption = new Option("i", "id", true,
                 "list of handles separated by space of objects to perform task on, or 'all' to perform on whole repository");
+        idOption.setArgs(Option.UNLIMITED_VALUES);
+        options.addOption(idOption);
         options.addOption("q", "queue", true,
                  "name of task queue to process");
         options.addOption("e", "eperson", true,
@@ -64,7 +67,7 @@ public class CurationCli
 
         String taskName = null;
         String taskFileName = null;
-        List<String> idNames = new ArrayList<String>();
+        String[] idNames = null;
         String taskQueueName = null;
         String ePersonName = null;
         String reporterName = null;
@@ -97,7 +100,7 @@ public class CurationCli
 
         if (line.hasOption('i'))
         { // id
-            idNames = Arrays.asList(StringUtils.split(line.getOptionValue('i'), ","));
+            idNames = line.getOptionValues('i');
         }
 
         if (line.hasOption('q'))
@@ -131,7 +134,7 @@ public class CurationCli
         }
 
         // now validate the args
-        if (idNames.isEmpty() && taskQueueName == null)
+        if ((idNames == null || idNames.length == 0) && taskQueueName == null)
         {
             System.out.println("Id must be specified: multiple handles separated by space, 'all', or a task queue (-h for help)");
             System.exit(1);
@@ -230,7 +233,7 @@ public class CurationCli
         {
             System.out.println("Starting curation");
         }
-        if (!idNames.isEmpty())
+        if (idNames != null && idNames.length > 0)
         {
         	for (String idName : idNames) 
         	{
