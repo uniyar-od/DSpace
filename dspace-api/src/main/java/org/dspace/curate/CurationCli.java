@@ -45,7 +45,7 @@ public class CurationCli
         options.addOption("T", "taskfile", true,
                 "file containing curation task names");
         options.addOption("i", "id", true,
-                "Id (handle) of object to perform task on, or 'all' to perform on whole repository");
+                "list of handles separated by space of objects to perform task on, or 'all' to perform on whole repository");
         options.addOption("q", "queue", true,
                  "name of task queue to process");
         options.addOption("e", "eperson", true,
@@ -133,7 +133,7 @@ public class CurationCli
         // now validate the args
         if (idNames.isEmpty() && taskQueueName == null)
         {
-            System.out.println("Id must be specified: multiple handles separated by comma, 'all', or a task queue (-h for help)");
+            System.out.println("Id must be specified: multiple handles separated by space, 'all', or a task queue (-h for help)");
             System.exit(1);
         }
 
