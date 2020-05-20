@@ -1,13 +1,23 @@
 package com.atmire.pure.consumer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.authority.*;
+import org.dspace.authority.AuthorityValue;
+import org.dspace.authority.AuthorityValueFinder;
+import org.dspace.authority.FunderAuthorityValue;
+import org.dspace.authority.IndexingUtils;
+import org.dspace.authority.PersonAuthorityValue;
+import org.dspace.authority.ProjectAuthorityValue;
 import org.dspace.authority.indexer.AuthorityIndexingService;
-import org.dspace.authority.orcid.OrcidAuthorityValue;
+import org.dspace.authority.orcid.Orcidv2AuthorityValue;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.content.authority.Choices;
@@ -164,7 +174,7 @@ public class RIOXXConsumer implements Consumer {
     }
 
     private void handleOrcidMetadatum(Context ctx, Item item, Metadatum m, String orcidID, String name, String email) {
-        OrcidAuthorityValue authorityValue = (OrcidAuthorityValue) authorityValueFinder.findByOrcidID(ctx, orcidID);
+        Orcidv2AuthorityValue authorityValue = (Orcidv2AuthorityValue) authorityValueFinder.findByOrcidID(ctx, orcidID);
         if (authorityValue != null) {
             if (StringUtils.isNotBlank(email) && !authorityValue.getEmails().contains(email)) {
                 authorityValue.addEmail(email);
@@ -172,13 +182,13 @@ public class RIOXXConsumer implements Consumer {
             }
             replaceMetadatumWithAuthority(item, m, name, authorityValue.getId());
         } else {
-            OrcidAuthorityValue orcidAuthorityValue = handleOrcidAuthority(m, orcidID, name, email);
+            Orcidv2AuthorityValue orcidAuthorityValue = handleOrcidAuthority(m, orcidID, name, email);
             replaceMetadatumWithAuthority(item, m, name, orcidAuthorityValue.getId());
         }
     }
 
-    private OrcidAuthorityValue handleOrcidAuthority(Metadatum m, String orcidID, String name, String email) {
-        OrcidAuthorityValue orcidAuthorityValue = OrcidAuthorityValue.create();
+    private Orcidv2AuthorityValue handleOrcidAuthority(Metadatum m, String orcidID, String name, String email) {
+        Orcidv2AuthorityValue orcidAuthorityValue = Orcidv2AuthorityValue.create();
         orcidAuthorityValue.setOrcid_id(orcidID);
         orcidAuthorityValue.setValue(name);
         orcidAuthorityValue.addEmail(email);

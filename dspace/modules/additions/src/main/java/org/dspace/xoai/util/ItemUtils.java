@@ -7,16 +7,21 @@
  */
 package org.dspace.xoai.util;
 
-import com.lyncode.xoai.dataprovider.xml.xoai.Element;
-import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
-import com.lyncode.xoai.util.Base64Utils;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.AuthorityValueFinder;
 import org.dspace.authority.FunderAuthorityValue;
 import org.dspace.authority.ProjectAuthorityValue;
-import org.dspace.authority.orcid.OrcidAuthorityValue;
+import org.dspace.authority.orcid.Orcidv2AuthorityValue;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
@@ -32,13 +37,9 @@ import org.dspace.core.Utils;
 import org.dspace.eperson.Group;
 import org.dspace.xoai.data.DSpaceItem;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import com.lyncode.xoai.dataprovider.xml.xoai.Element;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import com.lyncode.xoai.util.Base64Utils;
 
 /**
  *
@@ -148,8 +149,8 @@ public class ItemUtils {
 						String id = ((FunderAuthorityValue) authorityValue).getFunderID();
 						valueElem.getField().add(createValue("authorityID", "http://dx.doi.org/" + id));
 
-					} else if (authorityValue instanceof OrcidAuthorityValue) {
-						String id = ((OrcidAuthorityValue) authorityValue).getOrcid_id();
+					} else if (authorityValue instanceof Orcidv2AuthorityValue) {
+						String id = ((Orcidv2AuthorityValue) authorityValue).getOrcid_id();
 						valueElem.getField().add(createValue("authorityID", "http://orcid.org/"+id));
 					}
 					else if (authorityValue instanceof ProjectAuthorityValue){
