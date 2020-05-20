@@ -9,10 +9,7 @@
 
 -->
 <!--
-  - DSpace build file
-  -
-  - Version:  $Revision$
-  - Date:     $Date$
+  - DSpace installer scripts
   -->
 
 <project name="DSpace" default="help">
