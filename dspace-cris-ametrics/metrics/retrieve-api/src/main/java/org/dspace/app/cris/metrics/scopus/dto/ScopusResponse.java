@@ -15,6 +15,7 @@ import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
@@ -59,47 +60,83 @@ public class ScopusResponse {
 
 			Element xmlRoot = inDoc.getDocumentElement();
 			Element dataRoot = XMLUtils.getSingleElement(xmlRoot, "entry");
-			String eid = XMLUtils.getElementValue(dataRoot, "eid");
-			String numCitations = XMLUtils.getElementValue(dataRoot, "citedby-count");
-			List<Element> citedByLinkElements = XMLUtils.getElementList(dataRoot, "link");
-			
-			for(Element element : citedByLinkElements) {
-				if(element.hasAttribute("ref")) {
-					if("scopus-citedby".equals(element.getAttribute("ref"))) {
-						scopusCitation.getTmpRemark().put("link", element.getAttribute("href"));
-						break;
+			Element errElement = XMLUtils.getSingleElement(dataRoot, "error");
+			if (errElement != null) {
+			    log.error("Message: " + errElement.getTextContent());
+			} else {
+				String eid = XMLUtils.getElementValue(dataRoot, "eid");
+				String numCitations = XMLUtils.getElementValue(dataRoot, "citedby-count");
+				List<Element> citedByLinkElements = XMLUtils.getElementList(dataRoot, "link");
+				
+				for(Element element : citedByLinkElements) {
+					if(element.hasAttribute("ref")) {
+						if("scopus-citedby".equals(element.getAttribute("ref"))) {
+							scopusCitation.getTmpRemark().put("link", element.getAttribute("href"));
+							break;
+						}
 					}
 				}
+				
+				if (StringUtils.isNotBlank(eid)) {
+					scopusCitation.getTmpRemark().put("identifier", eid);
+				}
+				try {
+				    scopusCitation.setMetricCount(Double.parseDouble(numCitations));
+				}
+				catch(NullPointerException ex) {
+					writeXmlDocumentToXmlFile(inDoc);
+				    log.error("try to parse numCitations:" + numCitations);
+				    throw new Exception(ex);
+				}
+				scopusCitation.setEndDate(new Date());
+				scopusCitation.setMetricType(ConstantMetrics.STATS_INDICATOR_TYPE_SCOPUS);
+	            scopusCitation.setRemark(scopusCitation.buildMetricsRemark());
+				
+	            if (log.isDebugEnabled())
+	            {
+	                DOMSource domSource = new DOMSource(inDoc);
+	                StringWriter writer = new StringWriter();
+	                StreamResult result = new StreamResult(writer);
+	                TransformerFactory tf = TransformerFactory.newInstance();
+	                Transformer transformer = tf.newTransformer();
+	                transformer.transform(domSource, result);
+	                log.debug(writer.toString());
+	            }
 			}
-			
-			if (StringUtils.isNotBlank(eid)) {
-				scopusCitation.getTmpRemark().put("identifier", eid);
-			}
-			try {
-			    scopusCitation.setMetricCount(Double.parseDouble(numCitations));
-			}
-			catch(NullPointerException ex) {
-			    log.error("try to parse numCitations:" + numCitations);
-			    throw new Exception(ex);
-			}
-			scopusCitation.setEndDate(new Date());
-			scopusCitation.setMetricType(ConstantMetrics.STATS_INDICATOR_TYPE_SCOPUS);
-            scopusCitation.setRemark(scopusCitation.buildMetricsRemark());
-			
-            if (log.isDebugEnabled())
-            {
-                DOMSource domSource = new DOMSource(inDoc);
-                StringWriter writer = new StringWriter();
-                StreamResult result = new StreamResult(writer);
-                TransformerFactory tf = TransformerFactory.newInstance();
-                Transformer transformer = tf.newTransformer();
-                transformer.transform(domSource, result);
-                log.debug(writer.toString());
-            }
 		} catch (Exception e) {
 		    log.error(e.getMessage(), e);
 			error = true;
 		}
+	}
+
+	private static void writeXmlDocumentToXmlFile(Document xmlDocument)
+	{
+	    TransformerFactory tf = TransformerFactory.newInstance();
+	    Transformer transformer;
+	    try {
+	        transformer = tf.newTransformer();
+	         
+	        // Uncomment if you do not require XML declaration
+	        // transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+	         
+	        //A character stream that collects its output in a string buffer, 
+	        //which can then be used to construct a string.
+	        StringWriter writer = new StringWriter();
+	 
+	        //transform document to string 
+	        transformer.transform(new DOMSource(xmlDocument), new StreamResult(writer));
+	 
+	        String xmlString = writer.getBuffer().toString();   
+	        System.out.println(xmlString);                      //Print to console or logs
+	    } 
+	    catch (TransformerException e) 
+	    {
+	        e.printStackTrace();
+	    }
+	    catch (Exception e) 
+	    {
+	        e.printStackTrace();
+	    }
 	}
 
 	public CrisMetrics getCitation() {
