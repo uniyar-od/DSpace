@@ -10,6 +10,7 @@ package org.dspace.content.integration.crosswalks;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.StringEscapeUtils;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
@@ -35,7 +36,7 @@ public class VirtualFieldWosElement implements VirtualFieldDisseminator {
 		}
 		List<IMetadataValue> MetadataValueDoi = item.getMetadataValueInDCFormat(fieldDoiID);
 		if (MetadataValueDoi != null && MetadataValueDoi.size() > 0) {
-			result += "<val name=\"doi\">" + MetadataValueDoi.get(0).getValue() + "</val>";
+			result += "<val name=\"doi\">" + StringEscapeUtils.escapeXml(MetadataValueDoi.get(0).getValue()) + "</val>";
 		}
 		List<IMetadataValue> MetadataValueWos = item.getMetadataValueInDCFormat(fieldWosID);
 		if (MetadataValueWos != null && MetadataValueWos.size() > 0) {
