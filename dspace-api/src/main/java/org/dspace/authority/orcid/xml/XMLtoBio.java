@@ -39,7 +39,7 @@ public class XMLtoBio extends Converter {
     public List<Person> convert(InputStream xml) {
         List<Person> bios= new ArrayList<>();
         try {
-            Orcidv2 connector = new DSpace().getServiceManager().getServiceByName("AuthoritySource", Orcidv2.class);
+            Orcidv2 connector = new DSpace().getServiceManager().getServiceByName("OrcidSource", Orcidv2.class);
 
             Search search = (Search) unmarshall(xml, Search.class);
             for(Result result : search.getResult()){

@@ -158,7 +158,7 @@ public class Orcidv2AuthorityValue extends PersonAuthorityValue {
     public AuthorityValue newInstance(String info) {
         AuthorityValue authorityValue = null;
         if (StringUtils.isNotBlank(info)) {
-            Orcidv2 orcid = new DSpace().getServiceManager().getServiceByName("AuthoritySource", Orcidv2.class);
+            Orcidv2 orcid = new DSpace().getServiceManager().getServiceByName("OrcidSource", Orcidv2.class);
             authorityValue = orcid.queryAuthorityID(info);
         } else {
             authorityValue = this.create();

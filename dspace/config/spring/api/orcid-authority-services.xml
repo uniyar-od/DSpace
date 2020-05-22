@@ -39,7 +39,7 @@
         <property name="types">
             <list>
                 <bean class="org.dspace.authority.FunderAuthorityValue"/>
-                <bean class="org.dspace.authority.orcid.OrcidAuthorityValue"/>
+                <bean class="org.dspace.authority.orcid.Orcidv2AuthorityValue"/>
                 <bean class="org.dspace.authority.PersonAuthorityValue"/>
                 <bean class="org.dspace.authority.ProjectAuthorityValue"/>
             </list>
@@ -65,7 +65,7 @@
       </bean>-->
 
     <alias name="restSources" alias="AuthoritySource"/>
-    <alias name="OrcidSource" alias="AuthoritySource"/>
+
     <bean name="OrcidSource" class="org.dspace.authority.orcid.Orcidv2" init-method="init">
         <constructor-arg value="https://pub.orcid.org/v2.1"/>
     </bean>
