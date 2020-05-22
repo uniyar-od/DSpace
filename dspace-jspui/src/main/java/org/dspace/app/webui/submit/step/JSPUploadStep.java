@@ -260,7 +260,6 @@ public class JSPUploadStep extends JSPStep
 
                 return;
             }else {
-            	request.setAttribute("unpaywall_fulltext_found", false);
             	showUploadPage(context, request, response, subInfo, false);
 			}
         }
