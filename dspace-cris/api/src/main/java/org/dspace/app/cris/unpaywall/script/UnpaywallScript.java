@@ -33,6 +33,8 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.unpaywall.UnpaywallBestOA;
+import org.dspace.app.cris.unpaywall.UnpaywallRecord;
 import org.dspace.app.cris.unpaywall.UnpaywallService;
 import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
@@ -231,7 +233,10 @@ public class UnpaywallScript {
             if (itemID != null && StringUtils.isNotBlank(doi)) {
                 Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
                 if (unpaywall != null && unpaywall.getJsonRecord() != null) {
-                    unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
+                	UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getJsonRecord());
+                	if (record.getUnpaywallBestOA() !=null && StringUtils.isNotBlank(record.getUnpaywallBestOA().getUrl_for_pdf())) {						
+                		unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
+					}
                 }
             }
         }

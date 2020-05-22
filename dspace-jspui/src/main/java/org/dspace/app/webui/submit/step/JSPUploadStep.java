@@ -259,7 +259,10 @@ public class JSPUploadStep extends JSPStep
                         false);
 
                 return;
-            }
+            }else {
+            	request.setAttribute("unpaywall_fulltext_found", false);
+            	showUploadPage(context, request, response, subInfo, false);
+			}
         }
 
         if (buttonPressed.equalsIgnoreCase(UploadStep.SUBMIT_SKIP_BUTTON) ||

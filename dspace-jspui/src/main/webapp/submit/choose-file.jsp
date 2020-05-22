@@ -59,6 +59,11 @@
     boolean bSherpa = sherpa != null?sherpa:false;
 
     boolean unpaywallEnabled = ConfigurationManager.getBooleanProperty("unpaywall","submit.import.enabled",true);
+    boolean unpaywallFileFound = true;
+    if (request.getAttribute("unpaywall_fulltext_found") != null)
+    {
+    	unpaywallFileFound = (Boolean) request.getAttribute("unpaywall_fulltext_found");
+    }
 %>
 
 
@@ -447,6 +452,11 @@
                 <% if (unpaywallEnabled) { %>
                 <div class="col-lg-12 col-md-4 col-sm-6 unpaywall" hidden>
                     <span><fmt:message key="jsp.submit.choose-file.unpaywall.title"/></span>
+                    <% if(!unpaywallFileFound){ %>
+                    <div class="alert alert-warning" role="alert">
+						<fmt:message key="jsp.submit.choose-file.unpaywall.nofulltext"/>
+					</div>
+				<%	} %> 
                     <div class="media unpaywall">
 	                    <button class="col-lg-12 col-md-4 col-sm-6 unpaywall-button" type="submit" name="submit_unpaywall">
 	                        <span class="metric-counter">

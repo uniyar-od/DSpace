@@ -7,8 +7,10 @@
  */
 package org.dspace.app.cris.unpaywall;
 
+import org.apache.log4j.Logger;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import it.cilea.osd.common.core.TimeStampInfo;
@@ -16,6 +18,9 @@ import it.cilea.osd.common.core.TimeStampInfo;
 public class UnpaywallUtils {
 
     private static final String DOI_DEFAULT_BASEURL = "https://doi.org/";
+    
+    /** log4j logger */
+    private static Logger log = Logger.getLogger(UnpaywallUtils.class);
 
     public static JSONObject convertUnpaywallStringToJson(String source)
     {
@@ -32,7 +37,11 @@ public class UnpaywallUtils {
     	if (obj.isNull("best_oa_location")) return null;
 
     	JSONObject bestOA = obj.getJSONObject("best_oa_location");
-		unpBestOA.setUrl_for_pdf(bestOA.getString("url_for_pdf"));
+    	String url = "";
+    	if(!bestOA.isNull("url_for_pdf")){
+    		url = bestOA.getString("url_for_pdf");			
+		}
+    	unpBestOA.setUrl_for_pdf(url);
         unpBestOA.setHost_type(bestOA.getString("host_type"));
         unpBestOA.setVersion(bestOA.getString("version"));
         unpBestOA.setEvidence(bestOA.getString("evidence"));
