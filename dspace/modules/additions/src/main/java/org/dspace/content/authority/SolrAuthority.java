@@ -17,6 +17,7 @@ import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.dspace.authority.AuthoritySearchService;
 import org.dspace.authority.AuthorityValue;
+import org.dspace.authority.SolrAuthorityInterface;
 import org.dspace.authority.rest.RestSource;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.utils.DSpace;
@@ -34,8 +35,8 @@ public class SolrAuthority implements ChoiceAuthority {
 
     private static final Logger log = Logger.getLogger(SolrAuthority.class);
     //private RestSource source = new DSpace().getServiceManager().getServiceByName("AuthoritySource", RestSource.class);
-    private RestSource source =null;
-    private Map <String,RestSource>restSources = new DSpace().getServiceManager().getServiceByName("AuthoritySource", HashMap.class);
+    private SolrAuthorityInterface source =null;
+    private Map <String,SolrAuthorityInterface>restSources = new DSpace().getServiceManager().getServiceByName("AuthoritySource", HashMap.class);
     private boolean externalResults = false;
 
     public Choices getMatches(String field, String text, int collection, int start, int limit, String locale, boolean bestMatch) {
