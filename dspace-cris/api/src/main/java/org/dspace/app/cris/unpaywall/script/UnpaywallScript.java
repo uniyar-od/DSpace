@@ -289,9 +289,15 @@ public class UnpaywallScript {
     }
     
     private static String makeItemListBuilder(List<UnpaywallItem> unpaywallItems) {
+    	Integer notificationLimit = ConfigurationManager.getIntProperty("unpaywall", "mail.item.limit", 25);
         int index = 1;
         StringBuilder stringBuilder = new StringBuilder();
         for (UnpaywallItem unpaywallItem : unpaywallItems) {
+        	if (index > notificationLimit) {
+				stringBuilder.append("The above list shows ").append(notificationLimit).append(" records on a total of ").append(unpaywallItems.size()).append(" /n");
+				break;
+			}
+        	
             String handleLink = ConfigurationManager.getProperty("dspace.url") + "/handle/" + unpaywallItem.getHandle();
             stringBuilder.append(index++).append(". ")
                 .append("DOI: ").append(unpaywallItem.getDoi()).append(" - ")
