@@ -7,7 +7,10 @@
  */
 package org.dspace.app.cris.unpaywall.script;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,9 +168,16 @@ public class UnpaywallScript {
 
                 mail.addRecipient(ePerson.getEmail());
 
-                String emailBody = makeItemListBuilder(owner2Items.get(ownerI)).toString();
+                String emailBody = makeItemListBuilder(owner2Items.get(ownerI), true).toString();
                 mail.addArgument(emailBody);
 
+                mail.addAttachment(
+                		new ByteArrayInputStream(
+                			makeItemListBuilder(unpaywallItems, false)
+                				.getBytes(StandardCharsets.UTF_8)), 
+                		"unpaywall-record.txt", 
+                		"text/plain");
+                
                 System.out.println("Sending mail to user: " + ePerson.getEmail());
                 log.info("Sending mail to user: " + ePerson.getEmail());
                 mail.send();
@@ -186,9 +196,16 @@ public class UnpaywallScript {
                 mail.addRecipientCC(admin.getEmail());
             }
 
-            String emailBody = makeItemListBuilder(unpaywallItems).toString();
+            String emailBody = makeItemListBuilder(unpaywallItems, true).toString();
             mail.addArgument(emailBody);
-
+            
+            mail.addAttachment(
+            		new ByteArrayInputStream(
+            			makeItemListBuilder(unpaywallItems, false)
+            				.getBytes(StandardCharsets.UTF_8)), 
+            		"unpaywall-record.txt", 
+            		"text/plain");
+            
             System.out.println("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
             log.info("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
             mail.send();
@@ -288,13 +305,14 @@ public class UnpaywallScript {
         return Email.getEmail(ConfigurationManager.getProperty("dspace.dir") + "/config/emails/" + ConfigurationManager.getProperty("unpaywall", "script." + option + "_email_template.name"));
     }
     
-    private static String makeItemListBuilder(List<UnpaywallItem> unpaywallItems) {
+    private static String makeItemListBuilder(List<UnpaywallItem> unpaywallItems, Boolean limit) {
     	Integer notificationLimit = ConfigurationManager.getIntProperty("unpaywall", "mail.item.limit", 25);
         int index = 1;
         StringBuilder stringBuilder = new StringBuilder();
         for (UnpaywallItem unpaywallItem : unpaywallItems) {
-        	if (index > notificationLimit) {
-				stringBuilder.append("The above list shows ").append(notificationLimit).append(" records on a total of ").append(unpaywallItems.size()).append(" /n");
+        	if (limit && index > notificationLimit) {
+				stringBuilder.append("The above list shows ").append(notificationLimit).append(" records on a total of ").append(unpaywallItems.size()).append(" \n")
+					.append("Please, check the attachment to view the full list \n");
 				break;
 			}
         	
