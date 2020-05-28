@@ -192,6 +192,9 @@ public class UnpaywallScript {
 
             List<String> adminEmails = new ArrayList<>();
             for (EPerson admin : Arrays.asList(Group.allMembers(context, Group.find(context, Group.ADMIN_ID)))) {
+            	if (StringUtils.isBlank(admin.getEmail())) {
+            		continue;
+            	}
                 adminEmails.add(admin.getEmail());
                 mail.addRecipientCC(admin.getEmail());
             }
@@ -251,7 +254,7 @@ public class UnpaywallScript {
                 Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
                 if (unpaywall != null && unpaywall.getJsonRecord() != null) {
                 	UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getJsonRecord());
-                	if (record.getUnpaywallBestOA() !=null && StringUtils.isNotBlank(record.getUnpaywallBestOA().getUrl_for_pdf())) {						
+                	if (record != null && record.getUnpaywallBestOA() !=null && StringUtils.isNotBlank(record.getUnpaywallBestOA().getUrl_for_pdf())) {						
                 		unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
 					}
                 }
