@@ -49,7 +49,7 @@
         CollectionValidation permits doi register ONLY to collection in CollectionList if listExcluded is FALSE;
         if listExcluded is TRUE all the handle in collectionList will be excluded;
      -->
-   	<!--bean class="org.dspace.identifier.doi.CollectionValidation">
+   	<bean class="org.dspace.identifier.doi.CollectionValidation">
         <property name="listExcluded" value="false"/>
         <property name="collectionList">
             <list>
@@ -59,35 +59,24 @@
         <property name="checkFile" value="true"/>
         <property name="checkMetadata" value="local.metadata.only"/>
         <property name="checkMetadataValue" value="false"/>
-    </bean-->
+    </bean>
 
     <bean class="org.dspace.identifier.doi.CollectionValidationExclusive">
         <property name="collectionList">
             <list>
-                <value>123456789/5</value>
+                <value>123456789/2</value>
             </list>
         </property>
         <property name="checkFile" value="true"/>
         <property name="checkMetadata" value="local.metadata.only"/>
     </bean>
 
-   <!--bean class="org.dspace.identifier.doi.CollectionValidationInclusive">
-        <property name="collectionList">
-            <map>
-               <entry key="123456789/5" value-ref="defaultConfiguration" />
-               <entry key="123456789/6" value-ref="noCheckConfiguration" />
-            </map>
-        </property>
-
-	    <property name="defaultConfiguration">
-	        <entry key="checkFile" value="true"/>
-	        <entry key="checkMetadata" value="local.metadata.only"/>
-	    </property>
-	        
-	    <property name="noCheckConfiguration">
-	        <entry key="checkFile" value="false"/>
-	    </property>
-    </bean-->
+   <bean class="org.dspace.identifier.doi.CollectionValidationInclusive">
+        <property name="collectionHandle" value="123456789/5"/>
+        <property name="checkFile" value="true"/>
+        <property name="checkMetadata" value="local.metadata.only"/>
+    </bean>
+    
     <!-- The DOIConnector will handle the API calls to your DOI registration
          agency for the DOIIdentifierProvider. If your registration agency
          tells you to use the DataCite API directly, you can use the

@@ -30,10 +30,10 @@ import org.dspace.workflow.WorkflowItem;
 
 public class CollectionValidationExclusive implements IdentifierRegisterValidation {
 	
-	private Boolean checkFile;
+	private String checkFile;
 	private String checkMetadata;
-	private String checkMetadataValue;
-	private boolean checkBoolValue = BooleanUtils.toBooleanObject(checkMetadataValue);
+	private boolean checkBoolValue;
+	private boolean checkBoolFile;
 
 	private ArrayList<String> collectionList;
 	Logger log = Logger.getLogger(CollectionValidationExclusive.class);
@@ -60,12 +60,16 @@ public class CollectionValidationExclusive implements IdentifierRegisterValidati
 						collHandle = wfi.getCollection().getHandle();
 					}
 				}
+				checkBoolValue = BooleanUtils.toBooleanObject(item.getMetadata(checkMetadata));
+				checkBoolFile = BooleanUtils.toBooleanObject(checkFile);
 				
-					if (checkFile) {
+				if(!collectionList.contains(collHandle)) {
+					register = true;
+				}
+					if (register && checkBoolFile) {
 						if (StringUtils.isNotBlank(checkMetadata) && checkBoolValue) {
 							
-							String metadata = item.getMetadata(checkMetadata);
-							if (!(StringUtils.equals(metadata, checkMetadataValue) && item.hasUploadedFiles())) {
+							if (!(checkBoolValue && item.hasUploadedFiles())) {
 								register = false;
 							}
 							
@@ -73,8 +77,7 @@ public class CollectionValidationExclusive implements IdentifierRegisterValidati
 							register = item.hasUploadedFiles();
 						}
 					}else {
-						String metadata = item.getMetadata(checkMetadata);
-						register = StringUtils.equals(metadata, checkMetadataValue);
+						register = checkBoolValue;
 					}
 			} catch(SQLException e) {
 				log.error(e.getMessage(), e);
@@ -93,11 +96,11 @@ public class CollectionValidationExclusive implements IdentifierRegisterValidati
 		this.collectionList = collectionList;
 	}
 
-	public Boolean getCheckFile() {
+	public String getCheckFile() {
 		return checkFile;
 	}
 
-	public void setCheckFile(Boolean checkFile) {
+	public void setCheckFile(String checkFile) {
 		this.checkFile = checkFile;
 	}
 
@@ -109,13 +112,5 @@ public class CollectionValidationExclusive implements IdentifierRegisterValidati
 		this.checkMetadata = checkMetadata;
 	}
 
-	public String getCheckMetadataValue() {
-		return checkMetadataValue;
-	}
-
-	public void setCheckMetadataValue(String checkMetadataValue) {
-		this.checkMetadataValue = checkMetadataValue;
-	}
-	
 
 }
