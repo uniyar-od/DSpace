@@ -16,7 +16,10 @@ package org.dspace.identifier.doi;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
@@ -27,21 +30,29 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.workflow.WorkflowItem;
 
-public class CollectionValidation implements IdentifierRegisterValidation {
+public class CollectionValidationInclusive implements IdentifierRegisterValidation {
 	
 	/**
 	 * Switch from exclude collection list if true; permits only to collection list if false; 
 	 */
-	private boolean listExcluded;
+	private Boolean checkFileDefault;
 	private Boolean checkFile;
 	private String checkMetadata;
 	private String checkMetadataValue;
-
+	private Map<String,String> defaultConfiguration;
+	private Map<String,String> noCheckConfiguration;
+ 
 	private ArrayList<String> collectionList;
-	Logger log = Logger.getLogger(CollectionValidation.class);
+	Logger log = Logger.getLogger(CollectionValidationInclusive.class);
 
 	@Override
 	public boolean canRegister(Context context,DSpaceObject dso) {
+		
+		checkFileDefault = BooleanUtils.toBooleanObject(defaultConfiguration.get("checkFile"));
+		checkFile = BooleanUtils.toBooleanObject(noCheckConfiguration.get("checkFile"));
+		checkMetadataValue = defaultConfiguration.get("checkMetadataValue");
+		checkMetadata = defaultConfiguration.get("checkMetadata");
+		
 		boolean register = false;
 		if(dso.getType() == Constants.ITEM) {
 			Item item = (Item) dso;
@@ -62,12 +73,8 @@ public class CollectionValidation implements IdentifierRegisterValidation {
 						collHandle = wfi.getCollection().getHandle();
 					}
 				}
-				if ( ( !listExcluded && collectionList.contains(collHandle) )||
-						(listExcluded && !collectionList.contains(collHandle))) {
-					register = true;
-				}
-				if (register && !listExcluded && (checkFile != null || (StringUtils.isNotBlank(checkMetadata) && StringUtils.isNotBlank(checkMetadataValue)))) {
-					if (checkFile != null && checkFile) {
+
+					if (checkFile) {
 						if (StringUtils.isNotBlank(checkMetadata) && StringUtils.isNotBlank(checkMetadataValue)) {
 							
 							String metadata = item.getMetadata(checkMetadata);
@@ -82,7 +89,6 @@ public class CollectionValidation implements IdentifierRegisterValidation {
 						String metadata = item.getMetadata(checkMetadata);
 						register = StringUtils.equals(metadata, checkMetadataValue);
 					}
-				}
 			} catch(SQLException e) {
 				log.error(e.getMessage(), e);
 			} catch(NullPointerException e) {
@@ -99,37 +105,21 @@ public class CollectionValidation implements IdentifierRegisterValidation {
 	public void setCollectionList(ArrayList<String> collectionList) {
 		this.collectionList = collectionList;
 	}
-	
-	public boolean isListExcluded() {
-		return listExcluded;
+
+	public Map<String,String> getDefaultConfiguration() {
+		return defaultConfiguration;
 	}
 
-	public void setListExcluded(boolean listExcluded) {
-		this.listExcluded = listExcluded;
+	public void setDefaultConfiguration(Map<String,String> defaultConfiguration) {
+		this.defaultConfiguration = defaultConfiguration;
 	}
 
-	public Boolean getCheckFile() {
-		return checkFile;
+	public Map<String,String> getNoCheckConfiguration() {
+		return noCheckConfiguration;
 	}
 
-	public void setCheckFile(Boolean checkFile) {
-		this.checkFile = checkFile;
-	}
-
-	public String getCheckMetadata() {
-		return checkMetadata;
-	}
-
-	public void setCheckMetadata(String checkMetadata) {
-		this.checkMetadata = checkMetadata;
-	}
-
-	public String getCheckMetadataValue() {
-		return checkMetadataValue;
-	}
-
-	public void setCheckMetadataValue(String checkMetadataValue) {
-		this.checkMetadataValue = checkMetadataValue;
+	public void setNoCheckConfiguration(Map<String,String> noCheckConfiguration) {
+		this.noCheckConfiguration = noCheckConfiguration;
 	}
 	
 

@@ -17,6 +17,7 @@ package org.dspace.identifier.doi;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
@@ -27,18 +28,15 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.workflow.WorkflowItem;
 
-public class CollectionValidation implements IdentifierRegisterValidation {
+public class CollectionValidationExclusive implements IdentifierRegisterValidation {
 	
-	/**
-	 * Switch from exclude collection list if true; permits only to collection list if false; 
-	 */
-	private boolean listExcluded;
 	private Boolean checkFile;
 	private String checkMetadata;
 	private String checkMetadataValue;
+	private boolean checkBoolValue = BooleanUtils.toBooleanObject(checkMetadataValue);
 
 	private ArrayList<String> collectionList;
-	Logger log = Logger.getLogger(CollectionValidation.class);
+	Logger log = Logger.getLogger(CollectionValidationExclusive.class);
 
 	@Override
 	public boolean canRegister(Context context,DSpaceObject dso) {
@@ -62,13 +60,9 @@ public class CollectionValidation implements IdentifierRegisterValidation {
 						collHandle = wfi.getCollection().getHandle();
 					}
 				}
-				if ( ( !listExcluded && collectionList.contains(collHandle) )||
-						(listExcluded && !collectionList.contains(collHandle))) {
-					register = true;
-				}
-				if (register && !listExcluded && (checkFile != null || (StringUtils.isNotBlank(checkMetadata) && StringUtils.isNotBlank(checkMetadataValue)))) {
-					if (checkFile != null && checkFile) {
-						if (StringUtils.isNotBlank(checkMetadata) && StringUtils.isNotBlank(checkMetadataValue)) {
+				
+					if (checkFile) {
+						if (StringUtils.isNotBlank(checkMetadata) && checkBoolValue) {
 							
 							String metadata = item.getMetadata(checkMetadata);
 							if (!(StringUtils.equals(metadata, checkMetadataValue) && item.hasUploadedFiles())) {
@@ -82,7 +76,6 @@ public class CollectionValidation implements IdentifierRegisterValidation {
 						String metadata = item.getMetadata(checkMetadata);
 						register = StringUtils.equals(metadata, checkMetadataValue);
 					}
-				}
 			} catch(SQLException e) {
 				log.error(e.getMessage(), e);
 			} catch(NullPointerException e) {
@@ -98,14 +91,6 @@ public class CollectionValidation implements IdentifierRegisterValidation {
 
 	public void setCollectionList(ArrayList<String> collectionList) {
 		this.collectionList = collectionList;
-	}
-	
-	public boolean isListExcluded() {
-		return listExcluded;
-	}
-
-	public void setListExcluded(boolean listExcluded) {
-		this.listExcluded = listExcluded;
 	}
 
 	public Boolean getCheckFile() {
