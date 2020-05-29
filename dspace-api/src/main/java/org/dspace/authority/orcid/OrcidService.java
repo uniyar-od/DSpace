@@ -397,27 +397,37 @@ public class OrcidService extends RestSource
     public List<AuthorityValue> queryOrcidBioByFamilyNameAndGivenName(
             String text, int start, int max) throws IOException
     {
-        DCPersonName tmpPersonName = new DCPersonName(text);
+        StringBuilder query = new StringBuilder();
 
-        String query = "";
-        if (StringUtils.isNotBlank(tmpPersonName.getLastName()))
-        {
-            query += "family-name:(" + tmpPersonName.getLastName().trim()
-                    + (StringUtils.isNotBlank(tmpPersonName.getFirstNames())
-                            ? "" : "*")
-                    + ")";
+        if(StringUtils.isNotBlank(text)) {
+            DCPersonName tmpPersonName = new DCPersonName(text);
+            query.append("(");
+            if (StringUtils.isNotBlank(tmpPersonName.getLastName()))
+            {
+                query.append("family-name:(").append(tmpPersonName.getLastName().trim())
+                		.append( (StringUtils.isNotBlank(tmpPersonName.getFirstNames()) 
+                				? "" : "*") )
+                					.append(")");
+            }
+    
+            if (StringUtils.isNotBlank(tmpPersonName.getFirstNames()))
+            {
+                if (StringUtils.isNotBlank(tmpPersonName.getLastName())) {
+                    query.append(" AND ");        
+                }
+                query.append("given-names:(")
+                			.append(tmpPersonName.getFirstNames().trim()).append("*)");
+            }
+            query.append(")");
+            query.append(" OR ");
+            query.append("other-names:(").append(text).append(")");
+        }
+        else {
+            //default action, should be never used 
+            query.append("other-names:*");
         }
 
-        if (StringUtils.isNotBlank(tmpPersonName.getFirstNames()))
-        {
-            query += (query.length() > 0 ? " AND given-names:("
-                    : "given-names:(") + tmpPersonName.getFirstNames().trim()
-                    + "*)";
-        }
-
-        query += " OR other-names:(" + text + ")";
-
-        List<Result> results = search(query, start, max);
+        List<Result> results = search(query.toString(), start, max);
 
         return getAuthorityValuesFromOrcidResults(results);
     }
