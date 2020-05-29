@@ -61,7 +61,7 @@
         <property name="checkMetadataValue" value="false"/>
     </bean>
 
-    <bean class="org.dspace.identifier.doi.CollectionValidationExclusive">
+    <!--bean class="org.dspace.identifier.doi.CollectionValidationExclusive">
         <property name="collectionList">
             <list>
                 <value>123456789/2</value>
@@ -69,13 +69,13 @@
         </property>
         <property name="checkFile" value="true"/>
         <property name="checkMetadata" value="local.metadata.only"/>
-    </bean>
+    </bean-->
 
-   <bean class="org.dspace.identifier.doi.CollectionValidationInclusive">
+   <!--bean class="org.dspace.identifier.doi.CollectionValidationInclusive">
         <property name="collectionHandle" value="123456789/5"/>
         <property name="checkFile" value="true"/>
         <property name="checkMetadata" value="local.metadata.only"/>
-    </bean>
+    </bean-->
     
     <!-- The DOIConnector will handle the API calls to your DOI registration
          agency for the DOIIdentifierProvider. If your registration agency
