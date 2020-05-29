@@ -235,13 +235,6 @@
            <workflow-editable>true</workflow-editable>
        </step>
        -->
-      <!--  Step 3 will be to retrieve openaccess fulltext from Unpaywall -->
-      <step>
-        <heading>submit.progressbar.unpaywall</heading>
-        <processing-class>org.dspace.app.cris.submit.step.UnpaywallStep</processing-class>
-        <workflow-editable>true</workflow-editable>
-      </step>																										
-      
       <!--Step 4 will be to Upload the item -->
       <step>
         <heading>submit.progressbar.upload</heading>
@@ -340,6 +333,12 @@
            <workflow-editable>true</workflow-editable>
        </step>
        -->
+      <!--  Step 3 will be to retrieve openaccess fulltext from Unpaywall -->
+      <step>
+        <heading>submit.progressbar.unpaywall</heading>
+        <processing-class>org.dspace.app.cris.submit.step.UnpaywallStep</processing-class>
+        <workflow-editable>true</workflow-editable>
+      </step>																										
 
 	  <!-- Step 4 auskommentiert fuer Sammlung Universitaetsbibliografie; A.G., 24.05.2018  -->
       <!--Step 4 will be to Upload the item -->
