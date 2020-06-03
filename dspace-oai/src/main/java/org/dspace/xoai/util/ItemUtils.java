@@ -267,8 +267,14 @@ public class ItemUtils
                 		if (choicheAuth != null && choicheAuth instanceof CRISAuthority) {
 							CRISAuthority crisAuthoriy = (CRISAuthority) choicheAuth;
 							ACrisObject o = getApplicationService().getEntityByCrisId(val.authority, crisAuthoriy.getCRISTargetClass());
-                			
-                			Metadata crisMetadata = retrieveMetadata(context, o, skipAutority, /*m, ((ACrisObject) o).getUuid(), Integer.toString(item.getID()),*/ 0);
+							Metadata crisMetadata = null;
+                			if (o != null) 
+                			{								
+                				crisMetadata = retrieveMetadata(context, o, skipAutority, /*m, ((ACrisObject) o).getUuid(), Integer.toString(item.getID()),*/ 0);
+							}else if (log.isDebugEnabled()) 
+							{
+								log.debug("WARNING: the item with id \"" + item.getID() + "\" contains the authority value \"" + val.authority + "\"  NOT IN the database - field " + val.schema + "."+ val.element + "."+ val.qualifier);
+							}
                 			if (crisMetadata != null && !crisMetadata.getElement().isEmpty()) {
                 				Element root = create(AUTHORITY);
                 				element.getElement().add(root);
