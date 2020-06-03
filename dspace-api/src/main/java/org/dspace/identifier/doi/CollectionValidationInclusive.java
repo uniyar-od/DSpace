@@ -15,81 +15,37 @@ package org.dspace.identifier.doi;
  */
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.dspace.content.Collection;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.workflow.WorkflowItem;
 
-public class CollectionValidationInclusive implements IdentifierRegisterValidation {
-	
+public class CollectionValidationInclusive extends ACollectionValidation {
+
 	/**
-	 * Switch from exclude collection list if true; permits only to collection list if false; 
+	 * Switch from exclude collection list if true; permits only to collection list
+	 * if false;
 	 */
 	private String checkFile;
 	private String checkMetadata;
-	private boolean checkBoolValue;
-	private boolean checkBoolFile;
 	private String collectionHandle;
- 
+
 	Logger log = Logger.getLogger(CollectionValidationInclusive.class);
 
 	@Override
-	public boolean canRegister(Context context,DSpaceObject dso) {
-		
-		
-		boolean register = false;
-		if(dso.getType() == Constants.ITEM) {
-			Item item = (Item) dso;
-			try {
-				String collHandle = null;
-				if(!item.isInProgressSubmission()) {
-					Collection owningCollection = item.getOwningCollection();
-					if (owningCollection != null) {
-						collHandle = owningCollection.getHandle();
-					}
-				} 
-				else {
-					WorkspaceItem wsi =WorkspaceItem.findByItem(context, item);
-					if(wsi != null) {
-						collHandle =wsi.getCollection().getHandle();
-					} else {
-						WorkflowItem wfi = WorkflowItem.findByItem(context, item);
-						collHandle = wfi.getCollection().getHandle();
-					}
-				}
+	public boolean canRegister(Context context, DSpaceObject dso) {
 
-			checkBoolValue = BooleanUtils.toBooleanObject(item.getMetadata(checkMetadata));
-			checkBoolFile = BooleanUtils.toBooleanObject(checkFile);
-				
-			if(collectionHandle.equalsIgnoreCase(collHandle)) {
-				register = true;
+		boolean register = false;
+		if (dso.getType() == Constants.ITEM) {
+			Item item = (Item) dso;
+			String collHandle = getHandle(context, item);
+
+			if (collectionHandle.equalsIgnoreCase(collHandle)) {
+				register = isToRegister(register, checkFile, checkMetadata, item);
 			}
-				if (register && checkBoolFile) {
-					if (StringUtils.isNotBlank(checkMetadata) && checkBoolValue) {
-						
-						if (!(checkBoolValue && item.hasUploadedFiles())) {
-							register = false;
-						}
-						
-					}else {
-						register = item.hasUploadedFiles();
-					}
-				}else {
-					register = checkBoolValue;
-				}
-			} catch(SQLException e) {
-				log.error(e.getMessage(), e);
-			} catch(NullPointerException e) {
-				log.error(e.getMessage(), e);
-			}
+			register = isToRegister(register, checkFile, checkMetadata, item);
 		}
 		return register;
 	}

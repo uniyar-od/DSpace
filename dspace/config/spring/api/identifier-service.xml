@@ -46,25 +46,15 @@
 -->
     <!--
         DOIRegisterValidation checks the properties of the DSO in order to avoid/permit DOI registration.
-        CollectionValidation permits doi register ONLY to collection in CollectionList if listExcluded is FALSE;
-        if listExcluded is TRUE all the handle in collectionList will be excluded;
+        CollectionValidationExclusive permits doi register to all collection NOT in CollectionList;
+        To permits doi register ONLY to some collection, create a specified bean for each of these (see CollectionValidationInclusive);
+        The value "local.metadata.only" can be modified, but it have to contain true/false value (on,off,yes,no,true,false,0,1,t,f,y,n).
      -->
-   	<bean class="org.dspace.identifier.doi.CollectionValidation">
-        <property name="listExcluded" value="false"/>
-        <property name="collectionList">
-            <list>
-                <value>123456789/5</value>
-            </list>
-        </property>
-        <property name="checkFile" value="true"/>
-        <property name="checkMetadata" value="local.metadata.only"/>
-        <property name="checkMetadataValue" value="false"/>
-    </bean>
 
     <!--bean class="org.dspace.identifier.doi.CollectionValidationExclusive">
         <property name="collectionList">
             <list>
-                <value>123456789/2</value>
+                <value>123456789/9999</value>
             </list>
         </property>
         <property name="checkFile" value="true"/>
@@ -72,7 +62,7 @@
     </bean-->
 
    <!--bean class="org.dspace.identifier.doi.CollectionValidationInclusive">
-        <property name="collectionHandle" value="123456789/5"/>
+        <property name="collectionHandle" value="123456789/9999"/>
         <property name="checkFile" value="true"/>
         <property name="checkMetadata" value="local.metadata.only"/>
     </bean-->
