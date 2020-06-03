@@ -22,19 +22,33 @@
     <bean class="org.dspace.authority.AuthoritySolrServiceImpl" id="org.dspace.authority.AuthoritySearchService"/>
     <alias name="org.dspace.authority.AuthoritySearchService" alias="org.dspace.authority.indexer.AuthorityIndexingService"/>
 
-    <bean id="dspace.DSpaceAuthorityIndexer" class="org.dspace.authority.indexer.DSpaceAuthorityIndexer"/>
+    <bean id="dspace.DSpaceAuthorityIndexer" class="org.dspace.authority.indexer.DSpaceAuthorityIndexer" scope="prototype"/>
+    <bean id="workspaceAuthorityIndexer" class="org.dspace.authority.indexer.WorkspaceAuthorityIndexer" scope="prototype"/>
+    <bean id="funderAuthorityIndexer" class="org.dspace.authority.indexer.FunderAuthorityIndexer" scope="prototype"/>
+    <bean id="defaultProjectAuthorityIndexer"
+          class="org.dspace.authority.indexer.DefaultProjectAuthorityIndexer" scope="prototype">
+        <property name="defaultAuthorityCreator" ref="defaultAuthorityCreator"/>
+    </bean>
 
     <bean name="AuthorityTypes" class="org.dspace.authority.AuthorityTypes">
         <property name="types">
             <list>
+                <bean class="org.dspace.authority.FunderAuthorityValue"/>
                 <bean class="org.dspace.authority.orcid.Orcidv2AuthorityValue"/>
                 <bean class="org.dspace.authority.PersonAuthorityValue"/>
+                <bean class="org.dspace.authority.ProjectAuthorityValue"/>
             </list>
         </property>
         <property name="fieldDefaults">
             <map>
+                <entry key="rioxxterms_funder">
+                    <bean class="org.dspace.authority.FunderAuthorityValue"/>
+                </entry>
                 <entry key="dc_contributor_author">
                     <bean class="org.dspace.authority.PersonAuthorityValue"/>
+                </entry>
+                <entry key="rioxxterms_identifier_project">
+                    <bean class="org.dspace.authority.ProjectAuthorityValue"/>
                 </entry>
             </map>
         </property>
@@ -46,5 +60,9 @@
         <constructor-arg value="${orcid.api.url}"/>
     </bean>
 
+
+    <bean name="ProjectService" class="org.dspace.project.ProjectService"/>
+    
+    <bean name="defaultAuthorityCreator" class="org.dspace.authority.DefaultAuthorityCreator"/>
 
 </beans>

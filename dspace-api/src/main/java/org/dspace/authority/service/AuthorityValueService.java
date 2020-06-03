@@ -51,4 +51,14 @@ public interface AuthorityValueService
     public AuthorityValue fromSolr(SolrDocument solrDocument);
 
     public AuthorityValue getAuthorityValueType(String metadataString);
+    
+    public AuthorityValue findByFunderID(Context context, String funderID);
+    
+    public AuthorityValue findByProjectIDAndFunderId(Context context, String projectId, String funderID);
+
+    public List<AuthorityValue> findByAuthorityType(Context context, String type, int page, int pageSize);
+    
+    public List<AuthorityValue> findByFieldAndValue(Context context, String field, String value);
+    
+    public List<AuthorityValue> find(Context context, String queryString);
 }

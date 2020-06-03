@@ -7,6 +7,12 @@
  */
 package org.dspace.authority;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
@@ -17,8 +23,6 @@ import org.dspace.content.authority.SolrAuthority;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
 
 /**
  * This service contains all methods for using authority values
@@ -125,36 +129,11 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
         return findings.size() > 0 ? findings.get(0) : null;
     }
 
-    @Override
-    public List<AuthorityValue> findByValue(Context context, String field, String value) {
-        String queryString = "value:" + value + " AND field:" + field;
-        return find(context, queryString);
-    }
-
-    @Override
-    public AuthorityValue findByOrcidID(Context context, String orcid_id) {
-        String queryString = "orcid_id:" + orcid_id;
-        List<AuthorityValue> findings = find(context, queryString);
-        return findings.size() > 0 ? findings.get(0) : null;
-    }
-
-    @Override
-    public List<AuthorityValue> findByExactValue(Context context, String field, String value) {
-        String queryString = "value:\"" + value + "\" AND field:" + field;
-        return find(context, queryString);
-    }
 
     @Override
     public List<AuthorityValue> findByValue(Context context, String schema, String element, String qualifier, String value) {
         String field = fieldParameter(schema, element, qualifier);
         return findByValue(context, field, qualifier);
-    }
-
-    @Override
-    public List<AuthorityValue> findByName(Context context, String schema, String element, String qualifier, String name) {
-        String field = fieldParameter(schema, element, qualifier);
-        String queryString = "first_name:" + name + " OR last_name:" + name + " OR name_variant:" + name + " AND field:" + field;
-        return find(context, queryString);
     }
 
     @Override
@@ -195,27 +174,6 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
         return fromAuthority;
     }
 
-    protected List<AuthorityValue> find(Context context, String queryString) {
-        List<AuthorityValue> findings = new ArrayList<AuthorityValue>();
-        try {
-            SolrQuery solrQuery = new SolrQuery();
-            solrQuery.setQuery(filtered(queryString));
-            log.debug("AuthorityValueFinder makes the query: " + queryString);
-            QueryResponse queryResponse = SolrAuthority.getSearchService().search(solrQuery);
-            if (queryResponse != null && queryResponse.getResults() != null && 0 < queryResponse.getResults().getNumFound()) {
-                for (SolrDocument document : queryResponse.getResults()) {
-                    AuthorityValue authorityValue = fromSolr(document);
-                    findings.add(authorityValue);
-                    log.debug("AuthorityValueFinder found: " + authorityValue.getValue());
-                }
-            }
-        } catch (Exception e) {
-            log.error(LogManager.getHeader(context, "Error while retrieving AuthorityValue from solr", "query: " + queryString),e);
-        }
-
-        return findings;
-    }
-
     protected String filtered(String queryString) throws InstantiationException, IllegalAccessException {
         String instanceFilter = "-deleted:true";
         if (StringUtils.isNotBlank(instanceFilter)) {
@@ -227,4 +185,90 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
     protected String fieldParameter(String schema, String element, String qualifier) {
         return schema + "_" + element + ((qualifier != null) ? "_" + qualifier : "");
     }
+
+	@Override
+	public List<AuthorityValue> findByExactValue(Context context, String field, String value) {
+		String queryString = "value_keyword:\"" + value + "\" AND field:\"" + field + "\"";
+		return find(context, queryString);
+	}
+
+	public AuthorityValue findByFunderID(Context context, String funderID) {
+		String queryString = "label_funderID:\"" + funderID + "\"";
+		List<AuthorityValue> findings = find(context, queryString);
+		return findings.size() > 0 ? findings.get(0) : null;
+	}
+
+	public AuthorityValue findByProjectIDAndFunderId(Context context, String projectId, String funderID) {
+		String queryString = "value_keyword:\"" + projectId + "\" AND label_funder_authority_ID:\"" + funderID + "\"";
+		List<AuthorityValue> findings = find(context, queryString);
+		return findings.size() > 0 ? findings.get(0) : null;
+	}
+
+	@Override
+	public List<AuthorityValue> findByName(Context context, String schema, String element, String qualifier,
+			String name) {
+		String field = fieldParameter(schema, element, qualifier);
+		String queryString = "first_name:\"" + name + "\" OR last_name:\"" + name + "\" OR name_variant:\"" + name
+				+ "\" AND field:\"" + field + "\"";
+		return find(context, queryString);
+	}
+
+	public List<AuthorityValue> findByValue(Context context, String field, String value) {
+		String queryString = "value:\"" + value + "\" AND field:\"" + field + "\"";
+		return find(context, queryString);
+	}
+
+
+	public AuthorityValue findByOrcidID(Context context, String orcid_id) {
+		String queryString = "orcid_id:\"" + orcid_id + "\"";
+		List<AuthorityValue> findings = find(context, queryString);
+		return findings.size() > 0 ? findings.get(0) : null;
+	}
+
+	public List<AuthorityValue> findByFieldAndValue(Context context, String field, String value) {
+		String queryString = field + ":\"" + value + "\"";
+		return find(context, queryString);
+	}
+
+	public List<AuthorityValue> findByAuthorityType(Context context, String type, int page, int pageSize) {
+		String queryString = "authority_type:\"" + type + "\"";
+		return find(context, queryString, page, pageSize);
+	}
+
+	@Override
+	public List<AuthorityValue> find(Context context, String queryString) {
+		return find(context, queryString, -1, -1);
+	}
+
+	public List<AuthorityValue> find(Context context, String queryString, int page, int pageSize) {
+		List<AuthorityValue> findings = new ArrayList<AuthorityValue>();
+		try {
+			SolrQuery solrQuery = new SolrQuery();
+			solrQuery.setQuery(filtered(queryString));
+
+			if (page >= 0) {
+				solrQuery.setStart(page * pageSize);
+			}
+			if (pageSize >= 0) {
+				solrQuery.setRows(pageSize);
+			}
+
+			log.debug("AuthorityValueFinder makes the query: " + queryString);
+			QueryResponse queryResponse = SolrAuthority.getSearchService().search(solrQuery);
+			if (queryResponse != null && queryResponse.getResults() != null
+					&& 0 < queryResponse.getResults().getNumFound()) {
+				for (SolrDocument document : queryResponse.getResults()) {
+					AuthorityValue authorityValue = fromSolr(document);
+					findings.add(authorityValue);
+					log.debug("AuthorityValueFinder found: " + authorityValue.getValue());
+				}
+			}
+		} catch (Exception e) {
+			log.error(LogManager.getHeader(context, "Error while retrieving AuthorityValue from solr",
+					"query: " + queryString), e);
+		}
+
+		return findings;
+	}
+
 }

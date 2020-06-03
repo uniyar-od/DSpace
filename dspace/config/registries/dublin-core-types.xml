@@ -599,4 +599,18 @@
         <scope_note></scope_note>
     </dc-type>
 
+  <dc-type>
+    <schema>dc</schema>
+    <element>rights</element>
+    <qualifier>embargodate</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>identifier</element>
+    <qualifier>doi</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
 </dspace-dc-types>

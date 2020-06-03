@@ -428,6 +428,16 @@ public class XOAI {
                     item.getID().toString(), handle));
         }
 
+        boolean hasBitstream = false;
+
+        for (Bundle b : item.getBundles("ORIGINAL")){
+            if(b.getBitstreams().size()>0) {
+                hasBitstream = true;
+            }
+        }
+
+        doc.addField("item.hasbitstream", hasBitstream);
+        
         return doc;
     }
 

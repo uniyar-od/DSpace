@@ -115,6 +115,7 @@
 		        <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterFileNameInOriginalBundle" />
                 <ref bean="searchFilterFileDescriptionInOriginalBundle" />
+                <ref bean="searchFilterFunder" />
             </list>
         </property>
         <!--The sort filters for the discovery search-->
@@ -227,6 +228,7 @@
 		        <ref bean="searchFilterContentInOriginalBundle"/>
                 <ref bean="searchFilterFileNameInOriginalBundle" />
                 <ref bean="searchFilterFileDescriptionInOriginalBundle" />
+                <ref bean="searchFilterFunder" />
             </list>
         </property>
         <!--The sort filters for the discovery search (same as defaultConfiguration above)-->
@@ -447,6 +449,17 @@
         <property name="metadataFields">
             <list/>
         </property>
+    </bean>
+    <bean id="searchFilterFunder" class="org.dspace.discovery.configuration.DiscoverySearchFilterFacet">
+        <property name="indexFieldName" value="funder"/>
+        <property name="metadataFields">
+            <list>
+                <value>rioxxterms.funder</value>
+            </list>
+        </property>
+        <property name="facetLimit" value="10"/>
+        <property name="sortOrderSidebar" value="VALUE"/>
+        <property name="sortOrderFilterPage" value="VALUE"/>        
     </bean>
 
     <!--Sort properties-->
