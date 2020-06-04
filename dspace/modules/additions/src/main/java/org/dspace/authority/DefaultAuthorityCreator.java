@@ -20,6 +20,8 @@ public class DefaultAuthorityCreator {
 
     private AuthorityValueService authorityValueService;
     
+    private AuthorityIndexingService authorityIndexingService;
+    
     public FunderAuthorityValue retrieveDefaultFunder(Context context) {
         if(!hasValidDefaultAuthorityConfiguration()){
             return null;
@@ -34,9 +36,8 @@ public class DefaultAuthorityCreator {
             FunderAuthorityValue funderAuthorityValue = FunderAuthorityValue.create();
             funderAuthorityValue.setValue(defaultFunder);
             funderAuthorityValue.setFunderID(defaultFunderID);
-            AuthoritySolrServiceImpl solrService = (AuthoritySolrServiceImpl) new DSpace().getServiceManager().getServiceByName(AuthorityIndexingService.class.getName(), AuthorityIndexingService.class);
-            solrService.indexContent(funderAuthorityValue);
-            solrService.commit();
+            getAuthorityIndexingService().indexContent(funderAuthorityValue);
+            getAuthorityIndexingService().commit();
 
             return funderAuthorityValue;
         } else {
@@ -76,9 +77,8 @@ public class DefaultAuthorityCreator {
             ProjectAuthorityValue projectAuthorityValue = ProjectAuthorityValue.create();
             projectAuthorityValue.setValue(defaultProject);
             projectAuthorityValue.setFunderAuthorityValue(funderAuthorityValue);
-            AuthoritySolrServiceImpl solrService = (AuthoritySolrServiceImpl) new DSpace().getServiceManager().getServiceByName(AuthorityIndexingService.class.getName(), AuthorityIndexingService.class);
-            solrService.indexContent(projectAuthorityValue);
-            solrService.commit();
+            getAuthorityIndexingService().indexContent(projectAuthorityValue);
+            getAuthorityIndexingService().commit();
             return projectAuthorityValue;
         }else{
             return defaultProjectValue;
@@ -100,6 +100,17 @@ public class DefaultAuthorityCreator {
 
 	public void setAuthorityValueService(AuthorityValueService authorityValueService) {
 		this.authorityValueService = authorityValueService;
+	}
+
+	public AuthorityIndexingService getAuthorityIndexingService() {
+		if(authorityIndexingService == null) {
+			authorityIndexingService = AuthorityServiceFactory.getInstance().getAuthorityIndexingService();
+		}
+		return authorityIndexingService;
+	}
+
+	public void setAuthorityIndexingService(AuthorityIndexingService authorityIndexingService) {
+		this.authorityIndexingService = authorityIndexingService;
 	}
 
 }

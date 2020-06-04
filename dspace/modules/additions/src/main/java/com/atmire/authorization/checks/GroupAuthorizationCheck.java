@@ -27,33 +27,6 @@ public class GroupAuthorizationCheck implements AuthorizationCheck{
     @Autowired
     private GroupService groupService;
     
-    @PostConstruct
-    public void initGroups(){
-        Context context = null;
-        try {
-            context = new Context();
-            Group adminGroup = groupService.findByName(context,"Administrator");
-            context.turnOffAuthorisationSystem();
-            for(String group : allowedGroups){
-                Group g = groupService.findByName(context,group);
-                if(g == null){
-                    Group createdGroup = groupService.create(context);
-                    groupService.setName(createdGroup, group);
-                    groupService.addMember(context, adminGroup, createdGroup);
-                    groupService.update(context, createdGroup);
-                }
-            }
-            context.restoreAuthSystemState();
-        } catch (SQLException e) {
-           log.error("Error while checking for non-existing groups during the authorization check.",e);
-        } catch (AuthorizeException e) {
-            log.error(e);
-        } finally {
-            if(context!=null){
-                context.abort();
-            }
-        }
-    }
     @Required
     public void setAllowedGroups(List<String> allowedGroups){
         this.allowedGroups=allowedGroups;
@@ -85,5 +58,9 @@ public class GroupAuthorizationCheck implements AuthorizationCheck{
 	}
 	public void setGroupService(GroupService groupService) {
 		this.groupService = groupService;
+	}
+
+	public List<String> getAllowedGroups() {
+		return allowedGroups;
 	}
 }
