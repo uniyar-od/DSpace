@@ -9,6 +9,7 @@ package org.dspace.app.util;
 
 import java.util.Map;
 import java.io.Serializable;
+import org.apache.commons.lang3.*;
 
 /**
  * Class representing configuration for a single step within an Item Submission
@@ -18,10 +19,10 @@ import java.io.Serializable;
  *
  * Note: Implements Serializable as it will be saved to the current session during submission.
  * Please ensure that nothing is added to this class that isn't also serializable
- * 
+ *
  * @see org.dspace.app.util.SubmissionConfigReader
  * @see org.dspace.app.util.SubmissionConfig
- * 
+ *
  * @author Tim Donohue
  * @version $Revision$
  */
@@ -48,11 +49,13 @@ public class SubmissionStepConfig implements Serializable
 
     /** the name of the java processing class for this step */
     private String processingClassName = null;
-   
+
     /** whether or not this step is editable during workflow (default=true) */
     private boolean workflowEditable = true;
 
-    /** 
+    private boolean submissionEditable = true;
+
+    /**
      * The full name of the JSP-UI binding class for this step. This field is
      * ONLY used by the JSP-UI.
      **/
@@ -64,6 +67,8 @@ public class SubmissionStepConfig implements Serializable
      * ONLY used by the Manakin XML-UI.
      */
     private String xmlBindingClassName = null;
+
+    private String typeBindingConfig = null;
 
     /** The number of this step in the current SubmissionConfig */
     private int number = -1;
@@ -78,7 +83,7 @@ public class SubmissionStepConfig implements Serializable
     /**
      * Class constructor for creating a SubmissionStepConfig object based on the
      * contents of a HashMap initialized by the SubmissionConfig object.
-     * 
+     *
      * @param stepMap
      *            the HashMap containing all required information about this
      *            step
@@ -96,13 +101,20 @@ public class SubmissionStepConfig implements Serializable
         {
             workflowEditable = Boolean.parseBoolean(wfEditString);
         }
+        typeBindingConfig = stepMap.get("type-binding");
+
+        String submissionEditString = stepMap.get("submission-editable");
+        if (StringUtils.isNotBlank(submissionEditString))
+        {
+            submissionEditable = Boolean.parseBoolean(submissionEditString);
+        }
     }
 
     /**
      * Get the ID for this step. An ID is only defined if the step exists in the
-     * {@code <step-definitions>} section. This ID field is used to reference special
-     * steps (like the required step with {@code id="collection"})
-     * 
+     * <step-definitions> section. This ID field is used to reference special
+     * steps (like the required step with id="collection")
+     *
      * @return the step ID
      */
     public String getId()
@@ -114,7 +126,7 @@ public class SubmissionStepConfig implements Serializable
      * Get the heading for this step. This can either be a property from
      * Messages.properties, or the actual heading text. If this "heading"
      * contains a period(.) it is assumed to reference Messages.properties.
-     * 
+     *
      * @return the heading
      */
     public String getHeading()
@@ -127,7 +139,7 @@ public class SubmissionStepConfig implements Serializable
      * <p>
      * This class must extend the org.dspace.submit.AbstractProcessingStep class,
      * and provide processing for BOTH the JSP-UI and XML-UI
-     * 
+     *
      * @return the class's full class path (e.g.
      *         "org.dspace.submit.step.MySampleStep")
      */
@@ -145,14 +157,14 @@ public class SubmissionStepConfig implements Serializable
      * <P>
      * This property is only used by the Manakin XML-UI, and therefore is not
      * relevant if you are using the JSP-UI.
-     * 
+     *
      * @return the full java class name of the Transformer to use for this step
      */
     public String getXMLUIClassName()
     {
         return xmlBindingClassName;
     }
-    
+
     /**
      * Retrieve the full class name of the JSP-UI "binding" class which will
      * initialize and call the necessary JSPs for display in the JSP-UI
@@ -162,7 +174,7 @@ public class SubmissionStepConfig implements Serializable
      * <P>
      * This property is only used by the JSP-UI, and therefore is not
      * relevant if you are using the XML-UI (aka. Manakin).
-     * 
+     *
      * @return the full java class name of the JSPStep to use for this step
      */
     public String getJSPUIClassName()
@@ -174,7 +186,7 @@ public class SubmissionStepConfig implements Serializable
      * Get the number of this step in the current Submission process config.
      * Step numbers start with #0 (although step #0 is ALWAYS the special
      * "select collection" step)
-     * 
+     *
      * @return the number of this step in the current SubmissionConfig
      */
     public int getStepNumber()
@@ -186,7 +198,7 @@ public class SubmissionStepConfig implements Serializable
      * Sets the number of this step in the current Submission process config.
      * Step numbers start with #0 (although step #0 is ALWAYS the special
      * "select collection" step)
-     * 
+     *
      * @param stepNum
      *            the step number.
      */
@@ -199,7 +211,7 @@ public class SubmissionStepConfig implements Serializable
      * Whether or not this step is editable during workflow processing. If
      * "true", then this step will appear in the "Edit Metadata" stage of the
      * workflow process.
-     * 
+     *
      * @return if step is editable in a workflow process
      */
     public boolean isWorkflowEditable()
@@ -210,11 +222,20 @@ public class SubmissionStepConfig implements Serializable
     /**
      * Whether or not this step is visible within the Progress Bar. A step is
      * only visible if it has been assigned a Heading, otherwise it's invisible
-     * 
+     *
      * @return if step is visible within the progress bar
      */
     public boolean isVisible()
     {
         return ((heading != null) && (heading.length() > 0));
+    }
+
+    public String getTypeBindingConfig()
+    {
+        return typeBindingConfig;
+    }
+
+    public boolean isSubmissionEditable() {
+        return submissionEditable;
     }
 }

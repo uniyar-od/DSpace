@@ -17,8 +17,6 @@ import org.dspace.authority.AuthorityValue;
 import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.Collection;
-import org.dspace.utils.DSpace;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Created by Philip Vissenaekens (philip at atmire dot com)
@@ -29,7 +27,8 @@ public class SolrProjectAuthority implements ChoiceAuthority  {
     
 	private static final Logger log = Logger.getLogger(SolrProjectAuthority.class);
     
-    protected final AuthorityValueService authorityValueService = AuthorityServiceFactory.getInstance().getAuthorityValueService();
+    protected AuthorityValueService authorityValueService;
+    protected AuthoritySearchService authoritySearchService;
     
     public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale, boolean bestMatch) {
         if(limit == 0)
@@ -78,7 +77,7 @@ public class SolrProjectAuthority implements ChoiceAuthority  {
         try {
             int max = 0;
             boolean hasMore = false;
-            QueryResponse searchResponse = getSearchService().search(queryArgs);
+            QueryResponse searchResponse = getAuthoritySearchService().search(queryArgs);
             SolrDocumentList authDocs = searchResponse.getResults();
             ArrayList<Choice> choices = new ArrayList<Choice>();
             if (authDocs != null) {
@@ -90,7 +89,7 @@ public class SolrProjectAuthority implements ChoiceAuthority  {
                 for (int i = 0; i < maxDocs; i++) {
                     SolrDocument solrDocument = authDocs.get(i);
                     if (solrDocument != null) {
-                        AuthorityValue val = authorityValueService.fromSolr(solrDocument);
+                        AuthorityValue val = getAuthorityValueService().fromSolr(solrDocument);
 
                         Map<String, String> extras = val.choiceSelectMap();
                         extras.put("insolr", val.getId());
@@ -150,7 +149,7 @@ public class SolrProjectAuthority implements ChoiceAuthority  {
             SolrQuery queryArgs = new SolrQuery();
             queryArgs.setQuery("id:" + ClientUtils.escapeQueryChars(key));
             queryArgs.setRows(1);
-            QueryResponse searchResponse = getSearchService().search(queryArgs);
+            QueryResponse searchResponse = getAuthoritySearchService().search(queryArgs);
             SolrDocumentList docs = searchResponse.getResults();
             if (docs.getNumFound() == 1) {
                 String label = null;
@@ -195,11 +194,21 @@ public class SolrProjectAuthority implements ChoiceAuthority  {
         return key;
     }
 
-    public static AuthoritySearchService getSearchService() {
-        DSpace dspace = new DSpace();
+	public AuthorityValueService getAuthorityValueService() {
+		if(authorityValueService == null) {
+			authorityValueService = AuthorityServiceFactory.getInstance().getAuthorityValueService();
+		}
+		return authorityValueService;
+	}
 
-        org.dspace.kernel.ServiceManager manager = dspace.getServiceManager();
+	public void setAuthorityValueService(AuthorityValueService authorityValueService) {
+		this.authorityValueService = authorityValueService;
+	}
 
-        return manager.getServiceByName(AuthoritySearchService.class.getName(), AuthoritySearchService.class);
-    }
+	public AuthoritySearchService getAuthoritySearchService() {
+		if(authoritySearchService == null) {
+			authoritySearchService = AuthorityServiceFactory.getInstance().getAuthoritySearchService();
+		}
+		return authoritySearchService;
+	}
 }

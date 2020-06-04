@@ -18,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
+import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.authority.SolrAuthority;
 import org.dspace.core.Context;
@@ -39,6 +40,8 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
     @Autowired(required = true)
     protected AuthorityTypes authorityTypes;
 
+    protected AuthoritySearchService authoritySearchService;
+    
     protected AuthorityValueServiceImpl()
     {
 
@@ -203,10 +206,10 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 
 	@Override
 	public List<AuthorityValue> find(Context context, String queryString) {
-		return find(context, queryString, -1, -1);
+		return find(queryString, -1, -1);
 	}
 
-	public List<AuthorityValue> find(Context context, String queryString, int page, int pageSize) {
+	public List<AuthorityValue> find(String queryString, int page, int pageSize) {
 		List<AuthorityValue> findings = new ArrayList<AuthorityValue>();
 		try {
 			SolrQuery solrQuery = new SolrQuery();
@@ -220,7 +223,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 			}
 
 			log.debug("AuthorityValueFinder makes the query: " + queryString);
-			QueryResponse queryResponse = SolrAuthority.getSearchService().search(solrQuery);
+			QueryResponse queryResponse = getAuthoritySearchService().search(solrQuery);
 			if (queryResponse != null && queryResponse.getResults() != null
 					&& 0 < queryResponse.getResults().getNumFound()) {
 				for (SolrDocument document : queryResponse.getResults()) {
@@ -230,8 +233,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 				}
 			}
 		} catch (Exception e) {
-			log.error(LogManager.getHeader(context, "Error while retrieving AuthorityValue from solr",
-					"query: " + queryString), e);
+			log.error("Error while retrieving AuthorityValue from solr query: " + queryString);
 		}
 
 		return findings;
@@ -256,7 +258,7 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 
 	public List<AuthorityValue> findByAuthorityType(Context context, String type, int page, int pageSize) {
 		String queryString = "authority_type:\"" + type + "\"";
-		return find(context, queryString, page, pageSize);
+		return find(queryString, page, pageSize);
 	}
 	
 	public AuthorityValue findByFunderID(Context context, String funderID) {
@@ -269,6 +271,17 @@ public class AuthorityValueServiceImpl implements AuthorityValueService{
 		String queryString = "value_keyword:\"" + projectId + "\" AND label_funder_authority_ID:\"" + funderID + "\"";
 		List<AuthorityValue> findings = find(context, queryString);
 		return findings.size() > 0 ? findings.get(0) : null;
+	}
+
+	public AuthoritySearchService getAuthoritySearchService() {
+		if(authoritySearchService == null) {
+			authoritySearchService = AuthorityServiceFactory.getInstance().getAuthoritySearchService();
+		}
+		return authoritySearchService;
+	}
+
+	public void setAuthoritySearchService(AuthoritySearchService authoritySearchService) {
+		this.authoritySearchService = authoritySearchService;
 	}
 
 }

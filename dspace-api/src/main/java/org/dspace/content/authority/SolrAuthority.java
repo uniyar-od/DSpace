@@ -7,26 +7,27 @@
  */
 package org.dspace.content.authority;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.apache.solr.common.params.CommonParams;
 import org.dspace.authority.AuthoritySearchService;
 import org.dspace.authority.AuthorityValue;
-import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.SolrAuthorityInterface;
+import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.content.Collection;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  *
@@ -38,11 +39,11 @@ import java.util.Map;
 public class SolrAuthority implements ChoiceAuthority {
 
     private static final Logger log = Logger.getLogger(SolrAuthority.class);
-    protected SolrAuthorityInterface source = DSpaceServicesFactory.getInstance().getServiceManager()
-                                                       .getServiceByName("AuthoritySource", SolrAuthorityInterface.class);
+    protected SolrAuthorityInterface source;
     protected boolean externalResults = false;
-    protected final AuthorityValueService authorityValueService = AuthorityServiceFactory.getInstance().getAuthorityValueService();
-
+    protected AuthorityValueService authorityValueService;
+    protected AuthoritySearchService authoritySearchService; 
+    
     public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale, boolean bestMatch) {
         if(limit == 0)
             limit = 10;
@@ -68,6 +69,7 @@ public class SolrAuthority implements ChoiceAuthority {
             if (!localSearchField.equals("")) {
                 query += " or (" + toQuery(localSearchField, text) + ")";
             }
+            query+=" or (" + toQuery("name_variant", text) + ") ";
             queryArgs.setQuery(query);
         }
 
@@ -93,7 +95,7 @@ public class SolrAuthority implements ChoiceAuthority {
         try {
             int max = 0;
             boolean hasMore = false;
-            QueryResponse searchResponse = getSearchService().search(queryArgs);
+            QueryResponse searchResponse = getAuthoritySearchService().search(queryArgs);
             SolrDocumentList authDocs = searchResponse.getResults();
             ArrayList<Choice> choices = new ArrayList<Choice>();
             if (authDocs != null) {
@@ -105,7 +107,7 @@ public class SolrAuthority implements ChoiceAuthority {
                 for (int i = 0; i < maxDocs; i++) {
                     SolrDocument solrDocument = authDocs.get(i);
                     if (solrDocument != null) {
-                        AuthorityValue val = authorityValueService.fromSolr(solrDocument);
+                        AuthorityValue val = getAuthorityValueService().fromSolr(solrDocument);
 
                         Map<String, String> extras = val.choiceSelectMap();
                         extras.put("insolr", val.getId());
@@ -144,9 +146,9 @@ public class SolrAuthority implements ChoiceAuthority {
     }
 
     protected void addExternalResults(String text, ArrayList<Choice> choices, List<AuthorityValue> alreadyPresent, int max) {
-        if(source != null){
+        if(getSource() != null){
             try {
-                List<AuthorityValue> values = source.queryAuthorities(text, max * 2); // max*2 because results get filtered
+                List<AuthorityValue> values = getSource().queryAuthorities(text, max * 2); // max*2 because results get filtered
 
                 // filtering loop
                 Iterator<AuthorityValue> iterator = values.iterator();
@@ -177,7 +179,8 @@ public class SolrAuthority implements ChoiceAuthority {
     }
 
     private String toQuery(String searchField, String text) {
-        return searchField + ":\"" + text.toLowerCase().replaceAll(":", "\\:") + "*\" or " + searchField + ":\"" + text.toLowerCase().replaceAll(":", "\\:")+"\"";
+//        return searchField + ":\"" + text.toLowerCase().replaceAll(":", "\\:") + "*\" or " + searchField + ":\"" + text.toLowerCase().replaceAll(":", "\\:")+"\"";
+        return searchField + ":" + ClientUtils.escapeQueryChars(text.toLowerCase())+ "* OR " + searchField + ":" + ClientUtils.escapeQueryChars(text.toLowerCase()) + "";
     }
 
     @Override
@@ -201,9 +204,9 @@ public class SolrAuthority implements ChoiceAuthority {
                 log.debug("requesting label for key " + key + " using locale " + locale);
             }
             SolrQuery queryArgs = new SolrQuery();
-            queryArgs.setQuery("id:" + key);
+            queryArgs.setQuery("id:" + ClientUtils.escapeQueryChars(key));
             queryArgs.setRows(1);
-            QueryResponse searchResponse = getSearchService().search(queryArgs);
+            QueryResponse searchResponse = getAuthoritySearchService().search(queryArgs);
             SolrDocumentList docs = searchResponse.getResults();
             if (docs.getNumFound() == 1) {
                 String label = null;
@@ -248,14 +251,41 @@ public class SolrAuthority implements ChoiceAuthority {
         return key;
     }
 
-
-    public static AuthoritySearchService getSearchService() {
-        org.dspace.kernel.ServiceManager manager = DSpaceServicesFactory.getInstance().getServiceManager();
-
-        return manager.getServiceByName(AuthoritySearchService.class.getName(), AuthoritySearchService.class);
-    }
-
     public void addExternalResultsInNextMatches() {
         this.externalResults = true;
     }
+
+	public SolrAuthorityInterface getSource() {
+		if (source == null) {
+			source = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName("AuthoritySource",
+					SolrAuthorityInterface.class);
+		}
+		return source;
+	}
+
+	public void setSource(SolrAuthorityInterface source) {
+		this.source = source;
+	}
+
+	public AuthorityValueService getAuthorityValueService() {
+		if(authorityValueService == null) {
+			authorityValueService = AuthorityServiceFactory.getInstance().getAuthorityValueService();
+		}
+		return authorityValueService;
+	}
+
+	public void setAuthorityValueService(AuthorityValueService authorityValueService) {
+		this.authorityValueService = authorityValueService;
+	}
+
+	public AuthoritySearchService getAuthoritySearchService() {
+		if(authoritySearchService == null) {
+			authoritySearchService = AuthorityServiceFactory.getInstance().getAuthoritySearchService();
+		}
+		return authoritySearchService;
+	}
+
+	public void setAuthoritySearchService(AuthoritySearchService authoritySearchService) {
+		this.authoritySearchService = authoritySearchService;
+	}
 }

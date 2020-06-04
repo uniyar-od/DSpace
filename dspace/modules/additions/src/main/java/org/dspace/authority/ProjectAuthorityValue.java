@@ -54,29 +54,17 @@ public class ProjectAuthorityValue extends AuthorityValue {
     @Override
     public void setValues(SolrDocument document) {
         super.setValues(document);
-        ArrayList list;
-        list = ((ArrayList) document.getFieldValue("label_funder_authority_ID"));
-        if (list != null && !list.isEmpty()) {
-            Context context = null;
-            try {
-                context = new Context();
-                String funderAuthorityID = ObjectUtils.toString(list.get(0));
+        String list = (String)document.getFirstValue("label_funder_authority_ID");
+		if (list != null && !list.isEmpty()) {
+			String funderAuthorityID = ObjectUtils.toString(list);
 
-                AuthorityValueService finder = AuthorityServiceFactory.getInstance().getAuthorityValueService();
-                AuthorityValue funder = finder.findByUID(context, funderAuthorityID);
+			AuthorityValueService finder = AuthorityServiceFactory.getInstance().getAuthorityValueService();
+			AuthorityValue funder = finder.findByUID(null, funderAuthorityID);
 
-                if(funder!=null && funder.getAuthorityType().equals("funder")){
-                    funderAuthorityValue = (FunderAuthorityValue) funder;
-                }
-            } catch (Exception e) {
-                log.error(e.getMessage(), e);
-            }
-            finally {
-                if(context!=null) {
-                    context.abort();
-                }
-            }
-        }
+			if (funder != null && funder.getAuthorityType().equals("funder")) {
+				funderAuthorityValue = (FunderAuthorityValue) funder;
+			}
+		}
     }
 
     @Override

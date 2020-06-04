@@ -7,12 +7,14 @@
  */
 package org.dspace.app.util;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.io.Serializable;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.utils.DSpace;
 
 /**
  * Class representing a single Item Submission config definition, organized into
@@ -22,8 +24,8 @@ import org.apache.log4j.Logger;
  * Note: Implements Serializable as it will be saved to the current session during submission.
  * Please ensure that nothing is added to this class that isn't also serializable
  * 
- * @see org.dspace.app.util.SubmissionConfigReader
- * @see org.dspace.app.util.SubmissionStepConfig
+ * @see SubmissionConfigReader
+ * @see SubmissionStepConfig
  * 
  * @author Tim Donohue, based on DCInputSet by Brian S. Hughes
  * @version $Revision$
@@ -31,6 +33,9 @@ import org.apache.log4j.Logger;
 
 public class SubmissionConfig implements Serializable
 {
+	
+	private final ISubmissionStepConditionCheck conditionCheck = new DSpace().getServiceManager().getServiceByName("SubmissionStepConditionCheck",ISubmissionStepConditionCheck.class);
+	
     /** name of the item submission process */
     private String submissionName = null;
 
@@ -46,17 +51,60 @@ public class SubmissionConfig implements Serializable
     /**
      * Constructs a new Submission Configuration object, based on the XML
      * configuration file (item-submission.xml)
-     * 
-     * @param submissionName
+     *  @param submissionName
      *            the submission process name
      * @param steps
      *            the vector listing of step information to build
      *            SubmissionStepConfig objects for this submission process
-     * @param isWorkflowProcess
-     *            whether this submission process is being used in a workflow or
-     *            not. If it is a workflow process this may limit the steps that
-     *            are available for editing.
+     * @param subInfo
+ *                 the submission info
      */
+    public SubmissionConfig(String submissionName, List<Map<String, String>> steps,
+                            SubmissionInfo subInfo)
+    {
+        this.submissionName = submissionName;
+        this.isWorkflow = subInfo.isInWorkflow();
+
+        // initialize a vector of SubmissionStepConfig objects
+        List<SubmissionStepConfig> stepConfigs = new ArrayList<SubmissionStepConfig>();
+
+        // loop through our steps, and create SubmissionStepConfig objects
+        for (int stepNum = 0; stepNum < steps.size(); stepNum++)
+        {
+            Map<String, String> stepInfo = steps.get(stepNum);
+            SubmissionStepConfig step = new SubmissionStepConfig(stepInfo);
+
+            // Only add this step to the process if either:
+            // (a) this is not a workflow process OR
+            // (b) this is a workflow process, and this step is editable in a
+            // workflow
+            if ((!this.isWorkflow && step.isSubmissionEditable())
+                    || ((this.isWorkflow) && step.isWorkflowEditable()))
+            {
+                boolean typeBoundAndValid = true;
+                if(StringUtils.isNotBlank(step.getTypeBindingConfig())){
+                    String typeBindingConfig = step.getTypeBindingConfig();
+                    typeBoundAndValid= conditionCheck.allConditionsMet(subInfo.getSubmissionItem().getItem(), typeBindingConfig);
+                }
+                if (typeBoundAndValid) {
+
+                    // set the number of the step (starts at 0) and add it
+                    step.setStepNumber(stepConfigs.size());
+                    stepConfigs.add(step);
+
+                    log.debug("Added step '" + step.getProcessingClassName()
+                            + "' as step #" + step.getStepNumber()
+                            + " of submission process " + submissionName);
+                }
+
+            }
+        }
+
+        // get steps as an array of Strings
+        submissionSteps = stepConfigs
+                .toArray(new SubmissionStepConfig[stepConfigs.size()]);
+    }
+
     public SubmissionConfig(String submissionName, List<Map<String, String>> steps,
             boolean isWorkflowProcess)
     {
@@ -94,7 +142,6 @@ public class SubmissionConfig implements Serializable
         submissionSteps = stepConfigs
                 .toArray(new SubmissionStepConfig[stepConfigs.size()]);
     }
-
     /**
      * Return the name of the item submission process definition
      * 

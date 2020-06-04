@@ -94,7 +94,7 @@ public class HandleUtil
             request.setAttribute(DSPACE_OBJECT, dso);
         }
 
-        return context.reloadEntity(dso);
+        return ContentServiceFactory.getInstance().getDSpaceObjectService(dso).find(context, dso.getID());
     }
 
     /**
