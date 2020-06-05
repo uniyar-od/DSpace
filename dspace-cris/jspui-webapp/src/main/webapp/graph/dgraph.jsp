@@ -10,10 +10,11 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <%@ page contentType="text/html;charset=UTF-8" %>
 <%@ page import="java.net.URLEncoder"%>
-<%@page import="org.dspace.app.cris.model.ResearcherPage"%>
-<%@page import="org.dspace.app.cris.network.NetworkPlugin"%>
+<%@ page import="org.dspace.app.cris.model.ResearcherPage"%>
+<%@ page import="org.dspace.app.cris.network.NetworkPlugin"%>
 <%@ page import="org.dspace.core.ConfigurationManager"%>
-<%@page import="java.util.Map"%>
+<%@ page import="java.util.Map"%>
+<%@ page import="org.apache.commons.lang.StringUtils" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
@@ -65,8 +66,8 @@
         
     <%--script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-1.4.4.min.js"></script--%>
     <%--script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-ui-1.8.18.custom.min.js"></script--%>
-    <script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
-    <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.min.js"></script>
+    <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/jit.js"></script>
     <script src="<%=request.getContextPath()%>/js/jquery.layout-latest.min.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/collaborationNetwork.js"></script>
@@ -156,13 +157,15 @@
 
 
 	var eventTypeDepth = new Array();
-	<% for(String relation : relations) { %>
+	<% for(String relation : relations) {
+		relation = StringUtils.trim(relation); %>
 		<%= relation %>json = new Object();		
 		eventTypeDepth.push('<%= relation %>');		
 	<% } %>
 	var colorsNodes = new Array();
 	var colorsEdges = new Array();
-	<% for(String relation : relations) { %>				
+	<% for(String relation : relations) {
+		relation = StringUtils.trim(relation); %>
 		colorsNodes['<%= relation %>'] = '<%= colorsNodes.get(relation)%>';
 		colorsEdges['<%= relation %>'] = '<%= colorsEdges.get(relation)%>';
 	<% } %>
@@ -297,6 +300,7 @@
 			<%
 			    for (String relation : relations)
 			    {
+			    	relation = StringUtils.trim(relation);
 			%>			
 			<div class="slider-option">
 			   
@@ -400,7 +404,8 @@
 			       }
 			  }		
 			  init(data, rp, network, "dept");		
-			  <% for(String relation : relations) { %> 
+			  <% for(String relation : relations) {
+					relation = StringUtils.trim(relation); %>
 				if(network=='<%=relation%>') {				
 					addLocalJson({"<%=relation%>" : data});
 				}
@@ -497,7 +502,8 @@
 				rgraph.refresh();
 				
 				
-				<% for(String relation : relations) { %> 
+				<% for(String relation : relations) {
+					relation = StringUtils.trim(relation); %>
 					if(network=='<%=relation%>') {				
 						addLocalJson({"<%=relation%>" : data});
 					}
@@ -611,7 +617,8 @@
 	});	
 	
 	
-	<% for(String relation : relations) { %>
+	<% for(String relation : relations) {
+		relation = StringUtils.trim(relation); %>
 				
 		j("#<%= relation%>-color-accordion").css('background-color', '<%= colorsNodes.get(relation)%>');
 		j("#<%= relation%>-color-accordion-listshowed").css('background-color', '<%= colorsNodes.get(relation)%>');
@@ -673,7 +680,7 @@
 			
 			<%for (String r : relations)
 	                {
-
+						r = StringUtils.trim(r);
 	                    if (r != relation)
 	                {%>
 							j('#<%=r + "check"%>').attr('checked','');			
@@ -726,7 +733,8 @@
 			
 			j('#<%=networkStarted + "check"%>').attr('checked','checked');
 					
-			<% for(String relation : relations) { %>
+			<% for(String relation : relations) {
+				relation = StringUtils.trim(relation); %>
 			j( "#slider<%= relation%>").slider({
 				orientation: "horizontal",
 				range: "min",
