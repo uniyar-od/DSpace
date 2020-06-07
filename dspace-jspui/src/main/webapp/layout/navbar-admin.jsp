@@ -57,6 +57,15 @@
     
 %>
 
+<script type='text/javascript'>
+    function hover(element) {
+        element.className = "dropdown open";
+    }
+    function out(element) {
+        element.className = "dropdown";
+    }
+</script>
+
        <div class="navbar-header">
          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
            <span class="icon-bar"></span>
@@ -69,8 +78,8 @@
          <ul class="nav navbar-nav">
            <li class="hidden-xs hidden-sm"><a href="<%= request.getContextPath() %>/"><span class="glyphicon glyphicon-home"></span> <fmt:message key="jsp.layout.navbar-default.home"/></a></li>
            
-          <li class="dropdown">
-             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.contents"/> <b class="caret"></b></a>
+          <li class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+             <a href="" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.contents"/> <b class="caret"></b></a>
              <ul class="dropdown-menu">
                <li><a href="<%= request.getContextPath() %>/tools/edit-communities"><fmt:message key="jsp.layout.navbar-admin.communities-collections"/></a></li>
                <li class="divider"></li>
@@ -98,8 +107,8 @@
  		%>
           <li><a href="<%= request.getContextPath() %>/cris/administrator/index.htm"><fmt:message key="jsp.layout.navbar-admin.cris"/></a></li>
    <% } %>      
-           <li class="dropdown">
-             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.accesscontrol"/> <b class="caret"></b></a>
+           <li class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+             <a href="" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.accesscontrol"/> <b class="caret"></b></a>
              <ul class="dropdown-menu">
                <li><a href="<%= request.getContextPath() %>/dspace-admin/edit-epeople"><fmt:message key="jsp.layout.navbar-admin.epeople"/></a></li>
                <li><a href="<%= request.getContextPath() %>/tools/group-edit"><fmt:message key="jsp.layout.navbar-admin.groups"/></a></li>
@@ -107,8 +116,8 @@
             </ul>
           </li>
           <li><a href="<%= request.getContextPath() %>/cris/stats/site.html?handle=<%=handlePrefix%>/0"><fmt:message key="jsp.layout.navbar-admin.statistics"/></a></li>
-		  <li class="dropdown">
-             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.settings"/> <b class="caret"></b></a>
+		  <li class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+             <a href="" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-admin.settings"/> <b class="caret"></b></a>
              <ul class="dropdown-menu">
 
                <li><a href="<%= request.getContextPath() %>/dspace-admin/metadata-schema-registry"><fmt:message key="jsp.layout.navbar-admin.metadataregistry"/></a></li>
@@ -123,9 +132,9 @@
        </ul>
        <div class="nav navbar-nav navbar-right">
 		<ul class="nav navbar-nav navbar-right">
-         <li id="userloggedin-top-menu" class="dropdown">
+         <li id="userloggedin-top-menu" class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
 
-		<a href="#" class="dropdown-toggle text-right" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.loggedin">
+		<a href="" class="dropdown-toggle text-right" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.loggedin">
 		      <fmt:param><%= StringUtils.abbreviate(navbarEmail, 20) %></fmt:param>
 		  </fmt:message> <b class="caret"></b></a>
 		<ul class="dropdown-menu">

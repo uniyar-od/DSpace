@@ -91,6 +91,15 @@
     boolean showCommList = ConfigurationManager.getBooleanProperty("community-list.show.all",true);
 %>
 
+<script type='text/javascript'>
+    function hover(element) {
+        element.className = "dropdown open";
+    }
+    function out(element) {
+        element.className = "dropdown";
+    }
+</script>
+
        <div class="navbar-header">
          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
            <span class="icon-bar"></span>
@@ -117,7 +126,7 @@
            <li id="<%= mlink.trim() %>-top-menu" class="hidden-xs hidden-sm <c:if test="${exploremlink == location}">active</c:if>"><a href="<%= request.getContextPath() %>/cris/explore/<%= mlink.trim() %>"><fmt:message key="${fmtkey}"/></a></li>
            <% } %>
            <li class="dropdown hidden-md hidden-lg">
-             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-default.explore"/> <b class="caret"></b></a>
+             <a href="" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-default.explore"/> <b class="caret"></b></a>
              <ul class="dropdown-menu">
            <% for (String mlink : mlinks) { %>
            <c:set var="exploremlink">
@@ -146,8 +155,8 @@
  
     <div class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
 	 <ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
-      <li id="language-top-menu" class="dropdown">
-       <a href="#" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-default.language"/><b class="caret"></b></a>
+      <li id="language-top-menu" class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+       <a href="" class="dropdown-toggle" data-toggle="dropdown"><fmt:message key="jsp.layout.navbar-default.language"/><b class="caret"></b></a>
         <ul class="dropdown-menu">
  <%
     for (int i = supportedLocales.length-1; i >= 0; i--)
@@ -172,8 +181,8 @@
  --%>
        <div class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
 		<ul class="nav navbar-nav navbar-<%= isRtl ? "left" : "right" %>">
-                    <li id="search-top-menu" class="dropdown">
-           <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-search"></span><b class="caret"></b></a>
+                    <li id="search-top-menu" class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+           <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-search"></span><b class="caret"></b></a>
           <div class="dropdown-menu">
           
 	<%-- Search Box --%>
@@ -199,15 +208,15 @@
     if (user != null)
     {
 		%>
-		<li id="userloggedin-top-menu" class="dropdown">
-		<a href="#" class="dropdown-toggle <%= isRtl ? "" : "text-right" %>" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.loggedin">
+		<li id="userloggedin-top-menu" class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+		<a href="" class="dropdown-toggle <%= isRtl ? "" : "text-right" %>" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.loggedin">
 		      <fmt:param><%= StringUtils.abbreviate(navbarEmail, 20) %></fmt:param>
 		  </fmt:message> <b class="caret"></b></a>
 		<%
     } else {
 		%>
-			<li id="user-top-menu" class="dropdown">
-             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.sign"/> <b class="caret"></b></a>
+			<li id="user-top-menu" class="dropdown" onmouseover="hover(this);" onmouseout="out(this);">
+             <a href="" class="dropdown-toggle" data-toggle="dropdown"><span class="glyphicon glyphicon-user"></span> <fmt:message key="jsp.layout.navbar-default.sign"/> <b class="caret"></b></a>
 	<% } %>             
              <ul class="dropdown-menu">
                <li><a href="<%= request.getContextPath() %>/mydspace"><fmt:message key="jsp.layout.navbar-default.users"/></a></li>

@@ -106,6 +106,7 @@
         <button class="btn btn-primary" type="submit"><i class="fa fa-search"></i></button>
     </span>    
     <div class="input-group-btn search-panel">
+    <span onmouseover="hover(this);" onmouseout="out(this);">
         <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
         	<span id="search_concept">All</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <b><span class="caret"></b>
         </button>
@@ -125,7 +126,7 @@
 		        %>
 
 					<li class="menu-global-processor">
-						<a href="#"
+						<a href=""
 						title="<%=fvalue.getAuthorityKey()%>"><span class="badge pull-right"><%=fvalue.getCount()%></span> <%=StringUtils.abbreviate(fvalue.getDisplayedValue(), 36)%> &nbsp;&nbsp;&nbsp; <span class="badge invisible"><%=fvalue.getCount()%></span> </a></li>
 					<%
 			    	}
@@ -137,6 +138,7 @@
         
         
         </ul>
+    </span>
     </div>
     <input type="hidden" name="location" value="global" id="search_param">         
 </div>
