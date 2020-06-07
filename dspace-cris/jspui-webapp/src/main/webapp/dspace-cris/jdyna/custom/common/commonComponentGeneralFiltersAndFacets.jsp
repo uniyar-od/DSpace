@@ -49,6 +49,7 @@
 
 <div class="btn-group" style="margin-top: -5px;">
 	<%  if(subLinks.size()>1) {%>
+	<span onmouseover="hover(this);" onmouseout="out(this);">
 	<button type="button" class="btn btn-link dropdown-toggle"
 		style="text-decoration: none;" data-toggle="dropdown">
 		<fmt:message
@@ -63,6 +64,7 @@
 		<li><a href="?open=<%= sub[0] %>#${holder.shortName}"><%= sub[1] %></a></li>
 		<% } %>
 	</ul>
+	</span>
 	<% } else { %>
 		<fmt:message
 		key="jsp.layout.dspace.detail.fieldset-legend.component.boxtitle.${info[holder.shortName].type}">
