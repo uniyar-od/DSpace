@@ -310,7 +310,7 @@
 							</div>
 						 </c:if>
 						<span class="btn-group" onmouseover="hover(this);" onmouseout="out(this);">
-		    				<a href="#" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+		    				<a href="" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 		    				<i class="fa fa-cog"></i> <i class="fa fa-caret-down"></i>
 		    				</a>
 						<ul class="dropdown-menu" role="menu">
