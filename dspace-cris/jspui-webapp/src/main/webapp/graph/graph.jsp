@@ -463,7 +463,7 @@
 	
 	
 	function initJSON(rp, network) {
-
+		customRGraph = <%=radiographlayout%>;
 		j("#log").dialog("open");			
 		Log.write("Loading... network: " + network);
 		var reload = 0;
@@ -657,7 +657,6 @@
 	    }
 	    	    
 	    
-	customRGraph = <%=radiographlayout%>;
 	
 
 	j(".radio").click(function(){		
