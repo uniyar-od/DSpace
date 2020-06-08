@@ -913,8 +913,6 @@
 		
 	}
 
-	j( "#toolbar_print" ).buttonset();
-
 	j("#printWithoutWest").click(function() {
 		printPageWithoutWest()
 	});
