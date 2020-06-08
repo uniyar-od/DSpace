@@ -84,7 +84,7 @@
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.12.1.min.js'></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/bootstrap/bootstrap.min.js'></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/jit.js"></script>
-    <script src="<%=request.getContextPath()%>/js/jquery.layout-1.4.4.min.js"></script>
+    <script src="<%=request.getContextPath()%>/js/jquery.layout-1.4.4.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/collaborationNetwork.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.dataTables.min.js"></script>
         
