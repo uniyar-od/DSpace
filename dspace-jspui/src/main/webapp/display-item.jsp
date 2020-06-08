@@ -227,7 +227,7 @@ j(document).ready(function() {
 				"doi" : "<%= item.getMetadata(ConfigurationManager.getProperty("unpaywall", "metadata.doi")) %>"
 			},
 			success : function(data) {
-				if(data.isFounded) {
+				if(data.isFounded && data.urlJSON.trim()) {
 					j('div.unpaywall').show();
 					j('#unpaywalljson').attr('href', data.urlJSON);
 				}

@@ -259,7 +259,9 @@ public class JSPUploadStep extends JSPStep
                         false);
 
                 return;
-            }
+            }else {
+            	showUploadPage(context, request, response, subInfo, false);
+			}
         }
 
         if (buttonPressed.equalsIgnoreCase(UploadStep.SUBMIT_SKIP_BUTTON) ||

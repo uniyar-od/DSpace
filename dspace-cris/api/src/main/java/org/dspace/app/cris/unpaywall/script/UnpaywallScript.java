@@ -7,7 +7,10 @@
  */
 package org.dspace.app.cris.unpaywall.script;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +36,8 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.service.ApplicationService;
+import org.dspace.app.cris.unpaywall.UnpaywallBestOA;
+import org.dspace.app.cris.unpaywall.UnpaywallRecord;
 import org.dspace.app.cris.unpaywall.UnpaywallService;
 import org.dspace.app.cris.unpaywall.UnpaywallUtils;
 import org.dspace.app.cris.unpaywall.model.Unpaywall;
@@ -146,55 +151,75 @@ public class UnpaywallScript {
         // retrieve items without fulltext and with doi from Solr
         SolrDocumentList documents = retrieveItemFromSolr();
 
-        // for each item check local Unpaywall table
-        List<UnpaywallItem> unpaywallItems = checkItemOnUnpaywall(documents);
-
-        if (option.equalsIgnoreCase(EMAIL_TO_AUTHORS)) {
-            // for each item retrieve owner and create map owner2Items
-            Map<Integer, List<UnpaywallItem>> owner2Items = retrieveOwnerFromSolr(unpaywallItems);
-
-            // for each owner send email
-            for (Integer ownerI : owner2Items.keySet()) {
-                EPerson ePerson = EPerson.find(context, ownerI);
-
-                Email mail = getUnpaywallMailTemplate(EMAIL_TO_AUTHORS);
-
-                if (StringUtils.isBlank(ePerson.getEmail())) continue;
-
-                mail.addRecipient(ePerson.getEmail());
-
-                String emailBody = makeItemListBuilder(owner2Items.get(ownerI)).toString();
-                mail.addArgument(emailBody);
-
-                System.out.println("Sending mail to user: " + ePerson.getEmail());
-                log.info("Sending mail to user: " + ePerson.getEmail());
-                mail.send();
-            }
-        }
-        else {
-            // send email to administrators
-            Email mail = getUnpaywallMailTemplate(EMAIL_TO_ADMINISTRATORS);
-
-            String adminEmail = ConfigurationManager.getProperty("mail.admin");
-            mail.addRecipient(adminEmail);
-
-            List<String> adminEmails = new ArrayList<>();
-            for (EPerson admin : Arrays.asList(Group.allMembers(context, Group.find(context, Group.ADMIN_ID)))) {
-                adminEmails.add(admin.getEmail());
-                mail.addRecipientCC(admin.getEmail());
-            }
-
-            String emailBody = makeItemListBuilder(unpaywallItems).toString();
-            mail.addArgument(emailBody);
-
-            System.out.println("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
-            log.info("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
-            mail.send();
+        if (! documents.isEmpty()) {
+		    // for each item check local Unpaywall table
+		    List<UnpaywallItem> unpaywallItems = checkItemOnUnpaywall(documents);
+		
+		    if (option.equalsIgnoreCase(EMAIL_TO_AUTHORS)) {
+		        // for each item retrieve owner and create map owner2Items
+		        Map<Integer, List<UnpaywallItem>> owner2Items = retrieveOwnerFromSolr(unpaywallItems);
+		
+		        // for each owner send email
+		        for (Integer ownerI : owner2Items.keySet()) {
+		            EPerson ePerson = EPerson.find(context, ownerI);
+		
+		            Email mail = getUnpaywallMailTemplate(EMAIL_TO_AUTHORS);
+		
+		            if (StringUtils.isBlank(ePerson.getEmail())) continue;
+		
+		            mail.addRecipient(ePerson.getEmail());
+		
+		            String emailBody = makeItemListBuilder(owner2Items.get(ownerI), true).toString();
+		            mail.addArgument(emailBody);
+		
+		            mail.addAttachment(
+		            		new ByteArrayInputStream(
+		            			makeItemListBuilder(unpaywallItems, false)
+		            				.getBytes(StandardCharsets.UTF_8)), 
+		            		"unpaywall-record.txt", 
+		            		"text/plain");
+		            
+		            System.out.println("Sending mail to user: " + ePerson.getEmail());
+		            log.info("Sending mail to user: " + ePerson.getEmail());
+		            mail.send();
+		        }
+		    }
+		    else {
+		        // send email to administrators
+		        Email mail = getUnpaywallMailTemplate(EMAIL_TO_ADMINISTRATORS);
+		
+		        String adminEmail = ConfigurationManager.getProperty("mail.admin");
+		        mail.addRecipient(adminEmail);
+		
+		        List<String> adminEmails = new ArrayList<>();
+		        for (EPerson admin : Arrays.asList(Group.allMembers(context, Group.find(context, Group.ADMIN_ID)))) {
+		        	if (StringUtils.isBlank(admin.getEmail())) {
+		        		continue;
+		        	}
+		            adminEmails.add(admin.getEmail());
+		            mail.addRecipientCC(admin.getEmail());
+		        }
+		
+		        String emailBody = makeItemListBuilder(unpaywallItems, true).toString();
+		        mail.addArgument(emailBody);
+		        
+		        mail.addAttachment(
+		        		new ByteArrayInputStream(
+		        			makeItemListBuilder(unpaywallItems, false)
+		        				.getBytes(StandardCharsets.UTF_8)), 
+		        		"unpaywall-record.txt", 
+		        		"text/plain");
+		        
+		        System.out.println("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
+		        log.info("Sending mail to administrator: " + adminEmail + " with CC to administrators: " + StringUtils.strip(Arrays.toString(adminEmails.toArray()), "[]"));
+		        mail.send();
+		    }
         }
     }
 
     private static SolrDocumentList retrieveItemFromSolr() throws SearchServiceException {
-        SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
+    	SolrDocumentList list = new SolrDocumentList();
+    	SolrQuery sQuery = new SolrQuery("item.fulltext_s:\""+nofulltext+"\" AND "+metadataDOI+":*");
         sQuery.setRows(Integer.MAX_VALUE);
         sQuery.addField("search.resourceid");
         sQuery.addField("handle");
@@ -205,13 +230,13 @@ public class UnpaywallScript {
         try {
             qResp = searcher.search(sQuery);
             if (qResp.getResults() != null && qResp.getResults().size() > 0) {
-                return qResp.getResults();
+                list =  qResp.getResults();
             }
         } catch (SearchServiceException e) {
             log.error(e.getMessage(), e);
         }
 
-        return null;
+        return list;
     }
 
     private static List<UnpaywallItem> checkItemOnUnpaywall(SolrDocumentList documents) {
@@ -231,7 +256,10 @@ public class UnpaywallScript {
             if (itemID != null && StringUtils.isNotBlank(doi)) {
                 Unpaywall unpaywall = applicationService.uniqueByDOIAndItemID(UnpaywallUtils.resolveDoi(doi), itemID);
                 if (unpaywall != null && unpaywall.getJsonRecord() != null) {
-                    unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
+                	UnpaywallRecord record = UnpaywallUtils.convertStringToUnpaywallRecord(unpaywall.getJsonRecord());
+                	if (record != null && record.getUnpaywallBestOA() !=null && StringUtils.isNotBlank(record.getUnpaywallBestOA().getUrl_for_pdf())) {						
+                		unpaywallItems.add(new UnpaywallItem(itemID, handle, doi, authors));
+					}
                 }
             }
         }
@@ -283,10 +311,17 @@ public class UnpaywallScript {
         return Email.getEmail(ConfigurationManager.getProperty("dspace.dir") + "/config/emails/" + ConfigurationManager.getProperty("unpaywall", "script." + option + "_email_template.name"));
     }
     
-    private static String makeItemListBuilder(List<UnpaywallItem> unpaywallItems) {
+    private static String makeItemListBuilder(List<UnpaywallItem> unpaywallItems, Boolean limit) {
+    	Integer notificationLimit = ConfigurationManager.getIntProperty("unpaywall", "mail.item.limit", 25);
         int index = 1;
         StringBuilder stringBuilder = new StringBuilder();
         for (UnpaywallItem unpaywallItem : unpaywallItems) {
+        	if (limit && index > notificationLimit) {
+				stringBuilder.append("The above list shows ").append(notificationLimit).append(" records on a total of ").append(unpaywallItems.size()).append(" \n")
+					.append("Please, check the attachment to view the full list \n");
+				break;
+			}
+        	
             String handleLink = ConfigurationManager.getProperty("dspace.url") + "/handle/" + unpaywallItem.getHandle();
             stringBuilder.append(index++).append(". ")
                 .append("DOI: ").append(unpaywallItem.getDoi()).append(" - ")
