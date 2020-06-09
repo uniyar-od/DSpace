@@ -8,6 +8,7 @@
 package org.dspace.app.cris.metrics.scopus.script;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -45,6 +46,7 @@ public class ScriptRetrieveCitation {
 	private static final String fieldPubmedID = ConfigurationManager.getProperty("cris", "ametrics.identifier.pmid");
 	private static final String fieldScopusID = ConfigurationManager.getProperty("cris", "ametrics.identifier.eid");
 	private static final String fieldDoiID = ConfigurationManager.getProperty("cris", "ametrics.identifier.doi");
+	private static final Integer maxItemsInOneCall = ConfigurationManager.getIntProperty("cris", "ametrics.elsevier.scopus.call.max_items", 10);
 
 	/** log4j logger */
 	private static Logger log = Logger.getLogger(ScriptRetrieveCitation.class);
@@ -143,6 +145,7 @@ public class ScriptRetrieveCitation {
 		try {
 			context = new Context();
 			context.turnOffAuthorisationSystem();
+			List<ScopusIdentifiersToResponse> scopusList = new ArrayList<ScopusIdentifiersToResponse>(); 
 			all: for (int page = 0;; page++) {
 				int start = page * MAX_QUERY_RESULTS;
 				if (resultsTot != -1 && start >= resultsTot) {
@@ -183,26 +186,28 @@ public class ScriptRetrieveCitation {
 
 						if (isCheckRequired(itemID)) {
 							itemWorked++;
-							List<String> pmids = doc.getSearchFieldValues(fieldPubmedID);
-							List<String> dois = doc.getSearchFieldValues(fieldDoiID);
-							List<String> eids = doc.getSearchFieldValues(fieldScopusID);
-
-							log.debug(LogManager.getHeader(null, "retrieve_citation_scopus",
-									"lookup pmid:" + pmids + ", lookup doi:" + dois + ", lookup eid:" + eids));
-
-							ScopusResponse response = sService.getCitations(sleep, pmids, dois, eids);
-
-							boolean itWorks = buildCiting(dso, response);
-							if(itWorks) {
-							    itemForceWorked++;
+							ScopusIdentifiersToResponse sc2R = new ScopusIdentifiersToResponse();
+							sc2R.setPmids(doc.getSearchFieldValues(fieldPubmedID));
+							sc2R.setDois(doc.getSearchFieldValues(fieldDoiID));
+							sc2R.setEids(doc.getSearchFieldValues(fieldScopusID));
+							sc2R.setDso(dso);
+							scopusList.add(sc2R);
+							
+							if (scopusList.size() >= maxItemsInOneCall) {
+								itemForceWorked = workItems(scopusList, itemForceWorked);
 							}
 						}
 					}
 				}
 
-				context.commit();
-				context.clearCache();
 			}
+			if (!scopusList.isEmpty()) {
+				itemForceWorked = workItems(scopusList, itemForceWorked);
+			}
+			
+			context.commit();
+			context.clearCache();
+			
 			Date endDate = new Date();
 			long processTime = (endDate.getTime() - startDate.getTime()) / 1000;
 			log.info(LogManager.getHeader(null, "retrieve_citation", "Processing time " + processTime
@@ -216,7 +221,26 @@ public class ScriptRetrieveCitation {
 			}
 
 		}
+	}
+	
+	private static int workItems(List<ScopusIdentifiersToResponse> scopusList, int itemForceWorked) throws SQLException, AuthorizeException {
+		sService.getCitations(sleep, scopusList);
+		
+		for (ScopusIdentifiersToResponse scopusIDs2Response : scopusList) {
+			
+			log.debug(LogManager.getHeader(null, "retrieve_citation_scopus",
+					"lookup pmid:" + scopusIDs2Response.getPmids() + ", lookup doi:" + scopusIDs2Response.getDois() + ", lookup eid:" + scopusIDs2Response.getEids()));
 
+			boolean itWorks = false;
+			if (scopusIDs2Response.getResponse() != null) {
+				itWorks = buildCiting(scopusIDs2Response.getDso(), scopusIDs2Response.getResponse());
+			}
+			if(itWorks) {
+			    itemForceWorked++;
+			}
+		}
+		scopusList.clear();
+		return itemForceWorked;
 	}
 
 	private static boolean buildCiting(DSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
@@ -278,6 +302,46 @@ public class ScriptRetrieveCitation {
 			return (now - lastCheckTime >= timeElapsed);
 		} else {
 			return true;
+		}
+	}
+	
+	public static class ScopusIdentifiersToResponse
+	{
+		private List<String> pmids;
+		private List<String> dois;
+		private List<String> eids;
+		private DSpaceObject dso;
+		private ScopusResponse response;
+		
+		public List<String> getPmids() {
+			return pmids;
+		}
+		public void setPmids(List<String> pmids) {
+			this.pmids = pmids;
+		}
+		public List<String> getDois() {
+			return dois;
+		}
+		public void setDois(List<String> dois) {
+			this.dois = dois;
+		}
+		public List<String> getEids() {
+			return eids;
+		}
+		public void setEids(List<String> eids) {
+			this.eids = eids;
+		}
+		public DSpaceObject getDso() {
+			return dso;
+		}
+		public void setDso(DSpaceObject dso) {
+			this.dso = dso;
+		}
+		public ScopusResponse getResponse() {
+			return response;
+		}
+		public void setResponse(ScopusResponse response) {
+			this.response = response;
 		}
 	}
 }
