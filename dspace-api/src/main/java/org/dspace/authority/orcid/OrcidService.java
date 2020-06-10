@@ -353,6 +353,21 @@ public class OrcidService extends RestSource
         return message;
     }
 
+    public Funding getFunding(String id, final String token, final String putCode)
+    {
+        String endpoint = id + FUNDING_ENDPOINT;
+        Funding message = null;
+        try
+        {
+            message = get(endpoint, token, putCode).readEntity(Funding.class);
+        }
+        catch (Exception e)
+        {
+            log.error(e);
+        }
+        return message;
+    }
+
     public Fundings getFundings(String id, String token)
     {
 
