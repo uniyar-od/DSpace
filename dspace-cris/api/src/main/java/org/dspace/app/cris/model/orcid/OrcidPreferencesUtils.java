@@ -10,6 +10,7 @@ package org.dspace.app.cris.model.orcid;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -51,9 +52,13 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
+import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
 import org.orcid.jaxb.model.common_v3.CreditName;
 import org.orcid.jaxb.model.common_v3.ExternalId;
+import org.orcid.jaxb.model.common_v3.FuzzyDate;
+import org.orcid.jaxb.model.common_v3.FuzzyDate.Day;
+import org.orcid.jaxb.model.common_v3.FuzzyDate.Month;
 import org.orcid.jaxb.model.common_v3.Visibility;
 import org.orcid.jaxb.model.record_v3.AddressType;
 import org.orcid.jaxb.model.record_v3.Addresses;
@@ -1108,6 +1113,26 @@ public class OrcidPreferencesUtils
         return false;
     }
     
+    public static Date getDateFromFuzzyDate(FuzzyDate date)
+    {
+        if (date != null)
+        {
+            String sDate = date.getYear().getValue();
+            Month month = date.getMonth();
+            if (month != null)
+            {
+                sDate += "-" + month.getValue();
+                Day day = date.getDay();
+                if (day != null)
+                {
+                    sDate += "-" + day.getValue();
+                }
+            }
+            return MultiFormatDateParser.parse(sDate);
+        }
+        return null;
+    }
+
     private static boolean hasBeenImportedInThisThread(ResearcherPage crisObject) {
     	return importedORCIDs.get().contains(crisObject.getCrisID());
     }
