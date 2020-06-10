@@ -66,6 +66,8 @@ import org.orcid.jaxb.model.record_v3.BiographyType;
 import org.orcid.jaxb.model.record_v3.EmailType;
 import org.orcid.jaxb.model.record_v3.Emails;
 import org.orcid.jaxb.model.record_v3.ExternalIdentifiers;
+import org.orcid.jaxb.model.record_v3.FundingContributor;
+import org.orcid.jaxb.model.record_v3.FundingContributorAttributes;
 import org.orcid.jaxb.model.record_v3.KeywordType;
 import org.orcid.jaxb.model.record_v3.Keywords;
 import org.orcid.jaxb.model.record_v3.NameType.FamilyName;
@@ -75,6 +77,7 @@ import org.orcid.jaxb.model.record_v3.OtherNames;
 import org.orcid.jaxb.model.record_v3.Person;
 import org.orcid.jaxb.model.record_v3.ResearcherUrlType;
 import org.orcid.jaxb.model.record_v3.ResearcherUrls;
+import org.orcid.jaxb.model.utils.FundingContributorRole;
 
 import it.cilea.osd.jdyna.value.BooleanValue;
 
@@ -124,6 +127,8 @@ public class OrcidPreferencesUtils
     private static final int ORCID_PREFS_SELECTED = 2;
 
     private static final int ORCID_PREFS_VISIBLE = 3;
+
+    private static Map<String, String> investigatorsMapping;
 
     public void prepareOrcidQueue(String crisId, DSpaceObject obj)
     {
@@ -1113,6 +1118,17 @@ public class OrcidPreferencesUtils
         return false;
     }
     
+    private static String retrieveFundingContributorRole(FundingContributor fundingContributor)
+    {
+        String fundingContributorRole = FundingContributorRole.OTHER_CONTRIBUTION.value();
+        FundingContributorAttributes contributorAttributes = fundingContributor.getContributorAttributes();
+        if (contributorAttributes != null)
+        {
+            fundingContributorRole = contributorAttributes.getContributorRole();
+        }
+        return investigatorsMapping.get(fundingContributorRole);
+    }
+
     public static Date getDateFromFuzzyDate(FuzzyDate date)
     {
         if (date != null)
@@ -1320,4 +1336,13 @@ public class OrcidPreferencesUtils
         return false;
     }
 
+    public void setInvestigatorsMapping(Map<String, String> investigatorsMapping)
+    {
+        OrcidPreferencesUtils.investigatorsMapping = investigatorsMapping;
+    }
+
+    public Map<String, String> getInvestigatorsMapping()
+    {
+        return investigatorsMapping;
+    }
 }
