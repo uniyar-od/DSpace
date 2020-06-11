@@ -1276,6 +1276,8 @@ public class OrcidPreferencesUtils
                                 ou.setSourceID(organizationSourceId);
                             }
                             ResearcherPageUtils.buildGenericValue(ou, organizationName, "name", DEFAULT_PROPERTY_VISIBILITY);
+                            ResearcherPageUtils.buildGenericValue(ou, organizationSourceRef, "disambiguation-identifier-source", DEFAULT_PROPERTY_VISIBILITY);
+                            ResearcherPageUtils.buildGenericValue(ou, organizationSourceId, "disambiguation-identifier", DEFAULT_PROPERTY_VISIBILITY);
                             ResearcherPageUtils.buildGenericValue(ou, organizationCity, "city", DEFAULT_PROPERTY_VISIBILITY);
                             ResearcherPageUtils.buildGenericValue(ou, organizationCountry, "iso-country", DEFAULT_PROPERTY_VISIBILITY);
                             applicationService.saveOrUpdate(OrganizationUnit.class, ou);
