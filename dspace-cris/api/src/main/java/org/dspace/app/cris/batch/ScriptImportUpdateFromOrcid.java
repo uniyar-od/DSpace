@@ -233,6 +233,7 @@ public class ScriptImportUpdateFromOrcid {
 					sQuery.addFilterQuery("time_lastmodified_dt:[* TO NOW-"+olderThan+"DAYS/DAY]");
 				}
 				sQuery.setFields("cris-id");
+				sQuery.setRows(Integer.MAX_VALUE);
 				QueryResponse qResp = searchService.search(sQuery);
 				if (qResp.getResults() != null && qResp.getResults().getNumFound() > 0) {
 					boolean errors = false;
