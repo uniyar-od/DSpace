@@ -9,6 +9,7 @@ package org.dspace.app.cris.model.orcid;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -31,7 +32,9 @@ import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.configuration.RelationPreferenceConfiguration;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.integration.PushToORCID;
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.CrisConstants;
+import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.RelationPreference;
 import org.dspace.app.cris.model.ResearcherPage;
@@ -1156,6 +1159,121 @@ public class OrcidPreferencesUtils
                 }
             }
             return MultiFormatDateParser.parse(sDate);
+        }
+        return null;
+    }
+
+    private static <T extends ACrisObject> T findCrisObject(ApplicationService applicationService,
+            Class<T> crisObjectClass, String sourceRef, String sourceId, Integer type, String name)
+    {
+        T crisObject = null;
+        if (StringUtils.isNotBlank(sourceRef) && StringUtils.isNotBlank(sourceId)) {
+            crisObject = applicationService.getEntityBySourceId(sourceRef, sourceId, crisObjectClass);
+        }
+        if (crisObject == null && StringUtils.isNotBlank(name)) {
+            crisObject = findCRISObjectByName(applicationService, type, name);
+        }
+        return crisObject;
+    }
+
+    private static <T extends ACrisObject> T findCRISObjectByName(ApplicationService applicationService, Integer type, String name)
+    {
+        CrisSearchService crisSearchService = new Researcher().getCrisSearchService();
+        try {
+             SolrQuery solrQuery = new SolrQuery("{!lucene q.op=AND df=crisauthoritylookup}\"" + name + "\"");
+             solrQuery.addField("cris-id");
+             solrQuery.addField("crisauthoritylookup");
+             solrQuery.addFilterQuery("search.resourcetype:" + type);
+             solrQuery.setRows(100);
+             QueryResponse response = crisSearchService.search(solrQuery);
+             SolrDocumentList results = response.getResults();
+             T crisObject = singleStrongMatch(applicationService, results, "crisauthoritylookup", name);
+             if (crisObject != null) {
+                return crisObject;
+             }
+        } catch (SearchServiceException e) {
+            log.warn(e.getMessage());
+        }
+        return null;
+    }
+
+    private static OrganizationUnit findCrisOrganisation(ApplicationService applicationService,
+            String sourceRef, String sourceId, String name, String departmentName)
+    {
+        OrganizationUnit crisObject = null;
+        if (StringUtils.isNotBlank(sourceRef) && StringUtils.isNotBlank(sourceId)) {
+            crisObject = applicationService.getEntityBySourceId(sourceRef, sourceId, OrganizationUnit.class);
+        }
+
+        if (crisObject == null && StringUtils.isNotBlank(name)) {
+            CrisSearchService crisSearchService = new Researcher().getCrisSearchService();
+            try {
+                SolrQuery solrQuery = null;
+                QueryResponse response = null;
+                SolrDocumentList results = null;
+                if (StringUtils.isNotBlank(departmentName)) {
+                    solrQuery = new SolrQuery("{!lucene q.op=AND df=crisauthoritylookup}\"" + name + "\" AND \"" + departmentName + "\"");
+                    solrQuery.addField("cris-id");
+                    solrQuery.addField("crisou.name");
+                    solrQuery.addFilterQuery("search.resourcetype:" + CrisConstants.OU_TYPE_ID);
+                    solrQuery.setRows(100);
+                    response = crisSearchService.search(solrQuery);
+                    results = response.getResults();
+                    crisObject = singleStrongMatch(applicationService, results, "crisou.name", name, departmentName);
+                    if (crisObject != null) {
+                        return crisObject;
+                    }
+                }
+                solrQuery = new SolrQuery("{!lucene q.op=AND df=crisauthoritylookup}\"" + name + "\"");
+                solrQuery.addField("cris-id");
+                solrQuery.addField("crisou.name");
+                solrQuery.addFilterQuery("search.resourcetype:" + CrisConstants.OU_TYPE_ID);
+                solrQuery.setRows(100);
+                response = crisSearchService.search(solrQuery);
+                results = response.getResults();
+                crisObject = singleStrongMatch(applicationService, results, "crisou.name", name);
+                if (crisObject != null) {
+                    return crisObject;
+                }
+            } catch (SearchServiceException e) {
+                log.warn(e.getMessage());
+            }
+            return null;
+        }
+        return crisObject;
+    }
+
+    private static <T extends ACrisObject> T singleStrongMatch(ApplicationService applicationService, SolrDocumentList results, String field, String... names) {
+        if (results == null || results.getNumFound() == 0) {
+            return null;
+        }
+        if (results.getNumFound() == 1) {
+            String crisID = (String) results.get(0).getFieldValue("cris-id");
+            return applicationService.getEntityByCrisId(crisID);
+        }
+
+        String crisID = null;
+        int numrecfounds = 0;
+        for (SolrDocument sd : results) {
+            Collection<Object> ounames = sd.getFieldValues(field);
+            boolean found = true;
+            for (String n : names) {
+                if (ounames != null) {
+                    for (Object o : ounames) {
+                        if (StringUtils.contains((String) o, n)) {
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if (found) {
+                numrecfounds++;
+                crisID = (String) sd.getFieldValue("cris-id");
+            }
+        }
+        if (numrecfounds == 1) {
+            return applicationService.getEntityByCrisId(crisID);
         }
         return null;
     }
