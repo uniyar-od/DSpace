@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.cris.integration.statistics.AStatComponentService;
 import org.dspace.app.cris.integration.statistics.CrisStatComponentsService;
@@ -187,6 +188,12 @@ public class StatSubscribeService
             int type, int freq, int num) throws SolrServerException,
             SQLException
     {
+		return getStatBean(context, uuid, null, type, freq, num);
+    }
+    public SummaryStatBean getStatBean(Context context, String uuid,String name,
+            int type, int freq, int num) throws SolrServerException,
+            SQLException
+    {
         if (uuid == null)
         {
             throw new IllegalArgumentException(
@@ -252,7 +259,10 @@ public class StatSubscribeService
                         .getPersistentIdentifier(object);
 
                 statBean.setObject(object);
-                statBean.setObjectName(object.getName());
+                if(StringUtils.isBlank(name)) {
+                	name = object.getName(); 
+                }
+                statBean.setObjectName(name);
 
                 statBean.setObjectURL(ConfigurationManager
                         .getProperty("dspace.url")
@@ -306,7 +316,10 @@ public class StatSubscribeService
                 }
 
                 statBean.setObject(dso);
-                statBean.setObjectName(dso.getName());
+                if(StringUtils.isBlank(name)) {
+                	name = dso.getName(); 
+                }
+                statBean.setObjectName(name);
                 statBean.setObjectURL(ConfigurationManager
                         .getProperty("dspace.url") + "/handle/" + uuid);
                 statBean.setType(dso.getType());

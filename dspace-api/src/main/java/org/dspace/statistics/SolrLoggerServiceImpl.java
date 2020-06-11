@@ -889,9 +889,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public void query(String query, int max) throws SolrServerException
+    public QueryResponse query(String query, int max) throws SolrServerException
     {
-        query(query, null, null,0, max, null, null, null, null, null, false);
+       return query(query, null, null,0, max, null, null, null, null, null, false);
     }
 
     @Override

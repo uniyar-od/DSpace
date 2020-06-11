@@ -121,7 +121,7 @@ public interface SolrLoggerService {
             List<String> fieldNames, List<List<Object>> fieldValuesList)
             throws SolrServerException, IOException;
 
-    public void query(String query, int max) throws SolrServerException;
+    public QueryResponse query(String query, int max) throws SolrServerException;
 
     /**
      * Query used to get values grouped by the given facet field.
