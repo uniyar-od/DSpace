@@ -20,6 +20,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
@@ -38,6 +42,7 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.DiscoverResult.SearchDocument;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SolrServiceImpl;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
@@ -145,7 +150,7 @@ public class ScriptRetrieveCitation {
 		try {
 			context = new Context();
 			context.turnOffAuthorisationSystem();
-			List<ScopusIdentifiersToResponse> scopusList = new ArrayList<ScopusIdentifiersToResponse>(); 
+			List<ScopusIdentifiersToRequest> scopusList = new ArrayList<ScopusIdentifiersToRequest>(); 
 			all: for (int page = 0;; page++) {
 				int start = page * MAX_QUERY_RESULTS;
 				if (resultsTot != -1 && start >= resultsTot) {
@@ -154,60 +159,56 @@ public class ScriptRetrieveCitation {
 				if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
 					break all;
 
+				SolrQuery solrQuery = new SolrQuery(queryDefault);
+				solrQuery.setStart(start);
+				solrQuery.setRows(MAX_QUERY_RESULTS);
+				solrQuery.addFilterQuery(SolrServiceImpl.RESOURCE_TYPE_FIELD + ":" + Constants.ITEM);
+				solrQuery.addField(fieldPubmedID);
+				solrQuery.addField(fieldDoiID);
+				solrQuery.addField(fieldScopusID);
+		        solrQuery.addField(SolrServiceImpl.HANDLE_FIELD);
+		        solrQuery.addField(SolrServiceImpl.RESOURCE_TYPE_FIELD);
+		        solrQuery.addField(SolrServiceImpl.RESOURCE_ID_FIELD);
 				// get all items that contains PMID or DOI or EID
-				DiscoverQuery query = new DiscoverQuery();
-				query.setStart(start);
-				query.setMaxResults(MAX_QUERY_RESULTS);
-				query.setQuery(queryDefault);
-				query.setDSpaceObjectFilter(Constants.ITEM);
-
-				query.addSearchField(fieldPubmedID);
-				query.addSearchField(fieldDoiID);
-				query.addSearchField(fieldScopusID);
-
-                query.addSearchField("search.resourceid");
-                query.addSearchField("search.resourcetype");
-                query.addSearchField("handle");
-				DiscoverResult qresp = searcher.search(context, query);
-				resultsTot = qresp.getTotalSearchResults();
+				QueryResponse qresp = searcher.search(solrQuery);
+				SolrDocumentList results = qresp.getResults();
+				resultsTot = results.getNumFound();
 				log.info(LogManager.getHeader(null, "retrieve_citation_scopus",
-						"Processing " + qresp.getTotalSearchResults() + " items"));
+						"Processing " + resultsTot + " items"));
                 log.info(LogManager.getHeader(null, "retrieve_citation_scopus",
                         "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
 				// for each item check
-				for (DSpaceObject dso : qresp.getDspaceObjects()) {
+                for (SolrDocument solrDoc : results) {
 
-					List<SearchDocument> list = qresp.getSearchDocument(dso);
-					for (SearchDocument doc : list) {
 						if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
 							break all;
 
-						Integer itemID = dso.getID();
+						Integer itemID = (Integer)solrDoc.getFieldValue("search.resourceid");
 
 						if (isCheckRequired(itemID)) {
 							itemWorked++;
-							ScopusIdentifiersToResponse sc2R = new ScopusIdentifiersToResponse();
-							sc2R.setPmids(doc.getSearchFieldValues(fieldPubmedID));
-							sc2R.setDois(doc.getSearchFieldValues(fieldDoiID));
-							sc2R.setEids(doc.getSearchFieldValues(fieldScopusID));
-							sc2R.setDso(dso);
+							ScopusIdentifiersToRequest sc2R = new ScopusIdentifiersToRequest();
+							sc2R.setPmids((List)solrDoc.getFieldValues(fieldPubmedID));
+							sc2R.setDois((List)solrDoc.getFieldValues(fieldDoiID));
+							sc2R.setEids((List)solrDoc.getFieldValues(fieldScopusID));
+							sc2R.setIdentifier(itemID);
 							scopusList.add(sc2R);
 							
 							if (scopusList.size() >= maxItemsInOneCall) {
-								itemForceWorked = workItems(scopusList, itemForceWorked);
+								itemForceWorked = workItems(context, scopusList, itemForceWorked);
 							}
 						}
-					}
 				}
 
+                context.commit();
+                context.clearCache();
 			}
 			if (!scopusList.isEmpty()) {
-				itemForceWorked = workItems(scopusList, itemForceWorked);
+				itemForceWorked = workItems(context, scopusList, itemForceWorked);
+				context.commit();
 			}
 			
-			context.commit();
-			context.clearCache();
-			
+			context.complete();
 			Date endDate = new Date();
 			long processTime = (endDate.getTime() - startDate.getTime()) / 1000;
 			log.info(LogManager.getHeader(null, "retrieve_citation", "Processing time " + processTime
@@ -215,7 +216,6 @@ public class ScriptRetrieveCitation {
 		} catch (Exception ex) {
 			log.error(ex.getMessage(), ex);
 		} finally {
-
 			if (context != null && context.isValid()) {
 				context.abort();
 			}
@@ -223,14 +223,11 @@ public class ScriptRetrieveCitation {
 		}
 	}
 	
-	private static int workItems(List<ScopusIdentifiersToResponse> scopusList, int itemForceWorked) throws SQLException, AuthorizeException {
-		sService.getCitations(sleep, scopusList);
+	private static int workItems(Context context, List<ScopusIdentifiersToRequest> scopusList, int itemForceWorked) throws SQLException, AuthorizeException {
+	    List<ScopusIdentifiersToResponse> responseObjects = sService.getCitations(context, sleep, scopusList);
 		
-		for (ScopusIdentifiersToResponse scopusIDs2Response : scopusList) {
+		for (ScopusIdentifiersToResponse scopusIDs2Response : responseObjects) {
 			
-			log.debug(LogManager.getHeader(null, "retrieve_citation_scopus",
-					"lookup pmid:" + scopusIDs2Response.getPmids() + ", lookup doi:" + scopusIDs2Response.getDois() + ", lookup eid:" + scopusIDs2Response.getEids()));
-
 			boolean itWorks = false;
 			if (scopusIDs2Response.getResponse() != null) {
 				itWorks = buildCiting(scopusIDs2Response.getDso(), scopusIDs2Response.getResponse());
@@ -307,30 +304,9 @@ public class ScriptRetrieveCitation {
 	
 	public static class ScopusIdentifiersToResponse
 	{
-		private List<String> pmids;
-		private List<String> dois;
-		private List<String> eids;
 		private DSpaceObject dso;
 		private ScopusResponse response;
 		
-		public List<String> getPmids() {
-			return pmids;
-		}
-		public void setPmids(List<String> pmids) {
-			this.pmids = pmids;
-		}
-		public List<String> getDois() {
-			return dois;
-		}
-		public void setDois(List<String> dois) {
-			this.dois = dois;
-		}
-		public List<String> getEids() {
-			return eids;
-		}
-		public void setEids(List<String> eids) {
-			this.eids = eids;
-		}
 		public DSpaceObject getDso() {
 			return dso;
 		}
@@ -344,4 +320,39 @@ public class ScriptRetrieveCitation {
 			this.response = response;
 		}
 	}
+	
+    public static class ScopusIdentifiersToRequest
+    {
+        private List<String> pmids;
+        private List<String> dois;
+        private List<String> eids;
+        private Integer identifier;
+        
+        public List<String> getPmids() {
+            return pmids;
+        }
+        public void setPmids(List<String> pmids) {
+            this.pmids = pmids;
+        }
+        public List<String> getDois() {
+            return dois;
+        }
+        public void setDois(List<String> dois) {
+            this.dois = dois;
+        }
+        public List<String> getEids() {
+            return eids;
+        }
+        public void setEids(List<String> eids) {
+            this.eids = eids;
+        }
+        public Integer getIdentifier()
+        {
+            return identifier;
+        }
+        public void setIdentifier(Integer identifier)
+        {
+            this.identifier = identifier;
+        }
+    }	
 }

@@ -7,14 +7,24 @@
  */
 package org.dspace.app.cris.metrics.scopus.dto;
 
+import java.io.InputStream;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.util.XMLUtils;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class ScopusResponse {
@@ -33,11 +43,32 @@ public class ScopusResponse {
 		scopusCitation.setMetricCount(-1);
 	}
 
-	public ScopusResponse(Element dataRoot) {
+	public ScopusResponse(InputStream xmlData) {
 		try {
 			
 			this.scopusCitation = new CrisMetrics();
 			
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			factory.setValidating(false);
+			factory.setIgnoringComments(true);
+			factory.setIgnoringElementContentWhitespace(true);
+
+			DocumentBuilder db = factory.newDocumentBuilder();
+			Document inDoc = db.parse(xmlData);
+
+			if (log.isDebugEnabled())
+            {
+                DOMSource domSource = new DOMSource(inDoc);
+                StringWriter writer = new StringWriter();
+                StreamResult result = new StreamResult(writer);
+                TransformerFactory tf = TransformerFactory.newInstance();
+                Transformer transformer = tf.newTransformer();
+                transformer.transform(domSource, result);
+                log.debug(writer.toString());
+            }
+			
+			Element xmlRoot = inDoc.getDocumentElement();
+			Element dataRoot = XMLUtils.getSingleElement(xmlRoot, "entry");
 			Element errorScopusResp = XMLUtils.getSingleElement(dataRoot, "error");
 			if (dataRoot != null && errorScopusResp == null) {
 				String eid = XMLUtils.getElementValue(dataRoot, "eid");
