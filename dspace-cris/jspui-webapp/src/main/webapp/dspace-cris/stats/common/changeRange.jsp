@@ -48,10 +48,10 @@
 <script type="text/javascript">
 var j = jQuery;
 j(document).ready(function() {    
-        j('#stats_from_date').datepicker({
+        j('#stats_from_date').datetimepicker({
         	format: "YYYY-MM-DD"       	
         });
-        j('#stats_to_date').datepicker({
+        j('#stats_to_date').datetimepicker({
         	format: "YYYY-MM-DD",
             useCurrent: false //Important! See issue #1075
         });
