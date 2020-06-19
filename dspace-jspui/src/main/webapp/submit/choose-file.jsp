@@ -90,8 +90,14 @@
                 success : function(data) {
                     if(data.isFounded) {
                         j('div.unpaywall').show();
-                        $('#ajaxUpload').val(false);
-                        $('div.unpaywall').append('<input type="hidden" id="unpaywallUrl" name="unpaywallUrl" value="'+data.urlJSON+'" />');
+                        if(data.urlJSON.trim())
+                        {
+	                        $('#ajaxUpload').val(false);
+	                        $('div.unpaywall').append('<input type="hidden" id="unpaywallUrl" name="unpaywallUrl" value="'+data.urlJSON+'" />');
+                        }else{
+                        	$('.unpaywall-alert').show();
+                        	$('#unpaywall-div').hide();
+                        }
                     }
                 }
             });
@@ -447,7 +453,10 @@
                 <% if (unpaywallEnabled) { %>
                 <div class="col-lg-12 col-md-4 col-sm-6 unpaywall" hidden>
                     <span><fmt:message key="jsp.submit.choose-file.unpaywall.title"/></span>
-                    <div class="media unpaywall">
+                   	<div class="alert alert-warning unpaywall-alert" role="alert" hidden>
+						<fmt:message key="jsp.submit.choose-file.unpaywall.nofulltext"/>
+					</div>
+                    <div class="media unpaywall" id="unpaywall-div">
 	                    <button class="col-lg-12 col-md-4 col-sm-6 unpaywall-button" type="submit" name="submit_unpaywall">
 	                        <span class="metric-counter">
 	                            <a id="unpaywalljson" data-toggle="tooltip" target="_blank" style="text-decoration:none" title="<fmt:message key="jsp.submit.choose-file.unpaywall.tooltip"/>">
