@@ -203,7 +203,7 @@ function clearEPeople()
 			<li><a href="<%= jumpLink %><%= jumpFiveForward %>"><fmt:message key="jsp.tools.eperson-list.jump.five-forward"/></a></li>
 			<li><a href="<%= jumpLink %><%= jumpEnd %>"><fmt:message key="jsp.tools.eperson-list.jump.last"/></a></li>
 	</ul>
-</div
+</div>
 <br/>
 
 	<form method="get" action=""> <%-- Will never actually be posted, it's just so buttons will appear --%>
@@ -216,7 +216,8 @@ function clearEPeople()
             <th><fmt:message key="jsp.tools.eperson-list.th.id" /></th>
             <th><fmt:message key="jsp.tools.eperson-list.th.email" /></th>
             <th><fmt:message key="jsp.tools.eperson-list.th.lastname" /></th>
-            <th><fmt:message key="jsp.tools.eperson-list.th.lastname" /></th>
+            <th><fmt:message key="jsp.tools.eperson-list.th.firstname" /></th>
+            <th><fmt:message key="jsp.tools.eperson-list.th.language" /></th>
         </tr>
 <% }
    else 

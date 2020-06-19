@@ -572,19 +572,6 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
     			j('#no-collection-warn').modal('show');
    			}
     	});
-    	j('#manual-submission-button').click(function(event){
-    		var colman = j('#select-collection-manual').val();
-    		if (colman != -1)
-    		{
-    			j('#collectionid').val(colman);
-    			j('#form-submission').submit();
-    		}
-    		else
-   			{
-    			j('#no-collection-warn').modal('show');
-   			}
-    	});
-   	
     	j('#lookup_idenfifiers').click(function(){
     		submissionLookupIdentifiers(j('input.submission-lookup-identifier'));
     	});
