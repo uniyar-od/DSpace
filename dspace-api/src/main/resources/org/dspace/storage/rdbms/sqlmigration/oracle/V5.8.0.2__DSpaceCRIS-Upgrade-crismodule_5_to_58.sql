@@ -5,7 +5,7 @@
 --
 -- http://www.dspace.org/license/
 --
-	
+
 BEGIN
 	-- delete scopes
 	EXECUTE IMMEDIATE
