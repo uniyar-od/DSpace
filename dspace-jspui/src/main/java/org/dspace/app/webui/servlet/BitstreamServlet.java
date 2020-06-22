@@ -39,6 +39,7 @@ import org.dspace.core.PluginManager;
 import org.dspace.core.Utils;
 import org.dspace.disseminate.CitationDocument;
 import org.dspace.disseminate.CoverPageService;
+import org.dspace.eperson.EPerson;
 import org.dspace.handle.HandleManager;
 import org.dspace.plugin.BitstreamHomeProcessor;
 import org.dspace.usage.UsageEvent;
@@ -203,21 +204,13 @@ public class BitstreamServlet extends DSpaceServlet
 				&& !AuthorizeManager.isAdmin(context, bitstream)) {
 			throw new AuthorizeException("Download not allowed by viewer policy");
 		}
-        //new UsageEvent().fire(request, context, AbstractUsageEvent.VIEW,
-		//		Constants.BITSTREAM, bitstream.getID());
 
-        new DSpace().getEventService().fireEvent(
-        		new UsageEvent(
-        				UsageEvent.Action.VIEW, 
-        				request, 
-        				context, 
-        				bitstream));
-        
         // Modification date
         // Only use last-modified if this is an anonymous access
         // - caching content that may be generated under authorisation
         //   is a security problem
-        if (context.getCurrentUser() == null)
+        EPerson ep = context.getCurrentUser();
+        if (ep == null)
         {
             // TODO: Currently the date of the item, since we don't have dates
             // for files
@@ -241,6 +234,14 @@ public class BitstreamServlet extends DSpaceServlet
                 // Item has not been modified since requested date,
                 // hence bitstream has not; return 304
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                Context contextFireEvent = new Context();
+                new DSpace().getEventService().fireEvent(
+                        new UsageEvent(
+                                UsageEvent.Action.VIEW,
+                                request,
+                                contextFireEvent,
+                                bitstream));
+                contextFireEvent.complete();
                 return;
             }
         }
@@ -304,6 +305,18 @@ public class BitstreamServlet extends DSpaceServlet
         Utils.bufferedCopy(is, response.getOutputStream());
         is.close();
         response.getOutputStream().flush();
+
+        Context contextFireEvent = new Context();
+        if(ep != null) {
+            contextFireEvent.setCurrentUser(ep);
+        }
+        new DSpace().getEventService().fireEvent(
+                new UsageEvent(
+                        UsageEvent.Action.VIEW,
+                        request,
+                        contextFireEvent,
+                        bitstream));
+        contextFireEvent.complete();
     }
     
     private void preProcessBitstreamHome(Context context, HttpServletRequest request,
