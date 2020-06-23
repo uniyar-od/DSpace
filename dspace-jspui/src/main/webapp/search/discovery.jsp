@@ -216,7 +216,7 @@
 				submitButt.attr("disabled", !checkboxes.is(":checked"));	
 			}		
 		});
-		jQ( "#spellCheckQuery").click(function(){
+		jQ( "#spellCheckQuery").on("click",function(){
 			jQ("#query").val(jQ(this).attr('data-spell'));
 			jQ("#main-query-submit").click();
 		});
