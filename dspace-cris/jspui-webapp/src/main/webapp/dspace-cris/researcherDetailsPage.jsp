@@ -357,7 +357,7 @@
 							</div>
 						 </c:if>
 						<span class="btn-group" onmouseover="hover(this);" onmouseout="out(this);" >
-						<a href="" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+						<a href="#" type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
 		    				<i class="fa fa-cog"></i> <i class="fa fa-caret-down"></i>
 		  				</a>
 						<ul class="dropdown-menu" role="menu">
@@ -388,7 +388,7 @@
                                                        </c:choose>
 							<c:if test="${!empty anagraficaObject.anagrafica4view['orcid'] && canDisconnectOrcid}">
 							<li>
-								<a href="" id="disconnect-orcid-rp"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-orcid.disconnect"/></a>
+								<a href="#" id="disconnect-orcid-rp"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-orcid.disconnect"/></a>
 							</li>
 							</c:if>							
 						</ul>
@@ -515,7 +515,7 @@
 	      		<input type="text" class="form-control" id="claimrp-validation" />
       			<input type="hidden" value="${requestScope.authority}" id="claimrp-rpkey"/>
       			<span class="input-group-btn">
-	        		<span href="" class="btn btn-success" id="claimrp-button"><fmt:message key="jsp.cris.detail.claimrp.button.text" /></span>
+	        		<span href="#" class="btn btn-success" id="claimrp-button"><fmt:message key="jsp.cris.detail.claimrp.button.text" /></span>
       			</span>
     		</div>
      		<h4 id="claimrp-result"></h4>

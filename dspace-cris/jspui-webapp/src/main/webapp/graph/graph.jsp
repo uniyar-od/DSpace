@@ -312,7 +312,7 @@
 													<a target="_blank" href="${deptSearch}${dept.authority}">${dept.value}</a>
 						        					<%--span> <input type="checkbox" class="deptvisualizationprofile" id="deptvisualizationprofile" value="${researcher:encode(dept.value,'UTF-8')}"/><label
 														for="deptvisualizationprofile">See DGraph</label> </span> --%>					
-													<%--a target="_blank" href=""><span class="icon-network"><img src='../image/wheel-icon2.jpg' alt="<fmt:message key='jsp.network.label.link.network.dept'/>" title="<fmt:message key='jsp.network.label.link.network.dept'/>"/></span></a--%>
+													<%--a target="_blank" href="#"><span class="icon-network"><img src='../image/wheel-icon2.jpg' alt="<fmt:message key='jsp.network.label.link.network.dept'/>" title="<fmt:message key='jsp.network.label.link.network.dept'/>"/></span></a--%>
 													</li>
 							</c:if>
 																				
