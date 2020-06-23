@@ -401,7 +401,7 @@
         </div>
 		<br/>
         
-        <div class="row container">
+        <div class="row">
     		<div class="row">
                     <%-- Document File: --%>
                     <div class="simple-upload">

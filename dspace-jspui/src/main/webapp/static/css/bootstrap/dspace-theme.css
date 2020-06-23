@@ -129,6 +129,18 @@ span.batchimport-error-caused {
 	font-weight:bold;
 }
 
+.discovery-search-form {
+	margin-left: 0px;
+}
+
+.discovery-result-pagination {
+	margin-left: 0px;
+}
+
+.discovery-result-results {
+	margin-left: 0px;
+}
+
 div.carousel-inner div.item div.list-group-item {
 	background-color: inherit;
 }
@@ -283,6 +295,7 @@ footer .container {
 
 .form-control{
 	color:#000;
+	height: auto !important;
 }
 
 .modal.in .modal-dialog {
