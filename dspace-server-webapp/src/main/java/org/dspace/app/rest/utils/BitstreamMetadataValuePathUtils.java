@@ -12,12 +12,14 @@ import org.dspace.app.rest.submit.step.UploadStep;
 import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
+import org.springframework.stereotype.Component;
 
 /**
  * Utils class offering methods to validate patch operations for bitstream metadata in the submission
  * 
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
+@Component
 public class BitstreamMetadataValuePathUtils {
 
     private DCInputsReader inputReader;
