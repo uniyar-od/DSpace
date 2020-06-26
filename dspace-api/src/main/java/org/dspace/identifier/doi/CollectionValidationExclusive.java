@@ -19,23 +19,20 @@ public class CollectionValidationExclusive extends ACollectionValidation {
 
 	private String checkFile;
 	private String checkMetadata;
-
 	private ArrayList<String> collectionList;
+
 	Logger log = Logger.getLogger(CollectionValidationExclusive.class);
 
 	public boolean canRegister(Context context, DSpaceObject dso) {
-		boolean register = false;
 		if (dso.getType() == Constants.ITEM) {
 			Item item = (Item) dso;
 			String collHandle = getHandle(context, item);
 
 			if (!collectionList.contains(collHandle)) {
-				register = true;
+				return isToRegister(true, checkFile, checkMetadata, item);
 			}
-
-			return isToRegister(register, checkFile, checkMetadata, item);
 		}
-		return register;
+		return false;
 	}
 
 	public ArrayList<String> getCollectionList() {

@@ -7,6 +7,13 @@
  */
 package org.dspace.identifier.doi;
 
+/**
+ * This implementation provide the possibility prevent/permit DOI registration based on Item Owning Collection
+ * and other criteria, such as check on metadata or if item has files
+ * 
+ * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ *
+ */
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.BooleanUtils;
