@@ -30,26 +30,19 @@ public abstract class ACollectionValidation implements IdentifierRegisterValidat
 	Logger log = Logger.getLogger(ACollectionValidation.class);
 
 	public boolean isToRegister (boolean register, String checkFile, String checkMetadata, Item item) {
-		
-		boolean checkBoolValue = BooleanUtils.toBooleanObject(item.getMetadata(checkMetadata));
-		
-		try {
-			if (register && BooleanUtils.toBooleanObject(checkFile)) {
-			
-				if (StringUtils.isNotBlank(checkMetadata) && checkBoolValue) {
-				
-					if (!(checkBoolValue && item.hasUploadedFiles())) {
-						register = false;
-					}
-				}else {
+		if (register) {
+			if (BooleanUtils.toBoolean(checkFile)) {
+				try {
 					register = item.hasUploadedFiles();
+				} catch (SQLException e) {
+					log.error(e.getMessage(), e);
 				}
-			}else {
-				register = checkBoolValue;
 			}
-		} catch (SQLException e) {
-			log.error(e.getMessage(), e);
+			if (StringUtils.isNotBlank(checkMetadata)) {
+				register = register && BooleanUtils.toBoolean(item.getMetadata(checkMetadata));
+			}
 		}
+
 		return register;
 	}
 	
