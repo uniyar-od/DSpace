@@ -105,7 +105,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                        .startsWith(REST_SERVER_URL + "config/submissionforms/traditionalpageone")))
                    // check the first two rows
                    .andExpect(jsonPath("$.rows[0].fields", contains(
-                        SubmissionFormFieldMatcher.matchFormFieldDefinition("name", "Author",
+                        SubmissionFormFieldMatcher.matchFormFieldDefinition("lookup-name", "Author",
                 null, true,"Add an author", "dc.contributor.author"))))
                    .andExpect(jsonPath("$.rows[1].fields", contains(
                         SubmissionFormFieldMatcher.matchFormFieldDefinition("onebox", "Title",
@@ -136,7 +136,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                    .andExpect(jsonPath("$._links.self.href", Matchers
                        .startsWith(REST_SERVER_URL + "config/submissionforms/traditionalpageone")))
                    .andExpect(jsonPath("$.rows[0].fields", contains(
-                        SubmissionFormFieldMatcher.matchFormFieldDefinition("name", "Author",
+                        SubmissionFormFieldMatcher.matchFormFieldDefinition("lookup-name", "Author",
                           null, true,"Add an author", "dc.contributor.author"))))
                    .andExpect(jsonPath("$.rows[1].fields", contains(
                         SubmissionFormFieldMatcher.matchFormFieldDefinition("onebox", "Title",
@@ -169,7 +169,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                             .startsWith(REST_SERVER_URL + "config/submissionforms/traditionalpageone")))
                         // check the first two rows
                         .andExpect(jsonPath("$.rows[0].fields", contains(
-                            SubmissionFormFieldMatcher.matchFormOpenRelationshipFieldDefinition("name",
+                            SubmissionFormFieldMatcher.matchFormOpenRelationshipFieldDefinition("lookup-name",
                         "Author", null, true,"Add an author",
                     "dc.contributor.author", "isAuthorOfPublication", null,
             "person", true))))
@@ -223,8 +223,8 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(jsonPath("$._links.self.href", Matchers
                             .startsWith(REST_SERVER_URL + "config/submissionforms/languagetest")))
                  .andExpect(jsonPath("$.rows[0].fields", contains(SubmissionFormFieldMatcher
-                            .matchFormFieldDefinition("name", "Autore", "\u00C8" + " richiesto almeno un autore", true,
-                                                      "Aggiungi un autore", "dc.contributor.author"))))
+                            .matchFormFieldDefinition("lookup-name", "Autore", "\u00C8" + " richiesto almeno un autore",
+                                true, "Aggiungi un autore", "dc.contributor.author"))))
                  .andExpect(jsonPath("$.rows[1].fields", contains(SubmissionFormFieldMatcher
                             .matchFormFieldDefinition("onebox", "Titolo",
                             "\u00C8" + " necessario inserire un titolo principale per questo item", false,
@@ -246,7 +246,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(jsonPath("$._links.self.href", Matchers
                            .startsWith(REST_SERVER_URL + "config/submissionforms/languagetest")))
                  .andExpect(jsonPath("$.rows[0].fields", contains(SubmissionFormFieldMatcher
-                           .matchFormFieldDefinition("name", "Автор", "Потрібно ввести хочаб одного автора!",
+                           .matchFormFieldDefinition("lookup-name", "Автор", "Потрібно ввести хочаб одного автора!",
                                                true, "Додати автора", "dc.contributor.author"))))
                  .andExpect(jsonPath("$.rows[1].fields", contains(SubmissionFormFieldMatcher
                            .matchFormFieldDefinition("onebox", "Заголовок",
@@ -296,8 +296,8 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(jsonPath("$._links.self.href", Matchers
                             .startsWith(REST_SERVER_URL + "config/submissionforms/languagetest")))
                  .andExpect(jsonPath("$.rows[0].fields", contains(SubmissionFormFieldMatcher
-                            .matchFormFieldDefinition("name", "Autore", "\u00C8" + " richiesto almeno un autore", true,
-                                                      "Aggiungi un autore", "dc.contributor.author"))))
+                            .matchFormFieldDefinition("lookup-name", "Autore", "\u00C8" + " richiesto almeno un autore",
+                                true,"Aggiungi un autore", "dc.contributor.author"))))
                  .andExpect(jsonPath("$.rows[1].fields", contains(SubmissionFormFieldMatcher
                             .matchFormFieldDefinition("onebox", "Titolo",
                             "\u00C8" + " necessario inserire un titolo principale per questo item", false,
@@ -319,7 +319,7 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(jsonPath("$._links.self.href", Matchers
                            .startsWith(REST_SERVER_URL + "config/submissionforms/languagetest")))
                  .andExpect(jsonPath("$.rows[0].fields", contains(SubmissionFormFieldMatcher
-                           .matchFormFieldDefinition("name", "Автор", "Потрібно ввести хочаб одного автора!",
+                           .matchFormFieldDefinition("lookup-name", "Автор", "Потрібно ввести хочаб одного автора!",
                                                true, "Додати автора", "dc.contributor.author"))))
                  .andExpect(jsonPath("$.rows[1].fields", contains(SubmissionFormFieldMatcher
                            .matchFormFieldDefinition("onebox", "Заголовок",
@@ -364,8 +364,8 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(jsonPath("$._links.self.href", Matchers
                            .startsWith(REST_SERVER_URL + "config/submissionforms/languagetest")))
                  .andExpect(jsonPath("$.rows[0].fields", contains(SubmissionFormFieldMatcher
-                           .matchFormFieldDefinition("name", "Autore", "\u00C8" + " richiesto almeno un autore", true,
-                                                     "Aggiungi un autore", "dc.contributor.author"))))
+                           .matchFormFieldDefinition("lookup-name", "Autore", "\u00C8" + " richiesto almeno un autore",
+                              true, "Aggiungi un autore", "dc.contributor.author"))))
                  .andExpect(jsonPath("$.rows[1].fields", contains(SubmissionFormFieldMatcher
                            .matchFormFieldDefinition("onebox", "Titolo",
                            "\u00C8" + " necessario inserire un titolo principale per questo item", false,
@@ -401,8 +401,8 @@ public class SubmissionFormsControllerIT extends AbstractControllerIntegrationTe
                  .andExpect(jsonPath("$._links.self.href", Matchers
                             .startsWith(REST_SERVER_URL + "config/submissionforms/languagetest")))
                  .andExpect(jsonPath("$.rows[0].fields", contains(SubmissionFormFieldMatcher
-                            .matchFormFieldDefinition("name", "Autore", "\u00C8 richiesto almeno un autore", true,
-                                                      "Aggiungi un autore", "dc.contributor.author"))))
+                            .matchFormFieldDefinition("lookup-name", "Autore", "\u00C8 richiesto almeno un autore",
+                                true, "Aggiungi un autore", "dc.contributor.author"))))
                  .andExpect(jsonPath("$.rows[1].fields", contains(SubmissionFormFieldMatcher
                             .matchFormFieldDefinition("onebox", "Titolo",
                             "\u00C8 necessario inserire un titolo principale per questo item", false,
