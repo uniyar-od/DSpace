@@ -15,21 +15,25 @@ import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
+/**
+ * CollectionValidationExclusive permits doi register to all collection NOT in collectionList; 
+ *
+ */
 public class CollectionValidationExclusive extends ACollectionValidation {
 
-	private String checkFile;
-	private String checkMetadata;
+    private Logger log = Logger.getLogger(CollectionValidationExclusive.class);
+    
 	private ArrayList<String> collectionList;
 
-	Logger log = Logger.getLogger(CollectionValidationExclusive.class);
-
+	@Override
 	public boolean canRegister(Context context, DSpaceObject dso) {
 		if (dso.getType() == Constants.ITEM) {
 			Item item = (Item) dso;
-			String collHandle = getHandle(context, item);
+			String collHandle = getCollectionHandle(context, item);
 
 			if (!collectionList.contains(collHandle)) {
-				return isToRegister(true, checkFile, checkMetadata, item);
+			    log.debug("Checking DOI could mint (ITEM Identifier):" + item.getID());
+				return isToRegister(item);
 			}
 		}
 		return false;
@@ -43,20 +47,5 @@ public class CollectionValidationExclusive extends ACollectionValidation {
 		this.collectionList = collectionList;
 	}
 
-	public String getCheckFile() {
-		return checkFile;
-	}
-
-	public void setCheckFile(String checkFile) {
-		this.checkFile = checkFile;
-	}
-
-	public String getCheckMetadata() {
-		return checkMetadata;
-	}
-
-	public void setCheckMetadata(String checkMetadata) {
-		this.checkMetadata = checkMetadata;
-	}
 
 }

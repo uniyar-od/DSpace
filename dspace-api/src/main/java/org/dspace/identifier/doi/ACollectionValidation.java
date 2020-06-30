@@ -7,66 +7,114 @@
  */
 package org.dspace.identifier.doi;
 
-/**
- * This implementation provide the possibility prevent/permit DOI registration based on Item Owning Collection
- * and other criteria, such as check on metadata or if item has files
- * 
- * @author Riccardo Fazio (riccardo.fazio at 4science.it)
- *
- */
 import java.sql.SQLException;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Context;
 import org.dspace.workflow.WorkflowItem;
 
-public abstract class ACollectionValidation implements IdentifierRegisterValidation {
+/**
+ * This implementation provide the possibility prevent/permit DOI registration
+ * based on Item Owning Collection and other criteria, such as check on metadata
+ * or if item has files.
+ * 
+ * checkFile property contains boolean value; if true checks if item has files. 
+ * checkMetadata check if the metadata listed have value to permits registration (true, t, on, yes or y); otherwise false. 
+ * 
+ * @author Riccardo Fazio (riccardo.fazio at 4science.it)
+ *
+ */
+public abstract class ACollectionValidation
+        implements IdentifierRegisterValidation
+{
 
-	Logger log = Logger.getLogger(ACollectionValidation.class);
+    private Logger log = Logger.getLogger(ACollectionValidation.class);
 
-	public boolean isToRegister (boolean register, String checkFile, String checkMetadata, Item item) {
-		if (register) {
-			if (BooleanUtils.toBoolean(checkFile)) {
-				try {
-					register = item.hasUploadedFiles();
-				} catch (SQLException e) {
-					log.error(e.getMessage(), e);
-				}
-			}
-			if (StringUtils.isNotBlank(checkMetadata)) {
-				register = register && BooleanUtils.toBoolean(item.getMetadata(checkMetadata));
-			}
-		}
+    private String checkFile;
 
-		return register;
-	}
-	
-	public String getHandle(Context context, Item item) {
-		String collHandle = null;
-		try {
-			if(!item.isInProgressSubmission()) {
-				Collection owningCollection = item.getOwningCollection();
-				if (owningCollection != null) {
-					collHandle = owningCollection.getHandle();
-				}
-			} 
-			else {
-				WorkspaceItem wsi = WorkspaceItem.findByItem(context, item);
-				if(wsi != null) {
-					collHandle =wsi.getCollection().getHandle();
-				} else {
-					WorkflowItem wfi = WorkflowItem.findByItem(context, item);
-					collHandle = wfi.getCollection().getHandle();
-				}
-			}
-		} catch (SQLException e) {
-			log.error(e.getMessage(), e);
-		}
-		return collHandle;
-	}
+    private String checkMetadata;
+    
+    public abstract boolean canRegister(Context context, DSpaceObject dso);
+
+    /**
+     * Check if the DOI minting is allowed for the Item 
+     * 
+     * @param item
+     * 
+     * @return true if DOI is permits on Item
+     */
+    protected boolean isToRegister(Item item)
+    {
+        boolean register = true;
+        if (BooleanUtils.toBoolean(getCheckFile()))
+        {
+            try
+            {
+                register = item.hasUploadedFiles();
+            }
+            catch (SQLException e)
+            {
+                log.error(e.getMessage(), e);
+            }
+        }
+        if (StringUtils.isNotBlank(getCheckMetadata()))
+        {
+            register = register
+                    && checkMetadataValue(item);
+        }
+
+        return register;
+    }
+
+    /**
+     * Check if the metadata value is allowed to minting DOI
+     * 
+     * @param item
+     * 
+     * @return
+     */
+    protected boolean checkMetadataValue(Item item)
+    {
+        return BooleanUtils.toBoolean(item.getMetadata(getCheckMetadata()));
+    }
+
+    public String getCollectionHandle(Context context, Item item)
+    {
+        String collHandle = null;
+        try
+        {
+            collHandle = item.getParentObject().getHandle();
+        }
+        catch (SQLException e)
+        {
+            log.error(e.getMessage(), e);
+        }
+        return collHandle;
+    }
+
+    public String getCheckFile()
+    {
+        return checkFile;
+    }
+
+    public void setCheckFile(String checkFile)
+    {
+        this.checkFile = checkFile;
+    }
+
+    public String getCheckMetadata()
+    {
+        return checkMetadata;
+    }
+
+    public void setCheckMetadata(String checkMetadata)
+    {
+        this.checkMetadata = checkMetadata;
+    }
 }

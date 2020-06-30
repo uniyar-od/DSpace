@@ -13,24 +13,27 @@ import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 
+/**
+ * Permit DOI minting ONLY to one collection.
+ *  
+ */
 public class CollectionValidationInclusive extends ACollectionValidation {
 
-	private String checkFile;
-	private String checkMetadata;
+    private Logger log = Logger.getLogger(CollectionValidationInclusive.class);
+    
 	private String collectionHandle;
-
-	Logger log = Logger.getLogger(CollectionValidationInclusive.class);
 
 	@Override
 	public boolean canRegister(Context context, DSpaceObject dso) {
 		if (dso.getType() == Constants.ITEM) {
 			Item item = (Item) dso;
-			String collHandle = getHandle(context, item);
+			String collHandle = getCollectionHandle(context, item);
 
 			if (collectionHandle.equalsIgnoreCase(collHandle)) {
-				return isToRegister(true, checkFile, checkMetadata, item);
+			    log.debug("Checking DOI could mint (ITEM Identifier):" + item.getID());
+				return isToRegister(item);
 			}
-		}
+		}		
 		return false;
 	}
 
@@ -40,22 +43,6 @@ public class CollectionValidationInclusive extends ACollectionValidation {
 
 	public void setCollectionHandle(String collectionHandle) {
 		this.collectionHandle = collectionHandle;
-	}
-
-	public String getCheckFile() {
-		return checkFile;
-	}
-
-	public void setCheckFile(String checkFile) {
-		this.checkFile = checkFile;
-	}
-
-	public String getCheckMetadata() {
-		return checkMetadata;
-	}
-
-	public void setCheckMetadata(String checkMetadata) {
-		this.checkMetadata = checkMetadata;
 	}
 
 }
