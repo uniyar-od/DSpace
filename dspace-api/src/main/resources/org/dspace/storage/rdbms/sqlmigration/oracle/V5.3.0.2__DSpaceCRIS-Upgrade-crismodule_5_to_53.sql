@@ -35,7 +35,7 @@ BEGIN
     FROM USER_TABLES
     WHERE LOWER(TABLE_NAME) = 'jdyna_widget_checkradio';
     IF (VCOUNT              =0) THEN
-      EXECUTE IMMEDIATE 'create table jdyna_widget_checkradio (id number(10,0) not null, option4row number(10,0), staticValues varchar2(255 CHAR), dropdown number(1,0), primary key (id))';
+      EXECUTE IMMEDIATE 'create table jdyna_widget_checkradio (id number(10,0) not null, option4row number(10,0), staticValues clob, dropdown number(1,0), primary key (id))';
     END IF;
   END;
   
