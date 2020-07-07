@@ -481,7 +481,6 @@ public class XOAI {
         }
         
         doc.addField("item.handle", handle);
-        doc.addField("item.lastmodified", item.getLastModified());
         if (item.getSubmitter() != null) {
             doc.addField("item.submitter", item.getSubmitter().getEmail());
         }
