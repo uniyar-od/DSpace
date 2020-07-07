@@ -109,26 +109,15 @@ public class ItemCrisRefDisplayStrategy extends ASimpleDisplayStrategy implement
                 if (colIdx != null) // we are showing metadata in a table row
                                   // (browse or item list)
                 {
-                    buildAuthority(hrq, iMetadataValue.getValue(), iMetadataValue.getAuthority(), itemId, publicPath, sb);
+                    sb.append("; ");
                 }
-                if (j < (loopLimit - 1))
+                else
                 {
-                    if (colIdx != null) // we are showing metadata in a table row
-                                      // (browse or item list)
-                    {
-                        sb.append("; ");
-                    }
-                    else
-                    {
-                        // we are in the item tag
-                        sb.append("<br />");
-                    }
+                    // we are in the item tag
+                    sb.append("<br />");
                 }
             }
-            else
-            {
-                break;
-            }
+
         }
         if (truncated)
         {
