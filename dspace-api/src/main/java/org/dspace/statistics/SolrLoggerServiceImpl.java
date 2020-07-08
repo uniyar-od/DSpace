@@ -72,6 +72,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -126,7 +127,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     private List<String> statisticYearCores = new ArrayList<String>();
 
     private boolean statisticYearCoresInit = false;
-    
+
+    @Autowired(required = true)
+    protected CollectionService collectionService;
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
@@ -639,8 +642,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
         else if (dso instanceof Item)
         {
+            Context context = new Context();
             Item item = (Item) dso;
-            List<Collection> collections = item.getCollections();
+            List<Collection> collections = collectionService.findCollectionsByItem(context, item);
             for (Collection collection : collections) {
                 doc1.addField("owningColl", collection.getID());
                 storeParents(doc1, collection);

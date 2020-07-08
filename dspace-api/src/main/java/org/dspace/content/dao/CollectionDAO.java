@@ -41,6 +41,8 @@ public interface CollectionDAO extends DSpaceObjectLegacySupportDAO<Collection> 
 
     List<Collection> findCollectionsWithSubscribers(Context context) throws SQLException;
 
+    public List<Collection> findCollectionsByItem(Context context, Item item) throws SQLException;
+
     int countRows(Context context) throws SQLException;
 
     List<Map.Entry<Collection, Long>> getCollectionsWithBitstreamSizesTotal(Context context) throws SQLException;
