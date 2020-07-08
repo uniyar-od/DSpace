@@ -84,6 +84,7 @@ import org.dspace.statistics.util.DnsLookup;
 import org.dspace.statistics.util.SpiderDetector;
 import org.dspace.usage.UsageWorkflowEvent;
 import org.dspace.utils.DSpace;
+import org.hibernate.LazyInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -642,9 +643,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         }
         else if (dso instanceof Item)
         {
-            Context context = new Context();
             Item item = (Item) dso;
-            List<Collection> collections = collectionService.findCollectionsByItem(context, item);
+            List<Collection> collections = new ArrayList<>();
+            try {
+                collections = item.getCollections();
+            } catch (LazyInitializationException e) {
+                log.warn(e.getMessage(), e);
+                Context context = new Context();
+                collections = collectionService.findCollectionsByItem(context, item);
+            }
             for (Collection collection : collections) {
                 doc1.addField("owningColl", collection.getID());
                 storeParents(doc1, collection);
