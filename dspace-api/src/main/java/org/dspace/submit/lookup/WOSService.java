@@ -11,13 +11,16 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
 import org.apache.commons.httpclient.HttpStatus;
@@ -25,9 +28,11 @@ import org.apache.commons.httpclient.methods.PostMethod;
 import org.apache.commons.httpclient.methods.RequestEntity;
 import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.log4j.Logger;
 import org.apache.xerces.impl.dv.util.Base64;
 import org.dspace.app.util.XMLUtils;
+import org.dspace.core.ConfigurationManager;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
@@ -36,15 +41,22 @@ import org.xml.sax.SAXException;
 import gr.ekt.bte.core.Record;
 
 public class WOSService {
+    private String loginSID;
+    private long loginTime;
+
+    private int numReqInSecond = 0;
+    private long lastRequest = 0;
+    private long lastInvalidateByRetry = 0;
+
 	private static Logger log = Logger.getLogger(WOSService.class);
 	
 	private final String SEARCH_HEAD_BY_AFFILIATION = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wok=\"http://woksearch.v3.wokmws.thomsonreuters.com\"><soapenv:Header/><soapenv:Body><wok:search><queryParameters><databaseId>WOK</databaseId>";
 	private final String SEARCH_HEAD = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wok=\"http://woksearch.v3.wokmws.thomsonreuters.com\"><soapenv:Header/><soapenv:Body><wok:search><queryParameters><databaseId>WOK</databaseId>";
 	private final String RETRIEVEBYID_HEAD = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wok=\"http://woksearch.v3.wokmws.thomsonreuters.com\"><soapenv:Header/><soapenv:Body><wok:retrieveById><databaseId>WOK</databaseId>";
-
-	private final String SEARCH_END_BY_AFFILIATION = "<queryLanguage>en</queryLanguage></queryParameters><retrieveParameters><firstRecord>1</firstRecord><count>100</count></retrieveParameters></wok:search></soapenv:Body></soapenv:Envelope>";
-	private final String SEARCH_END = "<queryLanguage>en</queryLanguage></queryParameters><retrieveParameters><firstRecord>1</firstRecord><count>100</count></retrieveParameters></wok:search></soapenv:Body></soapenv:Envelope>";
-	private final String RETRIEVEBYID_END = "<queryLanguage>en</queryLanguage><retrieveParameters><firstRecord>1</firstRecord><count>100</count></retrieveParameters></wok:retrieveById></soapenv:Body></soapenv:Envelope>";
+	private final int MAX_COUNT = 100;
+	private final String SEARCH_END_BY_AFFILIATION = "<queryLanguage>en</queryLanguage></queryParameters><retrieveParameters><firstRecord>::firstRecord::</firstRecord><count>"+MAX_COUNT+"</count></retrieveParameters></wok:search></soapenv:Body></soapenv:Envelope>";
+	private final String SEARCH_END = "<queryLanguage>en</queryLanguage></queryParameters><retrieveParameters><firstRecord>::firstRecord::</firstRecord><count>"+MAX_COUNT+"</count></retrieveParameters></wok:search></soapenv:Body></soapenv:Envelope>";
+	private final String RETRIEVEBYID_END = "<queryLanguage>en</queryLanguage><retrieveParameters><firstRecord>::firstRecord::</firstRecord><count>"+MAX_COUNT+"</count></retrieveParameters></wok:retrieveById></soapenv:Body></soapenv:Envelope>";
 
 	private final String AUTH_MESSAGE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:ns=\"http://auth.cxf.wokmws.thomsonreuters.com\">"
 			+ "<soapenv:Header></soapenv:Header><soapenv:Body><ns:authenticate/></soapenv:Body></soapenv:Envelope>";
@@ -98,7 +110,7 @@ public class WOSService {
 		StringBuffer query = new StringBuffer("");
 		if (StringUtils.isNotBlank(doi)) {
 			query.append("DO=(");
-			query.append(doi);
+			query.append(StringEscapeUtils.escapeXml(doi));
 			query.append(")");
 		}
 		if ((StringUtils.isNotBlank(title)) && (query.length() > 0)) {
@@ -106,7 +118,7 @@ public class WOSService {
 		}
 		if (StringUtils.isNotBlank(title)) {
 			query.append("TI=(\"");
-			query.append(title);
+			query.append(StringEscapeUtils.escapeXml(title));
 			query.append("\")");
 		}
 		if ((StringUtils.isNotBlank(author)) && (query.length() > 0)) {
@@ -114,7 +126,7 @@ public class WOSService {
 		}
 		if (StringUtils.isNotBlank(author)) {
 			query.append("AU=(\"");
-			query.append(author);
+			query.append(StringEscapeUtils.escapeXml(author));
 			query.append("\")");
 		}
 		if ((year != -1) && (query.length() > 0)) {
@@ -128,8 +140,14 @@ public class WOSService {
 		return query;
 	}
 
-	private String login(String username, String password, boolean ipAuth) throws IOException, HttpException {
-		String ret = null;
+	private synchronized String login(String username, String password, boolean ipAuth) throws IOException, HttpException {
+		if (loginSID != null && new Date().getTime() - loginTime < 1000*ConfigurationManager.getIntProperty("wos.login.timeout", 3600)) {
+		    return loginSID;
+		}
+		else if (loginSID != null && new Date().getTime() - loginTime >= 1000*ConfigurationManager.getIntProperty("wos.login.timeout", 3600)) {
+		    logout(loginSID);
+		}
+	    String ret = null;
 		PostMethod method = null;
 		try {
 			// open session
@@ -170,6 +188,8 @@ public class WOSService {
 				Element response = XMLUtils.getSingleElement(soapBody, "ns2:authenticateResponse");
 				Element sidTag = XMLUtils.getSingleElement(response, "return");
 				ret = sidTag.getTextContent();
+				loginSID = ret;
+				loginTime = new Date().getTime();
 			} catch (ParserConfigurationException e) {
 				log.error(e.getMessage(), e);
 			} catch (SAXException e1) {
@@ -188,6 +208,8 @@ public class WOSService {
 			// close session
 			PostMethod method = null;
 			try {
+			    loginSID = null;
+			    loginTime = 0;
 				HttpClient client = new HttpClient();
 				method = new PostMethod(endPointAuthService);
 				method.setRequestHeader("Cookie", "SID=" + sid);
@@ -196,7 +218,7 @@ public class WOSService {
 
 				int statusCode = client.executeMethod(method);
 				if (statusCode != HttpStatus.SC_OK) {
-					throw new RuntimeException("Chiamata al webservice fallita: " + method.getStatusLine());
+					log.info("Invalidation of the session failed: " + method.getStatusLine());
 				}
 			} finally {
 				if (method != null) {
@@ -216,45 +238,89 @@ public class WOSService {
 			if (StringUtils.isNotBlank(sid)) {
 				try {
 					HttpClient client = new HttpClient();
-					PostMethod method = new PostMethod(endPointSearchService);
-                    method.setRequestHeader("Cookie", "SID=" + sid);
-					RequestEntity re = new StringRequestEntity(message, "text/xml", "UTF-8");
-					method.setRequestEntity(re);
-					int statusCode = client.executeMethod(method);
-					if (statusCode != HttpStatus.SC_OK) {
-						throw new RuntimeException("Chiamata al webservice fallita: " + method.getStatusLine());
-					}
-					DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-					DocumentBuilder builder = factory.newDocumentBuilder();
-					Document inDoc = builder.parse(method.getResponseBodyAsStream());
-					Element xmlRoot = inDoc.getDocumentElement();
-					Element tmp = XMLUtils.getSingleElement(xmlRoot, "soap:Body");
-					if (message.indexOf("<userQuery>") > 0) {
-						tmp = XMLUtils.getSingleElement(tmp, "ns2:searchResponse");
-					} else {
-						tmp = XMLUtils.getSingleElement(tmp, "ns2:retrieveByIdResponse");
-					}
-					tmp = XMLUtils.getSingleElement(tmp, "return");
-					String recordsFound = XMLUtils.getElementValue(tmp, "recordsFound");
-					if (!"0".equals(recordsFound)) {
-						Element records = XMLUtils.getSingleElement(tmp, "records");
-						Document newDoc = builder.parse(new InputSource(new ByteArrayInputStream(records
-								.getTextContent().getBytes("UTF-8"))));
-						Element recordsElement = newDoc.getDocumentElement();
-						List<Element> recList = XMLUtils.getElementList(recordsElement, "REC");
-						for (int i = 0; i < recList.size(); i++) {
-							Element rec = recList.get(i);
-							results.add(WOSUtils.convertWosDomToRecord(rec));
-						}
-					}
+
+					// in wos the first record is 1-based
+					int start = 1;
+                    boolean lastPageReached= false;
+                    while(!lastPageReached){
+                        waitIfNeeded();
+                        String paginatedMessage = message.replace("::firstRecord::", String.valueOf(start));
+                        PostMethod method = new PostMethod(endPointSearchService);
+                        method.setRequestHeader("Cookie", "SID=" + sid);
+                        RequestEntity re = new StringRequestEntity(paginatedMessage, "text/xml", "UTF-8");
+                        method.setRequestEntity(re);
+                        int statusCode = client.executeMethod(method);
+                        if (statusCode != HttpStatus.SC_OK) {
+                            // don't invalidate the session more than 1 times each 5 minutes to avoid throttling issue
+                            long timeNow = new Date().getTime();
+                            if (timeNow - lastInvalidateByRetry > 5 * 60000) {
+                                lastInvalidateByRetry = timeNow;
+                                log.debug("Webservice call failed, try to invalidate the session");
+                                logout(sid);
+                                sid = login(username, password, ipAuth);
+                                method = new PostMethod(endPointSearchService);
+                                method.setRequestHeader("Cookie", "SID=" + sid);
+                                re = new StringRequestEntity(paginatedMessage, "text/xml", "UTF-8");
+                                method.setRequestEntity(re);
+                                statusCode = client.executeMethod(method);
+                            }
+                            if (statusCode != HttpStatus.SC_OK) {
+                                Header[] headers = method.getResponseHeaders();
+                                log.error("----" + statusCode + "--------");
+                                log.error("----" + sid + "--------");
+                                if (headers != null) {
+                                    for (Header h : headers) {
+                                        log.error(h.getName() + " : " + h.getValue());
+                                    }
+                                }
+                                log.error("----");
+                                log.error(paginatedMessage);
+                                log.error("----");
+                                log.error(method.getResponseBodyAsString());
+                                log.error("----");
+                                throw new RuntimeException("Webservice call failed: " + method.getStatusLine());
+                            }
+                        }
+                        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+                        DocumentBuilder builder = factory.newDocumentBuilder();
+                        Document inDoc = builder.parse(method.getResponseBodyAsStream());
+                        Element xmlRoot = inDoc.getDocumentElement();
+                        Element tmp = XMLUtils.getSingleElement(xmlRoot, "soap:Body");
+                        if (message.indexOf("<userQuery>") > 0) {
+                            tmp = XMLUtils.getSingleElement(tmp, "ns2:searchResponse");
+                        } else {
+                            tmp = XMLUtils.getSingleElement(tmp, "ns2:retrieveByIdResponse");
+                        }
+                        tmp = XMLUtils.getSingleElement(tmp, "return");
+                        String recordsFound = XMLUtils.getElementValue(tmp, "recordsFound");
+                        if (!"0".equals(recordsFound)) {
+                            Element records = XMLUtils.getSingleElement(tmp, "records");
+                            Document newDoc = builder.parse(new InputSource(new ByteArrayInputStream(records
+                                    .getTextContent().getBytes("UTF-8"))));
+                            Element recordsElement = newDoc.getDocumentElement();
+                            List<Element> recList = XMLUtils.getElementList(recordsElement, "REC");
+                            for (int i = 0; i < recList.size(); i++) {
+                                Element rec = recList.get(i);
+                                results.add(WOSUtils.convertWosDomToRecord(rec));
+                            }
+                            if (recList.size() < MAX_COUNT
+                                    || StringUtils.equals(recordsFound,
+                                            String.valueOf(MAX_COUNT)))
+                            {
+                                lastPageReached = true;
+                            }
+                        }
+                        else {
+                            lastPageReached = true;
+                        }
+                        start += MAX_COUNT;
+                    }
 				} catch (ParserConfigurationException e) {
 					log.error(e.getMessage(), e);
 				} catch (SAXException e) {
 					log.error(e.getMessage(), e);
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
-				} finally {
-					logout(sid);
 				}
 			}
 		} catch (Exception e1) {
@@ -263,7 +329,41 @@ public class WOSService {
 		return results;
 	}
 
-	//TODO databaseID not used
+	/**
+	 * WoS allows a maximum of two search request in a single second window
+	 * @throws InterruptedException
+	 */
+	private synchronized void waitIfNeeded() throws InterruptedException
+    {
+        if (numReqInSecond == 0) {
+            lastRequest = new Date().getTime();
+            numReqInSecond++;
+            return;
+        }
+        else {
+            long now = new Date().getTime();
+            long expTime = now - lastRequest;
+            if (expTime > 1000) {
+                numReqInSecond = 1;
+                lastRequest = now;
+                return;
+            }
+            else {
+                if (numReqInSecond >= 2) {
+                    TimeUnit.MILLISECONDS.sleep(1001-expTime);
+                    lastRequest = new Date().getTime();
+                    numReqInSecond = 1;
+                    return;
+                }
+                else {
+                    numReqInSecond++;
+                    return;
+                }
+            }
+        }
+    }
+
+    //TODO databaseID not used
     public List<Record> searchByAffiliation(String userQuery, String databaseID, String symbolicTimeSpan, String start, String end,
             String username, String password, boolean ipAuth)
                     throws HttpException, IOException

@@ -111,10 +111,10 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 	#link-ricerca-identificatore {cursor: pointer; font-weight: bold; color: #FF6600;}
 	.sl-result {padding: 10px;}
 	.sl-result:HOVER {background-color: #5C9CCC;}
-	.sl-result-title, .sl-result-authors, .sl-result-date {display: block;}
+	.sl-result-title, .sl-result-authors, .sl-result-date, .sl-result-url {display: block;}
 	.sl-result-title {font-weight: bold;}
 	.sl-result-authors {font-style: italic;}
-	.sl-result-date {margin-bottom: 10px;}
+	.sl-result-date, .sl-result-url {margin-bottom: 10px;}
 	.invalid-value {border: 1px solid #FF6600;}
 	.img-thumbnail {height: 35px !important;}
 	</style>	
@@ -289,10 +289,11 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 		<span class="col-md-9">		
 <%	
 			for (String provider : identifiers2providers.get(identifier))
-			{			
+			{
+			    if (!"localduplicate".equalsIgnoreCase(provider)) {
 %>
 			<img class="img-thumbnail" src="<%= request.getContextPath() %>/image/submission-lookup-small-<%= provider %>.jpg" />
-<% 
+<% 				}
 			}
 %>
 		</span>	 
@@ -403,7 +404,14 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 				<input type="hidden" id="iuuid_batch" name="iuuid_batch" value=""/>
 				<input type="hidden" id="filePath" name="filePath" value=""/>
 			</form>
-			<input type="checkbox" id="checkallresults" name="checkallresults"><fmt:message key="jsp.submit.start-lookup-submission.js.checkallresults"/>
+		
+			<div id="checkboxAll" class="col-md-2">
+			<input type="checkbox" id="checkallresults" name="checkallresults" onclick="checkAllResults(true)"><fmt:message key="jsp.submit.start-lookup-submission.js.checkallresults"/>
+			</div>
+			<div id="checkboxNotDup" class="col-md-10">
+			<input type="checkbox" id="checknotdupresults" name="checknotdupresults" onclick="checkNotDupResults(false)"><fmt:message key="jsp.submit.start-lookup-submission.js.checknotdupresults"/>
+			</div>
+			<br>
 			<h4 id="no-record" style="display:none"><span class="label label-warning"></span><fmt:message key="jsp.submit.start-lookup-submission.norecordselected" /></span></h4>
 			<h4 id="no-collection" style="display:none"><span class="label label-warning"><fmt:message key="jsp.submit.start-lookup-submission.nocollectionselected" /></span></h4>
 		</div>
@@ -434,6 +442,24 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
       </div>
       <div class="modal-footer">
       		<button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.submit.start-lookup-submission.no-collection.dialog.return" /></button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div id="check-results-warn" class="modal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title"><fmt:message key="jsp.submit.start-lookup-submission.check-results-warn.title" /></h4>
+      </div>
+      <div class="modal-body with-padding">
+       		<p class="alert alert-warning"><fmt:message key="jsp.submit.start-lookup-submission.check-results-warn.hint" /></p>
+      </div>
+      <div class="modal-footer">
+      		<button id="checkall" type="button" class="btn btn-default" onclick="checkAllResults(false)" data-dismiss="modal"><fmt:message key="jsp.submit.start-lookup-submission.check-results.dialog.check-all" /></button>
+      		<button id="checknotdup" type="button" class="btn btn-primary" onclick="checkNotDupResults(true)" data-dismiss="modal"><fmt:message key="jsp.submit.start-lookup-submission.check-results.dialog.check-nondup" /></button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
@@ -562,19 +588,6 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
     			j('#no-collection-warn').modal('show');
    			}
     	});
-    	j('#manual-submission-button').on("click",function(event){
-    		var colman = j('#select-collection-manual').val();
-    		if (colman != -1)
-    		{
-    			j('#collectionid').val(colman);
-    			j('#form-submission').submit();
-    		}
-    		else
-   			{
-    			j('#no-collection-warn').modal('show');
-   			}
-    	});
-   	
     	j('#lookup_idenfifiers').on("click",function(){
     		submissionLookupIdentifiers(j('input.submission-lookup-identifier'));
     	});

@@ -7,18 +7,18 @@
  */
 package org.dspace.submit.util;
 
+import gr.ekt.bte.core.MutableRecord;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.Value;
+
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 import org.dspace.submit.lookup.SubmissionLookupService;
-
-import gr.ekt.bte.core.DataLoader;
-import gr.ekt.bte.core.MutableRecord;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.Value;
 
 /**
  * @author Andrea Bollini
@@ -64,7 +64,7 @@ public class ItemSubmissionLookupDTO implements Serializable
         return uuid;
     }
 
-    public Record getTotalPublication(List<DataLoader> providers)
+    public Record getTotalPublication(List<String> providers)
     {
         if (publications == null)
         {
@@ -78,31 +78,86 @@ public class ItemSubmissionLookupDTO implements Serializable
         {
             MutableRecord pub = new SubmissionLookupPublication(
                     MERGED_PUBLICATION_PROVIDER);
-            // for (SubmissionLookupProvider prov : providers)
-            // {
-            for (Record p : publications)
-            {
-                // if
-                // (!SubmissionLookupService.getProviderName(p).equals(prov.getShortName()))
-                // {
-                // continue;
-                // }
-                for (String field : p.getFields())
+
+            if (providers != null) {
+                List<String> unprioritizedProviders = new ArrayList<String>();
+                for (String prov : providers)
                 {
-                    List<Value> values = p.getValues(field);
-                    if (values != null && values.size() > 0)
+                    for (Record p : publications)
                     {
-                        if (!pub.getFields().contains(field))
+                        // force to process the records in a predefined order
+                        String recProvName = SubmissionLookupService.getProviderName(p);
+                        if (!recProvName
+                                .equals(prov))
                         {
-                            for (Value v : values)
+                            if (!providers.contains(recProvName)) {
+                                unprioritizedProviders.add(recProvName);
+                            }
+                            continue;
+                        }
+                        for (String field : p.getFields())
+                        {
+                            List<Value> values = p.getValues(field);
+                            if (values != null && values.size() > 0)
                             {
-                                pub.addValue(field, v);
+                                if (!pub.getFields().contains(field))
+                                {
+                                    for (Value v : values)
+                                    {
+                                        pub.addValue(field, v);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // force to process the other records
+                for (String prov : unprioritizedProviders)
+                {
+                    for (Record p : publications)
+                    {
+                        String recProvName = SubmissionLookupService.getProviderName(p);
+                        if (!recProvName
+                                .equals(prov))
+                        {
+                            continue;
+                        }
+                        for (String field : p.getFields())
+                        {
+                            List<Value> values = p.getValues(field);
+                            if (values != null && values.size() > 0)
+                            {
+                                if (!pub.getFields().contains(field))
+                                {
+                                    for (Value v : values)
+                                    {
+                                        pub.addValue(field, v);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
-            // }
+            else {
+                for (Record p : publications)
+                {
+                    for (String field : p.getFields())
+                    {
+                        List<Value> values = p.getValues(field);
+                        if (values != null && values.size() > 0)
+                        {
+                            if (!pub.getFields().contains(field))
+                            {
+                                for (Value v : values)
+                                {
+                                    pub.addValue(field, v);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             return pub;
         }
     }

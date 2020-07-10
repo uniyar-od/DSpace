@@ -45,21 +45,21 @@ public class AuthorityLookupModifier<T extends ACrisObject>
     /**
      * the key is the BTE field, the value the SOLR field
      */
-    private Map<String, String> metadataInputConfiguration;
+    protected Map<String, String> metadataInputConfiguration;
 
     /**
      * the key is the CRIS object prop name, the value the BTE field
      */
-    private Map<String, String> mappingOutputConfiguration;
+    protected Map<String, String> mappingOutputConfiguration;
 
 	// the list of BTE field that should be linked to the CRIS object if found via
 	// the authority framework. They need to appear in the enhanced fields map as
 	// well
-    private List<String> mappingAuthorityConfiguration;
+    private List<String> mappingAuthorityConfidenceConfiguration;
 
-    private Integer resourceTypeID;
+    protected Integer resourceTypeID;
 
-    private SearchService searchService;
+    protected SearchService searchService;
 
     private Class<T> clazzCrisObject;
 
@@ -135,7 +135,7 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 						}
 
 						if (ResearcherPageUtils.getStringValue(cris, propShortname) != null) {
-							if (mappingAuthorityConfiguration.contains(bteField)) {
+							if (mappingAuthorityConfidenceConfiguration.contains(bteField)) {
 								newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)
 										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + cris.getCrisID()
 										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + confidences.get(pos)));
@@ -173,7 +173,7 @@ public class AuthorityLookupModifier<T extends ACrisObject>
         return values;
     }
 
-    private List<String> getValue(MutableRecord rec, String md)
+    protected List<String> getValue(MutableRecord rec, String md)
     {
         List<String> result = new ArrayList<String>();
         if (StringUtils.isNotBlank(md))
@@ -221,7 +221,7 @@ public class AuthorityLookupModifier<T extends ACrisObject>
     public void setMappingAuthorityConfiguration(
             List<String> mappingAuthorityConfiguration)
     {
-        this.mappingAuthorityConfiguration = mappingAuthorityConfiguration;
+        this.mappingAuthorityConfidenceConfiguration = mappingAuthorityConfiguration;
     }
 
     public void setResourceTypeID(Integer resourceTypeID)

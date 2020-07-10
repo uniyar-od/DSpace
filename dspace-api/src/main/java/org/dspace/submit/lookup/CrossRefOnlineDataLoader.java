@@ -7,6 +7,8 @@
  */
 package org.dspace.submit.lookup;
 
+import gr.ekt.bte.core.Record;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,12 +18,11 @@ import java.util.Set;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.dspace.core.Context;
 import org.jdom.JDOMException;
 import org.xml.sax.SAXException;
-
-import gr.ekt.bte.core.Record;
 
 /**
  * @author Andrea Bollini
@@ -31,12 +32,12 @@ import gr.ekt.bte.core.Record;
  */
 public class CrossRefOnlineDataLoader extends NetworkSubmissionLookupDataLoader
 {
-    protected CrossRefService crossrefService = new CrossRefService();
+    private CrossRefService crossrefService = new CrossRefService();
 
-    protected boolean searchProvider = true;
+    private boolean searchProvider = true;
 
-    protected String apiKey = null;
-    protected int maxResults = 10;
+    private String apiKey = null;
+    private int maxResults = 10;
     
     public void setSearchProvider(boolean searchProvider)
     {
@@ -64,7 +65,7 @@ public class CrossRefOnlineDataLoader extends NetworkSubmissionLookupDataLoader
             List<Record> items = null;
             List<Record> results = new ArrayList<Record>();
             
-            if (getApiKey() == null){
+            if (StringUtils.isBlank(getApiKey())){
             	throw new RuntimeException("No CrossRef API key is specified!");
             }
             
@@ -97,7 +98,7 @@ public class CrossRefOnlineDataLoader extends NetworkSubmissionLookupDataLoader
     public List<Record> search(Context context, String title, String author,
             int year) throws HttpException, IOException
     {
-    	if (getApiKey() == null){
+    	if (StringUtils.isBlank(getApiKey())){
         	throw new RuntimeException("No CrossRef API key is specified!");
         }
     	

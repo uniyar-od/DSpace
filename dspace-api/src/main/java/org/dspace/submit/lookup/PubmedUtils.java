@@ -17,6 +17,7 @@ import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.util.XMLUtils;
+import org.dspace.content.MetadataValue;
 import org.dspace.submit.util.SubmissionLookupPublication;
 import org.w3c.dom.Element;
 
@@ -115,22 +116,60 @@ public class PubmedUtils
         }
 
         List<String[]> authors = new LinkedList<String[]>();
+        List<Value> authorsWithAffiliation = new LinkedList<Value>();
+
         Element authorList = XMLUtils.getSingleElement(article, "AuthorList");
+        List<Value> affils = new LinkedList<Value>();
+        LinkedList<Value> authOrcid = new LinkedList<Value>();
         if (authorList != null)
         {
             List<Element> authorsElement = XMLUtils.getElementList(authorList,
                     "Author");
+
             if (authorsElement != null)
             {
                 for (Element author : authorsElement)
                 {
+                    String name = "";
+                    String lastName ="";
+                    String orcid = null;
                     if (StringUtils.isBlank(XMLUtils.getElementValue(author,
                             "CollectiveName")))
                     {
-                        authors.add(new String[] {
-                                XMLUtils.getElementValue(author, "ForeName"),
-                                XMLUtils.getElementValue(author, "LastName") });
+                        name = XMLUtils.getElementValue(author, "ForeName");
+                        lastName= XMLUtils.getElementValue(author, "LastName");
+                        authors.add(new String[] {name , lastName });
                     }
+                    List<Element> identifiers = XMLUtils.getElementList(author, "Identifier");
+                    for (Element identifier : identifiers) {
+                        if ("ORCID".equalsIgnoreCase(identifier.getAttribute("Source"))) {
+                            orcid = StringUtils.isNotBlank(identifier.getTextContent())?identifier.getTextContent().trim():null;
+                            orcid = orcid.replace("http://orcid.org/", "");
+                            orcid = orcid.replace("https://orcid.org/", "");
+                            break;
+                        }
+                    }
+                    if (orcid != null){
+                        authOrcid.add(new StringValue(orcid));
+                    }else{
+                        authOrcid.add(new StringValue(MetadataValue.PARENT_PLACEHOLDER_VALUE));
+                    }
+                    List<Element> affInfos = XMLUtils.getElementList(author,  "AffiliationInfo");
+                    int x =0;
+                    StringBuffer affs=new StringBuffer();
+                    for(Element affInfo: affInfos) {
+                        if(affInfo != null) {
+                            String affiliation = XMLUtils.getElementValue(affInfo, "Affiliation");
+                            if(x==0) {
+                                affils.add(new StringValue(affiliation));
+                                affs.append(affiliation);
+                            }else {
+                                affs.append(":::").append(affiliation);
+                            }
+                        }
+                        x++;
+                    }
+                    authorsWithAffiliation.add(new StringValue(lastName +", " + name+"##"+affs));
                 }
             }
         }
@@ -142,6 +181,15 @@ public class PubmedUtils
                 values.add(new StringValue(sArray[1] + ", " + sArray[0]));
             }
             record.addField("author", values);
+        }
+        if (authOrcid.size() > 0) {
+            record.addField("orcid", authOrcid);
+        }
+        if (affils.size() > 0) {
+            record.addField("affiliations", affils);
+        }
+        if(!authorsWithAffiliation.isEmpty()) {
+            record.addField("authorsWithAffiliation", authorsWithAffiliation);
         }
 
         Element journal = XMLUtils.getSingleElement(article, "Journal");
@@ -281,6 +329,8 @@ public class PubmedUtils
 
             List<String> primaryMeshHeadings = new LinkedList<String>();
             List<String> secondaryMeshHeadings = new LinkedList<String>();
+            List<String> primaryMeshTerms = new LinkedList<String>();
+            List<String> secondaryMeshTerms = new LinkedList<String>();
             Element meshHeadingsList = XMLUtils.getSingleElement(medline,
                     "MeshHeadingList");
             if (meshHeadingsList != null)
@@ -289,16 +339,33 @@ public class PubmedUtils
                         meshHeadingsList, "MeshHeading");
                 for (Element meshHeading : meshHeadings)
                 {
-                    if ("Y".equals(XMLUtils.getElementAttribute(meshHeading,
-                            "DescriptorName", "MajorTopicYN")))
-                    {
-                        primaryMeshHeadings.add(XMLUtils.getElementValue(
-                                meshHeading, "DescriptorName"));
+                    List<Element> qualifiers = XMLUtils.getElementList(meshHeading, "QualifierName");
+                    boolean majorHeading = "Y".equals(XMLUtils.getElementAttribute(meshHeading,
+                            "DescriptorName", "MajorTopicYN"));
+                    String heading = XMLUtils.getElementValue(meshHeading, "DescriptorName");
+
+                    if (qualifiers != null && qualifiers.size() > 0) {
+                        for (Element qual : qualifiers) {
+                            boolean qualMajor = "Y".equals(qual.getAttribute("MajorTopicYN"));
+                            majorHeading = majorHeading || qualMajor;
+                            if (qualMajor) {
+                                primaryMeshTerms.add(heading + "/" + qual.getTextContent().trim());
+                            }
+                            else {
+                                secondaryMeshTerms.add(heading + "/" + qual.getTextContent().trim());
+                            }
+                        }
+                    }
+                    if (majorHeading) {
+                        if (!primaryMeshHeadings.contains(heading)) {
+                            primaryMeshHeadings.add(heading);
+                        }
                     }
                     else
                     {
-                        secondaryMeshHeadings.add(XMLUtils.getElementValue(
-                                meshHeading, "DescriptorName"));
+                        if (!secondaryMeshHeadings.contains(heading)) {
+                            secondaryMeshHeadings.add(heading);
+                        }
                     }
                 }
             }
@@ -320,7 +387,24 @@ public class PubmedUtils
                 }
                 record.addField("secondaryMeshHeading", values);
             }
-
+            if (primaryMeshTerms.size() > 0)
+            {
+                List<Value> values = new LinkedList<Value>();
+                for (String s : primaryMeshTerms)
+                {
+                    values.add(new StringValue(s));
+                }
+                record.addField("primaryMeshTerms", values);
+            }
+            if (secondaryMeshTerms.size() > 0)
+            {
+                List<Value> values = new LinkedList<Value>();
+                for (String s : secondaryMeshTerms)
+                {
+                    values.add(new StringValue(s));
+                }
+                record.addField("secondaryMeshTerms", values);
+            }
             Element paginationElement = XMLUtils.getSingleElement(article,
                     "Pagination");
             if (paginationElement != null)

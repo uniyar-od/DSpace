@@ -29,6 +29,7 @@ submissionLookupIdentifiers = function(identInputs){
 			{
 				j('#result-list').hide();
 				j('#empty-result').show();
+				j('#result-form').hide();
 			}
 			else
 			{
@@ -111,25 +112,46 @@ submissionLookupDetails = function(button, suffixID){
 submissionLookupShowResult = function(info, suffixID){
 	j('#result-list').show();
 	j('#empty-result').hide();
+	j('#result-form').show();
+	j('#checkboxNotDup').hide();
 	j('#result-list').html(" ");
+	var duplicate = '';
+	var checkboxDuplicate = false;
 	for (var i=0;i<info.result.length;i++)
 	{
 		var bt = j('<button class="btn btn-info" type="button">').append(j('#jsseedetailsbuttonmessage').text());
 		var checkbox = j('<input type="checkbox" id="checkresult'+i+'" class="checkresult" name="checkresult" value="'+info.result[i].uuid+'" />');
+		if(info.result[i].providers.includes("localduplicate")){
+			checkboxDuplicate = true;
+			duplicate="duplicate";
+		}
+		else {
+			duplicate="";
+		}
+		var checkbox = j('<input type="checkbox" id="checkresult'+i+'" class="'+duplicate+' checkresult pull-right" name="checkresult" value="'+info.result[i].uuid+'" />');
 		var par = j('<p class="sl-result">');
 		var divImg = j('<div class="submission-lookup-providers">');
 		par.append(divImg);
+		var localDupl = false;
 		for (var k=0;k<info.result[i].providers.length;k++)
 		{
 			var prov = info.result[i].providers[k];
 			divImg.append(j('<img class="img-thumbnail" src="'+dspaceContextPath+'/image/submission-lookup-small-'+prov+'.jpg">'));
+			if(prov == "localduplicate"){
+				localDupl = true;
+			}
 		}	
 		par
 				.append(checkbox)
 				.append(j('<span class="sl-result-title">').text(info.result[i].title))
 				.append(j('<span class="sl-result-authors">').text(info.result[i].authors))
-				.append(j('<span class="sl-result-date">').text(info.result[i].issued))
-				.append(bt);
+				.append(j('<span class="sl-result-date">').text(info.result[i].issued));
+		
+		if(localDupl){
+			par
+				.append(j('<span class="sl-result-url">').html("<a href='"+ dspaceContextPath +"/handle/" + info.result[i].handle + "' target = 'blank'>"+info.result[i].handle+"</a>" ));
+		}
+		par.append(bt);
 
 		j('#result-list').append(par);
 		bt.button();
@@ -138,14 +160,9 @@ submissionLookupShowResult = function(info, suffixID){
 			submissionLookupDetails(this, suffixID);
 		});
 	}
-	
-	j('#checkallresults').click(function(){
-		if( j("#checkallresults").is(':checked') ){
-	       j(".checkresult").prop("checked",true);
-        }else{
-	       j(".checkresult").prop("checked",false);                       
-        }
-	});
+	if(checkboxDuplicate){
+	j('#checkboxNotDup').show();
+	}
 	
 	j('#identifier-submission-button').on('click',function(){
 		var recordsChecked = [];
@@ -185,11 +202,18 @@ submissionLookupShowDetails = function(info){
 	
 	var modalbody = j('#loading-details .modal-body');
 	var divImg = j('<div class="submission-lookup-providers">');
-	
+	var localDupl = false;
 	for (var k=0;k<info.providers.length;k++)
 	{
 		var prov = info.providers[k];
 		divImg.append(j('<img class="img-thumbnail" src="'+dspaceContextPath+'/image/submission-lookup-small-'+prov+'.jpg">'));
+		if(prov == "localduplicate"){
+			localDupl = true;
+		}
+	}
+	if(localDupl){
+		divImg
+			.append(j('<span class="localduplicate-url">').html("<a href='"+ dspaceContextPath +"/handle/" + info.publication.handle + "' target = 'blank'>"+info.publication.handle+"</a>" ));
 	}
 	modalbody.append(divImg);
 	var detailsDiv = j('<div class="submission-lookup-details">');
@@ -337,4 +361,43 @@ submissionLookupFile = function(form){
 	 
 };
 
+function checkAllResults(force) {
+	if (j("#checkallresults").is(':checked')) {
+		j("#checknotdupresults").prop("checked", false);
+		j(".checkresult").prop("checked", false);
+		if (force) {
+			j('.checkresult').each(function() {
+				if (j(this).is('.duplicate')) {
+					j('#check-results-warn').modal('show');
+				}else{
+					j(this).prop("checked", true);
+				}
+			});
+		} else {
+			j(".checkresult").prop("checked", true);
+		}
+	} else {
+		j(".checkresult").prop("checked", false);
+	}
+}
+
+function checkNotDupResults(force) {
+	if (force) {
+		(j("#checknotdupresults").prop("checked", true));
+	}
+	if (j("#checknotdupresults").is(':checked')) {
+		j("#checkallresults").prop("checked", false);
+		j(".checkresult").prop("checked", false);
+		j('.checkresult').each(function() {
+			if (!j(this).is('.duplicate')) {
+				j(this).prop("checked", true);
+			} else {
+				j(this).prop("checked", false);
+			}
+		});
+
+	} else {
+		j(".checkresult").prop("checked", false);
+	}
+}
 

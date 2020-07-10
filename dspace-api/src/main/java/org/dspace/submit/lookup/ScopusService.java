@@ -7,6 +7,9 @@
  */
 package org.dspace.submit.lookup;
 
+import gr.ekt.bte.core.MutableRecord;
+import gr.ekt.bte.core.Record;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -33,8 +36,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import gr.ekt.bte.core.Record;
-
 /**
  * @author Andrea Bollini
  * @author Kostas Stamatis
@@ -44,14 +45,14 @@ import gr.ekt.bte.core.Record;
 public class ScopusService
 {
 
-    private static final String ENDPOINT_SEARCH_SCOPUS = "http://api.elsevier.com/content/search/scopus";
-    //private static final String ENDPOINT_SEARCH_SCOPUS = "http://localhost:9999/content/search/scopus";
+    private static final String ENDPOINT_SEARCH_SCOPUS = "https://api.elsevier.com/content/search/scopus";
+    //private static final String ENDPOINT_SEARCH_SCOPUS = "https://localhost:9999/content/search/scopus";
 
     private static final Logger log = Logger.getLogger(ScopusService.class);
 
     private int timeout = 1000;
 
-    int itemPerPage = 25;
+    private int itemPerPage = 25;
 
     public List<Record> search(String title, String author, int year)
             throws HttpException, IOException
@@ -146,21 +147,12 @@ public class ScopusService
 		
 		            		for (Element xmlArticle : pubArticles)
 		            		{
-		            			Record scopusItem = null;
-		            			try
-		            			{
-		            				scopusItem = ScopusUtils
+		            			MutableRecord scopusItem = ScopusUtils
 		            						.convertScopusDomToRecord(xmlArticle);
-		            				results.add(scopusItem);
-		            			}
-		            			catch (Exception e)
-		            			{
-		            				throw new RuntimeException(
-		            						"EID is not valid or not exist: "
-		            								+ e.getMessage(), e);
+		            			if (scopusItem != null) {
+		            			    results.add(scopusItem);
 		            			}
 		            		}
-		
 		                }
 		                catch (ParserConfigurationException e1)
 		                {
@@ -205,6 +197,36 @@ public class ScopusService
                 Document inDoc = builder.parse(stream);
 
                 Element xmlRoot = inDoc.getDocumentElement();
+
+                List<Element> pages = XMLUtils.getElementList(xmlRoot,
+                		"link");
+                for(Element page: pages){
+                	String refPage = page.getAttribute("ref");
+                	if(StringUtils.equalsIgnoreCase(refPage, "next")){
+                		break;
+                	}
+                }
+                List<Element> pubArticles = XMLUtils.getElementList(xmlRoot,
+                		"entry");
+
+                for (Element xmlArticle : pubArticles)
+                {
+                	Record scopusItem = null;
+                	try
+                	{
+                		scopusItem = ScopusUtils
+                				.convertScopusDomToRecord(xmlArticle);
+                		if (scopusItem != null) {
+                			results.add(scopusItem);
+                		}
+                	}
+                	catch (Exception e)
+                	{
+                		throw new RuntimeException(
+                				"EID is not valid or not exist: "
+                						+ e.getMessage(), e);
+                	}
+                }
             }
             catch (Exception e)
             {
@@ -245,5 +267,15 @@ public class ScopusService
             query.append("EID(").append(eid).append(")");
         }
         return search(query.toString());
+    }
+
+    public void setItemPerPage(int itemPerPage)
+    {
+        this.itemPerPage = itemPerPage;
+    }
+
+    public void setTimeout(int timeout)
+    {
+        this.timeout = timeout;
     }
 }

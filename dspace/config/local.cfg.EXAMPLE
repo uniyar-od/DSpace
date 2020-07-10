@@ -419,3 +419,9 @@ core-aggregator.enabled = false
 core-aggregator.credentials =
 
 community-list.show.all = true
+
+pubmed.max-results = 2000
+
+# Change the following property to true to read the local results files in ${dspace.dir}/config/crosswalks/demo
+# instead of querying the remote services
+submission-lookup.remoteservice.demo = false
