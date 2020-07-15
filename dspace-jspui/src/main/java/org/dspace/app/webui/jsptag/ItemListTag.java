@@ -333,7 +333,7 @@ public class ItemListTag extends TagSupport {
 
             for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
             {
-                String field = browseFields[colIdx].toLowerCase().trim();
+                String field = browseFields[colIdx].trim();
                 cOddOrEven[colIdx] = (((colIdx + 1) % 2) == 0 ? "Odd" : "Even");
 
                 String style = null;
@@ -490,7 +490,7 @@ public class ItemListTag extends TagSupport {
                     int k = 0;
                     while(eq.hasMoreTokens())
                     {
-                        tokens[k] = eq.nextToken().toLowerCase().trim();
+                        tokens[k] = eq.nextToken().trim();
                         k++;
                     }
                     String schema = tokens[0];
