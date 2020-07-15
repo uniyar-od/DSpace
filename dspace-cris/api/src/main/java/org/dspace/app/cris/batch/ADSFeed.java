@@ -90,6 +90,8 @@ public class ADSFeed
             .getServiceManager().getServiceByName("adsOnlineDataLoader",
                    ADSOnlineDataLoader.class);
 
+    private static Set<String> bibSet = new HashSet<String>();
+
     public static void main(String[] args) throws SQLException,
             BadTransformationSpec, MalformedSourceException,
             java.text.ParseException, HttpException, IOException, org.apache.http.HttpException, AuthorizeException
@@ -97,7 +99,7 @@ public class ADSFeed
 
         Context context = new Context();
 
-        String usage = "org.dspace.app.cris.batch.ADSFeed -q query -p submitter -s start_date(yyyy-mm-dd) -e end_date(yyyy-mm-dd) -c collectionID";
+        String usage = "org.dspace.app.cris.batch.ADSFeed -q query -p submitter -s start_date(yyyy-mm) -e end_date(yyyy-mm) -c collectionID";
 
         HelpFormatter formatter = new HelpFormatter();
 
@@ -144,6 +146,10 @@ public class ADSFeed
                         "Status of new item p = workspace, w = workflow step 1, y = workflow step 2, x = workflow step 3, z = inarchive")
                 .create("o"));
 
+        options.addOption(OptionBuilder.withArgName("excludeTypes")
+                .hasArg(false).withDescription("Do not import publication with type that is not mapped in adsfeed.cfg")
+                .create("d"));
+
         try
         {
             line = new PosixParser().parse(options, args);
@@ -180,6 +186,8 @@ public class ADSFeed
 
         int collection_id = Integer.parseInt(line.getOptionValue("c"));
         boolean forceCollectionId = line.hasOption("f");
+
+        boolean excludeImports = line.hasOption("d");
 
         String startDate = "";
         Date sDate = null;
@@ -228,7 +236,7 @@ public class ADSFeed
         int total = 0;
         int deleted = 0;
 
-        HashMap<Integer,String> submitterID2query = new HashMap<Integer,String>();
+        HashMap<Integer,List<String>> submitterID2query = new HashMap<Integer,List<String>>();
         
         IFeedQueryGenerator queryGenerator = new DSpace().getServiceManager()
                 .getServiceByName(queryGen, IFeedQueryGenerator.class);
@@ -236,7 +244,9 @@ public class ADSFeed
         if(queryGenerator != null) {
 	         submitterID2query = queryGenerator.generate();
         }else {
-        	submitterID2query.put(eperson.getID(), userQuery);
+            List<String> queries = new ArrayList<String>();
+            queries.add(userQuery);
+            submitterID2query.put(eperson.getID(), queries);
         }
          
         ImpRecordDAO dao = ImpRecordDAOFactory.getInstance(context);
@@ -245,52 +255,70 @@ public class ADSFeed
         Set<Integer> ids = submitterID2query.keySet();
         
         for(Integer id : ids) {
-        	
-	        adsItemList
-	                .addAll(convertToImpRecordItem(submitterID2query.get(id), startDate, endDate));
-	     
-	        for (ImpRecordItem adsItem : adsItemList)
-	        {
-	        	
-	            try
-	            {
-	            	int tmpCollectionID = collection_id;
-	            	if(!forceCollectionId) {
-	                    Set<ImpRecordMetadata> t = adsItem.getMetadata().get("dc.source.type");
-	                    if (t != null && !t.isEmpty())
-	                    {
-	                        String stringTmpCollectionID = "";
-	                        Iterator<ImpRecordMetadata> iterator = t.iterator();
-	                        while (iterator.hasNext())
-	                        {
-	                            String stringTrimTmpCollectionID = iterator.next().getValue();
-	                            stringTmpCollectionID += stringTrimTmpCollectionID
-	                                    .trim();
-	                        }
-	                        tmpCollectionID = ConfigurationManager
-	                                .getIntProperty("adsfeed",
-	                                        "ads.type." + stringTmpCollectionID
-	                                                + ".collectionid",
-	                                        collection_id);
-	                    }	
-	            	}
-	            	
-	            	total++;
-	                String action = "insert";
-	                DTOImpRecord impRecord = writeImpRecord(context, dao,
-	                		tmpCollectionID, adsItem, action, id);
-	
-	                dao.write(impRecord, true);
-	            }
-	            catch (Exception ex)
-	            {
-	                deleted++;
-	            }
-	        }
-	
-	        System.out.println("Imported " + (total - deleted) + " record; "
-	                + deleted + " marked as removed");
-	        adsItemList.clear();
+            //bibSet.clear();
+            List<String> queryList = submitterID2query.get(id);
+            for(String q: queryList) {
+                System.out.println("QUERY:"+ q);
+                List<ImpRecordItem> impItems = convertToImpRecordItem(q, startDate, endDate);
+                if(impItems != null) {
+                    adsItemList
+                        .addAll(impItems);
+                }
+
+                for (ImpRecordItem adsItem : adsItemList)
+                {
+                    try
+                    {
+                        int tmpCollectionID = 0;
+                        if(forceCollectionId) {
+                            tmpCollectionID = collection_id;
+                        }else {
+                            Set<ImpRecordMetadata> t = adsItem.getMetadata().get("dc.source.type");
+                            if (t != null && !t.isEmpty())
+                            {
+                                String stringTmpCollectionID = "";
+                                Iterator<ImpRecordMetadata> iterator = t.iterator();
+                                while (iterator.hasNext())
+                                {
+                                    String stringTrimTmpCollectionID = iterator.next().getValue();
+                                    stringTmpCollectionID += stringTrimTmpCollectionID
+                                            .trim();
+                                    tmpCollectionID = ConfigurationManager
+                                            .getIntProperty("adsfeed",
+                                                    "ads.type." + stringTmpCollectionID
+                                                            + ".collectionid");
+                                    if(tmpCollectionID>0) {
+                                        break;
+                                    }
+                                }
+                            }
+                            if(excludeImports && tmpCollectionID<=0) {
+                                continue;
+                            }else if(tmpCollectionID<=0){
+                                tmpCollectionID = collection_id;
+                            }
+                        }
+
+                        total++;
+                        String action = "insert";
+                        DTOImpRecord impRecord = writeImpRecord(context, dao,
+                                tmpCollectionID, adsItem, action, id);
+
+                        dao.write(impRecord, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        deleted++;
+                    }
+                    if(total %100 ==0) {
+                        context.commit();
+                    }
+                }
+
+                System.out.println("Imported " + (total - deleted) + " record; "
+                        + deleted + " marked as removed");
+                adsItemList.clear();
+            }
         }
 
         context.complete();
@@ -364,9 +392,17 @@ public class ADSFeed
                 {
                     if (record.getValues("adsbibcode")== null || record.getValues("adsbibcode").isEmpty())
                         continue;
+
+                    String bibCode = StringUtils.trim(record.getValues("adsbibcode").get(0).getAsString());
+                    if(bibSet.contains(bibCode)) {
+                        continue;
+                    }else{
+                        bibSet.add(bibCode);
+                    }
+
                     HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
                     HashSet<String> set = new HashSet<String>();
-                    set.add(record.getValues("adsbibcode").get(0).getAsString());
+                    set.add(bibCode);
                     map.put("adsbibcode", set);
 
                     MultipleSubmissionLookupDataLoader mdataLoader = (MultipleSubmissionLookupDataLoader) transformationEngine1

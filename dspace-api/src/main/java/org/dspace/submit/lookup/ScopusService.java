@@ -7,7 +7,9 @@
  */
 package org.dspace.submit.lookup;
 
+import gr.ekt.bte.core.MutableRecord;
 import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.Value;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -53,14 +55,14 @@ import org.xml.sax.SAXException;
 public class ScopusService
 {
 
-    private static final String ENDPOINT_SEARCH_SCOPUS = "http://api.elsevier.com/content/search/scopus";
-    //private static final String ENDPOINT_SEARCH_SCOPUS = "http://localhost:9999/content/search/scopus";
+    private static final String ENDPOINT_SEARCH_SCOPUS = "https://api.elsevier.com/content/search/scopus";
+    //private static final String ENDPOINT_SEARCH_SCOPUS = "https://localhost:9999/content/search/scopus";
 
     private static final Logger log = Logger.getLogger(ScopusService.class);
 
     private int timeout = 1000;
 
-    int itemPerPage = 25;
+    private int itemPerPage = 25;
 
     public List<Record> search(String title, String author, int year)
             throws HttpException, IOException
@@ -155,21 +157,12 @@ public class ScopusService
 		
 		            		for (Element xmlArticle : pubArticles)
 		            		{
-		            			Record scopusItem = null;
-		            			try
-		            			{
-		            				scopusItem = ScopusUtils
+		            			MutableRecord scopusItem = ScopusUtils
 		            						.convertScopusDomToRecord(xmlArticle);
-		            				results.add(scopusItem);
-		            			}
-		            			catch (Exception e)
-		            			{
-		            				throw new RuntimeException(
-		            						"EID is not valid or not exist: "
-		            								+ e.getMessage(), e);
+		            			if (scopusItem != null) {
+		            			    results.add(scopusItem);
 		            			}
 		            		}
-		
 		                }
 		                catch (ParserConfigurationException e1)
 		                {
@@ -233,7 +226,9 @@ public class ScopusService
                 	{
                 		scopusItem = ScopusUtils
                 				.convertScopusDomToRecord(xmlArticle);
-                		results.add(scopusItem);
+                		if (scopusItem != null) {
+                			results.add(scopusItem);
+                		}
                 	}
                 	catch (Exception e)
                 	{
@@ -282,5 +277,15 @@ public class ScopusService
             query.append("EID(").append(eid).append(")");
         }
         return search(query.toString());
+    }
+
+    public void setItemPerPage(int itemPerPage)
+    {
+        this.itemPerPage = itemPerPage;
+    }
+
+    public void setTimeout(int timeout)
+    {
+        this.timeout = timeout;
     }
 }

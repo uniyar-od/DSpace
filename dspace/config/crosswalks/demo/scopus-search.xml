@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!-- 
 
 This is an example set of results for a scopus query, if you need to run tests for scopus services without 
@@ -6,7 +7,6 @@ contacting the external service you can edit it to suit your needs (to add more 
 To enable the local file functionality you need to set "submission-lookup.remoteservice.demo' inside dspace.cfg to true
 
  -->
-<?xml version="1.0" encoding="UTF-8"?>
 <search-results xmlns="http://www.w3.org/2005/Atom" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:prism="http://prismstandard.org/namespaces/basic/2.0/" xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:dc="http://purl.org/dc/elements/1.1/">
 	<opensearch:totalResults>2623922</opensearch:totalResults>
 	<opensearch:startIndex>0</opensearch:startIndex>
@@ -22,6 +22,7 @@ To enable the local file functionality you need to set "submission-lookup.remote
 		<link ref="scopus-citedby" href="http://www.scopus.com/inward/citedby.url?partnerID=HzOxMe3b&amp;scp=84887571959"/>
 		<link ref="full-text" href="http://api.elsevier.com/content/article/eid/1-s2.0-S0268005X13003226"/>
 		<prism:url>http://api.elsevier.com/content/abstract/scopus_id/84887571959</prism:url>
+		<eid>1-s2.0-S0268005X13003226</eid>
 		<dc:identifier>SCOPUS_ID:84887571959</dc:identifier>
 		<dc:title>Physicochemical properties and regulatory effects on db/db diabetic mice of ?-glucans extracted from oat, wheat and barley</dc:title>
 		<dc:creator>Zhao, Q.</dc:creator>
@@ -170,6 +171,7 @@ To enable the local file functionality you need to set "submission-lookup.remote
 		<link ref="scopus-citedby" href="http://www.scopus.com/inward/citedby.url?partnerID=HzOxMe3b&amp;scp=84888033533"/>
 		<link ref="full-text" href="http://api.elsevier.com/content/article/eid/1-s2.0-S0268005X13003470"/>
 		<prism:url>http://api.elsevier.com/content/abstract/scopus_id/84888033533</prism:url>
+		<eid>1-s2.0-S0268005X13003470</eid>
 		<dc:identifier>SCOPUS_ID:84888033533</dc:identifier>
 		<dc:title>Characteristics and oxidative stability of soy protein-stabilized oil-in-water emulsions: Influence of ionic strength and heat pretreatment</dc:title>
 		<dc:creator>Shao, Y.</dc:creator>
@@ -221,6 +223,7 @@ To enable the local file functionality you need to set "submission-lookup.remote
 		<link ref="scopus-citedby" href="http://www.scopus.com/inward/citedby.url?partnerID=HzOxMe3b&amp;scp=84886383406"/>
 		<link ref="full-text" href="http://api.elsevier.com/content/article/eid/1-s2.0-S0268005X13003068"/>
 		<prism:url>http://api.elsevier.com/content/abstract/scopus_id/84886383406</prism:url>
+		<eid>1-s2.0-S0268005X13003068</eid>
 		<dc:identifier>SCOPUS_ID:84886383406</dc:identifier>
 		<dc:title>Introduction of broad spectrum antibacterial properties to bacterial cellulose nanofibers via immobilising ?-polylysine nanocoatings</dc:title>
 		<dc:creator>Gao, C.</dc:creator>
@@ -315,6 +318,7 @@ To enable the local file functionality you need to set "submission-lookup.remote
 		<link ref="scopus-citedby" href="http://www.scopus.com/inward/citedby.url?partnerID=HzOxMe3b&amp;scp=84887964048"/>
 		<link ref="full-text" href="http://api.elsevier.com/content/article/eid/1-s2.0-S095656631300732X"/>
 		<prism:url>http://api.elsevier.com/content/abstract/scopus_id/84887964048</prism:url>
+		<eid>1-s2.0-S095656631300732X</eid>
 		<dc:identifier>SCOPUS_ID:84887964048</dc:identifier>
 		<dc:title>Designing label-free electrochemical immunosensors for cytochrome c using nanocomposites functionalized screen printed electrodes</dc:title>
 		<dc:creator>Pandiaraj, M.</dc:creator>
@@ -410,6 +414,7 @@ To enable the local file functionality you need to set "submission-lookup.remote
 		<link ref="scopus-citedby" href="http://www.scopus.com/inward/citedby.url?partnerID=HzOxMe3b&amp;scp=84884919538"/>
 		<link ref="full-text" href="http://api.elsevier.com/content/article/eid/1-s2.0-S0740002013001652"/>
 		<prism:url>http://api.elsevier.com/content/abstract/scopus_id/84884919538</prism:url>
+		<eid>1-s2.0-S0740002013001652</eid>
 		<dc:identifier>SCOPUS_ID:84884919538</dc:identifier>
 		<dc:title>Brain is the predilection site of Toxoplasma gondii in experimentally inoculated pigs as revealed by magnetic capture and real-time PCR</dc:title>
 		<dc:creator>Juránková, J.</dc:creator>

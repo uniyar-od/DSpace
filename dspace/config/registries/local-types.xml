@@ -43,4 +43,39 @@
     <scope_note>Set to true/yes/on to flag the item for deletation upon
 	deposit by the DeleteFakeItem consumer</scope_note>
   </dc-type>
+
+  <dc-type>
+    <schema>local</schema>
+    <element>patent</element>
+    <qualifier>type</qualifier>
+    <scope_note>specific type for patents</scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>subject</element>
+    <qualifier>keywordsplus</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>subject</element>
+    <qualifier>meshsecondary</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>subject</element>
+    <qualifier>meshterms</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
+
+  <dc-type>
+    <schema>dc</schema>
+    <element>subject</element>
+    <qualifier>meshtermssecondary</qualifier>
+    <scope_note></scope_note>
+  </dc-type>
 </dspace-dc-types>

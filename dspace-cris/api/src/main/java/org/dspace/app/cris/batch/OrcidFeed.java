@@ -8,6 +8,8 @@
 package org.dspace.app.cris.batch;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,6 +28,9 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
 import org.dspace.app.cris.batch.bte.ImpRecordItem;
 import org.dspace.app.cris.batch.bte.ImpRecordMetadata;
 import org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator;
@@ -36,11 +41,13 @@ import org.dspace.app.cris.integration.orcid.OrcidOnlineDataLoader;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.discovery.SearchService;
 import org.dspace.eperson.EPerson;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
 import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
+import org.dspace.submit.lookup.NetworkSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
@@ -48,6 +55,7 @@ import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.dspace.utils.DSpace;
 
 import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.core.TransformationEngine;
 import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
@@ -78,14 +86,21 @@ public class OrcidFeed
             .getServiceManager().getServiceByName("orcidOnlineDataLoader",
                     OrcidOnlineDataLoader.class);
 
+    // default 1 day
+    private static long retentionQueryTime = 24 * 60 * 60000;
+
     public static void main(String[] args) throws SQLException,
             BadTransformationSpec, MalformedSourceException, AuthorizeException
     {
+        // the configuration will hold the value in seconds, -1 don't make sense for the orcid feeder
+        retentionQueryTime = ConfigurationManager.getIntProperty("orcidfeed",
+                "query-retention") * 1000;
 
         Context context = new Context();
+        context.turnOffAuthorisationSystem();
         HelpFormatter formatter = new HelpFormatter();
 
-        String usage = "org.dspace.app.cris.batch.OrcidFeed -i orcid -p submitter -c collectionID";
+        String usage = "org.dspace.app.cris.batch.OrcidFeed [-i orcid|-a] [-p submitter] -c collectionID";
 
         Options options = new Options();
         CommandLine line = null;
@@ -94,14 +109,22 @@ public class OrcidFeed
                 .withDescription("Identifier of the Orcid registry")
                 .create("i"));
 
+        options.addOption(OptionBuilder.withArgName("all").hasArg(false)
+                .withDescription("Process all ORCID known in the system")
+                .create("a"));
         options.addOption(OptionBuilder.isRequired(true)
                 .withArgName("collectionID").hasArg(true)
                 .withDescription("Collection for item submission").create("c"));
-
-        options.addOption(OptionBuilder.isRequired(true).withArgName("Eperson")
-                .hasArg(true).withDescription("Submitter of the records")
+        options.addOption(OptionBuilder.isRequired(false)
+                .withArgName("limit").hasArg(true)
+                .withDescription("max number of profiles to process (50 default)").create("l"));
+        options.addOption(OptionBuilder.isRequired(false).withArgName("eperson")
+                .hasArg(true).withDescription("Force such submitter for all the records")
                 .create("p"));
 
+        options.addOption(OptionBuilder.isRequired(false).withArgName("default")
+                .hasArg(true).withDescription("Use such submitter for orcid not associated with an eperson. If not specified such orcid will be not processed")
+                .create("d"));
         options.addOption(OptionBuilder.withArgName("forceCollectionID")
                 .hasArg(false).withDescription("force use the collectionID")
                 .create("f"));
@@ -120,34 +143,43 @@ public class OrcidFeed
             System.exit(1);
         }
 
-        if (!line.hasOption("i") || !line.hasOption("c")
-                || !line.hasOption("p"))
-        {
+        if (line.hasOption('i') && line.hasOption('a')) {
+            System.out.println("only one between -i and -a can be used");
+            formatter.printHelp(usage, "", options, "");
+            System.exit(1);
+        }
+        
+        if (line.hasOption('p') && line.hasOption('d')) {
+            System.out.println("only one between -p and -d can be used");
             formatter.printHelp(usage, "", options, "");
             System.exit(1);
         }
 
-        String person = line.getOptionValue("p");
-        
+        boolean forcePerson = line.hasOption('p');
+
+        String person;
+        if (forcePerson) {
+            person = line.getOptionValue('p');
+        } else {
+            person = line.getOptionValue('d');
+        }
+        int limit = 50;
+        if (line.hasOption('l')) {
+            limit = Integer.parseInt(line.getOptionValue('l'));
+        }
         EPerson eperson = null;
         if (StringUtils.isNumeric(person))
         {
             eperson = EPerson.find(context, Integer.parseInt(person));
-
         }
         else
         {
             eperson = EPerson.findByEmail(context, person);
         }
 
-        if (eperson != null)
+        if (eperson != null && forcePerson)
         {
             context.setCurrentUser(eperson);
-        }
-        else
-        {
-            formatter.printHelp(usage, "No user found", options, "");
-            System.exit(1);
         }
 
         int collection_id = Integer.parseInt(line.getOptionValue("c"));
@@ -158,18 +190,64 @@ public class OrcidFeed
         // workflow step 3, z = inarchive
         String status = "p";
         
-        if (line.hasOption("o"))
-        {
-            status = line.getOptionValue("o");
-        }
-
-        System.out.println("Starting query");
-
         try
         {
+            System.out.println("Starting query");
+            if (line.hasOption("o"))
+            {
+                status = line.getOptionValue("o");
+            }
 
-            retrievePublication(context, eperson, collection_id,
-                    forceCollectionId, orcid, status);
+            //getIdentifiers
+            Set<String> DOIList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "doi");
+            Set<String> PMIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "pmid");
+            Set<String> EIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "scopus");
+            Set<String> ISIIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "isi");
+
+            if (StringUtils.isBlank(orcid)) {
+                SolrQuery solrQuery = new SolrQuery();
+                solrQuery.setQuery("crisrp.orcid:[* TO *]");
+                if (eperson == null) {
+                    solrQuery.addFilterQuery("owner_i:[* TO *]");
+                }
+                solrQuery.setFields("cris-id", "crisrp.orcid", "owner_i");
+                solrQuery.setRows(Integer.MAX_VALUE);
+                SearchService searchService = new DSpace().getServiceManager().getServiceByName(SearchService.class.getName(), SearchService.class);
+                QueryResponse resp = searchService.search(solrQuery);
+                long numFound = resp.getResults().getNumFound();
+                System.out.println("Found " + numFound + " profiles with ORCID to process...");
+                int numProcessed = 0;
+                for (SolrDocument doc : resp.getResults()) {
+                    String crisID = (String) doc.getFirstValue("cris-id");
+                    orcid = (String) doc.getFirstValue("crisrp.orcid");
+                    Integer epersonId = (Integer) doc.getFirstValue("owner_i");
+                    EPerson submitter = eperson;
+                    if (!forcePerson && epersonId != null) {
+                        submitter = EPerson.find(context, epersonId);
+                    }
+                    if (submitter != null) {
+                        System.out.println("processing " + crisID + " / " + orcid + " / " + submitter.getEmail());
+                        boolean processed = retrievePublication(context, eperson, collection_id,
+                                forceCollectionId, orcid, status, DOIList, PMIDList, EIDList, ISIIDList);
+                        context.commit();
+                        if (processed) {
+                            numProcessed++;
+                        }
+                    }
+                    else {
+                        System.out.println(crisID + " / " + orcid + " cannot be processed as no submitter is defined");
+                    }
+                    if (numProcessed >= limit) {
+                        System.out.println("Reach the limit of processable ORCID in one go");
+                        context.complete();
+                        return;
+                    }
+                }
+            }
+            else {
+                retrievePublication(context, eperson, collection_id,
+                        forceCollectionId, orcid, status, DOIList, PMIDList, EIDList, ISIIDList);
+            }
 
             context.complete();
 
@@ -188,26 +266,26 @@ public class OrcidFeed
 
     }
 
-    public static void retrievePublication(Context context, EPerson eperson,
-            Integer collection_id, boolean forceCollectionId, String orcid, String status) throws HttpException, IOException,
+    public static boolean retrievePublication(Context context, EPerson eperson,
+            Integer collection_id, boolean forceCollectionId, String orcid, String status,
+            Set<String> DOIList, Set<String> PMIDList, Set<String> EIDList, Set<String> ISIIDList) throws HttpException, IOException,
             BadTransformationSpec, MalformedSourceException, SQLException
     {
-        
-        // select putcode already imported
-        TableRowIterator tri = DatabaseManager.query(context,
-                "SELECT DISTINCT " + IMP_RECORD_ID + " from imp_record where "
-                        + IMP_EPERSON_ID + " = " + eperson.getID() + " AND "
-                        + IMP_SOURCE_REF + " like 'orcid'");
-
-        List<String> alreadyInImpRecord = new ArrayList<String>();
-        while (tri.hasNext())
-        {
-            TableRow row = tri.next();
-            alreadyInImpRecord.add(row.getStringColumn(IMP_RECORD_ID));
-        }
-        
         int total = 0;
-        int deleted = 0;
+        int errored = 0;
+        String checksum;
+		try {
+			checksum = FeedUtils.getChecksum(
+			        OrcidFeed.class.getCanonicalName(), orcid, null,
+			        null, null);
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+			throw new RuntimeException(e);
+		}
+		if (!FeedUtils.shouldRunQuery(context, checksum, retentionQueryTime)) {
+            System.out.println("QUERY: "+ orcid);
+            System.out.println("--> SKIPPED");
+            return false;
+        }
 
         ImpRecordDAO dao = ImpRecordDAOFactory.getInstance(context);
 
@@ -216,15 +294,15 @@ public class OrcidFeed
 
         for (ImpRecordItem pmeItem : pmeItemList)
         {
-            boolean foundAlready = false;
-            for (String already : alreadyInImpRecord)
-            {
-                if (pmeItem.getSourceId().equals(already))
-                {
-                    foundAlready = true;
-                    break;
-                }
-            }
+            boolean foundAlready =
+                    FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.doi", DOIList,
+                            pmeItem) ||
+                    FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.pmid", PMIDList,
+                            pmeItem) ||
+                    FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.scopus", EIDList,
+                            pmeItem) ||
+                    FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.isi", ISIIDList,
+                            pmeItem);
 
             if (!foundAlready)
             {
@@ -258,62 +336,29 @@ public class OrcidFeed
 
                     total++;
                     String action = "insert";
-                    DTOImpRecord impRecord = writeImpRecord(context, dao,
-                            tmpCollectionID, pmeItem, action,
-                            eperson.getID(), status);
+                    DTOImpRecord impRecord = FeedUtils.writeImpRecord("orcidfeed", context, dao,
+	                        tmpCollectionID, pmeItem, action, eperson.getID(), status);
 
                     dao.write(impRecord, false);
+                    FeedUtils.addProcessedIdentifiers(pmeItem, DOIList, PMIDList, EIDList, ISIIDList);
                 }
                 catch (Exception ex)
                 {
-                    deleted++;
+                    errored++;
                 }
+            }
+            if (total % 100 == 0) {
+                context.commit();
             }
         }
 
-        System.out.println("Imported " + (total - deleted) + " record; "
-                + deleted + " marked as removed");
-    }
+        System.out.println("Imported " + (total - errored) + " record; "
+                + errored + " discarded see log for details");
 
-    private static DTOImpRecord writeImpRecord(Context context,
-            ImpRecordDAO dao, int collection_id, ImpRecordItem pmeItem,
-            String action, Integer epersonId, String status) throws SQLException
-    {
-        DTOImpRecord dto = new DTOImpRecord(dao);
-
-        HashMap<String, Set<ImpRecordMetadata>> meta = pmeItem.getMetadata();
-        for (String md : meta.keySet())
-        {
-            Set<ImpRecordMetadata> values = meta.get(md);
-            String[] splitMd = StringUtils.split(md, "\\.");
-            int metadata_order = 0;
-            for (ImpRecordMetadata value : values)
-            {
-                metadata_order++;
-                if (splitMd.length > 2)
-                {
-                    dto.addMetadata(splitMd[0], splitMd[1], splitMd[2],
-                            value.getValue(), value.getAuthority(),
-                            value.getConfidence(), metadata_order, -1);
-                }
-                else
-                {
-                    dto.addMetadata(splitMd[0], splitMd[1], null,
-                            value.getValue(), value.getAuthority(),
-                            value.getConfidence(), metadata_order,
-                            value.getShare());
-                }
-            }
-        }
-
-        dto.setImp_collection_id(collection_id);
-        dto.setImp_eperson_id(epersonId);
-        dto.setOperation(action);
-        dto.setImp_sourceRef(pmeItem.getSourceRef());
-        dto.setImp_record_id(pmeItem.getSourceId());
-        dto.setStatus(status);
-        return dto;
-
+        FeedUtils.writeExecutedQuery(context, orcid, checksum, total - errored,
+                errored, OrcidFeed.class.getCanonicalName());
+        context.commit();
+        return true;
     }
 
     private static List<ImpRecordItem> convertToImpRecordItem(Context context,
@@ -338,12 +383,16 @@ public class OrcidFeed
             {
                 HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
                 HashSet<String> set = new HashSet<String>();
-                set.add(orcid);
-                map.put("orcid", set);
+                // don't pass the orcid as we don't want the other providers to add more records but only extend the ones already retrieved
+//                set.add(orcid);
+//                map.put(SubmissionLookupDataLoader.ORCID, set);
 
                 MultipleSubmissionLookupDataLoader mdataLoader = (MultipleSubmissionLookupDataLoader) transformationEngine1
                         .getDataLoader();
                 mdataLoader.setIdentifiers(map);
+                RecordSet cachedRecordSet = new RecordSet();
+                cachedRecordSet.setRecords(resultDataloader);
+                ((NetworkSubmissionLookupDataLoader) mdataLoader.getProvidersMap().get(SubmissionLookupDataLoader.ORCID)).setRecordSetCache(cachedRecordSet);
                 SubmissionLookupOutputGenerator outputGenerator = (SubmissionLookupOutputGenerator) transformationEngine1
                         .getOutputGenerator();
                 outputGenerator

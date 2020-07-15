@@ -9,11 +9,13 @@ package org.dspace.app.cris.integration.orcid;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.http.HttpException;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.batch.FeedUtils;
 import org.dspace.app.cris.batch.OrcidFeed;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.content.Collection;
@@ -43,7 +45,13 @@ public class RetrievePublications extends AORCIDWebHookCallbackProcessor {
 	            log.info("Found collectionID:" + collectionID);
 	        }
 	        if(epersonIDInteger!=null) {
-	            OrcidFeed.retrievePublication(context, EPerson.find(context, epersonIDInteger), collectionID, true, orcid, status);    
+	            Set<String> DOIList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "doi");
+	            Set<String> PMIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "pmid");
+	            Set<String> EIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "scopus");
+	            Set<String> ISIIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "isi");
+
+	            OrcidFeed.retrievePublication(context, EPerson.find(context, epersonIDInteger), collectionID, true, orcid, status,
+                        DOIList, PMIDList, EIDList, ISIIDList);
 	        }
             
         }

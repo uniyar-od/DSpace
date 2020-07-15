@@ -44,7 +44,7 @@ public class SubmissionLookupService
 
     public static final String SEPARATOR_VALUE_REGEX = SEPARATOR_VALUE;
 
-    private List<DataLoader> providers;
+    private List<String> providers;
 
     private Map<String, List<String>> idents2provs;
 
@@ -78,13 +78,13 @@ public class SubmissionLookupService
 
         if (providers == null)
         {
-            this.providers = new ArrayList<DataLoader>();
+            this.providers = new ArrayList<String>();
 
             for (String providerName : dataLoader.getProvidersMap().keySet())
             {
                 DataLoader p = dataLoader.getProvidersMap().get(providerName);
 
-                this.providers.add(p);
+                this.providers.add(providerName);
 
                 // Do not do that for file providers
                 if (p instanceof FileDataLoader)
@@ -193,7 +193,7 @@ public class SubmissionLookupService
         return searchProviders;
     }
 
-    public List<DataLoader> getProviders()
+    public List<String> getProviders()
     {
         return providers;
     }

@@ -8,6 +8,7 @@
 package org.dspace.app.cris.batch;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -39,13 +40,16 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
+import org.dspace.submit.lookup.NetworkSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
+import org.dspace.submit.lookup.SubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
 import org.dspace.submit.lookup.WOSOnlineDataLoader;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.dspace.utils.DSpace;
 
 import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.core.TransformationEngine;
 import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
@@ -76,15 +80,24 @@ public class WosFeed
             .getServiceManager()
             .getServiceByName("wosOnlineDataLoader", WOSOnlineDataLoader.class);
 
+    private static long retentionQueryTime = Long.MAX_VALUE;
+
     public static void main(String[] args)
             throws SQLException, BadTransformationSpec,
-            MalformedSourceException, HttpException, IOException, AuthorizeException
+            MalformedSourceException, HttpException, IOException, AuthorizeException, NoSuchAlgorithmException
     {
-
-        String proxyHost = ConfigurationManager.getProperty("http.proxy.host");
-        String proxyPort = ConfigurationManager.getProperty("http.proxy.port");
-
-        System.out.println(proxyHost + " ---- " + proxyPort);
+        // the configuration will hold the value in seconds, -1 mean forever
+        retentionQueryTime = ConfigurationManager.getIntProperty("wosfeed",
+                "query-retention");
+        if (retentionQueryTime == -1)
+        {
+            retentionQueryTime = Long.MAX_VALUE;
+        }
+        else
+        {
+            // convert second in ms
+            retentionQueryTime = retentionQueryTime * 1000;
+        }
 
         Context context = new Context();
 
@@ -99,6 +112,11 @@ public class WosFeed
                 .withDescription(
                         "UserQuery, default query setup in the wosfeed.cfg")
                 .create("q"));
+
+        options.addOption(OptionBuilder.withArgName("Query Generator").hasArg(true)
+                .withDescription(
+                        "Generate query using the plugin, default query setup in the pubmedfeed.cfg")
+                .create("g"));
 
         options.addOption(
                 OptionBuilder.withArgName("query SymbolicTimeSpan").hasArg(true)
@@ -136,6 +154,15 @@ public class WosFeed
                 .withDescription(
                         "Status of new item p = workspace, w = workflow step 1, y = workflow step 2, x = workflow step 3, z = inarchive")
                 .create("o"));
+
+        options.addOption(OptionBuilder.withArgName("excludeTypes")
+                .hasArg(false).withDescription("Do not import publication with type that is not mapped in wos.cfg")
+                .create("d"));
+
+        options.addOption(OptionBuilder.withArgName("skip")
+                .hasArg(false).withDescription("Do not import publication already worked, matching is based on DOI,pmid,eid,isi")
+                .create("d"));
+
         try
         {
             line = new PosixParser().parse(options, args);
@@ -221,102 +248,155 @@ public class WosFeed
             status = line.getOptionValue("o");
         }
 
+        String queryGen = "";
+        if(line.hasOption("g")) {
+            queryGen = line.getOptionValue("g");
+        }
+
+        boolean excludeImports = line.hasOption("d");
         int total = 0;
         int deleted = 0;
 
-        List<ImpRecordItem> pmeItemList = new ArrayList<ImpRecordItem>();
+        HashMap<Integer,List<String>> submitterID2query = new HashMap<Integer,List<String>>();
+
+        IFeedQueryGenerator queryGenerator = new DSpace().getServiceManager()
+                .getServiceByName(queryGen, IFeedQueryGenerator.class);
+
+        if(queryGenerator != null) {
+	         submitterID2query = queryGenerator.generate();
+        }else {
+            List<String> queries = new ArrayList<String>();
+            queries.add(userQuery);
+            submitterID2query.put(eperson.getID(), queries);
+        }
+
+        //getIdentifiers
+        Set<String> DOIList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "doi");
+        Set<String> PMIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "pmid");
+        Set<String> EIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "scopus");
+        Set<String> ISIIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "isi");
 
         ImpRecordDAO dao = ImpRecordDAOFactory.getInstance(context);
-        pmeItemList.addAll(
-                convertToImpRecordItem(userQuery, "WOK", symbolicTimeSpan, startDate, endDate));
 
-        for (ImpRecordItem pmeItem : pmeItemList)
-        {
-            try
-            {
-                int tmpCollectionID = collection_id;
-                if (!forceCollectionId)
+        Set<Integer> ids = submitterID2query.keySet();
+        System.out.println("#Submitters: " + ids.size());
+        int submitterCount = 0;
+        for(Integer id : ids) {
+            submitterCount++;
+            List<String> queryList = submitterID2query.get(id);
+            System.out.println("Submitter # " + submitterCount + " queries " + queryList.size());
+
+            for(String q: queryList) {
+                String checksum = FeedUtils.getChecksum(
+                        WosFeed.class.getCanonicalName(), q, startDate, endDate,
+                        symbolicTimeSpan);
+                if (!FeedUtils.shouldRunQuery(context, checksum, retentionQueryTime)) {
+                    System.out.println("QUERY: "+ q);
+                    System.out.println("--> SKIPPED");
+                    continue;
+                }
+                List<ImpRecordItem> impItems = convertToImpRecordItem(q,
+                        "WOK", symbolicTimeSpan, startDate, endDate, ISIIDList);
+                System.out.println("Records returned by the query: "+ impItems.size());
+                impRecordLoop:
+                for (ImpRecordItem wosItem : impItems)
                 {
-                    Set<ImpRecordMetadata> t = pmeItem.getMetadata().get("dc.source.type");
-                    if (t != null && !t.isEmpty())
+                    boolean alreadyImported =
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.doi", DOIList,
+                                    wosItem) ||
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.pmid", PMIDList,
+                                    wosItem) ||
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.scopus", EIDList,
+                                    wosItem) ||
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.isi", ISIIDList,
+                                    wosItem);
+
+                    if (alreadyImported) {
+                        System.out.println("Skip already processed record after providers merge");
+                        continue impRecordLoop;
+                    }
+                    boolean authorityFound = FeedUtils.isAtLeastOneAuthorFound(wosItem);
+                    if(!authorityFound) {
+                        System.out.println("Skip record " + wosItem.getSourceId() + " no matching authors found");
+                        FeedUtils.writeDiscardedIdentifiers(context, wosItem, WosFeed.class.getCanonicalName());
+                        FeedUtils.addProcessedIdentifiers(wosItem, DOIList, PMIDList, EIDList, ISIIDList);
+                        context.commit();
+                        continue impRecordLoop;
+                    }
+                    boolean affiliationFound = FeedUtils.isAtLeastOneAffiliationFound(wosItem);
+                    if(!affiliationFound) {
+                        System.out.println("Skip record " + wosItem.getSourceId() + " no matching affiliation found");
+                        FeedUtils.writeDiscardedIdentifiers(context, wosItem, WosFeed.class.getCanonicalName());
+                        FeedUtils.addProcessedIdentifiers(wosItem, DOIList, PMIDList, EIDList, ISIIDList);
+                        context.commit();
+                        continue impRecordLoop;
+                    }
+
+                    try
                     {
-                        String stringTmpCollectionID = "";
-                        Iterator<ImpRecordMetadata> iterator = t.iterator();
-                        while (iterator.hasNext())
+                        int tmpCollectionID = 0;
+                        if (!forceCollectionId)
                         {
-                            String stringTrimTmpCollectionID = iterator.next().getValue();
-                            stringTmpCollectionID += stringTrimTmpCollectionID
-                                    .trim();
+                            tmpCollectionID = collection_id;
+                        }else {
+                            Set<ImpRecordMetadata> t = wosItem.getMetadata().get("dc.source.type");
+                            if (t != null && !t.isEmpty())
+                            {
+                                String stringTmpCollectionID = "";
+                                Iterator<ImpRecordMetadata> iterator = t.iterator();
+                                while (iterator.hasNext())
+                                {
+                                    String stringTrimTmpCollectionID = iterator.next().getValue();
+                                    stringTmpCollectionID += stringTrimTmpCollectionID
+                                            .trim();
+                                    tmpCollectionID = ConfigurationManager
+                                            .getIntProperty("wosfeed",
+                                                    "wos.type." + stringTmpCollectionID
+                                                        + ".collectionid");
+                                    if(tmpCollectionID>0) {
+                                        break;
+                                    }
+                                }
+                            }
+                            if(excludeImports && tmpCollectionID<=0) {
+                                continue;
+                            }else if(tmpCollectionID<=0){
+                                tmpCollectionID = collection_id;
+                            }
                         }
-                        tmpCollectionID = ConfigurationManager
-                                .getIntProperty("wosfeed",
-                                        "wos.type." + stringTmpCollectionID
-                                                + ".collectionid",
-                                        collection_id);
+
+                        total++;
+                        String action = "insert";
+                        DTOImpRecord impRecord = FeedUtils.writeImpRecord("wosfeed", context, dao,
+                            tmpCollectionID, wosItem, action, eperson.getID(), status);
+
+                        dao.write(impRecord, true);
+                        FeedUtils.addProcessedIdentifiers(wosItem, DOIList, PMIDList, EIDList, ISIIDList);
+                    }
+                    catch (Exception ex)
+                    {
+                        deleted++;
+                    }
+                    if(total %100 ==0) {
+                        context.commit();
                     }
                 }
+                context.commit();
 
-                total++;
-                String action = "insert";
-                DTOImpRecord impRecord = writeImpRecord(context, dao,
-                        tmpCollectionID, pmeItem, action, eperson.getID());
+            System.out.println("Imported " + (total - deleted) + " record; "
+                    + deleted + " marked as removed");
 
-                dao.write(impRecord, true);
-            }
-            catch (Exception ex)
-            {
-                deleted++;
+                FeedUtils.writeExecutedQuery(context, q, checksum, total - deleted,
+                        deleted, WosFeed.class.getCanonicalName());
+                context.commit();
             }
         }
-      
-        System.out.println("Imported " + (total - deleted) + " record; "
-                + deleted + " marked as removed");
-        pmeItemList.clear();
-
         context.complete();
-
-    }
-
-    private static DTOImpRecord writeImpRecord(Context context,
-            ImpRecordDAO dao, int collection_id, ImpRecordItem pmeItem,
-            String action, Integer epersonId) throws SQLException
-    {
-        DTOImpRecord dto = new DTOImpRecord(dao);
-
-        HashMap<String, Set<ImpRecordMetadata>> meta = pmeItem.getMetadata();
-        for (String md : meta.keySet())
-        {
-            Set<ImpRecordMetadata> values = meta.get(md);
-            String[] splitMd = StringUtils.split(md, "\\.");
-            int metadata_order = 0;
-            for (ImpRecordMetadata value : values)
-            {
-                metadata_order++;
-                if (splitMd.length > 2)
-                {
-                    dto.addMetadata(splitMd[0], splitMd[1], splitMd[2], value.getValue(),
-                            value.getAuthority(), value.getConfidence(), metadata_order, -1);
-                }
-                else
-                {
-                    dto.addMetadata(splitMd[0], splitMd[1], null, value.getValue(), value.getAuthority(),
-                            value.getConfidence(), metadata_order, value.getShare());
-                }
-            }
-        }
-
-        dto.setImp_collection_id(collection_id);
-        dto.setImp_eperson_id(epersonId);
-        dto.setOperation(action);
-        dto.setImp_sourceRef(pmeItem.getSourceRef());
-        dto.setImp_record_id(pmeItem.getSourceId());
-        dto.setStatus(status);
-        return dto;
-
     }
 
     private static List<ImpRecordItem> convertToImpRecordItem(String userQuery,
-            String databaseID, String symbolicTimeSpan, String start, String end)
+            String databaseID, String symbolicTimeSpan, String start, String end,
+            Set<String> iSIIDList)
                     throws BadTransformationSpec, MalformedSourceException,
                     HttpException, IOException
     {
@@ -326,34 +406,74 @@ public class WosFeed
         List<ItemSubmissionLookupDTO> results = new ArrayList<ItemSubmissionLookupDTO>();
         if (wosResult != null && !wosResult.isEmpty())
         {
-
             TransformationEngine transformationEngine1 = getFeedTransformationEnginePhaseOne();
             if (transformationEngine1 != null)
             {
+                HashMap<String, Set<String>> map = new HashMap<String, Set<String>>(2);
+                HashSet<String> set = new HashSet<String>(70); // so that will no grow up when reach 50 entries
+                List<Record> cachedResults = new ArrayList<Record>(70);
                 for (Record record : wosResult)
                 {
-                    HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
-                    HashSet<String> set = new HashSet<String>();
-                    set.add(record.getValues("isiId").get(0).getAsString());
-                    map.put("isiid", set);
+                    if (record.getValues("isiId") == null || record.getValues("isiId").isEmpty())
+                        continue;
+                    String isiId = record.getValues("isiId").get(0).getAsString();
+                    // as we extends the records with all the providers we can just check for the primary id
+                    if (iSIIDList.contains(isiId)) {
+                        System.out.println("Skip already processed record: " + isiId);
+                        continue;
+                    }
+                    else {
+                        set.add(isiId);
+                        cachedResults.add(record);
+                    }
 
+                    if (cachedResults.size() == 50) {
+                        map.put(SubmissionLookupDataLoader.WOSID, set);
+                        MultipleSubmissionLookupDataLoader mdataLoader = (MultipleSubmissionLookupDataLoader) transformationEngine1
+                                .getDataLoader();
+                        mdataLoader.setIdentifiers(map);
+                        RecordSet cachedRecordSet = new RecordSet();
+                        cachedRecordSet.setRecords(cachedResults);
+                        ((NetworkSubmissionLookupDataLoader) mdataLoader.getProvidersMap().get("wos")).setRecordSetCache(cachedRecordSet);
+                        SubmissionLookupOutputGenerator outputGenerator = (SubmissionLookupOutputGenerator) transformationEngine1
+                                .getOutputGenerator();
+                        outputGenerator
+                                .setDtoList(new ArrayList<ItemSubmissionLookupDTO>());
+
+                        transformationEngine1.transform(new TransformationSpec());
+                        results.addAll(outputGenerator.getDtoList());
+
+                        map.clear();
+                        set.clear();
+                        cachedResults.clear();
+                    }
+                }
+
+                // process the latest records over 50s
+                if (cachedResults.size() > 0) {
+                    map.put(SubmissionLookupDataLoader.WOSID, set);
                     MultipleSubmissionLookupDataLoader mdataLoader = (MultipleSubmissionLookupDataLoader) transformationEngine1
                             .getDataLoader();
                     mdataLoader.setIdentifiers(map);
+                    RecordSet cachedRecordSet = new RecordSet();
+                    cachedRecordSet.setRecords(cachedResults);
+                    ((NetworkSubmissionLookupDataLoader) mdataLoader.getProvidersMap().get("wos")).setRecordSetCache(cachedRecordSet);
                     SubmissionLookupOutputGenerator outputGenerator = (SubmissionLookupOutputGenerator) transformationEngine1
                             .getOutputGenerator();
                     outputGenerator
                             .setDtoList(new ArrayList<ItemSubmissionLookupDTO>());
 
                     transformationEngine1.transform(new TransformationSpec());
-                    log.debug("BTE transformation finished!");
                     results.addAll(outputGenerator.getDtoList());
-                }                
-                
+
+                    map.clear();
+                    set.clear();
+                    cachedResults.clear();
+                }
             }
 
             TransformationEngine transformationEngine2 = getFeedTransformationEnginePhaseTwo();
-            if (transformationEngine2 != null && results!=null)
+            if (transformationEngine2 != null && results!=null && results.size() > 0)
             {
                 SubmissionItemDataLoader dataLoader = (SubmissionItemDataLoader) transformationEngine2
                         .getDataLoader();
