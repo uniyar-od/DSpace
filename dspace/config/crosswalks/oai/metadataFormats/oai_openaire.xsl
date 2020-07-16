@@ -50,10 +50,10 @@
 			<xsl:if test="contains(doc:metadata/doc:element[@name='others']/doc:field[@name='drm']/text(),'embargoed')">
 				<datacite:dates>
 					<datacite:date dateType="Accepted">
-						<xsl:value-of select="substring-after(doc:metadata/doc:element[@name='others']/doc:field[@name='drm']/text(),'|||')"/>
+						<xsl:value-of select="substring-before(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']/text(), 'T')"/>
 					</datacite:date>
 					<datacite:date dateType="Available">
-						<xsl:value-of select="substring-before(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']/text(), 'T')"/>
+						<xsl:value-of select="substring-after(doc:metadata/doc:element[@name='others']/doc:field[@name='drm']/text(),'|||')"/>
 					</datacite:date>
 				</datacite:dates>
 			</xsl:if>
