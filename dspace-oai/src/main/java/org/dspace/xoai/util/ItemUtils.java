@@ -395,7 +395,7 @@ public class ItemUtils
                     String name = bit.getName();
                     String description = bit.getDescription();
 
-                    String drm = ItemUtils.getAccessRightsValue(AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
+                    String drm = ItemUtils.getAccessRightsValue(context, AuthorizeManager.getPoliciesActionFilter(context, bit,  Constants.READ));
 
                     bitstream.getField().add(createValue("id", bitID));
                     if (name != null)
@@ -637,7 +637,8 @@ public class ItemUtils
      * @param rps
      * @return
      */
-    public static String getAccessRightsValue(List<ResourcePolicy> rps) {
+    public static String getAccessRightsValue(Context context, List<ResourcePolicy> rps)
+            throws SQLException {
         Date now = new Date();
         Date embargoEndDate = null;
         boolean openAccess = false;
@@ -661,6 +662,7 @@ public class ItemUtils
                         embargoEndDate = rp.getStartDate();
                     }
                 }
+                context.removeCached(rp, rp.getID());
             }
         }
         String value = METADATA_ONLY_ACCESS;
