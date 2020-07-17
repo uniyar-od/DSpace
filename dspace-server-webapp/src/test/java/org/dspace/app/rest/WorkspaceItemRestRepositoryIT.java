@@ -50,6 +50,7 @@ import org.dspace.app.rest.matcher.ItemMatcher;
 import org.dspace.app.rest.matcher.MetadataMatcher;
 import org.dspace.app.rest.matcher.WorkspaceItemMatcher;
 import org.dspace.app.rest.model.patch.AddOperation;
+import org.dspace.app.rest.model.patch.MoveOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
@@ -60,7 +61,9 @@ import org.dspace.content.Community;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.EntityTypeService;
+import org.dspace.core.service.PluginService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -85,6 +88,11 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     private ConfigurationService configurationService;
     @Autowired
     EntityTypeService entityTypeService;
+    @Autowired
+    private PluginService pluginService;
+    @Autowired
+    private ChoiceAuthorityService cas;
+
     private Group embargoedGroups;
     private Group embargoedGroup1;
     private Group embargoedGroup2;
@@ -4649,5 +4657,513 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         } finally {
 
         }
+    }
+
+    @Test
+    public void patchAddValueOnMetadataThatUseAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server",
+                "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author",
+                "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author",
+                "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author",
+                "true");
+        configurationService.setProperty("authority.author.indexer.field.1",
+                "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .withTitle("Test title")
+                                                  .withIssueDate("2020-07-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .build();
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                           witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                Matchers.nullValue()),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence",
+                                 is(-1))
+                )));
+
+        // verify that the patch changes have been persisted
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                        witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                is("value-to-store")),
+                       hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                Matchers.nullValue()),
+                       hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence",
+                                is(-1))
+                        )));
+       destroy();
+    }
+
+    @Test
+    public void patchTryToCancheConfidenceValueWithoutUseAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server",
+                "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author",
+                "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author",
+                "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author",
+                "true");
+        configurationService.setProperty("authority.author.indexer.field.1",
+                "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .withTitle("Test title")
+                                                  .withIssueDate("2020-07-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .build();
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("confidence", "100");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                           witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 Matchers.nullValue()),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence",
+                                 is(-1))
+                )));
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                        witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                is("value-to-store")),
+                       hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                Matchers.nullValue()),
+                       hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence",
+                                is(-1))
+                        )));
+       destroy();
+    }
+
+    @Test
+    public void patchAddMetadataUsingAuthorityAndConfidenceTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server",
+                "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author",
+                "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author",
+                "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author",
+                "true");
+        configurationService.setProperty("authority.author.indexer.field.1",
+                "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .withTitle("Test title")
+                                                  .withIssueDate("2020-07-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .build();
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("authority", "authority-to-store");
+        value.put("confidence", "600");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                           witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 is("authority-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence",
+                                 is(600))
+                )));
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                        witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                is("value-to-store")),
+                       hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                is("authority-to-store")),
+                       hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence",
+                                is(600))
+                        )));
+       destroy();
+    }
+
+    @Test
+    public void patchAddMetadataWithValueAndAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .withTitle("Test title")
+                                                  .withIssueDate("2020-07-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .build();
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("authority", "authority-to-store");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$",Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                             witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 is("authority-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(0))
+                )));
+
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.errors").doesNotExist())
+                .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                             witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 is("authority-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(0))
+                        )));
+        destroy();
+    }
+
+    @Test
+    public void patchMoveMetadataWithAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .withTitle("Test title")
+                                                  .withIssueDate("2020-07-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .build();
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        // create 4 authors, two with authority and two without
+        List<Operation> list = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value1 = new HashMap<String, String>();
+        value1.put("value", "Andrea Bollini");
+        value1.put("authority", "authority-to-store");
+        value1.put("confidence", "600");
+        Map<String, String> value2 = new HashMap<String, String>();
+        value2.put("value", "Andrea Pascarelli");
+        Map<String, String> value3 = new HashMap<String, String>();
+        value3.put("value", "Mykhaylo Boychuk");
+        value3.put("authority", "authority-to-store");
+        value3.put("confidence", "600");
+        Map<String, String> value4 = new HashMap<String, String>();
+        value4.put("value", "Giuseppe Digilio");
+
+        values.add(value1);
+        values.add(value2);
+        values.add(value3);
+        values.add(value4);
+        list.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(list);
+        getClient(token).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk());
+
+        // verify that the patch changes have been persisted
+        getClient(token).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.errors").doesNotExist())
+                 .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("Andrea Bollini")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].value",
+                                  is("Andrea Pascarelli")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].confidence", is(-1)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].value",
+                                  is("Mykhaylo Boychuk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].value",
+                                  is("Giuseppe Digilio")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].confidence", is(-1))
+                         )));
+
+        // try to move second author on third position
+        List<Operation> list2 = new ArrayList<Operation>();
+        list2.add(new MoveOperation("/sections/traditionalpageone/dc.contributor.author/2",
+                                    "/sections/traditionalpageone/dc.contributor.author/1"));
+        String patchBody2 = getPatchContent(list2);
+        getClient(token).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody2)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk());
+
+        // verify that the patch changes have been persisted
+        getClient(token).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.errors").doesNotExist())
+                 .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("Andrea Bollini")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].value",
+                                 is("Mykhaylo Boychuk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].authority",
+                                 is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].value",
+                                  is("Andrea Pascarelli")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].confidence", is(-1)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].value",
+                                  is("Giuseppe Digilio")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].confidence", is(-1))
+                         )));
+
+        // try to move first author on last position
+        List<Operation> list3 = new ArrayList<Operation>();
+        list3.add(new MoveOperation("/sections/traditionalpageone/dc.contributor.author/3",
+                                    "/sections/traditionalpageone/dc.contributor.author/0"));
+        String patchBody3 = getPatchContent(list3);
+        getClient(token).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                        .content(patchBody3)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                        .andExpect(status().isOk());
+
+        // verify that the patch changes have been persisted
+        getClient(token).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.errors").doesNotExist())
+                 .andExpect(jsonPath("$", Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Test title", "2020-07-17", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("Mykhaylo Boychuk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].value",
+                                  is("Andrea Pascarelli")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].confidence", is(-1)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].value",
+                                  is("Giuseppe Digilio")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].confidence", is(-1)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].value",
+                                  is("Andrea Bollini")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].confidence", is(600))
+                         )));
+        destroy();
+    }
+
+    public void destroy() throws Exception {
+        super.destroy();
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
     }
 }
