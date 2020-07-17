@@ -47,13 +47,23 @@
 			</datacite:date>
 
 			<!-- EMBARGO PERIOD DATES -->
-			<xsl:if test="contains(doc:metadata/doc:element[@name='others']/doc:field[@name='drm']/text(),'embargoed')">
+			<xsl:if test="contains(doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']/text(),'embargo')">
 				<datacite:dates>
 					<datacite:date dateType="Accepted">
 						<xsl:value-of select="substring-before(doc:metadata/doc:element[@name='dc']/doc:element[@name='date']/doc:element[@name='accessioned']/doc:element/doc:field[@name='value']/text(), 'T')"/>
 					</datacite:date>
 					<datacite:date dateType="Available">
-						<xsl:value-of select="substring-after(doc:metadata/doc:element[@name='others']/doc:field[@name='drm']/text(),'|||')"/>
+						<xsl:variable name="availableDate">
+							<xsl:choose>
+								<xsl:when test="contains(doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']/text(), 'embargo_restricted_')">
+									<xsl:value-of select="substring-after(doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']/text(),'embargo_restricted_')"/>
+								</xsl:when>
+								<xsl:otherwise>
+									<xsl:value-of select="substring-after(doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']/text(),'embargo_')"/>
+								</xsl:otherwise>
+							</xsl:choose>
+						</xsl:variable>
+						<xsl:value-of select="substring($availableDate, 1, 4)"/>-<xsl:value-of select="substring($availableDate, 5, 2)"/>-<xsl:value-of select="substring($availableDate, 7, 2)"/>
 					</datacite:date>
 				</datacite:dates>
 			</xsl:if>
@@ -66,10 +76,30 @@
 					<xsl:value-of select= "concat('http://hdl.handle.net/',doc:metadata/doc:element[@name='others']/doc:field[@name='handle'])"/>
 			</datacite:identifier>
 
-			<!-- DRM -->
-			<xsl:apply-templates
-				select="doc:metadata/doc:element[@name='others']/doc:field[@name='drm']"
-				mode="datacite" />
+			<xsl:for-each select="doc:metadata/doc:element[@name='item']/doc:element[@name='grantfulltext']/doc:element/doc:field[@name='value']">
+				<datacite:rights>
+					<xsl:variable name="rights">
+						<xsl:choose>
+							<xsl:when test="contains(., 'open')">
+								<xsl:text>http://purl.org/coar/access_right/c_abf2|||open access</xsl:text>
+							</xsl:when>
+							<xsl:when test="contains(., 'restricted') or contains(., 'reserved')">
+								<xsl:text>http://purl.org/coar/access_right/c_16ec|||restricted access</xsl:text>
+							</xsl:when>
+							<xsl:when test="contains(., 'embargo')">
+								<xsl:text>http://purl.org/coar/access_right/c_f1cf|||embargoed access</xsl:text>
+							</xsl:when>
+							<xsl:otherwise>
+								<xsl:text>http://purl.org/coar/access_right/c_14cb|||metadata only access</xsl:text>
+							</xsl:otherwise>
+						</xsl:choose>
+					</xsl:variable>
+					<xsl:attribute name="rightsURI">
+						<xsl:value-of select="substring-before($rights, '|||')"></xsl:value-of>
+					</xsl:attribute>
+					<xsl:value-of select="substring-after($rights, '|||')"></xsl:value-of>
+				</datacite:rights>
+			</xsl:for-each>
 
 			<!-- DC CONTRIBUTOR -->
 			<datacite:contributors>
@@ -345,33 +375,6 @@
 					select="./doc:element/doc:field[@name='value']/text()" />
 			</datacite:alternateIdentifier>
 		</xsl:if>
-	</xsl:template>
-
-	<xsl:template
-		match="doc:element[@name='others']/doc:field[@name='drm']"
-		mode="datacite">
-		<xsl:variable name="rightsURI">
-			<xsl:call-template name="resolveRightsURI">
-				<xsl:with-param name="field"
-					select="." />
-			</xsl:call-template>
-		</xsl:variable>
-		<datacite:rights>
-			<xsl:if test="$rightsURI">
-				<xsl:attribute name="rightsURI">
-				<xsl:value-of select="$rightsURI" />
-			</xsl:attribute>
-			</xsl:if>
-			<xsl:choose>
-				<xsl:when test="contains(.,'|||')">
-					<xsl:value-of
-						select="substring-before(.,'|||')" />
-				</xsl:when>
-				<xsl:otherwise>
-					<xsl:value-of select="."/>
-				</xsl:otherwise>
-			</xsl:choose>
-		</datacite:rights>
 	</xsl:template>
 
 	<!-- License CC splitter -->
