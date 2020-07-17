@@ -271,7 +271,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                     metadataValue.setConfidence(confidences == null ? Choices.CF_NOVALUE : confidences.get(i));
                 } else {
                     metadataValue.setAuthority(null);
-                    metadataValue.setConfidence(confidences == null ? Choices.CF_UNSET : confidences.get(i));
+                    metadataValue.setConfidence(Choices.CF_UNSET);
                 }
                 // authority sanity check: if authority is required, was it supplied?
                 // XXX FIXME? can't throw a "real" exception here without changing all the callers to expect it, so
