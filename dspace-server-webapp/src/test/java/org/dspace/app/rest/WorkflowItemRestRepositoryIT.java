@@ -42,6 +42,7 @@ import org.dspace.app.rest.matcher.WorkflowItemMatcher;
 import org.dspace.app.rest.matcher.WorkflowStepMatcher;
 import org.dspace.app.rest.matcher.WorkspaceItemMatcher;
 import org.dspace.app.rest.model.patch.AddOperation;
+import org.dspace.app.rest.model.patch.MoveOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
@@ -51,6 +52,8 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
+import org.dspace.core.service.PluginService;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.factory.XmlWorkflowFactory;
@@ -75,6 +78,10 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
     @Autowired
     private XmlWorkflowFactory xmlWorkflowFactory;
+    @Autowired
+    private PluginService pluginService;
+    @Autowired
+    private ChoiceAuthorityService cas;
 
     @Before
     @Override
@@ -1816,5 +1823,474 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
                                 hasJsonPath("$.pooltask-search.href",
                                          is("http://localhost/api/workflow/pooltask/search"))
                         )));
+    }
+
+    @Test
+    public void patchAddMetadataWithAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withWorkflowGroup(1, eperson)
+                                           .build();
+
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter@example.com")
+                                          .withPassword("dspace")
+                                          .build();
+
+        context.setCurrentUser(submitter);
+        ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
+                                                    .withTitle("Workflow item title")
+                                                    .withIssueDate("2020-07-19")
+                                                    .withSubject("ExtraEntry")
+                                                    .build();
+
+        claimedTask.setStepID("editstep");
+        claimedTask.setActionID("editaction");
+        XmlWorkflowItem witem = claimedTask.getWorkflowItem();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        List<Operation> operations = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("authority", "authority-to-store");
+        value.put("confidence", "600");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 is("authority-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600))
+                )));
+
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID())).andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Workflow item title", "2020-07-19", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("value-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600))
+                         )));
+        destroy();
+    }
+
+    @Test
+    public void patchAddMetadataWithAuthorityOnlyValueTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withWorkflowGroup(1, eperson)
+                                           .build();
+
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter@example.com")
+                                          .withPassword("dspace")
+                                          .build();
+
+        context.setCurrentUser(submitter);
+        ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
+                                                    .withTitle("Workflow item title")
+                                                    .withIssueDate("2020-07-19")
+                                                    .withSubject("ExtraEntry")
+                                                    .build();
+
+        claimedTask.setStepID("editstep");
+        claimedTask.setActionID("editaction");
+        XmlWorkflowItem witem = claimedTask.getWorkflowItem();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 Matchers.nullValue()),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(-1))
+                )));
+
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID())).andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Workflow item title", "2020-07-19", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("value-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(-1))
+                 )));
+        destroy();
+    }
+
+    @Test
+    public void patchAddMetadataWithAuthorityWithoutProvideConfidenceTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withWorkflowGroup(1, eperson)
+                                           .build();
+
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter@example.com")
+                                          .withPassword("dspace")
+                                          .build();
+
+        context.setCurrentUser(submitter);
+        ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
+                                                    .withTitle("Workflow item title")
+                                                    .withIssueDate("2020-07-19")
+                                                    .withSubject("ExtraEntry")
+                                                    .build();
+
+        claimedTask.setStepID("editstep");
+        claimedTask.setActionID("editaction");
+        XmlWorkflowItem witem = claimedTask.getWorkflowItem();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        List<Operation> operations = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("authority", "authority-to-store");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 is("authority-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(0))
+                )));
+
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID())).andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Workflow item title", "2020-07-19", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("value-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(0))
+                         )));
+        destroy();
+    }
+
+    @Test
+    public void patchAddMetadataWithAuthorityWithoutProvideAuthorityTryToChangeConfidenceTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withWorkflowGroup(1, eperson)
+                                           .build();
+
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter@example.com")
+                                          .withPassword("dspace")
+                                          .build();
+
+        context.setCurrentUser(submitter);
+        ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
+                                                    .withTitle("Workflow item title")
+                                                    .withIssueDate("2020-07-19")
+                                                    .withSubject("ExtraEntry")
+                                                    .build();
+
+        claimedTask.setStepID("editstep");
+        claimedTask.setActionID("editaction");
+        XmlWorkflowItem witem = claimedTask.getWorkflowItem();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        List<Operation> operations = new ArrayList<Operation>();
+        // create a list of values to use in add operation
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("confidence", "600");
+        values.add(value);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.allOf(
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                 is("value-to-store")),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                 Matchers.nullValue()),
+                        hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(-1))
+                )));
+
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID())).andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Workflow item title", "2020-07-19", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("value-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(-1))
+                         )));
+        destroy();
+    }
+
+    @Test
+    public void patchMoveMetadataWithAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .withWorkflowGroup(1, eperson)
+                                           .build();
+
+        EPerson submitter = EPersonBuilder.createEPerson(context)
+                                          .withEmail("submitter@example.com")
+                                          .withPassword("dspace")
+                                          .build();
+
+        context.setCurrentUser(submitter);
+        ClaimedTask claimedTask = ClaimedTaskBuilder.createClaimedTask(context, col1, eperson)
+                                                    .withTitle("Workflow item title")
+                                                    .withIssueDate("2020-07-19")
+                                                    .withSubject("ExtraEntry")
+                                                    .build();
+
+        claimedTask.setStepID("editstep");
+        claimedTask.setActionID("editaction");
+        XmlWorkflowItem witem = claimedTask.getWorkflowItem();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        // create 4 authors, two with authority and two without
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value1 = new HashMap<String, String>();
+        value1.put("value", "Robert Kiyosaki");
+        value1.put("authority", "authority-to-store");
+        value1.put("confidence", "600");
+        Map<String, String> value2 = new HashMap<String, String>();
+        value2.put("value", "Andriy Senyk");
+        Map<String, String> value3 = new HashMap<String, String>();
+        value3.put("value", "Mykhaylo Boychuk");
+        value3.put("authority", "authority-to-store");
+        value3.put("confidence", "600");
+        Map<String, String> value4 = new HashMap<String, String>();
+        value4.put("value", "Volodymyr Barabash");
+
+        values.add(value1);
+        values.add(value2);
+        values.add(value3);
+        values.add(value4);
+        operations.add(new AddOperation("/sections/traditionalpageone/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID())).andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Workflow item title", "2020-07-19", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("Robert Kiyosaki")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].value",
+                                 is("Andriy Senyk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].authority",
+                                 Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].confidence", is(-1)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].value",
+                                  is("Mykhaylo Boychuk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].value",
+                                  is("Volodymyr Barabash")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].confidence", is(-1))
+                  )));
+
+        // try to move second author on third position
+        List<Operation> list2 = new ArrayList<Operation>();
+        list2.add(new MoveOperation("/sections/traditionalpageone/dc.contributor.author/2",
+                                    "/sections/traditionalpageone/dc.contributor.author/1"));
+        String patchBody2 = getPatchContent(list2);
+        getClient(authToken).perform(patch("/api/workflow/workflowitems/" + witem.getID())
+                .content(patchBody2)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk());
+
+        // verify that the patch changes have been persisted
+        getClient(authToken).perform(get("/api/workflow/workflowitems/" + witem.getID())).andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.is(WorkflowItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(
+                              witem, "Workflow item title", "2020-07-19", "ExtraEntry"))))
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value",
+                                  is("Robert Kiyosaki")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].value",
+                                  is("Mykhaylo Boychuk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].authority",
+                                  is("authority-to-store")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][1].confidence", is(600)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].value",
+                                  is("Andriy Senyk")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][2].confidence", is(-1)),
+
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].value",
+                                  is("Volodymyr Barabash")),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].authority",
+                                  Matchers.nullValue()),
+                         hasJsonPath("$.sections.traditionalpageone['dc.contributor.author'][3].confidence", is(-1))
+               )));
+        destroy();
+    }
+
+    public void destroy() throws Exception {
+        super.destroy();
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
     }
 }
