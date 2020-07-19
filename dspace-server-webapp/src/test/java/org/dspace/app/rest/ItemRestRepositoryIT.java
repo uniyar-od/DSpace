@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -48,6 +49,7 @@ import org.dspace.app.rest.matcher.ItemMatcher;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.MetadataRest;
 import org.dspace.app.rest.model.MetadataValueRest;
+import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -57,9 +59,12 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.CollectionService;
+import org.dspace.core.service.PluginService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -70,6 +75,12 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private CollectionService collectionService;
+    @Autowired
+    private ConfigurationService configurationService;
+    @Autowired
+    private PluginService pluginService;
+    @Autowired
+    private ChoiceAuthorityService cas;
 
     @Test
     public void findAllTest() throws Exception {
@@ -2698,5 +2709,253 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Test
+    public void patchItemAddMetadataWithAuthorityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
 
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        Item item1 = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item 1")
+                                .withIssueDate("2020-07-18")
+                                .withSubject("ExtraEntry")
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("authority", "authority-to-store");
+        value.put("confidence", "600");
+        values.add(value);
+        operations.add(new AddOperation("/metadata/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/core/items/" + item1.getID())
+                            .content(patchBody)
+                            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk());
+
+        getClient(authToken).perform(get("/api/core/items/" + item1.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$", is(ItemMatcher.matchItemProperties(item1))))
+                            .andExpect(jsonPath("$", Matchers.allOf(
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].value",
+                                             is("value-to-store")),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                                             is("authority-to-store")),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600))
+                            )));
+        destroy();
+    }
+
+    @Test
+    public void patchItemAddMetadataWithAuthorityOnlyValueTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        Item item1 = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item 1")
+                                .withIssueDate("2020-07-18")
+                                .withSubject("ExtraEntry")
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        values.add(value);
+        operations.add(new AddOperation("/metadata/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/core/items/" + item1.getID())
+                            .content(patchBody)
+                            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk());
+
+        getClient(authToken).perform(get("/api/core/items/" + item1.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$", is(ItemMatcher.matchItemProperties(item1))))
+                            .andExpect(jsonPath("$", Matchers.allOf(
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].value",
+                                             is("value-to-store")),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                                             Matchers.nullValue()),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1))
+                            )));
+        destroy();
+    }
+
+    @Test
+    public void patchItemAddMetadataWithAuthorityWithoutConfidenceTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        Item item1 = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item 1")
+                                .withIssueDate("2020-07-18")
+                                .withSubject("ExtraEntry")
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("authority", "authority-to-store");
+        values.add(value);
+        operations.add(new AddOperation("/metadata/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/core/items/" + item1.getID())
+                            .content(patchBody)
+                            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk());
+
+        getClient(authToken).perform(get("/api/core/items/" + item1.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$", is(ItemMatcher.matchItemProperties(item1))))
+                            .andExpect(jsonPath("$", Matchers.allOf(
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].value",
+                                             is("value-to-store")),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                                             is("authority-to-store")),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(0))
+                            )));
+        destroy();
+    }
+
+    @Test
+    public void patchItemAddMetadataTryToChangeConfidenceWithAuthorityEmptyTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        configurationService.setProperty("plugin.named.org.dspace.content.authority.ChoiceAuthority",
+                                         "org.dspace.content.authority.SolrAuthority = SolrAuthorAuthority");
+        configurationService.setProperty("solr.authority.server", "${solr.server}/authority");
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("choices.presentation.dc.contributor.author", "authorLookup");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+        configurationService.setProperty("authority.author.indexer.field.1", "dc.contributor.author");
+
+        // These clears have to happen so that the config is actually reloaded in those classes. This is needed for
+        // the properties that we're altering above and this is only used within the tests
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
+        Item item1 = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item 1")
+                                .withIssueDate("2020-07-18")
+                                .withSubject("ExtraEntry")
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        List<Operation> operations = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "value-to-store");
+        value.put("confidence", "600");
+        values.add(value);
+        operations.add(new AddOperation("/metadata/dc.contributor.author", values));
+
+        String patchBody = getPatchContent(operations);
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/core/items/" + item1.getID())
+                            .content(patchBody)
+                            .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk());
+
+        getClient(authToken).perform(get("/api/core/items/" + item1.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$", is(ItemMatcher.matchItemProperties(item1))))
+                            .andExpect(jsonPath("$", Matchers.allOf(
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].value",
+                                             is("value-to-store")),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                                             Matchers.nullValue()),
+                                    hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1))
+                            )));
+        destroy();
+    }
+
+    public void destroy() throws Exception {
+        super.destroy();
+        pluginService.clearNamedPluginClasses();
+        cas.clearCache();
+    }
 }
