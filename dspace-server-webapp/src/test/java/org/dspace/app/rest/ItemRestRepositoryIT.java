@@ -24,6 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,8 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.test.MetadataPatchSuite;
+import org.dspace.authority.PersonAuthorityValue;
+import org.dspace.authority.factory.AuthorityServiceFactory;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
@@ -2768,7 +2771,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                              is("authority-to-store")),
                                     hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600))
                             )));
-        destroy();
+       restoreAuthorityConfiguration();
     }
 
     @Test
@@ -2786,6 +2789,28 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         // the properties that we're altering above and this is only used within the tests
         pluginService.clearNamedPluginClasses();
         cas.clearCache();
+
+        PersonAuthorityValue person1 = new PersonAuthorityValue();
+        person1.setId(String.valueOf(UUID.randomUUID()));
+        person1.setLastName("Shirasaka");
+        person1.setFirstName("Seiko");
+        person1.setValue("Shirasaka, Seiko");
+        person1.setField("dc_contributor_author");
+        person1.setLastModified(new Date());
+        person1.setCreationDate(new Date());
+        AuthorityServiceFactory.getInstance().getAuthorityIndexingService().indexContent(person1);
+
+        PersonAuthorityValue person2 = new PersonAuthorityValue();
+        person2.setId(String.valueOf(UUID.randomUUID()));
+        person2.setLastName("Miller");
+        person2.setFirstName("Tyler E");
+        person2.setValue("Miller, Tyler E");
+        person2.setField("dc_contributor_author");
+        person2.setLastModified(new Date());
+        person2.setCreationDate(new Date());
+        AuthorityServiceFactory.getInstance().getAuthorityIndexingService().indexContent(person2);
+
+        AuthorityServiceFactory.getInstance().getAuthorityIndexingService().commit();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -2828,7 +2853,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                              Matchers.nullValue()),
                                     hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1))
                             )));
-        destroy();
+       restoreAuthorityConfiguration();
     }
 
     @Test
@@ -2889,7 +2914,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                              is("authority-to-store")),
                                     hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(0))
                             )));
-        destroy();
+       restoreAuthorityConfiguration();
     }
 
     @Test
@@ -2907,6 +2932,28 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         // the properties that we're altering above and this is only used within the tests
         pluginService.clearNamedPluginClasses();
         cas.clearCache();
+
+        PersonAuthorityValue person1 = new PersonAuthorityValue();
+        person1.setId(String.valueOf(UUID.randomUUID()));
+        person1.setLastName("Shirasaka");
+        person1.setFirstName("Seiko");
+        person1.setValue("Shirasaka, Seiko");
+        person1.setField("dc_contributor_author");
+        person1.setLastModified(new Date());
+        person1.setCreationDate(new Date());
+        AuthorityServiceFactory.getInstance().getAuthorityIndexingService().indexContent(person1);
+
+        PersonAuthorityValue person2 = new PersonAuthorityValue();
+        person2.setId(String.valueOf(UUID.randomUUID()));
+        person2.setLastName("Miller");
+        person2.setFirstName("Tyler E");
+        person2.setValue("Miller, Tyler E");
+        person2.setField("dc_contributor_author");
+        person2.setLastModified(new Date());
+        person2.setCreationDate(new Date());
+        AuthorityServiceFactory.getInstance().getAuthorityIndexingService().indexContent(person2);
+
+        AuthorityServiceFactory.getInstance().getAuthorityIndexingService().commit();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -2950,10 +2997,10 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                              Matchers.nullValue()),
                                     hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1))
                             )));
-        destroy();
+       restoreAuthorityConfiguration();
     }
 
-    public void destroy() throws Exception {
+    public void restoreAuthorityConfiguration() throws Exception {
         super.destroy();
         pluginService.clearNamedPluginClasses();
         cas.clearCache();
