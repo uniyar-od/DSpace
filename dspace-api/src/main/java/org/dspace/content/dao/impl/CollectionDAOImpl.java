@@ -175,6 +175,14 @@ public class CollectionDAOImpl extends AbstractHibernateDSODAO<Collection> imple
     }
 
     @Override
+    public List<Collection> findCollectionsByItem(Context context, Item item) throws SQLException {
+        String query = "SELECT collections FROM Item as item join item.collections collections WHERE item = :item";
+        Query hibernateQuery = createQuery(context, query);
+        hibernateQuery.setParameter("item", item);
+        return list(hibernateQuery);
+    }
+
+    @Override
     public int countRows(Context context) throws SQLException {
         return count(createQuery(context, "SELECT count(*) FROM Collection"));
     }
