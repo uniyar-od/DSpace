@@ -401,9 +401,8 @@
         </div>
 		<br/>
         
-        <div class="row">
-    		<div class="row">
-                    <%-- Document File: --%>
+        <div class="col-md-12">
+    		<div class="col-md-12">                    <%-- Document File: --%>
                     <div class="simple-upload">
                         <label class="col-md-<%= bSherpa?"3":"2" %>" for="tfile"><fmt:message key="jsp.submit.choose-file.document"/></label>
                         <input type="file" size="40" name="file" id="tfile" />
