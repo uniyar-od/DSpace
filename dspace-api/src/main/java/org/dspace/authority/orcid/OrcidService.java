@@ -320,6 +320,22 @@ public class OrcidService extends RestSource
         return message;
     }
 
+    public WorkBulk getWorkBulk(String id, String token, List<String> putCodes)
+    {
+        String endpoint = id + WORKS_ENDPOINT;
+        WorkBulk message = null;
+        try
+        {
+            String sPutCodes = StringUtils.join(putCodes, ",");
+            message = get(endpoint, token, sPutCodes).readEntity(WorkBulk.class);
+        }
+        catch (Exception e)
+        {
+            log.error(e);
+        }
+        return message;
+    }
+
     public WorkSummary getWorkSummary(String id, String token, String putCode)
     {
 
