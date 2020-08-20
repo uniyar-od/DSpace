@@ -219,10 +219,10 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		public void run() {
 			String coreName = newSearcher.getCore().getName();
 			try {
-				log.debug("Building the rank chache...");
-                cacheVersion.put(coreName, newSearcher.getOpenTime());
-                cacheAcquisition.put(coreName, new Date());
+				log.info("Building the rank cache... [corname:"+coreName+"][force:" + force +"]" );
+                cacheVersion.put(coreName, newSearcher.getOpenTime());                
 	            if (force) {
+	                cacheAcquisition.put(coreName, new Date());
 	                populateRanks(coreName, newSearcher);
 	            }
 	            else {
@@ -355,8 +355,8 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		            }
 		        }
 		        Date end = new Date();
-		        log.debug("SEARCH TIME: "+searcherTime);
-		        log.debug("RENEW CACHE TIME: "+(end.getTime()-start.getTime()));
+		        log.info("SEARCH TIME: "+searcherTime);
+		        log.info("RENEW CACHE TIME: "+(end.getTime()-start.getTime()));
 		    }
 		    catch (Exception e)
 		    {
