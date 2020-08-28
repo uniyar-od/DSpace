@@ -261,7 +261,7 @@
 										</xsl:if>
 										<xsl:if test="$awardtitle[$counter]!='' ">
 											<oaire:awardTitle>
-												<xsl:value-of select="$awardnumber[$counter]"/>
+												<xsl:value-of select="$awardtitle[$counter]"/>
 											</oaire:awardTitle>
 										</xsl:if>
 									</oaire:fundingReference>
