@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.model.MetadataRest;
+import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.MoveOperation;
 import org.dspace.app.rest.model.patch.Operation;
@@ -1865,4 +1870,277 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                                               is("First Abstract description")));
     }
 
+    @Test
+    public void putOperationUsingVariousLayoutSecurityBoxesTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        EPerson userA = EPersonBuilder.createEPerson(context)
+                                      .withNameInMetadata("Mykhaylo", "Boychuk")
+                                      .withEmail("user.a@example.com")
+                                      .withPassword(password).build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withRelationshipType("Publication")
+                                           .withName("Collection 1")
+                                           .build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item A")
+                                .withIssueDate("2017-10-17")
+                                .withAuthor("Smith, Maria")
+                                .build();
+
+        ResourcePolicyBuilder.createResourcePolicy(context)
+                             .withDspaceObject(itemA)
+                             .withAction(Constants.WRITE)
+                             .withUser(eperson)
+                             .build();
+
+        itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
+        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+
+        MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
+        MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
+        MetadataField issueDate = mfss.findByElement(context, "dc", "date", "issued");
+        MetadataField title = mfss.findByElement(context, "dc", "title", null);
+
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                .withShortname("box-shortname-one")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0)
+                              .withLabel("LABEL TITLE")
+                              .withRendering("RENDERIGN TITLE")
+                              .withStyle("STYLE")
+                              .withBox(box1).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, issueDate, 0, 0)
+                              .withLabel("LABEL IssueDate")
+                              .withRendering("RENDERIGN IssueDate")
+                              .withStyle("STYLE")
+                              .withBox(box1).build();
+
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-two")
+                                                 .withSecurity(LayoutSecurity.ADMINISTRATOR)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box2).build();
+
+        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-three")
+                                                 .withSecurity(LayoutSecurity.OWNER_ONLY)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 0)
+                              .withLabel("LABEL AUTHOR")
+                              .withRendering("RENDERIGN AUTHOR")
+                              .withStyle("STYLE")
+                              .withBox(box3).build();
+
+        context.restoreAuthSystemState();
+
+        String tokenEperson = getAuthToken(eperson.getEmail(), password);
+        String tokenUserA = getAuthToken(userA.getEmail(), password);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = new ItemRest();
+        itemRest.setId(itemA.getID().toString());
+        itemRest.setUuid(itemA.getID().toString());
+        itemRest.setMetadata(new MetadataRest()
+                .put("dc.description.abstract", new MetadataValueRest("New ABS"))
+                .put("dc.title", new MetadataValueRest("New TITLE")));
+
+        getClient(tokenEperson).perform(put("/api/core/items/" + itemA.getID())
+                               .content(mapper.writeValueAsBytes(itemRest))
+                               .contentType(contentType))
+                               .andExpect(status().isUnprocessableEntity());
+
+        getClient(tokenAdmin).perform(get("/api/core/items/" + itemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.metadata['dc.title'].[0].value", is("Public item A")))
+                             .andExpect(jsonPath("$.metadata['dc.date.issued'].[0].value", is("2017-10-17")))
+                             .andExpect(jsonPath("$.metadata['dc.description.abstract'].[0].value",
+                                              is("A secured abstract")));
+
+        getClient(tokenAdmin).perform(put("/api/core/items/" + itemA.getID())
+                             .content(mapper.writeValueAsBytes(itemRest))
+                             .contentType(contentType))
+                             .andExpect(status().isOk());
+
+        getClient(tokenAdmin).perform(get("/api/core/items/" + itemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.metadata['dc.title'].[0].value", is("New TITLE")))
+                             .andExpect(jsonPath("$.metadata['dc.date.issued']").doesNotExist())
+                             .andExpect(jsonPath("$.metadata['dc.description.abstract'].[0].value", is("New ABS")));
+
+        getClient(tokenUserA).perform(get("/api/core/items/" + itemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.metadata['dc.title'].[0].value", is("New TITLE")))
+                             .andExpect(jsonPath("$.metadata['dc.date.issued']").doesNotExist())
+                             .andExpect(jsonPath("$.metadata['dc.contributor.author'].[0].value", is("Smith, Maria")));
+    }
+
+    @Test
+    public void putOperationUsingCustomDataLayoutSecurityTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        EPerson userA = EPersonBuilder.createEPerson(context)
+                                      .withNameInMetadata("Mykhaylo", "Boychuk")
+                                      .withEmail("user.a@example.com")
+                                      .withPassword(password).build();
+        EPerson userB = EPersonBuilder.createEPerson(context)
+                                      .withNameInMetadata("Simone", "Belardi")
+                                      .withEmail("user.b@example.com")
+                                      .withPassword(password).build();
+
+        Group groupA = GroupBuilder.createGroup(context)
+                                   .withName("Group A")
+                                   .addMember(userB).build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withRelationshipType("Publication")
+                                           .withName("Collection 1")
+                                           .build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item A")
+                                .withIssueDate("2017-10-17")
+                                .withAuthor("Smith, Maria")
+                                .build();
+
+        ResourcePolicyBuilder.createResourcePolicy(context)
+                             .withDspaceObject(itemA)
+                             .withAction(Constants.WRITE)
+                             .withUser(userA)
+                             .withGroup(groupA).build();
+
+        itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
+        itemService.addMetadata(context, itemA, "cris", "policy", "eperson", null, userA.getFullName(),
+                                userA.getID().toString(), 600);
+        itemService.addMetadata(context, itemA, "cris", "policy", "group", null, groupA.getName(),
+                                groupA.getID().toString(), 600);
+
+        MetadataField policyEperson = mfss.findByElement(context, "cris", "policy", "eperson");
+        MetadataField policyGroup = mfss.findByElement(context, "cris", "policy", "group");
+        MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
+        MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
+        MetadataField issueDate = mfss.findByElement(context, "dc", "date", "issued");
+        MetadataField title = mfss.findByElement(context, "dc", "title", null);
+
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-one")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .build();
+
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-two")
+                                                 .withSecurity(LayoutSecurity.CUSTOM_DATA)
+                                                 .addMetadataSecurityField(policyEperson)
+                                                 .addMetadataSecurityField(policyGroup)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0)
+                              .withLabel("LABEL TITLE")
+                              .withRendering("RENDERIGN TITLE")
+                              .withStyle("STYLE")
+                              .withBox(box1).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, issueDate, 0, 0)
+                              .withLabel("LABEL IssueDate")
+                              .withRendering("RENDERIGN IssueDate")
+                              .withStyle("STYLE")
+                              .withBox(box1).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0)
+                              .withLabel("LABEL TITLE")
+                              .withRendering("RENDERIGN TITLE")
+                              .withStyle("STYLE")
+                              .withBox(box2).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box2).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 0)
+                              .withLabel("LABEL AUTHOR")
+                              .withRendering("RENDERIGN AUTHOR")
+                              .withStyle("STYLE")
+                              .withBox(box2).build();
+
+        context.restoreAuthSystemState();
+
+        String tokenUserA = getAuthToken(userA.getEmail(), password);
+        String tokenUserB = getAuthToken(userB.getEmail(), password);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = new ItemRest();
+        itemRest.setId(itemA.getID().toString());
+        itemRest.setUuid(itemA.getID().toString());
+        itemRest.setMetadata(new MetadataRest()
+                .put("dc.contributor.author", new MetadataValueRest("New Author"))
+                .put("dc.title", new MetadataValueRest("New TITLE")));
+
+        getClient(tokenAdmin).perform(put("/api/core/items/" + itemA.getID())
+                               .content(mapper.writeValueAsBytes(itemRest))
+                               .contentType(contentType))
+                               .andExpect(status().isUnprocessableEntity());
+
+        getClient(tokenUserA).perform(get("/api/core/items/" + itemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.metadata['dc.title'].[0].value", is("Public item A")))
+                             .andExpect(jsonPath("$.metadata['dc.date.issued'].[0].value", is("2017-10-17")))
+                             .andExpect(jsonPath("$.metadata['dc.contributor.author'].[0].value", is("Smith, Maria")))
+                             .andExpect(jsonPath("$.metadata['dc.description.abstract'].[0].value",
+                                              is("A secured abstract")));
+
+        getClient(tokenUserA).perform(put("/api/core/items/" + itemA.getID())
+                             .content(mapper.writeValueAsBytes(itemRest))
+                             .contentType(contentType))
+                             .andExpect(status().isOk());
+
+        getClient(tokenUserA).perform(get("/api/core/items/" + itemA.getID()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.metadata['dc.contributor.author'].[0].value", is("New Author")))
+                             .andExpect(jsonPath("$.metadata['dc.title'].[0].value", is("New TITLE")))
+                             .andExpect(jsonPath("$.metadata['dc.description.abstract']").doesNotExist())
+                             .andExpect(jsonPath("$.metadata['dc.date.issued']").doesNotExist());
+
+        ItemRest itemRest2 = new ItemRest();
+        itemRest2.setId(itemA.getID().toString());
+        itemRest2.setUuid(itemA.getID().toString());
+        itemRest2.setMetadata(new MetadataRest()
+                 .put("dc.contributor.author", new MetadataValueRest("Andrea Bollini")));
+
+        getClient(tokenUserB).perform(put("/api/core/items/" + itemA.getID())
+                             .content(mapper.writeValueAsBytes(itemRest2))
+                             .contentType(contentType))
+                             .andExpect(status().isOk());
+
+        getClient(tokenUserA).perform(get("/api/core/items/" + itemA.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.metadata['dc.contributor.author'].[0].value", is("Andrea Bollini")))
+                            .andExpect(jsonPath("$.metadata['dc.title']").doesNotExist())
+                            .andExpect(jsonPath("$.metadata['dc.description.abstract']").doesNotExist())
+                            .andExpect(jsonPath("$.metadata['dc.date.issued']").doesNotExist());
+    }
 }
