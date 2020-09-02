@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.ServletInputStream;
@@ -21,25 +22,34 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.converter.MetadataConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.BundleRest;
 import org.dspace.app.rest.model.ItemRest;
+import org.dspace.app.rest.model.MetadataRest;
+import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.repository.handler.service.UriListHandlerService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
@@ -93,6 +103,15 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
 
     @Autowired
     private UriListHandlerService uriListHandlerService;
+
+    @Autowired
+    private ItemConverter itemConverter;
+
+    @Autowired
+    private MetadataFieldService metadataFieldService;
+
+    @Autowired
+    private ContentServiceFactory contentServiceFactory;
 
     public ItemRestRepository(ItemService dsoService) {
         super(dsoService);
@@ -300,7 +319,6 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     protected ItemRest put(Context context, HttpServletRequest request, String apiCategory, String model, UUID uuid,
                            JsonNode jsonNode)
         throws RepositoryMethodNotImplementedException, SQLException, AuthorizeException {
-        HttpServletRequest req = getRequestService().getCurrentRequest().getHttpServletRequest();
         ObjectMapper mapper = new ObjectMapper();
         ItemRest itemRest = null;
         try {
@@ -315,13 +333,63 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
         }
 
         if (StringUtils.equals(uuid.toString(), itemRest.getId())) {
-            metadataConverter.setMetadata(context, item, itemRest.getMetadata());
+            if (checkBoxSecurity(context, item, itemRest)) {
+                List<MetadataField> metadataFiledToClean = getAccessibleMetadata(context, item);
+                setMetadata(context, item, itemRest.getMetadata(), metadataFiledToClean);
+            } else {
+                throw new UnprocessableEntityException("It is not possible to perform this PUT operation,"
+                        + " some metadata are not accessible or the current user does not have suffiscent permissions");
+            }
         } else {
             throw new IllegalArgumentException("The UUID in the Json and the UUID in the url do not match: "
                 + uuid + ", "
                 + itemRest.getId());
         }
         return converter.toRest(item, utils.obtainProjection());
+    }
+
+    private List<MetadataField> getAccessibleMetadata(Context context, Item item) {
+        List<MetadataValue> l = itemConverter.getPermissionFilteredMetadata(context, item);
+        List<MetadataField> metadataToClean = new ArrayList<MetadataField>();
+        for (MetadataValue mv : l) {
+            metadataToClean.add(mv.getMetadataField());
+        }
+        return metadataToClean;
+    }
+
+    private boolean checkBoxSecurity(Context context, Item item, ItemRest itemRest) throws SQLException {
+        for (Map.Entry<String, List<MetadataValueRest>> entry : itemRest.getMetadata().getMap().entrySet()) {
+            MetadataField metadataField = null;
+            try {
+                metadataField = metadataFieldService.findByString(context, entry.getKey(), '.');
+            } catch (SQLException e) {
+                throw new ResourceNotFoundException("MetadataField " + entry.getKey() + " does not found");
+            }
+            if (!itemConverter.checkMetadataFieldVisibility(context, item, metadataField)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void setMetadata(Context context, DSpaceObject dso, MetadataRest metadataRest,
+            List<MetadataField> metadataFiledToClean) throws SQLException, AuthorizeException {
+        DSpaceObjectService<DSpaceObject> dsoService = contentServiceFactory.getDSpaceObjectService(dso);
+        for (MetadataField mf : metadataFiledToClean) {
+            dsoService.clearMetadata(context, dso, mf.getMetadataSchema().getName(), mf.getElement(),
+                                     mf.getQualifier(), Item.ANY);
+        }
+        for (Map.Entry<String, List<MetadataValueRest>> entry: metadataRest.getMap().entrySet()) {
+            String[] seq = entry.getKey().split("\\.");
+            String schema = seq[0];
+            String element = seq[1];
+            String qualifier = seq.length == 3 ? seq[2] : null;
+            for (MetadataValueRest mvr: entry.getValue()) {
+                dsoService.addMetadata(context, dso, schema, element, qualifier, mvr.getLanguage(),
+                        mvr.getValue(), mvr.getAuthority(), mvr.getConfidence());
+            }
+        }
+        dsoService.update(context, dso);
     }
 
     /**
