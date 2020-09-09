@@ -14,9 +14,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 
+import org.dspace.app.rest.matcher.CrisLayoutBoxMatcher;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.MoveOperation;
 import org.dspace.app.rest.model.patch.Operation;
@@ -27,6 +29,7 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.CrisLayoutBoxBuilder;
 import org.dspace.builder.CrisLayoutFieldBuilder;
+import org.dspace.builder.CrisLayoutTabBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
@@ -42,7 +45,9 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.layout.CrisLayoutBox;
+import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.LayoutSecurity;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -1863,6 +1868,112 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                                               is("Second Abstract description")))
                              .andExpect(jsonPath("$.metadata['dc.description.abstract'].[1].value",
                                               is("First Abstract description")));
+    }
+
+    @Test
+    public void findBoxesByItemTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withRelationshipType("Publication")
+                                           .withName("Collection 1")
+                                           .build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item A")
+                                .withIssueDate("2015-06-25")
+                                .withAuthor("Smith, Maria")
+                                .build();
+
+        itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
+
+        MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
+        MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
+        MetadataField title = mfss.findByElement(context, "dc", "title", null);
+
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-one")
+                                                 .withSecurity(LayoutSecurity.ADMINISTRATOR)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box1)
+                              .build();
+
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-two")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0)
+                              .withLabel("LABEL TITLE")
+                              .withRendering("RENDERIGN TITLE")
+                              .withStyle("STYLE")
+                              .withBox(box2)
+                              .build();
+
+        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-three")
+                                                 .withSecurity(LayoutSecurity.OWNER_ONLY)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 0)
+                              .withLabel("LABEL AUTHOR")
+                              .withRendering("RENDERIGN AUTHOR")
+                              .withStyle("STYLE")
+                              .withBox(box3).build();
+
+        List<CrisLayoutBox> boxes = new LinkedList<CrisLayoutBox>();
+        boxes.add(box1);
+        boxes.add(box2);
+        boxes.add(box3);
+
+        CrisLayoutTab tab1 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                .withShortName("tab-shortname-one")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .withBoxes(boxes)
+                                                .build();
+
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        String tokenEperson = getAuthToken(eperson.getEmail(), password);
+
+        getClient(tokenAdmin).perform(get("/api/layout/box/search/findByItem")
+                             .param("uuid", itemA.getID().toString())
+                             .param("tab", tab1.getID().toString()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded.boxes", Matchers.containsInAnyOrder(
+                                        CrisLayoutBoxMatcher.matchBox(box1),
+                                        CrisLayoutBoxMatcher.matchBox(box2)
+                                        )))
+                             .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        getClient(tokenEperson).perform(get("/api/layout/box/search/findByItem")
+                               .param("uuid", itemA.getID().toString())
+                               .param("tab", tab1.getID().toString()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$._embedded.boxes", Matchers.contains(
+                                          CrisLayoutBoxMatcher.matchBox(box2)
+                                          )))
+                               .andExpect(jsonPath("$.page.totalElements", is(1)));
+
+        getClient().perform(get("/api/layout/box/search/findByItem")
+                   .param("uuid", itemA.getID().toString())
+                   .param("tab", tab1.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.boxes", Matchers.contains(
+                              CrisLayoutBoxMatcher.matchBox(box2)
+                              )))
+                   .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
 }
