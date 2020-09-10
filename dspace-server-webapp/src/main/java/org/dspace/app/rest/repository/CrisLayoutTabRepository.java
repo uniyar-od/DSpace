@@ -9,7 +9,9 @@ package org.dspace.app.rest.repository;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,9 +24,13 @@ import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.CrisLayoutTabRest;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.repository.patch.ResourcePatch;
+import org.dspace.app.rest.utils.CrisLayoutUtils;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutTab;
+import org.dspace.layout.CrisLayoutTab2Box;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -49,6 +55,12 @@ public class CrisLayoutTabRepository extends DSpaceRestRepository<CrisLayoutTabR
 
     @Autowired
     private ResourcePatch<CrisLayoutTab> resourcePatch;
+
+    @Autowired
+    private ItemService itemService;
+
+    @Autowired
+    CrisLayoutUtils crisLayoutUtils;
 
     public CrisLayoutTabRepository(CrisLayoutTabService service) {
         this.service = service;
@@ -88,9 +100,9 @@ public class CrisLayoutTabRepository extends DSpaceRestRepository<CrisLayoutTabR
         List<CrisLayoutTab> tabList = null;
         Long totalRow = null;
         try {
-            tabList = service.findByItem(
-                context,
-                itemUuid);
+            tabList = service.findByItem(context, itemUuid);
+            Item item = itemService.find(context, UUID.fromString(itemUuid));
+            tabList = filterTabs(context, tabList, item);
             totalRow = Long.valueOf(tabList.size());
             int lastIndex = (pageable.getPageNumber() + 1) * pageable.getPageSize();
             tabList = tabList.subList(
@@ -100,6 +112,28 @@ public class CrisLayoutTabRepository extends DSpaceRestRepository<CrisLayoutTabR
             throw new RuntimeException(e.getMessage(), e);
         }
         return converter.toRestPage(tabList, pageable, totalRow, utils.obtainProjection());
+    }
+
+    private List<CrisLayoutTab> filterTabs(Context context, List<CrisLayoutTab> tabs, Item item) {
+        List<CrisLayoutTab> tabList = new ArrayList<CrisLayoutTab>();
+        for (CrisLayoutTab tab : tabs) {
+            if (isVisibleTab(context, tab, item)) {
+                tabList.add(tab);
+            }
+        }
+        return tabList;
+    }
+
+    private boolean isVisibleTab(Context context, CrisLayoutTab tab, Item item) {
+        List<CrisLayoutTab2Box> tab2box = tab.getTab2Box();
+        for (CrisLayoutTab2Box t2b : tab2box) {
+            if (!t2b.getBox().getMinor()) {
+                if (crisLayoutUtils.isAccessibleBox(context, item, t2b.getBox())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     @SearchRestMethod(name = "findByEntityType")
