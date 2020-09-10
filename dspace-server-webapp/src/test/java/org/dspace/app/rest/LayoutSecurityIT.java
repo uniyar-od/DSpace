@@ -19,6 +19,7 @@ import java.util.List;
 import javax.ws.rs.core.MediaType;
 
 import org.dspace.app.rest.matcher.CrisLayoutBoxMatcher;
+import org.dspace.app.rest.matcher.CrisLayoutTabMatcher;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.MoveOperation;
 import org.dspace.app.rest.model.patch.Operation;
@@ -1981,6 +1982,275 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               CrisLayoutBoxMatcher.matchBox(box2)
                               )))
                    .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void findTabsByItemTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withRelationshipType("Publication")
+                                           .withName("Collection 1")
+                                           .build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item A")
+                                .withIssueDate("2015-06-25")
+                                .withAuthor("Smith, Maria")
+                                .build();
+
+        itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
+
+        MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
+        MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
+        MetadataField title = mfss.findByElement(context, "dc", "title", null);
+
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+                                                 .withShortname("box-shortname-one")
+                                                 .withSecurity(LayoutSecurity.ADMINISTRATOR)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box1)
+                              .build();
+
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, false)
+                                                 .withShortname("box-shortname-two")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0)
+                              .withLabel("LABEL TITLE")
+                              .withRendering("RENDERIGN TITLE")
+                              .withStyle("STYLE")
+                              .withBox(box2)
+                              .build();
+
+        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, false)
+                                                 .withShortname("box-shortname-three")
+                                                 .withSecurity(LayoutSecurity.OWNER_ONLY)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 0)
+                              .withLabel("LABEL AUTHOR")
+                              .withRendering("RENDERIGN AUTHOR")
+                              .withStyle("STYLE")
+                              .withBox(box3).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box3).build();
+
+        List<CrisLayoutBox> boxes = new LinkedList<CrisLayoutBox>();
+        boxes.add(box1);
+
+        List<CrisLayoutBox> boxes2 = new LinkedList<CrisLayoutBox>();
+        boxes2.add(box2);
+
+        List<CrisLayoutBox> boxes3 = new LinkedList<CrisLayoutBox>();
+        boxes3.add(box3);
+
+        CrisLayoutTab tab1 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                .withShortName("tab-shortname-one")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .withBoxes(boxes).build();
+
+        CrisLayoutTab tab2 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                 .withShortName("tab-shortname-two")
+                                                 .withSecurity(LayoutSecurity.ADMINISTRATOR)
+                                                 .withBoxes(boxes2).build();
+
+        CrisLayoutTab tab3 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                 .withShortName("tab-shortname-three")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .withBoxes(boxes3).build();
+        context.restoreAuthSystemState();
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        String tokenEperson = getAuthToken(eperson.getEmail(), password);
+
+        getClient(tokenAdmin).perform(get("/api/layout/tab/search/findByItem")
+                             .param("uuid", itemA.getID().toString()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded.tabs", Matchers.containsInAnyOrder(
+                                        CrisLayoutTabMatcher.matchTab(tab2),
+                                        CrisLayoutTabMatcher.matchTab(tab3)
+                                        )))
+                             .andExpect(jsonPath("$._embedded.tabs", Matchers.not(
+                                        CrisLayoutTabMatcher.matchTab(tab1)
+                                        )))
+                             .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        getClient(tokenEperson).perform(get("/api/layout/tab/search/findByItem")
+                               .param("uuid", itemA.getID().toString()))
+                               .andExpect(status().isOk())
+                               .andExpect(jsonPath("$._embedded.tabs", Matchers.contains(
+                                          CrisLayoutTabMatcher.matchTab(tab2)
+                                          )))
+                               .andExpect(jsonPath("$.page.totalElements", is(1)));
+
+        getClient().perform(get("/api/layout/tab/search/findByItem")
+                   .param("uuid", itemA.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.tabs", Matchers.contains(
+                              CrisLayoutTabMatcher.matchTab(tab2)
+                              )))
+                   .andExpect(jsonPath("$.page.totalElements", is(1)));
+    }
+
+    @Test
+    public void findTabsByItemLayoutSecurityConfigurationWithCustomDataTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        EPerson userA = EPersonBuilder.createEPerson(context)
+                                      .withNameInMetadata("Mykhaylo", "Boychuk")
+                                      .withEmail("user.a@example.com")
+                                      .withPassword(password).build();
+
+        EPerson userB = EPersonBuilder.createEPerson(context)
+                                      .withNameInMetadata("Simone", "Proni")
+                                      .withEmail("user.b@example.com")
+                                      .withPassword(password).build();
+
+        Group groupA = GroupBuilder.createGroup(context)
+                                   .withName("Group A")
+                                   .addMember(userB).build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withRelationshipType("Publication")
+                                           .withName("Collection 1").build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withTitle("Public item A")
+                                .withIssueDate("2015-06-25")
+                                .withAuthor("Smith, Maria")
+                                .build();
+
+        itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
+        itemService.addMetadata(context, itemA, "cris", "policy", "eperson", null, userA.getFullName(),
+                                userA.getID().toString(), 600);
+        itemService.addMetadata(context, itemA, "cris", "policy", "group", null, groupA.getName(),
+                                groupA.getID().toString(), 600);
+
+        MetadataField policyEperson = mfss.findByElement(context, "cris", "policy", "eperson");
+        MetadataField policyGroup = mfss.findByElement(context, "cris", "policy", "group");
+
+        MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
+        MetadataField title = mfss.findByElement(context, "dc", "title", null);
+        MetadataField author = mfss.findByElement(context, "dc", "contributor", "author");
+
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, false)
+                                                 .withShortname("box-shortname-one")
+                                                 .withSecurity(LayoutSecurity.CUSTOM_DATA)
+                                                 .addMetadataSecurityField(policyEperson)
+                                                 .addMetadataSecurityField(policyGroup).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box1).build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 0)
+                              .withLabel("LABEL AUTHOR")
+                              .withRendering("RENDERIGN AUTHOR")
+                              .withStyle("STYLE")
+                              .withBox(box1).build();
+
+        CrisLayoutBox box2 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, false)
+                                                 .withShortname("box-shortname-two")
+                                                 .withSecurity(LayoutSecurity.ADMINISTRATOR)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0)
+                              .withLabel("LABEL TITLE")
+                              .withRendering("RENDERIGN TITLE")
+                              .withStyle("STYLE")
+                              .withBox(box2).build();
+
+        CrisLayoutBox box3 = CrisLayoutBoxBuilder.createBuilder(context, eType, true, false)
+                                                 .withShortname("box-shortname-three")
+                                                 .withSecurity(LayoutSecurity.OWNER_ONLY)
+                                                 .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 0)
+                              .withLabel("LABEL AUTHOR")
+                              .withRendering("RENDERIGN AUTHOR")
+                              .withStyle("STYLE")
+                              .withBox(box3).build();
+
+        List<CrisLayoutBox> boxes = new LinkedList<CrisLayoutBox>();
+        boxes.add(box1);
+
+        List<CrisLayoutBox> boxes2 = new LinkedList<CrisLayoutBox>();
+        boxes2.add(box2);
+
+        List<CrisLayoutBox> boxes3 = new LinkedList<CrisLayoutBox>();
+        boxes3.add(box3);
+
+        CrisLayoutTab tab1 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                 .withShortName("tab-shortname-one")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .withBoxes(boxes).build();
+
+        CrisLayoutTab tab2 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                 .withShortName("tab-shortname-two")
+                                                 .withSecurity(LayoutSecurity.ADMINISTRATOR)
+                                                 .withBoxes(boxes2).build();
+
+        CrisLayoutTab tab3 = CrisLayoutTabBuilder.createTab(context, eType, 0)
+                                                 .withShortName("tab-shortname-three")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .withBoxes(boxes3).build();
+        context.restoreAuthSystemState();
+
+        String tokenUserA = getAuthToken(userA.getEmail(), password);
+        String tokenUserB = getAuthToken(userB.getEmail(), password);
+
+        getClient(tokenUserA).perform(get("/api/layout/tab/search/findByItem")
+                             .param("uuid", itemA.getID().toString()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded.tabs", Matchers.containsInAnyOrder(
+                                                 CrisLayoutTabMatcher.matchTab(tab1),
+                                                 CrisLayoutTabMatcher.matchTab(tab3)
+                                                 )))
+                             .andExpect(jsonPath("$._embedded.tabs", Matchers.not(
+                                                 CrisLayoutTabMatcher.matchTab(tab2)
+                                                 )))
+                             .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        getClient(tokenUserB).perform(get("/api/layout/tab/search/findByItem")
+                             .param("uuid", itemA.getID().toString()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded.tabs", Matchers.containsInAnyOrder(
+                                                 CrisLayoutTabMatcher.matchTab(tab1),
+                                                 CrisLayoutTabMatcher.matchTab(tab3)
+                                                 )))
+                             .andExpect(jsonPath("$._embedded.tabs", Matchers.not(
+                                                 CrisLayoutTabMatcher.matchTab(tab2)
+                                                 )))
+                             .andExpect(jsonPath("$.page.totalElements", is(2)));
+
+        getClient().perform(get("/api/layout/tab/search/findByItem")
+                   .param("uuid", itemA.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.tabs").doesNotExist())
+                   .andExpect(jsonPath("$.page.totalElements", is(0)));
     }
 
 }
