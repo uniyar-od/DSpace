@@ -1931,6 +1931,12 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                               .withStyle("STYLE")
                               .withBox(box3).build();
 
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 0, 0)
+                              .withLabel("LABEL ABS")
+                              .withRendering("RENDERIGN ABS")
+                              .withStyle("STYLE")
+                              .withBox(box3).build();
+
         List<CrisLayoutBox> boxes = new LinkedList<CrisLayoutBox>();
         boxes.add(box1);
         boxes.add(box2);
@@ -1953,9 +1959,10 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$._embedded.boxes", Matchers.containsInAnyOrder(
                                         CrisLayoutBoxMatcher.matchBox(box1),
-                                        CrisLayoutBoxMatcher.matchBox(box2)
+                                        CrisLayoutBoxMatcher.matchBox(box2),
+                                        CrisLayoutBoxMatcher.matchBox(box3)
                                         )))
-                             .andExpect(jsonPath("$.page.totalElements", is(2)));
+                             .andExpect(jsonPath("$.page.totalElements", is(3)));
 
         getClient(tokenEperson).perform(get("/api/layout/box/search/findByItem")
                                .param("uuid", itemA.getID().toString())
