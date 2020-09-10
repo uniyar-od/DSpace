@@ -18,18 +18,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.CrisLayoutBoxConverter;
-import org.dspace.app.rest.converter.ItemConverter;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.CrisLayoutBoxRest;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.repository.patch.ResourcePatch;
+import org.dspace.app.rest.utils.CrisLayoutUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBox;
-import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.service.CrisLayoutBoxService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -61,7 +60,7 @@ public class CrisLayoutBoxRepository extends DSpaceRestRepository<CrisLayoutBoxR
     private ItemService itemService;
 
     @Autowired
-    private ItemConverter itemConverter;
+    CrisLayoutUtils crisLayoutUtils;
 
     @Override
     public CrisLayoutBox findDomainObjectByPk(Context context, Integer id) throws SQLException {
@@ -117,11 +116,8 @@ public class CrisLayoutBoxRepository extends DSpaceRestRepository<CrisLayoutBoxR
         List<CrisLayoutBox> boxList = null;
         Long totalRow = null;
         try {
-            Item item = itemService.find(context, UUID.fromString(itemUuid));
-            if (item == null) {
-                throw new RuntimeException();
-            }
             List<CrisLayoutBox> allBoxes = service.findByItem(context, UUID.fromString(itemUuid), tabId);
+            Item item = itemService.find(context, UUID.fromString(itemUuid));
             boxList = filterBoxes(context, allBoxes, item);
             totalRow = Long.valueOf(boxList.size());
             int lastIndex = (pageable.getPageNumber() + 1) * pageable.getPageSize();
@@ -137,25 +133,11 @@ public class CrisLayoutBoxRepository extends DSpaceRestRepository<CrisLayoutBoxR
     private List<CrisLayoutBox> filterBoxes(Context context, List<CrisLayoutBox> boxes, Item item) {
         List<CrisLayoutBox> boxList = new ArrayList<CrisLayoutBox>();
         for (CrisLayoutBox box : boxes) {
-            List<CrisLayoutField> fields = box.getLayoutFields();
-            if (checkMetadatadaField(context, item, fields)) {
+            if (crisLayoutUtils.isAccessibleBox(context, item, box)) {
                 boxList.add(box);
             }
         }
         return boxList;
-    }
-
-    private boolean checkMetadatadaField(Context context, Item item, List<CrisLayoutField> fields) {
-        for (CrisLayoutField field : fields) {
-            try {
-                if (itemConverter.checkMetadataFieldVisibility(context, item, field.getMetadataField())) {
-                    return true;
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-        return false;
     }
 
     @Override
