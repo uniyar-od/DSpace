@@ -15,7 +15,7 @@
 <%@ page import="java.util.Enumeration" %>
 <%@ page import="java.util.Set" %>
 <%@ page import="java.util.Map" %>
-<%@ page import="org.dspace.browse.BrowseItem" %>
+<%@ page import="org.dspace.browse.BrowsableDSpaceObject" %>
 <%@page import="org.dspace.eperson.EPerson"%>
 <%@page import="org.dspace.app.webui.cris.dto.ComponentInfoDTO"%>
 <%@page import="it.cilea.osd.jdyna.web.Box"%>
@@ -68,7 +68,7 @@
 	}
 	
 	boolean globalShowFacets = false;
-	if (info!=null && info.getItems()!=null && info.getItems().length > 0) {
+	if (info!=null && info.getItems()!=null && info.getItems().size() > 0) {
 %>
 <c:set var="info" value="<%= info %>" scope="request" />
 
@@ -179,7 +179,7 @@ sb.append("</ul></div>");
 
 	<p align="center"><fmt:message key="jsp.search.results.results">
         <fmt:param><%=info.getStart()+1%></fmt:param>
-        <fmt:param><%=info.getStart()+info.getItems().length%></fmt:param>
+        <fmt:param><%=info.getStart()+info.getItems().size()%></fmt:param>
         <fmt:param><%=info.getTotal()%></fmt:param>
         <fmt:param><%=(float)info.getSearchTime() / 1000%></fmt:param>
     </fmt:message></p>
@@ -213,7 +213,7 @@ if (info.getPagetotal() > 1)
 </form>
 <div class="row">
 <div class="table-responsive">			
-<dspace:browselist items="<%= (BrowseItem[])info.getItems() %>" config="crisproject.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= info.getOrder() %>"/>
+<dspace:browselist items="<%= (List<BrowsableDSpaceObject>)info.getItems() %>" config="crisproject.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= info.getOrder() %>"/>
 </div>
 </div>
 
