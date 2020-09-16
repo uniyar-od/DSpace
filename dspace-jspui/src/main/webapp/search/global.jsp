@@ -326,11 +326,18 @@ else if( qResults != null && collapsedResults != null)
 				<fmt:message key="<%=okey%>" />
 			</div>
 			<div class="list-item">
-				<%
-					for (IGlobalSearchResult obj : collapsedResults.get(otypeSensitive)) {
-				%>
-				
-				<dspace:discovery-artifact style="global" hlt="<%= qResults.getHighlightedResults((DSpaceObject) obj) %>" artifact="<%= obj %>" view="<%= mapViewMetadata.get(otypelower) %>" selectorCssView="<%=selectorViewMetadata %>"/>
+			<%
+				for (IGlobalSearchResult obj : collapsedResults.get(otypeSensitive)) {
+					if (obj != null) {
+			%>
+						<dspace:discovery-artifact style="global" hlt="<%= qResults.getHighlightedResults((DSpaceObject) obj) %>" artifact="<%= obj %>" view="<%= mapViewMetadata.get(otypelower) %>" selectorCssView="<%=selectorViewMetadata %>"/>
+			<%
+					} else {
+			%>
+						<!-- object is null -->
+			<%
+					}
+			%>
 				
 				<%	
 				}
