@@ -30,6 +30,7 @@ import org.dspace.util.MultiFormatDateParser;
 
 public class EstablishedDateSolrIndexer implements CrisServiceIndexPlugin
 {
+    
     @Override
     public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
             ACrisObject<P, TP, NP, NTP, ACNO, ATNO> crisObject,
@@ -41,10 +42,13 @@ public class EstablishedDateSolrIndexer implements CrisServiceIndexPlugin
         Integer type = crisObject.getType();
         if (type > CrisConstants.CRIS_DYNAMIC_TYPE_ID_START)
         {
-            result = crisObject.getMetadata("crisdris.drisstartdate");
-            if (isValidDate(result))
-            {
-                document.addField("crisdris.drisstartdate_dt", result);
+            if("crisdris".equals(crisObject.getTypeText())) {
+                result = crisObject.getMetadata("drisstartdate");
+                Date date = isValidDate(result);
+                if (date != null)
+                {
+                    document.addField("drisdateestablished_dt", date);
+                }
             }
         }
     }
@@ -57,15 +61,12 @@ public class EstablishedDateSolrIndexer implements CrisServiceIndexPlugin
         // FIXME NOT SUPPORTED OPERATION
     }
 
-    private boolean isValidDate(String value)
+    private Date isValidDate(String value)
     {
         if (StringUtils.isNotBlank(value))
         {
-            Date date = MultiFormatDateParser.parse(value);
-            if(date != null) {
-                return true;
-            }
+            return MultiFormatDateParser.parse(value);
         }
-        return false;
+        return null;
     }
 }
