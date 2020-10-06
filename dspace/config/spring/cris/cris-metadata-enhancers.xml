@@ -107,6 +107,20 @@
          CRIS entities as it was metadata of the current CRIS entity from clazz -->
 	<bean class="org.dspace.app.cris.integration.CrisEnhancer">
 		<property name="clazz">
+			<value>org.dspace.app.cris.model.ResearchObject</value>
+		</property>
+		<property name="alias" value="driscountry" />
+		<property name="qualifiers2path">
+			<map>
+				<entry key="countryalphacode2">
+					<value>countryalphacode2</value>
+				</entry>
+			</map>
+		</property>
+	</bean>
+	         
+	<bean class="org.dspace.app.cris.integration.CrisEnhancer">
+		<property name="clazz">
 			<value>org.dspace.app.cris.model.Project</value>
 		</property>
 		<property name="alias" value="principalinvestigator" />
