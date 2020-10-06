@@ -93,7 +93,10 @@
 
 	<!--  Additional indexing plugin to index multilanguage for authority field -->
 	<bean id="ownerAuthorityIndexer" class="org.dspace.app.cris.discovery.OwnerRPAuthorityIndexer"/>
-						
+
+	<!--  Additional indexing plugin to index established DRIS date type -->
+	<bean id="drisEstablishedDateIndexer" class="org.dspace.app.cris.discovery.EstablishedDateSolrIndexer"/>
+
 	<!--Bean that is used for mapping communities/collections to certain discovery 
 		configurations. -->
 	<bean
