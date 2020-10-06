@@ -1,7 +1,8 @@
-package org.dspace.app.webui.cris.util;
+package org.dspace.app.webui.cris.rest.dris;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import org.dspace.app.webui.cris.util.AbstractJsonLdResult;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldLink;
@@ -11,8 +12,6 @@ import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldResource;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldType;
 
 @JsonldNamespace(name = "URL", uri = "https://api.eurocris.org/dris/contexts/orgunits.jsonld")
-//@JsonldType("s:OrganizationalUnit")
-//@JsonldLink(rel = "s:knows", name = "knows", href = "http://example.com/person/2345")
 public class JsonLdOrganizationalUnit extends AbstractJsonLdResult {
 	
 	private String name;

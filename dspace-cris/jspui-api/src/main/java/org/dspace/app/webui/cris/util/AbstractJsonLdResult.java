@@ -1,6 +1,7 @@
 package org.dspace.app.webui.cris.util;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.webui.cris.rest.dris.JsonLdResult;
 import org.dspace.app.webui.cris.servlet.DrisQueryingServlet;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
@@ -56,4 +57,39 @@ public class AbstractJsonLdResult implements JsonLdResult {
 				   DrisQueryingServlet.VOCABS_QUERY_TYPE_SCOPES_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
     }
 	
+    public static String buildMiniVocabPlatformIdLink(String id) {
+        return DrisQueryingServlet.VOCABS_QUERY_TYPE_NAME + ":" + 
+                   DrisQueryingServlet.VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
+    }
+
+    public static String buildMiniVocabCoverageIdLink(String id) {
+        return DrisQueryingServlet.VOCABS_QUERY_TYPE_NAME + ":" + 
+                   DrisQueryingServlet.VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
+    }
+
+    public static String buildVocabStatusIdLink(String id)
+    {
+        return DrisQueryingServlet.getMainApiUrl() + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_NAME + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_STATUSES_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
+    }
+
+    public static String buildVocabScopeIdLink(String id)
+    {
+        return DrisQueryingServlet.getMainApiUrl() + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_NAME + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_SCOPES_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
+    }
+    
+    public static String buildVocabPlatformIdLink(String id)
+    {
+        return DrisQueryingServlet.getMainApiUrl() + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_NAME + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
+    }
+    
+    public static String buildVocabCoverageIdLink(String id)
+    {
+        return DrisQueryingServlet.getMainApiUrl() + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_NAME + "/" + DrisQueryingServlet.VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE + "/" + StringUtils.trimToEmpty(id);
+    }
+
+    public static String buildOrgunitIdLink(String id)
+    {
+        return DrisQueryingServlet.getMainApiUrl() + "/" + DrisQueryingServlet.ORG_UNITS_QUERY_TYPE_NAME + "/" + StringUtils.trimToEmpty(id);        
+    }
+
 }

@@ -26,8 +26,8 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.lang.StringUtils;
+import org.dspace.app.webui.cris.rest.dris.JsonLdResultsList;
 import org.dspace.app.webui.cris.servlet.DrisQueryingServlet;
-import org.dspace.app.webui.cris.util.JsonLdResultsList;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

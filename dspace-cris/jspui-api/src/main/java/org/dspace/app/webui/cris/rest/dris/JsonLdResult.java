@@ -1,4 +1,4 @@
-package org.dspace.app.webui.cris.util;
+package org.dspace.app.webui.cris.rest.dris;
 
 public interface JsonLdResult {
 	

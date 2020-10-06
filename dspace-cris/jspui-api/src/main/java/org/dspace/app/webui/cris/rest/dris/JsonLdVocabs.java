@@ -1,7 +1,8 @@
-package org.dspace.app.webui.cris.util;
+package org.dspace.app.webui.cris.rest.dris;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import org.dspace.app.webui.cris.util.AbstractJsonLdResult;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldLink;
@@ -20,7 +21,7 @@ public class JsonLdVocabs extends AbstractJsonLdResult {
 		if (solrDoc == null) {
 			return jldItem;
 		}
-		jldItem.setName(StringUtils.trimToEmpty((String)(solrDoc.getFirstValue("crisdris.drisname"))));
+		jldItem.setName(StringUtils.trimToEmpty((String)(solrDoc.getFirstValue("crisdo.name"))));
 		String crisId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("cris-id"));
 		jldItem.setId(AbstractJsonLdResult.buildEntryIdLink(crisId));
 		return jldItem;

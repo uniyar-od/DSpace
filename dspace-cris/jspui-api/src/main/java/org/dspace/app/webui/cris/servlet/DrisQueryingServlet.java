@@ -21,7 +21,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
@@ -34,25 +33,20 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
-import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.model.CrisConstants;
-import org.dspace.app.cris.model.ResearchObject;
-import org.dspace.app.cris.network.VisualizationGraphSolrService;
-import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.Researcher;
-import org.dspace.app.webui.cris.util.AbstractJsonLdResult;
-import org.dspace.app.webui.cris.util.JsonLdEntry;
-import org.dspace.app.webui.cris.util.JsonLdOrganizationalUnit;
-import org.dspace.app.webui.cris.util.JsonLdResult;
-import org.dspace.app.webui.cris.util.JsonLdResultsList;
-import org.dspace.app.webui.cris.util.JsonLdVocabs;
+import org.dspace.app.webui.cris.rest.dris.JsonLdEntry;
+import org.dspace.app.webui.cris.rest.dris.JsonLdOrganizationalUnit;
+import org.dspace.app.webui.cris.rest.dris.JsonLdResult;
+import org.dspace.app.webui.cris.rest.dris.JsonLdResultsList;
+import org.dspace.app.webui.cris.rest.dris.JsonLdVocabs;
 import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
-import org.dspace.utils.DSpace;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.services.ConfigurationService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -75,6 +69,9 @@ import ioinformarics.oss.jackson.module.jsonld.JsonldModule;
 @SuppressWarnings("serial")
 public class DrisQueryingServlet extends DSpaceServlet {
 
+    // Log4J object for file logging purposes
+    private static Logger log = Logger.getLogger(DrisQueryingServlet.class);
+    
 	// The descriptive name of this servlet, for logging purposes
 	private static String SERVLET_DESCRIPTION = "Dris Querying API Servlet";
 	// General (production) URL of the API, now setted by dsGet for any call
@@ -89,25 +86,19 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	public final static String VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE = "coverages";
 	public final static String VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE = "cris-platforms";
 	public final static String VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE = "countries";
-	// Log4J object for file logging purposes
-	private static Logger log = Logger.getLogger(DrisQueryingServlet.class);
-	// Properties specifying filters criteria and other servlet settings
-	private Properties settings;
+
+	// Properties specifying prefix for querying filters criteria
 	private String filtersSettingsPrefix = "dris.querying.filter.";
 	// Services and utility object to perform database and Solr queries
-	private DSpace dspace;
-	private ApplicationService applicationService;
-	private CrisSearchService searchService;
-    private VisualizationGraphSolrService solrService;
-    private Context context;
+	private SearchService searchService;
+	private ConfigurationService configurationService;
     // Special character and keyword
 	private static final String parametersSeparator = "&";
 	private static final String keyValueSeparator = "=";
 	private static final String multiValueSeparator = ",";
-	private static final String solrSelectionSeparator = ":";
 	private static final String maxPageSizeParameterName = "max-page-size";
 	private static final String pageStartDocNumberParameterName = "page-start-doc";
-	private final static Integer DEFAULT_MAX_PAGE_SIZE = Integer.MAX_VALUE;
+	private final static Integer DEFAULT_MAX_PAGE_SIZE = 100;
 	private final static Integer DEFAULT_START_DOC_NUMBER = 0;
 	private static final String responsePaginationHeaderName = "Link";
 	private static final String responsePaginationHeaderPrefix = "<";
@@ -117,7 +108,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
 
     /**
      * Servlet initialization method, it creates the services objects needed to query the database and the Solr repository.
-     * It also read configurations from file 'crisinstallation/dspace-parent/dspace/config/modules/dris-rest.cfg'.
      * 
 	 * @param request the <code>javax.servlet.ServletConfig</code> passed by the application container
      */
@@ -127,10 +117,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			log.info(SERVLET_DESCRIPTION + ": initialization started...");
 			super.init(config);
 			Researcher util = new Researcher();
-			this.applicationService = util.getApplicationService();
-			this.searchService = (CrisSearchService) util.getCrisSearchService();
-			this.dspace = new DSpace();
-			this.solrService = this.dspace.getServiceManager().getServiceByName("visualNetworkSolrService", VisualizationGraphSolrService.class);
+			this.searchService = util.getCrisSearchService();
+			this.configurationService = util.getConfigurationService(); 
 			// CALLED for any 'dsGet' -- this.loadFiltersPropertiesFromFile();
 			log.info(SERVLET_DESCRIPTION + ": successfully initialized.");
 		} catch (Exception e) {
@@ -165,19 +153,19 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		String pathInfo = StringUtils.trimToEmpty(request.getPathInfo());
 		if (StringUtils.isEmpty(pathInfo)) {
 			String errMsg = "No path parameters (i.e. query type like 'entries', 'vocabs', etc.) was found.";
-			log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+			log.error(SERVLET_DESCRIPTION + ":"+  errMsg);
 			throw new ServletException(errMsg);
 		}
 		try {
 			pathInfo = URLDecoder.decode(pathInfo, StandardCharsets.UTF_8.toString());
 		} catch (UnsupportedEncodingException e) {
 			String errMsg = "Unable to decode path parameters.";
-			log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg), e);
+			log.error(SERVLET_DESCRIPTION + ":"+  errMsg, e);
 			throw new ServletException(errMsg, e);
 		}
 		if (!pathInfo.startsWith("/")) {
 			String errMsg = "Unable to process path parameters, no initial '/' was found.";
-			log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+			log.error(SERVLET_DESCRIPTION + ":"+  errMsg);
 			throw new ServletException(errMsg);
 		}
 		return pathInfo.substring(1).split("/");
@@ -205,7 +193,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				httpParameters = URLDecoder.decode(httpParameters, StandardCharsets.UTF_8.toString());
 			} catch (UnsupportedEncodingException e) {
 				String errMsg = "Unable to decode http parameters.";
-				log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg), e);
+				log.error(SERVLET_DESCRIPTION + ":"+  errMsg, e);
 				throw new ServletException(errMsg, e);
 			}			
 			String[] primaryKeysValuesCouples = httpParameters.split(parametersSeparator);
@@ -282,9 +270,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			throws ServletException, IOException, SQLException {
 		String calledFullUrl = this.getFullURL(request);
 		DrisQueryingServlet.setMainApiUrl(this.getBaseURL(request));
-		this.setContext(context);
-		log.info(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, "GET calling started..."));
-		log.debug(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, "Called URL: " + calledFullUrl));
+		log.info(SERVLET_DESCRIPTION + ": GET calling started...");
+		log.debug(SERVLET_DESCRIPTION + ": Called URL: " + calledFullUrl);
 		List<? extends JsonLdResult> jsonLdResults = new LinkedList<>();
 		response.setContentType("application/json; charset=UTF-8");
 		// Extract the path after "/jspui/dris" (here called the "path parameters")
@@ -305,7 +292,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 					if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
 				}
 			} catch (NumberFormatException e) {
-				log.warn(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, "Error during numeric paramenters parsing, they will be ignored."), e);
+				log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
 				maxPageSize = DEFAULT_MAX_PAGE_SIZE;
 				startPageDocNumb = DEFAULT_START_DOC_NUMBER;
 			}
@@ -315,6 +302,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			// The 'pathElements' contains at least one element
 			// because 'this.splitMandatoryPathParameters' did not raised any error
 			String queryType = pathElements[0];
+			boolean isQuerying = false;
 			if (queryType.equals(ENTRIES_QUERY_TYPE_NAME)) {
 				if (pathElements.length == 1) {
 					if (paramsMap.isEmpty()) {
@@ -324,6 +312,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 						// Entries filtered by various criteria was requested
 						jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb);
 					}
+					isQuerying = true;
 				} else if (pathElements.length == 2) {
 					// Single entry by id was requested
 					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], maxPageSize, startPageDocNumb);
@@ -347,9 +336,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				return;
 			}
 			// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
-			if (paramsMap.containsKey(maxPageSizeParameterName) && 
-				!paramsMap.get(maxPageSizeParameterName).isEmpty() &&
-				jsonLdResults.size() >= maxPageSize) {
+			if (jsonLdResults.size() >= maxPageSize) {
 				if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
 					calledFullUrl = calledFullUrl.replace(pageStartDocNumberParameterName + keyValueSeparator + startPageDocNumb, 
 										  pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize));
@@ -358,22 +345,68 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				}
 				response.setHeader(responsePaginationHeaderName, responsePaginationHeaderPrefix + calledFullUrl + responsePaginationHeaderPostfix);
 			}
-			// Compose data response
-			JsonLdResultsList finalResults = new JsonLdResultsList();
-			finalResults.setItemListElement(jsonLdResults);
-			String jsonLdString = "";
-			try {
-				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.registerModule(new JsonldModule());
-				jsonLdString = objectMapper.writeValueAsString(finalResults);
-				response.getWriter().print(jsonLdString);
-				log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION, "JSON-LD response ready....."));
-				log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION, jsonLdString));
-			} catch (Exception e) {
-				log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unable to write JSON-LD results in the response as a String"), e);
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
-				return;
-			}
+			
+            if (isQuerying)
+            {
+                // Compose data response using ​ https://schema.org/ItemList
+                JsonLdResultsList finalResults = new JsonLdResultsList();
+                finalResults.setItemListElement(jsonLdResults);
+                String jsonLdString = "";
+                try
+                {
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    objectMapper.registerModule(new JsonldModule());
+                    jsonLdString = objectMapper
+                            .writeValueAsString(finalResults);
+                    response.getWriter().print(jsonLdString);
+                    log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+                            "JSON-LD response ready....."));
+                    log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+                            jsonLdString));
+                }
+                catch (Exception e)
+                {
+                    log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+                            "Unable to write JSON-LD results in the response as a String"),
+                            e);
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+            }
+            else {
+                // response is a json object
+                String jsonLdString = "";
+                try
+                {
+                    if(!jsonLdResults.isEmpty()) {
+                        ObjectMapper objectMapper = new ObjectMapper();
+                        objectMapper.registerModule(new JsonldModule());
+                        if (jsonLdResults.size() > 1)
+                        {
+                            jsonLdString = objectMapper
+                                    .writeValueAsString(jsonLdResults);
+                        }
+                        else
+                        {
+                            jsonLdString = objectMapper
+                                    .writeValueAsString(jsonLdResults.get(0));
+                        }
+                        response.getWriter().print(jsonLdString);
+                        log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+                                "JSON-LD response ready....."));
+                        log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+                                jsonLdString));
+                    }
+                }
+                catch (Exception e)
+                {
+                    log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+                            "Unable to write JSON-LD results in the response as a String"),
+                            e);
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    return;
+                }
+            }
 			log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Call to Dris Querying Servlet successfully completed."));
 			return;
 		} catch (ServletException e) {
@@ -399,8 +432,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @throws ServletException if any error occurs during processing
 	 */
 	private List<JsonLdEntry> processEntriesQueryTypeById(String entryId, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Query of type 'entries' by Id started..."));
-		log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Id: " + entryId));
+		log.info(SERVLET_DESCRIPTION +":"+ "Query of type 'entries' by Id started...");
+		log.debug(SERVLET_DESCRIPTION +":"+ "Id: " + entryId);
 		SolrDocumentList solrResults = new SolrDocumentList();
 		SolrQuery solrQuery = new SolrQuery();
 		QueryResponse rsp;
@@ -410,29 +443,28 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			solrQuery.addFilterQuery("cris-id:\"" + entryId + "\"");
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			try {
 				// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
 				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.registerModule(new JsonldModule());
 				List<JsonLdEntry> list = new LinkedList<>();
 				while (iter.hasNext()) {
-					list.add(JsonLdEntry.buildFromSolrDoc(iter.next()));
+					list.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
 				}
 				if (list.size() != 1) {
 					String errMsg = "Warning: no cris object or too much cris objects was found by the specified ID.";
-					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, errMsg));
+					log.warn(SERVLET_DESCRIPTION + ":"+  errMsg);
 				}
 				return list;
 			} catch (Exception e) {
-				log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, e.getMessage()), e);
+				log.error(SERVLET_DESCRIPTION + ":"+  e.getMessage(), e);
 				throw new ServletException(e);
 			}
 		} catch (SearchServiceException e) {
-			log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, e.getMessage()), e);
+			log.error(SERVLET_DESCRIPTION + ":"+  e.getMessage(), e);
 			throw new ServletException(e);
 		}
 	}
@@ -461,7 +493,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				retValue = splittedUri[splittedUri.length - 1];
 			}
 		} catch (UnsupportedEncodingException e) {
-			log.warn(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, "Error during URI decoding, raw value will be used: " + retValue), e);
+			log.warn(SERVLET_DESCRIPTION + ": Error during URI decoding, raw value will be used: " + retValue, e);
 		}
 		return retValue;
 	}
@@ -519,77 +551,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	}
     
 	/**
-	 * Load configuration file for the module "dris-rest" (the file 'crisinstallation/dspace-parent/dspace/config/modules/dris-rest.cfg').
-	 * The file contains (at least) settings about what field to query in Solr for some criteria filtering.  
-	 */
-	private void loadFiltersPropertiesFromFile() {
-		Properties props = new Properties();
-		try {
-			props = ConfigurationManager.getProperties("dris-rest");
-		    this.setSettings(props);
-		} catch (Exception e) {
-			String errMsg = "Unable to process properties file 'dris-rest.cfg'. Default props will be used.";
-			log.warn(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
-			this.setSettings(new Properties());
-		}
-		// Set default filtering settings if necessary...
-		props = this.getSettings();
-		props.putIfAbsent("dris.querying.filter.country.id", "crisdris.driscountry_authority");
-		props.putIfAbsent("dris.querying.filter.country.code.alpha2", "countrycodealpha2");
-		props.putIfAbsent("dris.querying.filter.country.name", "crisdris.driscountry");
-		props.putIfAbsent("dris.querying.filter.status.id", "statusid");
-		props.putIfAbsent("dris.querying.filter.status.label", "statuslabel");
-		props.putIfAbsent("dris.querying.filter.scope.id", "scopeid");
-		props.putIfAbsent("dris.querying.filter.scope.label", "scopelabel");
-		props.putIfAbsent("dris.querying.filter.coverage.id", "coverageid");
-		props.putIfAbsent("dris.querying.filter.coverage.label", "coveragelabel");
-		props.putIfAbsent("dris.querying.filter.cris-platform.id", "crisplatformid");
-		props.putIfAbsent("dris.querying.filter.cris-platform.label", "crisplatformlabel");
-		props.putIfAbsent("dris.querying.filter.name", "crisdo.name");
-		props.putIfAbsent("dris.querying.filter.organization.name", "organizationname");
-		props.putIfAbsent("dris.querying.filter.established.before", "crisdris.time_established_dt");
-		props.putIfAbsent("dris.querying.filter.established.on-or-after", "crisdris.time_established_dt");
-		props.putIfAbsent("dris.querying.filter.created.before", "crisdris.time_creation_dt");
-		props.putIfAbsent("dris.querying.filter.created.on-or-after", "crisdris.time_creation_dt");
-		props.putIfAbsent("dris.querying.filter.last-modified.before", "crisdris.time_lastmodified_dt");
-		props.putIfAbsent("dris.querying.filter.last-modified.on-or-after", "crisdris.time_lastmodified_dt");
-	}
-    
-    @Deprecated
-	private void loadFiltersPropertiesFromFile_Old() {
-		Properties props = new Properties();
-		try {
-			props.load(getClass().getResourceAsStream("dris-querying.properties"));
-		    this.setSettings(props);
-		} catch (Exception e) {
-			String errMsg = "Unable to process properties file 'org/dspace/app/webui/cris/servlet/dris-querying.properties'. Default props will be used.";
-			log.warn(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
-			this.setSettings(new Properties());
-		}
-		// Set default filtering settings if necessary...
-		props = this.getSettings();
-		props.putIfAbsent("dris.querying.filter.country.id", "crisdris.driscountry_authority");
-		props.putIfAbsent("dris.querying.filter.country.code.alpha2", "countrycodealpha2");
-		props.putIfAbsent("dris.querying.filter.country.name", "crisdris.driscountry");
-		props.putIfAbsent("dris.querying.filter.status.id", "statusid");
-		props.putIfAbsent("dris.querying.filter.status.label", "statuslabel");
-		props.putIfAbsent("dris.querying.filter.scope.id", "scopeid");
-		props.putIfAbsent("dris.querying.filter.scope.label", "scopelabel");
-		props.putIfAbsent("dris.querying.filter.coverage.id", "coverageid");
-		props.putIfAbsent("dris.querying.filter.coverage.label", "coveragelabel");
-		props.putIfAbsent("dris.querying.filter.cris-platform.id", "crisplatformid");
-		props.putIfAbsent("dris.querying.filter.cris-platform.label", "crisplatformlabel");
-		props.putIfAbsent("dris.querying.filter.name", "crisdo.name");
-		props.putIfAbsent("dris.querying.filter.organization.name", "organizationname");
-		props.putIfAbsent("dris.querying.filter.established.before", "crisdris.time_established_dt");
-		props.putIfAbsent("dris.querying.filter.established.on-or-after", "crisdris.time_established_dt");
-		props.putIfAbsent("dris.querying.filter.created.before", "crisdris.time_creation_dt");
-		props.putIfAbsent("dris.querying.filter.created.on-or-after", "crisdris.time_creation_dt");
-		props.putIfAbsent("dris.querying.filter.last-modified.before", "crisdris.time_lastmodified_dt");
-		props.putIfAbsent("dris.querying.filter.last-modified.on-or-after", "crisdris.time_lastmodified_dt");
-	}
-
-	/**
 	 * Find and returns DRIS entry by various kind of filters.
 	 * Examples of queries this method answer:
 	 * <ul>
@@ -609,9 +570,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 */
 	private List<JsonLdEntry> processEntriesQueryTypeWithFilteringParameters(LinkedHashMap<String, List<String>> queryParameters,
 																  Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Query of type 'entries' started..."));
-		log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Parameters: " + queryParameters.toString()));
-		this.loadFiltersPropertiesFromFile();
+		log.info(SERVLET_DESCRIPTION+":"+ "Query of type 'entries' started...");
+		log.debug(SERVLET_DESCRIPTION+":"+"Parameters: " + queryParameters.toString());
 		if (queryParameters.isEmpty()) {
 			// If no http parameters was supplied than all entries was requested
 			// Actually here is impossible (this case was processed by caller method)
@@ -628,110 +588,110 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			if (pName.startsWith("country")) {
 				// Filtering by COUNTRY
 				if (pName.equals("country.id")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "country.id", "crisdris.driscountry_authority"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "country.id", "crisdris.driscountry_authority"), pValues));
 				} else if (pName.equals("country.code.alpha2")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "country.code.alpha2", "countrycodealpha2"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "country.code.alpha2", "crisdris.driscountry.countryalphacode2"), pValues));
 				} else if (pName.equals("country.name")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "country.name", "crisdris.driscountry"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "country.name", "crisdris.driscountry"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for country filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("status")) {
 				// Filtering by STATUS
 				if (pName.equals("status.id")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "status.id", "statusid"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "status.id", "crisdris.drisstatus_authority"), pValues));
 				} else if (pName.equals("status.label")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "status.label", "statuslabel"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "status.label", "crisdris.drisstatus"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for status filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("scope")) {
 				// Filtering by SCOPE
 				if (pName.equals("scope.id")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "scope.id", "scopeid"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "scope.id", "crisdris.drisscope_authority"), pValues));
 				} else if (pName.equals("scope.label")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "scope.label", "scopelabel"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "scope.label", "crisdris.drisscope"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for scope filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+ errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("coverage")) {
 				// Filtering by COVERAGE
 				if (pName.equals("coverage.id")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "coverage.id", "coverageid"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "coverage.id", "crisdris.driscoverage_authority"), pValues));
 				} else if (pName.equals("coverage.label")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "coverage.label", "coveragelabel"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "coverage.label", "crisdris.driscoverage"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for coverage filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+ errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("cris-platform")) {
 				// Filtering by CRIS-PLATFORM
 				if (pName.equals("cris-platform.id")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "cris-platform.id", "crisplatformid"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "cris-platform.id", "crisdris.drissoftware_authority"), pValues));
 				} else if (pName.equals("cris-platform.label")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "cris-platform.label", "crisplatformlabel"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "cris-platform.label", "crisdris.drissoftware"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for cris-platform filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("name")) {
 				// Filtering by NAME
 				if (pName.equals("name")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "name", "crisdo.name"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "name", "crisdo.name"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for name filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("organization")) {
 				// Filtering by ORGANIZATION
 				if (pName.equals("organization.name")) {
-					filteringConditions.add(this.composeORFilteringCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "organization.name", "organizationname"), pValues));
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "organization.name", "crisdris.drisproviderOrgUnit"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for organization filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("established")) {
 				// Filtering by ESTABLISHING time
 				if (pName.equals("established.before")) {
-					filteringConditions.add(this.composeTimeRangeCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "established.before", "crisdris.time_established_dt"), pValues, true));
+					filteringConditions.add(this.composeTimeRangeCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "established.before", "drisdateestablished_dt"), pValues, true));
 				} else if (pName.equals("established.on-or-after")) {
-					filteringConditions.add(this.composeTimeRangeCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "established.on-or-after", "crisdris.time_established_dt"), pValues, false));
+					filteringConditions.add(this.composeTimeRangeCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "established.on-or-after", "drisdateestablished_dt"), pValues, false));
 				} else {
 					String errMsg = "Unrecognized criteria for establishing time filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("created")) {
 				// Filtering by CREATION time
 				// start date crisdris.drisstartdate......
 				if (pName.equals("created.before")) {
-					filteringConditions.add(this.composeTimeRangeCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "created.before", "crisdris.time_creation_dt"), pValues, true));
+					filteringConditions.add(this.composeTimeRangeCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "created.before", "crisdris.time_creation_dt"), pValues, true));
 				} else if (pName.equals("created.on-or-after")) {
-					filteringConditions.add(this.composeTimeRangeCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "created.on-or-after", "crisdris.time_creation_dt"), pValues, false));
+					filteringConditions.add(this.composeTimeRangeCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "created.on-or-after", "crisdris.time_creation_dt"), pValues, false));
 				} else {
 					String errMsg = "Unrecognized criteria for creation time filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else if (pName.startsWith("last-modified")) {
 				// Filtering by LAST MODIFICATION time
 				if (pName.equals("last-modified.before")) {
-					filteringConditions.add(this.composeTimeRangeCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "last-modified.before", "crisdris.time_lastmodified_dt"), pValues, true));
+					filteringConditions.add(this.composeTimeRangeCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "last-modified.before", "crisdris.time_lastmodified_dt"), pValues, true));
 				} else if (pName.equals("last-modified.on-or-after")) {
-					filteringConditions.add(this.composeTimeRangeCondition(this.getSettings().getProperty(this.getFiltersSettingsPrefix() + "last-modified.on-or-after", "crisdris.time_lastmodified_dt"), pValues, false));
+					filteringConditions.add(this.composeTimeRangeCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "last-modified.on-or-after", "crisdris.time_lastmodified_dt"), pValues, false));
 				} else {
 					String errMsg = "Unrecognized criteria for last modification time filtering: " + pName + "=" + pValues;
-					log.error(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, errMsg));
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
 			} else {
@@ -750,15 +710,14 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			}
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.registerModule(new JsonldModule());
 			List<JsonLdEntry> listJldObj = new LinkedList<>();
 			while (iter.hasNext()) {
-				listJldObj.add(JsonLdEntry.buildFromSolrDoc(iter.next()));
+				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
 			}
 			return listJldObj;
 		} catch (SearchServiceException e) {
@@ -783,7 +742,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
 	 */
 	private List<JsonLdEntry> processAllEntriesQueryType(Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Query of type 'entries' (all) started..."));
+		log.info(SERVLET_DESCRIPTION +":"+ "Query of type 'entries' (all) started...");
 		SolrDocumentList solrResults = new SolrDocumentList();
 		SolrQuery solrQuery = new SolrQuery();
 		QueryResponse rsp;
@@ -792,57 +751,28 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			solrQuery.setQuery("crisdo.type:dris");
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			try {
 				// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
 				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.registerModule(new JsonldModule());
 				List<JsonLdEntry> list = new LinkedList<>();
 				while (iter.hasNext()) {
-					list.add(JsonLdEntry.buildFromSolrDoc(iter.next()));
+					list.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
 				}
 				if (list.size() != 1) {
 					String errMsg = "Warning: no organizational unit or too much organizational units was found by the specified ID.";
-					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, errMsg));
+					log.warn(SERVLET_DESCRIPTION +":"+ errMsg);
 				}
 				return list;
 			} catch (Exception e) {
-				log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
+				log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
 				throw new ServletException(e);
 			}
 		} catch (SearchServiceException e) {
-			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
-			throw new ServletException(e);
-		}
-	}
-	
-
-	@Deprecated
-	private List<JsonLdEntry> processAllEntriesQueryType_Old(Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		Researcher util = new Researcher();
-		ApplicationService applicationService = util.getApplicationService();
-		//CrisSearchService searchService = (CrisSearchService) util.getCrisSearchService();
-		List<ResearchObject> listObj = applicationService.getResearchObjectByShortNameType("dris");
-		//applicationService.findTypoByShortName(DynamicObjectType.class, "dris");
-		List<JsonLdEntry> listJldObj = new LinkedList<>();
-		try {
-			// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.registerModule(new JsonldModule());
-			for (ResearchObject rObj: listObj) {
-				JsonLdEntry jsonLdEntry = new JsonLdEntry();
-				jsonLdEntry.setId(rObj.getCrisID());
-				jsonLdEntry.setName(rObj.getName());
-				// ......
-				listJldObj.add(jsonLdEntry);
-			}
-			List<JsonLdEntry> paginatedOutput = new LinkedList<>(listJldObj.subList(startPageDocNumb, Math.min(listJldObj.size() - 1, startPageDocNumb + maxPageSize - 1)));
-			return paginatedOutput;
-		} catch (Exception e) {
-			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
+			log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
 			throw new ServletException(e);
 		}
 	}
@@ -861,12 +791,12 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call
 	 */
 	private List<JsonLdOrganizationalUnit> processOrgUnitsQueryType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Query of type 'orgunits' started..."));
-		log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Parameters in path: " + queryParameters.toString()));		
+		log.info(SERVLET_DESCRIPTION +":"+ "Query of type 'orgunits' started...");
+		log.debug(SERVLET_DESCRIPTION +":"+ "Parameters in path: " + queryParameters.toString());		
 		if ((queryParameters.length != 1) || StringUtils.isEmpty(queryParameters[0])) {
 			// ERROR: exactly one (not null or empty) parameter, the org-unit ID, was expected
 			String errorMsg = "Organization Units querying: a single mandatory parameter, the organizational unit id, was expected.";
-			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, errorMsg));
+			log.error(SERVLET_DESCRIPTION +":"+ errorMsg);
 			throw new ServletException(errorMsg);
 		}
 		SolrDocumentList solrResults = new SolrDocumentList();
@@ -884,10 +814,9 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			solrQuery.addFilterQuery("search.resourcetype:" + CrisConstants.OU_TYPE_ID);
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			try {
 				// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
 				ObjectMapper objectMapper = new ObjectMapper();
@@ -898,15 +827,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				}
 				if (list.size() != 1) {
 					String errMsg = "Warning: no organizational unit or too much organizational units was found by the specified ID.";
-					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, errMsg));
+					log.warn(SERVLET_DESCRIPTION +":"+ errMsg);
 				}
 				return list;
 			} catch (Exception e) {
-				log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
+				log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
 				throw new ServletException(e);
 			}
 		} catch (SearchServiceException e) {
-			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
+			log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
 			throw new ServletException(e);
 		}
 	}
@@ -947,7 +876,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		} else {
 			// ERROR: unrecognized vocab_code
 			String errorMsg = "Vocabs querying: unrecognized sub-type parameter: " + vocabQueryType;
-			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, errorMsg));
+			log.error(SERVLET_DESCRIPTION +":"+ errorMsg);
 			throw new ServletException(errorMsg);	
 		}
 	}
@@ -976,8 +905,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
 	 */
 	private List<JsonLdVocabs> processVocabsQueryType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, "Query of type 'vocabs' started..."));
-		log.debug(LogManager.getHeader(this.getContext(), SERVLET_DESCRIPTION, "Parameters in path: " + queryParameters.toString()));			
+		log.info(SERVLET_DESCRIPTION + ": Query of type 'vocabs' started...");
+		log.debug(SERVLET_DESCRIPTION + ": Parameters in path: " + queryParameters.toString());			
 		String firstParameter = "";
 		if (queryParameters.length == 0) {
 			// No sub-type specified, all vocabs requested
@@ -1026,10 +955,9 @@ public class DrisQueryingServlet extends DSpaceServlet {
 												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:status)");
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.registerModule(new JsonldModule());
 			List<JsonLdVocabs> listJldObj = new LinkedList<>();
@@ -1072,10 +1000,9 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			solrQuery.setQuery("crisdo.type:country" + filterOnItemCode); // crisdo.type:dris
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.registerModule(new JsonldModule());
 			List<JsonLdVocabs> listJldObj = new LinkedList<>();
@@ -1103,7 +1030,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	private List<JsonLdVocabs> processVocabsQueryTypeOtherSubType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
 		SolrDocumentList solrResults = new SolrDocumentList();
 		SolrQuery solrQuery = new SolrQuery();
-		//String connection = ConfigurationManager.getProperty(NetworkPlugin.CFG_MODULE, "network.connection");
 		QueryResponse rsp;
 		try {
 			String givenSubType = this.mapVocabQuerySubTypeToVocabRepositorySelector(queryParameters[0]);
@@ -1116,10 +1042,9 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			}
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getSolrService().getSearcher().search(solrQuery);
+			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
-			SolrDocument doc = null;
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.registerModule(new JsonldModule());
 			List<JsonLdVocabs> listJldObj = new LinkedList<>();
@@ -1135,47 +1060,11 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	}
 	
 	/**
-	 * Sets the <code>org.dspace.app.cris.service.ApplicationService</code> object.
-	 * 
-	 * @param applicationService the <code>org.dspace.app.cris.service.ApplicationService</code> to set
-	 */
-	public void setApplicationService(ApplicationService applicationService) {
-		this.applicationService = applicationService;
-	}
-
-	/**
-	 * Gets the <code>org.dspace.app.cris.service.ApplicationService</code> object.
-	 * 
-	 * @return the <code>org.dspace.app.cris.service.ApplicationService</code> of the servlet
-	 */
-	public ApplicationService getApplicationService() {
-		return this.applicationService;
-	}
-	
-	/**
-	 * Sets the <code>org.dspace.utils.DSpace</code> object.
-	 * 
-	 * @param dspace the <code>org.dspace.utils.DSpace</code> to set
-	 */
-	public void setDSpace(DSpace dspace) {
-		this.dspace = dspace;
-	}
-
-	/**
-	 * Gets the <code>org.dspace.utils.DSpace</code> object.
-	 * 
-	 * @return the <code>org.dspace.utils.DSpace</code> of the servlet
-	 */
-	public DSpace getDSpace() {
-		return this.dspace;
-	}
-	
-	/**
 	 * Sets the <code>org.dspace.app.cris.discovery.CrisSearchService</code> object.
 	 * 
 	 * @param searchService the <code>org.dspace.app.cris.discovery.CrisSearchService</code> to set
 	 */
-	public void setCrisSearchService(CrisSearchService searchService) {
+	public void setCrisSearchService(SearchService searchService) {
 		this.searchService = searchService;
 	}
 
@@ -1184,46 +1073,10 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * 
 	 * @return the <code>org.dspace.app.cris.discovery.CrisSearchService</code> of the servlet
 	 */
-	public CrisSearchService getCrisSearchService() {
+	public SearchService getCrisSearchService() {
 		return this.searchService;
 	}
 	
-	/**
-	 * Sets the <code>org.dspace.app.cris.network.VisualizationGraphSolrService</code> object.
-	 * 
-	 * @param solrService the <code>org.dspace.app.cris.network.VisualizationGraphSolrService</code> to set
-	 */
-	public void setSolrService(VisualizationGraphSolrService solrService) {
-		this.solrService = solrService;
-	}
-
-	/**
-	 * Gets the <code>org.dspace.app.cris.network.VisualizationGraphSolrService</code> object.
-	 * 
-	 * @return the <code>org.dspace.app.cris.network.VisualizationGraphSolrService</code> of the servlet
-	 */
-	public VisualizationGraphSolrService getSolrService() {
-		return this.solrService;
-	}
-
-	/**
-	 * Gets the <code>org.dspace.core.Context</code> object.
-	 * 
-	 * @return the <code>org.dspace.core.Context</code> of the servlet
-	 */
-	public Context getContext() {
-		return context;
-	}
-
-	/**
-	 * Sets the <code>org.dspace.core.Context</code> object.
-	 * 
-	 * @param the <code>org.dspace.core.Context</code> to set.
-	 */
-	public void setContext(Context context) {
-		this.context = context;
-	}
-
 	/**
 	 * Gets the main API URL
 	 * 
@@ -1240,24 +1093,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 */
 	public static void setMainApiUrl(String apiUrl) {
 		API_URL = apiUrl;
-	}
-
-	/**
-	 * Gets the servlet settings (readen from properties file)
-	 * 
-	 * @return the servlet settings
-	 */
-	public Properties getSettings() {
-		return settings;
-	}
-
-	/**
-	 * Sets the servlet setting (readen from properties file)
-	 * 
-	 * @param settings the servlet settings
-	 */
-	public void setSettings(Properties settings) {
-		this.settings = settings;
 	}
 
 	/**
