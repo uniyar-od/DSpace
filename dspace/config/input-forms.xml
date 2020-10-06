@@ -2297,9 +2297,19 @@ it, please enter the types and the actual numbers or codes.</hint>
          <repeatable>false</repeatable>
          <label>Software used</label>
          <input-type>onebox</input-type>
-         <hint>Keep empty in case of inhouse software, otherwise use the autocomplete to lookup in the general purpose solutions (commercial or opensource) or to provide the inclusion of a new software</hint>
+         <hint>Keep empty in case of inhouse software, otherwise use the autocomplete to lookup into authority database</hint>
          <required></required>
        </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>crissoftwarenote</dc-qualifier>
+         <repeatable>false</repeatable>
+         <label>Platform Note</label>
+         <input-type>textarea</input-type>
+         <hint>Additional specification where the crisPlatform is “other”</hint>
+         <required></required>
+       </field>       
        <field>
 		 <dc-schema>eurocris</dc-schema>
          <dc-element>dris</dc-element>
@@ -2467,7 +2477,17 @@ EXTERNAL systems outside the institution/organisation?</label>
          <input-type value-pairs-name="dris_repositoryfullltextlink">dropdown</input-type>
          <hint></hint>
          <required></required>
-       </field>                                        
+       </field>
+       <field>
+		 <dc-schema>eurocris</dc-schema>
+         <dc-element>dris</dc-element>
+         <dc-qualifier>coverage</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Coverage of the CRIS</label>
+         <input-type value-pairs-name="dris_coverage">list</input-type>
+         <hint>what is registered in your CRIS? (Check all boxes that apply)</hint>
+         <required></required>
+       </field>                                                      
       </page>
       <page number="3" heading="dris.repository">
        <field>
