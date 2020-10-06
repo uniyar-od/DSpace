@@ -153,6 +153,14 @@
 			<groupId>net.sf.flexjson</groupId>
 			<artifactId>flexjson</artifactId>
 		</dependency>
+		
+		<!-- Java library for JSON-LD (JSON linked data) format -->
+		<dependency>
+		    <groupId>com.io-informatics.oss</groupId>
+		    <artifactId>jackson-jsonld</artifactId>
+		    <version>0.1.1</version>
+		</dependency>
+		
 	</dependencies>
 
 </project>

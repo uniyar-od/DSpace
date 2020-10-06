@@ -1,0 +1,182 @@
+[
+    {
+        "success": false,
+        "query": "",
+        "description" : "Not found, something after 'url:port/jspui/dris...' is mandatory"
+    },
+    {
+        "success": false,
+        "query": "not-supp-main-type",
+        "description" : "Not found, after 'url:port/jspui/dris' one of 'entries', 'vocabs' or 'orgunits' is accepted"
+    },
+    {
+        "success": false,
+        "query": "vocabs/not-supp-second-type",
+        "description" : "Not found, after 'url:port/jspui/dris/vocabs' only anything or one of 'countries', 'statuses', 'scopes', 'coverages' or 'cris-platforms' is accepted"
+    },
+    {
+        "success": true,
+        "query": "entries",
+        "expectedResults": 770,
+        "description" : "Ok, all dris entries was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?max-page-size=10",
+        "expectedResults": 10,
+        "description" : "Ok, all dris entries was requested, first page (10 items per page)"    
+    },
+    {
+        "success": true,
+        "query": "entries?max-page-size=10&page-start-doc=10",
+		"expectedResults": 10,
+        "description" : "Ok, all dris entries was requested, second page (10 items per page)"    
+    },   
+    {
+        "success": true,
+        "query": "entries/dris00896",
+        "expectedResults": 1,
+        "description" : "Ok, a specific entry by ID was requested, and that entry exists"    
+    },
+    {
+        "success": true,
+        "query": "entries/not-existent-entry-id",
+        "expectedResults": 0,
+        "description" : "Ok, a specific entry by ID was requested, and that entry does not exists"    
+    },
+    {
+        "success": true,
+        "query": "entries?country.id=country00725",
+        "expectedResults": 196,
+        "description" : "Ok, entries by a specific country id (India) was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?country.id=country00725&country.id=country00732",
+        "expectedResults": 272,
+        "description" : "Ok, OR entries by two specific countries id (India and Italia) was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?created.on-or-after=2015-05-09T22:44:52.614Z",
+        "expectedResults": 769,
+        "description" : "Ok, OR entries by time criteria was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?created.before=2015-05-09T22:44:52.614Z",
+        "expectedResults": 1,
+        "description" : "Ok, OR entries by time criteria was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?created.on-or-after=2015-05-09T22:44:5.614Z&created.before=2015-05-09T22:44:52.662Z",
+        "expectedResults": 2,
+        "description" : "Ok, OR entries by time criteria was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?country.id=country00725,country00732",
+        "expectedResults": 272,
+        "description" : "Ok, OR entries by two specific countries id (India and Italia) was requested"    
+    },
+    {
+        "success": true,
+        "query": "entries?country.id=country00725&max-page-size=10",
+        "expectedResults": 10,
+        "description" : "Ok, entries by a specific country id (India) was requested, first page, 10 items per page"    
+    },
+    {
+        "success": true,
+        "query": "entries?country.id=country00725&max-page-size=10&page-start-doc=10",
+        "expectedResults": 10,
+        "description" : "Ok, entries by a specific country id (India) was requested, second page, 10 items per page"    
+    },
+    {
+        "success": true,
+        "query": "entries?country.id=country00725&max-page-size=10&page-start-doc=193",
+        "expectedResults": 3,
+        "description" : "Ok, entries by a specific country id (India) was requested, 10 items per page but starting from 193 on 196 total docs, only 3 results are expected"    
+    },
+    {
+        "success": false,
+        "query": "orgunits",
+        "description" : "Not found, after 'orgunits' only a id in the path is accepted (no all orgunits query is supported)"
+    },
+    {
+        "success": true,
+        "query": "orgunits/ou00102",
+        "expectedResults": 1,
+        "description" : "Ok, a specific org unit by id was specified and that id exists"   
+    },
+    {
+        "success": true,
+        "query": "orgunits/not-existent-id",
+        "expectedResults": 0,
+        "description" : "Ok, a specific org unit by id was specified and that id does not exists"   
+    },
+    {
+        "success": true,
+        "query": "vocabs",
+        "description" : "Ok, all vocabs was requested, skip check on results number here because we don't know it...."    
+    },
+    {
+        "success": true,
+        "query": "vocabs?max-page-size=10",
+        "expectedResults": 10,
+        "description" : "Ok, all vocabs was requested, first page (10 results for page)"    
+    },
+    {
+        "success": true,
+        "query": "vocabs?max-page-size=10&page-start-doc=10",
+        "expectedResults": 10,
+        "description" : "Ok, all vocabs was requested, second page (10 results for page)"   
+    },
+    {
+        "success": true,
+        "query": "vocabs?max-page-size=10&page-start-doc=30",
+        "expectedResults": 10,
+        "description" : "Ok, all vocabs was requested, third page (10 results for page)"   
+    },
+    {
+        "success": true,
+        "query": "vocabs/countries",
+        "description" : "Ok, all vocabs of type countries was requested, skip check on results number here because we don't know it...."    
+    },
+    {
+        "success": true,
+        "query": "vocabs/scopes",
+        "description" : "Ok, all vocabs of type scopes was requested, skip check on results number here because we don't know it...."    
+    },
+    {
+        "success": true,
+        "query": "vocabs/statuses",
+        "description" : "Ok, all vocabs of type statuses was requested, skip check on results number here because we don't know it...."    
+    },
+    {
+        "success": true,
+        "query": "vocabs/coverages",
+        "description" : "Ok, all vocabs of type coverages was requested, skip check on results number here because we don't know it...."    
+    },
+    {
+        "success": true,
+        "query": "vocabs/cris-platforms",
+        "description" : "Ok, all vocabs of type cris-platforms was requested, skip check on results number here because we don't know it...."    
+    },
+    {
+        "success": true,
+        "query": "vocabs/countries?max-page-size=10",
+        "expectedResults": 10,
+        "description" : "Ok, all vocabs of type countries was requested, first page (10 results for page)"   
+    }, 
+    {
+        "success": true,
+        "query": "vocabs/countries/country00725",
+        "description" : "Ok, a specific vocabs of type countries was requested and that country (India) exists"   
+    },     
+    {
+        "success": true,
+        "query": "vocabs/scopes/classcerif00069",
+        "description" : "Ok, a specific vocabs of type scopes was requested and that scope exists"   
+    }
+]
