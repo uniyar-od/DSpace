@@ -22,8 +22,8 @@ import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldType;
 @JsonldType(value = "ItemList")
 public class JsonLdResultsList {
 	
-	List <? extends JsonLdResult> itemListElement;
-	Integer numberOfItems;
+	private List <? extends JsonLdResult> itemListElement;
+	private long numberOfItems;
 	
     public JsonLdResultsList() {
 		super();
@@ -36,14 +36,13 @@ public class JsonLdResultsList {
 	
 	public void setItemListElement(List<? extends JsonLdResult> itemListElement) {
 		this.itemListElement = itemListElement;
-		this.setNumberOfItems((this.itemListElement != null)? this.itemListElement.size(): 0);
 	}
 	
-	public Integer getNumberOfItems() {
+	public long getNumberOfItems() {
 		return numberOfItems;
 	}
 	
-	private void setNumberOfItems(Integer numberOfItems) {
+	public void setNumberOfItems(long numberOfItems) {
 		this.numberOfItems = numberOfItems;
 	}
 	

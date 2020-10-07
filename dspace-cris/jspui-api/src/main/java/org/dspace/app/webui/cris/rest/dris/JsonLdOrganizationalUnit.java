@@ -33,7 +33,7 @@ public class JsonLdOrganizationalUnit extends AbstractJsonLdResult {
 		String countryAuth = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisou.countrylink_authority"));
 		String crisId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("cris-id"));
 		jldItem.setCountry(DrisUtils.buildVocabCountryAuthLink(countryAuth));
-		jldItem.setId(DrisUtils.buildEntryIdLink(crisId));
+		jldItem.setId(DrisUtils.buildOrgunitIdLink(crisId));
 		return jldItem;
 	}
 	

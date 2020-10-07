@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.DateUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
@@ -41,6 +43,7 @@ import org.dspace.app.webui.cris.rest.dris.JsonLdOrganizationalUnit;
 import org.dspace.app.webui.cris.rest.dris.JsonLdResult;
 import org.dspace.app.webui.cris.rest.dris.JsonLdResultsList;
 import org.dspace.app.webui.cris.rest.dris.JsonLdVocabs;
+import org.dspace.app.webui.cris.rest.dris.utils.WrapperJsonResults;
 import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -94,6 +97,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	private SearchService searchService;
 	private ConfigurationService configurationService;
     // Special character and keyword
+	private static final String queryStringSeparator = "?";
 	private static final String parametersSeparator = "&";
 	private static final String keyValueSeparator = "=";
 	private static final String multiValueSeparator = ",";
@@ -105,7 +109,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	private static final String responsePaginationHeaderPrefix = "<";
 	private static final String responsePaginationHeaderPostfix = ">; rel=next";
 	private static final String responseLastModifiedHeaderName = "Last-Modified";
-
+	private static final String responseIfModifiedSinceHeaderName = "If-Modified-Since";
 
     /**
      * Servlet initialization method, it creates the services objects needed to query the database and the Solr repository.
@@ -273,7 +277,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		DrisQueryingServlet.setMainApiUrl(this.getBaseURL(request));
 		log.info(SERVLET_DESCRIPTION + ": GET calling started...");
 		log.debug(SERVLET_DESCRIPTION + ": Called URL: " + calledFullUrl);
-		List<? extends JsonLdResult> jsonLdResults = new LinkedList<>();
+		WrapperJsonResults<? extends JsonLdResult> jsonLdResults = new WrapperJsonResults<>();
 		response.setContentType("application/json; charset=UTF-8");
 		// Extract the path after "/jspui/dris" (here called the "path parameters")
 		// and the http parameters (after '?', separated by '&') provided by the caller.
@@ -306,32 +310,44 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			                maxPageSize = DEFAULT_MAX_PAGE_SIZE;
 			                startPageDocNumb = DEFAULT_START_DOC_NUMBER;
 			            }
+			        } else {
+                        try {
+                            if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
+                                startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
+                                if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
+                            }
+                        } catch (NumberFormatException e) {
+                            log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
+                            startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+                        }
 			        }
-					if (paramsMap.isEmpty()) {
-						// All entries requested, without Id or filtering parameters
-						jsonLdResults = this.processAllEntriesQueryType(maxPageSize, startPageDocNumb);
-					} else {
-						// Entries filtered by various criteria was requested
-						jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb);
-					}
-			           // Compose the link to forward traversal the results list (pagination), set to response header 'Link'
-		            if (jsonLdResults.size() >= maxPageSize) {
+
+			        // Entries filtered by various criteria was requested
+					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb);
+			        
+					// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
+		            if (jsonLdResults.getTotalElements() > maxPageSize*(startPageDocNumb+1)) {
 		                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
 		                    calledFullUrl = calledFullUrl.replace(pageStartDocNumberParameterName + keyValueSeparator + startPageDocNumb, 
-		                                          pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize));
+		                                          pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb));
 		                } else {
-		                    calledFullUrl = calledFullUrl + parametersSeparator + pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize);
+		                    if(StringUtils.contains(calledFullUrl, "?")) {
+	                            calledFullUrl = calledFullUrl + parametersSeparator + pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb);
+		                    }
+		                    else {
+		                        calledFullUrl = calledFullUrl + queryStringSeparator + pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb);    
+		                    }
 		                }
 		                response.setHeader(responsePaginationHeaderName, responsePaginationHeaderPrefix + calledFullUrl + responsePaginationHeaderPostfix);
 		            }
 					isQuerying = true;
 				} else if (pathElements.length == 2) {
 					// Single entry by id was requested
-					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], 1, 0);
+					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1]);
 				} else {
 					// Unrecognized query of type 'entries', throw an error
-					log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
-					response.sendError(HttpServletResponse.SC_NOT_FOUND);
+					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
+					response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 					return;
 				}
 			} else if (queryType.equals(ORG_UNITS_QUERY_TYPE_NAME)) {
@@ -339,12 +355,26 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				jsonLdResults = this.processOrgUnitsQueryType(this.removeFirstItem(pathElements), 1, 0);
 			} else if (queryType.equals(VOCABS_QUERY_TYPE_NAME)) {
 				// Process vocabs request (with or without other path parameters)
-				jsonLdResults = this.processVocabsQueryType(this.removeFirstItem(pathElements), Integer.MAX_VALUE, 0);
-				response.setHeader(responseLastModifiedHeaderName, (new java.util.Date()).toString());
+			    long lastModifiedFromBrowser = request.getDateHeader(responseIfModifiedSinceHeaderName);
+				jsonLdResults = this.processVocabsQueryType(this.removeFirstItem(pathElements), Integer.MAX_VALUE, 0, lastModifiedFromBrowser);
+				if(jsonLdResults==null) {
+			          //setting 304 and returning with empty body
+				    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "If-Modified-Since request HTTP header found makes the request conditional: " + queryType));
+				    response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);    
+			        return;
+				}
+				else {
+				    if(jsonLdResults.getStatusCode()!=HttpServletResponse.SC_OK) {
+				        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main vocabs type or no content: " + queryType));
+	                    response.setStatus(jsonLdResults.getStatusCode());    
+	                    return;				        
+				    }
+				}
+				response.setHeader(responseLastModifiedHeaderName, DateUtils.formatDate(jsonLdResults.getLastModified()));
 			} else {
 				// Unrecognized query type, throw an error
-				log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main query type: " + queryType));
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
+				log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main query type: " + queryType));
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 				return;
 			}
 			
@@ -352,7 +382,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
             {
                 // Compose data response using ​ https://schema.org/ItemList
                 JsonLdResultsList finalResults = new JsonLdResultsList();
-                finalResults.setItemListElement(jsonLdResults);
+                finalResults.setItemListElement(jsonLdResults.getElements());
+                finalResults.setNumberOfItems(jsonLdResults.getTotalElements());
                 String jsonLdString = "";
                 try
                 {
@@ -371,7 +402,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
                     log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
                             "Unable to write JSON-LD results in the response as a String"),
                             e);
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     return;
                 }
             }
@@ -386,7 +417,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
                         if (jsonLdResults.size() > 1)
                         {
                             jsonLdString = objectMapper
-                                    .writeValueAsString(jsonLdResults);
+                                    .writeValueAsString(jsonLdResults.getElements());
                         }
                         else
                         {
@@ -405,16 +436,16 @@ public class DrisQueryingServlet extends DSpaceServlet {
                     log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
                             "Unable to write JSON-LD results in the response as a String"),
                             e);
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND);
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                     return;
                 }
             }
 			log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Call to Dris Querying Servlet successfully completed."));
 			return;
-		} catch (ServletException e) {
+		} catch (Exception e) {
 			// ERROR: specific query type error
 			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
-			response.sendError(HttpServletResponse.SC_NOT_FOUND);
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 			return;
 		}
 	}
@@ -428,128 +459,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * </ul>
 	 * 
 	 * @param entryId the DRIS entry id
-	 * @param maxPageSize the maximum number of results to return 
-	 * @param startPageDocNumb the start document index in the result sets to start with
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdEntry</code> resulting from the query
 	 * @throws ServletException if any error occurs during processing
 	 */
-	private List<JsonLdEntry> processEntriesQueryTypeById(String entryId, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(SERVLET_DESCRIPTION +":"+ "Query of type 'entries' by Id started...");
-		log.debug(SERVLET_DESCRIPTION +":"+ "Id: " + entryId);
-		SolrDocumentList solrResults = new SolrDocumentList();
-		SolrQuery solrQuery = new SolrQuery();
-		QueryResponse rsp;
-		try {
-			solrQuery = new SolrQuery();
-			solrQuery.setQuery("crisdo.type:dris");
-			solrQuery.addFilterQuery("cris-id:\"" + entryId + "\"");
-			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getCrisSearchService().search(solrQuery);
-			solrResults = rsp.getResults();
-			Iterator<SolrDocument> iter = solrResults.iterator();
-			try {
-				// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
-				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.registerModule(new JsonldModule());
-				List<JsonLdEntry> list = new LinkedList<>();
-				while (iter.hasNext()) {
-					list.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
-				}
-				if (list.size() != 1) {
-					String errMsg = "Warning: no cris object or too much cris objects was found by the specified ID.";
-					log.warn(SERVLET_DESCRIPTION + ":"+  errMsg);
-				}
-				return list;
-			} catch (Exception e) {
-				log.error(SERVLET_DESCRIPTION + ":"+  e.getMessage(), e);
-				throw new ServletException(e);
-			}
-		} catch (SearchServiceException e) {
-			log.error(SERVLET_DESCRIPTION + ":"+  e.getMessage(), e);
-			throw new ServletException(e);
-		}
-	}
-	
-	/**
-	 * Returns a path parameter given as the last part of an URI.
-	 * 
-	 * @param maybeAnUri the (eventual) URI that contains the parameter
-	 * @return the extracted parameter or the trimmed version of <code>maybeAnUri</code> if it is not an URI
-	 */
-	private String extractParameterValueFromEventualUri(String maybeAnUri) {
-		String retValue = StringUtils.trimToEmpty(maybeAnUri);
-		boolean isAnUri = true;
-		try {
-			URL obj = new URL(StringUtils.trimToEmpty(maybeAnUri));
-			obj.toURI();
-		} catch (MalformedURLException e) {
-			isAnUri = false;
-		} catch (URISyntaxException e) {
-			isAnUri = false;
-		}
-		try {
-			if (isAnUri) {
-				String decodedUri = StringUtils.trimToEmpty(URLDecoder.decode(StringUtils.trimToEmpty(maybeAnUri), StandardCharsets.UTF_8.toString()));
-				String[] splittedUri = decodedUri.split("/");
-				retValue = splittedUri[splittedUri.length - 1];
-			}
-		} catch (UnsupportedEncodingException e) {
-			log.warn(SERVLET_DESCRIPTION + ": Error during URI decoding, raw value will be used: " + retValue, e);
-		}
-		return retValue;
-	}
-	
-	/**
-	 * Extract a path parameters list from a list of (eventual) URI.
-	 * 
-	 * @param maybeUris the (eventual) URIs that contain the parameters
-	 * @return the extracted parameters
-	 * @see <code>extractParameterValueFromEventualUri</code>
-	 */
-	private List<String> extractParameterValuesFromEventualUris(List<String> maybeUris) {
-		List<String> retVs = new LinkedList<>();
-		for (String mUr: maybeUris) {retVs.add(this.extractParameterValueFromEventualUri(mUr));}
-		return retVs;
-	}
-	
-	/**
-	 * Returns a Solr filter condition where the <code>field</code> is compared (equality) to the different values
-	 * in <code>values</code> and any comparison is in OR with the others.
-	 * 
-	 * @param field the Solr field to compare
-	 * @param values the list of values
-	 * @return the Solr OR condition
-	 */
-	private String composeORFilteringCondition(String field, List<String> values) {
-		StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (String v: values) {
-			if (!first) sb.append(" OR ");
-			else first = false;
-			sb.append(field + ":\"" + v + "\"");
-		}
-		return sb.toString();
-	}
-
-	/**
-	 * Returns a Solr filter condition where the <code>field</code> must be earlier or on or after 
-	 * the first of the supplied values.
-	 * 
-	 * @param field the field to compare
-	 * @param values a list of (date) values, only first value will be considered
-	 * @param beforeOrAfter indicating if before (<code>true</code>) of on or after (<code>false</code>) condition will be composed
-	 * @return the Solr time range condition
-	 */
-	private String composeTimeRangeCondition(String field, List<String>  values, boolean beforeOrAfter) {
-		String date = (values != null && !values.isEmpty())? values.get(0): "*";
-		StringBuilder sb = new StringBuilder();
-		if (beforeOrAfter) {
-			sb.append(field + ":{* " + " TO " + date + "}");
-		} else {
-			sb.append(field + ":[" + date + " TO " + "*}");
-		}
-		return sb.toString();
+	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeById(String entryId) throws ServletException {
+        List<String> values = new ArrayList<>();
+        values.add("\"" + entryId + "\"");
+        LinkedHashMap<String, List<String>> queryParameters = new LinkedHashMap<>();
+        queryParameters.put("cris-id", values);
+		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0);
 	}
     
 	/**
@@ -570,21 +488,55 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdEntry</code> resulting from the query
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
 	 */
-	private List<JsonLdEntry> processEntriesQueryTypeWithFilteringParameters(LinkedHashMap<String, List<String>> queryParameters,
+	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeWithFilteringParameters(LinkedHashMap<String, List<String>> queryParameters,
 																  Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(SERVLET_DESCRIPTION+":"+ "Query of type 'entries' started...");
+	    WrapperJsonResults<JsonLdEntry> result = new WrapperJsonResults<JsonLdEntry>();		
+	    log.info(SERVLET_DESCRIPTION+":"+ "Query of type 'entries' started...");
 		log.debug(SERVLET_DESCRIPTION+":"+"Parameters: " + queryParameters.toString());
-		if (queryParameters.isEmpty()) {
-			// If no http parameters was supplied than all entries was requested
-			// Actually here is impossible (this case was processed by caller method)
-			return this.processAllEntriesQueryType(maxPageSize, startPageDocNumb);
-		}
 		// Extract the provided parameters, at least one is present
 		List<String> paramsNames = new ArrayList<>(queryParameters.keySet());
 		// Analyze provided parameters and (multi) values and define the Solr
 		// query filtering conditions, one for any distinct param name (logic AND) 
 		// and containing one sub-condition for any value of the name (logic OR)
-		List<String> filteringConditions = new LinkedList<>();
+		List<String> filteringConditions = getFilterFromQueryParameters(
+                queryParameters, paramsNames);
+		SolrDocumentList solrResults = new SolrDocumentList();
+		SolrQuery solrQuery = new SolrQuery();
+		QueryResponse rsp;
+		try {
+			solrQuery = new SolrQuery();
+			solrQuery.setQuery("crisdo.type:dris");
+			for (String fq: filteringConditions) {
+				solrQuery.addFilterQuery(fq);
+			}
+			solrQuery.setRows(maxPageSize);
+			solrQuery.setStart(maxPageSize*startPageDocNumb);
+			rsp = this.getCrisSearchService().search(solrQuery);
+			solrResults = rsp.getResults();
+			Iterator<SolrDocument> iter = solrResults.iterator();
+			List<JsonLdEntry> listJldObj = new LinkedList<>();
+			while (iter.hasNext()) {
+				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
+			}
+            result.setElements(listJldObj);
+            result.setTotalElements(solrResults.getNumFound());
+            return result;
+		} catch (SearchServiceException e) {
+			ServletException servExc = new ServletException(e);
+			log.error(e.getMessage(), servExc);
+			throw servExc;
+		}	
+	}
+
+    public List<String> getFilterFromQueryParameters(
+            LinkedHashMap<String, List<String>> queryParameters,
+            List<String> paramsNames) throws ServletException
+    {
+        List<String> filteringConditions = new LinkedList<>();
+        
+        if (queryParameters.isEmpty()) {
+            return filteringConditions;
+        }
 		for (String pName: paramsNames) {
 			List<String> pValues = this.extractParameterValuesFromEventualUris(queryParameters.get(pName));
 			if (pName.startsWith("country")) {
@@ -701,83 +653,8 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				continue;
 			}	
 		}
-		SolrDocumentList solrResults = new SolrDocumentList();
-		SolrQuery solrQuery = new SolrQuery();
-		QueryResponse rsp;
-		try {
-			solrQuery = new SolrQuery();
-			solrQuery.setQuery("crisdo.type:dris");
-			for (String fq: filteringConditions) {
-				solrQuery.addFilterQuery(fq);
-			}
-			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getCrisSearchService().search(solrQuery);
-			solrResults = rsp.getResults();
-			Iterator<SolrDocument> iter = solrResults.iterator();
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.registerModule(new JsonldModule());
-			List<JsonLdEntry> listJldObj = new LinkedList<>();
-			while (iter.hasNext()) {
-				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
-			}
-			return listJldObj;
-		} catch (SearchServiceException e) {
-			ServletException servExc = new ServletException(e);
-			log.error(e.getMessage(), servExc);
-			throw servExc;
-		}	
-	}
-	
-	/**
-	 * Find and returns all DRIS entries.
-	 * Examples of queries this method answer:
-	 * <ul>
-	 * 	<li><code>entries</code></li>
-	 *  <li><code>entries?max-page-size=10</code></li>
-	 *  <li><code>entries?max-page-size=10&page-start-doc=10</code></li>
-	 * </ul>
-	 * 
-	 * @param maxPageSize the maximum number of results to return 
-	 * @param startPageDocNumb the start document index in the result sets to start with 
-	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdEntry</code> resulting from the query
-	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
-	 */
-	private List<JsonLdEntry> processAllEntriesQueryType(Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		log.info(SERVLET_DESCRIPTION +":"+ "Query of type 'entries' (all) started...");
-		SolrDocumentList solrResults = new SolrDocumentList();
-		SolrQuery solrQuery = new SolrQuery();
-		QueryResponse rsp;
-		try {
-			solrQuery = new SolrQuery();
-			solrQuery.setQuery("crisdo.type:dris");
-			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getCrisSearchService().search(solrQuery);
-			solrResults = rsp.getResults();
-			Iterator<SolrDocument> iter = solrResults.iterator();
-			try {
-				// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
-				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.registerModule(new JsonldModule());
-				List<JsonLdEntry> list = new LinkedList<>();
-				while (iter.hasNext()) {
-					list.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
-				}
-				if (list.size() != 1) {
-					String errMsg = "Warning: no organizational unit or too much organizational units was found by the specified ID.";
-					log.warn(SERVLET_DESCRIPTION +":"+ errMsg);
-				}
-				return list;
-			} catch (Exception e) {
-				log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
-				throw new ServletException(e);
-			}
-		} catch (SearchServiceException e) {
-			log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
-			throw new ServletException(e);
-		}
-	}
+        return filteringConditions;
+    }
 	
 	/**
 	 * Find and returns a specific DRIS Organizational Unit by its id.
@@ -787,14 +664,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * </ul>
 	 *  
 	 * @param queryParameters the String array containing any parameters (that is, elements of the called path) after the call base url
-	 * 						  (a single path parameter, the Organizationa Unit id, is supported)
+	 * 						  (a single path parameter, the Organization Unit id, is supported)
 	 * 
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdOrganizationalUnit</code> resulting from the query
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call
 	 */
-	private List<JsonLdOrganizationalUnit> processOrgUnitsQueryType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
+	private WrapperJsonResults<JsonLdOrganizationalUnit> processOrgUnitsQueryType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
 		log.info(SERVLET_DESCRIPTION +":"+ "Query of type 'orgunits' started...");
-		log.debug(SERVLET_DESCRIPTION +":"+ "Parameters in path: " + queryParameters.toString());		
+		log.debug(SERVLET_DESCRIPTION +":"+ "Parameters in path: " + queryParameters.toString());
+		WrapperJsonResults<JsonLdOrganizationalUnit> result = new WrapperJsonResults<JsonLdOrganizationalUnit>();
 		if ((queryParameters.length != 1) || StringUtils.isEmpty(queryParameters[0])) {
 			// ERROR: exactly one (not null or empty) parameter, the org-unit ID, was expected
 			String errorMsg = "Organization Units querying: a single mandatory parameter, the organizational unit id, was expected.";
@@ -806,23 +684,16 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		SolrQuery solrQuery = new SolrQuery();
 		QueryResponse rsp;
 		try {
-			// This commented code represents the same query made below but querying the database rather than the Solr repository
-			//    Researcher util = new Researcher();
-			//    ApplicationService applicationService = util.getApplicationService();
-			//    applicationService.getEntityByCrisId(orgUnitId);
 			solrQuery = new SolrQuery();
 			solrQuery.setQuery("*:*");
 			solrQuery.addFilterQuery("cris-id:\"" + orgUnitId + "\"");
 			solrQuery.addFilterQuery("search.resourcetype:" + CrisConstants.OU_TYPE_ID);
 			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
+			solrQuery.setStart(maxPageSize*startPageDocNumb);
 			rsp = this.getCrisSearchService().search(solrQuery);
 			solrResults = rsp.getResults();
 			Iterator<SolrDocument> iter = solrResults.iterator();
 			try {
-				// VALUTARE QUALI INFORMAZIONI (E COME) VANNO EFFETTIVAMENTE RIPORTATI NEL JSON-LD
-				ObjectMapper objectMapper = new ObjectMapper();
-				objectMapper.registerModule(new JsonldModule());
 				List<JsonLdOrganizationalUnit> list = new LinkedList<>();
 				while (iter.hasNext()) {
 					list.add(JsonLdOrganizationalUnit.buildFromSolrDoc(iter.next()));
@@ -831,7 +702,9 @@ public class DrisQueryingServlet extends DSpaceServlet {
 					String errMsg = "Warning: no organizational unit or too much organizational units was found by the specified ID.";
 					log.warn(SERVLET_DESCRIPTION +":"+ errMsg);
 				}
-				return list;
+                result.setElements(list);
+                result.setTotalElements(solrResults.getNumFound());
+                return result;
 			} catch (Exception e) {
 				log.error(SERVLET_DESCRIPTION +":"+ e.getMessage(), e);
 				throw new ServletException(e);
@@ -843,59 +716,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	}
 	
 	/**
-	 * Check validity of vocabs sub-type specified by the caller (i.e. 'coverages', 'statuses', etc.)
-	 * 
-	 * @param vocabQueryType the supplied vocabs sub-type
-	 * @return <code>true</code> if the sub-type is valid, <code>false</code> otherwise
-	 */
-	private Boolean checkVocabQuerySubTypeValidity(String vocabQueryType) {
-		if (vocabQueryType.equals(VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE) ||
-			vocabQueryType.equals(VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE) ||
-			vocabQueryType.equals(VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE) ||
-			vocabQueryType.equals(VOCABS_QUERY_TYPE_SCOPES_SUB_TYPE) ||
-			vocabQueryType.equals(VOCABS_QUERY_TYPE_STATUSES_SUB_TYPE)) {
-			return true;
-		} else return false;
-	}
-	
-	/**
-	 * Map the vocabs sub-type specified by the caller (i.e. 'coverages', 'statuses', etc.)
-	 * in the corresponding keyword to be used for querying (i.e. 'coverage', 'status', etc.)
-	 * 
-	 * @param vocabQueryType the supplied vocabs sub-type
-	 * @return the corresponding keyword to be used for querying
-	 * @throws ServletException if the supplied vocabs sub-type was not recognized
-	 */
-	private String mapVocabQuerySubTypeToVocabRepositorySelector(String vocabQueryType) throws ServletException {
-		if (vocabQueryType.equals(VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE)) {
-			return "coverage";
-		} else if (vocabQueryType.equals(VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE)) {
-			return "cris-platform";
-		} else if (vocabQueryType.equals(VOCABS_QUERY_TYPE_SCOPES_SUB_TYPE)) {
-			return "scope";
-		} else if (vocabQueryType.equals(VOCABS_QUERY_TYPE_STATUSES_SUB_TYPE)) {
-			return "status";
-		} else {
-			// ERROR: unrecognized vocab_code
-			String errorMsg = "Vocabs querying: unrecognized sub-type parameter: " + vocabQueryType;
-			log.error(SERVLET_DESCRIPTION +":"+ errorMsg);
-			throw new ServletException(errorMsg);	
-		}
-	}
-	
-	/**
 	 * Find and returns DRIS <code>/vocabs</code> of various sub-type.
 	 * Examples of queries this method answer:
 	 * <ul>
 	 * 	<li><code>vocabs</code></li>
-	 * 	<li><code>vocabs?max-page-size=10</code></li>
-	 * 	<li><code>vocabs?max-page-size=10&page-start-doc=10</code></li>
 	 * 	<li><code>vocabs/countries</code></li>
 	 * 	<li><code>vocabs/scopes</code></li>
 	 * 	<li><code>vocabs/statuses</code></li>
 	 * 	<li><code>vocabs/coverages</code></li>
 	 * 	<li><code>vocabs/cris-platforms</code></li>
-	 * 	<li><code>vocabs/countries?max-page-size=10</code></li>
 	 * 	<li><code>vocabs/countries/country00725</code></li>
 	 * 	<li><code>vocabs/scopes/classcerif00069</code></li> 
 	 * </ul>
@@ -905,162 +734,213 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @param startPageDocNumb the start document index in the result sets to start with 
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdVocabs</code> resulting from the query
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
+	 * @throws SearchServiceException 
 	 */
-	private List<JsonLdVocabs> processVocabsQueryType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
+	private WrapperJsonResults<JsonLdVocabs> processVocabsQueryType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb, long lastModifiedFromBrowser) throws ServletException, SearchServiceException {
 		log.info(SERVLET_DESCRIPTION + ": Query of type 'vocabs' started...");
-		log.debug(SERVLET_DESCRIPTION + ": Parameters in path: " + queryParameters.toString());			
-		String firstParameter = "";
-		if (queryParameters.length == 0) {
-			// No sub-type specified, all vocabs requested
-			return this.processAllVocabsQueryType(maxPageSize, startPageDocNumb);
-		} else {
-			firstParameter = queryParameters[0];
-			if (firstParameter.equals(VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE)) {
-				// The 'countries' sub-type was specified in the path
-				return this.processVocabsQueryTypeCountrySubType(this.removeFirstItem(queryParameters), maxPageSize, startPageDocNumb);
-			} else if (this.checkVocabQuerySubTypeValidity(firstParameter)) {
-				// Some valid sub-type other than 'countries' was specified in the path
-				// We pass all parameters, the sub-method had to recognize specific sub-type
-				return this.processVocabsQueryTypeOtherSubType(queryParameters, maxPageSize, startPageDocNumb);
+		log.debug(SERVLET_DESCRIPTION + ": Parameters in path: " + queryParameters.toString());
+	    WrapperJsonResults<JsonLdVocabs> result = new WrapperJsonResults<JsonLdVocabs>();
+		SolrDocumentList solrResults = new SolrDocumentList();
+		SolrQuery solrQuery = new SolrQuery();
+		QueryResponse rsp;
+			solrQuery = new SolrQuery();
+			
+			if (queryParameters.length == 0) {
+			    solrQuery.setQuery("(crisdo.type:country) OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:coverage) "
+                    + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:cris-platform) "
+                    + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:scope) "
+                    + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:status)");
 			} else {
-				// Unrecognized query sub-type, throw an error
-				ServletException servExc = new ServletException("Unrecognized query sub-type: " + firstParameter);
-				log.error(servExc, servExc);
-				throw servExc;
+			    String firstParameter = queryParameters[0];
+	            if (firstParameter.equals(VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE)) {
+	                solrQuery.setQuery("crisdo.type:country"); // crisdo.type:dris
+	                if (queryParameters.length > 1)
+	                {
+	                    solrQuery.addFilterQuery("cris-id:\"" + queryParameters[1] + "\"");
+	                }
+	            } else {
+	                if(checkVocabQuerySubTypeValidity(firstParameter)) {
+    	                String givenSubType = this.mapVocabQuerySubTypeToVocabRepositorySelector(firstParameter);	                
+    	                solrQuery.setQuery("*:*");
+    	                solrQuery.addFilterQuery("crisdo.type:classcerif");
+    	                solrQuery.addFilterQuery("crisclasscerif.classcerifvocabularytype:" + givenSubType);
+    	                if (queryParameters.length > 1) {
+    	                    solrQuery.addFilterQuery("cris-id:\"" + queryParameters[1] + "\"");
+    	                }
+	                }
+	                else {
+	                    result.setStatusCode(HttpServletResponse.SC_NOT_FOUND);
+	                    return result;
+	                }
+	            }
+			    
 			}
-		}
+            
+			//extract last modified to check
+            solrQuery.addSort("lastModified", ORDER.desc);
+            solrQuery.setRows(1);
+            rsp = this.getCrisSearchService().search(solrQuery);
+            if (rsp != null && rsp.getResults()!=null && !rsp.getResults().isEmpty())
+            {
+                SolrDocument doc = rsp.getResults().get(0);
+                Date lastModified = (Date) doc.getFirstValue("lastModified");
+    
+                Date date = new Date(0); // 1 Jan 1970 placeholder
+                if (lastModifiedFromBrowser != -1)
+                {
+                    date = new Date(lastModifiedFromBrowser);
+                }
+    
+                if (lastModified.after(date))
+                {
+                    solrQuery.clearSorts();
+                    solrQuery.addSort("cris-id", ORDER.asc);
+                    solrQuery.setRows(maxPageSize);
+                    solrQuery.setStart(startPageDocNumb);
+                    rsp = this.getCrisSearchService().search(solrQuery);
+                    solrResults = rsp.getResults();
+                    Iterator<SolrDocument> iter = solrResults.iterator();
+                    List<JsonLdVocabs> list = new LinkedList<>();
+                    while (iter.hasNext())
+                    {
+                        list.add(JsonLdVocabs.buildFromSolrDoc(iter.next()));
+                    }
+                    result.setElements(list);
+                    result.setTotalElements(solrResults.getNumFound());
+                    result.setLastModified(lastModified);
+                    return result;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            result.setStatusCode(HttpServletResponse.SC_NO_CONTENT);
+            return result;
 	}
 	
-	/**
-	 * Find and returns all DRIS <code>/vocabs</code>  without other sub type path elements and
-	 * without any other parameter (i.e. the caller wants all vocabs).
-	 * Examples of queries this method answer:
-	 * <ul>
-	 * 	<li><code>vocabs</code></li>
-	 * </ul>
-	 * 
-	 * @param maxPageSize the maximum number of results to return 
-	 * @param startPageDocNumb the start document index in the result sets to start with 
-	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdVocabs</code> resulting from the query
-	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
-	 */	
-	private List<JsonLdVocabs> processAllVocabsQueryType(Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		// All vocabs requested
-		SolrDocumentList solrResults = new SolrDocumentList();
-		SolrQuery solrQuery = new SolrQuery();
-		QueryResponse rsp;
-		try {
-			solrQuery = new SolrQuery();
-			solrQuery.setQuery("(crisdo.type:country) OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:coverage) "
-												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:cris-platform) "
-												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:scope) "
-												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:status)");
-			solrQuery.addSort("cris-id", ORDER.asc);
-			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getCrisSearchService().search(solrQuery);
-			solrResults = rsp.getResults();
-			Iterator<SolrDocument> iter = solrResults.iterator();
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.registerModule(new JsonldModule());
-			List<JsonLdVocabs> listJldObj = new LinkedList<>();
-			while (iter.hasNext()) {
-				listJldObj.add(JsonLdVocabs.buildFromSolrDoc(iter.next()));
-			}
-			return listJldObj;
-		} catch (SearchServiceException e) {
-			ServletException servExc = new ServletException(e);
-			log.error(e.getMessage(), servExc);
-			throw servExc;
-		}	
-	}
-	
-	/**
-	 * Find and returns all DRIS <code>/vocabs/countries</code>.
-	 * Examples of queries this method answer:
-	 * <ul>
-	 * 	<li><code>vocabs/countries</code></li>
-	 * 	<li><code>vocabs/countries?max-page-size=10</code></li>
-	 * 	<li><code>vocabs/countries/country00725</code></li>
-	 * </ul>
-	 * 
-	 * @param queryParameters the String array containing any parameters (that is, elements of the called path) after the call base url
-	 * @param maxPageSize the maximum number of results to return 
-	 * @param startPageDocNumb the start document index in the result sets to start with 
-	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdVocabs</code> resulting from the query
-	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
-	 */	
-	private List<JsonLdVocabs> processVocabsQueryTypeCountrySubType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		SolrDocumentList solrResults = new SolrDocumentList();
-		SolrQuery solrQuery = new SolrQuery();
-		QueryResponse rsp;
-		try {
-			solrQuery = new SolrQuery();
-			String filterOnItemCode = "";
-			if (queryParameters.length > 0) {
-				filterOnItemCode = " AND " + "cris-id:\"" + queryParameters[0] + "\"";
-			}
-			solrQuery.setQuery("crisdo.type:country" + filterOnItemCode); // crisdo.type:dris
-			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getCrisSearchService().search(solrQuery);
-			solrResults = rsp.getResults();
-			Iterator<SolrDocument> iter = solrResults.iterator();
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.registerModule(new JsonldModule());
-			List<JsonLdVocabs> listJldObj = new LinkedList<>();
-			while (iter.hasNext()) {
-				listJldObj.add(JsonLdVocabs.buildFromSolrDoc(iter.next()));
-			}
-			return listJldObj;
-		} catch (SearchServiceException e) {
-			ServletException servExc = new ServletException(e);
-			log.error(e.getMessage(), servExc);
-			throw servExc;
-		}
-	}
-	
-	/**
-	 * Processes requests of type <code>/vocabs/coverages</code>, <code>/vocabs/statuses</code>, <code>/vocabs/scopes</code> and
-	 * <code>/vocabs/cris-platforms</code>.
-	 * 
-	 * @param queryParameters the String array containing any parameters (that is, elements of the called path) after the call base url
-	 * @param maxPageSize the maximum number of results to return 
-	 * @param startPageDocNumb the start document index in the result sets to start with 
-	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdVocabs</code> resulting from the query
-	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
-	 */
-	private List<JsonLdVocabs> processVocabsQueryTypeOtherSubType(String[] queryParameters, Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
-		SolrDocumentList solrResults = new SolrDocumentList();
-		SolrQuery solrQuery = new SolrQuery();
-		QueryResponse rsp;
-		try {
-			String givenSubType = this.mapVocabQuerySubTypeToVocabRepositorySelector(queryParameters[0]);
-			solrQuery = new SolrQuery();
-			solrQuery.setQuery("*:*");
-			solrQuery.addFilterQuery("crisdo.type:classcerif");
-			solrQuery.addFilterQuery("crisclasscerif.classcerifvocabularytype:" + givenSubType);
-			if (queryParameters.length > 1) {
-				solrQuery.addFilterQuery("cris-id:\"" + queryParameters[1] + "\"");
-			}
-			solrQuery.setRows(maxPageSize);
-			solrQuery.setStart(startPageDocNumb);
-			rsp = this.getCrisSearchService().search(solrQuery);
-			solrResults = rsp.getResults();
-			Iterator<SolrDocument> iter = solrResults.iterator();
-			ObjectMapper objectMapper = new ObjectMapper();
-			objectMapper.registerModule(new JsonldModule());
-			List<JsonLdVocabs> listJldObj = new LinkedList<>();
-			while (iter.hasNext()) {
-				listJldObj.add(JsonLdVocabs.buildFromSolrDoc(iter.next()));
-			}
-			return listJldObj;
-		} catch (SearchServiceException e) {
-			ServletException servExc = new ServletException(e);
-			log.error(e.getMessage(), servExc);
-			throw servExc;
-		} 
-	}
+    /**
+     * Extract a path parameters list from a list of (eventual) URI.
+     * 
+     * @param maybeUris the (eventual) URIs that contain the parameters
+     * @return the extracted parameters
+     * @see <code>extractParameterValueFromEventualUri</code>
+     */
+    private List<String> extractParameterValuesFromEventualUris(List<String> maybeUris) {
+        List<String> retVs = new LinkedList<>();
+        for (String mUr: maybeUris) {retVs.add(this.extractParameterValueFromEventualUri(mUr));}
+        return retVs;
+    }
+    
+    /**
+     * Returns a Solr filter condition where the <code>field</code> is compared (equality) to the different values
+     * in <code>values</code> and any comparison is in OR with the others.
+     * 
+     * @param field the Solr field to compare
+     * @param values the list of values
+     * @return the Solr OR condition
+     */
+    private String composeORFilteringCondition(String field, List<String> values) {
+        StringBuilder sb = new StringBuilder();
+        boolean first = true;
+        for (String v: values) {
+            if (!first) sb.append(" OR ");
+            else first = false;
+            sb.append(field + ":\"" + v + "\"");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Returns a Solr filter condition where the <code>field</code> must be earlier or on or after 
+     * the first of the supplied values.
+     * 
+     * @param field the field to compare
+     * @param values a list of (date) values, only first value will be considered
+     * @param beforeOrAfter indicating if before (<code>true</code>) of on or after (<code>false</code>) condition will be composed
+     * @return the Solr time range condition
+     */
+    private String composeTimeRangeCondition(String field, List<String>  values, boolean beforeOrAfter) {
+        String date = (values != null && !values.isEmpty())? values.get(0): "*";
+        StringBuilder sb = new StringBuilder();
+        if (beforeOrAfter) {
+            sb.append(field + ":{* " + " TO " + date + "}");
+        } else {
+            sb.append(field + ":[" + date + " TO " + "*}");
+        }
+        return sb.toString();
+    }
+    
+    /**
+     * Check validity of vocabs sub-type specified by the caller (i.e. 'coverages', 'statuses', etc.)
+     * 
+     * @param vocabQueryType the supplied vocabs sub-type
+     * @return <code>true</code> if the sub-type is valid, <code>false</code> otherwise
+     */
+    private Boolean checkVocabQuerySubTypeValidity(String vocabQueryType) {
+        if (vocabQueryType.equals(VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE) ||
+            vocabQueryType.equals(VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE) ||
+            vocabQueryType.equals(VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE) ||
+            vocabQueryType.equals(VOCABS_QUERY_TYPE_SCOPES_SUB_TYPE) ||
+            vocabQueryType.equals(VOCABS_QUERY_TYPE_STATUSES_SUB_TYPE)) {
+            return true;
+        } else return false;
+    }
+    
+    /**
+     * Map the vocabs sub-type specified by the caller (i.e. 'coverages', 'statuses', etc.)
+     * in the corresponding keyword to be used for querying (i.e. 'coverage', 'status', etc.)
+     * 
+     * @param vocabQueryType the supplied vocabs sub-type
+     * @return the corresponding keyword to be used for querying
+     * @throws ServletException if the supplied vocabs sub-type was not recognized
+     */
+    private String mapVocabQuerySubTypeToVocabRepositorySelector(String vocabQueryType) throws ServletException {
+        if (vocabQueryType.equals(VOCABS_QUERY_TYPE_COVERAGES_SUB_TYPE)) {
+            return "coverage";
+        } else if (vocabQueryType.equals(VOCABS_QUERY_TYPE_CRIS_PLATFORMS_SUB_TYPE)) {
+            return "cris-platform";
+        } else if (vocabQueryType.equals(VOCABS_QUERY_TYPE_SCOPES_SUB_TYPE)) {
+            return "scope";
+        } else if (vocabQueryType.equals(VOCABS_QUERY_TYPE_STATUSES_SUB_TYPE)) {
+            return "status";
+        } else {
+            // ERROR: unrecognized vocab_code
+            String errorMsg = "Vocabs querying: unrecognized sub-type parameter: " + vocabQueryType;
+            log.error(SERVLET_DESCRIPTION +":"+ errorMsg);
+            throw new ServletException(errorMsg);   
+        }
+    } 
+    
+    
+    /**
+     * Returns a path parameter given as the last part of an URI.
+     * 
+     * @param maybeAnUri the (eventual) URI that contains the parameter
+     * @return the extracted parameter or the trimmed version of <code>maybeAnUri</code> if it is not an URI
+     */
+    private String extractParameterValueFromEventualUri(String maybeAnUri) {
+        String retValue = StringUtils.trimToEmpty(maybeAnUri);
+        boolean isAnUri = true;
+        try {
+            URL obj = new URL(StringUtils.trimToEmpty(maybeAnUri));
+            obj.toURI();
+        } catch (MalformedURLException e) {
+            isAnUri = false;
+        } catch (URISyntaxException e) {
+            isAnUri = false;
+        }
+        try {
+            if (isAnUri) {
+                String decodedUri = StringUtils.trimToEmpty(URLDecoder.decode(StringUtils.trimToEmpty(maybeAnUri), StandardCharsets.UTF_8.toString()));
+                String[] splittedUri = decodedUri.split("/");
+                retValue = splittedUri[splittedUri.length - 1];
+            }
+        } catch (UnsupportedEncodingException e) {
+            log.warn(SERVLET_DESCRIPTION + ": Error during URI decoding, raw value will be used: " + retValue, e);
+        }
+        return retValue;
+    }    
 	
 	/**
 	 * Sets the <code>org.dspace.app.cris.discovery.CrisSearchService</code> object.
