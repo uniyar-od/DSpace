@@ -30,6 +30,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
@@ -279,24 +280,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		// The path parameters set can not be empty, the http parameters set can be empty.
 		String[] pathElements = this.splitMandatoryPathParameters(request);
 		LinkedHashMap<String, List<String>> paramsMap = this.splitOptionalHttpParameters(request);
-		// Check and extract pagination parameters
-		Integer maxPageSize = DEFAULT_MAX_PAGE_SIZE;
-		Integer startPageDocNumb = DEFAULT_START_DOC_NUMBER;
-		if (paramsMap.containsKey(maxPageSizeParameterName) && !paramsMap.get(maxPageSizeParameterName).isEmpty()) {
-			try {
-				maxPageSize = Integer.parseInt(paramsMap.get(maxPageSizeParameterName).get(0));
-				if (maxPageSize < 1) throw new NumberFormatException("The value of " + maxPageSizeParameterName + " must be greater than 0.");
-				
-				if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
-					startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
-					if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
-				}
-			} catch (NumberFormatException e) {
-				log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
-				maxPageSize = DEFAULT_MAX_PAGE_SIZE;
-				startPageDocNumb = DEFAULT_START_DOC_NUMBER;
-			}
-		}
+
 		try {
 			// Recognize the main query type as the first path element
 			// The 'pathElements' contains at least one element
@@ -305,6 +289,24 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			boolean isQuerying = false;
 			if (queryType.equals(ENTRIES_QUERY_TYPE_NAME)) {
 				if (pathElements.length == 1) {
+			        // Check and extract pagination parameters
+			        Integer maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+			        Integer startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+			        if (paramsMap.containsKey(maxPageSizeParameterName) && !paramsMap.get(maxPageSizeParameterName).isEmpty()) {
+			            try {
+			                maxPageSize = Integer.parseInt(paramsMap.get(maxPageSizeParameterName).get(0));
+			                if (maxPageSize < 1) throw new NumberFormatException("The value of " + maxPageSizeParameterName + " must be greater than 0.");
+			                
+			                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
+			                    startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
+			                    if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
+			                }
+			            } catch (NumberFormatException e) {
+			                log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
+			                maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+			                startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+			            }
+			        }
 					if (paramsMap.isEmpty()) {
 						// All entries requested, without Id or filtering parameters
 						jsonLdResults = this.processAllEntriesQueryType(maxPageSize, startPageDocNumb);
@@ -312,10 +314,20 @@ public class DrisQueryingServlet extends DSpaceServlet {
 						// Entries filtered by various criteria was requested
 						jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb);
 					}
+			           // Compose the link to forward traversal the results list (pagination), set to response header 'Link'
+		            if (jsonLdResults.size() >= maxPageSize) {
+		                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
+		                    calledFullUrl = calledFullUrl.replace(pageStartDocNumberParameterName + keyValueSeparator + startPageDocNumb, 
+		                                          pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize));
+		                } else {
+		                    calledFullUrl = calledFullUrl + parametersSeparator + pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize);
+		                }
+		                response.setHeader(responsePaginationHeaderName, responsePaginationHeaderPrefix + calledFullUrl + responsePaginationHeaderPostfix);
+		            }
 					isQuerying = true;
 				} else if (pathElements.length == 2) {
 					// Single entry by id was requested
-					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], maxPageSize, startPageDocNumb);
+					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], 1, 0);
 				} else {
 					// Unrecognized query of type 'entries', throw an error
 					log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
@@ -324,26 +336,16 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				}
 			} else if (queryType.equals(ORG_UNITS_QUERY_TYPE_NAME)) {
 				// Process org units request (with or without other path parameters)
-				jsonLdResults = this.processOrgUnitsQueryType(this.removeFirstItem(pathElements), maxPageSize, startPageDocNumb);
+				jsonLdResults = this.processOrgUnitsQueryType(this.removeFirstItem(pathElements), 1, 0);
 			} else if (queryType.equals(VOCABS_QUERY_TYPE_NAME)) {
 				// Process vocabs request (with or without other path parameters)
-				jsonLdResults = this.processVocabsQueryType(this.removeFirstItem(pathElements), maxPageSize, startPageDocNumb);
+				jsonLdResults = this.processVocabsQueryType(this.removeFirstItem(pathElements), Integer.MAX_VALUE, 0);
 				response.setHeader(responseLastModifiedHeaderName, (new java.util.Date()).toString());
 			} else {
 				// Unrecognized query type, throw an error
 				log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main query type: " + queryType));
 				response.sendError(HttpServletResponse.SC_NOT_FOUND);
 				return;
-			}
-			// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
-			if (jsonLdResults.size() >= maxPageSize) {
-				if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
-					calledFullUrl = calledFullUrl.replace(pageStartDocNumberParameterName + keyValueSeparator + startPageDocNumb, 
-										  pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize));
-				} else {
-					calledFullUrl = calledFullUrl + parametersSeparator + pageStartDocNumberParameterName + keyValueSeparator + (startPageDocNumb + maxPageSize);
-				}
-				response.setHeader(responsePaginationHeaderName, responsePaginationHeaderPrefix + calledFullUrl + responsePaginationHeaderPostfix);
 			}
 			
             if (isQuerying)
@@ -953,6 +955,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:cris-platform) "
 												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:scope) "
 												   + "OR (crisdo.type:classcerif AND crisclasscerif.classcerifvocabularytype:status)");
+			solrQuery.addSort("cris-id", ORDER.asc);
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(startPageDocNumb);
 			rsp = this.getCrisSearchService().search(solrQuery);
