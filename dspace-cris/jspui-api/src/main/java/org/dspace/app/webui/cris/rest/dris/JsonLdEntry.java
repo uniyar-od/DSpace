@@ -38,10 +38,6 @@ import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldNamespace;
 //@JsonldLink(rel = "s:knows", name = "knows", href = "http://example.com/person/2345")
 public class JsonLdEntry extends AbstractJsonLdResult {
     
-    private static Logger log = Logger.getLogger(JsonLdEntry.class);
-    
-    private final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-	
 	private String acronym = "";
 	private String name = "";
 	private String status = "";
@@ -76,13 +72,13 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		String statusId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisstatus_authority"));
 		if(StringUtils.isNotBlank(statusId)) {
 		    jldItem.setStatus(AbstractJsonLdResult.buildMiniVocabStatusIdLink(statusId));
-		    jldItem.getIncluded().add(buildVocabsIncluded(service, statusId, AbstractJsonLdResult.buildVocabStatusIdLink(statusId)));
+		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, statusId, AbstractJsonLdResult.buildVocabStatusIdLink(statusId)));
 		}
 		
 		String scopeId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisscope_authority"));
 		if(StringUtils.isNotBlank(scopeId)) {
 		    jldItem.setScope(AbstractJsonLdResult.buildMiniVocabScopeIdLink(scopeId));
-		    jldItem.getIncluded().add(buildVocabsIncluded(service, scopeId, AbstractJsonLdResult.buildVocabScopeIdLink(scopeId)));
+		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, scopeId, AbstractJsonLdResult.buildVocabScopeIdLink(scopeId)));
 		}
 		
 		String uri = (String)(solrDoc.getFirstValue("crisdris.drisuri"));
@@ -93,7 +89,7 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		String crisPlatform = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drissoftware_authority"));
 		if(StringUtils.isNotBlank(crisPlatform)) {
 		    jldItem.setCrisPlatform(AbstractJsonLdResult.buildMiniVocabPlatformIdLink(crisPlatform));
-		    jldItem.getIncluded().add(buildVocabsIncluded(service, crisPlatform, AbstractJsonLdResult.buildVocabPlatformIdLink(crisPlatform)));
+		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, crisPlatform, AbstractJsonLdResult.buildVocabPlatformIdLink(crisPlatform)));
 		}
 		
 		String crisPlatformNote = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscrissoftwarenote"));
@@ -104,13 +100,13 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		String orgId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisproviderOrgUnit_authority"));
 		if(StringUtils.isNotBlank(orgId)) {
 		    jldItem.setOrganization(AbstractJsonLdResult.buildMiniOrgUnitIdLink(orgId));
-		    jldItem.getIncluded().add(buildOrgUnitIncluded(service, orgId, AbstractJsonLdResult.buildOrgunitIdLink(orgId)));
+		    jldItem.getIncluded().add(DrisUtils.buildOrgUnitIncluded(service, orgId, AbstractJsonLdResult.buildOrgunitIdLink(orgId)));
 		}
 		
 		String countryId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscountry_authority"));
 		if(StringUtils.isNotBlank(countryId)) {
 		    jldItem.setCountry(AbstractJsonLdResult.buildMiniVocabCountryIdLink(countryId));
-		    jldItem.getIncluded().add(buildCountryIncluded(service, countryId, AbstractJsonLdResult.buildVocabCountryAuthLink(countryId)));
+		    jldItem.getIncluded().add(DrisUtils.buildCountryIncluded(service, countryId, AbstractJsonLdResult.buildVocabCountryAuthLink(countryId)));
 		}
 		
 		Collection<Object> coverages = (Collection<Object>)solrDoc.getFieldValues("crisdris.driscoverage_authority");
@@ -122,7 +118,7 @@ public class JsonLdEntry extends AbstractJsonLdResult {
                 if(StringUtils.isNotBlank(coverageString)) {
                     jldItem.getCoverages().add(AbstractJsonLdResult
                             .buildMiniVocabCoverageIdLink(coverageString));
-                    jldItem.getIncluded().add(buildVocabsIncluded(service, coverageString, AbstractJsonLdResult.buildVocabCoverageIdLink(coverageString)));
+                    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, coverageString, AbstractJsonLdResult.buildVocabCoverageIdLink(coverageString)));
                 }
             }
         }
@@ -130,104 +126,16 @@ public class JsonLdEntry extends AbstractJsonLdResult {
         Map<String,String> metadata = new HashMap<>();
 		Date creationdate = (Date)solrDoc.getFirstValue("crisdris.time_creation_dt");
 		if(creationdate!=null) {
-		    metadata.put("created", dateFormat.format(creationdate));
+		    metadata.put("created", DrisUtils.dateFormat.format(creationdate));
 		}
 		Date modificationdate = (Date)solrDoc.getFirstValue("crisdris.time_lastmodified_dt");
 		if(modificationdate!=null) {
-		    metadata.put("lastModified", dateFormat.format(modificationdate));
+		    metadata.put("lastModified", DrisUtils.dateFormat.format(modificationdate));
 		}
 		jldItem.setMetadata(metadata);
 		
 		return jldItem;
 	}
-
-    private static Map<String, Object> buildCountryIncluded(
-            SearchService service, String crisid,
-            String url)
-    {
-        Map<String, Object> obj = new HashMap<>();
-        SolrQuery solrQuery = new SolrQuery();
-        QueryResponse rsp;
-        try {
-            solrQuery = new SolrQuery();
-            solrQuery.setQuery("cris-id:\"" + crisid +"\"");
-            solrQuery.setRows(1);
-            rsp = service.search(solrQuery);
-            SolrDocumentList solrResults = rsp.getResults();
-            Iterator<SolrDocument> iter = solrResults.iterator();
-            while (iter.hasNext()) {
-                SolrDocument doc = iter.next();
-                obj.put("@id", url);
-                
-                Map<String, String> label = new HashMap<>();
-                label.put("en", (String)doc.getFirstValue("crisdo.name"));
-                obj.put("label", label);
-                
-                Map<String, String> isocode = new HashMap<>();
-                isocode.put("Alpha2", (String)doc.getFirstValue("criscountry.countryalphacode2"));
-                isocode.put("Alpha3", (String)doc.getFirstValue("criscountry.countryalphacode3"));
-                isocode.put("Numeric", (String)doc.getFirstValue("criscountry.countrynumericcode"));
-                obj.put("iso_3166_codes", isocode);                
-                break;
-            }
-        } catch (SearchServiceException e) {
-            log.error(e.getMessage(), e);
-        }   
-        return obj;
-    }
-
-    private static Map<String, Object> buildOrgUnitIncluded(
-            SearchService service, String crisid, String url)
-    {
-        Map<String, Object> obj = new HashMap<>();
-        SolrQuery solrQuery = new SolrQuery();
-        QueryResponse rsp;
-        try {
-            solrQuery = new SolrQuery();
-            solrQuery.setQuery("cris-id:\"" + crisid +"\"");
-            solrQuery.setRows(1);
-            rsp = service.search(solrQuery);
-            SolrDocumentList solrResults = rsp.getResults();
-            Iterator<SolrDocument> iter = solrResults.iterator();
-            while (iter.hasNext()) {
-                SolrDocument doc = iter.next();
-                obj.put("@id", url);
-                obj.put("label",  (String)doc.getFirstValue("crisou.name"));
-                obj.put("country",  AbstractJsonLdResult.buildMiniVocabCountryIdLink((String)doc.getFirstValue("crisou.countrylink_authority")));
-                break;
-            }
-        } catch (SearchServiceException e) {
-            log.error(e.getMessage(), e);
-        }   
-        return obj;
-    }
-
-    private static Map<String, Object> buildVocabsIncluded(SearchService service, String crisid, String url)
-    {
-        Map<String, Object> obj = new HashMap<>();
-        SolrQuery solrQuery = new SolrQuery();
-        QueryResponse rsp;
-        try {
-            solrQuery = new SolrQuery();
-            solrQuery.setQuery("cris-id:\"" + crisid +"\"");
-            solrQuery.setRows(1);
-            rsp = service.search(solrQuery);
-            SolrDocumentList solrResults = rsp.getResults();
-            Iterator<SolrDocument> iter = solrResults.iterator();
-            while (iter.hasNext()) {
-                SolrDocument doc = iter.next();
-                obj.put("@id", url);
-                
-                Map<String, String> label = new HashMap<>();
-                label.put("en", (String)doc.getFirstValue("crisdo.name"));
-                obj.put("label", label);
-                break;
-            }
-        } catch (SearchServiceException e) {
-            log.error(e.getMessage(), e);
-        }   
-        return obj;
-    }
 
     public JsonLdEntry() {
 		super();
