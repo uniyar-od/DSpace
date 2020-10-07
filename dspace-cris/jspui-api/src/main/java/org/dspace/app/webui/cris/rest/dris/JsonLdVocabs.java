@@ -9,7 +9,7 @@ package org.dspace.app.webui.cris.rest.dris;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
-import org.dspace.app.webui.cris.util.AbstractJsonLdResult;
+import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldLink;
@@ -18,9 +18,10 @@ import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldProperty;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldResource;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldType;
 
-@JsonldNamespace(name = "URL", uri = "https://api.eurocris.org/dris/contexts/vocabs.jsonld")
+@JsonldNamespace(name = "skos", uri = "http://www.w3.org/2004/02/skos/core#")
 public class JsonLdVocabs extends AbstractJsonLdResult {
 	
+    @JsonldProperty(value = "skos:prefLabel")
 	private String name;
 	
 	public static JsonLdVocabs buildFromSolrDoc(SolrDocument solrDoc) {
@@ -30,7 +31,11 @@ public class JsonLdVocabs extends AbstractJsonLdResult {
 		}
 		jldItem.setName(StringUtils.trimToEmpty((String)(solrDoc.getFirstValue("crisdo.name"))));
 		String crisId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("cris-id"));
-		jldItem.setId(AbstractJsonLdResult.buildEntryIdLink(crisId));
+		String crisVocabularyType = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdo.type"));
+		if("classcerif".equals(crisVocabularyType)) {
+			crisVocabularyType = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisclasscerif.classcerifvocabularytype"));
+		}
+		jldItem.setId(DrisUtils.buildVocabsIdLink(crisId, crisVocabularyType));
 		return jldItem;
 	}
 	

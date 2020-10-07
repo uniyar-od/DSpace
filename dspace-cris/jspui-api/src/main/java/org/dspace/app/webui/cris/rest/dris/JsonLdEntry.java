@@ -7,35 +7,22 @@
  */
 package org.dspace.app.webui.cris.rest.dris;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
-import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.webui.cris.rest.dris.annotation.JsonldIn;
-import org.dspace.app.webui.cris.util.AbstractJsonLdResult;
+import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SearchServiceException;
-
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldNamespace;
 
 @JsonldNamespace(name = "URL", uri = "https://api.eurocris.org/dris/contexts/entries.jsonld")
-//@JsonldLink(rel = "s:knows", name = "knows", href = "http://example.com/person/2345")
 public class JsonLdEntry extends AbstractJsonLdResult {
     
 	private String acronym = "";
@@ -59,7 +46,7 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 			return jldItem;
 		}
 		String crisId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.this_authority"));
-		jldItem.setId(AbstractJsonLdResult.buildEntryIdLink(crisId));
+		jldItem.setId(DrisUtils.buildEntryIdLink(crisId));
 		
 		
 		String acronym = (String)(solrDoc.getFirstValue("crisdris.drisacronym"));
@@ -71,14 +58,14 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		
 		String statusId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisstatus_authority"));
 		if(StringUtils.isNotBlank(statusId)) {
-		    jldItem.setStatus(AbstractJsonLdResult.buildMiniVocabStatusIdLink(statusId));
-		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, statusId, AbstractJsonLdResult.buildVocabStatusIdLink(statusId)));
+		    jldItem.setStatus(DrisUtils.buildMiniVocabStatusIdLink(statusId));
+		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, statusId, DrisUtils.buildVocabStatusIdLink(statusId)));
 		}
 		
 		String scopeId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisscope_authority"));
 		if(StringUtils.isNotBlank(scopeId)) {
-		    jldItem.setScope(AbstractJsonLdResult.buildMiniVocabScopeIdLink(scopeId));
-		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, scopeId, AbstractJsonLdResult.buildVocabScopeIdLink(scopeId)));
+		    jldItem.setScope(DrisUtils.buildMiniVocabScopeIdLink(scopeId));
+		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, scopeId, DrisUtils.buildVocabScopeIdLink(scopeId)));
 		}
 		
 		String uri = (String)(solrDoc.getFirstValue("crisdris.drisuri"));
@@ -88,8 +75,8 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		
 		String crisPlatform = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drissoftware_authority"));
 		if(StringUtils.isNotBlank(crisPlatform)) {
-		    jldItem.setCrisPlatform(AbstractJsonLdResult.buildMiniVocabPlatformIdLink(crisPlatform));
-		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, crisPlatform, AbstractJsonLdResult.buildVocabPlatformIdLink(crisPlatform)));
+		    jldItem.setCrisPlatform(DrisUtils.buildMiniVocabPlatformIdLink(crisPlatform));
+		    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, crisPlatform, DrisUtils.buildVocabPlatformIdLink(crisPlatform)));
 		}
 		
 		String crisPlatformNote = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscrissoftwarenote"));
@@ -99,14 +86,14 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		
 		String orgId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisproviderOrgUnit_authority"));
 		if(StringUtils.isNotBlank(orgId)) {
-		    jldItem.setOrganization(AbstractJsonLdResult.buildMiniOrgUnitIdLink(orgId));
-		    jldItem.getIncluded().add(DrisUtils.buildOrgUnitIncluded(service, orgId, AbstractJsonLdResult.buildOrgunitIdLink(orgId)));
+		    jldItem.setOrganization(DrisUtils.buildMiniOrgUnitIdLink(orgId));
+		    jldItem.getIncluded().add(DrisUtils.buildOrgUnitIncluded(service, orgId, DrisUtils.buildOrgunitIdLink(orgId)));
 		}
 		
 		String countryId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscountry_authority"));
 		if(StringUtils.isNotBlank(countryId)) {
-		    jldItem.setCountry(AbstractJsonLdResult.buildMiniVocabCountryIdLink(countryId));
-		    jldItem.getIncluded().add(DrisUtils.buildCountryIncluded(service, countryId, AbstractJsonLdResult.buildVocabCountryAuthLink(countryId)));
+		    jldItem.setCountry(DrisUtils.buildMiniVocabCountryIdLink(countryId));
+		    jldItem.getIncluded().add(DrisUtils.buildCountryIncluded(service, countryId, DrisUtils.buildVocabCountryAuthLink(countryId)));
 		}
 		
 		Collection<Object> coverages = (Collection<Object>)solrDoc.getFieldValues("crisdris.driscoverage_authority");
@@ -116,9 +103,9 @@ public class JsonLdEntry extends AbstractJsonLdResult {
             {
                 String coverageString = (String) coverage;
                 if(StringUtils.isNotBlank(coverageString)) {
-                    jldItem.getCoverages().add(AbstractJsonLdResult
+                    jldItem.getCoverages().add(DrisUtils
                             .buildMiniVocabCoverageIdLink(coverageString));
-                    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, coverageString, AbstractJsonLdResult.buildVocabCoverageIdLink(coverageString)));
+                    jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, coverageString, DrisUtils.buildVocabCoverageIdLink(coverageString)));
                 }
             }
         }

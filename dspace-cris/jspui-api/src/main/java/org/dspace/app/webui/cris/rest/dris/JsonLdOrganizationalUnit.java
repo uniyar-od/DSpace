@@ -9,7 +9,7 @@ package org.dspace.app.webui.cris.rest.dris;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
-import org.dspace.app.webui.cris.util.AbstractJsonLdResult;
+import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldLink;
@@ -32,8 +32,8 @@ public class JsonLdOrganizationalUnit extends AbstractJsonLdResult {
 		jldItem.setName(StringUtils.trimToEmpty((String)(solrDoc.getFirstValue("crisou.name"))));
 		String countryAuth = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisou.countrylink_authority"));
 		String crisId = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("cris-id"));
-		jldItem.setCountry(AbstractJsonLdResult.buildVocabCountryAuthLink(countryAuth));
-		jldItem.setId(AbstractJsonLdResult.buildEntryIdLink(crisId));
+		jldItem.setCountry(DrisUtils.buildVocabCountryAuthLink(countryAuth));
+		jldItem.setId(DrisUtils.buildEntryIdLink(crisId));
 		return jldItem;
 	}
 	
