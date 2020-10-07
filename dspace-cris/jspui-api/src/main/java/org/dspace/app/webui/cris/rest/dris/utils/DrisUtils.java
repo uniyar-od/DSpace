@@ -20,6 +20,7 @@ import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.webui.cris.rest.dris.JsonLdEntry;
 import org.dspace.app.webui.cris.servlet.DrisQueryingServlet;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 
@@ -33,6 +34,9 @@ public class DrisUtils
     private static Logger log = Logger.getLogger(JsonLdEntry.class);
     
     public final static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    
+    // General (production) URL of the API, now setted by dsGet for any call
+    public static String API_URL = ConfigurationManager.getProperty("dris-rest", "dris.endpoint.baseurl");
     
     public static Map<String, Object> buildCountryIncluded(
             SearchService service, String crisid,

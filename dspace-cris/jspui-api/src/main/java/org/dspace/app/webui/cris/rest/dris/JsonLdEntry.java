@@ -16,15 +16,18 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import org.dspace.app.webui.cris.rest.dris.annotation.JsonldContext;
 import org.dspace.app.webui.cris.rest.dris.annotation.JsonldIn;
+import org.dspace.app.webui.cris.rest.dris.annotation.JsonldType;
 import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 import org.dspace.discovery.SearchService;
 
-import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldNamespace;
-
-@JsonldNamespace(name = "URL", uri = "https://api.eurocris.org/dris/contexts/entries.jsonld")
 public class JsonLdEntry extends AbstractJsonLdResult {
     
+    @JsonldContext
+    private String context = DrisUtils.API_URL + "/contexts/entries.jsonld";
+    @JsonldType
+    private String type = DrisUtils.API_URL + "/static/JsonLdEntry";
 	private String acronym = "";
 	private String name = "";
 	private String status = "";

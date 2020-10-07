@@ -9,7 +9,9 @@ package org.dspace.app.webui.cris.rest.dris;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrDocument;
+import org.dspace.app.webui.cris.rest.dris.annotation.JsonldContext;
 import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
+import org.dspace.core.ConfigurationManager;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldLink;
@@ -17,10 +19,12 @@ import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldNamespace;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldProperty;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldResource;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldType;
+import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldTypeFromJavaClass;
 
-@JsonldNamespace(name = "URL", uri = "https://api.eurocris.org/dris/contexts/orgunits.jsonld")
 public class JsonLdOrganizationalUnit extends AbstractJsonLdResult {
 	
+    @JsonldContext
+    private String context = DrisUtils.API_URL + "/contexts/orgunits.jsonld";    
 	private String name;
 	private String country;
 	

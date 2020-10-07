@@ -43,9 +43,11 @@ import org.dspace.app.webui.cris.rest.dris.JsonLdOrganizationalUnit;
 import org.dspace.app.webui.cris.rest.dris.JsonLdResult;
 import org.dspace.app.webui.cris.rest.dris.JsonLdResultsList;
 import org.dspace.app.webui.cris.rest.dris.JsonLdVocabs;
+import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 import org.dspace.app.webui.cris.rest.dris.utils.WrapperJsonResults;
 import org.dspace.app.webui.servlet.DSpaceServlet;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchService;
@@ -78,8 +80,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
     
 	// The descriptive name of this servlet, for logging purposes
 	private static String SERVLET_DESCRIPTION = "Dris Querying API Servlet";
-	// General (production) URL of the API, now setted by dsGet for any call
-	private static String API_URL = "https://api.eurocris.org";
+	
 	// Types of query the servlet supports
 	public final static String ENTRIES_QUERY_TYPE_NAME = "entries";
 	public final static String ORG_UNITS_QUERY_TYPE_NAME = "orgunits";
@@ -252,19 +253,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	}
 	
 	/**
-	 * Utility that gets the base URL (without path and http parameters) of a given request.
-	 * 
-	 * @param request the <code>javax.servlet.http.HttpServletRequest</code> to analyze
-	 * @return the base URL called with the supplied request
-	 */
-	private String getBaseURL(HttpServletRequest request) {
-	    StringBuilder requestURL = new StringBuilder(StringUtils.trimToEmpty(request.getRequestURL().toString()));
-	    String pathInfo = StringUtils.trimToEmpty(request.getPathInfo());
-	    StringBuilder baseURLrequestURL = requestURL.delete(requestURL.indexOf(pathInfo), requestURL.length());
-	    return baseURLrequestURL.toString();
-	}
-	
-	/**
 	 * Main servlet entry point for querying. The method analyzes the supplied parameters, as path elements (after the main
 	 * servlet mapped url) and/or real http parameters and launches the appropriate methods based on the type of processing required
 	 * or throws an error in case of not supported call.
@@ -274,7 +262,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	protected void doDSGet(Context context, HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException {
 		String calledFullUrl = this.getFullURL(request);
-		DrisQueryingServlet.setMainApiUrl(this.getBaseURL(request));
 		log.info(SERVLET_DESCRIPTION + ": GET calling started...");
 		log.debug(SERVLET_DESCRIPTION + ": Called URL: " + calledFullUrl);
 		WrapperJsonResults<? extends JsonLdResult> jsonLdResults = new WrapperJsonResults<>();
@@ -966,16 +953,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @return the main API URL
 	 */
 	public static String getMainApiUrl() {
-		return API_URL;
-	}
-
-	/**
-	 * Sets the the main API URL
-	 * 
-	 * @param the main API URL
-	 */
-	public static void setMainApiUrl(String apiUrl) {
-		API_URL = apiUrl;
+		return DrisUtils.API_URL;
 	}
 
 	/**

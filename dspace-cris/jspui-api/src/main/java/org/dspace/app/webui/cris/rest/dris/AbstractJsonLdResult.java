@@ -2,10 +2,8 @@ package org.dspace.app.webui.cris.rest.dris;
 
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldId;
 import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldResource;
-import ioinformarics.oss.jackson.module.jsonld.annotation.JsonldTypeFromJavaClass;
 
 @JsonldResource
-@JsonldTypeFromJavaClass
 public class AbstractJsonLdResult implements JsonLdResult {
 	
     @JsonldId
