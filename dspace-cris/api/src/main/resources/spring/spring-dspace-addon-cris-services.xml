@@ -314,7 +314,8 @@
 						<ref local="CRISIDListener" />
 						<ref local="crisIndexerListener" />
 						<ref local="nestedIndexerListener" />
-						<ref local="ORCIDListener" />								
+						<ref local="ORCIDListener" />
+						<ref local="rpAutoSubscriberListener" />
 					</list>
 				</property>
 				<property name="listenerOnPostDelete">
@@ -1698,6 +1699,8 @@
 	<bean id="ORCIDListener" class="org.dspace.app.cris.model.listener.OrcidQueueListener">
 		<property name="orcidPreferencesUtils" ref="orcidPreferencesUtils" />	
 	</bean>
+	
+	<bean id="rpAutoSubscriberListener" class="org.dspace.app.cris.model.listener.RPOwnerAutoSubscribeListener"/>
 	
 	<bean id="nestedPositionListener" class="org.dspace.app.cris.model.listener.NestedPositionListener"/>
 

@@ -42,6 +42,9 @@ import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 public class Researcher implements EPersonCRISIntegration
 {
+    
+    public static final String FILTER_MYDSPACE_MATCHES = "mydspace_possible_matches";
+
     DSpace dspace = new DSpace();
     
     private static Logger log = Logger.getLogger(Researcher.class);
