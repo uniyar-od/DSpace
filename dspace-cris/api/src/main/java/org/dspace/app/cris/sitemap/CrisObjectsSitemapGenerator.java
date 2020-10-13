@@ -47,7 +47,7 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
         if (includes.contains("crispj"))
         {
 
-            List<Project> crispjs = applicationService.getList(Project.class);
+            List<Project> crispjs = findAll(Project.class);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, crispjs);
@@ -56,8 +56,7 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
 
         if (includes.contains("crisou"))
         {
-            List<OrganizationUnit> orgUnits = applicationService
-                    .getList(OrganizationUnit.class);
+            List<OrganizationUnit> orgUnits = findAll(OrganizationUnit.class);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, orgUnits);
@@ -67,8 +66,7 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
         if (includes.contains("crisrp"))
         {
 
-            List<ResearcherPage> crisrps = applicationService
-                    .getList(ResearcherPage.class);
+            List<ResearcherPage> crisrps = findAll(ResearcherPage.class);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, crisrps);
@@ -123,6 +121,20 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
             }
             applicationService.clearCache();
         }
+    }
+
+    private <T extends ACrisObject> List<T> findAll(Class<T> crisEntityClazz) {
+        List<T> crisObjs = new ArrayList<>();
+
+        long tot = applicationService.count(crisEntityClazz);
+        final int MAX_RESULT = 50;
+        long numpages = (tot / MAX_RESULT) + 1;
+        for (int page = 1; page <= numpages; page++)
+        {
+            crisObjs.addAll(applicationService.getPaginateList(crisEntityClazz, "id", false, page, MAX_RESULT));
+        }
+
+        return crisObjs;
     }
 
     @Override
