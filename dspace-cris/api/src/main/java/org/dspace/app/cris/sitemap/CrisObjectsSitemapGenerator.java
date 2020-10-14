@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
@@ -47,7 +48,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
         if (includes.contains("crispj"))
         {
 
-            List<Project> crispjs = findAll(Project.class);
+            List<Project> crispjs = applicationService.getCrisObjectPaginate(Project.class,
+                    CrisConstants.PROJECT_TYPE_ID);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, crispjs);
@@ -56,7 +58,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
 
         if (includes.contains("crisou"))
         {
-            List<OrganizationUnit> orgUnits = findAll(OrganizationUnit.class);
+            List<OrganizationUnit> orgUnits = applicationService.getCrisObjectPaginate(OrganizationUnit.class,
+                    CrisConstants.OU_TYPE_ID);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, orgUnits);
@@ -66,7 +69,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
         if (includes.contains("crisrp"))
         {
 
-            List<ResearcherPage> crisrps = findAll(ResearcherPage.class);
+            List<ResearcherPage> crisrps = applicationService.getCrisObjectPaginate(ResearcherPage.class,
+                    CrisConstants.RP_TYPE_ID);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, crisrps);
@@ -121,20 +125,6 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
             }
             applicationService.clearCache();
         }
-    }
-
-    private <T extends ACrisObject> List<T> findAll(Class<T> crisEntityClazz) {
-        List<T> crisObjs = new ArrayList<>();
-
-        long tot = applicationService.count(crisEntityClazz);
-        final int MAX_RESULT = 50;
-        long numpages = (tot / MAX_RESULT) + 1;
-        for (int page = 1; page <= numpages; page++)
-        {
-            crisObjs.addAll(applicationService.getPaginateList(crisEntityClazz, "id", false, page, MAX_RESULT));
-        }
-
-        return crisObjs;
     }
 
     @Override
