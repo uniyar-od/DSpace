@@ -493,6 +493,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		try {
 			solrQuery = new SolrQuery();
 			solrQuery.setQuery("crisdo.type:dris");
+			solrQuery.addFilterQuery("-discoverable:false");
 			for (String fq: filteringConditions) {
 				solrQuery.addFilterQuery(fq);
 			}
@@ -587,6 +588,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				// Filtering by NAME
 				if (pName.equals("name")) {
 					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "name", "crisdo.name"), pValues));
+				} else {
+					String errMsg = "Unrecognized criteria for name filtering: " + pName + "=" + pValues;
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
+					throw new ServletException(errMsg);
+				}
+			} else if (pName.startsWith("cris-id")) {
+				// Filtering by NAME
+				if (pName.equals("cris-id")) {
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "cris-id", "cris-id"), pValues));
 				} else {
 					String errMsg = "Unrecognized criteria for name filtering: " + pName + "=" + pValues;
 					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
@@ -833,6 +843,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
         for (String v: values) {
             if (!first) sb.append(" OR ");
             else first = false;
+            v = StringUtils.strip(v, "\"");
             sb.append(field + ":\"" + v + "\"");
         }
         return sb.toString();
