@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.dspace.app.cris.model.ResearchObject;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.core.Context;
 

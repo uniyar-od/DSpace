@@ -171,11 +171,7 @@ public class OrcidQueueListener
 						}
 					} catch (Exception ex) {
 						log.error(ex.getMessage(), ex);
-					} finally {
-						if (context != null && context.isValid()) {
-							context.abort();
-						}
-					}
+					} 
 
 				} else {
 					if (relPref.getRelationType().equals(RELATION_CRISPJ_PROJECTS)) {

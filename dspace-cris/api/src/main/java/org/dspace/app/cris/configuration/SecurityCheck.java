@@ -5,15 +5,13 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.content;
+package org.dspace.app.cris.configuration;
 
-import java.util.UUID;
+import org.dspace.content.RootObject;
+import org.dspace.core.Context;
 
-public interface RootObject {
-	
-	int getType();
-	String getTypeText();
-	String getName();
-	UUID getID();
-	String getHandle();
+public interface SecurityCheck {
+
+    boolean isAuthorized(Context context, RootObject dso);
+
 }

@@ -1,4 +1,4 @@
-package org.dspace.app.webui.cris.util;
+package org.dspace.app.cris.util;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -9,6 +9,7 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.content.RootObject;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
@@ -133,7 +134,7 @@ public class CrisAuthorizeManager
     }
 
     
-    public static <T extends ACrisObject> boolean isAdmin(
+    public static <T extends RootObject> boolean isAdmin(
             Context context, T crisObject) throws SQLException 
     {
         // check admin authorization

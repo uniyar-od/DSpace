@@ -329,14 +329,6 @@ public class BindItemToRP
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         }
-        finally
-        {
-            if (context != null && context.isValid())
-            {
-                context.abort();
-            }
-        }
-
     }
 
     public static void bindItemsToRP(
@@ -472,7 +464,6 @@ public class BindItemToRP
                 {
                     log.debug("Update item with id " + item.getID());
                 }
-                context.commit();
             }
         }
         context.restoreAuthSystemState();
@@ -511,7 +502,6 @@ public class BindItemToRP
         	cpm.setRp(researcher.getCrisID());
         	applicationService.saveOrUpdate(CrisPotentialMatch.class, cpm);
         }
-        context.commit();
     }
 
 	public static void deletePotentialMatch(Context context, String crisID) throws SQLException {
@@ -540,18 +530,11 @@ public class BindItemToRP
         {
             context = new Context();
             generatePotentialMatches(context, researcher);
-            context.complete();
         }
         catch (Exception e)
         {
             log.error(e.getMessage(), e);
         }
-        finally
-        {
-            if (context != null && context.isValid())
-                context.abort();
-        }
-
     }
     
 	public static Session getHibernateSession(Context context) throws SQLException {

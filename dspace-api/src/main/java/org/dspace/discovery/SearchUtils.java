@@ -23,6 +23,7 @@ import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoveryMostViewedConfiguration;
 import org.dspace.discovery.configuration.DiscoveryRecentSubmissionsConfiguration;
 import org.dspace.discovery.configuration.DiscoveryViewAndHighlightConfiguration;
+import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -64,7 +65,20 @@ public class SearchUtils {
         if(configurationName == null){
             result = configurationService.getMap().get("site");
         }else{
-            result = configurationService.getMap().get(configurationName);
+        	if(configurationName.startsWith(HandleServiceFactory.getInstance().getHandleService().getPrefix())) {
+        		// get container Collection/Community configuration
+        		if(configurationService.getMap().containsKey(configurationName)) {
+        			// there is a specific configuration for collection/community
+        			result = configurationService.getMap().get(configurationName);	
+        		}
+        		else {
+        			// retrieve the basic configuration
+        			result = configurationService.getMap().get("dspacebasic");
+        		}
+        	}
+        	else {
+        		result = configurationService.getMap().get(configurationName);
+        	}
         }
 
         if(result == null){
@@ -105,8 +119,7 @@ public class SearchUtils {
         //Also add one for the default
         addConfigurationIfExists(result, null);
         
-        //Add special dspacebasic discoveryConfiguration
-        DiscoveryConfiguration configurationExtra;
+        //Add special dspacebasic discoveryConfiguration      
         addConfigurationIfExists(result, "dspacebasic");
 
         String typeText = item.getTypeText();

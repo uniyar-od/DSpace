@@ -31,7 +31,7 @@ import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
