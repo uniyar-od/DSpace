@@ -29,6 +29,8 @@ import org.dspace.app.cris.model.jdyna.ProjectProperty;
 import org.dspace.app.cris.model.jdyna.ProjectTypeNestedObject;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 
 import it.cilea.osd.common.core.TimeStampInfo;
 
@@ -56,6 +58,8 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
         Cloneable
 {
 
+	transient ConfigurationService confService;
+	
 	private static final String NAME = "title";
 	
     /** DB Primary key */
@@ -285,10 +289,28 @@ public class Project extends ACrisObject<ProjectProperty, ProjectPropertiesDefin
     @Override
     public boolean isOwner(EPerson eperson)
     {
-        // TODO not implemented
-        return false;
+    	String ownerProperty = getConfigurationService().getProperty("cris." + getTypeText() + ".owner");
+		if (ownerProperty != null) {
+			for (String propConf : ownerProperty.split("\\s*,\\s*")) {
+	    		List<ProjectProperty> props = getAnagrafica4view().get(propConf);
+				for (ProjectProperty p : props) {
+	    			ResearcherPage rp = (ResearcherPage) p.getObject();
+	    			if (eperson != null && rp.getEpersonID()!= null && eperson.getID().equals(rp.getEpersonID())) {
+	    				return true;
+	    			}
+				}
+			}
+    	}
+    	return false;
     }
     
+    private ConfigurationService getConfigurationService()
+    {
+    	if (confService == null) {
+			confService = new DSpace().getConfigurationService();
+		}
+    	return confService;
+    }
 
 	@Override
 	public BrowsableDSpaceObject getParentObject() {

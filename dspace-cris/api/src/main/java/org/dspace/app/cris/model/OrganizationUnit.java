@@ -30,6 +30,8 @@ import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.OUTypeNestedObject;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 
 import it.cilea.osd.common.core.TimeStampInfo;
 
@@ -57,6 +59,8 @@ public class OrganizationUnit extends
 		Cloneable
 {
 
+	transient ConfigurationService confService;
+	
 	public static final String NAME = "name";
 	
     @Transient
@@ -269,10 +273,29 @@ public class OrganizationUnit extends
     @Override
     public boolean isOwner(EPerson eperson)
     {
-        // TODO not implemented
-        return false;
+    	String ownerProperty = getConfigurationService().getProperty("cris."+ getTypeText() + ".owner");
+		if (ownerProperty != null) {
+			for (String propConf : ownerProperty.split("\\s*,\\s*")) {
+	    		List<OUProperty> props = getAnagrafica4view().get(propConf);
+	    		for (OUProperty p : props) {
+	    			ResearcherPage rp = (ResearcherPage) p.getObject();
+	    			if (eperson != null && rp.getEpersonID()!= null && eperson.getID().equals(rp.getEpersonID())) {
+	    				return true;
+	    			}
+	    		}
+			}
+    	}
+    	return false;
     }
 
+    private ConfigurationService getConfigurationService()
+    {
+    	if (confService == null) {
+			confService = new DSpace().getConfigurationService();
+		}
+    	return confService;
+    }
+    
 	@Override
 	public BrowsableDSpaceObject getParentObject() {
 		// TODO Auto-generated method stub
