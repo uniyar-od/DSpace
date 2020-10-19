@@ -685,6 +685,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			solrQuery.setQuery("*:*");
 			solrQuery.addFilterQuery("cris-id:\"" + orgUnitId + "\"");
 			solrQuery.addFilterQuery("search.resourcetype:" + CrisConstants.OU_TYPE_ID);
+			solrQuery.addFilterQuery("-discoverable:false");
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(maxPageSize*startPageDocNumb);
 			rsp = this.getCrisSearchService().search(solrQuery);
@@ -775,6 +776,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
             
 			//extract last modified to check
             solrQuery.addSort("lastModified", ORDER.desc);
+            solrQuery.addFilterQuery("-discoverable:false");
             solrQuery.setRows(1);
             rsp = this.getCrisSearchService().search(solrQuery);
             if (rsp != null && rsp.getResults()!=null && !rsp.getResults().isEmpty())
