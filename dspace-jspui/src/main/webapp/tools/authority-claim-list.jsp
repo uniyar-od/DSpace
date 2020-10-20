@@ -349,6 +349,7 @@
 <tfoot>
 </tfoot>
 </table>
+	<input type="hidden" id="crisID" name="crisID" value="<%= crisID %>"/>
 	<div class="row col-md-12 pull-right">
         <input class="btn btn-primary pull-right col-md-3" type="submit" id="submit_approve" name="submit_approve" value="<fmt:message key="jsp.authority.listclaim.approve"/>" />
         <input class="btn btn-warning pull-right col-md-3" type="submit" id="submit_reject" name="submit_reject" value="<fmt:message key="jsp.authority.listclaim.reject"/>" />

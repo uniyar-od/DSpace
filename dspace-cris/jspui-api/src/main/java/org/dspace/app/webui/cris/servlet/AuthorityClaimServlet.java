@@ -234,6 +234,7 @@ public class AuthorityClaimServlet extends DSpaceServlet
                 ResearcherPage.class);
         for (Item ii : publications)
         {
+        	ii = ContentServiceFactory.getInstance().getItemService().find(context, ii.getID());	//Prevent LazyInitializationException
             Map<String, List<String[]>> result = new HashMap<String, List<String[]>>();
             Map<String, Boolean> haveSimilar = new HashMap<String, Boolean>();
             String handle = ii.getHandle();

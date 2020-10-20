@@ -372,6 +372,7 @@ public class BindItemToRP
         
         for (Item item : items)
         {
+        	item = ContentServiceFactory.getInstance().getItemService().find(context, item.getID());	//Prevent LazyInitializationException
             if (tempName.getRejectItems() != null
                     && tempName.getRejectItems().contains(item.getID()))
             {
