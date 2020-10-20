@@ -25,6 +25,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
+import org.dspace.app.cris.model.jdyna.EditTabResearcherPage;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
@@ -161,7 +162,8 @@ public class ResearcherPageDetailsController
         }
         
         boolean isAdmin = CrisAuthorizeManager.isAdmin(context,researcher);
-      
+        boolean canEdit = isAdmin
+				|| CrisAuthorizeManager.canEdit(context, applicationService, EditTabResearcherPage.class, researcher);
         
         if (isAdmin
                 || (currUser != null && (researcher.getEpersonID() != null && currUser
@@ -227,7 +229,7 @@ public class ResearcherPageDetailsController
         List<ICrisHomeProcessor<ResearcherPage>> resultProcessors = new ArrayList<ICrisHomeProcessor<ResearcherPage>>();
         Map<String, Object> extraTotal = new HashMap<String, Object>();
         Map<String, ItemMetricsDTO> metricsTotal = new HashMap<String, ItemMetricsDTO>();
-        HashSet<String> metricsTypeTotal = new LinkedHashSet<String>();
+        HashSet metricsTypeTotal = new LinkedHashSet<String>();
         for (ICrisHomeProcessor processor : processors)
         {
             if (ResearcherPage.class.isAssignableFrom(processor.getClazz()))
@@ -249,9 +251,8 @@ public class ResearcherPageDetailsController
                 }
             }
         }
-        
-        List<String> metricsTypes = new ArrayList<String>( metricsTypeTotal);
-        extraTotal.put("metricTypes",metricsTypes );
+        List<String> metricsTypes = new ArrayList<String>(metricsTypeTotal);
+        extraTotal.put("metricTypes", metricsTypes);
         extraTotal.put("metrics", metricsTotal);
         request.setAttribute("extra", extraTotal);  
         request.setAttribute("components", super.getComponents());
@@ -264,6 +265,11 @@ public class ResearcherPageDetailsController
                         ConfigurationManager
                                 .getBooleanProperty(SolrLoggerServiceImpl.CFG_STAT_MODULE,"authorization.admin"));
         mvc.getModel().put("isAdmin", isAdmin);
+        
+        if (canEdit)
+        {
+        	mvc.getModel().put("canEdit", new Boolean(true));
+        }
         
         // Fire usage event.
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);

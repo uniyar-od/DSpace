@@ -31,8 +31,9 @@ import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicProperty;
 import org.dspace.app.cris.model.jdyna.DynamicTypeNestedObject;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 
 import it.cilea.osd.common.core.TimeStampInfo;
 import it.cilea.osd.jdyna.model.AType;
@@ -64,6 +65,8 @@ import it.cilea.osd.jdyna.model.AType;
   })
 public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, DynamicPropertiesDefinition, DynamicNestedProperty, DynamicNestedPropertiesDefinition, DynamicNestedObject, DynamicTypeNestedObject>
 {
+	
+	transient ConfigurationService confService;
 	
 	private static final String NAME = "name";
 	
@@ -307,14 +310,13 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     @Override
     public boolean isOwner(EPerson eperson)
     {
-		String ownerProperty = ConfigurationManager.getProperty("cris",
-				getTypeText() + ".owner");
+    	String ownerProperty = getConfigurationService().getProperty("cris." + getTypeText() + ".owner");
 		if (ownerProperty != null) {
 			for (String propConf : ownerProperty.split("\\s*,\\s*")) {
 	    		List<DynamicProperty> props = getAnagrafica4view().get(propConf);
 	    		for (DynamicProperty p : props) {
 	    			ResearcherPage rp = (ResearcherPage) p.getObject();
-	    			if (eperson != null && rp.getEpersonID()!= null && eperson.getID() == rp.getEpersonID()) {
+	    			if (eperson != null && rp.getEpersonID()!= null && eperson.getID().equals(rp.getEpersonID())) {
 	    				return true;
 	    			}
 	    		}
@@ -323,6 +325,13 @@ public class ResearchObject extends ACrisObjectWithTypeSupport<DynamicProperty, 
     	return false;
     }
 
+    private ConfigurationService getConfigurationService()
+    {
+    	if (confService == null) {
+			confService = new DSpace().getConfigurationService();
+		}
+    	return confService;
+    }
     
     public String getMetadataFieldName(Locale locale) {
         return getAuthorityPrefix()+ getMetadataFieldTitle() + locale==null?"":locale.getLanguage();

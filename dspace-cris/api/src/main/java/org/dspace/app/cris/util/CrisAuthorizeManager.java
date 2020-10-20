@@ -10,25 +10,29 @@ import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.content.RootObject;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.services.ConfigurationService;
+import org.dspace.utils.DSpace;
 
 import it.cilea.osd.jdyna.model.AuthorizationContext;
 import it.cilea.osd.jdyna.model.PropertiesDefinition;
 import it.cilea.osd.jdyna.web.ITabService;
+import it.cilea.osd.jdyna.web.AbstractEditTab;
 
 public class CrisAuthorizeManager
 {
+	static ConfigurationService confService = new DSpace().getConfigurationService();
 
     public static <A extends AuthorizationContext, T extends ACrisObject, PD extends PropertiesDefinition> boolean authorize(
             Context context, ITabService applicationService, Class<T> clazz, Class<PD> classPD,
             Integer id, A authorizedObject) throws SQLException
     {
         Integer visibility = authorizedObject.getVisibility();
-        if (VisibilityTabConstant.HIGH.equals(visibility))
+        if (!(authorizedObject instanceof AbstractEditTab) 
+        		&& VisibilityTabConstant.HIGH.equals(visibility))
         {
             return true;
         }
@@ -43,43 +47,31 @@ public class CrisAuthorizeManager
         {
             throw new RuntimeException(e);
         }
-
+        
+        // check admin authorization
+        if (isAdmin(context, object) && !VisibilityTabConstant.LOW.equals(visibility))
+        {
+        	// admin can see everything except what is reserved to the object owner (LOW)
+        	return true;
+        }
+        
         EPerson currUser = context.getCurrentUser();
 
-        if (visibility != VisibilityTabConstant.POLICY)
+        boolean isOwner = false;
+        
+        if (currUser != null)
         {
-            boolean isOwner = false;
-
-            if (currUser != null)
-            {
-                isOwner = object.isOwner(currUser);
-            }
-
-            // check admin authorization
-            if (AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context))
-            {
-                if (VisibilityTabConstant.ADMIN.equals(visibility)
-                        || VisibilityTabConstant.STANDARD.equals(visibility))
-                {
-                    return true;
-                }
-                if (isOwner)
-                {
-                    return true;
-                }
-                return false;
-            }
-            if (VisibilityTabConstant.LOW.equals(visibility)
-                    || VisibilityTabConstant.STANDARD.equals(visibility))
-            {
-                if (isOwner)
-                {
-                    return true;
-                }
-            }
-
+        	isOwner = object.isOwner(currUser);
+        }
+        
+        if (visibility == VisibilityTabConstant.LOW || visibility == VisibilityTabConstant.STANDARD
+        		|| visibility == VisibilityTabConstant.HIGH) {
+        	// if visibility is standard the admin case has been already checked on line 49
+        	// visibility == HIGH here only for edit tab, it is assumed to be "standard" as nobody want public edit
+        	return isOwner;
         }
 
+        // last case... policy
         if (currUser != null)
         {
             List<PD> listPolicySingle = authorizedObject
@@ -133,7 +125,6 @@ public class CrisAuthorizeManager
         return result;
     }
 
-    
     public static <T extends RootObject> boolean isAdmin(
             Context context, T crisObject) throws SQLException 
     {
@@ -145,7 +136,7 @@ public class CrisAuthorizeManager
 
         String crisObjectTypeText = crisObject.getTypeText();
         EPerson currUser = context.getCurrentUser();        
-        String groupName = ConfigurationManager.getProperty("cris", "admin" + crisObjectTypeText);
+        String groupName = confService.getProperty("cris." + crisObjectTypeText + ".admin");
         if(StringUtils.isBlank(groupName)) {
             groupName = "Administrator "+crisObjectTypeText;
         }
@@ -167,4 +158,29 @@ public class CrisAuthorizeManager
         }
         return false;
     }
+    
+    public static <T extends ACrisObject> boolean canEdit(
+            Context context, ITabService as, Class<? extends AbstractEditTab> classT, T crisObject) throws SQLException 
+    {
+        EPerson currUser = context.getCurrentUser();
+        if(currUser==null) 
+        {
+            return false;
+        }
+
+        // check admin authorization
+        if (isAdmin(context, crisObject))
+        {
+            return true;
+        }
+
+        List<? extends AbstractEditTab> list = as.getList(classT);
+		for (AbstractEditTab t : list) {
+        	if(CrisAuthorizeManager.authorize(context, as, crisObject.getCRISTargetClass(), crisObject.getClassPropertiesDefinition(), crisObject.getId(), t)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
 }
