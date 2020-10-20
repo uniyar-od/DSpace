@@ -50,6 +50,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
@@ -87,6 +88,10 @@ public class ResearcherPageDetailsController
 
     private CrisSubscribeService subscribeService;
     
+    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    
+    private ConfigurationService configurationService = new DSpace().getConfigurationService();
+    
     private List<ICrisHomeProcessor<ResearcherPage>> processors;
     
     public void setSubscribeService(CrisSubscribeService rpSubscribeService)
@@ -113,6 +118,7 @@ public class ResearcherPageDetailsController
         EPerson currUser = context.getCurrentUser();
         
         model.put("selfClaimRP", new Boolean(false));
+        model.put("publicationSelfClaimRP", new Boolean(false));
         if(currUser != null) {
             model.put("isLoggedIn", new Boolean(true));
             ResearcherPage rp = ((ApplicationService) applicationService).getResearcherPageByEPersonId(currUser.getID());
@@ -136,6 +142,19 @@ public class ResearcherPageDetailsController
                     }
                 }
             }
+            String nameGroupPublicationSelfClaim = configurationService.getProperty("cris.publication.claim.group.name");
+            if (StringUtils.isNotBlank(nameGroupPublicationSelfClaim))
+            {
+                Group selfClaimGroup = groupService.findByName(context,
+                		nameGroupPublicationSelfClaim);
+                if (selfClaimGroup != null)
+                {
+                    if (groupService.isMember(context, selfClaimGroup))
+                    {
+                        model.put("publicationSelfClaimRP", new Boolean(true));
+                    }
+                }
+            }
         }
         else {
             model.put("isLoggedIn", new Boolean(false));
@@ -152,16 +171,10 @@ public class ResearcherPageDetailsController
             model.put("authority_key",
                     ResearcherPageUtils.getPersistentIdentifier(researcher));
 
-            if (isAdmin)
-            {
-                AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
-                long pendingItems = dao
-                        .countIssuedItemsByAuthorityValueInAuthority(
-                                RPAuthority.RP_AUTHORITY_NAME,
-                                ResearcherPageUtils
-                                        .getPersistentIdentifier(researcher));
-                model.put("pendingItems", new Long(pendingItems));
-            }
+            AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
+			long pendingItems = dao.countIssuedItemsByAuthorityValueInAuthority(RPAuthority.RP_AUTHORITY_NAME,
+					ResearcherPageUtils.getPersistentIdentifier(researcher));
+			model.put("pendingItems", new Long(pendingItems));
         }
         
         else if ((researcher.getStatus() == null || researcher.getStatus()

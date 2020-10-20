@@ -330,6 +330,9 @@
 									<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}"><i class="fa fa-search"></i> <fmt:message key="jsp.layout.navbar-hku.staff-mode.bind.items"/></a>
 								</li>
 							</c:if>
+							<li>
+								<a href="${root}/cris/tools/rp/rebindItemsToRP.htm?id=${researcher.id}&operation=list"><i class="fa fa-search"></i> <fmt:message key="jsp.authority-claim.choice.list.items"/></a>
+							</li>	
 						</ul>
 					</span>
 					
@@ -370,7 +373,7 @@
 		</p>
 	</c:if>
 
-	<c:if test="${pendingItems > 0}">
+	<c:if test="${pendingItems > 0 && publicationSelfClaimRP}">
 		<p class="warning pending">
 			<fmt:message
 				key="jsp.layout.hku.detail.researcher-pending-items">
@@ -388,7 +391,7 @@
 	<c:if test="${not empty messages}">
 	<div class="message" id="successMessages">
 		<c:forEach var="msg" items="${messages}">
-				<div id="authority-message">${msg}</div>
+				<div id="authority-message alert alert-info">${msg}</div>
 		</c:forEach>
 	</div>
 	<c:remove var="messages" scope="session" />
