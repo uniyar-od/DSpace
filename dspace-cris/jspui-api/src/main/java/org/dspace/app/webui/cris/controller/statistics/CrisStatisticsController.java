@@ -269,9 +269,7 @@ public class CrisStatisticsController<T extends ACrisObject<P, TP, NP, NTP, ACNO
     @Override
     public String getId(HttpServletRequest request)
     {
-        String uuid = request.getParameter("id");
-        return String.valueOf(getApplicationService().getEntityByUUID(uuid)
-                .getId());
+        return request.getParameter("id");
     }
 
     @Override

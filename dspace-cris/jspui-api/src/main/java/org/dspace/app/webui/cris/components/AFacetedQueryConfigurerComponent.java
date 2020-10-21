@@ -149,7 +149,7 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpace
             if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
             	discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                         DiscoveryConfigurationParameters.TYPE_TEXT, facet.getFacetLimit(), facet
-                        .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_",false));
+                        .getSortOrder(), context != null ? I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() : I18nUtil.getDefaultLocale().getLanguage() + "_",false));
 			} else {
 				discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                     facet.getType(), facet.getFacetLimit(), facet.getSortOrder(), false));

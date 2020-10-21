@@ -38,7 +38,7 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
         StatsComponent<T>
 {
 
-	private static final String QUERY_COMMON = "'''{'''!join from={0} to=search.uniqueid fromIndex={2}'''}'''{1} AND -withdrawn:true";
+	private static final String QUERY_COMMON = "'''{'''!join from={0} to=search.uniqueid fromIndex={2}'''}'''({1}) AND -withdrawn:true";
 	private static final String QUERY_GLOBAL = "'''{'''!join from={0} to=search.uniqueid fromIndex={1}'''}'''-withdrawn:true";
 
     private String fromField;
@@ -99,11 +99,6 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
             throw new Exception("Object Id not valid");
         }
         return statisticDatasBeans;
-    }
-
-    protected String getObjectId(String id)
-    {
-        return id;
     }
 
     @Override

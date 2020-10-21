@@ -693,4 +693,13 @@ return decorator.generateDisplayValue(alternativeName, rp);
             ro.removeProprieta(remove);
         }
     }
+    
+    public static <T extends ACrisObject> String getCRISIdBysUUID(String uuid, Class<T> clazz) {
+        T obj = applicationService.getEntityByUUID(uuid, clazz);
+        if(obj!=null) {
+            return obj.getCrisID();
+        }
+        return null;
+    }
+    
 }
