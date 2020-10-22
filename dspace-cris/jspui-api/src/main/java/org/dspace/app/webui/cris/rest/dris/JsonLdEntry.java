@@ -38,6 +38,48 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 	private String organization = "";
 	private String country = "";
 	private List<String> coverages;
+	private String description=""; 
+	private String established="";
+	private String crisDataSupply=""; 
+	private String crisDataValidation="";
+	private String crisDataOutput="";
+	private String startDate="";
+	private String numberUsers="";
+	private String numberDBRequest="";
+	private String cerifCompatibility="";
+	private String cerifVersion="";
+	private String institutionalRepository="";
+	private String providerDepartment="";
+	private String providerContact="";
+	private String responsibleDataSupply="";
+	private String responsibleDataValidation="";
+	private String responsibleDataOutput="";
+	private String ictSupport="";
+	private String numberResearchers="";
+	private String publication="";
+	private String repname="";
+	private String repurl="";
+	private String repscope="";
+	private String repinstscope="";
+	private String repoa="";
+	private String repsoftware="";
+	private String repcoverage="";
+	private List<String> repmedia;
+	private List<String> repmetadata;
+	private String repDataSupply="";
+	private String repDataValidation="";
+	private String repictSupport="";
+	private String repnumberUsers="";
+	private String repnumberDBRequest="";
+	private String repproviderContact="";
+	private String fulltext="";
+	private String repositoryLink="";
+	private String repproviderOrgUnit="";
+	private List<String> linksExternalSystem;
+	private List<String> linksInternalSystem;
+	private String providerContactInfo="";
+	private String latitudelongitude="";
+
 	private Map<String,String> metadata = new HashMap<>();
 	
 	@JsonldIn
@@ -75,7 +117,213 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		if(StringUtils.isNotBlank(uri)) {
 		    jldItem.setUri(StringUtils.trimToEmpty(uri));
 		}
+
+		String description = (String)(solrDoc.getFirstValue("crisdris.drisdescription"));
+		if(StringUtils.isNotBlank(description)) {
+		    jldItem.setDescription(StringUtils.trimToEmpty(description));
+		}
 		
+		String established = (String)(solrDoc.getFirstValue("crisdris.drisestablished"));
+		if(StringUtils.isNotBlank(established)) {
+		    jldItem.setDescription(StringUtils.trimToEmpty(established));
+		}
+		
+		String repscope = (String)(solrDoc.getFirstValue("crisdris.drisrepscope_authority"));
+		if(StringUtils.isNotBlank(repscope)) {
+			jldItem.setRepscope(DrisUtils.buildMiniVocabScopeIdLink(repscope));
+			jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, repscope, DrisUtils.buildVocabScopeIdLink(repscope)));
+		}
+		String repintscope = (String)(solrDoc.getFirstValue("crisdris.drisrepintscope_authority"));
+		if(StringUtils.isNotBlank(repintscope)) {
+			jldItem.setRepscope(DrisUtils.buildMiniVocabScopeIdLink(repintscope));
+			jldItem.getIncluded().add(DrisUtils.buildVocabsIncluded(service, repintscope, DrisUtils.buildVocabScopeIdLink(repintscope)));
+		}
+				
+		
+		String crisDataSupply = (String)(solrDoc.getFirstValue("crisdris.driscrisDataSupply"));
+		if(StringUtils.isNotBlank(crisDataSupply)) {
+			jldItem.setCrisDataSupply(StringUtils.trimToEmpty(crisDataSupply));
+		}
+		String crisDataValidation = (String)(solrDoc.getFirstValue("crisdris.driscrisDataValidation"));
+		if(StringUtils.isNotBlank(crisDataValidation)) {
+			jldItem.setCrisDataValidation(StringUtils.trimToEmpty(crisDataValidation));
+		}
+		String crisDataOutput = (String)(solrDoc.getFirstValue("crisdris.driscrisDataOutput"));
+		if(StringUtils.isNotBlank(crisDataOutput)) {
+			jldItem.setCrisDataOutput(StringUtils.trimToEmpty(crisDataOutput));
+		}
+		String startDate = (String)(solrDoc.getFirstValue("crisdris.drisstartDate"));
+		if(StringUtils.isNotBlank(startDate)) {
+			jldItem.setStartDate(StringUtils.trimToEmpty(startDate));
+		}
+		String numberUsers = (String)(solrDoc.getFirstValue("crisdris.drisnumberUsers"));
+		if(StringUtils.isNotBlank(numberUsers)) {
+			jldItem.setNumberUsers(StringUtils.trimToEmpty(numberUsers));
+		}
+		String numberDBRequest = (String)(solrDoc.getFirstValue("crisdris.drisnumberDBRequest"));
+		if(StringUtils.isNotBlank(numberDBRequest)) {
+			jldItem.setNumberDBRequest(StringUtils.trimToEmpty(numberDBRequest));
+		}
+		String cerifCompatibility = (String)(solrDoc.getFirstValue("crisdris.driscerifCompatibility"));
+		if(StringUtils.isNotBlank(cerifCompatibility)) {
+			jldItem.setCerifCompatibility(StringUtils.trimToEmpty(cerifCompatibility));
+		}
+		String cerifVersion = (String)(solrDoc.getFirstValue("crisdris.driscerifVersion"));
+		if(StringUtils.isNotBlank(cerifVersion)) {
+			jldItem.setCerifVersion(StringUtils.trimToEmpty(cerifVersion));
+		}
+		String institutionalRepository = (String)(solrDoc.getFirstValue("crisdris.drisinstitutionalRepository"));
+		if(StringUtils.isNotBlank(institutionalRepository)) {
+			jldItem.setInstitutionalRepository(StringUtils.trimToEmpty(institutionalRepository));
+		}
+		String providerDepartment = (String)(solrDoc.getFirstValue("crisdris.drisproviderDepartment"));
+		if(StringUtils.isNotBlank(providerDepartment)) {
+			jldItem.setProviderDepartment(StringUtils.trimToEmpty(providerDepartment));
+		}
+		String providerContact = (String)(solrDoc.getFirstValue("crisdris.drisproviderContact"));
+		if(StringUtils.isNotBlank(providerContact)) {
+			jldItem.setProviderContact(StringUtils.trimToEmpty(providerContact));
+		}
+		String responsibleDataSupply = (String)(solrDoc.getFirstValue("crisdris.drisresponsibleDataSupply"));
+		if(StringUtils.isNotBlank(responsibleDataSupply)) {
+			jldItem.setResponsibleDataSupply(StringUtils.trimToEmpty(responsibleDataSupply));
+		}
+		String responsibleDataValidation = (String)(solrDoc.getFirstValue("crisdris.drisresponsibleDataValidation"));
+		if(StringUtils.isNotBlank(responsibleDataValidation)) {
+			jldItem.setResponsibleDataValidation(StringUtils.trimToEmpty(responsibleDataValidation));
+		}
+		String responsibleDataOutput = (String)(solrDoc.getFirstValue("crisdris.drisresponsibleDataOutput"));
+		if(StringUtils.isNotBlank(responsibleDataOutput)) {
+			jldItem.setResponsibleDataOutput(StringUtils.trimToEmpty(responsibleDataOutput));
+		}
+		String ictSupport = (String)(solrDoc.getFirstValue("crisdris.drisictSupport"));
+		if(StringUtils.isNotBlank(ictSupport)) {
+			jldItem.setIctSupport(StringUtils.trimToEmpty(ictSupport));
+		}
+		String numberResearchers = (String)(solrDoc.getFirstValue("crisdris.drisnumberResearchers"));
+		if(StringUtils.isNotBlank(numberResearchers)) {
+			jldItem.setNumberResearchers(StringUtils.trimToEmpty(numberResearchers));
+		}
+		String publication = (String)(solrDoc.getFirstValue("crisdris.drispublication"));
+		if(StringUtils.isNotBlank(publication)) {
+			jldItem.setPublication(StringUtils.trimToEmpty(publication));
+		}
+		String repname = (String)(solrDoc.getFirstValue("crisdris.drisrepname"));
+		if(StringUtils.isNotBlank(repname)) {
+			jldItem.setRepname(StringUtils.trimToEmpty(repname));
+		}
+		String repurl = (String)(solrDoc.getFirstValue("crisdris.drisrepurl"));
+		if(StringUtils.isNotBlank(repurl)) {
+			jldItem.setRepurl(StringUtils.trimToEmpty(repurl));
+		}
+
+		String repoa = (String)(solrDoc.getFirstValue("crisdris.drisrepoa"));
+		if(StringUtils.isNotBlank(repoa)) {
+			jldItem.setRepoa(StringUtils.trimToEmpty(repoa));
+		}
+		String repsoftware = (String)(solrDoc.getFirstValue("crisdris.drisrepsoftware"));
+		if(StringUtils.isNotBlank(repsoftware)) {
+			jldItem.setRepsoftware(StringUtils.trimToEmpty(repsoftware));
+		}
+		String repcoverage = (String)(solrDoc.getFirstValue("crisdris.drisrepcoverage"));
+		if(StringUtils.isNotBlank(repcoverage)) {
+			jldItem.setRepcoverage(StringUtils.trimToEmpty(repcoverage));
+		}
+		String repDataSupply = (String)(solrDoc.getFirstValue("crisdris.drisrepDataSupply"));
+		if(StringUtils.isNotBlank(repDataSupply)) {
+			jldItem.setRepDataSupply(StringUtils.trimToEmpty(repDataSupply));
+		}
+		String repDataValidation = (String)(solrDoc.getFirstValue("crisdris.drisrepDataValidation"));
+		if(StringUtils.isNotBlank(repDataValidation)) {
+			jldItem.setRepDataValidation(StringUtils.trimToEmpty(repDataValidation));
+		}
+		String repictSupport = (String)(solrDoc.getFirstValue("crisdris.drisrepictSupport"));
+		if(StringUtils.isNotBlank(repictSupport)) {
+			jldItem.setRepictSupport(StringUtils.trimToEmpty(repictSupport));
+		}
+		String repnumberUsers = (String)(solrDoc.getFirstValue("crisdris.drisrepnumberUsers"));
+		if(StringUtils.isNotBlank(repnumberUsers)) {
+			jldItem.setRepnumberUsers(StringUtils.trimToEmpty(repnumberUsers));
+		}
+		String repnumberDBRequest = (String)(solrDoc.getFirstValue("crisdris.drisrepnumberDBRequest"));
+		if(StringUtils.isNotBlank(repnumberDBRequest)) {
+			jldItem.setRepnumberDBRequest(StringUtils.trimToEmpty(repnumberDBRequest));
+		}
+		String repproviderContact = (String)(solrDoc.getFirstValue("crisdris.drisrepproviderContact"));
+		if(StringUtils.isNotBlank(repproviderContact)) {
+			jldItem.setRepproviderContact(StringUtils.trimToEmpty(repproviderContact));
+		}
+		String fulltext = (String)(solrDoc.getFirstValue("crisdris.drisfulltext"));
+		if(StringUtils.isNotBlank(fulltext)) {
+			jldItem.setFulltext(StringUtils.trimToEmpty(fulltext));
+		}
+		String repositoryLink = (String)(solrDoc.getFirstValue("crisdris.drisrepositoryLink"));
+		if(StringUtils.isNotBlank(repositoryLink)) {
+			jldItem.setRepositoryLink(StringUtils.trimToEmpty(repositoryLink));
+		}
+		String repproviderOrgUnit = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisrepproviderOrgUnit_authority"));
+		if(StringUtils.isNotBlank(repproviderOrgUnit)) {
+		    jldItem.setOrganization(DrisUtils.buildMiniOrgUnitIdLink(repproviderOrgUnit));
+		    jldItem.getIncluded().add(DrisUtils.buildOrgUnitIncluded(service, repproviderOrgUnit, DrisUtils.buildOrgunitIdLink(repproviderOrgUnit)));
+		}
+
+		String providerContactInfo = (String)(solrDoc.getFirstValue("crisdris.drisproviderContactInfo"));
+		if(StringUtils.isNotBlank(providerContactInfo)) {
+			jldItem.setProviderContactInfo(StringUtils.trimToEmpty(providerContactInfo));
+		}
+		String latitudelongitude = (String)(solrDoc.getFirstValue("crisdris.drislatitudelongitude"));
+		if(StringUtils.isNotBlank(latitudelongitude)) {
+			jldItem.setLatitudelongitude(StringUtils.trimToEmpty(latitudelongitude));
+		}
+		
+		Collection<Object> repmedia = (Collection<Object>)solrDoc.getFieldValues("crisdris.drisrepmedia");
+        if (repmedia != null)
+        {
+            for (Object media : repmedia)
+            {
+            	String mediaString = (String) media;
+                if(StringUtils.isNotBlank(mediaString)) {
+                	jldItem.getRepmedia().add(mediaString);
+                }
+            }
+        }
+
+		Collection<Object> repMetadata = (Collection<Object>)solrDoc.getFieldValues("crisdris.drisrepmetadata");
+        if (repMetadata != null)
+        {
+            for (Object meta : repMetadata)
+            {
+            	String metaString = (String) meta;
+                if(StringUtils.isNotBlank(metaString)) {
+                	jldItem.getRepmedia().add(metaString);
+                }
+            }
+        }
+        
+		Collection<Object> linksExternalSystem = (Collection<Object>)solrDoc.getFieldValues("crisdris.drislinksexternalsystem");
+        if (linksExternalSystem != null)
+        {
+            for (Object link : linksExternalSystem)
+            {
+            	String linkString = (String) link;
+                if(StringUtils.isNotBlank(linkString)) {
+                	jldItem.getLinksExternalSystem().add(linkString);
+                }
+            }
+        }
+		Collection<Object> linksInternalSystem = (Collection<Object>)solrDoc.getFieldValues("crisdris.drislinksinternalsystem");
+        if (linksInternalSystem != null)
+        {
+            for (Object link : linksInternalSystem)
+            {
+            	String linkString = (String) link;
+                if(StringUtils.isNotBlank(linkString)) {
+                	jldItem.getLinksInternalSystem().add(linkString);
+                }
+            }
+        }
+
+
 		String crisPlatform = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drissoftware_authority"));
 		if(StringUtils.isNotBlank(crisPlatform)) {
 		    jldItem.setCrisPlatform(DrisUtils.buildMiniVocabPlatformIdLink(crisPlatform));
@@ -112,6 +360,8 @@ public class JsonLdEntry extends AbstractJsonLdResult {
                 }
             }
         }
+        
+        
 		
         Map<String,String> metadata = new HashMap<>();
 		Date creationdate = (Date)solrDoc.getFirstValue("crisdris.time_creation_dt");
@@ -238,5 +488,342 @@ public class JsonLdEntry extends AbstractJsonLdResult {
         this.included = included;
     }
 
+	public String getContext() {
+		return context;
+	}
+
+	public void setContext(String context) {
+		this.context = context;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getEstablished() {
+		return established;
+	}
+
+	public void setEstablished(String established) {
+		this.established = established;
+	}
+
+	public String getCrisDataSupply() {
+		return crisDataSupply;
+	}
+
+	public void setCrisDataSupply(String crisDataSupply) {
+		this.crisDataSupply = crisDataSupply;
+	}
+
+	public String getCrisDataValidation() {
+		return crisDataValidation;
+	}
+
+	public void setCrisDataValidation(String crisDataValidation) {
+		this.crisDataValidation = crisDataValidation;
+	}
+
+	public String getCrisDataOutput() {
+		return crisDataOutput;
+	}
+
+	public void setCrisDataOutput(String crisDataOutput) {
+		this.crisDataOutput = crisDataOutput;
+	}
+
+	public String getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(String startDate) {
+		this.startDate = startDate;
+	}
+
+	public String getNumberUsers() {
+		return numberUsers;
+	}
+
+	public void setNumberUsers(String numberUsers) {
+		this.numberUsers = numberUsers;
+	}
+
+	public String getNumberDBRequest() {
+		return numberDBRequest;
+	}
+
+	public void setNumberDBRequest(String numberDBRequest) {
+		this.numberDBRequest = numberDBRequest;
+	}
+
+	public String getCerifCompatibility() {
+		return cerifCompatibility;
+	}
+
+	public void setCerifCompatibility(String cerifCompatibility) {
+		this.cerifCompatibility = cerifCompatibility;
+	}
+
+	public String getCerifVersion() {
+		return cerifVersion;
+	}
+
+	public void setCerifVersion(String cerifVersion) {
+		this.cerifVersion = cerifVersion;
+	}
+
+	public String getInstitutionalRepository() {
+		return institutionalRepository;
+	}
+
+	public void setInstitutionalRepository(String institutionalRepository) {
+		this.institutionalRepository = institutionalRepository;
+	}
+
+
+	public String getProviderDepartment() {
+		return providerDepartment;
+	}
+
+	public void setProviderDepartment(String providerDepartment) {
+		this.providerDepartment = providerDepartment;
+	}
+
+	public String getProviderContact() {
+		return providerContact;
+	}
+
+	public void setProviderContact(String providerContact) {
+		this.providerContact = providerContact;
+	}
+
+	public String getResponsibleDataSupply() {
+		return responsibleDataSupply;
+	}
+
+	public void setResponsibleDataSupply(String responsibleDataSupply) {
+		this.responsibleDataSupply = responsibleDataSupply;
+	}
+
+	public String getResponsibleDataValidation() {
+		return responsibleDataValidation;
+	}
+
+	public void setResponsibleDataValidation(String responsibleDataValidation) {
+		this.responsibleDataValidation = responsibleDataValidation;
+	}
+
+	public String getResponsibleDataOutput() {
+		return responsibleDataOutput;
+	}
+
+	public void setResponsibleDataOutput(String responsibleDataOutput) {
+		this.responsibleDataOutput = responsibleDataOutput;
+	}
+
+	public String getIctSupport() {
+		return ictSupport;
+	}
+
+	public void setIctSupport(String ictSupport) {
+		this.ictSupport = ictSupport;
+	}
+
+
+	public String getNumberResearchers() {
+		return numberResearchers;
+	}
+
+	public void setNumberResearchers(String numberResearchers) {
+		this.numberResearchers = numberResearchers;
+	}
+
+	public String getPublication() {
+		return publication;
+	}
+
+	public void setPublication(String publication) {
+		this.publication = publication;
+	}
+
+	public String getRepname() {
+		return repname;
+	}
+
+	public void setRepname(String repname) {
+		this.repname = repname;
+	}
+
+	public String getRepurl() {
+		return repurl;
+	}
+
+	public void setRepurl(String repurl) {
+		this.repurl = repurl;
+	}
+
+	public String getRepscope() {
+		return repscope;
+	}
+
+	public void setRepscope(String repscope) {
+		this.repscope = repscope;
+	}
+
+	public String getRepinstscope() {
+		return repinstscope;
+	}
+
+	public void setRepinstscope(String repinstscope) {
+		this.repinstscope = repinstscope;
+	}
+
+	public String getRepoa() {
+		return repoa;
+	}
+
+	public void setRepoa(String repoa) {
+		this.repoa = repoa;
+	}
+
+	public String getRepsoftware() {
+		return repsoftware;
+	}
+
+	public void setRepsoftware(String repsoftware) {
+		this.repsoftware = repsoftware;
+	}
+
+	public String getRepcoverage() {
+		return repcoverage;
+	}
+
+	public void setRepcoverage(String repcoverage) {
+		this.repcoverage = repcoverage;
+	}
+
+	public List<String> getRepmedia() {
+		return repmedia;
+	}
+
+	public void setRepmedia(List<String> repmedia) {
+		this.repmedia = repmedia;
+	}
+
+	public List<String> getRepmetadata() {
+		return repmetadata;
+	}
+
+	public void setRepmetadata(List<String> repmetadata) {
+		this.repmetadata = repmetadata;
+	}
+
+	public String getRepDataSupply() {
+		return repDataSupply;
+	}
+
+	public void setRepDataSupply(String repDataSupply) {
+		this.repDataSupply = repDataSupply;
+	}
+
+	public String getRepDataValidation() {
+		return repDataValidation;
+	}
+
+	public void setRepDataValidation(String repDataValidation) {
+		this.repDataValidation = repDataValidation;
+	}
+
+	public String getRepictSupport() {
+		return repictSupport;
+	}
+
+	public void setRepictSupport(String repictSupport) {
+		this.repictSupport = repictSupport;
+	}
+
+	public String getRepnumberUsers() {
+		return repnumberUsers;
+	}
+
+	public void setRepnumberUsers(String repnumberUsers) {
+		this.repnumberUsers = repnumberUsers;
+	}
+
+	public String getRepnumberDBRequest() {
+		return repnumberDBRequest;
+	}
+
+	public void setRepnumberDBRequest(String repnumberDBRequest) {
+		this.repnumberDBRequest = repnumberDBRequest;
+	}
+
+	public String getRepproviderContact() {
+		return repproviderContact;
+	}
+
+	public void setRepproviderContact(String repproviderContact) {
+		this.repproviderContact = repproviderContact;
+	}
+
+	public String getFulltext() {
+		return fulltext;
+	}
+
+	public void setFulltext(String fulltext) {
+		this.fulltext = fulltext;
+	}
+
+	public String getRepositoryLink() {
+		return repositoryLink;
+	}
+
+	public void setRepositoryLink(String repositoryLink) {
+		this.repositoryLink = repositoryLink;
+	}
+
+	public String getRepproviderOrgUnit() {
+		return repproviderOrgUnit;
+	}
+
+	public void setRepproviderOrgUnit(String repproviderOrgUnit) {
+		this.repproviderOrgUnit = repproviderOrgUnit;
+	}
+
+	public List<String> getLinksExternalSystem() {
+		return linksExternalSystem;
+	}
+
+	public void setLinksExternalSystem(List<String> linksExternalSystem) {
+		this.linksExternalSystem = linksExternalSystem;
+	}
+
+	public List<String> getLinksInternalSystem() {
+		return linksInternalSystem;
+	}
+
+	public void setLinksInternalSystem(List<String> linksInternalSystem) {
+		this.linksInternalSystem = linksInternalSystem;
+	}
+
+	public String getProviderContactInfo() {
+		return providerContactInfo;
+	}
+
+	public void setProviderContactInfo(String providerContactInfo) {
+		this.providerContactInfo = providerContactInfo;
+	}
+
+	public String getLatitudelongitude() {
+		return latitudelongitude;
+	}
+
+	public void setLatitudelongitude(String latitudelongitude) {
+		this.latitudelongitude = latitudelongitude;
+	}
 
 }
