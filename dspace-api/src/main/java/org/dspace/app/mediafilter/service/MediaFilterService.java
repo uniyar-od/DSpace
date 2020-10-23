@@ -45,7 +45,7 @@ public interface MediaFilterService {
 
 
     /**
-     * Iterate through the item's bitstreams in the ORIGINAL bundle, applying
+     * Iterate through the item's bitstreams in the bundles specified inside filter.bundles, applying
      * filters if possible.
      *
      * @param context context

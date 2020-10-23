@@ -192,8 +192,12 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     @Override
     public boolean filterItem(Context context, Item myItem) throws Exception
     {
-        // get 'original' bundles
-        List<Bundle> myBundles = itemService.getBundles(myItem, "ORIGINAL");
+        // get the bundles
+        List<Bundle> myBundles = new ArrayList<Bundle>();
+        String[] bundles = configurationService.getArrayProperty(FILTER_PREFIX + ".bundles", new String[]{"ORIGINAL"});
+        for (String bundle : bundles) {
+        	myBundles.addAll(itemService.getBundles(myItem, bundle));
+		}
         boolean done = false;
         for (Bundle myBundle : myBundles) {
             // now look at all of the bitstreams
