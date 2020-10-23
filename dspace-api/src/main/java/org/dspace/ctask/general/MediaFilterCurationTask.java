@@ -11,23 +11,42 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.mediafilter.FormatFilter;
+import org.dspace.app.mediafilter.MediaFilterCLITool;
 import org.dspace.app.mediafilter.factory.MediaFilterServiceFactory;
+import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.curate.AbstractCurationTask;
 import org.dspace.curate.Curator;
 import org.dspace.curate.Distributive;
+import org.dspace.services.factory.DSpaceServicesFactory;
 
 @Distributive
 public class MediaFilterCurationTask extends AbstractCurationTask {
 
 	protected Logger log = Logger.getLogger(MediaFilterCurationTask.class);
 
+	MediaFilterService filterService;
+	
 	@Override
 	public void init(Curator curator, String taskId) throws IOException {
+		
+		String[] filterNames = DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(MediaFilterCLITool.MEDIA_FILTER_PLUGINS_KEY);
+		filterService =  MediaFilterServiceFactory.getInstance().getMediaFilterService();
+		filterService.setFilterClasses(new ArrayList<FormatFilter>());
+		filterService.setFilterFormats(new HashMap<String, List<String>>());
+		
+		for (String name : filterNames) {
+			filterService.retrievePlugin(name);
+		}
+		
 		super.init(curator, taskId);
 	}
 	
@@ -46,7 +65,9 @@ public class MediaFilterCurationTask extends AbstractCurationTask {
 		try {
 			PrintStream out = System.out;
 			System.setOut(ps);
-			MediaFilterServiceFactory.getInstance().getMediaFilterService().applyFiltersItem(context, item);
+			
+			filterService.applyFiltersItem(context, item);
+			
 			System.out.flush();
 			System.setOut(out);
 		} catch (Exception e) {
