@@ -742,17 +742,17 @@ public class BrowseListTag extends TagSupport
                     else {
 	                    if (qualifier.equals("*"))
 	                    {
-	                        metadataArray = items[i].getMetadataWithoutPlaceholder(schema, element,
+	                        metadataArray = items[i].getMetadata(schema, element,
 	                                Item.ANY, Item.ANY);
 	                    }
 	                    else if (qualifier.equals(""))
 	                    {
-	                        metadataArray = items[i].getMetadataWithoutPlaceholder(schema, element,
+	                        metadataArray = items[i].getMetadata(schema, element,
 	                                null, Item.ANY);
 	                    }
 	                    else
 	                    {
-	                        metadataArray = items[i].getMetadataWithoutPlaceholder(schema, element,
+	                        metadataArray = items[i].getMetadata(schema, element,
 	                                qualifier, Item.ANY);
 	                    }
                     }
