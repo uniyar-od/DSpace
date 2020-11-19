@@ -24,6 +24,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.storage.bitstore.BitstreamStorageManager;
+import org.dspace.utils.DSpace;
 
 import edu.sdsc.grid.io.FileFactory;
 import edu.sdsc.grid.io.GeneralFile;
@@ -35,7 +36,9 @@ public class DTOImpRecord
     
     private static final Logger log = Logger.getLogger(DTOImpRecord.class);
     
-    private static int incoming = ConfigurationManager.getIntProperty("assetstore.incoming");
+    private static BitstreamStorageManager bitstreamStorageManager;
+
+    private static int incoming = getBitstreamStorageManager().getIncoming();
     private static String sAssetstoreDir = ConfigurationManager.getProperty("assetstore.dir");
 
     // These settings control the way an identifier is hashed into
@@ -633,6 +636,15 @@ public class DTOImpRecord
     {
         this.imp_sourceRef = imp_sourceRef;
     }
+
+    public static BitstreamStorageManager getBitstreamStorageManager() {
+		if (bitstreamStorageManager == null) {
+			bitstreamStorageManager = new DSpace().getServiceManager()
+					.getServiceByName(BitstreamStorageManager.class.getName(),
+							BitstreamStorageManager.class);
+		}
+		return bitstreamStorageManager;
+	}
 }
 
 
