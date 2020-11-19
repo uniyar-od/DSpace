@@ -29,9 +29,14 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.IGlobalSearchResult;
 import org.dspace.storage.bitstore.BitstreamStorageManager;
+import org.dspace.utils.DSpace;
 
 public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 {
+    private BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
+            .getServiceByName(BitstreamStorageManager.class.getName(),
+                    BitstreamStorageManager.class);
+
     /** Config value of thumbnail view toggle */
     private boolean showThumbs;
 
@@ -129,7 +134,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
         {
             Context c = UIUtil.obtainContext(hrq);
 
-            InputStream is = BitstreamStorageManager.retrieve(c, bitstream
+            InputStream is = bitstreamStorageManager.retrieve(c, bitstream
                     .getID());
 
             //AuthorizeManager.authorizeAction(bContext, this, Constants.READ);

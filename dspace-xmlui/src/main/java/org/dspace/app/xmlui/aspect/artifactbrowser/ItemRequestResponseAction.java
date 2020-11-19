@@ -50,6 +50,10 @@ public class ItemRequestResponseAction extends AbstractAction
 	/** log4j log */
     private static Logger log = Logger.getLogger(ItemRequestResponseAction.class);
 
+    private BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
+            .getServiceByName(BitstreamStorageManager.class.getName(),
+                    BitstreamStorageManager.class);
+
     public Map act(Redirector redirector, SourceResolver resolver, Map objectModel,
             String source, Parameters parameters) throws Exception
     {
@@ -190,13 +194,13 @@ public class ItemRequestResponseAction extends AbstractAction
                 Bitstream[] bitstreams = bundles[i].getBitstreams();
                 for (int k = 0; k < bitstreams.length; k++){
                     if (!bitstreams[k].getFormat().isInternal() /*&& RequestItemManager.isRestricted(context, bitstreams[k])*/){
-                        email.addAttachment(BitstreamStorageManager.retrieve(context, bitstreams[k].getID()), bitstreams[k].getName(), bitstreams[k].getFormat().getMIMEType());
+                        email.addAttachment(bitstreamStorageManager.retrieve(context, bitstreams[k].getID()), bitstreams[k].getName(), bitstreams[k].getFormat().getMIMEType());
                     }
                 }
             }
         } else {
             Bitstream bit = Bitstream.find(context,requestItem.getBitstreamId());
-            email.addAttachment(BitstreamStorageManager.retrieve(context, requestItem.getBitstreamId()), bit.getName(), bit.getFormat().getMIMEType());
+            email.addAttachment(bitstreamStorageManager.retrieve(context, requestItem.getBitstreamId()), bit.getName(), bit.getFormat().getMIMEType());
         }     
         
         email.send();

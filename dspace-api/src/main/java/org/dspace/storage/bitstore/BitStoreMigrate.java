@@ -15,6 +15,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
+import org.dspace.utils.DSpace;
 
 /**
  * Command Line Utility to migrate bitstreams from one assetstore to another
@@ -70,8 +71,12 @@ public class BitStoreMigrate {
             Context context = new Context();
             context.turnOffAuthorisationSystem();
 
+            BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
+                    .getServiceByName(BitstreamStorageManager.class.getName(),
+                            BitstreamStorageManager.class);
+
             if(line.hasOption('p')) {
-                BitstreamStorageManager.printStores(context);
+                bitstreamStorageManager.printStores(context);
                 System.exit(0);
             }
 
@@ -94,7 +99,7 @@ public class BitStoreMigrate {
                     batchCommitSize = Integer.parseInt(line.getOptionValue('s'));
                 }
 
-                BitstreamStorageManager.migrate(context, sourceAssetstore, destinationAssetstore, deleteOld, batchCommitSize);
+                bitstreamStorageManager.migrate(context, sourceAssetstore, destinationAssetstore, deleteOld, batchCommitSize);
             } else {
                 printHelp(options);
                 System.exit(0);

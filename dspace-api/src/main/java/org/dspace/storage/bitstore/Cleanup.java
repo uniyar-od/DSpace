@@ -15,6 +15,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 
 import org.apache.log4j.Logger;
+import org.dspace.utils.DSpace;
 
 /**
  * Cleans up asset store.
@@ -67,6 +68,10 @@ public class Cleanup
                 System.exit(0);
             }
 
+            BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
+                    .getServiceByName(BitstreamStorageManager.class.getName(),
+                            BitstreamStorageManager.class);
+
             boolean deleteDbRecords = true;
             // Prune stage
             if (line.hasOption('l'))
@@ -75,7 +80,7 @@ public class Cleanup
                 deleteDbRecords = false;    
             }
            	log.debug("leave db records = " + deleteDbRecords);
-            BitstreamStorageManager.cleanup(deleteDbRecords, line.hasOption('v'));
+            bitstreamStorageManager.cleanup(deleteDbRecords, line.hasOption('v'));
             
             System.exit(0);
         }

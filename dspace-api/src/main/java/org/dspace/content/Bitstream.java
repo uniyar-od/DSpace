@@ -25,6 +25,7 @@ import org.dspace.storage.bitstore.BitstreamStorageManager;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
+import org.dspace.utils.DSpace;
 
 /**
  * Class representing bitstreams stored in the DSpace system.
@@ -41,6 +42,9 @@ public class Bitstream extends DSpaceObject
     /** log4j logger */
     private static final Logger log = Logger.getLogger(Bitstream.class);
 
+
+    /** The bitstream storage manager */
+    private static BitstreamStorageManager bitstreamStorageManager;
 
     /** The row in the table representing this bitstream */
     private final TableRow bRow;
@@ -201,7 +205,7 @@ public class Bitstream extends DSpaceObject
             throws IOException, SQLException
     {
         // Store the bits
-        int bitstreamID = BitstreamStorageManager.store(context, is);
+        int bitstreamID = getBitstreamStorageManager().store(context, is);
 
         log.info(LogManager.getHeader(context, "create_bitstream",
                 "bitstream_id=" + bitstreamID));
@@ -235,7 +239,7 @@ public class Bitstream extends DSpaceObject
         	throws IOException, SQLException
     {
         // Store the bits
-        int bitstreamID = BitstreamStorageManager.register(
+        int bitstreamID = getBitstreamStorageManager().register(
         		context, assetstore, bitstreamPath, computeMD5);
 
         log.info(LogManager.getHeader(context,
@@ -585,7 +589,7 @@ public class Bitstream extends DSpaceObject
         // Maybe should return AuthorizeException??
         AuthorizeManager.authorizeAction(ourContext, this, Constants.READ);
 
-        return BitstreamStorageManager.retrieve(ourContext, bRow
+        return getBitstreamStorageManager().retrieve(ourContext, bRow
                 .getIntColumn("bitstream_id"));
     }
 
@@ -741,5 +745,14 @@ public class Bitstream extends DSpaceObject
     public void setMD5Value(String valueMD5) {
         bRow.setColumn("checksum", valueMD5);
         modified = true;
+    }
+
+    public static BitstreamStorageManager getBitstreamStorageManager() {
+        if (bitstreamStorageManager == null) {
+            bitstreamStorageManager = new DSpace().getServiceManager()
+                    .getServiceByName(BitstreamStorageManager.class.getName(),
+                            BitstreamStorageManager.class);
+        }
+        return bitstreamStorageManager;
     }
 }

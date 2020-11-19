@@ -58,35 +58,41 @@ public class BitstreamStorageManager
     private static Logger log = Logger.getLogger(BitstreamStorageManager.class);
 
     /** asset stores */
-    private static Map<Integer, BitStoreService> stores = new HashMap<Integer, BitStoreService>();
+    private Map<Integer, BitStoreService> stores = new HashMap<Integer, BitStoreService>();
 
     /** The index of the asset store to use for new bitstreams */
-    private static int incoming;
+    private int incoming;
 
-	/**
-	 * This prefix string marks registered bitstreams in internal_id
-	 */
-	private static final String REGISTERED_FLAG = "-R";
+    /**
+     * This prefix string marks registered bitstreams in internal_id
+     */
+    public static final String REGISTERED_FLAG = "-R";
 
-	/* Read in the asset stores from the config. */
-    static
-    {
+    public BitstreamStorageManager() {
         for(Map.Entry<Integer, BitStoreService> storeEntry : stores.entrySet()) {
             try {
-				storeEntry.getValue().init();
-			} catch (IOException e) {
-				log.error(e.getMessage(), e);
-			}
+                storeEntry.getValue().init();
+            } catch (IOException e) {
+                log.error(e.getMessage(), e);
+            }
         }
     }
 
-	public void setStores(Map<Integer, BitStoreService> stores) {
-		BitstreamStorageManager.stores = stores;
-	}
+    public int getIncoming() {
+        return incoming;
+    }
 
-	public void setIncoming(int incoming) {
-		BitstreamStorageManager.incoming = incoming;
-	}
+    public void setIncoming(int incoming) {
+        this.incoming = incoming;
+    }
+
+    public Map<Integer, BitStoreService> getStores() {
+        return stores;
+    }
+
+    public void setStores(Map<Integer, BitStoreService> stores) {
+        this.stores = stores;
+    }
 
     /**
      * Store a stream of bits.
@@ -125,7 +131,7 @@ public class BitstreamStorageManager
      * 
      * @return The ID of the stored bitstream
      */
-    public static int store(Context context, InputStream is)
+    public int store(Context context, InputStream is)
             throws SQLException, IOException
     {
         // Create internal ID
@@ -194,7 +200,7 @@ public class BitstreamStorageManager
 	 *                If a problem occurs accessing the RDBMS
 	 * @throws IOException
 	 */
-	public static int register(Context context, int assetstore,
+	public int register(Context context, int assetstore,
 				String bitstreamPath, boolean computeMD5) throws SQLException, IOException {
 
 		// mark this bitstream as a registered bitstream
@@ -270,7 +276,7 @@ public class BitstreamStorageManager
 		return internalId.startsWith(REGISTERED_FLAG);
 	}
 	
-    public static String absolutePath(Context context, int id)
+    public String absolutePath(Context context, int id)
             throws SQLException, IOException
     {
         TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
@@ -293,7 +299,7 @@ public class BitstreamStorageManager
      * 
      * @return The stream of bits, or null
      */
-    public static InputStream retrieve(Context context, int id)
+    public InputStream retrieve(Context context, int id)
             throws SQLException, IOException
     {
         TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
@@ -343,7 +349,7 @@ public class BitstreamStorageManager
      * @exception SQLException
      *                If a problem occurs accessing the RDBMS
      */
-    public static void cleanup(boolean deleteDbRecords, boolean verbose) throws SQLException, IOException
+    public void cleanup(boolean deleteDbRecords, boolean verbose) throws SQLException, IOException
     {
         Context context = null;
         BitstreamInfoDAO bitstreamInfoDAO = new BitstreamInfoDAO();
@@ -513,7 +519,7 @@ public class BitstreamStorageManager
         return (now - lastmod) < (1 * 60 * 1000);
     }
 
-    public static void printStores(Context context) {
+    public void printStores(Context context) {
         try {
             for(Integer storeNumber : stores.keySet()) {
                 String query = "select count(*) as mycount from Bitstream where store_number = ? ";
@@ -544,7 +550,7 @@ public class BitstreamStorageManager
      * @param assetstoreSource
      * @param assetstoreDestination
      */
-    public static void migrate(Context context, Integer assetstoreSource, Integer assetstoreDestination, boolean deleteOld, Integer batchCommitSize) throws IOException, SQLException {
+    public void migrate(Context context, Integer assetstoreSource, Integer assetstoreDestination, boolean deleteOld, Integer batchCommitSize) throws IOException, SQLException {
         //Find all the bitstreams on the old source, copy it to new destination, update store_number, save, remove old
         String myQuery = "select * from Bitstream where store_number = ?";
         Iterator<TableRow> allBitstreamsInSource = DatabaseManager.queryTable(context, "Bitstream", myQuery, assetstoreSource)

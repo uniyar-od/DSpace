@@ -46,6 +46,7 @@ import org.dspace.storage.bitstore.BitstreamStorageManager;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.usage.UsageEvent;
+import org.dspace.utils.DSpace;
 
 /**
  * @author Rostislav Novak (Computing and Information Centre, CTU in Prague)
@@ -57,6 +58,10 @@ public class BitstreamResource extends Resource
 {
 
     private static Logger log = Logger.getLogger(BitstreamResource.class);
+
+    private BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
+            .getServiceByName(BitstreamStorageManager.class.getName(),
+                    BitstreamStorageManager.class);
 
     /**
      * Return bitstream properties without file data. It can throw
@@ -548,7 +553,7 @@ public class BitstreamResource extends Resource
                     headers, request, context);
 
             log.trace("Creating new bitstream.");
-            int newBitstreamId = BitstreamStorageManager.store(context, is);
+            int newBitstreamId = bitstreamStorageManager.store(context, is);
 
             log.trace("Looking for table rows of bitstreams.");
             TableRow originalBitstreamRow = DatabaseManager.find(context, "Bitstream", bitstreamId);
