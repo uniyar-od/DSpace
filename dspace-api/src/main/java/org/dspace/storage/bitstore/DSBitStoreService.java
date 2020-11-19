@@ -33,9 +33,6 @@ public class DSBitStoreService extends ABitStoreService
     // Checksum algorithm
     private static final String CSA = "MD5";
 
-    /** the asset directory */
-    private File baseDir;
-
     public DSBitStoreService()
     {
     }
@@ -284,7 +281,7 @@ public class DSBitStoreService extends ABitStoreService
         String sInternalId = bitstream.getStringColumn("internal_id");
 
         StringBuilder bufFilename = new StringBuilder();
-        bufFilename.append(baseDir.getCanonicalFile());
+        bufFilename.append(getBaseDir().getCanonicalFile());
         bufFilename.append(File.separator);
         bufFilename.append(getRelativePath(sInternalId));
         if (log.isDebugEnabled()) {
@@ -294,16 +291,13 @@ public class DSBitStoreService extends ABitStoreService
         return new File(bufFilename.toString());
     }
 
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
-    }
-
     @Override
     public String path(TableRow bitstream) throws IOException {
         return getFile(bitstream).getAbsolutePath();
+    }
+
+    @Override
+    public String virtualPath(TableRow bitstream) throws IOException {
+        return path(bitstream);
     }
 }

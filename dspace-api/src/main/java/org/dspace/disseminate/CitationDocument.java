@@ -224,7 +224,7 @@ public class CitationDocument {
         
         }catch(Exception e){
         	log.error(e.getMessage(), e);
-    		filePath = bitstreamStorageManager.absolutePath(context, bitstream.getID());
+    		filePath = bitstreamStorageManager.virtualPath(context, bitstream.getID());
         }
         finally {
             sourceDocument.close();

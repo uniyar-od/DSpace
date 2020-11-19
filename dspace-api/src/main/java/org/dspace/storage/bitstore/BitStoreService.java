@@ -92,5 +92,24 @@ public interface BitStoreService
      */
     public void remove(TableRow bitstream) throws IOException;
 
+    /**
+     * Retrieve the fullpath for bitstream.
+     *
+     * @param bitstream
+     *            The bitstream row
+     * @exception java.io.IOException
+     *            If a problem occurs while retrieving the path
+     */
     public String path(TableRow bitstream) throws IOException;
+
+    /**
+     * Retrieve the virtual path for bitstream.
+     * The virtual path is used by filesystem dependent external APIs.
+     *
+     * @param bitstream
+     *            The bitstream row
+     * @exception java.io.IOException
+     *            If a problem occurs while retrieving the virtual path
+     */
+    public String virtualPath(TableRow bitstream) throws IOException;
 }

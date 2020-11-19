@@ -18,6 +18,7 @@
     </bean>
 
     <bean name="s3Store" class="org.dspace.storage.bitstore.S3BitStoreService" scope="singleton">
+        <property name="baseDir" value="${assetstore.dir}"/>
         <!-- AWS Security credentials, with policies for specified bucket -->
         <property name="awsAccessKey" value=""/>
         <property name="awsSecretKey" value=""/>
