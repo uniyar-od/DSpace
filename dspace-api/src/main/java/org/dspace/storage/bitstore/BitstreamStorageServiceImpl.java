@@ -23,8 +23,9 @@ import org.dspace.core.Utils;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
+import org.springframework.beans.factory.InitializingBean;
 
-public class BitstreamStorageServiceImpl implements BitstreamStorageService
+public class BitstreamStorageServiceImpl implements BitstreamStorageService, InitializingBean
 {
     /** log4j log */
     private static Logger log = Logger.getLogger(BitstreamStorageServiceImpl.class);
@@ -35,13 +36,10 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService
     /** The index of the asset store to use for new bitstreams */
     private int incoming;
 
-    public BitstreamStorageServiceImpl() {
+    @Override
+    public void afterPropertiesSet() throws Exception {
         for(Map.Entry<Integer, BitStoreService> storeEntry : stores.entrySet()) {
-            try {
-                storeEntry.getValue().init();
-            } catch (IOException e) {
-                log.error(e.getMessage(), e);
-            }
+            storeEntry.getValue().init();
         }
     }
 
