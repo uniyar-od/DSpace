@@ -13,7 +13,6 @@ import java.sql.SQLException;
 
 import org.dspace.core.Context;
 import org.dspace.storage.bitstore.BitstreamStorageManager;
-import org.dspace.utils.DSpace;
 
 /**
  * <p>
@@ -27,11 +26,6 @@ import org.dspace.utils.DSpace;
  */
 public class BitstreamDAO
 {
-    /** The bitstream storage manager */
-    private BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
-            .getServiceByName(BitstreamStorageManager.class.getName(),
-                    BitstreamStorageManager.class);
-
     /**
      * Default Constructor
      */
@@ -63,7 +57,7 @@ public class BitstreamDAO
         try
         {
             context = new Context();
-            is = bitstreamStorageManager.retrieve(context, id);
+            is = BitstreamStorageManager.retrieve(context, id);
         }
         finally
         {

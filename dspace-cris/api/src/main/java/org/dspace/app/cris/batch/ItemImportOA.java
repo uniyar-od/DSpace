@@ -80,10 +80,6 @@ public class ItemImportOA
 
     private DSpace dspace = new DSpace();
 
-    private BitstreamStorageManager bitstreamStorageManager = dspace.getServiceManager()
-            .getServiceByName(BitstreamStorageManager.class.getName(),
-                    BitstreamStorageManager.class);
-
     /** logger */
     private static Logger log = Logger.getLogger(ItemImportOA.class);
 
@@ -1250,7 +1246,7 @@ public class ItemImportOA
         }
         else
         {
-            bs.setSource(bitstreamStorageManager.virtualPath(c, bs.getID()));
+            bs.setSource(BitstreamStorageManager.absolutePath(c, bs.getID()));
         }
 
         if (embargoGroup == null) {

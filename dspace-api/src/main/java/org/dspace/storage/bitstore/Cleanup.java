@@ -68,10 +68,6 @@ public class Cleanup
                 System.exit(0);
             }
 
-            BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
-                    .getServiceByName(BitstreamStorageManager.class.getName(),
-                            BitstreamStorageManager.class);
-
             boolean deleteDbRecords = true;
             // Prune stage
             if (line.hasOption('l'))
@@ -80,7 +76,7 @@ public class Cleanup
                 deleteDbRecords = false;    
             }
            	log.debug("leave db records = " + deleteDbRecords);
-            bitstreamStorageManager.cleanup(deleteDbRecords, line.hasOption('v'));
+            BitstreamStorageManager.cleanup(deleteDbRecords, line.hasOption('v'));
             
             System.exit(0);
         }

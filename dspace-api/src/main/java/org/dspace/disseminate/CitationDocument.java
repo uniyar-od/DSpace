@@ -44,7 +44,6 @@ import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.PluginManager;
 import org.dspace.storage.bitstore.BitstreamStorageManager;
-import org.dspace.utils.DSpace;
 
 
 /**
@@ -60,10 +59,6 @@ public class CitationDocument {
      * Class Logger
      */
     private static Logger log = Logger.getLogger(CitationDocument.class);
-
-    private BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
-            .getServiceByName(BitstreamStorageManager.class.getName(),
-                    BitstreamStorageManager.class);
 
     private static File tempDir;
 
@@ -224,7 +219,7 @@ public class CitationDocument {
             return input = new FileInputStream(filePath);
         }catch(Exception e){
         	log.error(e.getMessage(), e);
-    		return input = bitstreamStorageManager.retrieve(context, bitstream.getID());
+    		return input = BitstreamStorageManager.retrieve(context, bitstream.getID());
         }
         finally {
             sourceDocument.close();

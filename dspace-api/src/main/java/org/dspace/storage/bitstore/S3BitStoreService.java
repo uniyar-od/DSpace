@@ -430,8 +430,7 @@ public class S3BitStoreService extends ABitStoreService
 
     @Override
     public String path(TableRow bitstream) throws IOException {
-        return "s3://" + getBucketName() + "/" + getFullKey(
-                bitstream.getStringColumn("internal_id"));
+        return virtualPath(bitstream);
     }
 
     @Override

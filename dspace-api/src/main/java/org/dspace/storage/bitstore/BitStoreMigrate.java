@@ -71,12 +71,8 @@ public class BitStoreMigrate {
             Context context = new Context();
             context.turnOffAuthorisationSystem();
 
-            BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
-                    .getServiceByName(BitstreamStorageManager.class.getName(),
-                            BitstreamStorageManager.class);
-
             if(line.hasOption('p')) {
-                bitstreamStorageManager.printStores(context);
+                BitstreamStorageManager.printStores(context);
                 System.exit(0);
             }
 
@@ -99,7 +95,7 @@ public class BitStoreMigrate {
                     batchCommitSize = Integer.parseInt(line.getOptionValue('s'));
                 }
 
-                bitstreamStorageManager.migrate(context, sourceAssetstore, destinationAssetstore, deleteOld, batchCommitSize);
+                BitstreamStorageManager.migrate(context, sourceAssetstore, destinationAssetstore, deleteOld, batchCommitSize);
             } else {
                 printHelp(options);
                 System.exit(0);
