@@ -1250,7 +1250,7 @@ public class ItemImportOA
         }
         else
         {
-            bs.setSource(bitstreamStorageManager.absolutePath(c, bs.getID()));
+            bs.setSource(bitstreamStorageManager.virtualPath(c, bs.getID()));
         }
 
         if (embargoGroup == null) {
