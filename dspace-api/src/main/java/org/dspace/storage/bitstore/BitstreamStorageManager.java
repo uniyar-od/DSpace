@@ -292,6 +292,14 @@ public class BitstreamStorageManager
         return stores.get(storeNumber).virtualPath(bitstream);
     }
 
+    public String intermediatePath(Context context, int id)
+            throws SQLException, IOException
+    {
+        TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
+        int storeNumber = bitstream.getIntColumn("store_number");
+        return stores.get(storeNumber).intermediatePath(bitstream.getStringColumn("internal_id"));
+    }
+
     /**
      * Retrieve the bits for the bitstream with ID. If the bitstream does not
      * exist, or is marked deleted, returns null.

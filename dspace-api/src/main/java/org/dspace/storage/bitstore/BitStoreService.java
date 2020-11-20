@@ -112,4 +112,14 @@ public interface BitStoreService
      *            If a problem occurs while retrieving the virtual path
      */
     public String virtualPath(TableRow bitstream) throws IOException;
+
+    /**
+     * Retrieve the intermediate path derived from the internal_id of conventional bitstream.
+     * This method splits the id into groups which become subdirectories.
+     *
+     * @param internalId
+     *            The internal_id
+     * @return The path based on the id without leading or trailing separators
+     */
+    public String intermediatePath(String sInternalId);
 }

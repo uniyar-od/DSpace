@@ -47,7 +47,7 @@ public abstract class ABitStoreService implements BitStoreService
      *            The internal_id
      * @return The relative path based on the intermediate path and the id without leading or trailing separators
      */
-    public String getRelativePath(String sInternalId) {
+    protected String getRelativePath(String sInternalId) {
         // there are 2 cases:
         // -conventional bitstream, conventional storage
         // -registered bitstream, conventional storage
@@ -67,21 +67,14 @@ public abstract class ABitStoreService implements BitStoreService
                 sInternalId = sInternalId.substring(sInternalId.lastIndexOf(File.separator) + 1);
             }
 
-            sIntermediatePath = getIntermediatePath(sInternalId);
+            sIntermediatePath = intermediatePath(sInternalId);
         }
 
         return sIntermediatePath + sInternalId;
     }
 
-    /**
-     * Return the intermediate path derived from the internal_id.
-     * This method splits the id into groups which become subdirectories.
-     *
-     * @param internalId
-     *            The internal_id
-     * @return The path based on the id without leading or trailing separators
-     */
-    private String getIntermediatePath(String internalId) {
+    @Override
+    public String intermediatePath(String internalId) {
         StringBuilder buf = new StringBuilder();
         for (int i = 0; i < directoryLevels; i++) {
             int digits = i * digitsPerLevel;
