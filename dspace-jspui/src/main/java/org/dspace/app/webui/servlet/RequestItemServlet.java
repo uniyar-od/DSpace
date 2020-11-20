@@ -48,10 +48,6 @@ public class RequestItemServlet extends DSpaceServlet
     /** log4j category */
     private static Logger log = Logger.getLogger(RequestItemServlet.class);
 
-    private BitstreamStorageManager bitstreamStorageManager = new DSpace().getServiceManager()
-            .getServiceByName(BitstreamStorageManager.class.getName(),
-                    BitstreamStorageManager.class);
-
     /** The information get by form step */
     public static final int ENTER_FORM_PAGE = 1;
 
@@ -410,7 +406,7 @@ public class RequestItemServlet extends DSpaceServlet
 											&& RequestItemManager.isRestricted(
 													context, bitstreams[k])) {
 										email.addAttachment(
-												bitstreamStorageManager
+												BitstreamStorageManager
 														.retrieve(
 																context,
 																bitstreams[k]
@@ -424,7 +420,7 @@ public class RequestItemServlet extends DSpaceServlet
 						} else {
 							Bitstream bit = Bitstream.find(context,
 									requestItem.getIntColumn("bitstream_id"));
-							email.addAttachment(bitstreamStorageManager
+							email.addAttachment(BitstreamStorageManager
 									.retrieve(context, requestItem
 											.getIntColumn("bitstream_id")), bit
 									.getName(), bit.getFormat().getMIMEType());
