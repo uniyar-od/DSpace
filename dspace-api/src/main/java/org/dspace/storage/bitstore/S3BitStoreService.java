@@ -435,7 +435,7 @@ public class S3BitStoreService extends ABitStoreService
 
     @Override
     public String virtualPath(TableRow bitstream) throws IOException {
-        return getBaseDir() + "/" + getFullKey(
+        return getBaseDir().getCanonicalPath() + "/" + getFullKey(
                 bitstream.getStringColumn("internal_id"));
     }
 }
