@@ -249,7 +249,7 @@ public class EditItemMetadataForm extends AbstractDSpaceTransformer {
                         {
                             Select mdSelect = mdCell.addSelect("value_"+index);
                             mdSelect.setSize(1);
-                            Choices cs = cmgr.getMatches(fieldKey, value.value, collectionID, 0, 0, null);
+                            Choices cs = cmgr.getMatches(context, fieldKey, value.value, collectionID, 0, 0, null);
                             if (cs.defaultSelected < 0)
                             {
                                 mdSelect.addOption(true, value.value, value.value);

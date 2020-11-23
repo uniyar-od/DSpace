@@ -1746,7 +1746,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
 
     public DiscoverResult search(Context context, DiscoverQuery discoveryQuery, boolean includeUnDiscoverable) throws SearchServiceException {
+        boolean createdNewContext = false;
         try {
+            if (context == null) {
+                context = new Context();
+                createdNewContext = true;
+            }
             if(getSolr() == null){
                 return new DiscoverResult();
             }
@@ -1759,6 +1764,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         } catch (Exception e)
         {
             throw new org.dspace.discovery.SearchServiceException(e.getMessage(),e);
+        } finally {
+            if (createdNewContext && context != null && context.isValid()) {
+                context.abort();
+            }
         }
     }
 

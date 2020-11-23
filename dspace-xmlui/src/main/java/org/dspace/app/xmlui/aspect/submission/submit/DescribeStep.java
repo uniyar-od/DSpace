@@ -962,7 +962,7 @@ public class DescribeStep extends AbstractSubmissionStep
                     select.setDisabled();
                 }
 
-                Choices cs = ChoiceAuthorityManager.getManager().getMatches(fieldKey, "", coll.getID(), 0, 0, null);
+                Choices cs = ChoiceAuthorityManager.getManager().getMatches(context, fieldKey, "", coll.getID(), 0, 0, null);
                 if (Metadatums.length == 0)
                 {
                     select.addOption(true, "", "");

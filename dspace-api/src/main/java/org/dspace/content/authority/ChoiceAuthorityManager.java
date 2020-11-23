@@ -7,6 +7,7 @@
  */
 package org.dspace.content.authority;
 
+import java.sql.SQLException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -229,8 +230,7 @@ public final class ChoiceAuthorityManager
     /**
      * Wrapper that calls getMatches method of the plugin corresponding to the
      * metadata field defined by schema,element,qualifier.
-     * 
-     * @see ChoiceAuthority#getMatches(String, String, int, int, int, String)
+     * @param context DSpace context
      * @param schema
      *            schema of metadata field
      * @param element
@@ -247,20 +247,21 @@ public final class ChoiceAuthorityManager
      *            maximum number of choices to return, 0 for no limit.
      * @param locale
      *            explicit localization key if available, or null
+     * 
+     * @see ChoiceAuthority#getMatches(Context, String, String, int, int, int, String)
      * @return a Choices object (never null).
      */
-    public Choices getMatches(String schema, String element, String qualifier,
-            String query, int collection, int start, int limit, String locale)
+    public Choices getMatches(Context context, String schema, String element,
+            String qualifier, String query, int collection, int start, int limit, String locale)
     {
-        return getMatches(makeFieldKey(schema, element, qualifier), query,
-                collection, start, limit, locale);
+        return getMatches(context, makeFieldKey(schema, element, qualifier),
+                query, collection, start, limit, locale);
     }
 
     /**
      * Wrapper calls getMatches method of the plugin corresponding to the
      * metadata field defined by single field key.
-     * 
-     * @see ChoiceAuthority#getMatches(String, String, int, int, int, String)
+     * @param context DSpace context
      * @param fieldKey
      *            single string identifying metadata field
      * @param query
@@ -273,10 +274,12 @@ public final class ChoiceAuthorityManager
      *            maximum number of choices to return, 0 for no limit.
      * @param locale
      *            explicit localization key if available, or null
+     * 
+     * @see ChoiceAuthority#getMatches(Context, String, String, int, int, int, String)
      * @return a Choices object (never null).
      */
-    public Choices getMatches(String fieldKey, String query, int collection,
-            int start, int limit, String locale)
+    public Choices getMatches(Context context, String fieldKey, String query,
+            int collection, int start, int limit, String locale)
     {
         ChoiceAuthority ma = controller.get(fieldKey);
         if (ma == null)
@@ -288,10 +291,25 @@ public final class ChoiceAuthorityManager
                             + "\".");
             }
         }
-        return ma.getMatches(fieldKey, query, collection, start, limit, locale);
+        return ma.getMatches(context, fieldKey, query, collection, start, limit, locale);
     }
 
-    public Choices getMatches(String fieldKey, String query, int collection, int start, int limit, String locale, boolean externalInput) {
+    public Choices getMatches(String fieldKey, String query, int collection, int start, int limit, String locale) {
+        Context context = null;
+        try {
+            context = new Context();
+            return getMatches(context, fieldKey, query, collection, start, limit, locale);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+            return new Choices(true);
+        } finally {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        }
+    }
+
+    public Choices getMatches(Context context, String fieldKey, String query, int collection, int start, int limit, String locale, boolean externalInput) {
         ChoiceAuthority ma = controller.get(fieldKey);
         if (ma == null) {
         	ma = reloadCache(fieldKey);
@@ -301,14 +319,28 @@ public final class ChoiceAuthorityManager
 	                            + "\".");
             }
         }
-        return ma.getMatches(fieldKey, query, collection, start, limit, locale, externalInput);
+        return ma.getMatches(context, fieldKey, query, collection, start, limit, locale, externalInput);
+    }
+
+    public Choices getMatches(String fieldKey, String query, int collection, int start, int limit, String locale, boolean externalInput) {
+        Context context = null;
+        try {
+            context = new Context();
+            return getMatches(context, fieldKey, query, collection, start, limit, locale, externalInput);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+            return new Choices(true);
+        } finally {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        }
     }
 
     /**
      * Wrapper that calls getBestMatch method of the plugin corresponding to the
      * metadata field defined by single field key.
-     * 
-     * @see ChoiceAuthority#getBestMatch(String, String, int, String)
+     * @param context DSpace context
      * @param fieldKey
      *            single string identifying metadata field
      * @param query
@@ -317,10 +349,11 @@ public final class ChoiceAuthorityManager
      *            database ID of Collection for context (owner of Item)
      * @param locale
      *            explicit localization key if available, or null
+     * @see ChoiceAuthority#getBestMatch(Context, String, String, int, String)
      * @return a Choices object (never null) with 1 or 0 values.
      */
-    public Choices getBestMatch(String fieldKey, String query, int collection,
-            String locale)
+    public Choices getBestMatch( Context context, String fieldKey,
+            String query, int collection, String locale)
     {
         ChoiceAuthority ma = controller.get(fieldKey);
         if (ma == null)
@@ -332,7 +365,22 @@ public final class ChoiceAuthorityManager
                                 + fieldKey + "\".");
             }
         }
-        return ma.getBestMatch(fieldKey, query, collection, locale);
+        return ma.getBestMatch( context, fieldKey, query, collection, locale);
+    }
+
+    public Choices getBestMatch(String fieldKey, String query, int collection, String locale) {
+        Context context = null;
+        try {
+            context = new Context();
+            return getBestMatch(context, fieldKey, query, collection, locale);
+        } catch (SQLException e) {
+            log.error(e.getMessage(), e);
+            return new Choices(true);
+        } finally {
+            if (context != null && context.isValid()) {
+                context.abort();
+            }
+        }
     }
 
     /**

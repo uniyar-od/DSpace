@@ -903,7 +903,7 @@ public abstract class DSpaceObject implements IGlobalSearchResult
     }
 
     protected void getAuthoritiesAndConfidences(String fieldKey, String[] values, String[] authorities, int[] confidences, int i) {
-        Choices c = ChoiceAuthorityManager.getManager().getBestMatch(fieldKey, values[i], -1, null);
+        Choices c = ChoiceAuthorityManager.getManager().getBestMatch( ourContext, fieldKey, values[i], -1, null);
         authorities[i] = c.values.length > 0 ? c.values[0].authority : null;
         confidences[i] = c.confidence;
     }
