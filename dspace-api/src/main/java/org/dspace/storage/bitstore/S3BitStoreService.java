@@ -31,8 +31,10 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.transfer.Download;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.services.s3.transfer.model.UploadResult;
 
 /**
  * Asset store using Amazon's Simple Storage Service (S3).
@@ -144,8 +146,15 @@ public class S3BitStoreService implements BitStoreService
         String key = getFullKey(bitstream.getInternalId());
 		try
 		{
-            S3Object object = s3Service.getObject(new GetObjectRequest(bucketName, key));
-			return (object != null) ? object.getObjectContent() : null;
+            File tempFile = File.createTempFile("s3-disk-copy", "temp");
+            tempFile.deleteOnExit();
+
+            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
+            TransferManager transferManager = new TransferManager(s3Service);
+            Download download = transferManager.download(getObjectRequest, tempFile);
+            download.waitForCompletion();
+
+            return new DeleteOnCloseFileInputStream(tempFile);
 		}
         catch (Exception e)
 		{
@@ -177,10 +186,12 @@ public class S3BitStoreService implements BitStoreService
             Long contentLength = Long.valueOf(scratchFile.length());
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, scratchFile);
-            PutObjectResult putObjectResult = s3Service.putObject(putObjectRequest);
+            TransferManager transferManager = new TransferManager(s3Service);
+            Upload upload = transferManager.upload(putObjectRequest);
+            UploadResult uploadResult = upload.waitForUploadResult();
 
             bitstream.setSizeBytes(contentLength);
-            bitstream.setChecksum(putObjectResult.getETag());
+            bitstream.setChecksum(uploadResult.getETag());
             bitstream.setChecksumAlgorithm(CSA);
 
             scratchFile.delete();
