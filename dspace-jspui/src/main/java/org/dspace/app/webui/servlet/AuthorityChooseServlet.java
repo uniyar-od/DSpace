@@ -65,7 +65,7 @@ public class AuthorityChooseServlet extends DSpaceServlet {
     private void process(Context context, HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, SQLException, AuthorizeException {
         String[] paths = request.getPathInfo().split("/");
         String field = paths[paths.length-1];
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager(context);
 
         String query = request.getParameter("query");
         if (query == null) {
@@ -79,10 +79,10 @@ public class AuthorityChooseServlet extends DSpaceServlet {
         Choices result;
         if (request.getParameter("onlyLocal") != null) {
             boolean onlyLocal = UIUtil.getBoolParameter(request, "onlyLocal");
-        	result = cam.getMatches(context, field, query, collection, start, limit, null, !onlyLocal);
+        	result = cam.getMatches(field, query, collection, start, limit, null, !onlyLocal);
         }
         else {
-        	result = cam.getMatches(context, field, query, collection, start, limit, null);
+        	result = cam.getMatches(field, query, collection, start, limit, null);
         }
 //        USE FOR TEST SCOPE        
 //        Map<String, String> extras = new HashMap<String,String>();

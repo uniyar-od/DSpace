@@ -1174,7 +1174,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                         if (!ignorePrefered)
                         {
 
-                            preferedLabel = ChoiceAuthorityManager.getManager()
+                            preferedLabel = ChoiceAuthorityManager.getManager(context)
                                     .getLabel(meta.schema, meta.element,
                                             meta.qualifier, meta.authority,
                                             meta.language);
@@ -1193,7 +1193,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                                         true);
                         if (!ignoreVariants)
                         {
-                            variants = ChoiceAuthorityManager.getManager()
+                            variants = ChoiceAuthorityManager.getManager(context)
                                     .getVariants(meta.schema, meta.element,
                                             meta.qualifier, meta.authority,
                                             meta.language);
