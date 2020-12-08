@@ -110,7 +110,7 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
     {
         for (ACrisObject crisObj : crisObjects)
         {
-            String url = crisURLStem + crisObj.getAuthorityPrefix() + "/"
+            String url = crisURLStem + crisObj.getPublicPath() + "/"
                     + crisObj.getCrisID();
             if (BooleanUtils.isNotTrue(crisObj.getStatus())) {
                 continue;
