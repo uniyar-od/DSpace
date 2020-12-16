@@ -384,10 +384,13 @@ return decorator.generateDisplayValue(alternativeName, rp);
 
 	public static void applyCustomFilter(String field, DiscoverQuery discoverQuery,
 			ConfigurationService _configurationService) {
-		String filter = _configurationService.getPropertyAsType("cris." + RPAuthority.RP_AUTHORITY_NAME
-				+ ((field != null && !field.isEmpty()) ? "." + field : "") + ".filter", _configurationService
-				.getPropertyAsType("cris." + RPAuthority.RP_AUTHORITY_NAME + ".filter", String.class));
-		if (filter != null) {
+		String filter = _configurationService.getProperty("cris." + RPAuthority.RP_AUTHORITY_NAME
+				+ ((field != null && !field.isEmpty()) ? "." + field : "") + ".filter");
+		if(StringUtils.isBlank(filter)) {
+		    filter =_configurationService
+				.getProperty("cris." + RPAuthority.RP_AUTHORITY_NAME + ".filter");
+		}
+		if(StringUtils.isNotBlank(filter)) {
 			discoverQuery.addFilterQueries(filter);
 		}
 	}
