@@ -100,8 +100,9 @@
 			</div>
 	    </footer>
 		<% if (socialNetworksEnabled && StringUtils.isNotBlank(addThisProfileID)) { %>
-			<script type="text/javascript"
-				src="//s7.addthis.com/js/300/addthis_widget.js#pubid=<%= addThisProfileID %>"></script>
+			<script type="text/plain" data-type="text/javascript"
+				data-src="//s7.addthis.com/js/300/addthis_widget.js#pubid=<%= addThisProfileID %>"
+				data-name="add-this"></script>
 		<% } %>
     </body>
 </html>
