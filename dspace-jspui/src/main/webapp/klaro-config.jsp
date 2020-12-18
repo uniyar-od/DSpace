@@ -72,7 +72,8 @@
                 required: true,
                 cookies: [],
                 translations: {
-                    en: {
+                    // default translation
+                    zz: {
                         title: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.title.authentication") %>',
                         description: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.description.authentication") %>'
                     }
@@ -84,7 +85,8 @@
                 required: true,
                 cookies: [],
                 translations: {
-                    en: {
+                    // default translation
+                    zz: {
                         title: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.title.preferences") %>',
                         description: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.description.preferences") %>'
                     }
@@ -98,7 +100,8 @@
                   [/^klaro-.+$/],
                 ],
                 translations: {
-                    en: {
+                    // default translation
+                    zz: {
                         title: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.title.acknowledgement") %>',
                         description: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.description.acknowledgement") %>'
                     }
@@ -115,7 +118,8 @@
                 ],
                 onlyOnce: true,
                 translations: {
-                    en: {
+                    // default translation
+                    zz: {
                         title: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.title.google-analytics") %>',
                         description: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.description.google-analytics") %>'
                     }
@@ -127,10 +131,11 @@
                 name: 'add-this',
                 purposes: ['sharing'],
                 required: false,
-                cookies: [],
+                cookies: [/^.*$/, '/', '.addthis.com'],
                 onlyOnce: true,
                 translations: {
-                    en: {
+                    // default translation
+                    zz: {
                         title: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.title.add-this") %>',
                         description: '<%= I18nUtil.getMessage("jsp.layout.header-default.cookies.consent.app.description.add-this") %>'
                     }
