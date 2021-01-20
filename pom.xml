@@ -37,7 +37,7 @@
 		<org.hibernate.annotations.version>4.0.2.Final</org.hibernate.annotations.version>
 		<org.hibernate.jpa.version>1.0.1.Final</org.hibernate.jpa.version>
 		
-		<org.jdyna.version>5.16</org.jdyna.version>
+		<org.jdyna.version>5.19</org.jdyna.version>
 		<it.cilea.ccommons.version>2.5</it.cilea.ccommons.version>
 		
 		<ckan.addon.modules>[CRIS-6.0-SNAPSHOT,CRIS-7.0-SNAPSHOT)</ckan.addon.modules>
