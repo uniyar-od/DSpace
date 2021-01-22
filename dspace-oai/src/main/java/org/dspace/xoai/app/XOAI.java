@@ -242,38 +242,45 @@ public class XOAI {
     	switch (idxType) {
         case ITEMTYPE_DEFAULT:
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.item");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
-        		discoverQuery = "discoverable:true AND search.resourcetype:2";
+        	if (StringUtils.isBlank(discoverQuery)) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:" + Constants.ITEM;
         	}
 	        break;
         case "rp":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisrp");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.RP_TYPE_ID;
         	}
 	        break;
         case "project":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisproject");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID;
         	}
 	        break;
         case "ou":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisou");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.OU_TYPE_ID;
         	}
 	        break;
         case "other":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisother");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
-        		discoverQuery = "discoverable:true AND search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO *}";
+        	if (StringUtils.isBlank(discoverQuery)) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO 9999}";
         	}
 	        break;
         case "all":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.all");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0)
-        		discoverQuery = "discoverable:true";
+        	if (StringUtils.isBlank(discoverQuery)) {
+        		StringBuffer sbDiscoverQuery = new StringBuffer("discoverable:true AND ");
+        		sbDiscoverQuery.append("(search.resourcetype:" + Constants.ITEM);
+        		sbDiscoverQuery.append(" OR search.resourcetype:" + CrisConstants.RP_TYPE_ID);
+        		sbDiscoverQuery.append(" OR search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID);
+        		sbDiscoverQuery.append(" OR search.resourcetype:" + CrisConstants.OU_TYPE_ID);
+        		sbDiscoverQuery.append(" OR search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO 9999})");
+        		discoverQuery = sbDiscoverQuery.toString();
+        	}
         	break;
     	default:
     		throw new DSpaceSolrIndexerException("Index is not supported for type " + idxType);
