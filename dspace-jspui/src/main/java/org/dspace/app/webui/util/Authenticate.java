@@ -363,6 +363,7 @@ public class Authenticate
         request.removeAttribute("is.admin");
         request.removeAttribute("dspace.current.user");
         session.removeAttribute("dspace.current.user.id");
+        session.removeAttribute("shib.specialgroup");
 
         Integer previousUserID = (Integer) session.getAttribute("dspace.previous.user.id");
         
