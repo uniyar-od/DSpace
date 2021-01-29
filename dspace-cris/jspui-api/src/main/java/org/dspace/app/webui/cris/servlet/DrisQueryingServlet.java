@@ -46,12 +46,17 @@ import org.dspace.app.webui.cris.rest.dris.JsonLdVocabs;
 import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 import org.dspace.app.webui.cris.rest.dris.utils.WrapperJsonResults;
 import org.dspace.app.webui.servlet.DSpaceServlet;
+import org.dspace.authenticate.AuthenticationManager;
+import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -309,8 +314,38 @@ public class DrisQueryingServlet extends DSpaceServlet {
                         }
 			        }
 
+			        boolean isSuperUser = false;
+			        if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
+			            String username = paramsMap.get("username").get(0);
+			            String password = paramsMap.get("password").get(0);
+			            int codeResponse = AuthenticationManager.authenticateImplicit(context, username, password, null, request);
+			            if (codeResponse == AuthenticationMethod.SUCCESS) {
+			                if(AuthorizeManager.isAdmin(context)) {
+			                    isSuperUser = true;
+			                }
+			                else {
+			                    Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
+			                    if(openaireReaderGroup!=null) {
+			                        if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
+			                            isSuperUser = true;
+			                        }
+			                    }
+			                    else {
+			                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Missing OpenaireReader mandatory group" ));
+			                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			                        return;			                        
+			                    }
+			                    			                    
+			                }
+			            }
+			            else {
+                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [CODE]:" + codeResponse));
+                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                            return;			                
+			            }
+			        }
 			        // Entries filtered by various criteria was requested
-					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb);
+					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb, isSuperUser);
 			        
 					// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
 		            if (jsonLdResults.getTotalElements() > maxPageSize*(startPageDocNumb+1)) {
@@ -454,7 +489,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
         values.add("\"" + entryId + "\"");
         LinkedHashMap<String, List<String>> queryParameters = new LinkedHashMap<>();
         queryParameters.put("cris-id", values);
-		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0);
+		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0, false);
 	}
     
 	/**
@@ -472,11 +507,12 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @param queryParameters all the parameters passed as regular http parameters by the caller
 	 * @param maxPageSize the maximum number of results to return 
 	 * @param startPageDocNumb the start document index in the result sets to start with 
+	 * @param isSuperUser TODO
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdEntry</code> resulting from the query
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
 	 */
 	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeWithFilteringParameters(LinkedHashMap<String, List<String>> queryParameters,
-																  Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
+																  Integer maxPageSize, Integer startPageDocNumb, boolean isSuperUser) throws ServletException {
 	    WrapperJsonResults<JsonLdEntry> result = new WrapperJsonResults<JsonLdEntry>();		
 	    log.info(SERVLET_DESCRIPTION+":"+ "Query of type 'entries' started...");
 		log.debug(SERVLET_DESCRIPTION+":"+"Parameters: " + queryParameters.toString());
@@ -504,7 +540,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			Iterator<SolrDocument> iter = solrResults.iterator();
 			List<JsonLdEntry> listJldObj = new LinkedList<>();
 			while (iter.hasNext()) {
-				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
+				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next(), isSuperUser));
 			}
             result.setElements(listJldObj);
             result.setTotalElements(solrResults.getNumFound());

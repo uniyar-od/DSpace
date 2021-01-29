@@ -49,7 +49,7 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 	@JsonldIn
 	private List<Map<String,Object>> included = new ArrayList<>();
 	
-	public static JsonLdEntry buildFromSolrDoc(SearchService service, SolrDocument solrDoc) {
+	public static JsonLdEntry buildFromSolrDoc(SearchService service, SolrDocument solrDoc, boolean isSuperUser) {
 		JsonLdEntry jldItem = new JsonLdEntry();
 		if (solrDoc == null) {
 			return jldItem;
@@ -158,6 +158,9 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		if(modificationdate!=null) {
 		    metadata.put("lastModified", DrisUtils.dateFormat.format(modificationdate));
 		}
+		
+		//TODO added new metadata if superuser == true
+		
 		jldItem.setMetadata(metadata);
 		
 		return jldItem;
