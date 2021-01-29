@@ -1173,3 +1173,10 @@ div.subscription-current {
 .badge-pill {
     background-color: white;
 }	
+
+.img-thumbnail-badge {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
+	height: 65px;
+}
