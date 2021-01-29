@@ -297,17 +297,16 @@ public class Authenticate
             if (shibbolethSpecialGroups != null) {
                 session.setAttribute("shib.specialgroup", shibbolethSpecialGroups);
             }
-        }
 
-			List<PostLoggedInAction> postLoggedInActions = new DSpace().getServiceManager().getServicesByType(
-					PostLoggedInAction.class);
+            List<PostLoggedInAction> postLoggedInActions = new DSpace().getServiceManager().getServicesByType(
+            		PostLoggedInAction.class);
 
-			if (postLoggedInActions != null) {
-				for (PostLoggedInAction pAction : postLoggedInActions) {
-					pAction.loggedIn(context, request, context.getCurrentUser());
-				}
+            if (postLoggedInActions != null) {
+            	for (PostLoggedInAction pAction : postLoggedInActions) {
+            		pAction.loggedIn(context, request, context.getCurrentUser());
+            	}
 
-			}
+            }
         }
 		
         context.setCurrentUser(eperson);
