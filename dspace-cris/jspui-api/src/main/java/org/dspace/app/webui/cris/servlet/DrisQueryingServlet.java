@@ -645,7 +645,23 @@ public class DrisQueryingServlet extends DSpaceServlet {
 					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
-			} else {
+			} else if (pName.equals("openaire")) {
+                // Filtering by driscomplianceopenaire
+			    if(pValues.contains("true")) {
+			        filteringConditions.add("crisdris.driscomplianceopenaire:\"true\"");    
+			    }
+			    else {
+			        filteringConditions.add("-crisdris.driscomplianceopenaire:\"true\"");
+			    }
+            } else if (pName.equals("rdm")) {
+                // Filtering by driscoverage:Dataset
+                if(pValues.contains("true")) {
+                    filteringConditions.add("crisdris.driscoverage:\"Dataset\"");    
+                }
+                else {
+                    filteringConditions.add("-crisdris.driscoverage:\"Dataset\"");
+                }
+            } else {
 				// ignore unknow filtering parameters (included those for pagination)
 				continue;
 			}	
