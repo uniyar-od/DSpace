@@ -159,8 +159,48 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		    metadata.put("lastModified", DrisUtils.dateFormat.format(modificationdate));
 		}
 		
-		//TODO added new metadata if superuser == true
-		
+		if(isSuperUser) {
+		    //write rdm indicator
+	        Collection<Object> coveragesName = (Collection<Object>)solrDoc.getFieldValues("crisdris.driscoverage");
+            if (coveragesName != null)
+            {
+                for (Object coverage : coveragesName)
+                {
+                    String coverageString = (String) coverage;
+                    if (StringUtils.isNotBlank(coverageString))
+                    {
+                        if ("Dataset".equals(coverageString))
+                        {
+                            // use this information to add rdm+ indicator in the
+                            // "metadata" section
+                            metadata.put("rdmCheck", "true");
+                        }
+                        else
+                        {
+                            metadata.put("rdmCheck", "false");
+                        }
+                    }
+                }
+            }
+
+		    //write Openaire compliance
+		    String complianceOpenaire = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscomplianceopenaire"));
+		    if(StringUtils.isNotBlank(complianceOpenaire)) {
+		        boolean isOpenaireCompliance = Boolean.parseBoolean(complianceOpenaire);
+	            if(isOpenaireCompliance) {
+	                metadata.put("openAIRECheck", "true");
+	            }
+	            else {
+	                metadata.put("openAIRECheck", "false");
+	            }		        
+		    }
+		    
+		    //write oai-pmh url
+		    String openAIREURL = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisoaipmhurl"));
+		    if(StringUtils.isNotBlank(openAIREURL)) {
+		        metadata.put("openAIREURL", openAIREURL);
+		    }
+		}
 		jldItem.setMetadata(metadata);
 		
 		return jldItem;

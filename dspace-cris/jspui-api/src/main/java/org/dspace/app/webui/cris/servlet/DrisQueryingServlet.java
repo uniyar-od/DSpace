@@ -98,7 +98,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	public final static String VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE = "countries";
 
 	// Properties specifying prefix for querying filters criteria
-	private String filtersSettingsPrefix = "dris.querying.filter.";
+	private String filtersSettingsPrefix = "dris-rest.dris.querying.filter.";
 	// Services and utility object to perform database and Solr queries
 	private SearchService searchService;
 	private ConfigurationService configurationService;
@@ -315,35 +315,54 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			        }
 
 			        boolean isSuperUser = false;
-			        if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
-			            String username = paramsMap.get("username").get(0);
-			            String password = paramsMap.get("password").get(0);
-			            int codeResponse = AuthenticationManager.authenticateImplicit(context, username, password, null, request);
-			            if (codeResponse == AuthenticationMethod.SUCCESS) {
-			                if(AuthorizeManager.isAdmin(context)) {
-			                    isSuperUser = true;
-			                }
-			                else {
-			                    Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
-			                    if(openaireReaderGroup!=null) {
-			                        if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
-			                            isSuperUser = true;
-			                        }
-			                    }
-			                    else {
-			                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Missing OpenaireReader mandatory group" ));
-			                        response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			                        return;			                        
-			                    }
-			                    			                    
-			                }
+			        if (paramsMap.containsKey("key")) {
+			            String key = paramsMap.get("key").get(0);
+			            String currentKey = configurationService.getProperty("dris-rest.dris.endpoint.key");
+			            if(key.equals(currentKey)) {
+    	                    if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
+    	                        String username = paramsMap.get("username").get(0);
+    	                        String password = paramsMap.get("password").get(0);
+    	                        int codeResponse = AuthenticationManager.authenticate(context, username, password, null, request);
+    	                        if (codeResponse == AuthenticationMethod.SUCCESS) {
+    	                            if(AuthorizeManager.isAdmin(context)) {
+    	                                isSuperUser = true;
+    	                            }
+    	                            else {
+    	                                Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
+    	                                if(openaireReaderGroup!=null) {
+    	                                    if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
+    	                                        isSuperUser = true;
+    	                                    }
+    	                                    else {
+    	                                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [The user is not a super user]" ));
+                                                response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [The user is not a super user]");
+                                                return;                                 
+                                            }
+    	                                    
+    	                                }
+    	                                else {
+    	                                    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [Missing OpenaireReader mandatory group]" ));
+    	                                    response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [Missing OpenaireReader mandatory group]. Contact Administrator");
+    	                                    return;                                 
+    	                                }
+    	                                                                
+    	                            }
+    	                        }
+    	                        else {
+    	                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [RESPONSE CODE]:" + codeResponse));
+    	                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed [RESPONSE CODE]:" + codeResponse);
+    	                            return;                         
+    	                        }
+    	                    }
 			            }
-			            else {
-                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [CODE]:" + codeResponse));
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            return;			                
-			            }
+	                    else {
+	                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed: [WRONG KEY]"));
+	                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed: [WRONG KEY]");
+	                        return;                         
+	                    }
 			        }
+
+			        
 			        // Entries filtered by various criteria was requested
 					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb, isSuperUser);
 			        
