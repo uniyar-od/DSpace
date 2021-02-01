@@ -46,12 +46,17 @@ import org.dspace.app.webui.cris.rest.dris.JsonLdVocabs;
 import org.dspace.app.webui.cris.rest.dris.utils.DrisUtils;
 import org.dspace.app.webui.cris.rest.dris.utils.WrapperJsonResults;
 import org.dspace.app.webui.servlet.DSpaceServlet;
+import org.dspace.authenticate.AuthenticationManager;
+import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -93,7 +98,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	public final static String VOCABS_QUERY_TYPE_COUNTRIES_SUB_TYPE = "countries";
 
 	// Properties specifying prefix for querying filters criteria
-	private String filtersSettingsPrefix = "dris.querying.filter.";
+	private String filtersSettingsPrefix = "dris-rest.dris.querying.filter.";
 	// Services and utility object to perform database and Solr queries
 	private SearchService searchService;
 	private ConfigurationService configurationService;
@@ -309,8 +314,57 @@ public class DrisQueryingServlet extends DSpaceServlet {
                         }
 			        }
 
+			        boolean isSuperUser = false;
+			        if (paramsMap.containsKey("key")) {
+			            String key = paramsMap.get("key").get(0);
+			            String currentKey = configurationService.getProperty("dris-rest.dris.endpoint.key");
+			            if(key.equals(currentKey)) {
+    	                    if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
+    	                        String username = paramsMap.get("username").get(0);
+    	                        String password = paramsMap.get("password").get(0);
+    	                        int codeResponse = AuthenticationManager.authenticate(context, username, password, null, request);
+    	                        if (codeResponse == AuthenticationMethod.SUCCESS) {
+    	                            if(AuthorizeManager.isAdmin(context)) {
+    	                                isSuperUser = true;
+    	                            }
+    	                            else {
+    	                                Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
+    	                                if(openaireReaderGroup!=null) {
+    	                                    if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
+    	                                        isSuperUser = true;
+    	                                    }
+    	                                    else {
+    	                                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [The user is not a super user]" ));
+                                                response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [The user is not a super user]");
+                                                return;                                 
+                                            }
+    	                                    
+    	                                }
+    	                                else {
+    	                                    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [Missing OpenaireReader mandatory group]" ));
+    	                                    response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [Missing OpenaireReader mandatory group]. Contact Administrator");
+    	                                    return;                                 
+    	                                }
+    	                                                                
+    	                            }
+    	                        }
+    	                        else {
+    	                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [RESPONSE CODE]:" + codeResponse));
+    	                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed [RESPONSE CODE]:" + codeResponse);
+    	                            return;                         
+    	                        }
+    	                    }
+			            }
+	                    else {
+	                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed: [WRONG KEY]"));
+	                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed: [WRONG KEY]");
+	                        return;                         
+	                    }
+			        }
+
+			        
 			        // Entries filtered by various criteria was requested
-					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb);
+					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb, isSuperUser);
 			        
 					// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
 		            if (jsonLdResults.getTotalElements() > maxPageSize*(startPageDocNumb+1)) {
@@ -454,7 +508,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
         values.add("\"" + entryId + "\"");
         LinkedHashMap<String, List<String>> queryParameters = new LinkedHashMap<>();
         queryParameters.put("cris-id", values);
-		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0);
+		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0, false);
 	}
     
 	/**
@@ -472,11 +526,12 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @param queryParameters all the parameters passed as regular http parameters by the caller
 	 * @param maxPageSize the maximum number of results to return 
 	 * @param startPageDocNumb the start document index in the result sets to start with 
+	 * @param isSuperUser TODO
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdEntry</code> resulting from the query
 	 * @throws ServletException if the supplied parameters are not supported for this kind of call or in case of other kind of errors
 	 */
 	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeWithFilteringParameters(LinkedHashMap<String, List<String>> queryParameters,
-																  Integer maxPageSize, Integer startPageDocNumb) throws ServletException {
+																  Integer maxPageSize, Integer startPageDocNumb, boolean isSuperUser) throws ServletException {
 	    WrapperJsonResults<JsonLdEntry> result = new WrapperJsonResults<JsonLdEntry>();		
 	    log.info(SERVLET_DESCRIPTION+":"+ "Query of type 'entries' started...");
 		log.debug(SERVLET_DESCRIPTION+":"+"Parameters: " + queryParameters.toString());
@@ -493,6 +548,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		try {
 			solrQuery = new SolrQuery();
 			solrQuery.setQuery("crisdo.type:dris");
+			solrQuery.addFilterQuery("-discoverable:false");
 			for (String fq: filteringConditions) {
 				solrQuery.addFilterQuery(fq);
 			}
@@ -503,7 +559,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			Iterator<SolrDocument> iter = solrResults.iterator();
 			List<JsonLdEntry> listJldObj = new LinkedList<>();
 			while (iter.hasNext()) {
-				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next()));
+				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next(), isSuperUser));
 			}
             result.setElements(listJldObj);
             result.setTotalElements(solrResults.getNumFound());
@@ -592,6 +648,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
+			} else if (pName.startsWith("cris-id")) {
+				// Filtering by NAME
+				if (pName.equals("cris-id")) {
+					filteringConditions.add(this.composeORFilteringCondition(configurationService.getPropertyAsType(this.getFiltersSettingsPrefix() + "cris-id", "cris-id"), pValues));
+				} else {
+					String errMsg = "Unrecognized criteria for name filtering: " + pName + "=" + pValues;
+					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
+					throw new ServletException(errMsg);
+				}
 			} else if (pName.startsWith("organization")) {
 				// Filtering by ORGANIZATION
 				if (pName.equals("organization.name")) {
@@ -635,7 +700,23 @@ public class DrisQueryingServlet extends DSpaceServlet {
 					log.error(SERVLET_DESCRIPTION +":"+  errMsg);
 					throw new ServletException(errMsg);
 				}
-			} else {
+			} else if (pName.equals("openaire")) {
+                // Filtering by driscomplianceopenaire
+			    if(pValues.contains("true")) {
+			        filteringConditions.add("crisdris.driscomplianceopenaire:\"true\"");    
+			    }
+			    else {
+			        filteringConditions.add("-crisdris.driscomplianceopenaire:\"true\"");
+			    }
+            } else if (pName.equals("rdm")) {
+                // Filtering by driscoverage:Dataset
+                if(pValues.contains("true")) {
+                    filteringConditions.add("crisdris.driscoverage:\"Dataset\"");    
+                }
+                else {
+                    filteringConditions.add("-crisdris.driscoverage:\"Dataset\"");
+                }
+            } else {
 				// ignore unknow filtering parameters (included those for pagination)
 				continue;
 			}	
@@ -675,6 +756,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			solrQuery.setQuery("*:*");
 			solrQuery.addFilterQuery("cris-id:\"" + orgUnitId + "\"");
 			solrQuery.addFilterQuery("search.resourcetype:" + CrisConstants.OU_TYPE_ID);
+			solrQuery.addFilterQuery("-discoverable:false");
 			solrQuery.setRows(maxPageSize);
 			solrQuery.setStart(maxPageSize*startPageDocNumb);
 			rsp = this.getCrisSearchService().search(solrQuery);
@@ -765,6 +847,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
             
 			//extract last modified to check
             solrQuery.addSort("lastModified", ORDER.desc);
+            solrQuery.addFilterQuery("-discoverable:false");
             solrQuery.setRows(1);
             rsp = this.getCrisSearchService().search(solrQuery);
             if (rsp != null && rsp.getResults()!=null && !rsp.getResults().isEmpty())
@@ -833,6 +916,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
         for (String v: values) {
             if (!first) sb.append(" OR ");
             else first = false;
+            v = StringUtils.strip(v, "\"");
             sb.append(field + ":\"" + v + "\"");
         }
         return sb.toString();

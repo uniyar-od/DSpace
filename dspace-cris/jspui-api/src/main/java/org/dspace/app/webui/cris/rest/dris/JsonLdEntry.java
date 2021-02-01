@@ -38,12 +38,18 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 	private String organization = "";
 	private String country = "";
 	private List<String> coverages;
+	private String description=""; 
+	private String established="";
+	private String crisDataSupply=""; 
+	private String crisDataValidation="";
+	private String crisDataOutput="";
+
 	private Map<String,String> metadata = new HashMap<>();
 	
 	@JsonldIn
 	private List<Map<String,Object>> included = new ArrayList<>();
 	
-	public static JsonLdEntry buildFromSolrDoc(SearchService service, SolrDocument solrDoc) {
+	public static JsonLdEntry buildFromSolrDoc(SearchService service, SolrDocument solrDoc, boolean isSuperUser) {
 		JsonLdEntry jldItem = new JsonLdEntry();
 		if (solrDoc == null) {
 			return jldItem;
@@ -75,7 +81,35 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		if(StringUtils.isNotBlank(uri)) {
 		    jldItem.setUri(StringUtils.trimToEmpty(uri));
 		}
+
+		String description = (String)(solrDoc.getFirstValue("crisdris.drisdescription"));
+		if(StringUtils.isNotBlank(description)) {
+		    jldItem.setDescription(StringUtils.trimToEmpty(description));
+		}
 		
+		String established = (String)(solrDoc.getFirstValue("crisdris.drisestablished"));
+		if(StringUtils.isNotBlank(established)) {
+		    jldItem.setEstablished(StringUtils.trimToEmpty(established));
+		}
+		
+		String crisDataSupply = (String)(solrDoc.getFirstValue("crisdris.driscrisDataSupply"));
+		if(StringUtils.isNotBlank(crisDataSupply)) {
+			jldItem.setCrisDataSupply(StringUtils.trimToEmpty(crisDataSupply));
+		}
+		String crisDataValidation = (String)(solrDoc.getFirstValue("crisdris.driscrisDataValidation"));
+		if(StringUtils.isNotBlank(crisDataValidation)) {
+			jldItem.setCrisDataValidation(StringUtils.trimToEmpty(crisDataValidation));
+		}
+		String crisDataOutput = (String)(solrDoc.getFirstValue("crisdris.driscrisDataOutput"));
+		if(StringUtils.isNotBlank(crisDataOutput)) {
+			jldItem.setCrisDataOutput(StringUtils.trimToEmpty(crisDataOutput));
+		}
+		String repproviderOrgUnit = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisrepproviderOrgUnit_authority"));
+		if(StringUtils.isNotBlank(repproviderOrgUnit)) {
+		    jldItem.setOrganization(DrisUtils.buildMiniOrgUnitIdLink(repproviderOrgUnit));
+		    jldItem.getIncluded().add(DrisUtils.buildOrgUnitIncluded(service, repproviderOrgUnit, DrisUtils.buildOrgunitIdLink(repproviderOrgUnit)));
+		}
+
 		String crisPlatform = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drissoftware_authority"));
 		if(StringUtils.isNotBlank(crisPlatform)) {
 		    jldItem.setCrisPlatform(DrisUtils.buildMiniVocabPlatformIdLink(crisPlatform));
@@ -112,6 +146,8 @@ public class JsonLdEntry extends AbstractJsonLdResult {
                 }
             }
         }
+        
+        
 		
         Map<String,String> metadata = new HashMap<>();
 		Date creationdate = (Date)solrDoc.getFirstValue("crisdris.time_creation_dt");
@@ -121,6 +157,49 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		Date modificationdate = (Date)solrDoc.getFirstValue("crisdris.time_lastmodified_dt");
 		if(modificationdate!=null) {
 		    metadata.put("lastModified", DrisUtils.dateFormat.format(modificationdate));
+		}
+		
+		if(isSuperUser) {
+		    //write rdm indicator
+	        Collection<Object> coveragesName = (Collection<Object>)solrDoc.getFieldValues("crisdris.driscoverage");
+            if (coveragesName != null)
+            {
+                for (Object coverage : coveragesName)
+                {
+                    String coverageString = (String) coverage;
+                    if (StringUtils.isNotBlank(coverageString))
+                    {
+                        if ("Dataset".equals(coverageString))
+                        {
+                            // use this information to add rdm+ indicator in the
+                            // "metadata" section
+                            metadata.put("rdmCheck", "true");
+                        }
+                        else
+                        {
+                            metadata.put("rdmCheck", "false");
+                        }
+                    }
+                }
+            }
+
+		    //write Openaire compliance
+		    String complianceOpenaire = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscomplianceopenaire"));
+		    if(StringUtils.isNotBlank(complianceOpenaire)) {
+		        boolean isOpenaireCompliance = Boolean.parseBoolean(complianceOpenaire);
+	            if(isOpenaireCompliance) {
+	                metadata.put("openAIRECheck", "true");
+	            }
+	            else {
+	                metadata.put("openAIRECheck", "false");
+	            }		        
+		    }
+		    
+		    //write oai-pmh url
+		    String openAIREURL = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisoaipmhurl"));
+		    if(StringUtils.isNotBlank(openAIREURL)) {
+		        metadata.put("openAIREURL", openAIREURL);
+		    }
 		}
 		jldItem.setMetadata(metadata);
 		
@@ -238,5 +317,51 @@ public class JsonLdEntry extends AbstractJsonLdResult {
         this.included = included;
     }
 
+	public String getContext() {
+		return context;
+	}
 
+	public void setContext(String context) {
+		this.context = context;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public String getEstablished() {
+		return established;
+	}
+
+	public void setEstablished(String established) {
+		this.established = established;
+	}
+
+	public String getCrisDataSupply() {
+		return crisDataSupply;
+	}
+
+	public void setCrisDataSupply(String crisDataSupply) {
+		this.crisDataSupply = crisDataSupply;
+	}
+
+	public String getCrisDataValidation() {
+		return crisDataValidation;
+	}
+
+	public void setCrisDataValidation(String crisDataValidation) {
+		this.crisDataValidation = crisDataValidation;
+	}
+
+	public String getCrisDataOutput() {
+		return crisDataOutput;
+	}
+
+	public void setCrisDataOutput(String crisDataOutput) {
+		this.crisDataOutput = crisDataOutput;
+	}
 }
