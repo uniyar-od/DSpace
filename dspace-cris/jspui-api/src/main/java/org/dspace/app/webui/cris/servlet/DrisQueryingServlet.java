@@ -284,6 +284,55 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			String queryType = pathElements[0];
 			boolean isQuerying = false;
 			if (queryType.equals(ENTRIES_QUERY_TYPE_NAME)) {
+			    
+                boolean isSuperUser = false;
+                if (paramsMap.containsKey("key")) {
+                    String key = paramsMap.get("key").get(0);
+                    String currentKey = configurationService.getProperty("dris-rest.dris.endpoint.key");
+                    if(key.equals(currentKey)) {
+                        if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
+                            String username = paramsMap.get("username").get(0);
+                            String password = paramsMap.get("password").get(0);
+                            int codeResponse = AuthenticationManager.authenticate(context, username, password, null, request);
+                            if (codeResponse == AuthenticationMethod.SUCCESS) {
+                                if(AuthorizeManager.isAdmin(context)) {
+                                    isSuperUser = true;
+                                }
+                                else {
+                                    Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
+                                    if(openaireReaderGroup!=null) {
+                                        if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
+                                            isSuperUser = true;
+                                        }
+                                        else {
+                                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [The user is not a super user]" ));
+                                            response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [The user is not a super user]");
+                                            return;                                 
+                                        }
+                                        
+                                    }
+                                    else {
+                                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [Missing OpenaireReader mandatory group]" ));
+                                        response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [Missing OpenaireReader mandatory group]. Contact Administrator");
+                                        return;                                 
+                                    }
+                                                                    
+                                }
+                            }
+                            else {
+                                log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [RESPONSE CODE]:" + codeResponse));
+                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed [RESPONSE CODE]:" + codeResponse);
+                                return;                         
+                            }
+                        }
+                    }
+                    else {
+                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed: [WRONG KEY]"));
+                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed: [WRONG KEY]");
+                        return;                         
+                    }
+                }
+                
 				if (pathElements.length == 1) {
 			        // Check and extract pagination parameters
 			        Integer maxPageSize = DEFAULT_MAX_PAGE_SIZE;
@@ -314,55 +363,6 @@ public class DrisQueryingServlet extends DSpaceServlet {
                         }
 			        }
 
-			        boolean isSuperUser = false;
-			        if (paramsMap.containsKey("key")) {
-			            String key = paramsMap.get("key").get(0);
-			            String currentKey = configurationService.getProperty("dris-rest.dris.endpoint.key");
-			            if(key.equals(currentKey)) {
-    	                    if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
-    	                        String username = paramsMap.get("username").get(0);
-    	                        String password = paramsMap.get("password").get(0);
-    	                        int codeResponse = AuthenticationManager.authenticate(context, username, password, null, request);
-    	                        if (codeResponse == AuthenticationMethod.SUCCESS) {
-    	                            if(AuthorizeManager.isAdmin(context)) {
-    	                                isSuperUser = true;
-    	                            }
-    	                            else {
-    	                                Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
-    	                                if(openaireReaderGroup!=null) {
-    	                                    if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
-    	                                        isSuperUser = true;
-    	                                    }
-    	                                    else {
-    	                                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [The user is not a super user]" ));
-                                                response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [The user is not a super user]");
-                                                return;                                 
-                                            }
-    	                                    
-    	                                }
-    	                                else {
-    	                                    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [Missing OpenaireReader mandatory group]" ));
-    	                                    response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [Missing OpenaireReader mandatory group]. Contact Administrator");
-    	                                    return;                                 
-    	                                }
-    	                                                                
-    	                            }
-    	                        }
-    	                        else {
-    	                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [RESPONSE CODE]:" + codeResponse));
-    	                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed [RESPONSE CODE]:" + codeResponse);
-    	                            return;                         
-    	                        }
-    	                    }
-			            }
-	                    else {
-	                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed: [WRONG KEY]"));
-	                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed: [WRONG KEY]");
-	                        return;                         
-	                    }
-			        }
-
-			        
 			        // Entries filtered by various criteria was requested
 					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb, isSuperUser);
 			        
@@ -384,7 +384,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 					isQuerying = true;
 				} else if (pathElements.length == 2) {
 					// Single entry by id was requested
-					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1]);
+					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], isSuperUser);
 				} else {
 					// Unrecognized query of type 'entries', throw an error
 					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
@@ -503,12 +503,12 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 * @return the list of <code>org.dspace.app.webui.cris.util.JsonLdEntry</code> resulting from the query
 	 * @throws ServletException if any error occurs during processing
 	 */
-	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeById(String entryId) throws ServletException {
+	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeById(String entryId, boolean isSuperUser) throws ServletException {
         List<String> values = new ArrayList<>();
         values.add("\"" + entryId + "\"");
         LinkedHashMap<String, List<String>> queryParameters = new LinkedHashMap<>();
         queryParameters.put("cris-id", values);
-		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0, false);
+		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0, isSuperUser);
 	}
     
 	/**
