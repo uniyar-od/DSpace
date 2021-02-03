@@ -43,6 +43,7 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 	private String crisDataSupply=""; 
 	private String crisDataValidation="";
 	private String crisDataOutput="";
+	private String openaireCrisEndpointURL="";
 
 	private Map<String,String> metadata = new HashMap<>();
 	
@@ -148,6 +149,14 @@ public class JsonLdEntry extends AbstractJsonLdResult {
         }
         
         
+        if(isSuperUser) {
+            //write oai-pmh url
+            String openAIREURL = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisoaipmhurl"));
+            if(StringUtils.isNotBlank(openAIREURL)) {
+                jldItem.setOpenaireCrisEndpointURL(openAIREURL);
+                
+            }
+        }
 		
         Map<String,String> metadata = new HashMap<>();
 		Date creationdate = (Date)solrDoc.getFirstValue("crisdris.time_creation_dt");
@@ -194,12 +203,7 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 	                metadata.put("openAIRECheck", "false");
 	            }		        
 		    }
-		    
-		    //write oai-pmh url
-		    String openAIREURL = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.drisoaipmhurl"));
-		    if(StringUtils.isNotBlank(openAIREURL)) {
-		        metadata.put("openAIREURL", openAIREURL);
-		    }
+
 		}
 		jldItem.setMetadata(metadata);
 		
@@ -364,4 +368,14 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 	public void setCrisDataOutput(String crisDataOutput) {
 		this.crisDataOutput = crisDataOutput;
 	}
+
+    public String getOpenaireCrisEndpointURL()
+    {
+        return openaireCrisEndpointURL;
+    }
+
+    public void setOpenaireCrisEndpointURL(String openaireCrisEndpointURL)
+    {
+        this.openaireCrisEndpointURL = openaireCrisEndpointURL;
+    }
 }

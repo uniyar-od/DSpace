@@ -89,8 +89,11 @@ public class DrisUtils
             while (iter.hasNext()) {
                 SolrDocument doc = iter.next();
                 obj.put("@id", url);
-                obj.put("label",  (String)doc.getFirstValue("crisou.name"));
-                obj.put("country",  buildMiniVocabCountryIdLink((String)doc.getFirstValue("crisou.countrylink_authority")));
+                obj.put("name",  (String)doc.getFirstValue("crisou.name"));
+                String discoverable = (String)doc.getFirstValue("discoverable");
+                if("true".equals(discoverable)) {
+                    obj.put("country",  buildMiniVocabCountryIdLink((String)doc.getFirstValue("crisou.countrylink_authority")));                    
+                }
                 break;
             }
         } catch (SearchServiceException e) {

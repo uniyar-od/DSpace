@@ -385,6 +385,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				} else if (pathElements.length == 2) {
 					// Single entry by id was requested
 					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], isSuperUser);
+					response.setStatus(jsonLdResults.getStatusCode());
 				} else {
 					// Unrecognized query of type 'entries', throw an error
 					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
@@ -394,6 +395,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			} else if (queryType.equals(ORG_UNITS_QUERY_TYPE_NAME)) {
 				// Process org units request (with or without other path parameters)
 				jsonLdResults = this.processOrgUnitsQueryType(this.removeFirstItem(pathElements), 1, 0);
+				response.setStatus(jsonLdResults.getStatusCode());
 			} else if (queryType.equals(VOCABS_QUERY_TYPE_NAME)) {
 				// Process vocabs request (with or without other path parameters)
 			    long lastModifiedFromBrowser = request.getDateHeader(responseIfModifiedSinceHeaderName);
@@ -505,10 +507,15 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	 */
 	private WrapperJsonResults<JsonLdEntry> processEntriesQueryTypeById(String entryId, boolean isSuperUser) throws ServletException {
         List<String> values = new ArrayList<>();
+        WrapperJsonResults<JsonLdEntry> result = new WrapperJsonResults<JsonLdEntry>();
         values.add("\"" + entryId + "\"");
         LinkedHashMap<String, List<String>> queryParameters = new LinkedHashMap<>();
         queryParameters.put("cris-id", values);
-		return processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0, isSuperUser);
+		result = processEntriesQueryTypeWithFilteringParameters(queryParameters, 1, 0, isSuperUser);
+		if(result.isEmpty()) {
+		    result.setStatusCode(HttpServletResponse.SC_NOT_FOUND);
+		}
+		return result;
 	}
     
 	/**
@@ -560,7 +567,7 @@ public class DrisQueryingServlet extends DSpaceServlet {
 			List<JsonLdEntry> listJldObj = new LinkedList<>();
 			while (iter.hasNext()) {
 				listJldObj.add(JsonLdEntry.buildFromSolrDoc(this.getCrisSearchService(), iter.next(), isSuperUser));
-			}
+			}			
             result.setElements(listJldObj);
             result.setTotalElements(solrResults.getNumFound());
             return result;
@@ -770,6 +777,10 @@ public class DrisQueryingServlet extends DSpaceServlet {
 				if (list.size() != 1) {
 					String errMsg = "Warning: no organizational unit or too much organizational units was found by the specified ID.";
 					log.warn(SERVLET_DESCRIPTION +":"+ errMsg);
+					result.setStatusCode(HttpServletResponse.SC_NOT_FOUND);
+				}
+				else {
+				    result.setStatusCode(HttpServletResponse.SC_OK);
 				}
                 result.setElements(list);
                 result.setTotalElements(solrResults.getNumFound());
