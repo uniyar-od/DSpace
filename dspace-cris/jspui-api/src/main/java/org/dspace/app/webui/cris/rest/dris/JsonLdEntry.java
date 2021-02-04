@@ -47,6 +47,8 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 
 	private Map<String,String> metadata = new HashMap<>();
 	
+	private Map<String,String> badge = new HashMap<>();
+	
 	@JsonldIn
 	private List<Map<String,Object>> included = new ArrayList<>();
 	
@@ -157,7 +159,41 @@ public class JsonLdEntry extends AbstractJsonLdResult {
                 
             }
         }
-		
+
+        //badge section
+        Map<String,String> badge = new HashMap<>();
+
+        //write rdm indicator
+        badge.put("rdmCheck", "false");
+        Collection<Object> coveragesName = (Collection<Object>)solrDoc.getFieldValues("crisdris.driscoverage");
+        if (coveragesName != null)
+        {
+            coverageloop : for (Object coverage : coveragesName)
+            {
+                String coverageString = (String) coverage;
+                if (StringUtils.isNotBlank(coverageString))
+                {
+                    if ("Dataset".equals(coverageString))
+                    {
+                        badge.put("rdmCheck", "true");
+                        break coverageloop;
+                    }
+                }
+            }
+        }
+
+        //write Openaire compliance
+        badge.put("openAIRECheck", "false");
+        String complianceOpenaire = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscomplianceopenaire"));
+        if(StringUtils.isNotBlank(complianceOpenaire)) {
+            boolean isOpenaireCompliance = Boolean.parseBoolean(complianceOpenaire);
+            if(isOpenaireCompliance) {
+                badge.put("openAIRECheck", "true");
+            }
+        }
+        jldItem.setBadge(badge);
+
+        //metadata section
         Map<String,String> metadata = new HashMap<>();
 		Date creationdate = (Date)solrDoc.getFirstValue("crisdris.time_creation_dt");
 		if(creationdate!=null) {
@@ -166,44 +202,6 @@ public class JsonLdEntry extends AbstractJsonLdResult {
 		Date modificationdate = (Date)solrDoc.getFirstValue("crisdris.time_lastmodified_dt");
 		if(modificationdate!=null) {
 		    metadata.put("lastModified", DrisUtils.dateFormat.format(modificationdate));
-		}
-		
-		if(isSuperUser) {
-		    //write rdm indicator
-	        Collection<Object> coveragesName = (Collection<Object>)solrDoc.getFieldValues("crisdris.driscoverage");
-            if (coveragesName != null)
-            {
-                for (Object coverage : coveragesName)
-                {
-                    String coverageString = (String) coverage;
-                    if (StringUtils.isNotBlank(coverageString))
-                    {
-                        if ("Dataset".equals(coverageString))
-                        {
-                            // use this information to add rdm+ indicator in the
-                            // "metadata" section
-                            metadata.put("rdmCheck", "true");
-                        }
-                        else
-                        {
-                            metadata.put("rdmCheck", "false");
-                        }
-                    }
-                }
-            }
-
-		    //write Openaire compliance
-		    String complianceOpenaire = StringUtils.trimToEmpty((String)solrDoc.getFirstValue("crisdris.driscomplianceopenaire"));
-		    if(StringUtils.isNotBlank(complianceOpenaire)) {
-		        boolean isOpenaireCompliance = Boolean.parseBoolean(complianceOpenaire);
-	            if(isOpenaireCompliance) {
-	                metadata.put("openAIRECheck", "true");
-	            }
-	            else {
-	                metadata.put("openAIRECheck", "false");
-	            }		        
-		    }
-
 		}
 		jldItem.setMetadata(metadata);
 		
@@ -377,5 +375,15 @@ public class JsonLdEntry extends AbstractJsonLdResult {
     public void setOpenaireCrisEndpointURL(String openaireCrisEndpointURL)
     {
         this.openaireCrisEndpointURL = openaireCrisEndpointURL;
+    }
+
+    public Map<String, String> getBadge()
+    {
+        return badge;
+    }
+
+    public void setBadge(Map<String, String> badge)
+    {
+        this.badge = badge;
     }
 }
