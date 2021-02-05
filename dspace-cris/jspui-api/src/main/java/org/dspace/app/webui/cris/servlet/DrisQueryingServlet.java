@@ -14,9 +14,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -276,220 +278,231 @@ public class DrisQueryingServlet extends DSpaceServlet {
 		// The path parameters set can not be empty, the http parameters set can be empty.
 		String[] pathElements = this.splitMandatoryPathParameters(request);
 		LinkedHashMap<String, List<String>> paramsMap = this.splitOptionalHttpParameters(request);
-
-		try {
-			// Recognize the main query type as the first path element
-			// The 'pathElements' contains at least one element
-			// because 'this.splitMandatoryPathParameters' did not raised any error
-			String queryType = pathElements[0];
-			boolean isQuerying = false;
-			if (queryType.equals(ENTRIES_QUERY_TYPE_NAME)) {
-			    
-                boolean isSuperUser = false;
-                if (paramsMap.containsKey("key")) {
-                    String key = paramsMap.get("key").get(0);
-                    String currentKey = configurationService.getProperty("dris-rest.dris.endpoint.key");
-                    if(key.equals(currentKey)) {
-                        if (paramsMap.containsKey("username") && paramsMap.containsKey("password") && !paramsMap.get("username").isEmpty() && !paramsMap.get("password").isEmpty()) {
-                            String username = paramsMap.get("username").get(0);
-                            String password = paramsMap.get("password").get(0);
-                            int codeResponse = AuthenticationManager.authenticate(context, username, password, null, request);
-                            if (codeResponse == AuthenticationMethod.SUCCESS) {
-                                if(AuthorizeManager.isAdmin(context)) {
-                                    isSuperUser = true;
-                                }
-                                else {
-                                    Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
-                                    if(openaireReaderGroup!=null) {
-                                        if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
-                                            isSuperUser = true;
-                                        }
-                                        else {
-                                            log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authetication Failed [The user is not a super user]" ));
-                                            response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [The user is not a super user]");
-                                            return;                                 
-                                        }
-                                        
-                                    }
-                                    else {
-                                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [Missing OpenaireReader mandatory group]" ));
-                                        response.sendError(HttpServletResponse.SC_FORBIDDEN, " Authentication Failed [Missing OpenaireReader mandatory group]. Contact Administrator");
-                                        return;                                 
-                                    }
-                                                                    
-                                }
+		final String authorization = request.getHeader("Authorization");
+		String currentKey = configurationService.getProperty("dris-rest.dris.endpoint.key");
+		if (StringUtils.isNotBlank(currentKey)) {
+            String key = request.getHeader("X-API-Key");
+            if (StringUtils.isNotBlank(key)) {
+                if (!StringUtils.equals(currentKey, key)) {
+                	unauthorized(response, "The supplied API KEY is not valid");
+                	return;
+                }
+            } else {
+            	authenticate(response, "You must provide the API KEY in the X-API-Key Header");
+            	return;
+            }
+		}
+		if (authorization != null && authorization.toLowerCase().startsWith("basic")) {
+		    // Authorization: Basic base64credentials
+		    String base64Credentials = authorization.substring("Basic".length()).trim();
+		    byte[] credDecoded = Base64.getDecoder().decode(base64Credentials);
+		    String credentials = new String(credDecoded, StandardCharsets.UTF_8);
+		    // credentials = username:password
+		    final String[] values = credentials.split(":", 2);
+		    if (values.length != 2) {
+		    	authenticate(response, "Please provide your credentials");
+                return;
+		    } else {
+	            String username = values[0];
+	            String password = values[1];
+	      		try {
+	    			// Recognize the main query type as the first path element
+	    			// The 'pathElements' contains at least one element
+	    			// because 'this.splitMandatoryPathParameters' did not raised any error
+	    			String queryType = pathElements[0];
+	    			boolean isQuerying = false;
+	    			if (queryType.equals(ENTRIES_QUERY_TYPE_NAME)) {
+	                    boolean isSuperUser = false;
+                        int codeResponse = AuthenticationManager.authenticate(context, username, password, null, request);
+                        if (codeResponse == AuthenticationMethod.SUCCESS) {
+                            if(AuthorizeManager.isAdmin(context)) {
+                                isSuperUser = true;
                             }
                             else {
-                                log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [RESPONSE CODE]:" + codeResponse));
-                                response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed [RESPONSE CODE]:" + codeResponse);
-                                return;                         
+                                Group openaireReaderGroup = Group.findByName(context, "OpenaireReader");
+                                if(openaireReaderGroup!=null) {
+                                    if(Group.isMember(context, context.getCurrentUser(), openaireReaderGroup.getID())) {
+                                        isSuperUser = true;
+                                    }
+                                    else {
+                                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [The user is not a super user nor a member of the OpenaireReader]" ));
+                                        unauthorized(response, "You don't have the appropriate permission");
+                                        return;                                 
+                                    }
+                                    
+                                }
+                                else {
+                                    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed [Missing OpenaireReader mandatory group]" ));
+                                    unauthorized(response, "You don't have the appropriate permission or the system is wrongly configured, please contact the administrator");
+                                    return;                                 
+                                }
                             }
                         }
-                    }
-                    else {
-                        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, " Authentication Failed: [WRONG KEY]"));
-                        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Authentication Failed: [WRONG KEY]");
-                        return;                         
-                    }
-                }
-                
-				if (pathElements.length == 1) {
-			        // Check and extract pagination parameters
-			        Integer maxPageSize = DEFAULT_MAX_PAGE_SIZE;
-			        Integer startPageDocNumb = DEFAULT_START_DOC_NUMBER;
-			        if (paramsMap.containsKey(maxPageSizeParameterName) && !paramsMap.get(maxPageSizeParameterName).isEmpty()) {
-			            try {
-			                maxPageSize = Integer.parseInt(paramsMap.get(maxPageSizeParameterName).get(0));
-			                if (maxPageSize < 1) throw new NumberFormatException("The value of " + maxPageSizeParameterName + " must be greater than 0.");
-			                
-			                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
-			                    startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
-			                    if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
-			                }
-			            } catch (NumberFormatException e) {
-			                log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
-			                maxPageSize = DEFAULT_MAX_PAGE_SIZE;
-			                startPageDocNumb = DEFAULT_START_DOC_NUMBER;
-			            }
-			        } else {
-                        try {
-                            if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
-                                startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
-                                if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
-                            }
-                        } catch (NumberFormatException e) {
-                            log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
-                            startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+                        else {
+                        	unauthorized(response, "Bad credentials");		 
+                            return;                         
                         }
-			        }
-
-			        // Entries filtered by various criteria was requested
-					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb, isSuperUser);
-			        
-					// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
-		            if (jsonLdResults.getTotalElements() > maxPageSize*(startPageDocNumb+1)) {
-		                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
-		                    calledFullUrl = calledFullUrl.replace(pageStartDocNumberParameterName + keyValueSeparator + startPageDocNumb, 
-		                                          pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb));
-		                } else {
-		                    if(StringUtils.contains(calledFullUrl, "?")) {
-	                            calledFullUrl = calledFullUrl + parametersSeparator + pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb);
-		                    }
-		                    else {
-		                        calledFullUrl = calledFullUrl + queryStringSeparator + pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb);    
-		                    }
-		                }
-		                response.setHeader(responsePaginationHeaderName, responsePaginationHeaderPrefix + calledFullUrl + responsePaginationHeaderPostfix);
-		            }
-					isQuerying = true;
-				} else if (pathElements.length == 2) {
-					// Single entry by id was requested
-					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], isSuperUser);
-					response.setStatus(jsonLdResults.getStatusCode());
-				} else {
-					// Unrecognized query of type 'entries', throw an error
-					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
-					response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-					return;
-				}
-			} else if (queryType.equals(ORG_UNITS_QUERY_TYPE_NAME)) {
-				// Process org units request (with or without other path parameters)
-				jsonLdResults = this.processOrgUnitsQueryType(this.removeFirstItem(pathElements), 1, 0);
-				response.setStatus(jsonLdResults.getStatusCode());
-			} else if (queryType.equals(VOCABS_QUERY_TYPE_NAME)) {
-				// Process vocabs request (with or without other path parameters)
-			    long lastModifiedFromBrowser = request.getDateHeader(responseIfModifiedSinceHeaderName);
-				jsonLdResults = this.processVocabsQueryType(this.removeFirstItem(pathElements), Integer.MAX_VALUE, 0, lastModifiedFromBrowser);
-				if(jsonLdResults==null) {
-			          //setting 304 and returning with empty body
-				    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "If-Modified-Since request HTTP header found makes the request conditional: " + queryType));
-				    response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);    
-			        return;
-				}
-				else {
-				    if(jsonLdResults.getStatusCode()!=HttpServletResponse.SC_OK) {
-				        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main vocabs type or no content: " + queryType));
-	                    response.setStatus(jsonLdResults.getStatusCode());    
-	                    return;				        
-				    }
-				}
-				response.setHeader(responseLastModifiedHeaderName, DateUtils.formatDate(jsonLdResults.getLastModified()));
-			} else {
-				// Unrecognized query type, throw an error
-				log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main query type: " + queryType));
-				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-				return;
-			}
-			
-            if (isQuerying)
-            {
-                // Compose data response using ​ https://schema.org/ItemList
-                JsonLdResultsList finalResults = new JsonLdResultsList();
-                finalResults.setItemListElement(jsonLdResults.getElements());
-                finalResults.setNumberOfItems(jsonLdResults.getTotalElements());
-                String jsonLdString = "";
-                try
-                {
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    objectMapper.registerModule(new JsonldModule());
-                    jsonLdString = objectMapper
-                            .writeValueAsString(finalResults);
-                    response.getWriter().print(jsonLdString);
-                    log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
-                            "JSON-LD response ready....."));
-                    log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
-                            jsonLdString));
-                }
-                catch (Exception e)
-                {
-                    log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
-                            "Unable to write JSON-LD results in the response as a String"),
-                            e);
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    return;
-                }
-            }
-            else {
-                // response is a json object
-                String jsonLdString = "";
-                try
-                {
-                    if(!jsonLdResults.isEmpty()) {
-                        ObjectMapper objectMapper = new ObjectMapper();
-                        objectMapper.registerModule(new JsonldModule());
-                        if (jsonLdResults.size() > 1)
-                        {
-                            jsonLdString = objectMapper
-                                    .writeValueAsString(jsonLdResults.getElements());
-                        }
-                        else
-                        {
-                            jsonLdString = objectMapper
-                                    .writeValueAsString(jsonLdResults.get(0));
-                        }
-                        response.getWriter().print(jsonLdString);
-                        log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
-                                "JSON-LD response ready....."));
-                        log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
-                                jsonLdString));
-                    }
-                }
-                catch (Exception e)
-                {
-                    log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
-                            "Unable to write JSON-LD results in the response as a String"),
-                            e);
-                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-                    return;
-                }
-            }
-			log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Call to Dris Querying Servlet successfully completed."));
-			return;
-		} catch (Exception e) {
-			// ERROR: specific query type error
-			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
-			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-			return;
+	    				if (pathElements.length == 1) {
+	    			        // Check and extract pagination parameters
+	    			        Integer maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+	    			        Integer startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+	    			        if (paramsMap.containsKey(maxPageSizeParameterName) && !paramsMap.get(maxPageSizeParameterName).isEmpty()) {
+	    			            try {
+	    			                maxPageSize = Integer.parseInt(paramsMap.get(maxPageSizeParameterName).get(0));
+	    			                if (maxPageSize < 1) throw new NumberFormatException("The value of " + maxPageSizeParameterName + " must be greater than 0.");
+	    			                
+	    			                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
+	    			                    startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
+	    			                    if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
+	    			                }
+	    			            } catch (NumberFormatException e) {
+	    			                log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
+	    			                maxPageSize = DEFAULT_MAX_PAGE_SIZE;
+	    			                startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+	    			            }
+	    			        } else {
+	                            try {
+	                                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
+	                                    startPageDocNumb = Integer.parseInt(paramsMap.get(pageStartDocNumberParameterName).get(0));
+	                                    if (startPageDocNumb < 1) throw new NumberFormatException("The value of " + pageStartDocNumberParameterName + " must be greater than 0.");
+	                                }
+	                            } catch (NumberFormatException e) {
+	                                log.warn(SERVLET_DESCRIPTION + ": Error during numeric paramenters parsing, they will be ignored.", e);
+	                                startPageDocNumb = DEFAULT_START_DOC_NUMBER;
+	                            }
+	    			        }
+	
+	    			        // Entries filtered by various criteria was requested
+	    					jsonLdResults = this.processEntriesQueryTypeWithFilteringParameters(paramsMap, maxPageSize, startPageDocNumb, isSuperUser);
+	    			        
+	    					// Compose the link to forward traversal the results list (pagination), set to response header 'Link'
+	    		            if (jsonLdResults.getTotalElements() > maxPageSize*(startPageDocNumb+1)) {
+	    		                if (paramsMap.containsKey(pageStartDocNumberParameterName) && !paramsMap.get(pageStartDocNumberParameterName).isEmpty()) {
+	    		                    calledFullUrl = calledFullUrl.replace(pageStartDocNumberParameterName + keyValueSeparator + startPageDocNumb, 
+	    		                                          pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb));
+	    		                } else {
+	    		                    if(StringUtils.contains(calledFullUrl, "?")) {
+	    	                            calledFullUrl = calledFullUrl + parametersSeparator + pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb);
+	    		                    }
+	    		                    else {
+	    		                        calledFullUrl = calledFullUrl + queryStringSeparator + pageStartDocNumberParameterName + keyValueSeparator + (++startPageDocNumb);    
+	    		                    }
+	    		                }
+	    		                response.setHeader(responsePaginationHeaderName, responsePaginationHeaderPrefix + calledFullUrl + responsePaginationHeaderPostfix);
+	    		            }
+	    					isQuerying = true;
+	    				} else if (pathElements.length == 2) {
+	    					// Single entry by id was requested
+	    					jsonLdResults = this.processEntriesQueryTypeById(pathElements[1], isSuperUser);
+	    					response.setStatus(jsonLdResults.getStatusCode());
+	    				} else {
+	    					// Unrecognized query of type 'entries', throw an error
+	    					log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized entries query: " + pathElements.toString()));
+	    					response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+	    					return;
+	    				}
+	    			} else if (queryType.equals(ORG_UNITS_QUERY_TYPE_NAME)) {
+	    				// Process org units request (with or without other path parameters)
+	    				jsonLdResults = this.processOrgUnitsQueryType(this.removeFirstItem(pathElements), 1, 0);
+	    				response.setStatus(jsonLdResults.getStatusCode());
+	    			} else if (queryType.equals(VOCABS_QUERY_TYPE_NAME)) {
+	    				// Process vocabs request (with or without other path parameters)
+	    			    long lastModifiedFromBrowser = request.getDateHeader(responseIfModifiedSinceHeaderName);
+	    				jsonLdResults = this.processVocabsQueryType(this.removeFirstItem(pathElements), Integer.MAX_VALUE, 0, lastModifiedFromBrowser);
+	    				if(jsonLdResults==null) {
+	    			          //setting 304 and returning with empty body
+	    				    log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "If-Modified-Since request HTTP header found makes the request conditional: " + queryType));
+	    				    response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);    
+	    			        return;
+	    				}
+	    				else {
+	    				    if(jsonLdResults.getStatusCode()!=HttpServletResponse.SC_OK) {
+	    				        log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main vocabs type or no content: " + queryType));
+	    	                    response.setStatus(jsonLdResults.getStatusCode());    
+	    	                    return;				        
+	    				    }
+	    				}
+	    				response.setHeader(responseLastModifiedHeaderName, DateUtils.formatDate(jsonLdResults.getLastModified()));
+	    			} else {
+	    				// Unrecognized query type, throw an error
+	    				log.warn(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Unrecognized main query type: " + queryType));
+	    				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+	    				return;
+	    			}
+	    			
+	                if (isQuerying)
+	                {
+	                    // Compose data response using ​ https://schema.org/ItemList
+	                    JsonLdResultsList finalResults = new JsonLdResultsList();
+	                    finalResults.setItemListElement(jsonLdResults.getElements());
+	                    finalResults.setNumberOfItems(jsonLdResults.getTotalElements());
+	                    String jsonLdString = "";
+	                    try
+	                    {
+	                        ObjectMapper objectMapper = new ObjectMapper();
+	                        objectMapper.registerModule(new JsonldModule());
+	                        jsonLdString = objectMapper
+	                                .writeValueAsString(finalResults);
+	                        response.getWriter().print(jsonLdString);
+	                        log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+	                                "JSON-LD response ready....."));
+	                        log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+	                                jsonLdString));
+	                    }
+	                    catch (Exception e)
+	                    {
+	                        log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+	                                "Unable to write JSON-LD results in the response as a String"),
+	                                e);
+	                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+	                        return;
+	                    }
+	                }
+	                else {
+	                    // response is a json object
+	                    String jsonLdString = "";
+	                    try
+	                    {
+	                        if(!jsonLdResults.isEmpty()) {
+	                            ObjectMapper objectMapper = new ObjectMapper();
+	                            objectMapper.registerModule(new JsonldModule());
+	                            if (jsonLdResults.size() > 1)
+	                            {
+	                                jsonLdString = objectMapper
+	                                        .writeValueAsString(jsonLdResults.getElements());
+	                            }
+	                            else
+	                            {
+	                                jsonLdString = objectMapper
+	                                        .writeValueAsString(jsonLdResults.get(0));
+	                            }
+	                            response.getWriter().print(jsonLdString);
+	                            log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+	                                    "JSON-LD response ready....."));
+	                            log.debug(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+	                                    jsonLdString));
+	                        }
+	                    }
+	                    catch (Exception e)
+	                    {
+	                        log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION,
+	                                "Unable to write JSON-LD results in the response as a String"),
+	                                e);
+	                        response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+	                        return;
+	                    }
+	                }
+	    			log.info(LogManager.getHeader(context, SERVLET_DESCRIPTION, "Call to Dris Querying Servlet successfully completed."));
+	    			return;
+	    		} catch (Exception e) {
+	    			// ERROR: specific query type error
+	    			log.error(LogManager.getHeader(context, SERVLET_DESCRIPTION, e.getMessage()), e);
+	    			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+	    			return;
+	    		}
+		    }
+		} else {
+            unauthorized(response, "Please authenticate to use the DRIS APIs");
 		}
 	}
 	
@@ -1065,5 +1078,13 @@ public class DrisQueryingServlet extends DSpaceServlet {
 	public void setFiltersSettingsPrefix(String filtersSettingsPrefix) {
 		this.filtersSettingsPrefix = filtersSettingsPrefix;
 	}
+
+	private void unauthorized(HttpServletResponse response, String message) throws IOException {
+		response.sendError(HttpServletResponse.SC_FORBIDDEN, message);
+	}
 	
+	private void authenticate(HttpServletResponse response, String message) throws IOException {
+		response.setHeader("WWW-Authenticate", "Basic realm=\"DRIS APIs\"");
+		response.sendError(HttpServletResponse.SC_UNAUTHORIZED, message);
+	}
 }
