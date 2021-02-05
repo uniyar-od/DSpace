@@ -1,7 +1,6 @@
 package org.dspace.submit.lookup;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -13,8 +12,7 @@ import org.dspace.content.authority.Choices;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchService;
-
-import com.sun.tools.internal.xjc.reader.gbind.Choice;
+import org.dspace.discovery.SearchServiceException;
 
 import gr.ekt.bte.core.AbstractModifier;
 import gr.ekt.bte.core.MutableRecord;
@@ -55,7 +53,9 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 	// the list of BTE field that should be linked to the CRIS object if found via
 	// the authority framework. They need to appear in the enhanced fields map as
 	// well
-    private List<String> mappingAuthorityConfidenceConfiguration;
+    protected List<String> mappingAuthorityConfiguration;
+
+    protected List<String> mappingAuthorityRequiredConfiguration;
 
     protected Integer resourceTypeID;
 
@@ -65,7 +65,12 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 
     public AuthorityLookupModifier()
     {
-        super("AuthorityLookupModifier");
+        this("AuthorityLookupModifier");
+    }
+
+    public AuthorityLookupModifier(String name)
+    {
+        super(name);
     }
 
     @Override
@@ -73,88 +78,17 @@ public class AuthorityLookupModifier<T extends ACrisObject>
     {
         try
         {
-        	List<T> crisObjects = new ArrayList<T>();
+            List results = new ArrayList();
         	List<Integer> confidences = new ArrayList<Integer>();
         	
             for (String mm : metadataInputConfiguration.keySet())
             {
-            	// lookup for the cris object using the preferred field
-                List<String> values = new ArrayList<String>();
-                values.addAll(normalize(getValue(rec, mm)));
-                int pos = 0;
-                for (String value : values)
-                {
-					// if we have already identified the cris object using another field is not
-					// necessary to make a second lookup
-                	if (crisObjects.size() > pos && crisObjects.get(pos) != null) {
-                		continue;
-                	}
-                    if (StringUtils.isNotBlank(value))
-                    {
-                        DiscoverQuery query = new DiscoverQuery();
-                        query.setQuery("search.resourcetype:" + resourceTypeID
-                                + " AND " + metadataInputConfiguration.get(mm)
-                                + ":\"" + value + "\"");
-                        DiscoverResult result = searchService.search(null,
-                                query, true);
-
-                        T cris = null;
-                        if (result.getTotalSearchResults() > 0)
-                        {
-                            cris = (T) result.getDspaceObjects().get(0);
-							confidences.add(
-									result.getTotalSearchResults() == 1 ? Choices.CF_UNCERTAIN : Choices.CF_AMBIGUOUS);
-                        }
-                        else {
-                        	confidences.add(Choices.CF_UNSET);
-                        }
-                        if (crisObjects.size() > pos) {
-                        	crisObjects.set(pos, cris);
-                        }
-                        else {
-                        	crisObjects.add(cris);
-                        }
-                    }
-                    pos++;
-                }
+                lookup(rec, mm, results, confidences);
             }
 
             int pos = 0;
-            for (T cris : crisObjects) {
-				if (cris != null) {
-					// only process the additional information if a CRIS object has been found
-					for (String propShortname : mappingOutputConfiguration.keySet()) {
-						String bteField = mappingOutputConfiguration.get(propShortname);
-						List<Value> exValues = rec.getValues(bteField);
-						List<Value> newValues = new ArrayList<Value>();
-						rec.removeField(bteField);
-
-						// add back all the existing values as is
-						for (int iPos = 0; iPos < pos; iPos++) {
-							newValues.add(exValues.size() > iPos ? exValues.get(iPos) : new StringValue(""));
-						}
-
-						if (ResearcherPageUtils.getStringValue(cris, propShortname) != null) {
-							if (mappingAuthorityConfidenceConfiguration.contains(bteField)) {
-								newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)
-										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + cris.getCrisID()
-										+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + confidences.get(pos)));
-							} else {
-								newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)));
-							}
-						}
-						else {
-							newValues.add(new StringValue(""));
-						}
-
-						// add back all the existing values not yet processed
-						for (int iPos = pos + 1; iPos < exValues.size(); iPos++) {
-							newValues.add(exValues.get(iPos));
-						}
-
-						rec.addField(bteField, newValues);
-					}
-				}
+            for (Object object : results) {
+                process(rec, object, pos, confidences.get(pos));
             	pos++;
             }
         }
@@ -165,6 +99,123 @@ public class AuthorityLookupModifier<T extends ACrisObject>
         }
         return rec;
 
+    }
+
+    /**
+     * Retrieve the object doing a solr search on the CRIS field retrieved from the BTE field.
+     * @param rec the MutableRecord
+     * @param mm the BTE field
+     * @param results the list of results
+     * @param confidences the list of confidences
+     * @throws SearchServiceException
+     */
+    protected void lookup(MutableRecord rec, String mm, List results, List<Integer> confidences)
+            throws SearchServiceException {
+        // lookup for the cris object using the preferred field
+        List<String> values = new ArrayList<String>();
+        values.addAll(normalize(getValue(rec, mm)));
+        int pos = 0;
+        for (String value : values) {
+			// if we have already identified the cris object using another field is not
+			// necessary to make a second lookup
+        	if (results.size() > pos && results.get(pos) != null) {
+        		continue;
+        	}
+            if (StringUtils.isNotBlank(value)) {
+                DiscoverQuery query = new DiscoverQuery();
+                query.setQuery("search.resourcetype:" + resourceTypeID
+                        + " AND " + metadataInputConfiguration.get(mm)
+                        + ":\"" + value + "\"");
+                DiscoverResult result = searchService.search(null,
+                        query, true);
+
+                T cris = null;
+                if (result.getTotalSearchResults() > 0) {
+                    cris = (T) result.getDspaceObjects().get(0);
+					confidences.add(
+							result.getTotalSearchResults() == 1 ? Choices.CF_UNCERTAIN : Choices.CF_AMBIGUOUS);
+                }
+                else {
+                	confidences.add(Choices.CF_UNSET);
+                }
+                if (results.size() > pos) {
+                	results.set(pos, cris);
+                }
+                else {
+                	results.add(cris);
+                }
+            }
+            pos++;
+        }
+    }
+
+    /**
+     * Process the retrieved object to populate the MutableRecord.
+     * @param rec the MutableRecord
+     * @param object the retrieved object
+     * @param pos the position of the retrieved object
+     * @param confidence the confidence of the retrieved object
+     * @throws SearchServiceException
+     */
+    protected void process(MutableRecord rec, Object object, int pos, int confidence) {
+        ACrisObject cris = null;
+        if (object instanceof ACrisObject) {
+            cris = (ACrisObject) object;
+        }
+        if (cris != null) {
+			// only process the additional information if a CRIS object has been found
+			for (String propShortname : mappingOutputConfiguration.keySet()) {
+				String bteField = mappingOutputConfiguration.get(propShortname);
+				List<Value> exValues = rec.getValues(bteField);
+				List<Value> newValues = new ArrayList<Value>();
+				rec.removeField(bteField);
+
+				// add back all the existing values as is
+				for (int iPos = 0; iPos < pos; iPos++) {
+					newValues.add(exValues.size() > iPos ? exValues.get(iPos) : new StringValue(""));
+				}
+
+				if (ResearcherPageUtils.getStringValue(cris, propShortname) != null) {
+					if (mappingAuthorityConfiguration.contains(bteField)) {
+						newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)
+								+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + cris.getCrisID()
+								+ SubmissionLookupService.SEPARATOR_VALUE_REGEX + confidence));
+					} else {
+						newValues.add(new StringValue(ResearcherPageUtils.getStringValue(cris, propShortname)));
+					}
+				}
+				else {
+					newValues.add(new StringValue(""));
+				}
+
+				// add back all the existing values not yet processed
+				for (int iPos = pos + 1; iPos < exValues.size(); iPos++) {
+					newValues.add(exValues.get(iPos));
+				}
+
+				rec.addField(bteField, newValues);
+			}
+		} else {
+			for (String propShortname : mappingOutputConfiguration.keySet()) {
+				String bteField = mappingOutputConfiguration.get(propShortname);
+				if (mappingAuthorityRequiredConfiguration.contains(bteField)) {
+					// in case of authority required keep only values with authority
+					List<Value> exValues = rec.getValues(bteField);
+					rec.removeField(bteField);
+					if (exValues != null && !exValues.isEmpty()) {
+						List<Value> newValues = new ArrayList<Value>();
+						for (Value value : exValues) {
+							if (StringUtils.contains(value.getAsString(), SubmissionLookupService.SEPARATOR_VALUE_REGEX)) {
+								newValues.add(value);
+							}
+						}
+						if (newValues != null && !newValues.isEmpty()) {
+							rec.addField(bteField, newValues);
+						}
+					}
+				}
+			}
+		}
     }
 
     public List<String> normalize(List<String> values)
@@ -221,7 +272,13 @@ public class AuthorityLookupModifier<T extends ACrisObject>
     public void setMappingAuthorityConfiguration(
             List<String> mappingAuthorityConfiguration)
     {
-        this.mappingAuthorityConfidenceConfiguration = mappingAuthorityConfiguration;
+        this.mappingAuthorityConfiguration = mappingAuthorityConfiguration;
+    }
+
+    public void setMappingAuthorityRequiredConfiguration(
+            List<String> mappingAuthorityRequiredConfiguration)
+    {
+        this.mappingAuthorityRequiredConfiguration = mappingAuthorityRequiredConfiguration;
     }
 
     public void setResourceTypeID(Integer resourceTypeID)

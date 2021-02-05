@@ -384,53 +384,104 @@
 		class="org.dspace.submit.lookup.JournalLookupModifier">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 		<property name="resourceTypeID" value="1001" />
+		<!-- the list of BTE fields (keys) to use for the SOLR lookup -->
 		<property name="metadataInputConfiguration">
 			<map>
-			    <!-- the list of BTE fields (keys) to use for the CRIS lookup -->
-				<entry key="jissn" value="crisjournal.journalissn" />
-				<entry key="jeissn" value="crisjournal.journaleissn" />
+				<entry key="journal" value="crisjournals.journalsname" />
+				<entry key="jissn" value="crisjournals.journalsissn" />
+				<entry key="jeissn" value="crisjournals.journalseissn" />
 			</map>
 		</property>
+		<!-- the list of BTE fields (keys) to use for the CRIS lookup -->
+		<property name="metadataInputAdvancedConfiguration">
+			<map>
+				<entry key="journal" value="dc_relation_ispartof" />
+				<entry key="jissn" value="dc_relation_issn" />
+				<entry key="jeissn" value="dc_relation_eissn" />
+			</map>
+		</property>
+		<!-- the list of CRIS properties (keys) to expose as BTE fields (values) -->
 		<property name="mappingOutputConfiguration">
 			<map>
-				<!-- the list of CRIS properties (keys) to expose as BTE fields (values) -->
-				<entry key="journalname" value="journal" />
-				<entry key="journalissn" value="jissn" />
-				<entry key="journaleissn" value="jeissn" />
-				<entry key="journalpublisher" value="publisher" />
+				<entry key="journalsname" value="journal" />
+				<entry key="journalsissn" value="jissn" />
+				<entry key="journalseissn" value="jeissn" />
+				<entry key="journalspublisher" value="publisher" />
 			</map>
 		</property>
+		<!-- the list of choice properties (keys) to expose as BTE fields (values) -->
+		<property name="mappingOutputAdvancedConfiguration">
+			<map>
+				<!-- retrieve the name (special case) -->
+				<entry>
+					<key><util:constant static-field="org.dspace.submit.lookup.AuthorityLookupModifierAdvanced.NAME" /></key>
+					<value>journal</value>
+				</entry>
+				<!-- retrieve metadata on extras -->
+				<entry key="dc_identifier_issn" value="jissn" />
+				<entry key="dc_identifier_eissn" value="jeissn" />
+				<entry key="dc_publisher_name" value="publisher" />
+			</map>
+		</property>
+		<!-- the list of BTE field that should contains the authority -->
 		<property name="mappingAuthorityConfiguration">
-			<!-- the list of BTE field that should contains the authority -->
 			<list>
 				<value>journal</value>
+			</list>
+		</property>
+		<!-- the list of BTE field that must contains the authority -->
+		<property name="mappingAuthorityRequiredConfiguration">
+			<list>
 			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearchObject" />
 	</bean>
 	
 	<bean name="authorsModifier"
-		class="org.dspace.submit.lookup.AuthorityLookupModifier">
+		class="org.dspace.submit.lookup.AuthorityLookupModifierAdvanced">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
 		<property name="resourceTypeID">
 			<util:constant static-field="org.dspace.app.cris.model.CrisConstants.RP_TYPE_ID"></util:constant>
 		</property>
+		<!-- the list of BTE fields (keys) to use for the SOLR lookup -->
 		<property name="metadataInputConfiguration">
 			<map>
-			    <!-- the list of BTE fields (keys) to use for the CRIS lookup -->
 				<entry key="authors" value="crisauthoritylookup" />
 			</map>
 		</property>
+		<!-- the list of BTE fields (keys) to use for the CRIS lookup -->
+		<property name="metadataInputAdvancedConfiguration">
+			<map>
+				<entry key="authors" value="dc_contributor_author" />
+			</map>
+		</property>
+		<!-- the list of CRIS properties (keys) to expose as BTE fields (values) -->
 		<property name="mappingOutputConfiguration">
 			<map>
-			    <!-- the list of CRIS properties (keys) to expose as BTE fields (values) -->
 				<entry key="fullName" value="authors" />
 			</map>
 		</property>
+		<!-- the list of choice properties (keys) to expose as BTE fields (values) -->
+		<property name="mappingOutputAdvancedConfiguration">
+			<map>
+				<!-- retrieve the name (special case) -->
+				<entry>
+					<key><util:constant static-field="org.dspace.submit.lookup.AuthorityLookupModifierAdvanced.NAME" /></key>
+					<value>authors</value>
+				</entry>
+				<!-- retrieve metadata on extras -->
+				<!-- <entry key="dc_contributor_orcid" value="orcid" /> -->
+			</map>
+		</property>
+		<!-- the list of BTE field that should contains the authority -->
 		<property name="mappingAuthorityConfiguration">
-			<!-- the list of BTE field that should contains the authority -->
 			<list>
 				<value>authors</value>
+			</list>
+		</property>
+		<!-- the list of BTE field that must contains the authority -->
+		<property name="mappingAuthorityRequiredConfiguration">
+			<list>
 			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearcherPage" />
