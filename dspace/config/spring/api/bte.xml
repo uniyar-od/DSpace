@@ -378,6 +378,12 @@
 				<value>journal</value>
 			</list>
 		</property>
+		<property name="mappingAuthorityRequiredConfiguration">
+			<!-- the list of BTE field that must contains the authority -->
+			<list>
+				<value>journal</value>
+			</list>
+		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearchObject" />
 	</bean>
 	
@@ -401,6 +407,11 @@
 			<!-- the list of BTE field that should contains the authority -->
 			<list>
 				<value>authors</value>
+			</list>
+		</property>
+		<property name="mappingAuthorityRequiredConfiguration">
+			<!-- the list of BTE field that must contains the authority -->
+			<list>
 			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearcherPage" />

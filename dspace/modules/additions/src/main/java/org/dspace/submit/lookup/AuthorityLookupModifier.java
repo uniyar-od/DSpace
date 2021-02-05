@@ -55,6 +55,8 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 	// well
     private List<String> mappingAuthorityConfiguration;
 
+    private List<String> mappingAuthorityRequiredConfiguration;
+
     private Integer resourceTypeID;
 
     private SearchService searchService;
@@ -146,6 +148,13 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 						
 						rec.addField(bteField, newValues);
 					}
+				} else {
+					for (String propShortname : mappingOutputConfiguration.keySet()) {
+						String bteField = mappingOutputConfiguration.get(propShortname);
+						if (mappingAuthorityRequiredConfiguration.contains(bteField)) {
+							rec.removeField(bteField);
+						}
+					}
 				}
             	pos++;
             }
@@ -214,6 +223,12 @@ public class AuthorityLookupModifier<T extends ACrisObject>
             List<String> mappingAuthorityConfiguration)
     {
         this.mappingAuthorityConfiguration = mappingAuthorityConfiguration;
+    }
+
+    public void setMappingAuthorityRequiredConfiguration(
+            List<String> mappingAuthorityRequiredConfiguration)
+    {
+        this.mappingAuthorityRequiredConfiguration = mappingAuthorityRequiredConfiguration;
     }
 
     public void setResourceTypeID(Integer resourceTypeID)
