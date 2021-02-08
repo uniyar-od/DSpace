@@ -152,7 +152,20 @@ public class AuthorityLookupModifier<T extends ACrisObject>
 					for (String propShortname : mappingOutputConfiguration.keySet()) {
 						String bteField = mappingOutputConfiguration.get(propShortname);
 						if (mappingAuthorityRequiredConfiguration.contains(bteField)) {
+							// in case of authority required keep only values with authority
+							List<Value> exValues = rec.getValues(bteField);
 							rec.removeField(bteField);
+							if (exValues != null && !exValues.isEmpty()) {
+								List<Value> newValues = new ArrayList<Value>();
+								for (Value value : exValues) {
+									if (StringUtils.contains(value.getAsString(), SubmissionLookupService.SEPARATOR_VALUE_REGEX)) {
+										newValues.add(value);
+									}
+								}
+								if (newValues != null && !newValues.isEmpty()) {
+									rec.addField(bteField, newValues);
+								}
+							}
 						}
 					}
 				}
