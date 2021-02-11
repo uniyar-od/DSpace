@@ -367,3 +367,6 @@ div.row > label.col-md-2 {clear: left;}
 div.footerPanel {
     background: url(../../../image/logo-4science-small.png) no-repeat center bottom;
 }
+.uv .footerPanel .search .searchTextContainer {
+    color: #000;
+}
