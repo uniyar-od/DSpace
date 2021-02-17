@@ -18,10 +18,8 @@ import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.eperson.EPerson;
-import org.dspace.eperson.service.EPersonService;
+import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.dspace.metrics.embeddable.impl.AbstractEmbeddableMetricProvider;
 import org.dspace.services.RequestService;
@@ -49,10 +47,10 @@ public class CrisMetricsRestPermissionEvaluatorPlugin extends RestObjectPermissi
     private RequestService requestService;
 
     @Autowired
-    private EPersonService ePersonService;
+    private CrisItemMetricsService crisItemMetricsService;
 
     @Autowired
-    private CrisItemMetricsService crisItemMetricsService;
+    private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
 
     @Autowired
     private ItemService itemService;
@@ -69,24 +67,15 @@ public class CrisMetricsRestPermissionEvaluatorPlugin extends RestObjectPermissi
 
         Request request = requestService.getCurrentRequest();
         Context context = ContextUtil.obtainContext(request.getServletRequest());
-        EPerson ePerson = null;
 
         try {
-            ePerson = ePersonService.findByEmail(context, (String) authentication.getPrincipal());
-
-            // anonymous user
-            if (ePerson == null) {
-                return false;
-            }
-
             Item item = itemFromMetricId(context, targetId.toString());
-
             if (Objects.isNull(item)) {
                 // this is needed to allow 404 instead than 403
                 return true;
             }
 
-            return authorizeService.authorizeActionBoolean(context, item, Constants.READ);
+            return crisItemMetricsAuthorizationService.isAuthorized(context, item);
 
         } catch (SQLException e) {
             log.error(e.getMessage(), e);

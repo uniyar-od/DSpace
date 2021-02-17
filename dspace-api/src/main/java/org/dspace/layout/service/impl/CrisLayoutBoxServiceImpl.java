@@ -35,6 +35,7 @@ import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
 import org.dspace.layout.service.CrisLayoutBoxAccessService;
 import org.dspace.layout.service.CrisLayoutBoxService;
+import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -55,6 +56,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private AuthorizeService authorizeService;
 
     @Autowired
+    private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
+
+    @Autowired
     private EntityTypeService entityTypeService;
 
     @Autowired
@@ -70,12 +74,14 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     CrisLayoutBoxServiceImpl(CrisLayoutBoxDAO dao, ItemService itemService, AuthorizeService authorizeService,
                              EntityTypeService entityTypeService,
                              CrisLayoutBoxAccessService crisLayoutBoxAccessService,
+                             CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService,
                              CrisItemMetricsService crisMetricService) {
         this.dao = dao;
         this.itemService = itemService;
         this.authorizeService = authorizeService;
         this.entityTypeService = entityTypeService;
         this.crisLayoutBoxAccessService = crisLayoutBoxAccessService;
+        this.crisItemMetricsAuthorizationService = crisItemMetricsAuthorizationService;
         this.crisMetricService = crisMetricService;
     }
 
@@ -283,6 +289,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
 
     protected boolean hasMetricsBoxContent(Context context, CrisLayoutBox box, UUID itemUuid) {
         if (box.getMetric2box().isEmpty()) {
+            return false;
+        }
+        if (!this.crisItemMetricsAuthorizationService.isAuthorized(context, itemUuid)) {
             return false;
         }
         final Set<String> boxTypes = box.getMetric2box().stream().map(mb -> mb.getType()).collect(Collectors.toSet());

@@ -36,6 +36,7 @@ import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.CrisLayoutMetric2Box;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
 import org.dspace.layout.service.CrisLayoutBoxAccessService;
+import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.dspace.metrics.embeddable.model.EmbeddableCrisMetrics;
 import org.junit.Before;
@@ -70,11 +71,15 @@ public class CrisLayoutBoxServiceImplTest {
     private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
     @Mock
     private CrisItemMetricsService crisItemMetricsService;
+    @Mock
+    private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
 
     @Before
     public void setUp() throws Exception {
         crisLayoutBoxService = new CrisLayoutBoxServiceImpl(dao, itemService, authorizeService, entityTypeService,
-                                                            crisLayoutBoxAccessService, crisItemMetricsService);
+                                                            crisLayoutBoxAccessService,
+                                                            crisItemMetricsAuthorizationService,
+                                                            crisItemMetricsService);
     }
 
     @Test(expected = NullPointerException.class)
@@ -267,30 +272,44 @@ public class CrisLayoutBoxServiceImplTest {
     @Test
     public void hasMetricsBoxContent() {
 
+        when(crisItemMetricsAuthorizationService.isAuthorized(any(), any(UUID.class))).thenReturn(true);
+
         // should return false when the box has no metrics associated
         CrisLayoutBox boxWithoutMetrics = crisLayoutMetricBox();
-        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(null, boxWithoutMetrics, null));
+        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxWithoutMetrics, UUID.randomUUID()));
 
         // should return true when the box has at least one embeddable associated (stored mocked to empty)
         CrisLayoutBox boxMetric1 = crisLayoutMetricBox("metric1");
         mockStoredCrisMetrics();
         mockEmbeddableCrisMetrics("metric1");
-        assertTrue(crisLayoutBoxService.hasMetricsBoxContent(null, boxMetric1, null));
+        assertTrue(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
 
         // should return true when the box has at least one stored associated (embeded mocked to empty)
         mockStoredCrisMetrics("metric1");
         mockEmbeddableCrisMetrics();
-        assertTrue(crisLayoutBoxService.hasMetricsBoxContent(null, boxMetric1, null));
+        assertTrue(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
 
         // shuld return false when the box has embedded but not associated (stored mocked to empty)
         mockStoredCrisMetrics();
         mockEmbeddableCrisMetrics("metric2");
-        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(null, boxMetric1, null));
+        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
 
         // shuld return false when the box has stored but not associated (embedded mocked to empty)
         mockStoredCrisMetrics("metric2");
         mockEmbeddableCrisMetrics();
-        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(null, boxMetric1, null));
+        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
+
+    }
+
+    @Test
+    public void hasMetricsBoxContentNotAuthorized() {
+
+        when(crisItemMetricsAuthorizationService.isAuthorized(any(), any(UUID.class))).thenReturn(false);
+
+        // should return false if the context has not an authenticated user
+        CrisLayoutBox boxWithoutMetrics = crisLayoutMetricBox();
+        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxWithoutMetrics, UUID.randomUUID()));
+
 
     }
 
