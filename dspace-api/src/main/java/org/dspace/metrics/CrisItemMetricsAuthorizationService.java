@@ -13,7 +13,7 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 
 /**
- * Service to evaluate authorization regarding Metrics visibility for given an Item UUID.
+ * Service to evaluate authorization regarding Metrics visibility for a given Item.
  */
 public interface CrisItemMetricsAuthorizationService {
 

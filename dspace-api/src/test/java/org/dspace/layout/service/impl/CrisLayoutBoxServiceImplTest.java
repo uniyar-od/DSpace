@@ -304,13 +304,13 @@ public class CrisLayoutBoxServiceImplTest {
     @Test
     public void hasMetricsBoxContentNotAuthorized() {
 
+        // should return false if there is content but context has not an authenticated user
         when(crisItemMetricsAuthorizationService.isAuthorized(any(), any(UUID.class))).thenReturn(false);
+        CrisLayoutBox boxMetric1 = crisLayoutMetricBox("metric1");
+        mockStoredCrisMetrics();
+        mockEmbeddableCrisMetrics("metric1");
 
-        // should return false if the context has not an authenticated user
-        CrisLayoutBox boxWithoutMetrics = crisLayoutMetricBox();
-        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxWithoutMetrics, UUID.randomUUID()));
-
-
+        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
     }
 
     private CrisLayoutBox crisLayoutBox(String shortname, MetadataField metadataField) {
