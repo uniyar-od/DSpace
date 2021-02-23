@@ -9,6 +9,7 @@ package org.dspace.metrics;
 
 import java.sql.SQLException;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
@@ -31,37 +32,52 @@ public class CrisItemMetricsAuthorizationServiceImpl implements CrisItemMetricsA
 
     @Override
     public boolean isAuthorized(Context context, UUID itemUuid) {
-        return isAuthorized(context, null, itemUuid);
+        return isAuthorized(context, new Supplier<Item>() {
+            @Override
+            public Item get() {
+                try {
+                    return  itemService.find(context, itemUuid);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        });
     }
 
     @Override
     public boolean isAuthorized(Context context, Item item) {
-        return isAuthorized(context, item, null);
+        return isAuthorized(context, new Supplier<Item>() {
+            @Override
+            public Item get() {
+                return item;
+            }
+        });
     }
 
-    private boolean isAuthorized(Context context, Item item, UUID itemUuid) {
+    private boolean isAuthorized(Context context, Supplier<Item> itemSupplier) {
+
+        // anonymous user
+        if (context.getCurrentUser() == null) {
+            return false;
+        }
+
+        Item target = itemSupplier.get();
+
+        // can't find an item to check
+        if (target == null) {
+            return false;
+        }
 
         try {
-
-            // anonymous user
-            if (context.getCurrentUser() == null) {
-                return false;
-            }
-
-            Item target = item != null ? item : itemService.find(context, itemUuid);
-
-            // can't find a item to check
-            if (target == null) {
-                return false;
-            }
 
             return authorizeService.authorizeActionBoolean(context, target, Constants.READ);
 
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
-        return false;
 
+        return false;
     }
 
 
