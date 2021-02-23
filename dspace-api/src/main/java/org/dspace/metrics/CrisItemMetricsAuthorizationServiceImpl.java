@@ -35,12 +35,16 @@ public class CrisItemMetricsAuthorizationServiceImpl implements CrisItemMetricsA
         return isAuthorized(context, new Supplier<Item>() {
             @Override
             public Item get() {
+                Item item = null;
                 try {
-                    return  itemService.find(context, itemUuid);
+                    item = itemService.find(context, itemUuid);
                 } catch (SQLException e) {
-                    e.printStackTrace();
+                    log.error(e.getMessage(), e);
                 }
-                return null;
+                if (item == null) {
+                    throw new IllegalArgumentException();
+                }
+                return item;
             }
         });
     }
@@ -62,16 +66,9 @@ public class CrisItemMetricsAuthorizationServiceImpl implements CrisItemMetricsA
             return false;
         }
 
-        Item target = itemSupplier.get();
-
-        // can't find an item to check
-        if (target == null) {
-            return false;
-        }
-
         try {
 
-            return authorizeService.authorizeActionBoolean(context, target, Constants.READ);
+            return authorizeService.authorizeActionBoolean(context, itemSupplier.get(), Constants.READ);
 
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
