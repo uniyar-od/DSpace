@@ -65,7 +65,7 @@ public class CrisItemMetricsAuthorizationServiceImplTest {
     }
 
     @Test
-    public void isAuthorizedForItemUUIDWhenAnonymousUserShouldReturnFalse() {
+    public void isAuthorizedForItemUUID_WhenAnonymousUser_ShouldReturnFalse() {
 
         when(context.getCurrentUser()).thenReturn(null);
 
@@ -75,21 +75,20 @@ public class CrisItemMetricsAuthorizationServiceImplTest {
 
     }
 
-    @Test
-    public void isAuthorizedForItemUUIDWhenTheItemCantBeRetrievedShouldReturnFalse() throws SQLException {
+    @Test(expected = IllegalArgumentException.class)
+    public void isAuthorizedForItemUUID_WhenTheItemCantBeRetrieved_ShouldThrowIllegalArgument() throws SQLException {
 
 
         when(context.getCurrentUser()).thenReturn(eperson);
         when(itemService.find(context, itemUUID)).thenReturn(null);
 
-        boolean result = crisItemMetricsAuthorizationService.isAuthorized(context, itemUUID);
+        crisItemMetricsAuthorizationService.isAuthorized(context, itemUUID);
 
-        assertFalse(result);
 
     }
 
     @Test
-    public void isAuthorizedForItemUUIDWhenTheAuthorizeServiceReturnsFalseShouldReturnFalse() throws SQLException {
+    public void isAuthorizedForItemUUID_WhenTheAuthorizeServiceReturnsFalse_ShouldReturnFalse() throws SQLException {
 
         when(context.getCurrentUser()).thenReturn(eperson);
         when(itemService.find(context, itemUUID)).thenReturn(item);
@@ -102,7 +101,7 @@ public class CrisItemMetricsAuthorizationServiceImplTest {
     }
 
     @Test
-    public void isAuthorizedForItemUUIDWhenTheAuthorizeServiceReturnsTrueShouldReturnTrue() throws SQLException {
+    public void isAuthorizedForItemUUID_WhenTheAuthorizeServiceReturnsTrue_ShouldReturnTrue() throws SQLException {
 
 
         when(context.getCurrentUser()).thenReturn(eperson);
@@ -116,7 +115,7 @@ public class CrisItemMetricsAuthorizationServiceImplTest {
     }
 
     @Test
-    public void isAuthorizedForItemWhenAnonymousUserShouldReturnFalse() {
+    public void isAuthorizedForItem_WhenAnonymousUser_ShouldReturnFalse() {
 
         when(context.getCurrentUser()).thenReturn(null);
 
@@ -127,7 +126,7 @@ public class CrisItemMetricsAuthorizationServiceImplTest {
     }
 
     @Test
-    public void isAuthorizedForItemWhenTheAuthorizeServiceReturnsFalseShouldReturnFalse() throws SQLException {
+    public void isAuthorizedForItem_WhenTheAuthorizeServiceReturnsFalse_ShouldReturnFalse() throws SQLException {
 
         when(context.getCurrentUser()).thenReturn(eperson);
         when(authorizeService.authorizeActionBoolean(context, item, Constants.READ)).thenReturn(false);
@@ -139,7 +138,7 @@ public class CrisItemMetricsAuthorizationServiceImplTest {
     }
 
     @Test
-    public void isAuthorizedForItemWhenTheAuthorizeServiceReturnsTrueShouldReturnTrue() throws SQLException {
+    public void isAuthorizedForItem_WhenTheAuthorizeServiceReturnsTrue_ShouldReturnTrue() throws SQLException {
 
         when(context.getCurrentUser()).thenReturn(eperson);
         when(authorizeService.authorizeActionBoolean(context, item, Constants.READ)).thenReturn(true);
