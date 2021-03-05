@@ -1272,21 +1272,17 @@
 	void doQualdropValue(JspWriter out, Item item, String fieldName, String schema, String element, DCInputSet inputs,
 			boolean repeatable, boolean required, boolean readonly, int fieldCountIncr, List qualMap, String label,
 			PageContext pageContext, List<DCInput> children, boolean hasParent) throws IOException {
-		List<IMetadataValue> unfiltered = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema,
-				element, Item.ANY, Item.ANY);
-		// filter out both unqualified and qualified values occurring elsewhere in inputs
-		List<IMetadataValue> filtered = new ArrayList<>();
-		for (int i = 0; i < unfiltered.size(); i++) {
-			String unfilteredFieldName = unfiltered.get(i).getMetadataField().getElement();
-			if (unfiltered.get(i).getMetadataField().getQualifier() != null
-					&& unfiltered.get(i).getMetadataField().getQualifier().length() > 0)
-				unfilteredFieldName += "." + unfiltered.get(i).getMetadataField().getQualifier();
-
-			if (!inputs.isFieldPresent(unfilteredFieldName)) {
-				filtered.add(unfiltered.get(i));
+		
+		// retrieve metadata using qualMap values
+		List<IMetadataValue> supportedQualifiers = new ArrayList<IMetadataValue>();
+		for (int i = 0; i < qualMap.size(); i+=2) {
+			List<IMetadataValue> metadata = item.getMetadata(schema, element, (String)qualMap.get(i+1), Item.ANY);
+			for (int j = 0; j < metadata.size(); j++)
+			{
+				supportedQualifiers.add(metadata.get(j));
 			}
 		}
-		List<IMetadataValue> defaults = filtered;
+		List<IMetadataValue> defaults = supportedQualifiers;
 
 		int fieldCount = defaults.size() + fieldCountIncr;
 		StringBuffer sb = new StringBuffer();
