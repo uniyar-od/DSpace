@@ -281,4 +281,15 @@ public class IdentifierServiceImpl implements IdentifierService {
         }
         dso.resetIdentifiersCache();
     }
+    
+   @Override
+   public IdentifierProvider getProvider(Class<? extends Identifier> identifier) {
+        for (IdentifierProvider p : this.providers) {
+            if (p.supports(identifier))
+            {
+                return p;
+            }
+        }
+        return null;
+   }
 }

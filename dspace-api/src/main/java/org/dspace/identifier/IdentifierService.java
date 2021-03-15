@@ -140,4 +140,6 @@ public interface IdentifierService {
      */
     void delete(Context context, DSpaceObject dso, String identifier) throws AuthorizeException, SQLException, IdentifierException;
 
+    
+    public IdentifierProvider getProvider(Class<? extends Identifier> identifier);
 }

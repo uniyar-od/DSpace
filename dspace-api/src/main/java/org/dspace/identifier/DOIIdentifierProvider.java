@@ -24,6 +24,7 @@ import org.dspace.identifier.doi.DOIIdentifierException;
 import org.dspace.identifier.doi.DOIIdentifierNotApplicableException;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
+import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
