@@ -11,6 +11,8 @@ package org.dspace.identifier;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Metadatum;
 import org.dspace.content.DSpaceObject;
@@ -18,6 +20,7 @@ import org.dspace.content.FormatIdentifier;
 import org.dspace.content.Item;
 import org.dspace.content.logic.Filter;
 import org.dspace.content.logic.LogicalStatementException;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.identifier.doi.DOIConnector;
 import org.dspace.identifier.doi.DOIIdentifierException;
@@ -133,7 +136,24 @@ public class DOIIdentifierProviderUsingHandles extends DOIIdentifierProvider {
                 throw new DOIIdentifierException("Unable to load or create handle. Unable to reuse handle for DOI registration.",
                         DOIIdentifierException.INTERNAL_ERROR);
             }
-            doiIdentifier=handle;
+    
+            String handlePrefix = ConfigurationManager.getProperty("handle.prefix");
+            if (null == handlePrefix)
+            {
+                handlePrefix = HandleIdentifierProvider.EXAMPLE_PREFIX; // XXX no good way to exit cleanly
+                log.error("handle.prefix is not configured; using " + handlePrefix);
+            }
+            handlePrefix = handlePrefix + (handlePrefix.endsWith("/") ? "" : "/");
+            
+            String handleSuffix;
+            if (handle.contains(handlePrefix)) {
+                handleSuffix = StringUtils.substringAfter(handle, handlePrefix);
+            } else if (handle.contains("/")) {
+                handleSuffix = StringUtils.substringAfter(handle, "/");
+            } else {
+                handleSuffix = handle;
+            }
+            doiIdentifier= this.getPrefix() + "/" + this.getNamespaceSeparator() + handleSuffix;
         }
                     
         doiRow.setColumn("doi", doiIdentifier);
