@@ -27,6 +27,7 @@ import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
@@ -52,10 +53,6 @@ public class S3BitStoreService implements BitStoreService
     /** Checksum algorithm */
     private static final String CSA = "MD5";
 
-    private String awsAccessKey;
-    private String awsSecretKey;
-    private String awsRegionName;
-
     /** container for all the assets */
 	private String bucketName = null;
 
@@ -77,13 +74,9 @@ public class S3BitStoreService implements BitStoreService
      *  - bucket name
      */
     public void init() throws IOException {
-        if(StringUtils.isBlank(getAwsAccessKey()) || StringUtils.isBlank(getAwsSecretKey())) {
-            log.warn("Empty S3 access or secret");
-        }
 
-        // init client
-        AWSCredentials awsCredentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
-        s3Service = new AmazonS3Client(awsCredentials);
+    	// init client
+        s3Service = AmazonS3ClientBuilder.defaultClient();
 
         // bucket name
         if(StringUtils.isEmpty(bucketName)) {
@@ -101,18 +94,6 @@ public class S3BitStoreService implements BitStoreService
         {
             log.error(e);
             throw new IOException(e);
-        }
-
-        // region
-        if(StringUtils.isNotBlank(awsRegionName)) {
-            try {
-                Regions regions = Regions.fromName(awsRegionName);
-                Region region = Region.getRegion(regions);
-                s3Service.setRegion(region);
-                log.info("S3 Region set to: " + region.getName());
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid aws_region: " + awsRegionName);
-            }
         }
 
         log.info("AWS S3 Assetstore ready to go! bucket:"+bucketName);
@@ -283,32 +264,6 @@ public class S3BitStoreService implements BitStoreService
         } else {
             return id;
         }
-    }
-
-    public String getAwsAccessKey() {
-        return awsAccessKey;
-    }
-
-    @Required
-    public void setAwsAccessKey(String awsAccessKey) {
-        this.awsAccessKey = awsAccessKey;
-    }
-
-    public String getAwsSecretKey() {
-        return awsSecretKey;
-    }
-
-    @Required
-    public void setAwsSecretKey(String awsSecretKey) {
-        this.awsSecretKey = awsSecretKey;
-    }
-
-    public String getAwsRegionName() {
-        return awsRegionName;
-    }
-
-    public void setAwsRegionName(String awsRegionName) {
-        this.awsRegionName = awsRegionName;
     }
 
     @Required
