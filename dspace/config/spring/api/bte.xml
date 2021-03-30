@@ -469,7 +469,7 @@
 
 	<!-- The keys in the RIS data loader map have to be the RIS tags that 
 		need to be loaded. -->
-	<bean id="risDataLoader" class="gr.ekt.bteio.loaders.RISDataLoader">
+	<bean id="risDataLoader" class="org.dspace.submit.extraction.RisDataLoader">
 		<property name="fieldMap">
 			<map>
 				<entry key="T1" value="title" />
