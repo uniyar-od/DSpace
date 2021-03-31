@@ -20,6 +20,7 @@ import org.dspace.browse.BrowseIndex;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.ItemService;
@@ -150,7 +151,8 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                                 {
                                     // Ensure that there is a value to index before
                                     // inserting it
-                                    if (StringUtils.isEmpty(values.get(x).getValue()))
+									if (StringUtils.isEmpty(values.get(x).getValue()) || StringUtils.startsWith(
+											values.get(x).getValue(), MetadataValue.PARENT_PLACEHOLDER_VALUE))
                                     {
                                         log.error("Null metadata value for item "
                                                 + item.getID()
