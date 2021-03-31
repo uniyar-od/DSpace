@@ -300,10 +300,10 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
                 // update Submission Information with this Workspace Item
             	WorkspaceItem wsi= result.get(0);
             	if(StringUtils.isNotBlank(fPath) && result.size() == 1){
-            		File file = File.createTempFile("submission-lookup", uuid_batch);
-            		if(file.exists()){
+            		File file = new File(fPath);	
+            		if (file.exists()) {
             			Item item = wsi.getItem();
-            			Bitstream bit = itemService.createSingleBitstream(context, new FileInputStream(fPath), item, Constants.DEFAULT_BUNDLE_NAME);
+            			Bitstream bit = itemService.createSingleBitstream(context, new FileInputStream(file), item, Constants.DEFAULT_BUNDLE_NAME);
             			bit.setName(context, fName);
             			bit.setSource(context, fPath);
             			bit.setFormat(context, bitstreamFormatService.guessFormat(context, bit));
