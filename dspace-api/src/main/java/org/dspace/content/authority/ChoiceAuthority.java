@@ -42,6 +42,10 @@ public interface ChoiceAuthority
      * @return a Choices object (never null).
      */
     public Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale);
+    
+    public default Choices getMatches(String field, String text, Collection collection, int start, int limit, String locale, boolean extra) {
+    	return getMatches(field, text, collection, start, limit, locale);
+    }
 
     /**
      * Get the single "best" match (if any) of a value in the authority
