@@ -28,7 +28,7 @@
 				<entry key="ciniiXML" value-ref="ciniiFileDataLoader" />
 				<entry key="bibtex" value-ref="bibTeXDataLoader" />
 				<entry key="ris" value-ref="risDataLoader" />
-				<entry key="wosris" value-ref="wosRISDataLoader" />
+				<entry key="isiceciw" value-ref="isiceCiwDataLoader" />
 				<entry key="endnote" value-ref="endnoteDataLoader" />
 				<entry key="csv" value-ref="csvDataLoader" />
 				<entry key="tsv" value-ref="tsvDataLoader" />
@@ -133,7 +133,7 @@
 	            <entry key="ciniiXML" value-ref="ciniiFileDataLoader"/>
 	            <entry key="bibtex" value-ref="bibTeXDataLoader"/>
 	            <entry key="ris" value-ref="risDataLoader"/>
-	            <entry key="wosris" value-ref="wosRISDataLoader"/>
+	            <entry key="isiceciw" value-ref="isiceCiwDataLoader"/>
 	            <entry key="endnote" value-ref="endnoteDataLoader"/>
 	            <entry key="csv" value-ref="csvDataLoader"/>
 	            <entry key="tsv" value-ref="tsvDataLoader"/>
@@ -495,7 +495,7 @@
 		</property>
 	</bean>
 
-	<bean id="wosRISDataLoader" class="org.dspace.submit.extraction.WOSRISDataLoader">
+	<bean id="isiceCiwDataLoader" class="org.dspace.submit.extraction.ISICECiwDataLoader">
 		<property name="fieldMap">
 			<map>
 				<entry key="TI" value="title" />
