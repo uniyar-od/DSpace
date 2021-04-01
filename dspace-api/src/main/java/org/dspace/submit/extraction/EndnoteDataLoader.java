@@ -30,9 +30,11 @@ import gr.ekt.bte.exceptions.MalformedSourceException;
 import gr.ekt.bte.record.MapRecord;
 
 /**
- * Based on {@link gr.ekt.bteio.loaders.RISDataLoader} implementation
+ * Based on {@link gr.ekt.bteio.loaders.RISDataLoader} implementation.
+ * It follows the Endnote file format specification as described on
+ * https://en.wikipedia.org/wiki/EndNote
  * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
+ * It deals with the eventual presence of the BOM marker that some tools insert
  */
 public class EndnoteDataLoader extends FileDataLoader {
 

@@ -30,23 +30,26 @@ import gr.ekt.bte.record.MapRecord;
 import gr.ekt.bteio.loaders.EndnoteDataLoader;
 
 /**
- * Based on {@link gr.ekt.bteio.loaders.EndnoteDataLoader} implementation
+ * Based on {@link gr.ekt.bteio.loaders.EndnoteDataLoader} implementation.
+ * It implements the ISI-CE format (.ciw)
  * 
+ * This implementation manage the Byte Order Mark at the start of the file.
+ *
  * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
  */
-public class WOSRISDataLoader extends FileDataLoader {
+public class ISICECiwDataLoader extends FileDataLoader {
 
     private static Logger logger_ = Logger.getLogger(EndnoteDataLoader.class);
     private BufferedReader reader_;
     private Map<String, String> field_map_;
 
-    public WOSRISDataLoader() {
+    public ISICECiwDataLoader() {
         super();
         reader_ = null;
         field_map_ = null;
     }
 
-    public WOSRISDataLoader(String filename, Map<String, String> field_map) throws EmptySourceException {
+    public ISICECiwDataLoader(String filename, Map<String, String> field_map) throws EmptySourceException {
         super(filename);
         field_map_ = field_map;
         openReader();

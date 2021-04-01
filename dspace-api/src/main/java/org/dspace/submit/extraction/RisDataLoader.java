@@ -33,11 +33,12 @@ import gr.ekt.bteio.loaders.RISDataLoader;
 /**
  * Works based on gr.ekt.bteio.loaders.RISDataLoader
  * This implementation manage the Byte Order Mark at the start of the file.
+ * It also relax the requirement about extra space after the "ER -" as Citavi seems
+ * to don't include it 
  * 
  * @author Pasquale Cavallo (pasquale.cavallo at 4science dot it)
  *
  */
-
 public class RisDataLoader extends FileDataLoader {
 
     private static Logger logger_ = Logger.getLogger(RISDataLoader.class);
