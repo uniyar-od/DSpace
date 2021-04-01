@@ -76,7 +76,7 @@ public class RisDataLoader extends FileDataLoader{
                 if(line.isEmpty() || line.equals("") || line.matches("^\\s*$")) {
                     continue;
                 }
-                Pattern ris_pattern = Pattern.compile("^([A-Z][A-Z0-9])  - (.*)$");
+                Pattern ris_pattern = Pattern.compile("^([A-Z][A-Z0-9])  - {0,1}(.*)$");
                 Matcher ris_matcher = ris_pattern.matcher(line);
                 Value val;
                 if (ris_matcher.matches()) {
