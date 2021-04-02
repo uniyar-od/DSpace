@@ -271,6 +271,8 @@ public class ShibAuthentication implements AuthenticationMethod
 			// Step 4: Log the user in.
 			context.setCurrentUser(eperson);
 			request.getSession().setAttribute("shib.authenticated", true);
+			// we need to process and store special groups now, as headers seem to get lost while forwarding requests
+			this.getSpecialGroups(context, request);
 			AuthenticationManager.initEPerson(context, request, eperson);
 
 			log.info(eperson.getEmail()+" has been authenticated via shibboleth.");
