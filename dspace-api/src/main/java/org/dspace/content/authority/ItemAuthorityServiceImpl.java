@@ -15,16 +15,22 @@ public class ItemAuthorityServiceImpl implements ItemAuthorityService {
 
     @Override
     public String getSolrQuery(String searchTerm) {
-        String luceneQuery = ClientUtils.escapeQueryChars(searchTerm.toLowerCase()) + "*";
-        String solrQuery = null;
-        luceneQuery = luceneQuery.replaceAll("\\\\ "," ");
-        String subLuceneQuery = luceneQuery.substring(0,
-                luceneQuery.length() - 1);
-        solrQuery = "{!lucene q.op=AND df=itemauthoritylookup}("
-                        + luceneQuery
-                        + ") OR (\""
-                        + subLuceneQuery + "\")^2 OR "
-                        + "(itemauthoritylookupexactmatch:\"" + subLuceneQuery + "\")^10 ";
+        String solrQuery = "{!lucene q.op=AND df=itemauthoritylookup}";
+        if (searchTerm != null) {
+            String luceneQuery = ClientUtils.escapeQueryChars(searchTerm.toLowerCase()) + "*";
+            
+            luceneQuery = luceneQuery.replaceAll("\\\\ "," ");
+            String subLuceneQuery = luceneQuery.substring(0,
+                    luceneQuery.length() - 1);
+            solrQuery = solrQuery + "("
+                            + luceneQuery
+                            + ") OR (\""
+                            + subLuceneQuery + "\")^2 OR "
+                            + "(itemauthoritylookupexactmatch:\"" + subLuceneQuery + "\")^10 ";
+        } else {
+            // if searchTerm is null search for all the authority entries
+            solrQuery = solrQuery + "*";
+        }
 
         return solrQuery;
     }

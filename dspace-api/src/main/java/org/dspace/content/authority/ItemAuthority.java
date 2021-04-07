@@ -208,6 +208,11 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         return externalSource;
     }
 
+    @Override
+    public boolean isScrollable() {
+        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".isScrollable", true);
+    }
+
     private boolean hasValidExternalSource(String sourceIdentifier) {
         if (StringUtils.isNotBlank(sourceIdentifier)) {
             ExternalDataProvider externalsource = externalDataService.getExternalDataProvider(sourceIdentifier);
