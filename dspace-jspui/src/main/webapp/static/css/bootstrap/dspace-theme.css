@@ -5,6 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
+html {font-size: 14px;}
 .banner img {background-color: #FFFFFF;padding:15px;margin-top:20px;}
 .brand h4 {color: #999999}
 #communitylist-top-menu a, #userloggedin-top-menu a {padding-top:0.3em;padding-bottom:0.3em;}
