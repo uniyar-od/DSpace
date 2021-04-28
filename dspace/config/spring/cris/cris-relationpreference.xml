@@ -76,6 +76,14 @@
 		</property>
 	</bean>
 	
+	<bean id="relationOUVSPJCoordConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
+		<property name="relationName" value="crisou.projects" />		
+		<property name="relationClass" value="org.dspace.app.cris.model.Project" />		
+		<property name="query">
+			<value>crisproject.principalinvestigation_hsu_authority:{0}</value>
+		</property>
+	</bean>
+	
 	<bean id="relationOUVSOUConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
 		<property name="relationName" value="crisou.organisations" />		
 		<property name="relationClass" value="org.dspace.app.cris.model.OrganizationUnit" />		

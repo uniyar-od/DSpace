@@ -253,6 +253,7 @@
 				<entry key="publication" value-ref="publicationlistforou" />				
 				<entry key="rppublication" value-ref="publicationlistforouviarp" />				
 				<entry key="projects" value-ref="projectlistforou" />				
+				<entry key="projectcoord" value-ref="projectlistcoordination" />
 				<entry key="rpprojects" value-ref="projectlistinvestigatorforou" />
 				<entry key="rp" value-ref="personslist" />				
 				<entry key="organizations" value-ref="organizationslist" />				
@@ -411,6 +412,27 @@
 		<property name="order"><value>asc</value></property>
 		<property name="rpp"><value>20</value></property>
 		<property name="sortby"><value>5</value></property>		
+	</bean>
+		
+	<!-- Projects connected to the ou by projectCoordination -->
+	<bean id="projectlistcoordination"
+		class="org.dspace.app.webui.cris.components.CRISOUConfigurerComponent">
+		<property name="relationConfiguration" ref="relationOUVSPJCoordConfiguration" />		
+		<property name="target" value="org.dspace.app.cris.model.OrganizationUnit" /> 
+		<property name="types">
+			<map>
+				<entry key="all" value-ref="allProjectsForOUComponent" />				
+			</map>
+		</property>
+	</bean>
+	
+	<bean id="allProjectsForOUComponent"
+		class="org.dspace.app.webui.cris.components.BeanFacetComponent">
+		<property name="componentIdentifier" value="all" />
+		<property name="facetQuery"><value>*:*</value></property>
+		<property name="order"><value>asc</value></property>
+		<property name="rpp"><value>20</value></property>
+		<property name="sortby"><value>6</value></property>
 	</bean>
 		
 	<!-- Principal Project list for OU entity -->	
