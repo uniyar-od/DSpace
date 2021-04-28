@@ -19,6 +19,14 @@
 			<value>author_authority:{0}</value>
 		</property>
 	</bean>
+	
+	<bean id="relationRPVSItemEditorConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
+		<property name="relationName" value="crisrp.editedpublications" />		
+		<property name="relationClass" value="org.dspace.content.Item" />		
+		<property name="query">
+			<value>dc.contributor.editor_authority:{0}</value>
+		</property>
+	</bean>
 
 	<bean id="relationRPVSAdvisedItemConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
 		<property name="relationName" value="crisrp.advisedtheses" />		

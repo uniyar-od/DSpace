@@ -32,6 +32,7 @@
 				<entry key="bibliometrics" value-ref="bibliometrics" />
 				<entry key="advisedtheses" value-ref="advisedtheses" />
 				<entry key="refereedtheses" value-ref="refereedtheses" />
+				<entry key="publicationseditor" value-ref="publicationseditor" />
 			</map>
 		</property>
 	</bean>
@@ -52,6 +53,20 @@
 	</bean>
 
 	<!-- Publication component for RP -->
+	
+	<bean id="publicationseditor"
+		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
+		<property name="relationConfiguration" ref="relationRPVSItemEditorConfiguration" />
+		<property name="commonFilter"><util:constant static-field="org.dspace.app.webui.cris.util.RelationPreferenceUtil.HIDDEN_FILTER" /></property>				
+		<property name="target" value="org.dspace.app.cris.model.ResearcherPage" />
+		<property name="facets" ref="facetsItemConfiguration" />
+		<property name="types">
+			<map>
+				<entry key="all" value-ref="allComponent" />
+			</map>
+		</property>
+	</bean>
+	
 	<bean id="publicationlist"
 		class="org.dspace.app.webui.cris.components.ItemsConfigurerComponent">
 		<property name="relationConfiguration" ref="relationRPVSItemConfiguration" />
