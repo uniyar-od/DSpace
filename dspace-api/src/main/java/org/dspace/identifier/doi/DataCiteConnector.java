@@ -95,8 +95,8 @@ implements DOIConnector
     /** 
      * DisseminationCrosswalk to map local metadata into DataCite metadata.
      * The name of the crosswalk is set by spring dependency injection using
-     * {@link setDisseminationCrosswalk(String) setDisseminationCrosswalk} which
-     * instantiates the crosswalk.
+     * {@link #setDisseminationCrosswalkName(String) setDisseminationCrosswalkName}
+     * which instantiates the crosswalk.
      */
     protected DisseminationCrosswalk xwalk;
     
@@ -247,51 +247,15 @@ implements DOIConnector
     public boolean isDOIReserved(Context context, String doi)
             throws DOIIdentifierException
     {
-        return isDOIReserved(context, null, doi);
-    }
-    
-    @Override
-    public boolean isDOIReserved(Context context, DSpaceObject dso, String doi)
-            throws DOIIdentifierException
-    {
         // get mds/metadata/<doi>
         DataCiteResponse resp = this.sendMetadataGetRequest(doi);
     
         switch (resp.getStatusCode())
         {
             // 200 -> reserved
-            // if (200 && dso != null) -> compare url (out of response-content) with dso
             case (200) :
             {
-                // Do we check if doi is reserved generally or for a specified dso?
-                if (null == dso)
-                {
-                    return true;
-                }
-                
-                // check if doi belongs to dso
-                String doiHandle = null;
-                try
-                {
-                    doiHandle = extractAlternateIdentifier(context, resp.getContent());
-                }
-                catch (SQLException e)
-                {
-                    throw new RuntimeException(e);
-                }
-                
-                if (null == doiHandle)
-                {
-                    // we were unable to find a handle belonging to our repository
-                    return false;
-                }
-                
-                String dsoHandle = dso.getHandle();
-                if (null == dsoHandle)
-                {
-                    return false;
-                }
-                return dsoHandle.equals(doiHandle);
+                return true;
             }
                 
             // 404 "Not Found" means DOI is neither reserved nor registered.
@@ -303,18 +267,10 @@ implements DOIConnector
             // 410 GONE -> DOI is set inactive
             // that means metadata has been deleted
             // it is unclear if the doi has been registered before or only reserved.
-            // it is unclear for which item it has been reserved
             // we will handle this as if it reserved for an unknown object.
             case (410) :
             {
-                if (null == dso)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                return true;
             }
                 
             // Catch all other http status code in case we forgot one.
@@ -338,13 +294,6 @@ implements DOIConnector
     public boolean isDOIRegistered(Context context, String doi)
             throws DOIIdentifierException
     {
-        return isDOIRegistered(context, null, doi);
-    }
-    
-    @Override
-    public boolean isDOIRegistered(Context context, DSpaceObject dso, String doi)
-            throws DOIIdentifierException
-    {
         DataCiteResponse response = sendDOIGetRequest(doi);
         
         switch (response.getStatusCode())
@@ -352,46 +301,7 @@ implements DOIConnector
             // status code 200 means the doi is reserved and registered
             case (200) :
             {
-                // Do we check if doi is reserved generally or for a specified dso?
-                if (null == dso)
-                {
-                    return true;
-                }
-                
-                // DataCite returns the URL the DOI currently points to.
-                // To ensure that the DOI is registered for a specified dso it
-                // should be sufficient to compare the URL DataCite returns with
-                // the URL of the dso.
-                String doiUrl = response.getContent();
-                if (null == doiUrl)
-                {
-                    log.error("Received a status code 200 without a response content. DOI: {}.", doi);
-                    throw new DOIIdentifierException("Received a http status code 200 without a response content.",
-                            DOIIdentifierException.BAD_ANSWER);
-                }
-                
-                String dsoUrl = null;
-                try
-                {
-                    dsoUrl = HandleManager.resolveToURL(context, dso.getHandle());
-                }
-                catch (SQLException e)
-                {
-                    log.error("Error in database connection: " + e.getMessage());
-                    throw new RuntimeException(e);
-                }
-                
-                if (null == dsoUrl)
-                {
-                    // the handle of the dso was not found in our db?!
-                    log.error("The HandleManager was unable to find the handle "
-                            + "of a DSpaceObject in the database!?! "
-                            + "Type: {} ID: {}", dso.getTypeText(), dso.getID());
-                    throw new RuntimeException("The HandleManager was unable to "
-                            + "find the handle of a DSpaceObject in the database!");
-                }
-                
-                return (dsoUrl.equals(doiUrl));
+                return true;
             }
             // Status Code 204 "No Content" stands for a known DOI without URL.
             // A DOI that is known but does not have any associated URL is
@@ -399,7 +309,6 @@ implements DOIConnector
             case (204) :
             {
                 // we know it is reserved, but we do not know for which object.
-                // won't add this to the cache.
                 return false;
             }
             // 404 "Not Found" means DOI is neither reserved nor registered.
@@ -460,22 +369,7 @@ implements DOIConnector
     @Override
     public void reserveDOI(Context context, DSpaceObject dso, String doi)
             throws DOIIdentifierException
-    {   
-        // check if DOI is reserved at the registration agency
-        if (this.isDOIReserved(context, doi))
-        {
-            // if doi is registered for this object we still should check its
-            // status in our database (see below).
-            // if it is registered for another object we should notify an admin
-            if (!this.isDOIReserved(context, dso, doi))
-            {
-                log.warn("DOI {} is reserved for another object already.", doi);
-                throw new DOIIdentifierException(DOIIdentifierException.DOI_ALREADY_EXISTS);
-            }
-            // the DOI is reserved for this Object. We use {@code reserveDOI} to
-            // send metadata updates, so don't return here!
-        }
-
+    {
         this.prepareXwalk();
         
         if (!this.xwalk.canDisseminate(dso))
@@ -579,42 +473,15 @@ implements DOIConnector
     }
     
     @Override
-    public void registerDOI(Context context, DSpaceObject dso, String doi)
+    public void  registerDOI(Context context, DSpaceObject dso, String doi)
             throws DOIIdentifierException
     {
-        // check if the DOI is already registered online
-        if (this.isDOIRegistered(context, doi))
-        {
-            // if it is registered for another object we should notify an admin
-            if (!this.isDOIRegistered(context, dso, doi))
-            {
-                // DOI is reserved for another object
-                log.warn("DOI {} is registered for another object already.", doi);
-                throw new DOIIdentifierException(DOIIdentifierException.DOI_ALREADY_EXISTS);
-            }
-            // doi is registered for this object, we're done
-            return;
-        }
-        else
-        {
-            // DataCite wants us to reserve a DOI before we can register it
-            if (!this.isDOIReserved(context, dso, doi))
-            {
-                // check if doi is already reserved for another dso
-                if (this.isDOIReserved(context, doi))
-                {
-                    log.warn("Trying to register DOI {}, that is reserved for "
-                            + "another dso.", doi);
-                    throw new DOIIdentifierException("Trying to register a DOI "
-                            + "that is reserved for another object.",
-                            DOIIdentifierException.DOI_ALREADY_EXISTS);
-                }
-                
-                // the DOIIdentifierProvider should catch and handle this
-                throw new DOIIdentifierException("You need to reserve a DOI "
-                        + "before you can register it.",
-                        DOIIdentifierException.RESERVE_FIRST);
-            }
+        // DataCite wants us to reserve a DOI before we can register it
+        if (!this.isDOIReserved(context, doi)) {
+            // the DOIIdentifierProvider should catch and handle this
+            throw new DOIIdentifierException("You need to reserve a DOI "
+                    + "before you can register it.",
+                    DOIIdentifierException.RESERVE_FIRST);
         }
 
         // send doi=<doi>\nurl=<url> to mds/doi
@@ -677,15 +544,6 @@ implements DOIConnector
     public void updateMetadata(Context context, DSpaceObject dso, String doi) 
             throws DOIIdentifierException
     { 
-        // check if doi is reserved for another object
-        if (!this.isDOIReserved(context, dso, doi) && this.isDOIReserved(context, doi))
-        {
-            log.warn("Trying to update metadata for DOI {}, that is reserved"
-                    + " for another dso.", doi);
-            throw new DOIIdentifierException("Trying to update metadta for "
-                    + "a DOI that is reserved for another object.",
-                    DOIIdentifierException.DOI_ALREADY_EXISTS);
-        }
         // We can use reserveDOI to update metadata. Datacite API uses the same
         // request for reservartion as for updating metadata.
         this.reserveDOI(context, dso, doi);
