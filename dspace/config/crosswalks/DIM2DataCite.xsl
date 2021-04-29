@@ -15,7 +15,7 @@
                 version="2.0">
     
     <!-- The content of the following parameter will be used as element publisher. -->
-    <xsl:param name="publisher">My University</xsl:param>
+    <xsl:param name="publisher">Helmut-Schmidt-Universität Hamburg</xsl:param>
     <!-- The content of the following variable will be used as element contributor with contributorType datamanager. -->
     <xsl:param name="datamanager"><xsl:value-of select="$publisher" /></xsl:param>
     <!-- The content of the following variable will be used as element contributor with contributorType hostingInstitution. -->
