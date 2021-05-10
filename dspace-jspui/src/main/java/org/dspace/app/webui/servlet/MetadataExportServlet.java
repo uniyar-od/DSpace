@@ -78,6 +78,7 @@ public class MetadataExportServlet extends DSpaceServlet
             DSpaceObject thing = handleService.resolveToObject(context, handle);
             if (thing != null)
             {
+            	authorizeService.authorizeAction(context, thing, Constants.WRITE);
                 if (thing.getType() == Constants.ITEM)
                 {
                     List<BrowseDSpaceObject> item = new ArrayList<>();
