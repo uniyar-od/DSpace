@@ -20,6 +20,7 @@
   -    workflow.pooled   List<WorkflowItem> array of pooled tasks
   --%>
 
+<%@page import="java.util.ArrayList"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -238,6 +239,7 @@
 <%
     int idxUsersMatches = 0;
 	int suggestions = 0;
+	List<String> alreadySuggested = new ArrayList();
 	for(Choices possibleUsersMatch : possibleUsersMatches) {
 	
         if (possibleUsersMatch!=null && possibleUsersMatch.values!=null && possibleUsersMatch.values.length > 0) {
@@ -247,7 +249,9 @@
 	            Choice mdav = possibleUsersMatch.values[i];
 	            if (mdav.authority != null) {
 	                 if (!mdav.authority.startsWith(AuthorityValueService.GENERATE)) {
-	                    suggestions++;
+	                	 if (!alreadySuggested.contains(mdav.authority)) {
+	                	 	suggestions++;
+	                	 	alreadySuggested.add(mdav.authority);
 %>
 	                    <li class="list-group-item"><a href="<%= request.getContextPath() %>/cris/rp/<%= mdav.authority %>">
 	                        <fmt:message key="jsp.mydspace.cris.suggested-rp">
@@ -257,6 +261,7 @@
 	                    </a>
 	                    </li>
 	                <% }
+	                 }
 	            } 
 	     	}
 %>

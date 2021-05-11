@@ -427,7 +427,7 @@ public class ScriptCrisSubscribe
                 query.addFilterQuery("{!field f=search.resourcetype}"
                         + CrisConstants.RP_TYPE_ID);
                 query.setRows(Integer.MAX_VALUE);
-   				query.setQuery("*:*");
+                query.setQuery(OwnerRPAuthorityIndexer.OWNER_I + ":[* TO *]");
 
                 QueryResponse qResponse = searchService.search(query);
                 SolrDocumentList results = qResponse.getResults();
@@ -439,14 +439,11 @@ public class ScriptCrisSubscribe
                     {
                     	String uuid = (String) solrDoc.getFieldValue("cris-uuid");
                     	String ownerUuid = (String)solrDoc.getFirstValue(OwnerRPAuthorityIndexer.OWNER_I);
-                    	
-                    	if(StringUtils.isNotBlank(ownerUuid)) {
-                    		UUID oo = UUID.fromString(ownerUuid);
-	                    	CrisSubscribeService crisSubscribeService = researcher.getCrisSubscribeService();
-	                    	EPerson eperson = eps.find(context, oo);
-	                    	if(eperson!=null && StringUtils.isNotBlank(uuid)) {
-	                    		crisSubscribeService.subscribe(eperson, uuid);
-	                    	}
+                		UUID oo = UUID.fromString(ownerUuid);
+                    	CrisSubscribeService crisSubscribeService = researcher.getCrisSubscribeService();
+                    	EPerson eperson = eps.find(context, oo);
+                    	if(eperson!=null && StringUtils.isNotBlank(uuid)) {
+                    		crisSubscribeService.subscribe(eperson, uuid);
                     	}
                     }
                 }

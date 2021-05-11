@@ -621,7 +621,7 @@ public class BindItemToRP
 
             Map<NameResearcherPage, List<Item>> result = null;
             
-            if(!COMMAND_WORK.equals(command)) {
+            if(COMMAND_WORK.equals(command)) {
                 //do work command
                 result = plugin
                         .retrieveGroupByName(context, mapInvalids, rps, false);

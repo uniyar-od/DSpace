@@ -44,9 +44,6 @@ import gr.ekt.bte.core.Record;
 public class ScopusService
 {
 
-    private static final String ENDPOINT_SEARCH_SCOPUS = "http://api.elsevier.com/content/search/scopus";
-    //private static final String ENDPOINT_SEARCH_SCOPUS = "http://localhost:9999/content/search/scopus";
-
     private static final Logger log = Logger.getLogger(ScopusService.class);
 
     private int timeout = 1000;
@@ -83,6 +80,7 @@ public class ScopusService
 
         String proxyHost = ConfigurationManager.getProperty("http.proxy.host");
         String proxyPort = ConfigurationManager.getProperty("http.proxy.port");
+        String endpoint = ConfigurationManager.getProperty("submission.lookup.scopus.endpoint");
         String apiKey = ConfigurationManager.getProperty("submission.lookup.scopus.apikey");
         
         List<Record> results = new ArrayList<>();
@@ -105,7 +103,7 @@ public class ScopusService
                 boolean lastPageReached= false;
                 while(!lastPageReached){
                         // open session
-		                method = new GetMethod(ENDPOINT_SEARCH_SCOPUS + "?httpAccept=application/xml&apiKey="+ apiKey +"&view=COMPLETE&start="+start+"&query="+URLEncoder.encode(query));
+		                method = new GetMethod(endpoint + "?httpAccept=application/xml&apiKey="+ apiKey +"&view=COMPLETE&start="+start+"&query="+URLEncoder.encode(query));
 		
 		                // Execute the method.
 		                int statusCode = client.executeMethod(method);
