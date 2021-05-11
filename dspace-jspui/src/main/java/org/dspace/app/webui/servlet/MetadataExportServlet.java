@@ -78,27 +78,32 @@ public class MetadataExportServlet extends DSpaceServlet
             DSpaceObject thing = handleService.resolveToObject(context, handle);
             if (thing != null)
             {
-            	authorizeService.authorizeAction(context, thing, Constants.WRITE);
                 if (thing.getType() == Constants.ITEM)
                 {
+                	if ( !itemService.canEdit(context, (Item)thing)) {
+						throw new AuthorizeException();
+					}
                     List<BrowseDSpaceObject> item = new ArrayList<>();
                     item.add(new BrowseDSpaceObject(context, (Item) thing));
                     exporter = new MetadataExport(context, item.iterator(), false);
-                }
-                else if (thing.getType() == Constants.COLLECTION)
+                }else
                 {
-                    Collection collection = (Collection)thing;
-					Iterator<Item> toExport = itemService.findAllByCollection(context, collection);
-		            List<BrowseDSpaceObject> bdo = new ArrayList<>();
-		            while(toExport.hasNext()) {
-		            	Item item = toExport.next();
-		            	bdo.add(new BrowseDSpaceObject(context, item));
-		            }
-                    exporter = new MetadataExport(context, bdo.iterator(), false);
-                }
-                else if (thing.getType() == Constants.COMMUNITY)
-                {
-                    exporter = new MetadataExport(context, (Community)thing, false);
+                	authorizeService.authorizeAction(context, thing, Constants.ADMIN);
+	            	if (thing.getType() == Constants.COLLECTION)
+	                {
+	                    Collection collection = (Collection)thing;
+						Iterator<Item> toExport = itemService.findAllByCollection(context, collection);
+			            List<BrowseDSpaceObject> bdo = new ArrayList<>();
+			            while(toExport.hasNext()) {
+			            	Item item = toExport.next();
+			            	bdo.add(new BrowseDSpaceObject(context, item));
+			            }
+	                    exporter = new MetadataExport(context, bdo.iterator(), false);
+	                }
+	                else if (thing.getType() == Constants.COMMUNITY)
+	                {
+	                    exporter = new MetadataExport(context, (Community)thing, false);
+	                }
                 }
 
                 if (exporter != null)
