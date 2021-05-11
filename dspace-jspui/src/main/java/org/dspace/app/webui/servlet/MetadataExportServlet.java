@@ -25,6 +25,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.core.*;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.Item;
 import org.dspace.content.ItemIterator;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
@@ -65,22 +66,28 @@ public class MetadataExportServlet extends DSpaceServlet
             DSpaceObject thing = HandleManager.resolveToObject(context, handle);
             if (thing != null)
             {
-            	AuthorizeManager.authorizeAction(context, thing, Constants.WRITE);
                 if (thing.getType() == Constants.ITEM)
                 {
+                	if ( !((Item) thing).canEdit()) {
+						throw new AuthorizeException();
+					}
                     List<Integer> item = new ArrayList<Integer>();
                     item.add(thing.getID());
                     exporter = new MetadataExport(context, new ItemIterator(context, item), false);
                 }
-                else if (thing.getType() == Constants.COLLECTION)
+                else
                 {
-                    Collection collection = (Collection)thing;
-                    ItemIterator toExport = collection.getAllItems();
-                    exporter = new MetadataExport(context, toExport, false);
-                }
-                else if (thing.getType() == Constants.COMMUNITY)
-                {
-                    exporter = new MetadataExport(context, (Community)thing, false);
+                	AuthorizeManager.authorizeAction(context, thing, Constants.ADMIN);
+	                if (thing.getType() == Constants.COLLECTION)
+	                {
+	                    Collection collection = (Collection)thing;
+	                    ItemIterator toExport = collection.getAllItems();
+	                    exporter = new MetadataExport(context, toExport, false);
+	                }
+	                else if (thing.getType() == Constants.COMMUNITY)
+	                {
+	                    exporter = new MetadataExport(context, (Community)thing, false);
+	                }
                 }
 
                 if (exporter != null)
