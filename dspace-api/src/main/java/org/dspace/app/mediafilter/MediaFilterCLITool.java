@@ -22,7 +22,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
-import org.apache.commons.lang.ArrayUtils;
 import org.dspace.app.mediafilter.factory.MediaFilterServiceFactory;
 import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.content.Collection;
@@ -31,8 +30,6 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.core.SelfNamedPlugin;
-import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.handle.factory.HandleServiceFactory;
 import org.dspace.services.factory.DSpaceServicesFactory;
 
@@ -48,13 +45,7 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 public class MediaFilterCLITool {
 
     //key (in dspace.cfg) which lists all enabled filters by name
-    private static final String MEDIA_FILTER_PLUGINS_KEY = "filter.plugins";
-
-    //prefix (in dspace.cfg) for all filter properties
-    private static final String FILTER_PREFIX = "filter";
-
-    //suffix (in dspace.cfg) for input formats supported by each filter
-    private static final String INPUT_FORMATS_SUFFIX = "inputFormats";
+    public static final String MEDIA_FILTER_PLUGINS_KEY = "filter.plugins";
 
     public static void main(String[] argv) throws Exception
     {
@@ -192,58 +183,16 @@ public class MediaFilterCLITool {
         //set up each filter
         for(int i=0; i< filterNames.length; i++)
         {
-            //get filter of this name & add to list of filters
-            FormatFilter filter = (FormatFilter) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(FormatFilter.class, filterNames[i]);
-            if(filter==null)
+            if(mediaFilterService.retrievePlugin(filterNames[i]))
             {
                 System.err.println("\nERROR: Unknown MediaFilter specified (either from command-line or in dspace.cfg): '" + filterNames[i] + "'");
                 System.exit(1);
             }
-            else
-            {
-                filterList.add(filter);
+        }
 
-                String filterClassName = filter.getClass().getName();
-
-                String pluginName = null;
-
-                //If this filter is a SelfNamedPlugin,
-                //then the input formats it accepts may differ for
-                //each "named" plugin that it defines.
-                //So, we have to look for every key that fits the
-                //following format: filter.<class-name>.<plugin-name>.inputFormats
-                if( SelfNamedPlugin.class.isAssignableFrom(filter.getClass()) )
-                {
-                    //Get the plugin instance name for this class
-                    pluginName = ((SelfNamedPlugin) filter).getPluginInstanceName();
-                }
-
-
-                //Retrieve our list of supported formats from dspace.cfg
-                //For SelfNamedPlugins, format of key is:
-                //  filter.<class-name>.<plugin-name>.inputFormats
-                //For other MediaFilters, format of key is:
-                //  filter.<class-name>.inputFormats
-                String[] formats = 
-                        DSpaceServicesFactory.getInstance().getConfigurationService().getArrayProperty(
-                        FILTER_PREFIX + "." + filterClassName +
-                        (pluginName!=null ? "." + pluginName : "") +
-                        "." + INPUT_FORMATS_SUFFIX);
-
-                //add to internal map of filters to supported formats
-                if (ArrayUtils.isNotEmpty(formats))
-                {
-                    //For SelfNamedPlugins, map key is:
-                    //  <class-name><separator><plugin-name>
-                    //For other MediaFilters, map key is just:
-                    //  <class-name>
-                    filterFormats.put(filterClassName +
-                                    (pluginName!=null ? MediaFilterService.FILTER_PLUGIN_SEPARATOR + pluginName : ""),
-                            Arrays.asList(formats));
-                }
-            }//end if filter!=null
-        }//end for
-
+        filterFormats = mediaFilterService.getFilterFormats();
+        filterList = mediaFilterService.getFilterClasses();
+        
         //If verbose, print out loaded mediafilter info
         if(isVerbose)
         {
@@ -265,10 +214,6 @@ public class MediaFilterCLITool {
                         (pluginName!=null? " (Plugin: " + pluginName + ")": ""));
             }
         }
-
-        mediaFilterService.setFilterFormats(filterFormats);
-        //store our filter list into an internal array
-        mediaFilterService.setFilterClasses(filterList);
 
 
         //Retrieve list of identifiers to skip (if any)

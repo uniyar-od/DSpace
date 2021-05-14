@@ -18,6 +18,8 @@
   -     task_result - result of the curation task
   --%>
 
+<%@page import="org.dspace.app.webui.util.UIUtil"%>
+<%@page import="org.dspace.content.factory.ContentServiceFactory"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt"
@@ -37,6 +39,7 @@
     String title = "Unknown Item";
     if (item != null)
     {
+    	item = ContentServiceFactory.getInstance().getItemService().find(UIUtil.obtainContext(request), itemID);
         title = item.getName();
     }
     String groupOptions = (String)request.getAttribute("curate_group_options");
