@@ -130,7 +130,7 @@ public class SolrServiceMetadataBrowseIndexingPlugin implements SolrServiceIndex
                         for (int mdIdx = 0; mdIdx < bi.getMetadataCount(); mdIdx++)
                         {
                             String[] md = bi.getMdBits(mdIdx);
-                            List<IMetadataValue> values = itemService.getMetadata(item, md[0], md[1],
+                            List<IMetadataValue> values = itemService.getMetadataWithoutPlaceholder(item, md[0], md[1],
                                     md[2], Item.ANY);
     
                             // if we have values to index on, then do so
