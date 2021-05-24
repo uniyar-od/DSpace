@@ -3753,13 +3753,39 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         // check item status
         getClient(tokenEperson).perform(get("/api/core/items/" + item.getID()))
-                               .andExpect(status().isOk())
-                               .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
-                               .andExpect(jsonPath("$.name", Matchers.is(item.getName())))
-                               .andExpect(jsonPath("$.handle", Matchers.is(item.getHandle())))
-                               .andExpect(jsonPath("$.metadata").isEmpty())
-                               .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
-                               .andExpect(jsonPath("$.inArchive", Matchers.is(false)));
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                 .andExpect(jsonPath("$.name", Matchers.is(item.getName())))
+                 .andExpect(jsonPath("$.handle", Matchers.is(item.getHandle())))
+                 .andExpect(jsonPath("$.metadata").isEmpty())
+                 .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
+                 .andExpect(jsonPath("$.inArchive", Matchers.is(false)))
+                 .andExpect(jsonPath("$._links.self.href",
+                            Matchers.containsString("/api/core/items/" + item.getID().toString())))
+                 .andExpect(jsonPath("$._links.bundles.href").doesNotExist())
+                 .andExpect(jsonPath("$._links.mappedCollections.href").doesNotExist())
+                 .andExpect(jsonPath("$._links.owningCollection.href").doesNotExist())
+                 .andExpect(jsonPath("$._links.relationships.href").doesNotExist())
+                 .andExpect(jsonPath("$._links.version.href").doesNotExist())
+                 .andExpect(jsonPath("$._links.templateItemOf.href").doesNotExist());
+
+        getClient().perform(get("/api/core/items/" + item.getID()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                   .andExpect(jsonPath("$.name", Matchers.is(item.getName())))
+                   .andExpect(jsonPath("$.handle", Matchers.is(item.getHandle())))
+                   .andExpect(jsonPath("$.metadata").isEmpty())
+                   .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
+                   .andExpect(jsonPath("$.inArchive", Matchers.is(false)))
+                   .andExpect(jsonPath("$._links.self.href",
+                              Matchers.containsString("/api/core/items/" + item.getID().toString())))
+                   .andExpect(jsonPath("$._links.bundles.href").doesNotExist())
+                   .andExpect(jsonPath("$._links.mappedCollections.href").doesNotExist())
+                   .andExpect(jsonPath("$._links.owningCollection.href").doesNotExist())
+                   .andExpect(jsonPath("$._links.relationships.href").doesNotExist())
+                   .andExpect(jsonPath("$._links.version.href").doesNotExist())
+                   .andExpect(jsonPath("$._links.templateItemOf.href").doesNotExist());
+
     }
 
 }

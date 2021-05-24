@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -89,12 +90,18 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                     // If the item is still inprogress we can process here only the READ permission.
                     // Other actions need to be evaluated against the wrapper object (workspace or workflow item)
                     if (dSpaceObject instanceof Item) {
-                        if (((Item) dSpaceObject).isWithdrawn()) {
-                            return true;
-                        }
-                        if (!DSpaceRestPermission.READ.equals(restPermission) && !((Item) dSpaceObject).isArchived()) {
+                        Item item = (Item) dSpaceObject;
+                        if (!DSpaceRestPermission.READ.equals(restPermission) &&
+                                   !item.isArchived() && !item.isWithdrawn()) {
                             return false;
                         }
+                        if (DSpaceRestPermission.STATUS.equals(restPermission) &&
+                                (item.isWithdrawn() || hasReadPermission(context, item))) {
+                            return true;
+                        }
+                    }
+                    if (DSpaceRestPermission.STATUS.equals(restPermission)) {
+                        restPermission = DSpaceRestPermission.READ;
                     }
 
                     return authorizeService.authorizeActionBoolean(context, ePerson, dSpaceObject,
@@ -102,11 +109,15 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                 }
             }
 
-        } catch (SQLException e) {
+        } catch (SQLException | AuthorizeException e) {
             log.error(e.getMessage(), e);
         }
 
         return false;
+    }
+
+    private boolean hasReadPermission(Context context, Item item) throws AuthorizeException, SQLException {
+        return authorizeService.authorizeActionBoolean(context, item, Constants.READ);
     }
 
 }
