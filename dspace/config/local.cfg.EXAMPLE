@@ -420,3 +420,14 @@ core-aggregator.enabled = false
 core-aggregator.credentials =
 
 community-list.show.all = true
+
+## Assetstore S3 configuration
+assetstore.storename.0 = localStore
+# S3 bucket name to store assets in. example: longsight-dspace-auk
+assetstore.s3.bucketName =
+# Subfolder to organize assets within the bucket, in case this bucket is shared. Optional, default is root level of bucket
+assetstore.s3.subfolder =
+# please do not use that in production but instead configure IAM role
+assetstore.s3.awsAccessKey =
+assetstore.s3.awsSecretKey =
+assetstore.s3.awsRegionName =
