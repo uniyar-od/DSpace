@@ -87,21 +87,17 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                         return true;
                     }
 
-                    // If the item is still inprogress we can process here only the READ permission.
-                    // Other actions need to be evaluated against the wrapper object (workspace or workflow item)
                     if (dSpaceObject instanceof Item) {
                         Item item = (Item) dSpaceObject;
+                        if (DSpaceRestPermission.STATUS.equals(restPermission) && item.isWithdrawn()) {
+                            return true;
+                        }
+                        // If the item is still inprogress we can process here only the READ permission.
+                        // Other actions need to be evaluated against the wrapper object (workspace or workflow item)
                         if (!DSpaceRestPermission.READ.equals(restPermission) &&
                                    !item.isArchived() && !item.isWithdrawn()) {
                             return false;
                         }
-                        if (DSpaceRestPermission.STATUS.equals(restPermission) &&
-                                (item.isWithdrawn() || hasReadPermission(context, item))) {
-                            return true;
-                        }
-                    }
-                    if (DSpaceRestPermission.STATUS.equals(restPermission)) {
-                        restPermission = DSpaceRestPermission.READ;
                     }
 
                     return authorizeService.authorizeActionBoolean(context, ePerson, dSpaceObject,
@@ -109,7 +105,7 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                 }
             }
 
-        } catch (SQLException | AuthorizeException e) {
+        } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
 

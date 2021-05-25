@@ -167,8 +167,6 @@ public class Constants {
 
     public static final int WITHDRAWN_READ = 12;
 
-    public static final int STATUS = 13;
-
     /**
      * Position of front page news item -- top box
      */
