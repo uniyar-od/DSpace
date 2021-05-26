@@ -29,17 +29,6 @@ public abstract class ABitStoreService implements BitStoreService
     protected static final int digitsPerLevel = 2;
     protected static final int directoryLevels = 3;
 
-    /** the asset directory */
-    private File baseDir;
-
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
-    }
-
     /**
      * Return the relative path formed by the intermediate path and the bitstream internal id.
      *
