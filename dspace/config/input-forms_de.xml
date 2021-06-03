@@ -1,0 +1,1131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE input-forms>
+
+<input-forms>
+  <form-map>
+    <name-map collection-handle="default" form-name="traditional" />
+  </form-map>
+  <form-definitions>
+    <form name="traditional">
+      <page number="1" heading="1">
+   	
+	<field>
+       		<dc-schema>local</dc-schema>
+		<dc-element>submission</dc-element>
+		<dc-qualifier>type</dc-qualifier>
+		<parent />
+		<label>nur Titeldaten oder Open-Access-Veröffentlichung</label>
+		<input-type value-pairs-name="submission_types">dropdown</input-type>
+		<repeatable>false</repeatable>
+		<required />
+		<hint>Bitte wählen Sie, ob Sie nur Titeldaten eingeben möchten oder die Titeldaten mit einer Open-Access-Veröffentlichung kombinieren möchten.</hint>
+        </field>
+
+	<field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Titel</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie den Titel so ein, wie in der Publikation abgebildet.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <dc-qualifier>subtitle</dc-qualifier>
+          <parent />
+          <label>Zusatz zum Titel</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie hier ggf. den 
+Zusatz zum Titel ein.</hint>
+	</field>
+
+
+
+ <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <dc-qualifier>alternative</dc-qualifier>
+          <parent />
+          <label>Übersetzungen des Titels</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie hier ggf. Übersetzungen des Titels ein.</hint>
+        </field>
+
+
+
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>language</dc-element>
+          <dc-qualifier>iso</dc-qualifier>
+          <parent />
+          <label>Sprache</label>
+          <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Wählen Sie die 
+Originalsprache des Werkes aus. Wenn keine Auswahl zutrifft, nutzen Sie "andere".</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>issued</dc-qualifier>
+          <parent />
+          <label>Datum der ersten Veröffentlichung</label>
+          <input-type>date</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie das Erstveröffentlichungsdatum an. Die Angabe des Jahres ist verpflichtend. Der Tag bzw. Monat sind dabei optional.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <dc-qualifier>ddc</dc-qualifier>
+          <parent />
+          <label>DDC-Klassifikation 
+(genormtes Vokabular)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Wählen Sie aus der 
+Dewey-Dezimalklassifikation ein oder mehrere Schlagwörter aus.</hint>
+          <vocabulary closed="no">ddc</vocabulary>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>affiliation</dc-qualifier>
+          <parent>dc_contributor_author</parent>
+          <label>Affiliations der Autoren</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Organisationseinheit(en) des / der Autors / der Autoren ein. Beispiel: Affiliation "Automatisierungstechnik" (Organisationseinheit innerhalb der Fakultät "Maschinenbau").</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
+          <parent />
+          <label>Autor(en)</label>
+          <input-type>name</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Namen aller 
+Autoren ein. Wenn Namen der Autoren sich bereits in der Liste befinden, übernehmen Sie bitte den Datenbank-Eintrag.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>editor</dc-qualifier>
+          <parent />
+          <label>Herausgeber</label>
+          <input-type>name</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie den / die Namen des / der Herausgeber an. Herausgeber können bei Büchern oder Zeitschriftensonderbänden genannt sein. Bei Zeitschriftenbeiträgen wird das Feld in der Regel nicht gefüllt.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>other</dc-qualifier>
+          <parent />
+          <label>Weitere Beteiligte</label>
+          <input-type>name</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie etwaige weitere Beteiligte an. Weitere Beteiligte sind Personen, die an der Publikation beteiligt waren, sofern diese auf der Publikation genannt sind.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Dokumententyp</label>
+          <input-type value-pairs-name="common_types">dropdown</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie an, welche Art von Dokument Sie veröffentlichen, zum Beispiel eine Dissertation oder einen Artikel / Aufsatz. Die Eingabefelder auf der Folgeseite richten sich nach dem ausgewählten Publikationstyp.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <parent />
+          <label>Abstract(s)</label>
+          <input-type>textarea</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Das Abstract hilft anderen, möglichst schnell zu erkennen, worum es in Ihrer Arbeit geht. Wenn Sie die Zusammenfassung sowohl in Englisch als auch in Deutsch eingeben, erhöht dies die Wahrscheinlichkeit, dass Ihr Dokument mit deutschen und englischen Suchbegriffen gefunden wird.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>sponsorship</dc-qualifier>
+          <parent />
+          <label>Organisationseinheit / Working Group / Sponsor / Förderer</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Geben Sie die Organisationseinheit ein, an dem die Arbeit angefertigt wurde. Sie können auch mehr als eine Organisationseinheit angeben. Mit dem Button "Weitere eintragen" erzeugen Sie weitere Felder. Das Feld ist ein Pflichtfeld. Wenn der / die Name(n) der Organisationseinheit(en) sich bereits in der Liste befindet / befinden, übernehmen Sie bitte den Datenbank-Eintrag. Für den Fall, dass Sie eine Publikation angeben, die nicht an der HSU verfasst wurde, geben Sie hier als Freitext die Einrichtung an, an der die Publikation verfasst wurde bzw. die Förder-Organisation bzw. den Sponsor.</hint>
+        </field>
+      </page>
+      <page number="2" heading="2">
+        <!-- auskommentiert, da Lizenzen geklärt werden müssen; A.G., 20.01.2020  -->
+<!--
+	<field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>rights</dc-element>
+          <dc-qualifier>uri</dc-qualifier>
+          <parent />
+          <label>Lizenz</label>
+          <input-type value-pairs-name="common_licenses">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Wenn Ihre Publikation sowohl die Metadaten der Publikation als auch den Volltext enthält, wählen Sie bitte eine Lizenz für Ihre Publikation. Wenn Sie keine Lizenz vergeben, können Sie das hier ebenfalls auswählen. Beispiele siehe https://creativecommons.org/licenses/?lang=en</hint>
+        </field>
+ -->
+<!-- auskommentiert, da Lizenzen geklärt werden müssen; A.G., 20.01.2020  -->
+<!--
+       <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>rights</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Lizenzversion</label>
+          <input-type value-pairs-name="version">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Wenn Ihre Publikation sowohl die Metadaten der Publikation als auch den Volltext enthält, wählen Sie bitte eine Version der Lizenz für Ihre Publikation. Wenn Sie keine Lizenz vergeben, können Sie das hier ebenfalls auswählen. Beispiele siehe https://creativecommons.org/licenses/?lang=en</hint>
+        </field>
+-->
+
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Identifier (u.a. DOI, ISBN, ISSN, Scopus eID)</label>
+          <input-type value-pairs-name="common_identifiers">qualdrop_value</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Wenn Ihre Publikation einen Persistenten Identifier hat, tragen Sie diesen bitte hier ein. Bsp. URN: https://nbn-resolving.org/urn:nbn:de:gbv:705-opus-31149</hint>
+        </field>
+<!-- auskommentiert, da DOI in dc.identifier.doi als Link eingetragen werden kann; A.G., 16.01.2020  -->
+<!--
+        <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>doi</dc-qualifier>
+          <parent />
+          <label>Herausgeber DOI</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie den DOI des 
+ursprünglichen Herausgebers an. Beispiel DOI: https://doi.org/10.20366/unimib/unidata/sn196-1.0</hint>
+        </field>
+-->    
+    <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>articlenumber</dc-qualifier>
+          <parent />
+          <label>Artikel ID</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Artikel-ID an, sofern Ihr Aufsatz nur eine Artikel-ID hat, keine Band- und Heft-
+Zählung. Z.B. im PDF eines Online-Aufsatzes: Volume 
+2015, Article ID 212910, 10 pages</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>advisor</dc-qualifier>
+          <parent />
+          <label>Akademische(r) 
+Betreuer/in)</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required>true</required>
+          <hint>Bitte tragen Sie hier den Namen des Erstgutachters (bei Abschlussarbeiten) oder Doktorvaters (bei Dissertationen) ein. Das Feld wird nur für Abschlussarbeiten bzw. Dissertationen angezeigt. Mit dem Button "Weitere eintragen" erzeugen Sie weitere Felder.</hint>
+          <type-bind>Thesis</type-bind>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>referee</dc-qualifier>
+          <parent />
+          <label>Zweitgutachter</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte tragen Sie hier den Namen des Zweitgutachters Ihrer Abschlussarbeit oder Dissertation ein. Mit dem Button "Weitere eintragen" erzeugen Sie weitere Felder.</hint>
+          <type-bind>Thesis</type-bind>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>grantor</dc-qualifier>
+          <parent />
+          <label>Gradverleihende 
+Institution</label>
+          <input-type value-pairs-name="granting_organisation">dropdown</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie hier die 
+abschlussverleihende Institution ein.</hint>
+          <type-bind>Thesis</type-bind>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <dc-qualifier>thesis</dc-qualifier>
+          <parent />
+          <label>Art der Abschlussarbeit/ Dissertation</label>
+          <input-type value-pairs-name="type_thesis">dropdown</input-type>
+          <repeatable>true</repeatable>
+          <required>Das Feld muss ausgefüllt werden und wird nur für Abschlussarbeiten bzw. Dissertationen benötigt.</required>
+          <hint>Bitte wählen Sie den Typ der Arbeit aus.</hint>
+          <type-bind>Thesis</type-bind>
+        </field>
+        <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>dateAccepted</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Tag der mündlichen 
+Prüfung</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>Das Feld wird nur für Abschlussarbeiten bzw. Dissertationen angezeigt. Das Prüfungsdatum muss angegeben werden.</required>
+          <hint>Bitte geben Sie hier das Datum Ihrer 
+zu dieser Arbeit gehörenden mündlichen Prüfung ein. Vor Abschluss der mündlichen Prüfung kann die Arbeit nicht auf openHSU eingestellt werden.</hint>
+          <type-bind>Thesis</type-bind>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>citation</dc-qualifier>
+          <parent />
+          <label>Zitationshinweis</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Zitierweise 
+Ihrer früheren Publikation an. Bsp.: "Catalysts 2016, 6(10), 160"</hint>
+        </field>
+      </page>
+      <page number="3" heading="3">
+       <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <dc-qualifier></dc-qualifier>
+          <parent />
+          <label>Freie Schlagworte/ 
+Schlagwörter</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte beschreiben Sie mit Schlagworten den Inhalt Ihres Dokumentes. Verwenden Sie für jedes Schlagwort ein eigenes Feld. Mit dem Button "Weitere eintragen" erzeugen Sie weitere Felder. Bitte benutzen Sie den Singular.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>conference</dc-qualifier>
+          <parent />
+          <label>Konferenz</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie den Titel der Konferenz ein, mit der die Publikation verknüpft ist. Beispiele siehe https://openhsu.ub.hsu-hh.de/cris/events/events00107. Wenn Ihre Konferenz sich in der Liste befindet, nutzen Sie bitte den Datenbank-Eintrag.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier />
+          <parent />
+          <label>Projekt</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie das Projekt an, sofern Ihre Publikation auf 
+einem Projekt beruht. Es muss sich zukünftig um ein Projekt handeln, dass durch die Institute oder die Projektleitenden redaktionell bearbeitet und freigeschaltet wurde wie z.B. "Kr 752/33-1". Wenn Ihr Projekt bereits in der Datenbank vorhanden ist, übernehmen Sie bitte den Datenbank-Eintrag.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartof</dc-qualifier>
+          <parent />
+          <label>Schriftenreihe oder Zeitschrift</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Schriftenreihe oder Zeitschrift an, sofern Ihre Publikation in einer solchen erschienen ist.Wenn die Schriftenreihe oder Zeitschrift bereits in der Datenbank vorhanden ist, übernehmen Sie bitte den Datenbank-Eintrag.</hint>
+       </field>
+
+<!-- zu Testzwecken für BibTex-Import, A.G., 16.01.2020  -->
+<!--field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>volume</dc-qualifier>
+          <parent />
+          <label>Bandangabe</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Bandangabe der Schriftenreihe oder Zeitschrift ein.</hint>
+        </field-->
+
+
+
+<!-- zu Testzwecken für csv-Import, A.G., 24.02.2020  -->
+<field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>volume</dc-qualifier>
+          <parent />
+          <label>Bandangabe</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Bandangabe der Schriftenreihe oder Zeitschrift ein.</hint>
+        </field>
+
+
+
+
+<!-- zu Testzwecken für BibTex-Import; A.G., 16.01.2020  -->
+	<!--field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issue</dc-qualifier>
+          <parent />
+          <label>Heftangabe</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Bandangabe der Schriftenreihe oder Zeitschrift ein.</hint>
+        </field-->
+
+
+
+<!-- zu Testzwecken für csv-Import; A.G., 24.02.2020  -->
+        <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>issue</dc-qualifier>
+          <parent />
+          <label>Heftangabe</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Bandangabe der Schriftenreihe oder Zeitschrift ein.</hint>
+        </field>
+
+
+
+
+
+
+	<!-- für csv-Import; A.G., 24.02.2020  -->
+  	<field>
+          <dc-schema>dcterms</dc-schema>
+	  <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>pagestart</dc-qualifier>
+          <parent />
+          <label>Startseite</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die erste Seite des Artikels / Kapitels ein.</hint>
+        </field>
+
+
+        <!--field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>lastpage</dc-qualifier>
+          <parent />
+          <label>Endseite</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die letzte Seite des Artikels / Kapitels ein.</hint>
+  	</field-->
+
+
+
+	<!-- für csv-Import; A.G., 24.02.2020  -->	
+    <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>pageend</dc-qualifier>
+          <parent />
+          <label>Endseite</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die letzte Seite des Artikels / Kapitels ein.</hint>
+        </field>
+
+
+
+
+<!-- zu Testzwecken für BibTex-Import; A.G., 16.01.2020  -->
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>pages</dc-qualifier>
+          <parent />
+          <label>Seite(n)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Seiten (von...bis) ein.</hint>
+        </field>
+
+	<!-- auskommentiert, da stattdessen dc.relation.references genutzt wird; A.G., 25.02.2020  -->
+	<!--	
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>ispartofbook</dc-qualifier>
+          <parent />
+          <label>Erschienen in (Buchtitel / Titel des Konferenzbandes)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie den Buchtitel oder Titel des Konferenzbandes an, sofern Ihre Publikation Teil eines Buches ist.</hint>
+  	</field>
+-->
+
+	<!-- für csv-Import; A.G., 24.02.2020  -->
+ <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>isPartOf</dc-qualifier>
+          <parent />
+          <label>Erschienen in (Buchtitel / Titel des Konferenzbandes)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie den Buchtitel oder Titel des Konferenzbandes an, sofern Ihre Publikation Teil eines Buches ist.</hint>
+        </field>
+
+  <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>booknumber</dc-qualifier>
+          <parent />
+          <label>Auflage</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Auflage an, sofern es sich nicht um die erste Auflage handelt.</hint>
+        </field>
+
+
+
+        <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>number</dc-qualifier>
+          <parent />
+          <label>Bandangabe 
+(bei mehrbändigen Werken)</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Bandnummer an, sofern das Buch Teil eines mehrbändigen Werkes ist.</hint>
+        </field>
+        <!--field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <dc-qualifier>place</dc-qualifier>
+          <parent />
+          <label>Ort</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie den Ort des 
+Verlages ein, bei dem die Publikation ursprünglich erschien.</hint>
+	</field-->
+
+
+	<!-- für csv-Import; A.G., 24.02.2020  -->
+	 <field>
+          <dc-schema>dcterms</dc-schema>
+          <dc-element>bibliographicCitation</dc-element>
+          <dc-qualifier>originalpublisherplace</dc-qualifier>
+          <parent />
+          <label>Ort</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte geben Sie den Verlagsort an.</hint>
+        </field>
+
+
+
+
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>publisher</dc-element>
+          <dc-qualifier></dc-qualifier>
+          <parent />
+          <label>Verlag</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie den 
+Verlag ein, bei dem die Publikation ursprünglich erschien.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>edition</dc-qualifier>
+          <parent />
+          <label>Auflage</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie die Auflage der 
+Publikation an. Wenn es sich um die erste Auflage handeln sollte, lassen Sie dieses Feld frei.</hint>
+        </field>
+<!-- auskommentiert; A.G., 30.12.2019
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issupplementedby</dc-qualifier>
+          <parent />
+          <label>Is Supplemented By</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+-->
+<!-- auskommentiert; A.G., 30.12.2019
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>issupplementto</dc-qualifier>
+          <parent />
+          <label>Is Supplement To</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint />
+        </field>
+-->
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>references</dc-qualifier>
+          <parent />
+          <label>Verknüpfte Ressource</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie eine verknüpfte Ressource an, auf die sich die beschriebene Publikation bezieht, diese zitiert oder anderweitig referenziert.</hint>
+  </field>
+  <!--
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>isreferencedby</dc-qualifier>
+          <parent />
+          <label>Verknüpfte Ressource</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie eine verknüpfte Ressource an, die sich auf die beschriebene Publikation bezieht, diese zitiert oder anderweitig referenziert.</hint>
+        </field>
+-->      
+	<field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>haspart</dc-qualifier>
+          <parent />
+          <label>Enthaltene Ressourcen</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie an, sofern Ihre Publikation einzelne Ressourcen enthält (z.B. Beiträge in einem Konferenzband).</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>isformatof</dc-qualifier>
+          <parent />
+          <label>Gedruckt erschienene Ausgabe</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie an, sofern Ihre Publikation zusätzlich gedruckt erschienen ist.</hint>
+        </field>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>isversionof</dc-qualifier>
+          <parent />
+          <label>Frühere oder spätere Ausgabe</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Bitte geben Sie an, sofern Ihre Publikation in einer früheren oder späteren Version oder Edition erschienen ist oder eine Adaption dieser Publikation ist.</hint>
+        </field>
+
+<!-- auskommentiert für Import UBL, A.G., 23.01.2020  -->
+<!--
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>type</dc-element>
+          <dc-qualifier>version</dc-qualifier>
+          <parent />
+          <label>Version</label>
+          <input-type value-pairs-name="type_versions">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint />
+        </field>
+-->
+
+<!-- für Freitextfeld; A.G., 30.12.2019 -->
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier></dc-qualifier>
+          <parent />
+          <label>Anmerkungen</label>
+          <input-type>textarea</input-type>
+          <repeatable>true</repeatable>
+          <required />
+          <hint>Anmerkungen</hint>
+        </field>
+
+
+        <field>
+          <dc-schema>hsu</dc-schema>
+          <dc-element>accessrights</dc-element>
+          <dc-qualifier>dnb</dc-qualifier>
+          <parent />
+          <label>Access rights DNB</label>
+          <input-type value-pairs-name="accessrights_dnb">dropdown</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Bitte wählen Sie, welche Rechte die DNB hat, die gespeicherte Publikation zu visualisieren.</hint>
+          <visibility>workflow</visibility>
+        </field>
+
+      </page>
+    </form>
+  </form-definitions>
+  <form-value-pairs>
+    <value-pairs value-pairs-name="common_iso_languages" dc-term="common_iso_languages">
+      <pair>
+        <displayed-value>English (United States)</displayed-value>
+        <stored-value>en_US</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>English</displayed-value>
+        <stored-value>en</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Spanish</displayed-value>
+        <stored-value>es</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>German</displayed-value>
+        <stored-value>de</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>French</displayed-value>
+        <stored-value>fr</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Italian</displayed-value>
+        <stored-value>it</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Japanese</displayed-value>
+        <stored-value>ja</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Chinese</displayed-value>
+        <stored-value>zh</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Turkish</displayed-value>
+        <stored-value>tr</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>(Other)</displayed-value>
+        <stored-value>other</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="common_licenses" dc-term="common_licenses">
+<!-- ...
+      <pair>
+	<displayed-value>keine Lizenz</displayed-value>
+	<stored-value>keine Lizenz</displayed-value>
+	</pair>
+-->
+	<pair>
+        <displayed-value>Creative Commons Attribution 4.0 (CC BY)</displayed-value>
+        <stored-value>Creative Commons Attribution 4.0 (CC BY)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution ShareAlike 4.0 (CC BY-SA)</displayed-value>
+        <stored-value>Creative Commons Attribution ShareAlike 4.0 (CC BY-SA)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution NonCommercial 4.0 (CC BY-NC)</displayed-value>
+        <stored-value>Creative Commons Attribution NonCommercial 4.0 (CC BY-NC)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution NoDerivatives 4.0 (CC BY-ND)</displayed-value>
+        <stored-value>Creative Commons Attribution NoDerivatives 4.0 (CC BY-ND)</stored-value>
+      </pair>a
+      <pair>
+        <displayed-value>Creative Commons Attribution NonCommercial ShareAlike 4.0 (CC BY-NC-SA)</displayed-value>
+        <stored-value>Creative Commons Attribution NonCommercial ShareAlike 4.0 (CC BY-NC-SA)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Attribution NonCommercial NoDerivatives 4.0 (CC-BY-NC-ND)</displayed-value>
+        <stored-value>Creative Commons Attribution NonCommercial NoDerivatives 4.0 (CC-BY-NC-ND)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Creative Commons Zero 1.0 (CC0)</displayed-value>
+        <stored-value>Creative Commons Zero 1.0 (CC0)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>In Copyright</displayed-value>
+        <stored-value>In Copyright</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Apache License 2.0</displayed-value>
+        <stored-value>Apache License 2.0</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>BSD License (BSD-3-Clause)</displayed-value>
+        <stored-value>BSD License (BSD-3-Clause)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>GNU General Public License 3.0 (GNU GPLv3)</displayed-value>
+        <stored-value>GNU General Public License 3.0 (GNU GPLv3)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>GNU Lesser General Public License 3.0 (GNU LGPLv3)</displayed-value>
+        <stored-value>GNU Lesser General Public License 3.0 (GNU LGPLv3)</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>MIT License</displayed-value>
+        <stored-value>MIT License</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Mozilla Public License 2.0 (MPL)</displayed-value>
+        <stored-value>Mozilla Public License 2.0 (MPL)</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="version" dc-term="version">
+<!-- ...
+	<pair>
+	<displayed-value>keine Version</displayed-value>
+	<stored-value>keine Version</stored-value>
+	</pair>
+-->
+      <pair>
+        <displayed-value>4.0 german</displayed-value>
+        <stored-value>4.0 deutsch</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>4.0 english</displayed-value>
+        <stored-value>4.0 englisch</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="common_types" dc-term="common_types">
+      <pair>
+        <displayed-value>Animation</displayed-value>
+        <stored-value>Animation</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Article</displayed-value>
+        <stored-value>Article</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Periodical Part</displayed-value>
+        <stored-value>Periodical Part</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Book</displayed-value>
+        <stored-value>Book</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Book Part</displayed-value>
+        <stored-value>Book Part</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Book chapter</displayed-value>
+        <stored-value>Book chapter</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Dataset</displayed-value>
+        <stored-value>Dataset</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Learning Object</displayed-value>
+        <stored-value>Learning Object</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Image</displayed-value>
+        <stored-value>Image</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Image, 3-D</displayed-value>
+        <stored-value>Image, 3-D</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Map</displayed-value>
+        <stored-value>Map</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Musical Score</displayed-value>
+        <stored-value>Musical Score</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Plan or blueprint</displayed-value>
+        <stored-value>Plan or blueprint</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Preprint</displayed-value>
+        <stored-value>Preprint</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Presentation</displayed-value>
+        <stored-value>Presentation</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Recording, acoustical</displayed-value>
+        <stored-value>Recording, acoustical</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Recording, musical</displayed-value>
+        <stored-value>Recording, musical</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Recording, oral</displayed-value>
+        <stored-value>Recording, oral</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Software</displayed-value>
+        <stored-value>Software</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Technical Report</displayed-value>
+        <stored-value>Technical Report</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Report</displayed-value>
+        <stored-value>Report</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Thesis</displayed-value>
+        <stored-value>Thesis</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Video</displayed-value>
+        <stored-value>Video</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Working Paper</displayed-value>
+        <stored-value>Working Paper</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Research Paper</displayed-value>
+        <stored-value>Research Paper</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Other</displayed-value>
+        <stored-value>Other</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Conference Proceedings</displayed-value>
+        <stored-value>Conference Proceedings</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Conference Paper</displayed-value>
+        <stored-value>Conference Paper</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Conference Object</displayed-value>
+        <stored-value>Conference Object</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Presentation</displayed-value>
+        <stored-value>Presentation</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Poster</displayed-value>
+        <stored-value>Poster</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="type_thesis" dc-term="type_thesis">
+      <pair>
+        <displayed-value>Doctoral Thesis</displayed-value>
+        <stored-value>Doctoral Thesis</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Master Thesis</displayed-value>
+        <stored-value>Master Thesis</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Habilitation</displayed-value>
+        <stored-value>Habilitation</stored-value>
+	</pair>
+	<pair>
+        <displayed-value>Bachelor Thesis</displayed-value>
+        <stored-value>Bachelor Thesis</stored-value>
+</pair>
+ <pair>
+        <displayed-value>Diploma Thesis</displayed-value>
+        <stored-value>Diploma Thesis</stored-value>
+</pair>
+
+    </value-pairs>
+    <value-pairs value-pairs-name="common_identifiers" dc-term="common_identifiers">
+      <pair>
+        <displayed-value>ISBN</displayed-value>
+        <stored-value>isbn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>eISBN</displayed-value>
+        <stored-value>eisbn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ISSN</displayed-value>
+        <stored-value>issn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>eISSN</displayed-value>
+        <stored-value>eISSN</stored-value>
+      </pair>
+	<pair>
+	 <displayed-value>DOI</displayed-value>
+	<stored-value>doi</stored-value>
+	</pair>
+      <pair>
+        <displayed-value>Scopus ID</displayed-value>
+        <stored-value>scopus</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>WOS ID</displayed-value>
+        <stored-value>isi</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Pubmed ID</displayed-value>
+        <stored-value>pmid</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>arXiv ID</displayed-value>
+        <stored-value>arxiv</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>ISMN</displayed-value>
+        <stored-value>ismn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URI</displayed-value>
+        <stored-value>uri</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URN</displayed-value>
+        <stored-value>urn</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>URL</displayed-value>
+        <stored-value>url</stored-value>
+      </pair>
+      <pair>
+	<displayed-value>Signatur</displayed-value>
+	<stored-value>bibcode</stored-value>
+      </pair>
+
+    </value-pairs>
+    <value-pairs value-pairs-name="granting_organisation" dc-term="granting_organisation">
+      <pair>
+        <displayed-value>Helmut-Schmidt-Universität / Universität der Bundeswehr Hamburg</displayed-value>
+        <stored-value>HSU Hamburg</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Other</displayed-value>
+        <stored-value>other</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="type_versions" dc-term="type_versions">
+      <pair>
+        <displayed-value>Draft</displayed-value>
+        <stored-value>draft</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Submitted Version</displayed-value>
+        <stored-value>submittedVersion</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Accepted Version</displayed-value>
+        <stored-value>acceptedVersion</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Published Version</displayed-value>
+        <stored-value>publishedVersion</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>Updated Version</displayed-value>
+        <stored-value>updatedVersion</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="accessrights_dnb" dc-term="accessrights_dnb">
+      <pair>
+        <displayed-value>DNB Access free</displayed-value>
+        <stored-value>free</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>DNB Access domain</displayed-value>
+        <stored-value>domain</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>DNB Access blocked</displayed-value>
+        <stored-value>blocked</stored-value>
+      </pair>
+      <pair>
+        <displayed-value>DNB Access unknown</displayed-value>
+        <stored-value>unknown</stored-value>
+      </pair>
+    </value-pairs>
+
+     
+    <value-pairs value-pairs-name="submission_types" dc-term="submission_types">
+      <pair>
+      		<displayed-value>nur Titeldaten</displayed-value>
+		<stored-value>only-metadata</stored-value>
+      </pair>
+      <pair>
+        	<displayed-value>Open-Access-Veröffentlichung (Titeldaten mit Volltext)</displayed-value>
+        	<stored-value>full-text</stored-value>
+      </pair>
+    </value-pairs> 
+   
+
+
+  </form-value-pairs>
+</input-forms>
+
