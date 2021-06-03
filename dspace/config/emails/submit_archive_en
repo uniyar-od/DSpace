@@ -1,0 +1,23 @@
+# Item Archived email message
+#
+# {0}  Title of submission
+# {1}  Name of collection
+# {2}  handle 
+#
+Subject: openHSU: Submission Approved and Archived 
+
+You submitted: {0}
+
+To collection: {1}
+
+Your submission has been accepted and archived in openHSU.
+If your submission contains metadata with fulltext, we have assigned a persistent identifier (DOI) to your publication:
+{2}
+
+Please use the DOI when citing your submission.
+
+If your submission has just been a bibliographic entry without attached fulltext, please ignore the displayed DOI above! We will delete it shortly. At the moment, due to an ongoing technical implementation, it isn’t possible to suppress the DOI generation for submissions without fulltext before.
+
+Many thanks for your understanding!
+
+Your openHSU-Team

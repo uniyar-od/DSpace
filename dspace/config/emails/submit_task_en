@@ -1,0 +1,26 @@
+# Workflow task email message
+#
+# {0}  Title of submission
+# {1}  Name of collection
+# {2}  author's name
+# {3}  submitter's name
+# {4}  Description of task
+# {5}  link to 'my DSpace' page 
+#
+Subject: DSpace: You have a new task
+
+A new item has been submitted:
+
+Title:        {0}
+Collection:   {1}
+Author:       {2}
+Submitted by: {3}
+
+{4}
+
+To claim this task, please visit your "My DSpace"
+page:  {5}
+
+Many thanks!
+
+DSpace
