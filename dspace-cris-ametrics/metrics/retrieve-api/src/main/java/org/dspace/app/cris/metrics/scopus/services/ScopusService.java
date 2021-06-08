@@ -76,9 +76,12 @@ public class ScopusService {
 
 		HttpGet method = null;
 		ScopusResponse scopusResponse = null;
+	
 		int numberOfTries = 0;
+		boolean done = false;
 
-		while (numberOfTries < maxNumberOfTries && scopusResponse == null) {
+		//while (numberOfTries < maxNumberOfTries && scopusResponse == null) {
+		while (numberOfTries < maxNumberOfTries && !done) {
 			numberOfTries++;
 			try {
 				Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
@@ -124,14 +127,15 @@ public class ScopusService {
 				if (statusCode != HttpStatus.SC_OK) {
 					scopusResponse = new ScopusResponse("Scopus return not OK status: " + statusCode, ConstantMetrics.STATS_INDICATOR_TYPE_ERROR);
 				} else if (null != responseBody) {
-                    if (log.isDebugEnabled())
-                    {                      
-                        log.debug(responseBody.getContent());
-                    }
+        	      			    if (log.isDebugEnabled())
+                			    {                      
+		                        	log.debug(responseBody.getContent());
+			                    }
 					scopusResponse = new ScopusResponse(responseBody.getContent());
 				} else {
 					scopusResponse = new ScopusResponse("Scopus returned no response", ConstantMetrics.STATS_INDICATOR_TYPE_ERROR);
 				}
+				done = true;
 			} catch (Exception e) {
 				log.error(e.getMessage(), e);
 			}

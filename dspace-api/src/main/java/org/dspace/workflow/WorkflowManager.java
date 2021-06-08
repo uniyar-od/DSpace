@@ -1197,6 +1197,9 @@ public class WorkflowManager
                 // Get the submitter's name
                 String submitter = getSubmitterName(wi);
 
+		// Get the item's author
+		String author = getItemAuthor(wi);
+
                 // Get the collection
                 Collection coll = wi.getCollection();
 
@@ -1208,6 +1211,7 @@ public class WorkflowManager
                     Email email = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale, "submit_task"));
                     email.addArgument(title);
                     email.addArgument(coll.getMetadata("name"));
+		    email.addArgument(author);
                     email.addArgument(submitter);
 
                     ResourceBundle messages = ResourceBundle.getBundle("Messages", supportedLocale);
@@ -1327,6 +1331,29 @@ public class WorkflowManager
             return I18nUtil.getMessage("org.dspace.workflow.WorkflowManager.untitled ");
         }
     }
+
+	/*Funktion getItemAuthor hinzugefügt von CP 20.01.2020*/
+    /**
+     * get the author of the item in this workflow
+     *
+     * @param wi  the workflow item object
+     */
+    public static String getItemAuthor(WorkflowItem wi) throws SQLException
+    {
+        Item myitem = wi.getItem();
+        Metadatum[] authors = myitem.getDC("author", null, Item.ANY);
+
+        // only return the first element, or "Untitled"
+        if (authors.length > 0)
+        {
+            return authors[0].value;
+        }
+        else
+        {
+            return I18nUtil.getMessage("org.dspace.workflow.WorkflowManager.untitled ");
+        }
+    }
+
 
     /**
      * get the name of the eperson who started this workflow
