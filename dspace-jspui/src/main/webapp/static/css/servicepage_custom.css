@@ -1,0 +1,98 @@
+
+/*Navbar dunkelgrau, da Navbar sonst wie background hellgrau ist; Z. 296 in openhsuservices.php/.jsp; A.G., 11.05.2018 */
+
+.navbar-inverse {
+	background-color: #00263E;
+}
+
+
+/*responsives Headerbild; aufgeschlagenes Buch; links eingebunden; Z. 327 in openhsuservices.php/.jsp; A.G., 13.05.2018 */
+.img-responsive {
+	padding-top:20px;
+}
+
+
+
+/*Styles fuer die Formulare Publikationsfonds und Workshops; A:G., 13.05.2018
+CSS fuer das Formular Publikationsfonds ab Z. 620; CSS für das Formular Workshops ab Z. 876; A:G., 11.05.2018*/
+
+
+mainContent {
+	width: auto;
+	display: left;
+	float: none;
+	padding-top: 50px;
+	padding-bottom: 50px;
+	text-align: left;
+	font-size: 14pt;
+	font-weight: strong;
+	color: #00716A;
+	border: none;
+	border-radius: 5px;
+}
+
+
+label {
+    font-size: 16px;
+	font-weight: bold;
+	padding-bottom: 1.3em;
+    text-align: left;
+	margin-bottom: 10px;
+	color: #00716A;
+	width: 450px;
+}
+
+input {
+   font-size: 12px; padding: 5px 12px; 
+   font-weight: strong;
+   color: #F2F2F2;
+   border: 2px solid #00716A;
+   background: #67989A;
+   border-radius: 5px;
+}
+
+input:focus {
+    background-color: #848484;
+}
+
+
+input:required {
+ background-color:#F08080;
+}
+
+
+
+.highlight {
+	color: #00716A;
+	font-weight: bold;
+}
+
+
+.required {
+	color: #F08080;
+	font-weight: bold;
+}
+
+
+/*fieldset {
+	border: 3px solid #F08080;
+	padding-top: 30px;
+}*/
+
+/*new for openHSU; A.G.; 09.12.2019*/
+
+.italic {
+	color: #00716A;
+	font-style: italic;
+}
+
+
+.highlightblue {
+	color: #00263E;
+}
+
+
+
+
+
+
