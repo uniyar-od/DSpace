@@ -453,6 +453,9 @@
 				<entry key="document_type" value="subtype" />
 				<entry key="url" value="url" />
 				<entry key="publisher" value="publisher" />
+				<entry key="editor" value="editor" />
+				<entry key="number" value="number" />
+				<entry key="note" value="note" />
 			</map>
 		</property>
 	</bean>
@@ -477,15 +480,66 @@
 		<property name="fieldMap">
 			<map>
 				<entry key="0" value="title" />
-				<entry key="1" value="authors" />
-				<entry key="2" value="issued" />
-				<entry key="3" value="journal" />
-				<entry key="4" value="abstract" />
-				<entry key="5" value="jissn" />
-				<entry key="6" value="subtype" />
+				<entry key="1" value="subtitle" />
+				<entry key="2" value="titleAlternative" />
+				<entry key="3" value="language" />
+				<entry key="4" value="issued" />
+				<entry key="5" value="authors" />
+				<entry key="6" value="affiliation" />
+				<entry key="7" value="editors" />
+				<entry key="8" value="others" />
+				<entry key="9" value="publisher" />
+				<entry key="10" value="originalpublisherplace" />
+				<entry key="11" value="subtype" />
+				<entry key="12" value="advisor" />
+                                <entry key="13" value="referee" />
+                                <entry key="14" value="grantor" />
+                                <entry key="15" value="thesis" />
+                                <entry key="16" value="dateaccepted" />
+				<entry key="17" value="abstract" />
+				<entry key="18" value="sponsorship" />
+				<entry key="19" value="ddc" />
+				<entry key="20" value="pisbn" />
+				<entry key="21" value="eisbn" />
+				<entry key="22" value="jissn" />
+				<entry key="23" value="jeissn" />
+				<entry key="24" value="doi" />
+				<entry key="25" value="eid" />
+				<entry key="26" value="pubmedID" />
+				<entry key="27" value="pubmedcentralID" />
+				<entry key="28" value="adsbibcode" />
+				<entry key="29" value="uri" />
+				<entry key="30" value="urn" />
+				<entry key="31" value="arxiv" />
+				<entry key="32" value="ismn" />
+				<entry key="33" value="url" />
+				<entry key="34" value="bibcode" />
+				<entry key="35" value="articlenumber" />
+				<entry key="36" value="citation" />
+				<entry key="37" value="allkeywords" />
+				<entry key="38" value="project" />
+				<entry key="39" value="conference" />
+				<entry key="40" value="journal" />
+				<entry key="41" value="volumedcterms" />
+				<entry key="42" value="issuedcterms" />
+				<entry key="43" value="firstpagedcterms" />
+				<entry key="44" value="lastpagedcterms" />
+				<entry key="45" value="pages" />
+				<entry key="46" value="editionnumber" />
+				<entry key="47" value="booknumber" />
+				<entry key="48" value="connectedresource" />
+				<entry key="49" value="containedresource" />
+				<entry key="50" value="printedversion" />
+				<entry key="51" value="otherversion" />
+				<entry key="52" value="publisherversion" />
+				<entry key="53" value="note" />
+	<!--			<entry key="54" value="thesis" />
+				<entry key="55" value="grantor" />               -->
+
 			</map>
 		</property>
 		<property name="skipLines" value="1" />
+		<property name="valueSeparator" value="\|\|" />
 	</bean>
 
 	<!-- A TSV file is exactly the same as a CSV one, with the difference that 
@@ -727,7 +781,7 @@
 		<!-- For CrossRef service you need to obtain an API Key from CrossRef. Once you get it, add it 
 			 to the following configuration value 
 		-->
-		<property name="apiKey" value="" />
+		<property name="apiKey" value="philippc@hsu-hh.de" />
 		<!-- Uncomment the following line if you want to define the max results returned by the 
 			 CrossRef free text (by author, title, date) search. Default value is 10 
 		-->
@@ -877,7 +931,7 @@
 				<entry value="pisbn" key="dc.identifier.isbn" />
 				<entry value="eisbn" key="dc.identifier.eisbn" />
 				<entry value="journal" key="dc.relation.ispartof" />				
-				<entry value="proceedingsPaper.journal" key="dc.relation.ispartofbook" />				
+				<entry value="proceedingsPaperjournal" key="dc.relation.ispartofbook" />				
 				<entry value="title" key="dc.title" />
 				<entry value="titleAlternative" key="dc.title.alternative" />
 				<entry value="issued" key="dc.date.issued" />
@@ -911,8 +965,41 @@
 				<entry value="orcid" key="dc.contributor.orcid" />
 				<entry value="rights" key="dc.rights" />
 				<entry value="note" key="dc.description" />
-				<entry value="externalID" key="dc.identifier.external" />				
-				
+				<entry value="externalID" key="dc.identifier.external" />		
+				<entry value="subtitle" key="dc.title.subtitle" />
+				<entry value="ddc" key="dc.subject.ddc" />
+				<entry value="affiliation" key="dc.contributor.affiliation" />
+				<entry value="sponsorship" key="dc.description.sponsorship" />
+				<entry value="arxiv" key="dc.identifier.arxiv" />
+				<entry value="ismn" key="dc.identifier.ismn" />
+				<entry value="urn" key="dc.identifier.urn" />
+				<entry value="articlenumber" key="dcterms.bibliographicCitation.articlenumber" />
+				<entry value="advisor" key="dc.contributor.advisor" />
+				<entry value="referee" key="dc.contributor.referee" />
+				<entry value="grantor" key="dc.contributor.grantor" />
+				<entry value="thesis" key="dc.type.thesis" />
+				<entry value="dateaccepted" key="dcterms.dateAccepted" />
+				<entry value="citation" key="dc.identifier.citation" />
+				<entry value="conference" key="dc.relation.conference" />
+				<entry value="project" key="dc.relation" />
+				<entry value="pages" key="dc.relation.pages" />
+				<entry value="booknumber" key="dcterms.bibliographicCitation.number" />
+				<entry value="connectedresource" key="dc.relation.references" />
+				<entry value="containedresource" key="dc.relation.haspart" />
+				<entry value="printedversion" key="dc.relation.isformatof" />
+				<entry value="otherversion" key="dc.relation.isversionof" />
+				<entry value="publisherversion" key="dc.type.version" />
+				<entry value="volumedcterms" key="dcterms.bibliographicCitation.volume" />
+				<entry value="issuedcterms" key="dcterms.bibliographicCitation.issue" />
+				<entry value="firstpagedcterms" key="dcterms.bibliographicCitation.pagestart" />
+				<entry value="lastpagedcterms" key="dcterms.bibliographicCitation.pageend" />
+				<entry value="isPartof" key="dcterms.bibliographicCitation.isPartOf" />
+				<entry value="originalpublisherplace" key="dcterms.bibliographicCitation.originalpublisherplace" />
+				<entry value="bibcode" key="dc.identifier.bibcode" />
+				<entry value="thesis" key="dc.type.thesis" />
+				<entry value="grantor" key="dc.contributor.grantor" />		
+
+
 				<!-- Not used - new metadata fields need to be declared for them in DSpace registry -->
 				<!-- 
 				<entry value="url" key="" />

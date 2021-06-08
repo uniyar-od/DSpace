@@ -5,7 +5,7 @@
  <form-map>
    <name-map collection-handle="default" form-name="traditional" />
    <name-map collection-handle="10.24405/2819" form-name="testsammlung" />
- 
+
  </form-map>
 
 
@@ -1119,10 +1119,10 @@
    </form>
 
    <form name="testsammlung">
-   
+
      <page number="1">
-     
-     
+
+
 	 <!-- entspricht Erfassungsmaske 1 - Eingabe der Basis-Metadaten  -->
 	 <!-- vor Seite 2 Einbindung der Buttons "Metadata with fulltext" and "Metadata without fulltext"; A.G., 29.07.2019  -->
 	 <!-- DC.TITLE  -->
@@ -1137,8 +1137,8 @@
          <hint>Bitte tragen Sie den Haupttitel des Werkes ein.</hint>
          <required></required>
        </field>
-	   
-	   
+
+
 	   <!-- DC.TITLE.SUBTITLE  -->
 	  <!-- siehe depositonce; A.G.  -->
 	    <field>
@@ -1152,11 +1152,11 @@
          <hint>Geben Sie hier ggf. den Zusatz zum Haupttitel ein.</hint>
          <required></required>
        </field>
-	 
-	 
+
+
 	 <!-- ggf. dc.title.alternative; A.G.  -->
-	 
-	 
+
+
 	 <!-- DC.LANGUAGE.ISO  -->
 	      <field>
 		 <dc-schema>dc</dc-schema>
@@ -1168,9 +1168,9 @@
          <hint>Bitte wählen Sie die Originalsprache des Werkes aus. Wenn keine Auswahl zutrifft, nutzen Sie "andere". Wenn der Inhalt nicht wirklich eine Sprache hat, da es sich z.B. um einen Datensatz oder ein Bild handelt, wählen Sie bitte "N/A".</hint>
 	 <required></required>
        </field>
-	   
-	   
-	   
+
+
+
 	   <!-- DC.DATE.ISSUED -->
 	    <field>
 		 <dc-schema>dc</dc-schema>
@@ -1182,10 +1182,10 @@
          <hint>Bitte geben Sie das Erstveröffentlichungsdatum an. Der Tag bzw. Monat ist dabei optional.</hint>
          <required>Bitte geben Sie mindestens das Jahr der Erstveröffentlichung an.</required>
        </field>
-	   
-	
-	
-	
+
+
+
+
 	<!-- siehe depositonce; A.G.  -->
 	<!-- die einzelnen MD sind unten  -->
 	<!--
@@ -1196,13 +1196,13 @@
          <repeatable>true</repeatable>
          <label>Relations</label>
          <input-type value-pairs-name="common_relations">qualdrop_value</input-type>
-         <hint>If the item has any relations to other Objects in openHSU, please enter them here (e.g. the DOI or URL). 
+         <hint>If the item has any relations to other Objects in openHSU, please enter them here (e.g. the DOI or URL).
 		 Use the "Reference" relation for connected publications. Use the "Supplement" relation for connected research data.</hint>
          <required>You must enter at least the year.</required>
        </field>
 	   -->
-	
-	
+
+
 	<!-- DC.RIGHTS.URI  -->
 	<!-- in depositonce für Lizenzen, A.G.  -->
 	<field>
@@ -1215,10 +1215,10 @@
          <hint>Bitte wählen Sie eine Lizenz für Ihre Publikation aus. Beispiele siehe https://creativecommons.org/licenses/?lang=de</hint>
          <required></required>
      </field>
-	
-	
-	
-	
+
+
+
+
 	<!-- DC.SUBJECT.DDC  -->
 	<!-- in depositonce für DDC, A.G.  -->
 	<!-- ddc vocabulary in installDir/opt/dspace/config/controlled-vocabularies; ggf. englische Version einbinden; A.G.  -->
@@ -1233,10 +1233,10 @@
          <required>Sie müssen eine DDC-Klasse eingeben. Beispiele siehe https://www.dnb.de/Substitutes/ddcdeutsch/DE/DDCprodukte/DDCuebersichten/DDCuebersichten_node.html</required>
 		 <vocabulary>ddc</vocabulary>
      </field>
-	
-	
-	
-	
+
+
+
+
 
        <!-- DC.CONTRIBUTOR.AFFILIATION  -->
            <!-- für Verknüpfung mit dc.contributor.author; A.G.  -->
@@ -1247,19 +1247,19 @@
          <repeatable>true</repeatable>
          <label>Affiliations der Autoren</label>
          <input-type>onebox</input-type>
-	<parent>dc_contributor_author</parent> 
+	<parent>dc_contributor_author</parent>
         <hint>Bitte geben Sie die Organisationseinheit(en) des / der Autors(en ein. Beispiel: Affiliation "Automatisierungstechnik" (inside the faculty "Maschinenbau"). Wenn der/die Name(n) der Organisationseinheit(en) sich bereits in der Liste befindet/befinden, übernehmen Sie bitte den Datenbank-Eintrag.</hint>
          <required></required>
         <visibility></visibility>
        </field>
 
 
-	   
-	   
 
-	 
 
-	   
+
+
+
+
 	 <!-- DC.CONTRIBUTOR.AUTHOR  -->
 	 <!-- Wording siehe depositonce; A.G.  -->
        <field>
@@ -1273,12 +1273,12 @@
 	 <required></required>
        </field>
 
-	   
-	  
-	   
-	   
-	   
-	   
+
+
+
+
+
+
 	   <!-- DC.CONTRIBUTOR.EDITOR  -->
 	   <!-- für Book Part nimmt depositonce noch dcterms.bibliographicCitation.editor; A.G.  -->
 	   <field>
@@ -1291,9 +1291,9 @@
          <hint>Bitte geben Sie den/die Namen des/der Herausgeber an. Herausgeber können bei Büchern oder Zeitschriftensonderbänden genannt sein. Bei Zeitschriftenbeiträgen wird das Feld in der Regel nicht gefüllt.</hint>
          <required></required>
        </field>
-	   
-	   
-	   
+
+
+
 	   <!-- DC.CONTRIBUTOR.OTHER  -->
 	     <field>
 		 <dc-schema>dc</dc-schema>
@@ -1306,10 +1306,10 @@
          <required></required>
 		<visibility></visibility>
        </field>
-	   
-	   
-	 
-    
+
+
+
+
 	 <!-- DC.TYPE  -->
 	 <!-- value-pairs-name in depositonce "publication_types" und "research_data_types"; A.G.  -->
 	    <field>
@@ -1322,9 +1322,9 @@
          <hint>Geben Sie an, welche Art von Dokument Sie veröffentlichen, zum Beispiel eine Dissertation oder einen Artikel/Aufsatz. Um mehr als einen Dokumententyp auszuwählen, halten Sie gleichzeitig "STRG" und "Shift".</hint>
          <required>>Sie müssen mindestens einen Dokumententyp auswählen.</required>
        </field>
-	   
-	   
-	   
+
+
+
 	   <!-- DC.DESCRIPTION.ABSTRACT  -->
 	   <!-- ggf. mit qualifiern deutsche und andere Abstracts sprachlich kennzeichnen; A.G.  -->
 	     <field>
@@ -1338,8 +1338,8 @@
          <hint>Das Abstract hilft anderen, möglichst schnell zu erkennen, worum es in Ihrer Arbeit geht. Wenn Sie das Abstract sowohl in Englisch als auch in Deutsch eingeben, erhöht dies die Wahrscheinlichkeit, dass Ihr Dokument mit deutschen und englischen Suchbegriffen gefunden wird.</hint>
          <required>Bitte geben Sie ein deutsches und ein englisches Abstract ein. Bitte nutzen Sie "Weitere hinzufügen", wenn Sie Abstracts in weiteren Sprachen eingeben möchten.</required>
        </field>
-	   
-	   
+
+
 	   <!-- DC.DESCRIPTION.SPONSORSHIP  -->
 	   <!-- dc.description.sponsorship ist relevant für die DSpace-DNB-Verbindung; ggf. Organization Units über eigenes MD-Feld nutzen; vgl. TORE  -->
 	      <field>
@@ -1352,8 +1352,8 @@
          <hint>Geben Sie die Organisationseinheit ein, an dem die Arbeit angefertigt wurde. Sie können auch mehr als eine Organisationseinheit angeben. Mit dem Button "Weitere eintragen" erzeugen Sie weitere Felder. Das Feld ist ein Pflichtfeld. Für den Fall, dass Sie eine Publikation angeben, die nicht an der HSU verfasst wurde, geben Sie hier als Freitext die Einrichtung an, an der die Publikation verfasst wurde.</hint>
          <required>Beispiele siehe https://openhsu.ub.hsu-hh.de/simple-searchquery=&amp;location=orgunits</required>
        </field>
-	   
-	   
+
+
 	   <!-- hier wird mit der neuen Version des Submission Workflows die Möglichkeit eingefügt, zu entscheiden, ob "Metadata with fulltext" or "Metadata without fulltext" gemeldet werden sollen; A.G., 29.07.2019  -->
 	         <field>
 		 <dc-schema>dc</dc-schema>
@@ -1365,9 +1365,10 @@
          <hint> Fill with the DOI</hint>
          <required></required>
        </field>
-	   
+
 	    </page>
-	</form> 
+	</form>
+ 
  </form-definitions>
 
 
@@ -1684,6 +1685,11 @@
         <displayed-value>URN</displayed-value>
         <stored-value>urn</stored-value>
       </pair>
+      <pair>
+        <displayed-value>URN</displayed-value>
+        <stored-value>urn</stored-value>
+      </pair>
+
     </value-pairs>
     <value-pairs value-pairs-name="granting_organisation" dc-term="granting_organisation">
       <pair>

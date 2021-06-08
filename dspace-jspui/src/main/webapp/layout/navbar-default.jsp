@@ -142,23 +142,26 @@
             <a href="/static/openhsuservices.jsp" class="dropdown-toggle" data-toggle="dropdown">Services <b class="caret"></b></a>
             <ul class="dropdown-menu">
 				<li class=""> 
-					<a href="/static/openhsuservices.jsp#tabs-1">DSpace-CRIS Tutorial</a></li>
+					<a href="/static/openhsuservices.jsp#tabs-1">openHSU Leitlinien<a></li>
 					</li>
 				<li class= "">
-					<a href="/static/openhsuservices.jsp#tabs-2">Elektronisches Publizieren</a>
+					<a href="/static/openhsuservices.jsp#tabs-2">Mein openHSU</a>
 				</li> 
 				<li>
-					<a href="/static/openhsuservices.jsp#tabs-3">Universit&auml;tsbibliografie</a>
+					<a href="/static/openhsuservices.jsp#tabs-3">Mein Profil</a>
 				</li>
 				<li>
-					<a href="/static/openhsuservices.jsp#tabs-4">Publikationsfonds</a>
+					<a href="/static/openhsuservices.jsp#tabs-4">Meine Publikationsliste</a>
 				</li>
 				<li>
-					<a href="/static/openhsuservices.jsp#tabs-5">Leitlinien</a>
+					<a href="/static/openhsuservices.jsp#tabs-5">Publizieren</a>
 				</li>
 				<li>
-					<a href="/static/openhsuservices.jsp#tabs-6">Workshops</a>
+					<a href="/static/openhsuservices.jsp#tabs-6">ORCID</a>
 				</li>
+				 <li>
+                                        <a href="/static/openhsuservices.jsp#tabs-7">FAQ</a>
+                                </li>
 			</ul>
 </li>	
 				

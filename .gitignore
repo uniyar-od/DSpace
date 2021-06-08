@@ -27,6 +27,7 @@ META-INF/
 ## Ignore all *.properties file in root folder, EXCEPT build.properties (the default)
 /*.properties
 #!/build.properties
+/build.properties.*
 
 ##Mac noise
 .DS_Store
@@ -35,3 +36,9 @@ META-INF/
 rebel.xml
 .externalToolBuilders/
 *.bak
+dspace/config/crosswalks/oai/templates/
+
+## Ignore DTEC-Sites
+dspace-jspui/src/main/webapp/static/auth/
+dspace-jspui/src/main/webapp/static/css/forms.css
+dspace-jspui/src/main/webapp/static/css/style.css

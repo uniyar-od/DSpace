@@ -280,14 +280,14 @@
       <!--Step 7 will be to Sign off on the License-->
 	  <!-- Standardlizenz auskommentiert; der Sammlung "Open-Access Publikationen" habe ich eine Standardlizenz (vorerst Englisch)
 	  zugeordnet; zu klaeren, ob unterschriebener ausgedruckter VÖ-Vertrag genügt; A.G., 29.05.2018  -->
-      <step>
+<!--      <step>
         <heading>submit.progressbar.license</heading>
         <processing-class>org.dspace.submit.step.LicenseStep</processing-class>
         <jspui-binding>org.dspace.app.webui.submit.step.JSPLicenseStep</jspui-binding>
 		<xmlui-binding>org.dspace.app.xmlui.aspect.submission.submit.LicenseStep</xmlui-binding>
 		<workflow-editable>false</workflow-editable>
       </step>
-
+-->
      
    </submission-process>
    
