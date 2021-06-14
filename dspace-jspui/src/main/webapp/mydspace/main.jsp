@@ -329,6 +329,7 @@
             <th id="t2" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.item"/></th>
             <th id="t3" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.subto"/></th>
             <th id="t4" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.subby"/></th>
+            <th id="t4f" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th id="t5" class="oddRowEvenCol">&nbsp;</th>
         </tr>
 <%
@@ -343,6 +344,10 @@
                 owned[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                                                   : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            Metadatum[] fulltextArray =
+                    owned[i].getItem().getMetadataWithoutPlaceholder("item", "fulltext", null, Item.ANY);
+            String fulltext = (fulltextArray != null && fulltextArray.length>0) ? fulltextArray[0].value : "";
+            
             EPerson submitter = owned[i].getItem().getSubmitter();
 %>
         <tr>
@@ -361,6 +366,7 @@
                 <td headers="t2" class="<%= row %>RowEvenCol"><%= Utils.addEntities(title) %></td>
                 <td headers="t3" class="<%= row %>RowOddCol"><%= owned[i].getCollection().getMetadata("name") %></td>
                 <td headers="t4" class="<%= row %>RowEvenCol"><a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a></td>
+                <td headers="t4f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
                 <!-- <td headers="t5" class="<%= row %>RowOddCol"></td> -->
                 <td headers="t5" class="<%= row %>RowEvenCol">
                      <form action="<%= request.getContextPath() %>/mydspace" method="post">
@@ -395,6 +401,7 @@
             <th id="t6" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.task"/></th>
             <th id="t7" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.item"/></th>
             <th id="t8" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.subto"/></th>
+            <th id="t8f" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th id="t9" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.subby"/></th>
             <th class="oddRowOddCol"> </th>
         </tr>
@@ -411,6 +418,10 @@
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
             EPerson submitter = pooled[i].getItem().getSubmitter();
+            Metadatum[] fulltextArray =
+                    pooled[i].getItem().getMetadataWithoutPlaceholder("item", "fulltext", null, Item.ANY);
+            String fulltext = (fulltextArray != null && fulltextArray.length>0) ? fulltextArray[0].value : "";
+            
 %>
         <tr>
                     <td headers="t6" class="<%= row %>RowOddCol">
@@ -425,7 +436,8 @@
                     </td>
                     <td headers="t7" class="<%= row %>RowEvenCol"><%= Utils.addEntities(title) %></td>
                     <td headers="t8" class="<%= row %>RowOddCol"><%= pooled[i].getCollection().getMetadata("name") %></td>
-                    <td headers="t9" class="<%= row %>RowEvenCol"><a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a></td>
+                    <td headers="t8f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
+                    <td headers="t9" class="<%= row %>RowOddCol"><a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a></td>
                     <td class="<%= row %>RowOddCol">
                         <form action="<%= request.getContextPath() %>/mydspace" method="post">
                             <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>" />
@@ -459,6 +471,7 @@
             <th id="t10" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.subby"/></th>
             <th id="t11" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.elem1"/></th>
             <th id="t12" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
+            <th id="t12f" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
             <th id="t13" class="oddRowOddCol">&nbsp;</th>
         </tr>
 <%
@@ -481,6 +494,10 @@
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
             EPerson submitter = workspaceItems[i].getItem().getSubmitter();
+            Metadatum[] fulltextArray =
+                    workspaceItems[i].getItem().getMetadataWithoutPlaceholder("item", "fulltext", null, Item.ANY);
+            String fulltext = (fulltextArray != null && fulltextArray.length>0) ? fulltextArray[0].value : "";
+            
 %>
         <tr>
             <td class="<%= row %>RowOddCol">
@@ -494,7 +511,8 @@
             </td>
             <td headers="t11" class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
             <td headers="t12" class="<%= row %>RowEvenCol"><%= workspaceItems[i].getCollection().getMetadata("name") %></td>
-            <td headers="t13" class="<%= row %>RowOddCol">
+            <td headers="t12f" class="<%= row %>RowOddCol"><%= Utils.addEntities(fulltext) %></td>
+            <td headers="t13" class="<%= row %>RowEvenCol">
                 <form action="<%= request.getContextPath() %>/mydspace" method="post">
                     <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>"/>
                     <input type="hidden" name="workspace_id" value="<%= workspaceItems[i].getID() %>"/>
@@ -527,6 +545,10 @@
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
             EPerson submitter = supervisedItems[i].getItem().getSubmitter();
+            Metadatum[] fulltextArray =
+                    supervisedItems[i].getItem().getMetadataWithoutPlaceholder("item", "fulltext", null, Item.ANY);
+            String fulltext = (fulltextArray != null && fulltextArray.length>0) ? fulltextArray[0].value : "";
+            
 %>
 
         <tr>
@@ -541,7 +563,8 @@
             </td>
             <td class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
             <td class="<%= row %>RowEvenCol"><%= supervisedItems[i].getCollection().getMetadata("name") %></td>
-            <td class="<%= row %>RowOddCol">
+            <td class="<%= row %>RowOddCol"><%= Utils.addEntities(fulltext) %></td>
+            <td class="<%= row %>RowEvenCol">
                 <form action="<%= request.getContextPath() %>/mydspace" method="post">
                     <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>"/>
                     <input type="hidden" name="workspace_id" value="<%= supervisedItems[i].getID() %>"/>
@@ -570,6 +593,7 @@
     <table class="table" align="center" summary="Table listing submissions in workflow process">
         <tr>
             <th id="t14" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.elem1"/></th>
+            <th id="t14f" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th id="t15" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
         </tr>
 <%
@@ -579,10 +603,14 @@
                 workflowItems[i].getItem().getDC("title", null, Item.ANY);
             String title = (titleArray.length > 0 ? titleArray[0].value
                     : LocaleSupport.getLocalizedMessage(pageContext,"jsp.general.untitled") );
+            Metadatum[] fulltextArray =
+                    workflowItems[i].getItem().getMetadataWithoutPlaceholder("item", "fulltext", null, Item.ANY);
+            String fulltext = (fulltextArray != null && fulltextArray.length>0) ? fulltextArray[0].value : "";
 %>
             <tr>
                 <td headers="t14" class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
-                <td headers="t15" class="<%= row %>RowEvenCol">
+                <td headers="t14f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
+                <td headers="t15" class="<%= row %>RowOddCol">
                    <form action="<%= request.getContextPath() %>/mydspace" method="post">
                        <%= workflowItems[i].getCollection().getMetadata("name") %>
                        <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>" />
