@@ -401,8 +401,8 @@
             <th id="t6" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.task"/></th>
             <th id="t7" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.item"/></th>
             <th id="t8" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.subto"/></th>
-            <th id="t8f" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th id="t9" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.subby"/></th>
+            <th id="t9f" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th class="oddRowOddCol"> </th>
         </tr>
 <%
@@ -436,8 +436,8 @@
                     </td>
                     <td headers="t7" class="<%= row %>RowEvenCol"><%= Utils.addEntities(title) %></td>
                     <td headers="t8" class="<%= row %>RowOddCol"><%= pooled[i].getCollection().getMetadata("name") %></td>
-                    <td headers="t8f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
                     <td headers="t9" class="<%= row %>RowOddCol"><a href="mailto:<%= submitter.getEmail() %>"><%= Utils.addEntities(submitter.getFullName()) %></a></td>
+                    <td headers="t9f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
                     <td class="<%= row %>RowOddCol">
                         <form action="<%= request.getContextPath() %>/mydspace" method="post">
                             <input type="hidden" name="step" value="<%= MyDSpaceServlet.MAIN_PAGE %>" />
@@ -471,7 +471,7 @@
             <th id="t10" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.subby"/></th>
             <th id="t11" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.elem1"/></th>
             <th id="t12" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
-            <th id="t12f" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
+            <th id="t12f" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th id="t13" class="oddRowOddCol">&nbsp;</th>
         </tr>
 <%
@@ -593,8 +593,8 @@
     <table class="table" align="center" summary="Table listing submissions in workflow process">
         <tr>
             <th id="t14" class="oddRowOddCol"><fmt:message key="jsp.mydspace.main.elem1"/></th>
-            <th id="t14f" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
             <th id="t15" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.elem2"/></th>
+            <th id="t15f" class="oddRowEvenCol"><fmt:message key="jsp.mydspace.main.fulltext"/></th>
         </tr>
 <%
         for (int i = 0; i < workflowItems.length; i++)
@@ -609,7 +609,6 @@
 %>
             <tr>
                 <td headers="t14" class="<%= row %>RowOddCol"><%= Utils.addEntities(title) %></td>
-                <td headers="t14f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
                 <td headers="t15" class="<%= row %>RowOddCol">
                    <form action="<%= request.getContextPath() %>/mydspace" method="post">
                        <%= workflowItems[i].getCollection().getMetadata("name") %>
@@ -617,6 +616,7 @@
                        <input type="hidden" name="workflow_id" value="<%= workflowItems[i].getID() %>" />
                    </form>   
                 </td>
+                <td headers="t15f" class="<%= row %>RowEvenCol"><%= Utils.addEntities(fulltext) %></td>
             </tr>
 <%
       row = (row.equals("even") ? "odd" : "even" );
