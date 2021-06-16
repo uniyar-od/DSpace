@@ -142,7 +142,7 @@
 						</bean>
 						<bean class="org.dspace.app.webui.cris.components.tree.TreeProcessor">
 							<property name="lazyload" value="false" />
-							<property name="showprofile" value="true" />
+							<property name="showprofile" value="false" />
 							<property name="showall" value="false" />
 							<property name="tree" value="ou-tree" />
 							<property name="contextTree" value="crisou" />
