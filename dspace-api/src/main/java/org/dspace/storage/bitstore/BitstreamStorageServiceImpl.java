@@ -74,11 +74,6 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     /** The index of the asset store to use for new bitstreams */
     private int incoming;
 
-	/**
-	 * This prefix string marks registered bitstreams in internal_id
-	 */
-	protected final String REGISTERED_FLAG = "-R";
-
     protected BitstreamStorageServiceImpl()
     {
 
@@ -211,6 +206,25 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     public boolean isRegisteredBitstream(String internalId) {
         return internalId.startsWith(REGISTERED_FLAG);
 	}
+
+    public String absolutePath(Context context, Bitstream bitstream)
+            throws SQLException, IOException
+    {
+        return stores.get(bitstream.getStoreNumber()).path(bitstream);
+    }
+
+    public String virtualPath(Context context, Bitstream bitstream)
+            throws SQLException, IOException
+    {
+        return stores.get(bitstream.getStoreNumber()).virtualPath(bitstream);
+    }
+
+    public String intermediatePath(Context context, Bitstream bitstream)
+            throws SQLException, IOException
+    {
+        return stores.get(bitstream.getStoreNumber()).intermediatePath(
+                bitstream.getInternalId());
+    }
 
     @Override
     public InputStream retrieve(Context context, Bitstream bitstream)
@@ -448,10 +462,4 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
         // Less than one hour old
         return (now - lastModified) < (1 * 60 * 1000);
     }
-
-	@Override
-	public String absolutePath(Context context, Bitstream bitstream) throws IOException {
-        Integer storeNumber = bitstream.getStoreNumber();
-        return stores.get(storeNumber).path(bitstream);		
-	}
 }

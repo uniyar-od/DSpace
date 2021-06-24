@@ -170,7 +170,7 @@ public class CitationPage extends AbstractCurationTask {
                             + bitstream.getName() + " is citable.");
                     try {
                         //Create the cited document
-                        File citedDocument = citationDocument.makeCitedDocument(Curator.curationContext(), bitstream);
+                        InputStream citedDocument = citationDocument.makeCitedDocument(Curator.curationContext(), bitstream);
                         //Add the cited document to the approiate bundle
                         this.addCitedPageToItem(citedDocument, bundle, pBundle,
                                 dBundle, item, bitstream);
@@ -223,7 +223,7 @@ public class CitationPage extends AbstractCurationTask {
      * @throws AuthorizeException if authorization error
      * @throws IOException if IO error
      */
-    protected void addCitedPageToItem(File citedTemp, Bundle bundle, Bundle pBundle,
+    protected void addCitedPageToItem(InputStream citedTemp, Bundle bundle, Bundle pBundle,
                                     Bundle dBundle, Item item,
                                     Bitstream bitstream) throws SQLException, AuthorizeException, IOException {
         //If we are modifying a file that is not in the
@@ -241,13 +241,12 @@ public class CitationPage extends AbstractCurationTask {
         //Create an input stream form the temporary file
         //that is the cited document and create a
         //bitstream from it.
-        InputStream inp = new FileInputStream(citedTemp);
         if (displayMap.containsKey(bitstream.getName())) {
             bundleService.removeBitstream(context, dBundle, displayMap.get(bitstream.getName()));
         }
-        Bitstream citedBitstream = bitstreamService.create(context, dBundle, inp);
+        Bitstream citedBitstream = bitstreamService.create(context, dBundle, citedTemp);
         
-        inp.close(); //Close up the temporary InputStream
+        citedTemp.close(); //Close up the temporary InputStream
 
         //Setup a good name for our bitstream and make
         //it the same format as the source document.

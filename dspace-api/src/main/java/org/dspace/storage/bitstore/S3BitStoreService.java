@@ -47,7 +47,7 @@ import com.amazonaws.services.s3.transfer.model.UploadResult;
  * @author Richard Rodgers, Peter Dietz
  */ 
 
-public class S3BitStoreService implements BitStoreService
+public class S3BitStoreService extends ABitStoreService
 {
     /** log4j log */
     private static Logger log = Logger.getLogger(S3BitStoreService.class);
@@ -288,16 +288,24 @@ public class S3BitStoreService implements BitStoreService
 	}
 
     /**
-     * Utility Method: Prefix the key with a subfolder, if this instance assets are stored within subfolder
+     * Utility Method to retrieve file path.
+     * Prefix the path with a subfolder, if this instance assets are stored within subfolder.
      * @param id
-     * @return full key prefixed with a subfolder, if applicable
+     * @return
      */
     public String getFullKey(String id) {
-        if(StringUtils.isNotEmpty(subfolder)) {
-            return subfolder + "/" + id;
-        } else {
-            return id;
+        StringBuilder bufFilename = new StringBuilder();
+        if (StringUtils.isNotEmpty(subfolder)) {
+            bufFilename.append(subfolder);
+            bufFilename.append(File.separator);
         }
+        bufFilename.append(getRelativePath(id));
+        if (log.isDebugEnabled()) {
+            log.debug("S3 filepath for " + id + " is "
+                    + bufFilename.toString());
+        }
+
+        return bufFilename.toString();
     }
 
     public String getAwsAccessKey() {
@@ -449,6 +457,12 @@ public class S3BitStoreService implements BitStoreService
 
 	@Override
 	public String path(Bitstream bitstream) throws IOException {
-		return "s3://" + getBucketName() + "/" + getFullKey(bitstream.getInternalId()); 
+		return virtualPath(bitstream);
 	}
+
+    @Override
+    public String virtualPath(Bitstream bitstream) throws IOException {
+        return getBaseDir().getCanonicalPath() + "/" + getFullKey(
+                bitstream.getInternalId());
+    }
 }

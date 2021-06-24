@@ -16,6 +16,7 @@ import java.util.UUID;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.core.Context;
+import org.dspace.storage.bitstore.BitStoreService;
 
 /**
  * <P>
@@ -46,6 +47,11 @@ import org.dspace.core.Context;
  * @version $Revision$
  */
 public interface BitstreamStorageService {
+
+	/**
+	 * This prefix string marks registered bitstreams in internal_id
+	 */
+	public final String REGISTERED_FLAG = "-R";
 
     /**
      * Store a stream of bits.
@@ -115,6 +121,15 @@ public interface BitstreamStorageService {
    	 */
     public boolean isRegisteredBitstream(String internalId);
 
+    public String absolutePath(Context context, Bitstream bitstream)
+            throws SQLException, IOException;
+
+    public String virtualPath(Context context, Bitstream bitstream)
+            throws SQLException, IOException;
+
+    public String intermediatePath(Context context, Bitstream bitstream)
+            throws SQLException, IOException;
+
     /**
      * Retrieve the bits for the bitstream with ID. If the bitstream does not
      * exist, or is marked deleted, returns null.
@@ -180,5 +195,7 @@ public interface BitstreamStorageService {
      */
     public void migrate(Context context, Integer assetstoreSource, Integer assetstoreDestination, boolean deleteOld, Integer batchCommitSize) throws IOException, SQLException, AuthorizeException;
 
-    public String absolutePath(Context context, Bitstream bitstream) throws IOException;
+    public int getIncoming();
+
+    public Map<Integer, BitStoreService> getStores();
 }
