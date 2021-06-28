@@ -268,6 +268,8 @@ public class BitstreamServlet extends DSpaceServlet
                 // copy inputstream to temp file to retrieve length
                 scratchFile = File.createTempFile(String.valueOf(bitstream.getID()), "temp");
                 FileUtils.copyInputStreamToFile(is, scratchFile);
+                // reopen closed stream to read it twice
+                is = FileUtils.openInputStream(scratchFile);
                 response.setHeader("Content-Length",
                         String.valueOf(Long.valueOf(scratchFile.length())));
                 scratchFile.delete();
