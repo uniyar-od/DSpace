@@ -9,7 +9,9 @@ package org.dspace.disseminate;
 
 import java.awt.Color;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -296,10 +298,11 @@ public class CitationDocumentServiceImpl implements CitationDocumentService, Ini
     }
 
     @Override
-    public File makeCitedDocument(Context context, Bitstream bitstream)
+    public InputStream makeCitedDocument(Context context, Bitstream bitstream)
             throws IOException, SQLException, AuthorizeException {
         PDDocument document = new PDDocument();
         PDDocument sourceDocument = new PDDocument();
+        String filePath = tempDir.getAbsolutePath() + "/bitstream.cover.pdf";
         try {
             Item item = (Item) bitstreamService.getParentObject(context, bitstream);
             sourceDocument = sourceDocument.load(bitstreamService.retrieve(context, bitstream));
@@ -307,8 +310,8 @@ public class CitationDocumentServiceImpl implements CitationDocumentService, Ini
             generateCoverPage(context, document, coverPage, item);
             addCoverPageToDocument(document, sourceDocument, coverPage);
 
-            document.save(tempDir.getAbsolutePath() + "/bitstream.cover.pdf");
-            return new File(tempDir.getAbsolutePath() + "/bitstream.cover.pdf");
+            document.save(filePath);
+            return new FileInputStream(filePath);
         } finally {
             sourceDocument.close();
             document.close();

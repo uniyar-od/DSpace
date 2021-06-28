@@ -9,6 +9,7 @@ package org.dspace.disseminate.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -81,7 +82,7 @@ public interface CitationDocumentService {
      * @throws SQLException if database error
      * @throws AuthorizeException if authorization error
      */
-    public File makeCitedDocument(Context context, Bitstream bitstream)
+    public InputStream makeCitedDocument(Context context, Bitstream bitstream)
             throws IOException, SQLException, AuthorizeException;
 
     /**
