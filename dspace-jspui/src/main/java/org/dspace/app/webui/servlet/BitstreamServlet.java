@@ -10,17 +10,19 @@ package org.dspace.app.webui.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.List;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
@@ -43,6 +45,7 @@ import org.dspace.handle.HandleManager;
 import org.dspace.plugin.BitstreamHomeProcessor;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
+import org.springframework.util.StreamUtils;
 
 /**
  * Servlet for retrieving bitstreams. The bits are simply piped to the user. If
@@ -56,6 +59,19 @@ import org.dspace.utils.DSpace;
  */
 public class BitstreamServlet extends DSpaceServlet
 {
+    
+    /**
+     * The HTTP {@code Accept-Ranges} header field name.
+     * @see <a href="http://tools.ietf.org/html/rfc7233#section-2.3">Section 5.3.5 of RFC 7233</a>
+     */
+    public static final String ACCEPT_RANGES = "Accept-Ranges";
+    
+    /**
+     * The HTTP {@code Range} header field name.
+     * @see <a href="http://tools.ietf.org/html/rfc7233#section-3.1">Section 3.1 of RFC 7233</a>
+     */
+    public static final String RANGE = "Range";
+    
     /** log4j category */
     private static Logger log = Logger.getLogger(BitstreamServlet.class);
 
@@ -246,6 +262,13 @@ public class BitstreamServlet extends DSpaceServlet
         
     	InputStream is = null;
     	
+    	boolean isRangeHeader = false;
+    	long contentResourceLength = -1;
+    	String value = request.getHeader(RANGE);
+    	if(StringUtils.isNotBlank(value)) {
+    	    isRangeHeader = true;    
+    	}
+    	
     	CoverPageService coverService = new DSpace().getSingletonService(CoverPageService.class);
     	Collection owningColl = item.getOwningCollection();
     	String collHandle="";
@@ -270,8 +293,7 @@ public class BitstreamServlet extends DSpaceServlet
                 FileUtils.copyInputStreamToFile(is, scratchFile);
                 // reopen closed stream to read it twice
                 is = FileUtils.openInputStream(scratchFile);
-                response.setHeader("Content-Length",
-                        String.valueOf(Long.valueOf(scratchFile.length())));
+                contentResourceLength = Long.valueOf(scratchFile.length());
                 scratchFile.delete();
             }
             catch (AuthorizeException e)
@@ -294,18 +316,19 @@ public class BitstreamServlet extends DSpaceServlet
         
         if(is == null) {
         	 is = bitstream.retrieve();
-             response.setHeader("Content-Length", String
-                     .valueOf(bitstream.getSize()));
+             contentResourceLength = bitstream.getSize();
         }
         
-		// Set the response MIME type
+        // Set the response Content-Length
+        response.setHeader("Content-Length", String.valueOf(contentResourceLength));
+        // Set the response MIME type
         response.setContentType(bitstream.getFormat().getMIMEType());
 
 
-		if(threshold != -1 && bitstream.getSize() >= threshold)
-		{
-			UIUtil.setBitstreamDisposition(bitstream.getName(), request, response);
-		}
+        if(threshold != -1 && bitstream.getSize() >= threshold)
+        {
+            UIUtil.setBitstreamDisposition(bitstream.getName(), request, response);
+        }
 
         new DSpace().getEventService().fireEvent(
                 new UsageEvent(
@@ -317,9 +340,14 @@ public class BitstreamServlet extends DSpaceServlet
         //DO NOT REMOVE IT - WE NEED TO FREE DB CONNECTION TO AVOID CONNECTION POOL EXHAUSTION FOR BIG FILES AND SLOW DOWNLOADS
         context.complete();
 
-        Utils.bufferedCopy(is, response.getOutputStream());
-        is.close();
-        response.getOutputStream().flush();
+        if(isRangeHeader) {
+            writePartialContent(request, response, is, contentResourceLength, bitstream.getFormat().getMIMEType());
+        }
+        else {
+            Utils.bufferedCopy(is, response.getOutputStream());
+            is.close();
+            response.getOutputStream().flush();
+        }
     }
     
     private void preProcessBitstreamHome(Context context, HttpServletRequest request,
@@ -340,4 +368,112 @@ public class BitstreamServlet extends DSpaceServlet
             throw new ServletException(e);
         }
     }
+    
+    /**
+     * Write parts of the resource as indicated by the request {@code Range} header.
+     * 
+     * @param request current servlet request
+     * @param response current servlet response
+     * @param resource the identified resource (never {@code null})
+     * @param contentType the content type
+     * @throws IOException in case of errors while writing the content
+     */
+    private void writePartialContent(HttpServletRequest request, HttpServletResponse response,
+            InputStream resource, long resourceContentLength, String contentType) throws IOException {
+
+        long length = resourceContentLength;
+
+        List<HttpRange> ranges;
+        try {
+            String value = request.getHeader(RANGE);
+            ranges = HttpRange.parseRanges(value);
+        }
+        catch (IllegalArgumentException ex) {
+            response.addHeader("Content-Range", "bytes */" + length);
+            response.sendError(HttpServletResponse.SC_REQUESTED_RANGE_NOT_SATISFIABLE);
+            return;
+        }
+
+        response.setStatus(HttpServletResponse.SC_PARTIAL_CONTENT);
+
+        if (ranges.size() == 1) {
+            HttpRange range = ranges.get(0);
+
+            long start = range.getRangeStart(length);
+            long end = range.getRangeEnd(length);
+            long rangeLength = end - start + 1;
+
+            response.setHeader(ACCEPT_RANGES, "bytes");
+            response.addHeader("Content-Range", "bytes " + start + "-" + end + "/" + length);
+            response.setContentLength((int) rangeLength);
+
+            InputStream in = resource;
+            try {
+                copyRange(in, response.getOutputStream(), start, end);
+            }
+            finally {
+                try {
+                    in.close();
+                }
+                catch (IOException ex) {
+                    // ignore
+                }
+            }
+        }
+        else {
+            String boundaryString = MimeTypeUtils.generateMultipartBoundaryString();
+            response.setContentType("multipart/byteranges; boundary=" + boundaryString);
+
+            ServletOutputStream out = response.getOutputStream();
+
+            for (HttpRange range : ranges) {
+                long start = range.getRangeStart(length);
+                long end = range.getRangeEnd(length);
+
+                InputStream in = resource;
+
+                // Writing MIME header.
+                out.println();
+                out.println("--" + boundaryString);
+                if (contentType != null) {
+                    out.println("Content-Type: " + contentType);
+                }
+                out.println("Content-Range: bytes " + start + "-" + end + "/" + length);
+                out.println();
+
+                // Printing content
+                copyRange(in, out, start, end);
+            }
+            out.println();
+            out.print("--" + boundaryString + "--");
+        }
+    }
+    
+    private void copyRange(InputStream in, OutputStream out, long start, long end) throws IOException {
+
+        long skipped = in.skip(start);
+
+        if (skipped < start) {
+            throw new IOException("Skipped only " + skipped + " bytes out of " + start + " required.");
+        }
+
+        long bytesToCopy = end - start + 1;
+
+        byte buffer[] = new byte[StreamUtils.BUFFER_SIZE];
+        while (bytesToCopy > 0) {
+            int bytesRead = in.read(buffer);
+            if (bytesRead <= bytesToCopy) {
+                out.write(buffer, 0, bytesRead);
+                bytesToCopy -= bytesRead;
+            }
+            else {
+                out.write(buffer, 0, (int) bytesToCopy);
+                bytesToCopy = 0;
+            }
+            if (bytesRead < buffer.length) {
+                break;
+            }
+        }
+    }    
+
 }
