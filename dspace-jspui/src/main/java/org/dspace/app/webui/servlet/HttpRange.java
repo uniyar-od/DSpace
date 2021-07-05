@@ -12,10 +12,9 @@ import org.springframework.util.StringUtils;
 
 /**
  * Represents an HTTP (byte) range for use with the HTTP {@code "Range"} header.
- *
- * @author Arjen Poutsma
- * @author Juergen Hoeller
- * @since 4.2
+ * 
+ * NOTE: copy and paste from Spring Framework {@link https://github.com/spring-projects/spring-framework/blob/v4.2.0.RC1/spring-web/src/main/java/org/springframework/http/HttpRange.java}
+ * 
  * @see <a href="http://tools.ietf.org/html/rfc7233">HTTP/1.1: Range Requests</a>
  * @see HttpHeaders#setRange(List)
  * @see HttpHeaders#getRange()
