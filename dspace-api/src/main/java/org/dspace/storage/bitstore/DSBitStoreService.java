@@ -33,9 +33,6 @@ public class DSBitStoreService extends ABitStoreService
     // Checksum algorithm
     private static final String CSA = "MD5";
 
-    /** the asset directory */
-    private File baseDir;
-
     public DSBitStoreService()
     {
     }
@@ -304,11 +301,4 @@ public class DSBitStoreService extends ABitStoreService
         return path(bitstream);
     }
 
-    public File getBaseDir() {
-        return baseDir;
-    }
-
-    public void setBaseDir(File baseDir) {
-        this.baseDir = baseDir;
-    }
 }

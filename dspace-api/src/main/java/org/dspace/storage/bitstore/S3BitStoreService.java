@@ -459,16 +459,17 @@ public class S3BitStoreService extends ABitStoreService
 
     @Override
     public String path(TableRow bitstream) throws IOException {
-        return virtualPath(bitstream);
-    }
-
-    @Override
-    public String virtualPath(TableRow bitstream) throws IOException {
         final File tempFile = File.createTempFile("s3-virtual-path", "temp");
         tempFile.deleteOnExit();
         try (FileOutputStream out = new FileOutputStream(tempFile)) {
             IOUtils.copy(get(bitstream), out);
         }
         return tempFile.getAbsolutePath();
+    }
+
+    @Override
+    public String virtualPath(TableRow bitstream) throws IOException {
+        return getBaseDir().getCanonicalPath() + "/" + getFullKey(
+                bitstream.getStringColumn("internal_id"));            
     }
 }
