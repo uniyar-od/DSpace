@@ -30,7 +30,6 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.cris.model.StatSubscription;
 import org.dspace.app.cris.statistics.SummaryStatBean;
 import org.dspace.app.cris.statistics.service.StatSubscribeService;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
@@ -38,6 +37,8 @@ import org.dspace.core.LogManager;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.services.ConfigurationService;
+import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.utils.DSpace;
 
 import jxl.CellView;
@@ -59,6 +60,8 @@ public class ScriptStatSubscribe
     /** log4j logger */
     private static Logger log = Logger.getLogger(ScriptStatSubscribe.class);
 
+    private static ConfigurationService cfgService = new DSpace().getConfigurationService();
+    
     /**
      * Process subscriptions. Should be run only one time to day, otherwise
      * duplicate notification could be send.
@@ -161,8 +164,9 @@ public class ScriptStatSubscribe
         // Get a resource bundle according to the eperson language preferences
         Locale supportedLocale = I18nUtil.getEPersonLocale(eperson);
         
-        String tmpfile = ConfigurationManager.getProperty(
-                "statistics.subscribe-stat.tmpdir")
+        String folder = cfgService.getProperty( SolrLoggerServiceImpl.CFG_STAT_MODULE
+        		+ ".subscribe-stat.tmpdir");
+        String tmpfile = folder
                 + File.separator
                 + "stat-"
                 + sfreq
@@ -170,9 +174,14 @@ public class ScriptStatSubscribe
                 + "_"
                 + Thread.currentThread().getId() + ".xls";
         File file = new File(tmpfile);
+        File folderFile = new File(folder);
         OutputStream os = null;
         try
         {
+        	if (!folderFile.exists())
+        	{
+				folderFile.mkdirs();
+			}
             os = new FileOutputStream(tmpfile);
 
             WritableWorkbook workbook = Workbook.createWorkbook(os);
@@ -448,9 +457,9 @@ public class ScriptStatSubscribe
                     .getEmailFilename(supportedLocale, "statsubscription-"
                             + sfreq));
             email.addRecipient(eperson.getEmail());
-            email.addArgument(ConfigurationManager.getProperty("dspace.url")
+            email.addArgument(cfgService.getProperty("dspace.url")
                     + "/cris/tools/stats/subscription/unsubscribe?clear=all");
-            email.addArgument(ConfigurationManager.getProperty("dspace.url")
+            email.addArgument(cfgService.getProperty("dspace.url")
                     + "/cris/tools/stats/subscription/list.htm");
             email.addAttachment(file, "stat-" + sfreq + "-update.xls");
             email.send();
