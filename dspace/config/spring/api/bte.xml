@@ -666,6 +666,7 @@
 				<entry key="language" value="language" />
 				<entry key="authors" value="authors" />				
 				<entry key="orcid" value="orcid" />		
+				<entry key="putcode" value="externalID" />
 				<entry key="arxiv" value="arxiv" />
 				<entry key="eid" value="eid" />
 				<entry key="doi" value="doi" />
@@ -800,6 +801,7 @@
 				<entry value="others" key="dc.contributor.other" />
 				<entry value="abstract" key="dc.description.abstract" />
 				<entry value="description" key="dc.description" />
+				<entry value="externalID" key="dc.identifier.external" />
 				<entry value="allkeywords" key="dc.subject" />
 				<entry value="arxivCategory" key="dc.subject" />
 				<entry value="doi" key="dc.identifier.doi" />
@@ -1123,5 +1125,29 @@
 		<property name="sourceIdMetadata" value="dc.identifier.isi" />
 		<property name="providerName" value="wos" />		
 	</bean>
-	
+
+	<!--  ORCID FEED -->
+	<bean name="orcidFeedTransformationEnginePhaseOne" class="gr.ekt.bte.core.TransformationEngine">
+		<property name="dataLoader" ref="orcidDataLoader"/>
+		<property name="workflow" ref="phase1LinearWorkflow"/>
+		<property name="outputGenerator" ref="org.dspace.submit.lookup.SubmissionLookupOutputGenerator"/>
+	</bean>
+	<bean name="orcidDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader">
+		<property name="dataloadersMap">
+			<map>
+				<entry key="orcid" value-ref="orcidOnlineDataLoader"/>
+			</map>
+		</property>
+	</bean>
+	<bean name="orcidFeedTransformationEnginePhaseTwo" class="gr.ekt.bte.core.TransformationEngine">
+		<property name="dataLoader" ref="submissionItemDataLoader"/>
+		<property name="workflow" ref="phase2linearWorkflow"/>
+		<property name="outputGenerator" ref="orcidGenerator"/>
+	</bean>
+	<bean name="orcidGenerator" class="org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator">
+		<property name="outputMap" ref="outputMap"/>
+		<property name="sourceIdMetadata" value="dc.identifier.external" />
+		<property name="providerName" value="orcid" />
+	</bean>
+
 </beans>
