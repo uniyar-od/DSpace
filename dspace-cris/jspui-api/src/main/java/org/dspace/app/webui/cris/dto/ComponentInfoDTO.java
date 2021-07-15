@@ -12,6 +12,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.core.Utils;
 import org.dspace.sort.SortOption;
 
 public class ComponentInfoDTO<T extends BrowsableDSpaceObject>
@@ -124,7 +125,7 @@ public class ComponentInfoDTO<T extends BrowsableDSpaceObject>
 
     public void setOrder(String order)
     {
-        this.order = order;
+        this.order = Utils.addEntities(order);
     }
 
     public int getEtAl()
