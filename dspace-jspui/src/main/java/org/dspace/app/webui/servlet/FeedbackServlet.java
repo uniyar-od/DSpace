@@ -28,6 +28,7 @@ import org.dspace.core.Context;
 import org.dspace.core.Email;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.core.Utils;
 import org.dspace.eperson.EPerson;
 
 /**
@@ -75,7 +76,7 @@ public class FeedbackServlet extends DSpaceServlet
         //the feedback request is sent by DSpace-CRIS Claim Profile
         String crisClaim = request.getParameter("claimProfile");
         if(StringUtils.isNotBlank(crisClaim)) {
-        	request.setAttribute("feedback.crisclaim", crisClaim);
+        	request.setAttribute("feedback.crisclaim", Utils.addEntities(crisClaim));
         }
         
         // The email address they provided
