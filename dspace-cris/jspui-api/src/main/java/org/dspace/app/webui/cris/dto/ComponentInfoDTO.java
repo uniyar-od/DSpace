@@ -11,7 +11,6 @@ import java.util.HashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.content.DSpaceObject;
-import org.dspace.core.Utils;
 import org.dspace.sort.SortOption;
 
 public class ComponentInfoDTO<T extends DSpaceObject>
@@ -124,7 +123,7 @@ public class ComponentInfoDTO<T extends DSpaceObject>
 
     public void setOrder(String order)
     {
-        this.order = Utils.addEntities(order);
+        this.order = order;
     }
 
     public int getEtAl()
