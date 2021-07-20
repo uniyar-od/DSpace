@@ -75,6 +75,8 @@
 
 	boolean globalShowFacets = false;	
 	if (addRelations || (info!=null && info.getItems()!=null && info.getItems().size() > 0)) {
+		
+		String infoOrder = Utils.addEntities(info.getOrder());
 %>
 	
 <c:set var="info" value="<%= info %>" scope="request" />
@@ -216,7 +218,7 @@ if (info.getPagetotal() > 1)
 			
 <form id="sortform<%= info.getType() %>" action="#<%= info.getType() %>" method="get">
 	   <input id="sort_by<%= info.getType() %>" type="hidden" name="sort_by<%= info.getType() %>" value=""/>
-       <input id="order<%= info.getType() %>" type="hidden" name="order<%= info.getType() %>" value="<%= info.getOrder() %>" />
+       <input id="order<%= info.getType() %>" type="hidden" name="order<%= info.getType() %>" value="<%= infoOrder %>" />
        <% if (appliedFilters != null && appliedFilters.size() >0 ) 
    		{
 	   	    int idx = 1;
@@ -234,7 +236,7 @@ if (info.getPagetotal() > 1)
 <% if (info!=null && info.getItems()!=null && info.getItems().length > 0) { %>
 <div class="row">
 <div class="table-responsive">
-<dspace:browselist items="<%= (List<BrowsableDSpaceObject>)info.getItems() %>" config="crisrp.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= info.getOrder() %>" type="<%= info.getType() %>"/>
+<dspace:browselist items="<%= (List<BrowsableDSpaceObject>)info.getItems() %>" config="crisrp.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= infoOrder %>" type="<%= info.getType() %>"/>
 </div>
 </div>
 <% } %>

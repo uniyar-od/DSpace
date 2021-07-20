@@ -84,6 +84,7 @@
 	boolean globalShowFacets = false;
 	if (addRelations || (info!=null && info.getItems()!=null && info.getItems().size() > 0)) {
 	    
+	    String infoOrder = Utils.addEntities(info.getOrder());
 %>
 
 <c:set var="info" value="<%= info %>" scope="request" />
@@ -226,7 +227,7 @@ if (info.getPagetotal() > 1)
 			
 <form id="sortform<%= info.getType() %>" action="#<%= info.getType() %>" method="get">
 	   <input id="sort_by<%= info.getType() %>" type="hidden" name="sort_by<%= info.getType() %>" value=""/>
-       <input id="order<%= info.getType() %>" type="hidden" name="order<%= info.getType() %>" value="<%= info.getOrder() %>" />
+       <input id="order<%= info.getType() %>" type="hidden" name="order<%= info.getType() %>" value="<%= infoOrder %>" />
        <% if (appliedFilters != null && appliedFilters.size() >0 ) 
    		{
 	   	    int idx = 1;
@@ -273,10 +274,10 @@ if (info.getPagetotal() > 1)
 		</label>
 			<input id="<%= info.getType() %>submit_export" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>" type="<%= info.getType() %>"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= infoOrder %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>" type="<%= info.getType() %>"/>
 		</form>
 <% } else { %>
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" type="<%= info.getType() %>"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= infoOrder %>" config="${info[holder.shortName].type}" type="<%= info.getType() %>"/>
 <% } %>
 </div>
 </div>
