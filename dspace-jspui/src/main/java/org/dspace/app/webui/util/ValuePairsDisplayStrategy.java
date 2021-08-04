@@ -106,7 +106,7 @@ public class ValuePairsDisplayStrategy extends ASimpleDisplayStrategy
 	            		.append("/browse?type=").append(browseType).append("&amp;")
 	            		.append(viewFull ? "vfocus" : "value").append("=")
 	            		.append(URLEncoder.encode(mm.value, "UTF-8"))
-	            		.append("\"\">");
+	            		.append("\">");
 				}
             	
                 if (result.size() >= (1 + indexSplit) && StringUtils.isNotBlank(result.get(indexSplit)))
