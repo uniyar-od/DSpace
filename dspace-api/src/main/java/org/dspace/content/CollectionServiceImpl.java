@@ -7,6 +7,7 @@
  */
 package org.dspace.content;
 
+import java.sql.Array;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -15,8 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.MissingResourceException;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -651,14 +652,17 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
         super.update(context, collection);
         collectionDAO.save(context, collection);
 
-        if (collection.isModified()) {
-            context.addEvent(new Event(Event.MODIFY, Constants.COLLECTION,
+        if (collection.isModified())
+        {
+            context.addEvent(new Event(Event.MODIFY, Constants.COLLECTION, 
                                        collection.getID(), null, getIdentifiers(context, collection)));
             collection.clearModified();
         }
-        if (collection.isMetadataModified()) {
-            collection.clearDetails();
-        }
+        
+        
+                    if (collection.isMetadataModified()) {
+                        collection.clearDetails();
+                    }
     }
 
     @Override
