@@ -123,6 +123,11 @@
             <type>extract</type>
         </step-definition>
 
+        <step-definition id="reservedoistep"> 
+            <heading>submit.progressbar.ReserveDOIStep</heading>
+            <processing-class>org.dspace.app.rest.submit.step.ReserveDOIStep</processing-class>
+            <type>reservedoi</type>
+        </step-definition>
         <!-- Fake Steps to test parsing of all options -->
         <!-- <step mandatory="false"> <heading>fake.submission.readonly</heading>
             <processing-class>org.dspace.submit.step.SampleStep</processing-class> <type>sample</type>

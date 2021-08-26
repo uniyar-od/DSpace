@@ -6385,4 +6385,80 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         }
     }
 
+    @Test
+    /**
+     * Test the request to mint a DOI
+     *
+     * @throws Exception
+     */
+    public void patchMintedReserveDOITest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        // a fresh item that doens't get a DOI automatically
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Test WorkspaceItem")
+                .withIssueDate("2017-10-17")
+                .build();
+
+        // an item where we have already requested a DOI
+        WorkspaceItem witem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Test WorkspaceItem 2")
+                .withIssueDate("2017-10-17")
+                .build();
+
+        // an item that get a DOI automatically
+        WorkspaceItem witem3 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Test WorkspaceItem 3")
+                .withIssueDate("2017-10-17")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        // check that our workspaceitems come without a license (all are build in the same way, just check the first)
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.reservedoi.minted",
+                    is(false)))
+            .andExpect(jsonPath("$.sections.reservedoi.doi").isEmpty())
+            .andExpect(jsonPath("$.sections.reservedoi.automaticMinted", is(false)))
+        ;
+
+        // try to grant the license with an add operation
+        List<Operation> addMinted = new ArrayList<Operation>();
+        addMinted.add(new AddOperation("/sections/reservedoi/minted", true));
+
+        String patchBody = getPatchContent(addMinted);
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                .content(patchBody)
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.sections.reservedoi.minted",
+                                    is(true)))
+                            .andExpect(jsonPath("$.sections.reservedoi.doi").isNotEmpty())
+                            .andExpect(jsonPath("$.sections.reservedoi.automaticMinted",
+                                    is(true)))
+        ;
+
+        // verify that the patch changes have been persisted
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.reservedoi.minted",
+                    is(true)))
+            .andExpect(jsonPath("$.sections.reservedoi.doi").isNotEmpty())
+            .andExpect(jsonPath("$.sections.reservedoi.automaticMinted",
+                    is(true)))
+        ;
+
+        // do the same for the other scenarios...
+    }
+
+    // add test for minted = false
 }
