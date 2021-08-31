@@ -271,6 +271,77 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
+    public void createFirstVersionItemWithSubmitterTest() throws Exception {
+        configurationService.setProperty("versioning.submitterCanCreateNewVersion", true);
+        context.turnOffAuthorisationSystem();
+        Community rootCommunity = CommunityBuilder.createCommunity(context)
+                                                  .withName("Parent Community")
+                                                  .build();
+
+        Collection col = CollectionBuilder.createCollection(context, rootCommunity)
+                                          .withName("Collection 1")
+                                          .withSubmitterGroup(eperson)
+                                          .build();
+
+        Item itemA = ItemBuilder.createItem(context, col)
+                               .withTitle("Public item")
+                               .withIssueDate("2021-04-19")
+                               .withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .build();
+
+        itemA.setSubmitter(eperson);
+
+        context.restoreAuthSystemState();
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(post("/api/versioning/versions")
+                               .param("summary", "test summary!")
+                               .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                               .content("/api/core/items/" + itemA.getID()))
+                               .andExpect(status().isCreated())
+                               .andExpect(jsonPath("$", Matchers.allOf(
+                                          hasJsonPath("$.version", is(2)),
+                                          hasJsonPath("$.summary", is("test summary!")),
+                                          hasJsonPath("$.type", is("version"))
+                                          )));
+
+        configurationService.setProperty("versioning.submitterCanCreateNewVersion", false);
+    }
+
+    @Test
+    public void createFirstVersionItemWithSubmitterAndPropertyForSubmitterDisabledTest() throws Exception {
+        configurationService.setProperty("versioning.submitterCanCreateNewVersion", false);
+        context.turnOffAuthorisationSystem();
+        Community rootCommunity = CommunityBuilder.createCommunity(context)
+                                                  .withName("Parent Community")
+                                                  .build();
+
+        Collection col = CollectionBuilder.createCollection(context, rootCommunity)
+                                          .withName("Collection 1")
+                                          .withSubmitterGroup(eperson)
+                                          .build();
+
+        Item itemA = ItemBuilder.createItem(context, col)
+                               .withTitle("Public item")
+                               .withIssueDate("2021-04-19")
+                               .withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .build();
+
+        itemA.setSubmitter(eperson);
+
+        context.restoreAuthSystemState();
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(post("/api/versioning/versions")
+                               .param("summary", "test summary!")
+                               .contentType(MediaType.parseMediaType(RestMediaTypes.TEXT_URI_LIST_VALUE))
+                               .content("/api/core/items/" + itemA.getID()))
+                               .andExpect(status().isForbidden());
+    }
+
+    @Test
     public void createFirstVersionItemBadRequestTest() throws Exception {
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(post("/api/versioning/versions")
