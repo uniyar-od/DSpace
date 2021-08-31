@@ -23,6 +23,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.core.Utils;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
@@ -301,7 +302,7 @@ public class DiscoverUtility
         if (StringUtils.isNotBlank(query))
         {
             // Escape any special characters in this user-entered query
-            query = escapeQueryChars(query);
+            query = Utils.addEntities(escapeQueryChars(query));
             queryArgs.setQuery(query);
         }
         
@@ -349,9 +350,10 @@ public class DiscoverUtility
         {
             try
             {
-            String newFilterQuery = SearchUtils.getSearchService()
+            String newFilterQuery = Utils.addEntities(
+            		SearchUtils.getSearchService()
                     .toFilterQuery(context, f[0], f[1], f[2])
-                    .getFilterQuery();
+                    .getFilterQuery());
             if (StringUtils.isNotBlank(newFilterQuery))
             {
                 queryArgs.addFilterQueries(tagging+newFilterQuery);
