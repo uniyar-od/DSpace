@@ -20,6 +20,7 @@ import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.ForbiddenException;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.VersionRest;
@@ -27,10 +28,13 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.repository.handler.service.UriListHandlerService;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.eperson.EPerson;
+import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -71,6 +75,12 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
     @Autowired
     private WorkspaceItemService workspaceItemService;
 
+    @Autowired
+    private AuthorizeService authorizeService;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
     @SuppressWarnings("rawtypes")
     @Autowired(required = true)
     protected WorkflowItemService workflowItemService;
@@ -107,7 +117,7 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
     protected VersionRest createAndReturn(Context context, List<String> stringList)
         throws AuthorizeException, SQLException, RepositoryMethodNotImplementedException {
 
@@ -116,6 +126,12 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
         Item item = uriListHandlerService.handle(context, req, stringList, Item.class);
         if (Objects.isNull(item)) {
             throw new UnprocessableEntityException("The given URI list could not be properly parsed to one result");
+        }
+        EPerson submitter = item.getSubmitter();
+        boolean isAdmin = authorizeService.isAdmin(context);
+        boolean canCreateVersion = configurationService.getBooleanProperty("versioning.submitterCanCreateNewVersion");
+        if (!isAdmin && !(canCreateVersion && Objects.equals(submitter, context.getCurrentUser()))) {
+            throw new ForbiddenException("");
         }
         if (Objects.nonNull(workspaceItemService.findByItem(context, item)) ||
             Objects.nonNull(workflowItemService.findByItem(context, item))) {
