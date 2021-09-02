@@ -101,7 +101,7 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasPermission(@extractorOfItemUUID.getItemUUIDFromVersion(#context ,#id), 'ITEM', 'DELETE')")
     protected void delete(Context context, Integer id) throws AuthorizeException {
         Version version = null;
         try {
@@ -146,8 +146,8 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
         return converter.toRest(version, utils.obtainProjection());
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @SearchRestMethod(name = "findByItem")
+    @PreAuthorize("hasPermission(#itemUuid, 'version', 'READ')")
     public VersionRest findByItem(@Parameter(value = "itemUuid", required = true) UUID itemUuid) {
         Context context = obtainContext();
         Version version = null;
@@ -162,8 +162,8 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
         return Objects.nonNull(version) ? converter.toRest(version, utils.obtainProjection()) : null;
     }
 
-    @PreAuthorize("hasAuthority('ADMIN')")
     @SearchRestMethod(name = "findByHistory")
+    @PreAuthorize("hasPermission(#historyId, 'versionhistory', 'READ')")
     public Page<VersionRest> findByHistory(@Parameter(value = "historyId", required = true) Integer historyId,
                                            Pageable pageable) {
         Context context = obtainContext();

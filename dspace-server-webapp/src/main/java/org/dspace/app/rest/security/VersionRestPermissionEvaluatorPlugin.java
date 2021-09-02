@@ -9,6 +9,7 @@ package org.dspace.app.rest.security;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.VersionRest;
@@ -29,6 +30,8 @@ import org.springframework.stereotype.Component;
 /**
  * This class acts as a PermissionEvaluator to decide whether a given request to a Versioning endpoint is allowed to
  * pass through or not
+ *
+ * @author Mykhaylo Boychuk (4science.it)
  */
 @Component
 public class VersionRestPermissionEvaluatorPlugin extends RestObjectPermissionEvaluatorPlugin {
@@ -47,11 +50,9 @@ public class VersionRestPermissionEvaluatorPlugin extends RestObjectPermissionEv
     @Autowired
     private ConfigurationService configurationService;
 
-
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
                                        DSpaceRestPermission restPermission) {
-
 
         if (!StringUtils.equalsIgnoreCase(targetType, VersionRest.NAME)) {
             return false;
@@ -61,14 +62,22 @@ public class VersionRestPermissionEvaluatorPlugin extends RestObjectPermissionEv
         Context context = ContextUtil.obtainContext(request.getServletRequest());
 
         try {
-            int versionId = Integer.parseInt(targetId.toString());
-            if (configurationService.getBooleanProperty("versioning.item.history.view.admin")
-                && !authorizeService.isAdmin(context)) {
+            if (targetId instanceof UUID) {
                 return false;
             }
+            int versionId = Integer.parseInt(targetId.toString());
+
             Version version = versioningService.getVersion(context, versionId);
             if (version == null) {
                 return true;
+            }
+            boolean isItemAdmin = authorizeService.isAdmin(context, version.getItem());
+            boolean isAdmin = authorizeService.isAdmin(context);
+            boolean onlyAdminCanSeeVersioning =
+                configurationService.getBooleanProperty("versioning.item.history.view.admin");
+
+            if (onlyAdminCanSeeVersioning && !isAdmin && !isItemAdmin) {
+                return false;
             }
             if (authorizeService.authorizeActionBoolean(context, version.getItem(),
                                                         restPermission.getDspaceApiActionId())) {
@@ -80,4 +89,5 @@ public class VersionRestPermissionEvaluatorPlugin extends RestObjectPermissionEv
         }
         return false;
     }
+
 }
