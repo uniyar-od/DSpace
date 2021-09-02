@@ -9,6 +9,7 @@ package org.dspace.app.rest.security;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.VersionHistoryRest;
@@ -18,6 +19,9 @@ import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
+import org.dspace.versioning.service.VersionHistoryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +46,12 @@ public class VersionHistoryRestPermissionEvaluatorPlugin extends RestObjectPermi
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private VersionHistoryService versionHistoryService;
 
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
                                        DSpaceRestPermission restPermission) {
-
 
         if (!StringUtils.equalsIgnoreCase(targetType, VersionHistoryRest.NAME)) {
             return false;
@@ -56,14 +61,23 @@ public class VersionHistoryRestPermissionEvaluatorPlugin extends RestObjectPermi
         Context context = ContextUtil.obtainContext(request.getServletRequest());
 
         try {
+            int versionHistoryId = Integer.parseInt(targetId.toString());
+            VersionHistory versionHistory = versionHistoryService.find(context, versionHistoryId);
+            if (Objects.isNull(versionHistory)) {
+                return true;
+            }
+            Version version = versionHistoryService.getLatestVersion(context, versionHistory);
+            if (Objects.isNull(version)) {
+                return true;
+            }
+            boolean isItemAdmin = authorizeService.isAdmin(context, version.getItem());
             if (configurationService.getBooleanProperty("versioning.item.history.view.admin")
-                && !authorizeService.isAdmin(context)) {
+                && !authorizeService.isAdmin(context) && !isItemAdmin) {
                 return false;
             }
-            return true;
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
         }
-        return false;
+        return true;
     }
 }

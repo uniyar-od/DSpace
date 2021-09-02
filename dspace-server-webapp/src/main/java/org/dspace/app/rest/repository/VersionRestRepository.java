@@ -186,7 +186,7 @@ public class VersionRestRepository extends DSpaceRestRepository<VersionRest, Int
     }
 
     @Override
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasPermission(#versionId, 'version', 'ADMIN')")
     protected void patch(Context context, HttpServletRequest request, String apiCategory, String model,
                          Integer versionId, Patch patch) throws AuthorizeException, SQLException {
         for (Operation operation : patch.getOperations()) {
