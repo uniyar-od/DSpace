@@ -48,7 +48,7 @@ public class VersionRestPatchPermissionEvaluatorPlugin extends RestObjectPermiss
 
         DSpaceRestPermission restPermission = DSpaceRestPermission.convert(permission);
 
-        if (!DSpaceRestPermission.ADMIN.equals(restPermission) &&
+        if (!DSpaceRestPermission.ADMIN.equals(restPermission) ||
             !StringUtils.equalsIgnoreCase(targetType, VersionRest.NAME)) {
             return false;
         }
