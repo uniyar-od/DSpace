@@ -40,7 +40,8 @@ public class ItemVersionHistoryLinkRepository extends AbstractDSpaceRestReposito
     @Autowired
     private VersionHistoryService versionHistoryService;
 
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasPermission(@extractorOfVersionHistoryId.getVersionHistoryFromItemUUID(#itemId),"
+                + " 'VERSIONHISTORY', 'READ')")
     public VersionHistoryRest getVersionHistory(@Nullable HttpServletRequest request,
                                                           UUID itemId,
                                                           @Nullable Pageable optionalPageable,

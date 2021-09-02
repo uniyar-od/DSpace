@@ -78,6 +78,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.service.VersionHistoryService;
@@ -95,6 +96,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private VersionHistoryService versionHistoryService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     private Item publication1;
     private Item author1;
@@ -4164,6 +4168,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Test
     public void versionHistoryForItemUnauthorizedTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -4188,10 +4193,13 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         getClient().perform(get("/api/core/items/" + item.getID() + "/versionhistory"))
                    .andExpect(status().isUnauthorized());
+
+        configurationService.setProperty("versioning.item.history.view.admin", true);
     }
 
     @Test
     public void versionHistoryForItemForbiddenTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -4217,5 +4225,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         String epersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(epersonToken).perform(get("/api/core/items/" + item.getID() + "/versionhistory"))
                              .andExpect(status().isForbidden());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
     }
 }

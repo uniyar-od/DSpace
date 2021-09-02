@@ -53,7 +53,7 @@ public class VersionHistoryRestPermissionEvaluatorPlugin extends RestObjectPermi
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
                                        DSpaceRestPermission restPermission) {
 
-        if (!StringUtils.equalsIgnoreCase(targetType, VersionHistoryRest.NAME)) {
+        if (!StringUtils.equalsIgnoreCase(targetType, VersionHistoryRest.NAME) || Objects.isNull(targetId)) {
             return false;
         }
 
