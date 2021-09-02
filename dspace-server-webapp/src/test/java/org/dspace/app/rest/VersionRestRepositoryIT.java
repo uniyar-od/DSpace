@@ -31,6 +31,7 @@ import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.VersionBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
@@ -41,6 +42,7 @@ import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
@@ -522,10 +524,119 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void findByItemVersionUnauthorizedTest() throws Exception {
+    public void findByItemAdminAndVersioningIsNotPublicUnauthorizedTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+
         getClient().perform(get("/api/versioning/versions/search/findByItem")
                    .param("itemUuid", item.getID().toString()))
                    .andExpect(status().isUnauthorized());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByItemVersionAndVersioningIsPublicTest() throws Exception {
+        getClient().perform(get("/api/versioning/versions/search/findByItem")
+                   .param("itemUuid", item.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$", Matchers.allOf(
+                           hasJsonPath("$.version", is(1)),
+                           hasJsonPath("$.summary", emptyString()),
+                           hasJsonPath("$.type", is("version"))
+                           )));
+    }
+
+    @Test
+    public void findByItemSubmitterAndVersioningIsNotPublicForbiddenTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+
+        item.setSubmitter(eperson);
+        String submitterToken = getAuthToken(eperson.getEmail(), password);
+        getClient(submitterToken).perform(get("/api/versioning/versions/search/findByItem")
+                                 .param("itemUuid", item.getID().toString()))
+                                 .andExpect(status().isForbidden());
+
+        item.setSubmitter(null);
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByItemCommunityAndColAdminAndVersioningIsNotPubliTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+
+        context.turnOffAuthorisationSystem();
+        EPerson adminCommA = EPersonBuilder.createEPerson(context)
+                                           .withEmail("adminCommA@mail.com")
+                                           .withPassword(password)
+                                           .build();
+
+        EPerson adminCommB = EPersonBuilder.createEPerson(context)
+                                           .withEmail("adminCommB@mail.com")
+                                           .withPassword(password)
+                                           .build();
+
+        EPerson adminCol = EPersonBuilder.createEPerson(context)
+                                         .withEmail("adminCol@mail.com")
+                                         .withPassword(password)
+                                         .build();
+
+        Community rootCommunity = CommunityBuilder.createCommunity(context)
+                                                  .withName("Parent Community")
+                                                  .build();
+
+        Community subCommunityA = CommunityBuilder.createSubCommunity(context, rootCommunity)
+                                                 .withName("subCommunity A")
+                                                 .withAdminGroup(adminCommA)
+                                                 .build();
+
+        CommunityBuilder.createSubCommunity(context, rootCommunity)
+                        .withName("subCommunity B")
+                        .withAdminGroup(adminCommB)
+                        .build();
+
+        Collection col = CollectionBuilder.createCollection(context, subCommunityA)
+                                          .withName("Collection 1")
+                                          .withAdminGroup(adminCol)
+                                          .build();
+
+        Item itemA = ItemBuilder.createItem(context, col)
+                               .withTitle("Public item")
+                               .withIssueDate("2021-04-19")
+                               .withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .build();
+
+        VersionBuilder.createVersion(context, itemA, "Fixing some typos").build();
+        context.restoreAuthSystemState();
+
+        String adminCommAToken = getAuthToken(adminCommA.getEmail(), password);
+        String adminCommBToken = getAuthToken(adminCommB.getEmail(), password);
+        String adminColToken = getAuthToken(adminCol.getEmail(), password);
+
+        getClient(adminCommAToken).perform(get("/api/versioning/versions/search/findByItem")
+                                  .param("itemUuid", itemA.getID().toString()))
+                                  .andExpect(status().isOk())
+                                  .andExpect(jsonPath("$", Matchers.allOf(
+                                          hasJsonPath("$.version", is(1)),
+                                          hasJsonPath("$.summary", emptyString()),
+                                          hasJsonPath("$.type", is("version"))
+                                          )));
+
+        getClient(adminColToken).perform(get("/api/versioning/versions/search/findByItem")
+                                .param("itemUuid", itemA.getID().toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$", Matchers.allOf(
+                                        hasJsonPath("$.version", is(1)),
+                                        hasJsonPath("$.summary", emptyString()),
+                                        hasJsonPath("$.type", is("version"))
+                                        )));
+
+        getClient(adminCommBToken).perform(get("/api/versioning/versions/search/findByItem")
+                                  .param("itemUuid", itemA.getID().toString()))
+                                  .andExpect(status().isForbidden());
+
+        item.setSubmitter(null);
+        configurationService.setProperty("versioning.item.history.view.admin", false);
     }
 
     @Test
@@ -554,11 +665,28 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void findByItemForbiddenTest() throws Exception {
+    public void findByItemAndVersioningIsNotPublicForbiddenTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+
         String epersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(epersonToken).perform(get("/api/versioning/versions/search/findByItem")
                              .param("itemUuid", item.getID().toString()))
                              .andExpect(status().isForbidden());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByItemAndVersioningIsPublicTest() throws Exception {
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(epersonToken).perform(get("/api/versioning/versions/search/findByItem")
+                             .param("itemUuid", item.getID().toString()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$", Matchers.allOf(
+                                     hasJsonPath("$.version", is(1)),
+                                     hasJsonPath("$.summary", emptyString()),
+                                     hasJsonPath("$.type", is("version"))
+                                     )));
     }
 
     @Test
@@ -797,13 +925,253 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void findByHistoryPaginationXXXTest() throws Exception {
+    public void findByHistoryPaginationBadRequestTest() throws Exception {
         Integer id = Integer.MAX_VALUE;
         String adminToken = getAuthToken(admin.getEmail(), password);
         getClient(adminToken).perform(get("/api/versioning/versions/search/findByHistory")
                              .param("size", "1")
                              .param("historyId", id.toString()))
                              .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void findByHistoryAndVersioningIsNotPublicUnauthorizedTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                                          .withName("Collection test").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                          .withTitle("Public test item")
+                          .withIssueDate("2021-04-27")
+                          .withAuthor("Doe, John")
+                          .withSubject("ExtraEntry")
+                          .build();
+
+        VersionHistory versionHistory = versionHistoryService.create(context);
+        VersionBuilder.createVersionWithVersionHistory(context, item, "test", versionHistory, 8).build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/versioning/versions/search/findByHistory")
+                   .param("historyId", versionHistory.getID().toString()))
+                   .andExpect(status().isUnauthorized());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByHistoryAndVersioningIsPublicTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                                          .withName("Collection test").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                          .withTitle("Public test item")
+                          .withIssueDate("2021-04-27")
+                          .withAuthor("Doe, John")
+                          .withSubject("ExtraEntry")
+                          .build();
+
+        VersionHistory versionHistory = versionHistoryService.create(context);
+        Version v8 = VersionBuilder.createVersionWithVersionHistory(context, item, "test", versionHistory, 8).build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/versioning/versions/search/findByHistory")
+                   .param("historyId", versionHistory.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.versions", Matchers.contains(
+                              VersionMatcher.matchEntry(v8))));
+    }
+
+    @Test
+    public void findByHistoryAndVersioningIsNotPublicForbiddenTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                                          .withName("Collection test").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                          .withTitle("Public test item")
+                          .withIssueDate("2021-04-27")
+                          .withAuthor("Doe, John")
+                          .withSubject("ExtraEntry")
+                          .build();
+
+        VersionHistory versionHistory = versionHistoryService.create(context);
+        VersionBuilder.createVersionWithVersionHistory(context, item, "test", versionHistory, 8).build();
+
+        context.restoreAuthSystemState();
+
+        String ePersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(ePersonToken).perform(get("/api/versioning/versions/search/findByHistory")
+                               .param("historyId", versionHistory.getID().toString()))
+                               .andExpect(status().isForbidden());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByHistorySubmitterAndVersioningIsNotPublicForbiddenTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                                          .withName("Collection test").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                          .withTitle("Public test item")
+                          .withIssueDate("2021-04-27")
+                          .withAuthor("Doe, John")
+                          .withSubject("ExtraEntry")
+                          .build();
+
+        item.setSubmitter(eperson);
+        VersionHistory versionHistory = versionHistoryService.create(context);
+        VersionBuilder.createVersionWithVersionHistory(context, item, "test", versionHistory, 8).build();
+
+        context.restoreAuthSystemState();
+
+        String ePersonToken = getAuthToken(eperson.getEmail(), password);
+        getClient(ePersonToken).perform(get("/api/versioning/versions/search/findByHistory")
+                               .param("historyId", versionHistory.getID().toString()))
+                               .andExpect(status().isForbidden());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByHistoryAdminSubmitterAndVersioningIsNotPublicTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col = CollectionBuilder.createCollection(context, parentCommunity)
+                                          .withName("Collection test").build();
+
+        Item item = ItemBuilder.createItem(context, col)
+                          .withTitle("Public test item")
+                          .withIssueDate("2021-04-27")
+                          .withAuthor("Doe, John")
+                          .withSubject("ExtraEntry")
+                          .build();
+
+        item.setSubmitter(eperson);
+        VersionHistory versionHistory = versionHistoryService.create(context);
+        Version v8 = VersionBuilder.createVersionWithVersionHistory(context, item, "test", versionHistory, 8).build();
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/versioning/versions/search/findByHistory")
+                             .param("historyId", versionHistory.getID().toString()))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$._embedded.versions", Matchers.contains(
+                                     VersionMatcher.matchEntry(v8))));
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
+    }
+
+    @Test
+    public void findByHistoryCommunityAndColAdminAndVersioningIsNotPubliTest() throws Exception {
+        configurationService.setProperty("versioning.item.history.view.admin", true);
+
+        context.turnOffAuthorisationSystem();
+        EPerson adminCommA = EPersonBuilder.createEPerson(context)
+                                           .withEmail("adminCommA@mail.com")
+                                           .withPassword(password)
+                                           .build();
+
+        EPerson adminCommB = EPersonBuilder.createEPerson(context)
+                                           .withEmail("adminCommB@mail.com")
+                                           .withPassword(password)
+                                           .build();
+
+        EPerson adminCol = EPersonBuilder.createEPerson(context)
+                                         .withEmail("adminCol@mail.com")
+                                         .withPassword(password)
+                                         .build();
+
+        Community rootCommunity = CommunityBuilder.createCommunity(context)
+                                                  .withName("Parent Community")
+                                                  .build();
+
+        Community subCommunityA = CommunityBuilder.createSubCommunity(context, rootCommunity)
+                                                 .withName("subCommunity A")
+                                                 .withAdminGroup(adminCommA)
+                                                 .build();
+
+        CommunityBuilder.createSubCommunity(context, rootCommunity)
+                        .withName("subCommunity B")
+                        .withAdminGroup(adminCommB)
+                        .build();
+
+        Collection col = CollectionBuilder.createCollection(context, subCommunityA)
+                                          .withName("Collection 1")
+                                          .withAdminGroup(adminCol)
+                                          .build();
+
+        Item itemA = ItemBuilder.createItem(context, col)
+                               .withTitle("Public item")
+                               .withIssueDate("2021-04-19")
+                               .withAuthor("Doe, John")
+                               .withSubject("ExtraEntry")
+                               .build();
+
+        VersionHistory versionHistory = versionHistoryService.create(context);
+        VersionBuilder.createVersionWithVersionHistory(context, itemA, "test", versionHistory, 8).build();
+        context.restoreAuthSystemState();
+
+        String adminCommAToken = getAuthToken(adminCommA.getEmail(), password);
+        String adminCommBToken = getAuthToken(adminCommB.getEmail(), password);
+        String adminColToken = getAuthToken(adminCol.getEmail(), password);
+
+        getClient(adminCommAToken).perform(get("/api/versioning/versions/search/findByHistory")
+                                  .param("historyId", versionHistory.getID().toString()))
+                                  .andExpect(status().isOk())
+                                  .andExpect(jsonPath("$", Matchers.allOf(
+                                          hasJsonPath("$.version", is(1)),
+                                          hasJsonPath("$.summary", emptyString()),
+                                          hasJsonPath("$.type", is("version"))
+                                          )));
+
+        getClient(adminColToken).perform(get("/api/versioning/versions/search/findByHistory")
+                                .param("historyId", versionHistory.getID().toString()))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$", Matchers.allOf(
+                                        hasJsonPath("$.version", is(1)),
+                                        hasJsonPath("$.summary", emptyString()),
+                                        hasJsonPath("$.type", is("version"))
+                                        )));
+
+        getClient(adminCommBToken).perform(get("/api/versioning/versions/search/findByHistory")
+                                  .param("historyId", versionHistory.getID().toString()))
+                                  .andExpect(status().isForbidden());
+
+        configurationService.setProperty("versioning.item.history.view.admin", false);
     }
 
     @Test
