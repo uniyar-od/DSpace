@@ -302,7 +302,7 @@ public class DiscoverUtility
         if (StringUtils.isNotBlank(query))
         {
             // Escape any special characters in this user-entered query
-            query = Utils.addEntities(escapeQueryChars(query));
+            query = escapeQueryChars(query);
             queryArgs.setQuery(query);
         }
         
@@ -350,10 +350,9 @@ public class DiscoverUtility
         {
             try
             {
-            String newFilterQuery = Utils.addEntities(
-            		SearchUtils.getSearchService()
+            String newFilterQuery = SearchUtils.getSearchService()
                     .toFilterQuery(context, f[0], f[1], f[2])
-                    .getFilterQuery());
+                    .getFilterQuery();
             if (StringUtils.isNotBlank(newFilterQuery))
             {
                 queryArgs.addFilterQueries(tagging+newFilterQuery);
