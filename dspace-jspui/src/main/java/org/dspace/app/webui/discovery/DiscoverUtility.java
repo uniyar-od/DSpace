@@ -25,7 +25,6 @@ import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
-import org.dspace.core.Utils;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverHitHighlightingField;
 import org.dspace.discovery.DiscoverQuery;
@@ -307,7 +306,7 @@ public class DiscoverUtility
         if (StringUtils.isNotBlank(query))
         {
             // Escape any special characters in this user-entered query
-            query = Utils.addEntities(escapeQueryChars(query));
+            query = escapeQueryChars(query);
             queryArgs.setQuery(query);
         }
         
@@ -358,10 +357,9 @@ public class DiscoverUtility
             String newFilterQuery = null;
             if (StringUtils.isNotBlank(f[0]) && StringUtils.isNotBlank(f[2]))
             {
-                newFilterQuery = Utils.addEntities(
-                		SearchUtils.getSearchService()
+                newFilterQuery = SearchUtils.getSearchService()
                         .toFilterQuery(context, f[0], f[1], f[2])
-                        .getFilterQuery());
+                        .getFilterQuery();
             }
             if (StringUtils.isNotBlank(newFilterQuery))
             {
