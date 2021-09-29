@@ -991,7 +991,7 @@ public class ApplicationService extends ExtendedTabService
         }	
     }
 	
-	public <T extends Serializable, PK extends Serializable> void putToCache(Class<T> model,
+	public synchronized <T extends Serializable, PK extends Serializable> void putToCache(Class<T> model,
             T object, PK objectId)
     {
 		if (object == null) {
