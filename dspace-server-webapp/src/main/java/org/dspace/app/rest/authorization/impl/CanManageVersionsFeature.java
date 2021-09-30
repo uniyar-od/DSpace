@@ -48,7 +48,8 @@ public class CanManageVersionsFeature implements AuthorizationFeature {
     @SuppressWarnings("rawtypes")
     public boolean isAuthorized(Context context, BaseObjectRest object) throws SQLException {
         if (object instanceof ItemRest) {
-            if (Objects.isNull(context.getCurrentUser())) {
+            boolean isEnabled = configurationService.getBooleanProperty("versioning.enabled", true);
+            if (Objects.isNull(context.getCurrentUser()) || !isEnabled) {
                 return false;
             }
             Item item = itemService.find(context, UUID.fromString(((ItemRest) object).getUuid()));
