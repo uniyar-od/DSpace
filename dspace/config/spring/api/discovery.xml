@@ -3116,6 +3116,7 @@
         </property>
     </bean>
     <bean id="lucky" class="org.dspace.discovery.configuration.DiscoveryConfiguration">
+        <property name="indexAlways" value="true"/>
         <!-- filter queries for lucky configuration-->
         <property name="defaultFilterQueries">
             <list>
@@ -3159,7 +3160,7 @@
         <property name="indexFieldName" value="doi"/>
         <property name="metadataFields">
             <list>
-                <value>dc.relation.doi</value>
+                <value>dc.identifier.doi</value>
             </list>
         </property>
         <property name="isOpenByDefault" value="true"/>

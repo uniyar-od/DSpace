@@ -6758,4 +6758,575 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                              .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
 
     }
+    @Test
+    public void discoverOrcidSearchLuckySearchConfigurationOneResult() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        //2. Three public items that are readable by Anonymous with different orcid
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withFullName("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-7736")
+                .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-1234")
+                .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-4567")
+                .build();
+
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.orcid", "0000-0002-5497-7736,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("orcid")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("0000-0002-5497-7736")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("0000-0002-5497-7736")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-7736,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.orcid", "0000-0002-5497-1234,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("orcid")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("0000-0002-5497-1234")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("0000-0002-5497-1234")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-1234,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.orcid", "0000-0002-5497-4567,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("orcid")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("0000-0002-5497-4567")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("0000-0002-5497-4567")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-4567,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+    }
+    @Test
+    public void discoverOrcidSearchLuckySearchConfigurationMultipleResults() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        //2. Three public items that are readable by Anonymous with different orcid
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withFullName("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-7736")
+                .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-7736")
+                .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-7736")
+                .build();
+
+
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.orcid", "0000-0002-5497-7736,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("orcid")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("0000-0002-5497-7736")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("0000-0002-5497-7736")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(3)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[1]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[2]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-7736,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+
+    }
+    @Test
+    public void discoverDoiSearchLuckySearchConfigurationMultipleResults() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        //2. Three public items that are readable by Anonymous with different orcid
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withFullName("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.038")
+                .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.038")
+                .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.038")
+                .build();
+
+
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.doi", "10.1016/j.procs.2017.03.038,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("doi")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("10.1016/j.procs.2017.03.038")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("10.1016/j.procs.2017.03.038")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(3)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[1]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[2]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.038,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+
+    }
+    @Test
+    public void discoverDoiSearchLuckySearchConfigurationOneResult() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        //2. Three public items that are readable by Anonymous with different orcid
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withFullName("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.031")
+                .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.032")
+                .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.033")
+                .build();
+
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.doi", "10.1016/j.procs.2017.03.031,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("doi")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("10.1016/j.procs.2017.03.031")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("10.1016/j.procs.2017.03.031")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.031,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.doi", "10.1016/j.procs.2017.03.032,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("doi")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("10.1016/j.procs.2017.03.032")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("10.1016/j.procs.2017.03.032")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.032,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.doi", "10.1016/j.procs.2017.03.033,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("doi")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("10.1016/j.procs.2017.03.033")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("10.1016/j.procs.2017.03.033")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.033,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+    }
+    @Test
+    public void discoverDoiSearchLuckySearchConfigurationNoResult() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        //2. Three public items that are readable by Anonymous with different orcid
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withFullName("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.031")
+                .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.032")
+                .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withDoiIdentifier("10.1016/j.procs.2017.03.033")
+                .build();
+
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.doi", "10.1016/j.procs.2017.03.035,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("doi")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("10.1016/j.procs.2017.03.035")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("10.1016/j.procs.2017.03.035")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(0)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", hasSize(0)))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.035,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+    }
+    @Test
+    public void discoverOrcidSearchLuckySearchConfigurationNoResult() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        //2. Three public items that are readable by Anonymous with different orcid
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                .withFullName("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-7736")
+                .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 2")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-1234")
+                .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                .withFullName("Public item 3")
+                .withIssueDate("2016-02-13")
+                .withEntityType("Person")
+                .withOrcidIdentifier("0000-0002-5497-5567")
+                .build();
+
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.orcid", "0000-0002-5497-1200,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isOk())
+                //The type needs to be 'discover'
+                .andExpect(jsonPath("$.configuration", is("lucky-search")))
+                .andExpect(jsonPath("$.type", is("discover")))
+                .andExpect(jsonPath("$.appliedFilters[0].filter", is("orcid")))
+                .andExpect(jsonPath("$.appliedFilters[0].value", is("0000-0002-5497-1200")))
+                .andExpect(jsonPath("$.appliedFilters[0].label", is("0000-0002-5497-1200")))
+                .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+                //The name of the facet needs to be author, because that's what we called
+                .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(0)))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", hasSize(0)))
+                //The facetType has to be 'text' because that's how the author facet is configured by default
+                //We only request value starting with "smith", so we expect to only receive one page
+                .andExpect(jsonPath("$._links.next").doesNotExist())
+                //There always needs to be a self link
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-1200,equals")))
+                //Because there are more authors than is represented (because of the size param), hasMore has to
+                // be true
+                //The page object needs to be present and just like specified in the matcher
+                .andExpect(jsonPath("$._embedded.searchResult.page",
+                        is(PageMatcher.pageEntry(0, 10))));
+
+    }
+    @Test
+    public void discoverLuckySearchConfigurationNoSupportedFilter() throws Exception {
+        //Turn off the authorization system, otherwise we can't make the objects
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col2 = CollectionBuilder.createCollection(context, child1).withName("Collection 2").build();
+        context.restoreAuthSystemState();
+        //** WHEN **
+        //An anonymous user browses this endpoint to find the objects in the system and enters a size of 2
+        getClient().perform(get("/api/discover/search/objects")
+                        .param("size", "10")
+                        .param("page", "0")
+                        .param("configuration", "lucky-search")
+                        .param("f.justfortest", "1234,equals"))
+                //** THEN **
+                //The status has to be 200 OK
+                .andExpect(status().isBadRequest());
+
+    }
 }
