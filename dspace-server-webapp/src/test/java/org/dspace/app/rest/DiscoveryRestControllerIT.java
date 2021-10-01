@@ -6814,13 +6814,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id",
+                        is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-7736,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?" +
+                        "configuration=lucky-search&f.orcid=0000-0002-5497-7736,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -6844,13 +6847,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-1234,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=" +
+                        "lucky-search&f.orcid=0000-0002-5497-1234,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -6874,13 +6880,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-4567,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/" +
+                        "objects?configuration=lucky-search&f.orcid=0000-0002-5497-4567,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -6944,15 +6953,20 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(3)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[1]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[2]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[1]" +
+                        "._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[2]" +
+                        "._embedded.indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-7736,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.orcid=0000-0002-5497-7736,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -7018,15 +7032,20 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(3)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[1]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[2]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded" +
+                        ".indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[1]._embedded" +
+                        ".indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[2]._embedded" +
+                        ".indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded" +
+                        ".indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.038,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.038,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -7091,13 +7110,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem1.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.id", is(publicItem1.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.031,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.031,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -7121,13 +7143,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem2.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.id", is(publicItem2.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                        "._embedded.indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.032,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.032,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -7151,13 +7176,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
                 //The name of the facet needs to be author, because that's what we called
                 .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id", is(publicItem3.getID().toString())))
-                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.entityType", is("Person")))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded" +
+                        ".indexableObject.id", is(publicItem3.getID().toString())))
+                .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded" +
+                        ".indexableObject.entityType", is("Person")))
                 //The facetType has to be 'text' because that's how the author facet is configured by default
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.033,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.033,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -7225,7 +7253,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.035,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.doi=10.1016/j.procs.2017.03.035,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
@@ -7294,7 +7323,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //We only request value starting with "smith", so we expect to only receive one page
                 .andExpect(jsonPath("$._links.next").doesNotExist())
                 //There always needs to be a self link
-                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=lucky-search&f.orcid=0000-0002-5497-1200,equals")))
+                .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects" +
+                        "?configuration=lucky-search&f.orcid=0000-0002-5497-1200,equals")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
                 // be true
                 //The page object needs to be present and just like specified in the matcher
