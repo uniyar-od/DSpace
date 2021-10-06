@@ -564,7 +564,8 @@ jQuery(document).ready(function() {
 		<input type="submit" class="btn btn-default" name="submit_browse" value="<fmt:message key="jsp.general.update"/>"/>
 
 <%
-    if (admin_button && !withdrawn && !privateitems)
+    if (("item".equals(bix.getDisplayType()) || "metadata".equals(bix.getDisplayType())) &&
+    		admin_button && !withdrawn && !privateitems)
     {
         %><input type="submit" class="btn btn-default" name="submit_export_metadata" value="<fmt:message key="jsp.general.metadataexport.button"/>" /><%
     }
