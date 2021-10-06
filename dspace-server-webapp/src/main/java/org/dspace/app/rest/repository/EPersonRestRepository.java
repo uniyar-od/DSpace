@@ -169,33 +169,33 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
      * @throws SQLException         If something goes wrong
      */
     private EPersonRest createAndReturn(Context context, EPersonRest epersonRest, String token)
-        throws AuthorizeException, SQLException {
+            throws AuthorizeException, SQLException {
         if (!AuthorizeUtil.authorizeNewAccountRegistration(context, requestService
-            .getCurrentRequest().getHttpServletRequest())) {
+                .getCurrentRequest().getHttpServletRequest())) {
             throw new DSpaceBadRequestException(
-                "Registration is disabled, you are not authorized to create a new Authorization");
+                    "Registration is disabled, you are not authorized to create a new Authorization");
         }
         RegistrationData registrationData = registrationDataService.findByToken(context, token);
         if (registrationData == null) {
             throw new DSpaceBadRequestException("The token given as parameter: " + token + " does not exist" +
-                                                " in the database");
+                    " in the database");
         }
         if (es.findByEmail(context, registrationData.getEmail()) != null) {
             throw new DSpaceBadRequestException("The token given already contains an email address that resolves" +
-                                                " to an eperson");
+                    " to an eperson");
         }
         String emailFromJson = epersonRest.getEmail();
         if (StringUtils.isNotBlank(emailFromJson)) {
             if (!StringUtils.equalsIgnoreCase(registrationData.getEmail(), emailFromJson)) {
                 throw new DSpaceBadRequestException("The email resulting from the token does not match the email given"
-                                                        + " in the json body. Email from token: " +
-                                                    registrationData.getEmail() + " email from the json body: "
-                                                    + emailFromJson);
+                        + " in the json body. Email from token: " +
+                        registrationData.getEmail() + " email from the json body: "
+                        + emailFromJson);
             }
         }
         if (epersonRest.isSelfRegistered() != null && !epersonRest.isSelfRegistered()) {
             throw new DSpaceBadRequestException("The self registered property cannot be set to false using this method"
-                                                    + " with a token");
+                    + " with a token");
         }
         checkRequiredProperties(epersonRest);
         // We'll turn off authorisation system because this call isn't admin based as it's token based
@@ -218,7 +218,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             List<MetadataValueRest> epersonFirstName = metadataRest.getMap().get("eperson.firstname");
             List<MetadataValueRest> epersonLastName = metadataRest.getMap().get("eperson.lastname");
             if (epersonFirstName == null || epersonLastName == null ||
-                epersonFirstName.isEmpty() || epersonLastName.isEmpty()) {
+                    epersonFirstName.isEmpty() || epersonLastName.isEmpty()) {
                 throw new EPersonNameNotProvidedException();
             }
         }
@@ -292,13 +292,13 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
     @PreAuthorize("hasAuthority('ADMIN') || hasAuthority('MANAGE_ACCESS_GROUP')")
     @SearchRestMethod(name = "byMetadata")
     public Page<EPersonRest> findByMetadata(@Parameter(value = "query", required = true) String query,
-            Pageable pageable) {
+                                            Pageable pageable) {
 
         try {
             Context context = obtainContext();
             long total = es.searchResultCount(context, query);
             List<EPerson> epersons = es.search(context, query, Math.toIntExact(pageable.getOffset()),
-                                                               Math.toIntExact(pageable.getPageSize()));
+                    Math.toIntExact(pageable.getPageSize()));
             return converter.toRestPage(epersons, pageable, total, utils.obtainProjection());
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
@@ -318,7 +318,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             }
             if (!passwordChangeFound) {
                 throw new AccessDeniedException("Refused to perform the EPerson patch based on a token without " +
-                                                    "changing the password");
+                        "changing the password");
             }
         }
         patchDSpaceObject(apiCategory, model, uuid, patch);
@@ -343,7 +343,51 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
     public Class<EPersonRest> getDomainClass() {
         return EPersonRest.class;
     }
-
+    /**
+     * This method will perform an add into the table epersongroup2eperson
+     * for the user with id uuid and with the list o groups
+     * found on the registration data taken from token offered as query parameter
+     * It also deletes the registrationdata found with token after the creation of groups
+     * @return              The EPersonRest after the creation of groups
+     * @throws AuthorizeException   If user is not allowed
+     * @throws SQLException         If something goes wrong
+     */
+    public EPersonRest joinUserToGroups(UUID uuid, String token) throws AuthorizeException {
+        try {
+            Context context = obtainContext();
+            HttpServletRequest req = getRequestService().getCurrentRequest().getHttpServletRequest();
+            RegistrationData registrationData = registrationDataService.findByToken(context, token);
+            if (registrationData == null) {
+                throw new DSpaceBadRequestException("The token given as parameter: " + token + " does not exist" +
+                        " in the database");
+            }
+            if (uuid == null) {
+                throw new DSpaceBadRequestException("The uuid of the person cannot be null");
+            }
+            EPerson ePerson = es.findByIdOrLegacyId(context, uuid.toString());
+            if (ePerson == null) {
+                throw new DSpaceBadRequestException("The token given does not contains an email address that resolves" +
+                        " to an eperson");
+            }
+            if (!ePerson.equals(context.getCurrentUser())) {
+                throw new AuthorizeException("Only the user with id: " + uuid + " can make this action.");
+            }
+            // We'll turn off authorisation system because this call isn't admin based as it's token based
+            context.turnOffAuthorisationSystem();
+            List<Group> groups = registrationData.getGroups();
+            addEPersonToGroups(context, ePerson, groups);
+            context.restoreAuthSystemState();
+            // Restoring authorisation state right after the creation call
+            accountService.deleteToken(context, token);
+            return converter.toRest(ePerson, utils.obtainProjection());
+        } catch (AuthorizeException e) {
+            log.error(e);
+            throw new AuthorizeException(e.getMessage());
+        } catch (SQLException e) {
+            log.error(e);
+            throw new RuntimeException(e.getMessage());
+        }
+    }
     @Override
     public void afterPropertiesSet() throws Exception {
         discoverableEndpointsService.register(this, Arrays.asList(
