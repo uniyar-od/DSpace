@@ -30,7 +30,8 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 /**
- * Spring Security configuration for DSpace Server Webapp
+ * Spring Security configuration for DSpace Server Webapp. The global method
+ * security is enabled by the {@link MethodSecurityConfig} class.
  *
  * @author Frederic Van Reet (frederic dot vanreet at atmire dot com)
  * @author Tom Desair (tom dot desair at atmire dot com)
