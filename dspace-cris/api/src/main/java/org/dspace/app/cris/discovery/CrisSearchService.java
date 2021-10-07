@@ -78,6 +78,7 @@ import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.HierarchicalSidebarFacetConfiguration;
 import org.dspace.utils.DSpace;
+import org.hibernate.Session;
 
 import it.cilea.osd.common.core.HasTimeStampInfo;
 import it.cilea.osd.jdyna.model.ANestedPropertiesDefinition;
@@ -996,5 +997,45 @@ public class CrisSearchService extends SolrServiceImpl
             // Only return obj identifier fields in result doc
             solrQuery.setFields("clearcache-crismetrics");            
             search(solrQuery);
+        }
+        
+    	@Override
+    	public void diffIndex(Context context, Integer type) throws SQLException, SearchServiceException, IOException {
+    		System.out.println("Diff type:"+ type);
+            if (type >= CrisConstants.CRIS_TYPE_ID_START)
+            {
+            	String query = "";
+            	String fq = "";
+                if (type >= CrisConstants.CRIS_DYNAMIC_TYPE_ID_START) {
+                	query = "select uuid as identifierobject from cris_do where status = '1' order by timestamplastmodified asc";
+                	fq = "search.resourcetype:[1000 TO *]";
+                }                    
+                else if (CrisConstants.RP_TYPE_ID == type)
+                {
+                	query = "select uuid as identifierobject from cris_rpage where status = '1' order by timestamplastmodified asc";
+                	fq = "search.resourcetype:9";
+                }
+                else if (CrisConstants.PROJECT_TYPE_ID == type)
+                {
+                	query = "select uuid as identifierobject from cris_project where status = '1' order by timestamplastmodified asc";
+                	fq = "search.resourcetype:10";
+                }
+                else if (CrisConstants.OU_TYPE_ID == type)
+                {
+                	query = "select uuid as identifierobject from cris_ou where status = '1' order by timestamplastmodified asc";
+                	fq = "search.resourcetype:11";
+                }
+                
+                List<Object[]> rows = getHibernateSession(context).createSQLQuery(query).list();
+            	prepareDiffAndReindex(context, type, fq, rows);
+            }
+            else
+            {
+                super.diffIndex(context, type);
+            }
+    	}
+    	
+    	protected static Session getHibernateSession(Context context) throws SQLException {
+            return ((Session) context.getDBConnection().getSession());
         }
 }
