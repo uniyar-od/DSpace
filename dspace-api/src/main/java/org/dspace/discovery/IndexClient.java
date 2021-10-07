@@ -156,10 +156,6 @@ public class IndexClient {
             indexer.optimize();
  		} else if(line.hasOption('s')) {
             checkRebuildSpellCheck(line, indexer);           
-        } else if (line.hasOption("t")) {
-        	log.info("Updating and Cleaning a specific Index");
-            String optionValue = line.getOptionValue("t");			
-            indexer.updateIndex(context, true, Integer.valueOf(optionValue));
         } else if (line.hasOption("d")) {
         	log.info("Updating the missed objects");
         	String optionValue = "2";
@@ -167,6 +163,10 @@ public class IndexClient {
         		optionValue = line.getOptionValue("t");
         	}
             indexer.diffIndex(context, Integer.valueOf(optionValue));
+        } else if (line.hasOption("t")) {
+        	log.info("Updating and Cleaning a specific Index");
+            String optionValue = line.getOptionValue("t");			
+            indexer.updateIndex(context, true, Integer.valueOf(optionValue));
         } else if (line.hasOption("u")) {         	
         	String optionValue = line.getOptionValue("u");
 			String[] identifiers = optionValue.split("\\s*,\\s*");

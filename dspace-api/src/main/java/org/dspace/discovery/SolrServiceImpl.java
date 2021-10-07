@@ -2660,7 +2660,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             throw new RuntimeException("Only ITEM is supported in this mode - type founded: " + type);
         }
         
-    	TableRowIterator tri = DatabaseManager.query(context, "select item_id as identifierobject item where in_archive='1' or withdrawn='1' order by item_id asc");
+    	TableRowIterator tri = DatabaseManager.query(context, "select item_id as identifierobject from item where in_archive='1' or withdrawn='1' order by item_id asc");
     	List<TableRow> rows = tri.toList();
     	prepareDiffAndReindex(context, type, "search.resourcetype:2", rows);
     	
@@ -2729,12 +2729,17 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	        if (actualrecords.contains(expectedrecords.get(i))) {
 	            actualrecords.remove(expectedrecords.get(i));
 	        } else {
-	        	Integer item = actualrecords.get(i);
+	        	Integer item = expectedrecords.get(i);
 				log.info("Reindex Found type:" + type + " - objectID:" + item);
 	        	System.out.println("Reindex Found type:" + type + " - objectID:" + item);
 	            unexpectedrecords.add(item);
 	        }
 	    }
+	    if (unexpectedrecords.isEmpty())
+	    {
+	    	System.out.println("Nothing to update, exiting");
+	    	return;
+		}
 	    System.out.println("Update now...");
 		updateIndex(context, unexpectedrecords, true, type);
 	}
