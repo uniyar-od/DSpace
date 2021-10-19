@@ -301,6 +301,66 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
     }
 
     @Test
+    public void findLinkedEntitiesMetricsWithoutNotExistedInSolrDocumentAndUsageAdminNotConfigured() throws Exception {
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", null);
+
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection 1")
+                                           .build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                                .withDoiIdentifier("10.1016/19")
+                                .withTitle("Title item A")
+                                .build();
+
+        Item itemB = ItemBuilder.createItem(context, col1)
+                                .withDoiIdentifier("30.1100/31")
+                                .withTitle("Title item B")
+                                .build();
+
+        CrisMetricsBuilder.createCrisMetrics(context, itemA)
+                          .withMetricType("view")
+                          .withMetricCount(2312)
+                          .isLast(true)
+                          .build();
+
+        CrisMetricsBuilder.createCrisMetrics(context, itemA)
+                          .withMetricType(UpdateScopusMetrics.SCOPUS_CITATION)
+                          .withMetricCount(43)
+                          .isLast(true)
+                          .build();
+
+        CrisMetricsBuilder.createCrisMetrics(context, itemB)
+                          .withMetricType(UpdateScopusMetrics.SCOPUS_CITATION)
+                          .withMetricCount(103)
+                          .isLast(true)
+                          .build();
+
+        context.restoreAuthSystemState();
+
+        String embeddedView = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
+        String embeddedDownload = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
+
+        String tokenEperson = getAuthToken(eperson.getEmail(), password);
+        getClient(tokenEperson).perform(get("/api/core/items/" + itemA.getID() + "/metrics"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$._embedded.metrics").value(Matchers.hasSize(2)))
+                .andExpect(jsonPath("$._embedded.metrics").value(Matchers.containsInAnyOrder(
+                    CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-view", embeddedView),
+                    CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download", embeddedDownload)
+                    )))
+                .andExpect(jsonPath("$._links.self.href",Matchers.containsString("api/core/items/" + itemA.getID() +
+                                    "/metrics")))
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+    }
+
+    @Test
     public void findLinkedEntitiesMetricsWithUserNotLoggedTest() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -327,6 +387,49 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
 
         String embeddedView = "<a title=\"\" href=\"\">View</a>";
         String embeddedDownload = "<a title=\"\" href=\"\">Downloads</a>";
+
+        getClient().perform(get("/api/core/items/" + itemA.getID() + "/metrics"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(contentType))
+                .andExpect(jsonPath("$._embedded.metrics").value(Matchers.hasSize(2)))
+                .andExpect(jsonPath("$._embedded.metrics").value(Matchers.containsInAnyOrder(
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-view", embeddedView),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download", embeddedDownload)
+                        )))
+                .andExpect(jsonPath("$._links.self.href",
+                        Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+    }
+
+    @Test
+    public void findLinkedEntitiesMetricsWithUserNotLoggedAndUsageAdminNotConfiguredTest() throws Exception {
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", null);
+
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community").build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+                .withName("Collection 1").build();
+
+        Item itemA = ItemBuilder.createItem(context, col1)
+                .withDoiIdentifier("10.1016/19")
+                .withTitle("Title item A").build();
+
+        CrisMetricsBuilder.createCrisMetrics(context, itemA)
+                .withMetricType("view")
+                .withMetricCount(2312)
+                .isLast(true).build();
+
+        CrisMetricsBuilder.createCrisMetrics(context, itemA)
+                .withMetricType(UpdateScopusMetrics.SCOPUS_CITATION)
+                .withMetricCount(43)
+                .isLast(true).build();
+
+        context.restoreAuthSystemState();
+
+        String embeddedView = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
+        String embeddedDownload = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
 
         getClient().perform(get("/api/core/items/" + itemA.getID() + "/metrics"))
                 .andExpect(status().isOk())
