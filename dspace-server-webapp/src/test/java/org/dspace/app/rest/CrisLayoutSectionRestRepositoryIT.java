@@ -13,8 +13,8 @@ import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndBrow
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndCountersComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndFacetComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndSearchComponent;
-import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndTopComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndTextRowComponent;
+import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndTopComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withSearchComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withTopComponent;
 import static org.hamcrest.Matchers.hasItem;
