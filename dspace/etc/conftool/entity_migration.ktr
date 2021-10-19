@@ -553,7 +553,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>is date or text</from>
+      <from>is date or text or boolean</from>
       <to>is pointer</to>
       <enabled>Y</enabled>
     </hop>
@@ -643,7 +643,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>is date or text</from>
+      <from>is date or text or boolean</from>
       <to>calculate metadata value</to>
       <enabled>Y</enabled>
     </hop>
@@ -869,7 +869,7 @@
     </hop>
     <hop>
       <from>Sort rows</from>
-      <to>is date or text</to>
+      <to>is date or text or boolean</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -1757,7 +1757,7 @@ WHERE property_def.id = properties.typo_id
       </output>
     </remotesteps>
     <GUI>
-      <xloc>480</xloc>
+      <xloc>432</xloc>
       <yloc>1104</yloc>
       <draw>Y</draw>
     </GUI>
@@ -2466,7 +2466,7 @@ WHERE property_def.id = properties.typo_id
       </output>
     </remotesteps>
     <GUI>
-      <xloc>480</xloc>
+      <xloc>432</xloc>
       <yloc>1344</yloc>
       <draw>Y</draw>
     </GUI>
@@ -2822,6 +2822,8 @@ WHERE property_def.id = properties.typo_id
 	var metadata_value = textvalue;
 } else if(dtype == 'date'){
 	var metadata_value = datevalue;
+} else if(dtype == 'boolean'){
+	var metadata_value = booleanvalue;
 }</jsScript_script>
       </jsScript>
     </jsScripts>
@@ -4650,7 +4652,7 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
-    <name>is date or text</name>
+    <name>is date or text or boolean</name>
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -4684,18 +4686,39 @@ WHERE property_def.id = properties.typo_id
           <condition>
             <negated>N</negated>
             <operator>OR</operator>
-            <leftvalue>dtype</leftvalue>
-            <function>=</function>
-            <rightvalue/>
-            <value>
-              <name>constant</name>
-              <type>String</type>
-              <text>date</text>
-              <length>-1</length>
-              <precision>-1</precision>
-              <isnull>N</isnull>
-              <mask/>
-            </value>
+            <conditions>
+              <condition>
+                <negated>N</negated>
+                <leftvalue>dtype</leftvalue>
+                <function>=</function>
+                <rightvalue/>
+                <value>
+                  <name>constant</name>
+                  <type>String</type>
+                  <text>date</text>
+                  <length>-1</length>
+                  <precision>-1</precision>
+                  <isnull>N</isnull>
+                  <mask/>
+                </value>
+              </condition>
+              <condition>
+                <negated>N</negated>
+                <operator>OR</operator>
+                <leftvalue>dtype</leftvalue>
+                <function>=</function>
+                <rightvalue/>
+                <value>
+                  <name>constant</name>
+                  <type>String</type>
+                  <text>boolean</text>
+                  <length>-1</length>
+                  <precision>-1</precision>
+                  <isnull>N</isnull>
+                  <mask/>
+                </value>
+              </condition>
+            </conditions>
           </condition>
         </conditions>
       </condition>
@@ -4709,7 +4732,7 @@ WHERE property_def.id = properties.typo_id
       </output>
     </remotesteps>
     <GUI>
-      <xloc>480</xloc>
+      <xloc>432</xloc>
       <yloc>1552</yloc>
       <draw>Y</draw>
     </GUI>
