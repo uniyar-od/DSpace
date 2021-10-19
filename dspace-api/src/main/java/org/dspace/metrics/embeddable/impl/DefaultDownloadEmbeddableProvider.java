@@ -48,7 +48,7 @@ public class DefaultDownloadEmbeddableProvider extends AbstractEmbeddableMetricP
     public String innerHtml(Context context, Item item) {
         try {
             String prefix = StringUtils.EMPTY;
-            if (isUsageAdmin() && authorizeService.isAdmin(context)) {
+            if (!isUsageAdmin() || (isUsageAdmin() && authorizeService.isAdmin(context))) {
                 prefix = configurationService.getProperty("dspace.ui.url") + "/statistics/items/" + item.getID();
             }
             return this.TEMPLATE.replace("{{searchText}}", prefix);
