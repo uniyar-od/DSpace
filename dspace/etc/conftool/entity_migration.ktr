@@ -553,7 +553,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>is date or text</from>
+      <from>is date or text or boolean</from>
       <to>is pointer</to>
       <enabled>Y</enabled>
     </hop>
@@ -643,7 +643,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>is date or text</from>
+      <from>is date or text or boolean</from>
       <to>calculate metadata value</to>
       <enabled>Y</enabled>
     </hop>
@@ -869,7 +869,7 @@
     </hop>
     <hop>
       <from>Sort rows</from>
-      <to>is date or text</to>
+      <to>is date or text or boolean</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -1757,7 +1757,7 @@ WHERE property_def.id = properties.typo_id
       </output>
     </remotesteps>
     <GUI>
-      <xloc>480</xloc>
+      <xloc>432</xloc>
       <yloc>1104</yloc>
       <draw>Y</draw>
     </GUI>
@@ -2005,30 +2005,43 @@ WHERE property_def.id = properties.typo_id
     <fields>
       <field>
         <name>schema</name>
+        <rename/>
       </field>
       <field>
         <name>element</name>
+        <rename/>
       </field>
       <field>
         <name>qualifier</name>
+        <rename/>
       </field>
       <field>
         <name>imp_record_id</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_value</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_order</name>
+        <rename/>
       </field>
       <field>
         <name>crisid</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_authority</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_visibility</name>
+        <rename/>
+      </field>
+      <field>
+        <name>language</name>
+        <rename/>
       </field>
       <select_unspecified>N</select_unspecified>
     </fields>
@@ -2060,30 +2073,43 @@ WHERE property_def.id = properties.typo_id
     <fields>
       <field>
         <name>schema</name>
+        <rename/>
       </field>
       <field>
         <name>element</name>
+        <rename/>
       </field>
       <field>
         <name>qualifier</name>
+        <rename/>
       </field>
       <field>
         <name>imp_record_id</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_value</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_order</name>
+        <rename/>
       </field>
       <field>
         <name>crisid</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_authority</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_visibility</name>
+        <rename/>
+      </field>
+      <field>
+        <name>language</name>
+        <rename/>
       </field>
       <select_unspecified>N</select_unspecified>
     </fields>
@@ -2146,96 +2172,131 @@ WHERE property_def.id = properties.typo_id
     <fields>
       <field>
         <name>parent_id</name>
+        <rename/>
       </field>
       <field>
         <name>visibility</name>
+        <rename/>
       </field>
       <field>
         <name>shortname</name>
+        <rename/>
       </field>
       <field>
         <name>dtype</name>
+        <rename/>
       </field>
       <field>
         <name>sortvalue</name>
+        <rename/>
       </field>
       <field>
         <name>datevalue</name>
+        <rename/>
       </field>
       <field>
         <name>textvalue</name>
+        <rename/>
       </field>
       <field>
         <name>linkdescription</name>
+        <rename/>
       </field>
       <field>
         <name>linkvalue</name>
+        <rename/>
       </field>
       <field>
         <name>fileextension</name>
+        <rename/>
       </field>
       <field>
         <name>filefolder</name>
+        <rename/>
       </field>
       <field>
         <name>filemime</name>
+        <rename/>
       </field>
       <field>
         <name>filename</name>
+        <rename/>
       </field>
       <field>
         <name>doublevalue</name>
+        <rename/>
       </field>
       <field>
         <name>rpvalue</name>
+        <rename/>
       </field>
       <field>
         <name>projectvalue</name>
+        <rename/>
       </field>
       <field>
         <name>ouvalue</name>
+        <rename/>
       </field>
       <field>
         <name>dovalue</name>
+        <rename/>
       </field>
       <field>
         <name>booleanvalue</name>
+        <rename/>
       </field>
       <field>
         <name>classificationvalue</name>
+        <rename/>
       </field>
       <field>
         <name>custompointer</name>
+        <rename/>
       </field>
       <field>
         <name>row_number</name>
+        <rename/>
       </field>
       <field>
         <name>id</name>
+        <rename/>
       </field>
       <field>
         <name>crisid</name>
+        <rename/>
       </field>
       <field>
         <name>status</name>
+        <rename/>
       </field>
       <field>
         <name>imp_record_id</name>
+        <rename/>
       </field>
       <field>
         <name>entity_type</name>
+        <rename/>
       </field>
       <field>
         <name>short_name</name>
+        <rename/>
       </field>
       <field>
         <name>schema</name>
+        <rename/>
       </field>
       <field>
         <name>element</name>
+        <rename/>
       </field>
       <field>
         <name>qualifier</name>
+        <rename/>
+      </field>
+      <field>
+        <name>language</name>
+        <rename/>
       </field>
       <select_unspecified>Y</select_unspecified>
     </fields>
@@ -2267,96 +2328,131 @@ WHERE property_def.id = properties.typo_id
     <fields>
       <field>
         <name>parent_id</name>
+        <rename/>
       </field>
       <field>
         <name>visibility</name>
+        <rename/>
       </field>
       <field>
         <name>shortname</name>
+        <rename/>
       </field>
       <field>
         <name>dtype</name>
+        <rename/>
       </field>
       <field>
         <name>sortvalue</name>
+        <rename/>
       </field>
       <field>
         <name>datevalue</name>
+        <rename/>
       </field>
       <field>
         <name>textvalue</name>
+        <rename/>
       </field>
       <field>
         <name>linkdescription</name>
+        <rename/>
       </field>
       <field>
         <name>linkvalue</name>
+        <rename/>
       </field>
       <field>
         <name>fileextension</name>
+        <rename/>
       </field>
       <field>
         <name>filefolder</name>
+        <rename/>
       </field>
       <field>
         <name>filemime</name>
+        <rename/>
       </field>
       <field>
         <name>filename</name>
+        <rename/>
       </field>
       <field>
         <name>doublevalue</name>
+        <rename/>
       </field>
       <field>
         <name>rpvalue</name>
+        <rename/>
       </field>
       <field>
         <name>projectvalue</name>
+        <rename/>
       </field>
       <field>
         <name>ouvalue</name>
+        <rename/>
       </field>
       <field>
         <name>dovalue</name>
+        <rename/>
       </field>
       <field>
         <name>booleanvalue</name>
+        <rename/>
       </field>
       <field>
         <name>classificationvalue</name>
+        <rename/>
       </field>
       <field>
         <name>custompointer</name>
+        <rename/>
       </field>
       <field>
         <name>row_number</name>
+        <rename/>
       </field>
       <field>
         <name>id</name>
+        <rename/>
       </field>
       <field>
         <name>crisid</name>
+        <rename/>
       </field>
       <field>
         <name>status</name>
+        <rename/>
       </field>
       <field>
         <name>imp_record_id</name>
+        <rename/>
       </field>
       <field>
         <name>entity_type</name>
+        <rename/>
       </field>
       <field>
         <name>short_name</name>
+        <rename/>
       </field>
       <field>
         <name>schema</name>
+        <rename/>
       </field>
       <field>
         <name>element</name>
+        <rename/>
       </field>
       <field>
         <name>qualifier</name>
+        <rename/>
+      </field>
+      <field>
+        <name>language</name>
+        <rename/>
       </field>
       <select_unspecified>Y</select_unspecified>
     </fields>
@@ -2466,7 +2562,7 @@ WHERE property_def.id = properties.typo_id
       </output>
     </remotesteps>
     <GUI>
-      <xloc>480</xloc>
+      <xloc>432</xloc>
       <yloc>1344</yloc>
       <draw>Y</draw>
     </GUI>
@@ -2546,6 +2642,18 @@ WHERE property_def.id = properties.typo_id
       <field>
         <name>metadata_visibility</name>
         <type>Integer</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <set_empty_string>N</set_empty_string>
+      </field>
+      <field>
+        <name>language</name>
+        <type>String</type>
         <format/>
         <currency/>
         <decimal/>
@@ -2822,6 +2930,8 @@ WHERE property_def.id = properties.typo_id
 	var metadata_value = textvalue;
 } else if(dtype == 'date'){
 	var metadata_value = datevalue;
+} else if(dtype == 'boolean'){
+	var metadata_value = booleanvalue;
 }</jsScript_script>
       </jsScript>
     </jsScripts>
@@ -2868,7 +2978,8 @@ WHERE property_def.id = properties.typo_id
         <jsScript_name>Script 1</jsScript_name>
         <jsScript_script>var metadata_value = crisid;
 var metadata_authority = null;
-var metadata_visibility = null;</jsScript_script>
+var metadata_visibility = null;
+var language = null;</jsScript_script>
       </jsScript>
     </jsScripts>
     <fields>
@@ -2892,6 +3003,14 @@ var metadata_visibility = null;</jsScript_script>
         <name>metadata_visibility</name>
         <rename>metadata_visibility</rename>
         <type>Integer</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>language</name>
+        <rename>language</rename>
+        <type>String</type>
         <length>-1</length>
         <precision>-1</precision>
         <replace>N</replace>
@@ -4518,6 +4637,10 @@ WHERE property_def.id = properties.typo_id
         <column_name>security_level</column_name>
         <stream_name>metadata_visibility</stream_name>
       </field>
+      <field>
+        <column_name>text_lang</column_name>
+        <stream_name>language</stream_name>
+      </field>
     </fields>
     <attributes/>
     <cluster_schema/>
@@ -4650,7 +4773,7 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
-    <name>is date or text</name>
+    <name>is date or text or boolean</name>
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -4684,18 +4807,39 @@ WHERE property_def.id = properties.typo_id
           <condition>
             <negated>N</negated>
             <operator>OR</operator>
-            <leftvalue>dtype</leftvalue>
-            <function>=</function>
-            <rightvalue/>
-            <value>
-              <name>constant</name>
-              <type>String</type>
-              <text>date</text>
-              <length>-1</length>
-              <precision>-1</precision>
-              <isnull>N</isnull>
-              <mask/>
-            </value>
+            <conditions>
+              <condition>
+                <negated>N</negated>
+                <leftvalue>dtype</leftvalue>
+                <function>=</function>
+                <rightvalue/>
+                <value>
+                  <name>constant</name>
+                  <type>String</type>
+                  <text>date</text>
+                  <length>-1</length>
+                  <precision>-1</precision>
+                  <isnull>N</isnull>
+                  <mask/>
+                </value>
+              </condition>
+              <condition>
+                <negated>N</negated>
+                <operator>OR</operator>
+                <leftvalue>dtype</leftvalue>
+                <function>=</function>
+                <rightvalue/>
+                <value>
+                  <name>constant</name>
+                  <type>String</type>
+                  <text>boolean</text>
+                  <length>-1</length>
+                  <precision>-1</precision>
+                  <isnull>N</isnull>
+                  <mask/>
+                </value>
+              </condition>
+            </conditions>
           </condition>
         </conditions>
       </condition>
@@ -4709,7 +4853,7 @@ WHERE property_def.id = properties.typo_id
       </output>
     </remotesteps>
     <GUI>
-      <xloc>480</xloc>
+      <xloc>432</xloc>
       <yloc>1552</yloc>
       <draw>Y</draw>
     </GUI>
@@ -4897,6 +5041,18 @@ WHERE property_def.id = properties.typo_id
       <field>
         <name>qualifier</name>
         <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
+      <field>
+        <name>language</name>
+        <type>None</type>
         <length>-1</length>
         <precision>-1</precision>
         <trim_type>none</trim_type>
@@ -5140,6 +5296,18 @@ WHERE property_def.id = properties.typo_id
         <decimal/>
         <group/>
       </field>
+      <field>
+        <name>language</name>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+        <repeat>N</repeat>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+      </field>
     </fields>
     <sheets>
       <sheet>
@@ -5319,30 +5487,43 @@ WHERE property_def.id = properties.typo_id
     <fields>
       <field>
         <name>schema</name>
+        <rename/>
       </field>
       <field>
         <name>element</name>
+        <rename/>
       </field>
       <field>
         <name>qualifier</name>
+        <rename/>
       </field>
       <field>
         <name>imp_record_id</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_value</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_order</name>
+        <rename/>
       </field>
       <field>
         <name>crisid</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_authority</name>
+        <rename/>
       </field>
       <field>
         <name>metadata_visibility</name>
+        <rename/>
+      </field>
+      <field>
+        <name>language</name>
+        <rename/>
       </field>
       <select_unspecified>N</select_unspecified>
     </fields>
