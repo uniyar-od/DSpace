@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest.model;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,9 +30,9 @@ public class RegistrationRest extends RestAddressableModel {
     private String email;
     private UUID user;
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<String> groupNames;
+    private List<String> groupNames = Collections.emptyList();
 
-    private List<UUID> groups;
+    private List<UUID> groups = Collections.emptyList();
     /**
      * Generic getter for the email
      * @return the email value of this RegisterRest

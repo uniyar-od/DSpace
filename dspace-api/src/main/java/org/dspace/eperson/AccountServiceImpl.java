@@ -112,10 +112,10 @@ public class AccountServiceImpl implements AccountService {
      * @throws org.dspace.authorize.AuthorizeException passed through.
      */
     @Override
-    public void sendForgotPasswordInfo(Context context, String email)
+    public void sendForgotPasswordInfo(Context context, String email, List<UUID> groups)
         throws SQLException, IOException, MessagingException,
         AuthorizeException {
-        sendInfo(context, email, Collections.emptyList(), false, true);
+        sendInfo(context, email, groups, false, true);
     }
 
     /**
@@ -281,7 +281,7 @@ public class AccountServiceImpl implements AccountService {
         //  Note change from "key=" to "token="
         String specialLink = new StringBuffer().append(base).append(
             base.endsWith("/") ? "" : "/").append(
-            isRegister ? "register" : "forgot").append("/")
+            isRegister ? "register" : (rd.getGroups().size() == 0) ? "forgot" : "invitation").append("/")
                                                .append(rd.getToken())
                                                .toString();
         Locale locale = context.getCurrentLocale();
