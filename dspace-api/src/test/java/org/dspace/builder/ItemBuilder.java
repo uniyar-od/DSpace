@@ -225,6 +225,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "person", "identifier", "orcid", orcid);
     }
 
+    public ItemBuilder withLegacyId(String legacyId) {
+        return addMetadataValue(item, "cris", "legacyId", null, legacyId);
+    }
+
     public ItemBuilder withOrcidAccessToken(String accessToken) {
         return addMetadataValue(item, "cris", "orcid", "access-token", accessToken);
     }
