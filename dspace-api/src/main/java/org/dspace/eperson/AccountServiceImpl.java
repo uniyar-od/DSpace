@@ -9,7 +9,6 @@ package org.dspace.eperson;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;

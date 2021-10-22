@@ -119,7 +119,8 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
                     throw new DSpaceBadRequestException(
                             "Password cannot be updated for the given EPerson with email: " + eperson.getEmail());
                 }
-                accountService.sendForgotPasswordInfo(context, registrationRest.getEmail(), registrationRest.getGroups());
+                accountService.sendForgotPasswordInfo(context, registrationRest.getEmail(),
+                        registrationRest.getGroups());
             } catch (SQLException | IOException | MessagingException | AuthorizeException e) {
                 log.error("Something went wrong with sending forgot password info for email: "
                         + registrationRest.getEmail(), e);
