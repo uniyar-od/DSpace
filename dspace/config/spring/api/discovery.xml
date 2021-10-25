@@ -105,7 +105,6 @@
                 <entry key="editCommunity" value-ref="editCommunityConfiguration"/>
                 <entry key="editCollection" value-ref="editCollectionConfiguration"/>
                 <entry key="lucky-search" value-ref="lucky"/>
-                <entry key="lucky-search" value-ref="lucky"/>
             </map>
         </property>
         <property name="toIgnoreMetadataFields">
@@ -3144,7 +3143,6 @@
             <list>
                 <ref bean="searchFilterOrcid" />
                 <ref bean="searchFilterDoi" />
-                <ref bean="searchFilterLegacyId" />
             </list>
         </property>
     </bean>
@@ -3158,18 +3156,6 @@
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
     </bean>
-    
-    <bean id="searchFilterLegacyId" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
-        <property name="indexFieldName" value="legacy-id"/>
-        <property name="metadataFields">
-            <list>
-                <value>cris.legacyId</value>
-            </list>
-        </property>
-        <property name="isOpenByDefault" value="true"/>
-        <property name="pageSize" value="10"/>
-    </bean>
-    
     <bean id="searchFilterDoi" class="org.dspace.discovery.configuration.DiscoverySearchFilter">
         <property name="indexFieldName" value="doi"/>
         <property name="metadataFields">
