@@ -74,6 +74,12 @@ public class OpenAirePiwikTracker extends AbstractUsageEventListener
     private static Logger log = Logger.getLogger(OpenAirePiwikTracker.class);
 
     // Base URl of the Piwik platform
+    private String piwikScheme;
+
+    // Base URl of the Piwik platform
+    private String piwikHost;
+
+    // Base URl of the Piwik platform
     private String piwikbaseUrl;
 
     // Piwik Site ID
@@ -157,7 +163,9 @@ public class OpenAirePiwikTracker extends AbstractUsageEventListener
     {
         // Piwik variables
         piwikEnabled = ConfigurationManager.getBooleanProperty("oapiwik", "piwik.enabled");
-        piwikbaseUrl = ConfigurationManager.getProperty("oapiwik", "piwik.trackerURL");
+        piwikScheme = ConfigurationManager.getProperty("oapiwik", "piwik.trackerScheme");
+        piwikHost = ConfigurationManager.getProperty("oapiwik", "piwik.trackerHost");
+        piwikbaseUrl = ConfigurationManager.getProperty("oapiwik", "piwik.trackerPath");
         piwikSiteID = ConfigurationManager.getProperty("oapiwik", "piwik.siteID");
         piwikTokenAuth = ConfigurationManager.getProperty("oapiwik","piwik.tokenAuth");
 
@@ -241,6 +249,8 @@ public class OpenAirePiwikTracker extends AbstractUsageEventListener
     throws IOException, URISyntaxException
     {
         URIBuilder builder = new URIBuilder();
+        builder.setScheme(piwikScheme);
+        builder.setHost(piwikHost);
         builder.setPath(piwikbaseUrl);
         builder.addParameter("idsite", piwikSiteID);
         builder.addParameter("cip", this.getIPAddress(request));
@@ -300,7 +310,9 @@ public class OpenAirePiwikTracker extends AbstractUsageEventListener
         jsonPiwikCustomVars.put("1", oaipmhID);
         builder.addParameter("cvar", gson.toJson(jsonPiwikCustomVars));
 
-        this.sendRequest(builder.build());
+        URI uri = builder.build();
+        log.debug("Sending info to: "+ uri.toURL());
+        this.sendRequest(uri);
     }
 
     /**
