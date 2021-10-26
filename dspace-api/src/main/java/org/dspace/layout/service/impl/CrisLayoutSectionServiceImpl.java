@@ -10,6 +10,7 @@ package org.dspace.layout.service.impl;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.dspace.layout.CrisLayoutSection;
 import org.dspace.layout.service.CrisLayoutSectionService;
 
@@ -27,7 +28,7 @@ public class CrisLayoutSectionServiceImpl implements CrisLayoutSectionService {
     public List<CrisLayoutSection> findAll() {
         return components;
     }
-    
+
 
     @Override
     public CrisLayoutSection findOne(String id) {
@@ -40,6 +41,11 @@ public class CrisLayoutSectionServiceImpl implements CrisLayoutSectionService {
         return components.size();
     }
 
+    @Override
+    public int countVisibleSectionsInTopBar() {
+        return findAllVisibleSectionsInTopBar().size();
+    }
+
     /**
      * @return the components
      */
@@ -48,14 +54,14 @@ public class CrisLayoutSectionServiceImpl implements CrisLayoutSectionService {
     }
 
     /**
-     * @param components the componentMap to set
+     * @param components the list of components to set
      */
     public void setComponents(List<CrisLayoutSection> components) {
         this.components = components;
     }
 
     @Override
-    public List<CrisLayoutSection> findAllVisibleSectionInTopBar() {
+    public List<CrisLayoutSection> findAllVisibleSectionsInTopBar() {
         return components.stream()
             .filter(CrisLayoutSection::isVisible)
             .collect(Collectors.toList());
