@@ -6,16 +6,16 @@
 
     <bean class="org.dspace.layout.service.impl.CrisLayoutSectionServiceImpl" >
         <property name="components">
-            <list>
-                <ref bean="sectionresearchoutputs" />
-                <ref bean="sectionfundings_and_projects" />
-                <ref bean="sectionresearcherprofiles" />
-                <ref bean="sectionsite" />
-            </list>
+            <util:list>
+                <bean id="researchoutputs" />
+                <bean id="fundings_and_projects" />
+                <bean id="researcherprofiles" />
+                <bean id="site" />
+            </util:list>
         </property>
     </bean>
 
-	<bean class="org.dspace.layout.CrisLayoutSection" id="sectionresearchoutputs">
+	<bean class="org.dspace.layout.CrisLayoutSection" id="researchoutputs">
 		<constructor-arg name="id" value="researchoutputs"/>
 		<constructor-arg name="visible" value="true"/>
 		<constructor-arg name="sectionComponents">
@@ -62,7 +62,7 @@
 	     </list>
 		</constructor-arg>
 	</bean>
-	<bean class="org.dspace.layout.CrisLayoutSection" id="sectionfundings_and_projects">
+	<bean class="org.dspace.layout.CrisLayoutSection" id="fundings_and_projects">
 		<constructor-arg name="id" value="fundings_and_projects"/>
 		<constructor-arg name="visible" value="true"/>
 		<constructor-arg name="sectionComponents">
@@ -90,7 +90,7 @@
 	     </list>
 	    </constructor-arg>
 	</bean>
-	<bean class="org.dspace.layout.CrisLayoutSection" id="sectionresearcherprofiles">
+	<bean class="org.dspace.layout.CrisLayoutSection" id="researcherprofiles">
 		<constructor-arg name="id" value="researcherprofiles"/>
 		<constructor-arg name="visible" value="true"/>
 		<constructor-arg name="sectionComponents">
@@ -119,7 +119,7 @@
 	     </list>
 	    </constructor-arg>
 	</bean>
-	<bean class="org.dspace.layout.CrisLayoutSection" id="sectionsite">
+	<bean class="org.dspace.layout.CrisLayoutSection" id="site">
 		<constructor-arg name="id" value="site"/>
 		<constructor-arg name="visible" value="true"/>
 		<constructor-arg name="sectionComponents">
