@@ -6385,4 +6385,52 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         }
     }
 
+    @Test
+    public void lookupPubmedMetadataUsingDoiInstedPebmedIdTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity, "123456789/extraction-test")
+                                           .withName("Collection 1")
+                                           .build();
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                  .build();
+        context.restoreAuthSystemState();
+
+        // try to add the doi identifier to dc.identifier.pmid
+        List<Operation> addId = new ArrayList<Operation>();
+        List<Map<String, String>> values = new ArrayList<Map<String, String>>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "10.1016/j.healun.2008.07.015");
+        values.add(value);
+        addId.add(new AddOperation("/sections/traditionalpageone/dc.identifier.pmid", values));
+
+        String patchBody = getPatchContent(addId);
+
+        String authToken = getAuthToken(admin.getEmail(), password);
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+               .content(patchBody)
+               .contentType(MediaType.APPLICATION_JSON_PATCH_JSON)).andExpect(status().isOk())
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.identifier.pmid'][0].value",
+                       is("10.1016/j.healun.2008.07.015")))
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.title'][0].value").doesNotExist())
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.date.issued'][0].value").doesNotExist())
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value").doesNotExist())
+               .andExpect(jsonPath("$.sections.traditionalpagetwo['dc.description.abstract'][0].value").doesNotExist());
+
+        // verify that the patch changes have been persisted
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+               .andExpect(status().isOk())
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.identifier.pmid'][0].value",
+                       is("10.1016/j.healun.2008.07.015")))
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.title'][0].value").doesNotExist())
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.date.issued'][0].value").doesNotExist())
+               .andExpect(jsonPath("$.sections.traditionalpageone['dc.contributor.author'][0].value").doesNotExist())
+               .andExpect(jsonPath("$.sections.traditionalpagetwo['dc.description.abstract'][0].value").doesNotExist());
+    }
+
 }
