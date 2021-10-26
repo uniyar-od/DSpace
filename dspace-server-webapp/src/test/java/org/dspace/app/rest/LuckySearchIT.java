@@ -656,15 +656,22 @@ public class LuckySearchIT  extends AbstractControllerIntegrationTest {
         Item publicItem2 = ItemBuilder.createItem(context, col2)
             .withFullName("Public item 2")
             .withIssueDate("2016-02-13")
-            .withEntityType("Person")
+            .withEntityType("OrgUnit")
             .withLegacyId("rp0002")
             .build();
 
         Item publicItem3 = ItemBuilder.createItem(context, col2)
             .withFullName("Public item 3")
             .withIssueDate("2016-02-13")
-            .withEntityType("Person")
+            .withEntityType("Project")
             .withLegacyId("rp0003")
+            .build();
+
+        Item publicItem4 = ItemBuilder.createItem(context, col2)
+            .withFullName("Public item 3")
+            .withIssueDate("2016-02-13")
+            .withEntityType("Journal")
+            .withLegacyId("rp0004")
             .build();
 
         context.restoreAuthSystemState();
@@ -724,7 +731,7 @@ public class LuckySearchIT  extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id",
                 is(publicItem2.getID().toString())))
             .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
-                "._embedded.indexableObject.entityType", is("Person")))
+                "._embedded.indexableObject.entityType", is("OrgUnit")))
             .andExpect(jsonPath("$._links.next").doesNotExist())
             // there always needs to be a self link
             .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/objects?configuration=" +
@@ -755,11 +762,41 @@ public class LuckySearchIT  extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id",
                 is(publicItem3.getID().toString())))
             .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
-                "._embedded.indexableObject.entityType", is("Person")))
+                "._embedded.indexableObject.entityType", is("Project")))
             .andExpect(jsonPath("$._links.next").doesNotExist())
             // there always needs to be a self link
             .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/" +
                 "objects?configuration=lucky-search&f.legacy-id=rp0003,equals")))
+            // pagination
+            .andExpect(jsonPath("$._embedded.searchResult.page",
+                is(PageMatcher.pageEntry(0, 10))));
+        getClient().perform(get("/api/discover/search/objects")
+            .param("size", "10")
+            .param("page", "0")
+            .param("configuration", "lucky-search")
+            .param("f.legacy-id", "rp0004,equals"))
+            // ** THEN **
+            // The status has to be 200 OK
+            .andExpect(status().isOk())
+            // the configuration needs to be 'lucky-search'
+            .andExpect(jsonPath("$.configuration", is("lucky-search")))
+            // the type needs to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            .andExpect(jsonPath("$.appliedFilters[0].filter", is("legacy-id")))
+            .andExpect(jsonPath("$.appliedFilters[0].value", is("rp0004")))
+            .andExpect(jsonPath("$.appliedFilters[0].label", is("rp0004")))
+            .andExpect(jsonPath("$.appliedFilters[0].operator", is("equals")))
+            // total elements needs to be 1 as there is only one item with this legacy-id
+            // searched
+            .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)))
+            .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]._embedded.indexableObject.id",
+                is(publicItem4.getID().toString())))
+            .andExpect(jsonPath("$._embedded.searchResult._embedded.objects[0]" +
+                "._embedded.indexableObject.entityType", is("Journal")))
+            .andExpect(jsonPath("$._links.next").doesNotExist())
+            // there always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href", containsString("api/discover/search/" +
+                "objects?configuration=lucky-search&f.legacy-id=rp0004,equals")))
             // pagination
             .andExpect(jsonPath("$._embedded.searchResult.page",
                 is(PageMatcher.pageEntry(0, 10))));
