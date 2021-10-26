@@ -27,6 +27,7 @@
 					<property name="metadataList">
 						<list>
 							<value>dc.identifier.issn</value>
+							<value>dc.relation.issn</value>
 						</list>
 					</property>
 				</bean>

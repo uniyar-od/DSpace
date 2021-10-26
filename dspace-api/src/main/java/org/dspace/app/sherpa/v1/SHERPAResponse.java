@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.sherpa;
+package org.dspace.app.sherpa.v1;
 
 import java.io.InputStream;
 import java.util.LinkedList;
@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
  * @author Andrea Bollini
  * 
  */
+@Deprecated
 public class SHERPAResponse
 {
     private boolean error;
@@ -55,6 +56,8 @@ public class SHERPAResponse
             Document inDoc = db.parse(xmlData);
 
             Element xmlRoot = inDoc.getDocumentElement();
+            Element dataRoot = XMLUtils.getSingleElement(xmlRoot, "romeoapi");
+
             Element headersElement = XMLUtils.getSingleElement(xmlRoot,
                     "header");
             Element journalsElement = XMLUtils.getSingleElement(xmlRoot,

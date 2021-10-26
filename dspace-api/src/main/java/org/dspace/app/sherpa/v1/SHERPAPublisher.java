@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.sherpa;
+package org.dspace.app.sherpa.v1;
 
 import java.util.List;
 
@@ -15,6 +15,7 @@ import java.util.List;
  * @author Andrea Bollini
  * 
  */
+@Deprecated
 public class SHERPAPublisher
 {
     private String name;

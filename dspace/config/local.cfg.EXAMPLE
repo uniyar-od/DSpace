@@ -431,3 +431,5 @@ assetstore.s3.subfolder =
 assetstore.s3.awsAccessKey =
 assetstore.s3.awsSecretKey =
 assetstore.s3.awsRegionName =
+
+sherpa.romeo.apikey = 
