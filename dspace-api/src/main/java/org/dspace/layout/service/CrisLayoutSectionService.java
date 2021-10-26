@@ -24,6 +24,15 @@ public interface CrisLayoutSectionService {
      * @return a list of layout sections
      */
     List<CrisLayoutSection> findAll();
+    
+
+    /**
+     * Find all the configured CRIS layout sections
+     * marked as visible.
+     * 
+     * @return a list of visible layout sections
+     */
+    List<CrisLayoutSection> findAllVisibleSectionInTopBar();
 
     /**
      * Find a single CRIS layout section by the given id.
