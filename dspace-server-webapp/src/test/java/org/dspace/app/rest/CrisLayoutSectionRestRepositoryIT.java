@@ -118,24 +118,30 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
         sectionsForMock.add(new CrisLayoutSection("CasualIdForTestingPurposes2", false, components));
         sectionsForMock.add(new CrisLayoutSection("CasualIdForTestingPurposes3", true, components));
 
+
         //MOCKING the sections
         crisLayoutSectionService.getComponents().clear();
         crisLayoutSectionService.getComponents().addAll(sectionsForMock);
         //end setting up the mock
 
-        getClient().perform(get("/api/layout/sections/search/visibleTopBarSections"))
-            .andExpect(status().isOk())
-            //Only 2 sections are set up to be visible in the top bar
-            .andExpect(jsonPath("$._embedded.sections", hasSize(2)))
-            //One has id -> CasualIdForTestingPurposes1
-            .andExpect(jsonPath("$._embedded.sections[0].id", is("CasualIdForTestingPurposes1")))
-            //The other has id -> CasualIdForTestingPurposes3
-            .andExpect(jsonPath("$._embedded.sections[1].id", is("CasualIdForTestingPurposes3")));
+        try {
+            getClient().perform(get("/api/layout/sections/search/visibleTopBarSections"))
+                .andExpect(status().isOk())
+                // Only 2 sections are set up to be visible in the top bar
+                .andExpect(jsonPath("$._embedded.sections", hasSize(2)))
+                // One has id -> CasualIdForTestingPurposes1
+                .andExpect(jsonPath("$._embedded.sections[0].id", is("CasualIdForTestingPurposes1")))
+                // The other has id -> CasualIdForTestingPurposes3
+                .andExpect(jsonPath("$._embedded.sections[1].id", is("CasualIdForTestingPurposes3")));
+        } catch (Exception e) {
+            // Test Failed
+        } finally {
+            // Restoring situation previous to mock
+            crisLayoutSectionService.getComponents().clear();
+            crisLayoutSectionService.getComponents().addAll(originalSections);
+            // end restoring
+        }
 
-        //Restoring situation previous to mock
-        crisLayoutSectionService.getComponents().clear();
-        crisLayoutSectionService.getComponents().addAll(originalSections);
-        //end restoring
     }
 
     @Test

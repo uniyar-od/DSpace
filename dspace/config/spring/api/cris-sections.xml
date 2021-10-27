@@ -121,7 +121,7 @@
 	</bean>
 	<bean class="org.dspace.layout.CrisLayoutSection" id="sectionsite">
 		<constructor-arg name="id" value="site"/>
-		<constructor-arg name="visible" value="true"/>
+		<constructor-arg name="visible" value="false"/>
 		<constructor-arg name="sectionComponents">
 	     <list>
 			<list>
