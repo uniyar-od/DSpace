@@ -3166,5 +3166,4 @@
         <property name="isOpenByDefault" value="true"/>
         <property name="pageSize" value="10"/>
     </bean>
-    <bean class="org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService"/>
 </beans>

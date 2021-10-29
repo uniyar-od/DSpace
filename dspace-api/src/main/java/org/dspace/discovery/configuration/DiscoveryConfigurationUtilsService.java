@@ -21,10 +21,12 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResultIterator;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
+@Component
 public class DiscoveryConfigurationUtilsService {
 
     private static Logger log = Logger.getLogger(DiscoveryConfigurationUtilsService.class);
