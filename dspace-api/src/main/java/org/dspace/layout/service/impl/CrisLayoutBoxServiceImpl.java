@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -29,6 +30,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxConfiguration;
 import org.dspace.layout.CrisLayoutField;
@@ -61,19 +63,24 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
 
     @Autowired
+    private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
+
+    @Autowired
     private CrisItemMetricsService crisMetricService;
 
     //constructor with all fields injected, used for test purposes (mock injection)
     CrisLayoutBoxServiceImpl(CrisLayoutBoxDAO dao, ItemService itemService, AuthorizeService authorizeService,
                              EntityTypeService entityTypeService,
                              CrisLayoutBoxAccessService crisLayoutBoxAccessService,
-                             CrisItemMetricsService crisMetricService) {
+                             CrisItemMetricsService crisMetricService,
+                             DiscoveryConfigurationUtilsService searchConfigurationUtilsService) {
         this.dao = dao;
         this.itemService = itemService;
         this.authorizeService = authorizeService;
         this.entityTypeService = entityTypeService;
         this.crisLayoutBoxAccessService = crisLayoutBoxAccessService;
         this.crisMetricService = crisMetricService;
+        this.searchConfigurationUtilsService = searchConfigurationUtilsService;
     }
 
     public CrisLayoutBoxServiceImpl() {
@@ -236,7 +243,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
 
         switch (boxType.toUpperCase()) {
             case "RELATION":
-                return hasRelationBoxContent(box, values);
+                return hasRelationBoxContent(context, box, item);
             case "METRICS":
                 return hasMetricsBoxContent(context, box, item.getID());
             case "ORCID_SYNC_SETTINGS":
@@ -273,9 +280,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
         return false;
     }
 
-    private boolean hasRelationBoxContent(CrisLayoutBox box, List<MetadataValue> values) {
-        // The relation box has no associated content
-        return true;
+    private boolean hasRelationBoxContent(Context context, CrisLayoutBox box, Item item) {
+        Iterator<Item> relatedItems = searchConfigurationUtilsService.findByRelation(context, item, box.getShortname());
+        return relatedItems.hasNext();
     }
 
     protected boolean hasMetricsBoxContent(Context context, CrisLayoutBox box, UUID itemUuid) {
