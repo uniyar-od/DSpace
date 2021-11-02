@@ -126,7 +126,7 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     private void resolveReferences(Context context, List<MetadataValue> metadataValues, Item item)
         throws SQLException, AuthorizeException {
-        final boolean isValueToUpdate = checkWetherTitleNeedsToBeSet();
+        final boolean isValueToUpdate = checkWhetherTitleNeedsToBeSet();
         String entityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
 
         List<String> authorities = metadataValues.stream()
@@ -150,7 +150,7 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
     /**
      * @return whether Title metadata needs to be updated
      */
-    private boolean checkWetherTitleNeedsToBeSet() {
+    private boolean checkWhetherTitleNeedsToBeSet() {
         return configurationService.getBooleanProperty("cris.item-reference-resolver.override-metadata-value");
     }
 
