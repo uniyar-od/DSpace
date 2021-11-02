@@ -778,7 +778,9 @@ public class ItemImportOA
         WorkspaceItem wi = null;
         c.setCurrentUser(myEPerson);
 
-        wi = WorkspaceItem.create(c, mycollections[0], false);
+        boolean applyTemplateItem = ConfigurationManager.getBooleanProperty(
+                "batch.import-framework.applytemplate", false);
+        wi = WorkspaceItem.create(c, mycollections[0], applyTemplateItem);
         myitem = wi.getItem();
 
         if (StringUtils.isNotEmpty(handle))
