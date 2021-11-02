@@ -25,7 +25,7 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
                     " data-site='plum' data-num-artifacts='5'" + ">" +
                     "</a>" +
                     "<script type = 'text/javascript' src='//cdn.plu.mx/widget-person.js'></script>";
-    private static final String GENERAL_TEMPLATE =
+    private static final String PUBLICATION_TEMPLATE =
             "<a href ='{{refUrl}}' class = 'plumx-plum-print-popup'" + "></a>" +
                     "<script type = 'text/javascript' src= '//cdn.plu.mx/widget-popup.js'></script>";
     private static final String plumXSiteUrlPlumXSiteUrlGeneral = "https://plu.mx/plum/a/";
@@ -36,11 +36,12 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
     String orcid;
     @Override
     public boolean hasMetric(Context context, Item item, List<CrisMetrics> retrivedStoredMetrics) {
-        String entityType = getItemService().getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
+        String entityType =  getEntityType(item);
         if (entityType != null) {
             if (entityType.equals("Person")) {
                 // if it is of type person use orcid
-                orcid = getItemService().getMetadataFirstValue(item, "person", "identifier", "orcid", Item.ANY);
+                orcid = getItemService()
+                        .getMetadataFirstValue(item, "person", "identifier", "orcid", Item.ANY);
                 if (orcid != null) {
                     return true;
                 } else {
@@ -49,7 +50,8 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
             } else {
                 // if it is of type publication use doi
                 if (entityType.equals("Publication")) {
-                    doiIdentifier = getItemService().getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
+                    doiIdentifier = getItemService()
+                            .getMetadataFirstValue(item, "dc", "identifier", "doi", Item.ANY);
                     if (doiIdentifier != null) {
                         return true;
                     } else {
@@ -64,7 +66,7 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
     }
     @Override
     public String innerHtml(Context context, Item item) {
-        String entityType = getItemService().getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
+        String entityType = getEntityType(item);
         if (entityType.equals("Person")) {
             return getTemplate(false).replace("{{refUrl}}", plumXSiteUrlPlumXSiteUrl + "?orcid=" + orcid);
         } else {
@@ -77,13 +79,14 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
     }
     protected String getTemplate(boolean general) {
         if (general) {
-            return GENERAL_TEMPLATE;
+            return PUBLICATION_TEMPLATE;
         } else {
             return PERSON_TEMPLATE;
         }
     }
     protected String getEntityType(Item item) {
-        return getItemService().getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
+        return getItemService().getMetadataFirstValue(item,
+                "dspace", "entity", "type", Item.ANY);
     }
     protected ItemService getItemService() {
         return itemService;

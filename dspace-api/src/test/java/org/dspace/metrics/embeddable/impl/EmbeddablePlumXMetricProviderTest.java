@@ -45,7 +45,7 @@ public class EmbeddablePlumXMetricProviderTest {
         when(provider.getItemService()).thenReturn(itemService);
     }
     @Test
-    public void hasMetricEmtyEntityType() {
+    public void hasMetricEmptyEntityType() {
         boolean hasMetric = provider.hasMetric(context, item, null);
         assertFalse(hasMetric);
     }
