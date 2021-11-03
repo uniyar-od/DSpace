@@ -163,7 +163,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
     }
     /***
      * Create a new workspace item.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -209,7 +209,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Remove an item.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -249,7 +249,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Add some metadata to an existing item. Old metadata are cleared.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -305,7 +305,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Add some metadata to an existing item. Old metadata are kept.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -365,7 +365,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create some new workspace items.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -413,7 +413,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Complex example: some insert, followed by some deletion and updates.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -627,7 +627,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Test bitstream creation with one metadata. Embargo group is not set.
-     * 
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
@@ -718,7 +718,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
     /***
      * Test bitstream creation with one metadata. Embargo group is set to
      * administrator.
-     * 
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
@@ -809,9 +809,9 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * Test bitstream creation with one metadata. Embargo group is set to
      * administrator. Embargo start date is set to a valid data in format
      * dd/MM/yyyy.
-     * 
+     *
      * @See {@link SimpleDateFormat}
-     * 
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
@@ -905,7 +905,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Start workflow.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -979,7 +979,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Reinstate an item.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -1137,6 +1137,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Test
     public void testDSpaceEntityTypeIsKeeped() throws SQLException {
 
         context.turnOffAuthorisationSystem();
@@ -1185,7 +1186,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create an ImpRecord.
-     * 
+     *
      * @param context      The context
      * @param impRecordKey The key
      * @param eperson      The submitter
@@ -1211,7 +1212,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create a Metadata of ImpRecord
-     * 
+     *
      * @param context             The context
      * @param impRecordKey        The ImpRecord key
      * @param schema              The schema
@@ -1254,7 +1255,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create a Metadata of ImpRecord
-     * 
+     *
      * @param context          The context
      * @param impRecordKey     The ImpRecord key
      * @param impBitstreamSeq   The impBitstream key
@@ -1298,7 +1299,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create a Metadata of ImpRecord
-     * 
+     *
      * @param context                      The context
      * @param schema                       The schema
      * @param qualifier                    The qualifier
