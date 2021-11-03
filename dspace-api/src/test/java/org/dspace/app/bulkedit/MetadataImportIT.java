@@ -23,6 +23,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EntityTypeBuilder;
@@ -42,6 +43,7 @@ import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.scripts.configuration.ScriptConfiguration;
 import org.dspace.scripts.factory.ScriptServiceFactory;
 import org.dspace.scripts.service.ScriptService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,6 +73,16 @@ public class MetadataImportIT extends AbstractIntegrationTestWithDatabase {
         this.personCollection = CollectionBuilder.createCollection(context, community)
                                                  .withEntityType("Person")
                                                  .build();
+        context.restoreAuthSystemState();
+    }
+
+    @After
+    public void after() throws SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        List<Relationship> relationships = relationshipService.findAll(context);
+        for (Relationship relationship : relationships) {
+            relationshipService.delete(context, relationship);
+        }
         context.restoreAuthSystemState();
     }
 
