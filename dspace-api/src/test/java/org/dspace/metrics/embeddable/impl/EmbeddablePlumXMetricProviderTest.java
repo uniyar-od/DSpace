@@ -13,6 +13,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import com.google.gson.JsonObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -21,6 +22,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+
 /**
  * Unit tests for EmbeddablePlumXMetricProvider.
  *
@@ -36,14 +38,15 @@ public class EmbeddablePlumXMetricProviderTest {
     Context context;
     @Mock
     Item item;
+
     @Before
     public void setUp() throws Exception {
-        when(provider.getTemplate(true)).thenCallRealMethod();
-        when(provider.getTemplate(false)).thenCallRealMethod();
         when(provider.innerHtml(any(), any())).thenCallRealMethod();
+        when(provider.getEntityType(any())).thenCallRealMethod();
         when(provider.hasMetric(any(), any(), any())).thenCallRealMethod();
         when(provider.getItemService()).thenReturn(itemService);
     }
+
     @Test
     public void hasMetricEmptyEntityType() {
         boolean hasMetric = provider.hasMetric(context, item, null);
@@ -91,17 +94,15 @@ public class EmbeddablePlumXMetricProviderTest {
         provider.orcid = "0000-0002-9029-1854";
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Person");
         String template = provider.innerHtml(context, item);
-        assertEquals(template, "<a href = 'https://plu.mx/plum/u/?orcid=0000-0002-9029-1854' class = 'plumx-person'" +
-                " data-site='plum' data-num-artifacts='5'" + ">" +
-                "</a>" +
-                "<script type = 'text/javascript' src='//cdn.plu.mx/widget-person.js'></script>");
+        JsonObject verificationJson = new JsonObject();
+        assertEquals(template, "{\"type\":\"Person\",\"src\":\"//cdn.plu.mx/widget-person.js\",\"href\":\"https://plu.mx/plum/u/?orcid=" + provider.orcid + "\"}");
     }
+
     @Test
     public void innerHtmlForPublicationItem() {
         provider.doiIdentifier = "10.1016/j.gene.2009.04.019";
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Publication");
         String template = provider.innerHtml(context, item);
-        assertEquals(template,  "<a href ='https://plu.mx/plum/a/?doi=10.1016/j.gene.2009.04.019' class = 'plumx-plum-print-popup'" + "></a>" +
-                "<script type = 'text/javascript' src= '//cdn.plu.mx/widget-popup.js'></script>");
+        assertEquals(template, "{\"type\":\"Publication\",\"src\":\"//cdn.plu.mx/widget-popup.js\",\"href\":\"https://plu.mx/plum/a/?doi=" + provider.doiIdentifier + "\"}");
     }
 }

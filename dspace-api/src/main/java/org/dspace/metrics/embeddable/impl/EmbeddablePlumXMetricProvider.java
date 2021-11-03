@@ -9,34 +9,44 @@ package org.dspace.metrics.embeddable.impl;
 
 import java.util.List;
 
+import com.google.gson.JsonObject;
 import org.dspace.app.metrics.CrisMetrics;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
+
 /**
  * Provider class for plumX metric widget
  *
  * @author Alba Aliu (alba.aliu at atis.al)
  */
 public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvider {
-    private static final String PERSON_TEMPLATE =
-            "<a href = '{{refUrl}}' class = 'plumx-person'" +
-                    " data-site='plum' data-num-artifacts='5'" + ">" +
-                    "</a>" +
-                    "<script type = 'text/javascript' src='//cdn.plu.mx/widget-person.js'></script>";
-    private static final String PUBLICATION_TEMPLATE =
-            "<a href ='{{refUrl}}' class = 'plumx-plum-print-popup'" + "></a>" +
-                    "<script type = 'text/javascript' src= '//cdn.plu.mx/widget-popup.js'></script>";
-    private static final String plumXSiteUrlPlumXSiteUrlGeneral = "https://plu.mx/plum/a/";
-    private static final String plumXSiteUrlPlumXSiteUrl = "https://plu.mx/plum/u/";
+    /**
+     * Script to render widget for persons
+     */
+    private final String personPlumXScript = "//cdn.plu.mx/widget-person.js";
+    /**
+     * Script to render widget for publication
+     */
+    private final String publicationPlumXScript = "//cdn.plu.mx/widget-popup.js";
+    /**
+     * Href link for publication researches
+     */
+    private static final String publicationHref = "https://plu.mx/plum/a/";
+    /**
+     * Href link for persons
+     */
+    private static final String personHref = "https://plu.mx/plum/u/";
+
     @Autowired
     private ItemService itemService;
     String doiIdentifier;
     String orcid;
+
     @Override
     public boolean hasMetric(Context context, Item item, List<CrisMetrics> retrivedStoredMetrics) {
-        String entityType =  getEntityType(item);
+        String entityType = getEntityType(item);
         if (entityType != null) {
             if (entityType.equals("Person")) {
                 // if it is of type person use orcid
@@ -64,30 +74,32 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
         }
         return false;
     }
+
     @Override
     public String innerHtml(Context context, Item item) {
+        JsonObject innerHtml = new JsonObject();
         String entityType = getEntityType(item);
+        innerHtml.addProperty("type", entityType);
         if (entityType.equals("Person")) {
-            return getTemplate(false).replace("{{refUrl}}", plumXSiteUrlPlumXSiteUrl + "?orcid=" + orcid);
+            innerHtml.addProperty("src", personPlumXScript);
+            innerHtml.addProperty("href", personHref + "?orcid=" + orcid);
         } else {
-            return getTemplate(true).replace("{{refUrl}}", plumXSiteUrlPlumXSiteUrlGeneral + "?doi=" + doiIdentifier);
+            innerHtml.addProperty("src", publicationPlumXScript);
+            innerHtml.addProperty("href", publicationHref + "?doi=" + doiIdentifier);
         }
+        return innerHtml.toString();
     }
+
     @Override
     public String getMetricType() {
         return "plumX";
     }
-    protected String getTemplate(boolean general) {
-        if (general) {
-            return PUBLICATION_TEMPLATE;
-        } else {
-            return PERSON_TEMPLATE;
-        }
-    }
+
     protected String getEntityType(Item item) {
         return getItemService().getMetadataFirstValue(item,
                 "dspace", "entity", "type", Item.ANY);
     }
+
     protected ItemService getItemService() {
         return itemService;
     }
