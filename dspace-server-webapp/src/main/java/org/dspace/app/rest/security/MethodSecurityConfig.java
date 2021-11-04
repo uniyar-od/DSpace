@@ -9,9 +9,9 @@ package org.dspace.app.rest.security;
 
 import java.util.Optional;
 
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.LocalVariableTableParameterNameDiscoverer;
 import org.springframework.security.access.PermissionEvaluator;
@@ -36,7 +36,7 @@ import org.springframework.security.config.annotation.method.configuration.Globa
 public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
 
     @Autowired
-    private BeanFactory context;
+    private ApplicationContext context;
 
     private DefaultMethodSecurityExpressionHandler expressionHandler;
 
@@ -44,6 +44,7 @@ public class MethodSecurityConfig extends GlobalMethodSecurityConfiguration {
     protected MethodSecurityExpressionHandler createExpressionHandler() {
         this.expressionHandler = new DefaultMethodSecurityExpressionHandler();
         this.expressionHandler.setParameterNameDiscoverer(new LocalVariableTableParameterNameDiscoverer());
+        this.expressionHandler.setApplicationContext(context);
         return expressionHandler;
     }
 
