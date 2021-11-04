@@ -3694,9 +3694,6 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     public void findAuthorizedCollectionsByEntityType() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType journal = EntityTypeBuilder.createEntityTypeBuilder(context, "Journal").build();
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
@@ -3710,25 +3707,25 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
                                                   .build();
 
         Collection col1 = CollectionBuilder.createCollection(context, subCommunityA)
-                                           .withEntityType(journal.getLabel())
+                                           .withEntityType(journalType.getLabel())
                                            .withName("Collection 1")
                                            .withAdminGroup(eperson)
                                            .build();
 
         Collection col2 = CollectionBuilder.createCollection(context, subCommunityB)
-                                           .withEntityType(journal.getLabel())
+                                           .withEntityType(journalType.getLabel())
                                            .withName("Collection 2")
                                            .withAdminGroup(eperson)
                                            .build();
 
         CollectionBuilder.createCollection(context, subCommunityA)
-                         .withEntityType(publication.getLabel())
+                         .withEntityType(publicationType.getLabel())
                          .withName("Collection 3")
                          .withAdminGroup(eperson)
                          .build();
 
         CollectionBuilder.createCollection(context, subCommunityA)
-                         .withEntityType(journal.getLabel())
+                         .withEntityType(journalType.getLabel())
                          .withName("Collection 4")
                          .build();
 
@@ -3736,7 +3733,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
 
         String ePersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(ePersonToken).perform(get("/api/core/collections/search/findSubmitAuthorizedByEntityType")
-                               .param("entityType", journal.getLabel()))
+                               .param("entityType", journalType.getLabel()))
                                .andExpect(status().isOk())
                                .andExpect(content().contentType(contentType))
                                .andExpect(jsonPath("$.page.totalElements", equalTo(2)))
@@ -3750,14 +3747,12 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     public void findSubmitAuthorizedByEntityTypeNotFoundTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType journal = EntityTypeBuilder.createEntityTypeBuilder(context, "Journal").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
 
         CollectionBuilder.createCollection(context, parentCommunity)
-                         .withEntityType(journal.getLabel())
+                         .withEntityType(journalType.getLabel())
                          .withName("Collection 1")
                          .withAdminGroup(eperson)
                          .build();
@@ -3780,13 +3775,11 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     public void findAuthorizedCollectionsByEntityTypeEmptyResponseTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         context.restoreAuthSystemState();
 
         String ePersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(ePersonToken).perform(get("/api/core/collections/search/findSubmitAuthorizedByEntityType")
-                               .param("entityType", publication.getLabel()))
+                               .param("entityType", publicationType.getLabel()))
                                .andExpect(status().isOk())
                                .andExpect(content().contentType(contentType))
                                .andExpect(jsonPath("$.page.totalElements", equalTo(0)));
@@ -3795,9 +3788,6 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     @Test
     public void findAuthorizedCollectionsByEntityAndQueryType() throws Exception {
         context.turnOffAuthorisationSystem();
-
-        EntityType journal = EntityTypeBuilder.createEntityTypeBuilder(context, "Journal").build();
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -3812,25 +3802,25 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
                                                   .build();
 
         Collection col1 = CollectionBuilder.createCollection(context, subCommunityA)
-                                           .withEntityType(journal.getLabel())
+                                           .withEntityType(journalType.getLabel())
                                            .withName("Thesis Collection")
                                            .withAdminGroup(eperson)
                                            .build();
 
         CollectionBuilder.createCollection(context, subCommunityB)
-                         .withEntityType(journal.getLabel())
+                         .withEntityType(journalType.getLabel())
                          .withName("Work Collection")
                          .withAdminGroup(eperson)
                          .build();
 
         CollectionBuilder.createCollection(context, subCommunityA)
-                         .withEntityType(publication.getLabel())
+                         .withEntityType(publicationType.getLabel())
                          .withName("Thesis")
                          .withAdminGroup(eperson)
                          .build();
 
         CollectionBuilder.createCollection(context, subCommunityA)
-                         .withEntityType(journal.getLabel())
+                         .withEntityType(journalType.getLabel())
                          .withName("Collection 1")
                          .build();
 
@@ -3838,7 +3828,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
 
         String ePersonToken = getAuthToken(eperson.getEmail(), password);
         getClient(ePersonToken).perform(get("/api/core/collections/search/findSubmitAuthorizedByEntityType")
-                               .param("entityType", journal.getLabel())
+                               .param("entityType", journalType.getLabel())
                                .param("query", "Thesis"))
                                .andExpect(status().isOk())
                                .andExpect(content().contentType(contentType))
@@ -3851,8 +3841,6 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     @Test
     public void findSubmitAuthorizedCollectionsByCommunityAndEntityTest() throws Exception {
         context.turnOffAuthorisationSystem();
-
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -3867,19 +3855,19 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
                                            .build();
 
         CollectionBuilder.createCollection(context, child1)
-                         .withEntityType(publication.getLabel())
+                         .withEntityType(publicationType.getLabel())
                          .withName("Test Collection 1")
                          .withSubmitterGroup(eperson)
                          .build();
 
         Collection col2 = CollectionBuilder.createCollection(context, child2)
-                                           .withEntityType(publication.getLabel())
+                                           .withEntityType(publicationType.getLabel())
                                            .withName("Publication Collection 2")
                                            .withSubmitterGroup(eperson)
                                            .build();
 
         Collection col3 = CollectionBuilder.createCollection(context, child2)
-                                           .withEntityType(publication.getLabel())
+                                           .withEntityType(publicationType.getLabel())
                                            .withName("Publication Collection 3")
                                            .withSubmitterGroup(eperson)
                                            .build();
@@ -3895,7 +3883,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
 
         getClient(token).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunityAndEntityType")
                         .param("uuid", child2.getID().toString())
-                        .param("entityType", publication.getLabel()))
+                        .param("entityType", publicationType.getLabel()))
                         .andExpect(status().isOk())
                         .andExpect(content().contentType(contentType))
                         .andExpect(jsonPath("$.page.totalElements", equalTo(2)))
@@ -3910,27 +3898,24 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     public void findSubmitAuthorizedCollectionsByCommunityAndEntityWithQueryTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType journal = EntityTypeBuilder.createEntityTypeBuilder(context, "Journal").build();
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
-                                           .withEntityType(journal.getLabel())
+                                           .withEntityType(journalType.getLabel())
                                            .withName("Test Collection 1")
                                            .withSubmitterGroup(eperson)
                                            .build();
 
         Collection col2 = CollectionBuilder.createCollection(context, parentCommunity)
-                                           .withEntityType(journal.getLabel())
+                                           .withEntityType(journalType.getLabel())
                                            .withName("Publication Collection 2")
                                            .withSubmitterGroup(eperson)
                                            .build();
 
         Collection col3 = CollectionBuilder.createCollection(context, parentCommunity)
-                                           .withEntityType(publication.getLabel())
+                                           .withEntityType(publicationType.getLabel())
                                            .withName("Publication Collection 3 Test")
                                            .withSubmitterGroup(eperson)
                                            .build();
@@ -3945,7 +3930,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunityAndEntityType")
                         .param("uuid", parentCommunity.getID().toString())
-                        .param("entityType", journal.getLabel())
+                        .param("entityType", journalType.getLabel())
                         .param("query", "test"))
                 .andExpect(status().isOk()).andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.page.totalElements", equalTo(1)))
@@ -3955,7 +3940,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
 
         getClient(token).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunityAndEntityType")
                         .param("uuid", parentCommunity.getID().toString())
-                        .param("entityType", publication.getLabel())
+                        .param("entityType", publicationType.getLabel())
                         .param("query", "publication"))
                 .andExpect(status().isOk()).andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.page.totalElements", equalTo(1)))
@@ -3969,14 +3954,12 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     public void findSubmitAuthorizedAllCollectionsByCommunityAndEntityBadRequestTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
 
         CollectionBuilder.createCollection(context, parentCommunity)
-                         .withEntityType(publication.getLabel())
+                         .withEntityType(publicationType.getLabel())
                          .withName("Test Collection 1")
                          .withSubmitterGroup(eperson)
                          .build();
@@ -3994,7 +3977,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
 
         // missing community uuid param
         getClient(token).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunityAndEntityType")
-                        .param("entityType", publication.getLabel()))
+                        .param("entityType", publicationType.getLabel()))
                         .andExpect(status().isBadRequest());
     }
 
@@ -4002,14 +3985,12 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
     public void findSubmitAuthorizedByCommunityAndEntityTypeNotFoundTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
-        EntityType publication = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
 
         CollectionBuilder.createCollection(context, parentCommunity)
-                         .withEntityType(publication.getLabel())
+                         .withEntityType(publicationType.getLabel())
                          .withName("Test Collection 1")
                          .withSubmitterGroup(eperson)
                          .build();
@@ -4018,7 +3999,7 @@ public class CollectionRestRepositoryIT extends AbstractControllerIntegrationTes
 
         String token = getAuthToken(eperson.getEmail(), password);
         getClient(token).perform(get("/api/core/collections/search/findSubmitAuthorizedByCommunityAndEntityType")
-                        .param("entityType", publication.getLabel())
+                        .param("entityType", publicationType.getLabel())
                         .param("uuid", UUID.randomUUID().toString()))
                         .andExpect(status().isNotFound());
 

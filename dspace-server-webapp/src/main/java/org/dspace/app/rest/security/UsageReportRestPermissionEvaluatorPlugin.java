@@ -77,8 +77,6 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
                 } else {
                     return false;
                 }
-                // Get uuid from uuidDSO_reportId pathParam
-                uuidObject = UUID.fromString(StringUtils.substringBefore(targetId.toString(), "_"));
             } else if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "search", targetType)) {
                 // Get uuid from url (selfLink of dso) queryParam
                 uuidObject = UUID.fromString(StringUtils.substringAfterLast(targetId.toString(), "/"));
@@ -95,7 +93,8 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
             } catch (SQLException e) {
                 log.error(e.getMessage(), e);
             }
+            return true;
         }
-        return true;
+        return false;
     }
 }
