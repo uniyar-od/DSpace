@@ -1137,6 +1137,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Test
     public void testDSpaceEntityTypeIsKeeped() throws SQLException {
 
         context.turnOffAuthorisationSystem();
