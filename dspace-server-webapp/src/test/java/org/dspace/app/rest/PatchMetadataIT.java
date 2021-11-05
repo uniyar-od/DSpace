@@ -35,6 +35,7 @@ import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractEntityIntegrationTest;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -44,10 +45,12 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.hamcrest.Matcher;
@@ -65,6 +68,9 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
 
     @Autowired
     private RelationshipTypeService relationshipTypeService;
+
+    @Autowired
+    private RelationshipService relationshipService;
 
     @Autowired
     private EntityTypeService entityTypeService;
@@ -87,9 +93,6 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
 
     private List<MetadataValue> authorsMetadataOriginalOrder;
 
-    private AtomicReference<Integer> idRef1;
-    private AtomicReference<Integer> idRef2;
-
     private String addedAuthor;
     private String replacedAuthor;
 
@@ -105,10 +108,12 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
         collection = CollectionBuilder.createCollection(context, community)
                 .withName("Collection")
                 .withEntityType("Person")
+                .withSubmissionDefinition("traditional")
                 .build();
         collection2 = CollectionBuilder.createCollection(context, community)
                 .withName("Collection")
                 .withEntityType("Publication")
+                .withSubmissionDefinition("traditional")
                 .build();
 
         context.restoreAuthSystemState();
@@ -117,8 +122,8 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
     @After
     @Override
     public void destroy() throws Exception {
+        cleanupRelations();
         super.destroy();
-        cleanupPersonRelations();
     }
 
     /**
@@ -158,7 +163,6 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
                 .build();
         publicationWorkspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection2)
                                                        .withTitle("Publication 1")
-                                                       .withEntityType("Publication")
                                                        .build();
         publicationPersonRelationshipType = relationshipTypeService.findbyTypesAndTypeName(context,
                 entityTypeService.findByEntityType(context, "Publication"),
@@ -177,15 +181,13 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
         context.restoreAuthSystemState();
 
         // Create a relationship between publication and person 1
-        idRef1 = new AtomicReference<>();
         getClient(adminToken).perform(post("/api/core/relationships")
                 .param("relationshipType", publicationPersonRelationshipType.getID().toString())
                 .contentType(MediaType.parseMediaType
                         (org.springframework.data.rest.webmvc.RestMediaTypes.TEXT_URI_LIST_VALUE))
                 .content("https://localhost:8080/server/api/core/items/" + publicationWorkspaceItem.getItem().getID() + "\n" +
                                 "https://localhost:8080/server/api/core/items/" + personItem1.getID()))
-                .andExpect(status().isCreated())
-                .andDo(result -> idRef1.set(read(result.getResponse().getContentAsString(), "$.id")));
+            .andExpect(status().isCreated());
         context.turnOffAuthorisationSystem();
 
         // Add two more regular authors
@@ -255,19 +257,18 @@ public class PatchMetadataIT extends AbstractEntityIntegrationTest {
     }
 
     /**
-     * Clean up created Person Relationshipts
+     * Clean up created Relationshipts
      * @throws IOException
      * @throws SQLException
+     * @throws AuthorizeException
      */
-    private void cleanupPersonRelations() throws IOException, SQLException {
-        if (idRef1 != null) {
-            RelationshipBuilder.deleteRelationship(idRef1.get());
-            idRef1 = null;
+    private void cleanupRelations() throws IOException, SQLException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        List<Relationship> relationships = relationshipService.findAll(context);
+        for (Relationship relationship : relationships) {
+            relationshipService.delete(context, relationship);
         }
-        if (idRef2 != null) {
-            RelationshipBuilder.deleteRelationship(idRef2.get());
-            idRef2 = null;
-        }
+        context.restoreAuthSystemState();
     }
 
     /**
