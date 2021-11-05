@@ -520,16 +520,18 @@ public class EntityTypeRestRepositoryIT extends AbstractEntityIntegrationTest {
                             .andExpect(status().isOk())
                             .andExpect(jsonPath("$._embedded.entitytypes", containsInAnyOrder(
                                        EntityTypeMatcher.matchEntityTypeEntry(publication),
+                                       EntityTypeMatcher.matchEntityTypeEntry(funding),
                                        EntityTypeMatcher.matchEntityTypeEntry(project))))
-                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
+                            .andExpect(jsonPath("$.page.totalElements", Matchers.is(3)));
 
             getClient(adminToken).perform(get("/api/core/entitytypes/search/findAllByAuthorizedExternalSource"))
                                  .andExpect(status().isOk())
                                  .andExpect(jsonPath("$._embedded.entitytypes", containsInAnyOrder(
                                             EntityTypeMatcher.matchEntityTypeEntry(project),
                                             EntityTypeMatcher.matchEntityTypeEntry(orgUnit),
+                                            EntityTypeMatcher.matchEntityTypeEntry(funding),
                                             EntityTypeMatcher.matchEntityTypeEntry(publication))))
-                                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(3)));
+                                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(4)));
 
         } finally {
             ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("mock"))

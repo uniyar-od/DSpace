@@ -566,6 +566,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
+            .withEntityType("Publication")
             .build();
 
         Item item = ItemBuilder.createItem(context, col1)
@@ -584,7 +585,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         parameters.add(new DSpaceCommandLineParameter("-n", xml.getAbsolutePath()));
         parameters.add(new DSpaceCommandLineParameter("-i", item.getID().toString()));
-        parameters.add(new DSpaceCommandLineParameter("-f", "person-xml"));
+        parameters.add(new DSpaceCommandLineParameter("-f", "publication-cerif-xml"));
 
         List<ParameterValueRest> list = parameters.stream()
             .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter

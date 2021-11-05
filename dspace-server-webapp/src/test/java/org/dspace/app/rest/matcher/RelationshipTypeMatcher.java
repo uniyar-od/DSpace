@@ -11,7 +11,6 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 
 import java.util.Optional;
 
@@ -91,12 +90,8 @@ public class RelationshipTypeMatcher {
             hasJsonPath("$.rightMaxCardinality", is(rightMaxCardinality)),
             hasJsonPath("$.type", is("relationshiptype")),
             hasJsonPath("$._links.self.href", containsString("/api/core/relationshiptypes/" + id)),
-            hasJsonPath("$._embedded.leftType", leftEntityTypeId == null ? nullValue()
-                : allOf(EntityTypeMatcher.matchEntityTypeExplicitValuesEntry(leftEntityTypeId, leftEntityTypeLabel)
-            )),
-            hasJsonPath("$._embedded.rightType", rightEntityTypeId == null ? nullValue()
-                : is(EntityTypeMatcher.matchEntityTypeExplicitValuesEntry(rightEntityTypeId, rightEntityTypeLabel)
-            ))
+            hasJsonPath("$._links.leftType.href", containsString("/api/core/entitytypes/" + leftEntityTypeId)),
+            hasJsonPath("$._links.rightType.href", containsString("/api/core/entitytypes/" + rightEntityTypeId))
         );
     }
 
