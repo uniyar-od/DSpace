@@ -6422,7 +6422,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         try {
             getClient(authToken).perform(fileUpload("/api/submission/workspaceitems")
-                                .file(pdfFile))
+                                .file(pdfFile)
+                                .param("owningCollection", col.getID().toString()))
                                 .andExpect(status().is(500));
         } finally {
             pdf.close();
