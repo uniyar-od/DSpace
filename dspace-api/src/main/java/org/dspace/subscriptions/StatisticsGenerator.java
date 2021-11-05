@@ -51,13 +51,19 @@ public class StatisticsGenerator implements SubscriptionGenerator<CrisMetrics> {
         try {
             // send the notification to the user
             if (ePerson != null) {
-                File attachment = generateExcel(crisMetricsList, c);
                 Email email = new Email();
-                email.addAttachment(attachment, "subscriptions.xlsx");
-                email.addRecipient(ePerson.getEmail());
                 String name = configurationService.getProperty("dspace.name");
-                email.setContent("intro", "This automatic email is sent by " +
-                    name + " based on the subscribed statistics updates.");
+                if (crisMetricsList.size() > 0) {
+                    File attachment = generateExcel(crisMetricsList, c);
+                    email.addAttachment(attachment, "subscriptions.xlsx");
+                    email.setContent("intro", "This automatic email is sent by " +
+                            name + " based on the subscribed statistics updates.");
+                } else {
+                    email.setContent("intro", "This automatic email is sent by " +
+                            name + " based on the subscribed statistics" +
+                            " updates.\n\nNo updates.");
+                }
+                email.addRecipient("alba.aliu@atis.al");
                 email.send();
             }
         } catch (Exception ex) {
