@@ -8,6 +8,7 @@
 package org.dspace.layout.service.impl;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -24,6 +25,7 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBox;
+import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.dao.CrisLayoutTabDAO;
 import org.dspace.layout.service.CrisLayoutBoxAccessService;
@@ -205,9 +207,7 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
         if (CollectionUtils.isEmpty(tabs)) {
             return Collections.emptyList();
         }
-
         return tabs.stream()
-                   .filter(t -> CollectionUtils.isNotEmpty(t.getTab2Box()))
                    .filter(t -> tabGrantedAccess(context, t, item))
                    .filter(t -> hasABoxToDisplay(context, t, item))
                    .collect(Collectors.toList());
@@ -217,9 +217,14 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
                                      Item item) {
         Predicate<CrisLayoutBox> isGranted = box -> boxGrantedAccess(context, item, box);
         Predicate<CrisLayoutBox> hasContent = box -> boxService.hasContent(context, box, item, item.getMetadata());
-        return tab.getTab2Box().stream()
-                  .map(t2b -> t2b.getBox())
-                  .anyMatch(isGranted.and(hasContent));
+
+        return tab.getCrisLayoutRow().stream()
+                .map(crisLayoutRow -> crisLayoutRow.getCells().stream()
+                        .map(CrisLayoutCell::getBoxes)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()))
+                .flatMap(Collection::stream)
+                .anyMatch(isGranted.and(hasContent));
     }
 
     private boolean boxGrantedAccess(Context context, Item item, CrisLayoutBox box) {

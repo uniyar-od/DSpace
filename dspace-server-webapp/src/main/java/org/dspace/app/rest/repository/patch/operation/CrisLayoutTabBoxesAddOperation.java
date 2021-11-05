@@ -69,9 +69,9 @@ public class CrisLayoutTabBoxesAddOperation<D> extends PatchOperation<D> {
                     CrisLayoutBox box = objectMapper.treeToValue(value, CrisLayoutBox.class);
                     boxes.add(box);
                 }
-                for (CrisLayoutBox box: boxes) {
-                    tab.addBox(box);
-                }
+//                for (CrisLayoutBox box: boxes) {
+//                    tab.addBox(box);
+//                }
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }
@@ -93,10 +93,10 @@ public class CrisLayoutTabBoxesAddOperation<D> extends PatchOperation<D> {
 
     /**
      * Checks whether the boxes of Tab has an existing value to remove
-     * @param CrisLayoutTab Object on which patch is being done
+     * @param tab Object on which patch is being done
      */
     private void checkModelForExistingValue(CrisLayoutTab tab) {
-        if (tab.getTab2Box() == null) {
+        if (tab.getCrisLayoutRow() == null) {
             throw new DSpaceBadRequestException("Attempting to remove a non-existent value.");
         }
     }

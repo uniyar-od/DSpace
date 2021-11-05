@@ -123,16 +123,8 @@ public class CrisLayoutTabBuilder extends AbstractBuilder<CrisLayoutTab, CrisLay
         this.tab.setSecurity(security);
         return this;
     }
-
-    public CrisLayoutTabBuilder withBoxes(List<CrisLayoutBox> boxes) {
-        for (CrisLayoutBox box: boxes) {
-            this.tab.addBox(box);
-        }
-        return this;
-    }
-
     public CrisLayoutTabBuilder addBox(CrisLayoutBox box) {
-        this.tab.addBox(box);
+//        this.tab.addBox(box);
         return this;
     }
 

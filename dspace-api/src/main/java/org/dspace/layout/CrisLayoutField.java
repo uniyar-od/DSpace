@@ -71,6 +71,10 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "crisLayoutField", cascade = CascadeType.ALL)
     @OrderBy(value = "priority")
     private List<CrisMetadataGroup> crisMetadataGroupList = new ArrayList<>();
+    @Column(name = "labelAsHeading")
+    private boolean labelAsHeading;
+    @Column(name = "valuesInline")
+    private boolean valuesInline;
     @Override
     public Integer getID() {
         return id;
@@ -157,5 +161,21 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
 
     public void setCrisMetadataGroupList(List<CrisMetadataGroup> crisMetadataGroupList) {
         this.crisMetadataGroupList = crisMetadataGroupList;
+    }
+
+    public boolean isLabelAsHeading() {
+        return labelAsHeading;
+    }
+
+    public void setLabelAsHeading(boolean labelAsHeading) {
+        this.labelAsHeading = labelAsHeading;
+    }
+
+    public boolean isValuesInline() {
+        return valuesInline;
+    }
+
+    public void setValuesInline(boolean valuesInline) {
+        this.valuesInline = valuesInline;
     }
 }

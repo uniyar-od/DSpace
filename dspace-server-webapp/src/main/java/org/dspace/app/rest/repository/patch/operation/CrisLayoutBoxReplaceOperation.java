@@ -74,9 +74,6 @@ public class CrisLayoutBoxReplaceOperation<D> extends PatchOperation<D> {
                 if (operation.getPath().equalsIgnoreCase(OPERATION_PATH.get(6))) {
                     box.setType((String) operation.getValue());
                 }
-                if (operation.getPath().equalsIgnoreCase(OPERATION_PATH.get(7))) {
-                    box.setClear(getBooleanValue(operation.getValue()));
-                }
             } catch (Exception e) {
                 throw new RuntimeException(e.getMessage(), e);
             }

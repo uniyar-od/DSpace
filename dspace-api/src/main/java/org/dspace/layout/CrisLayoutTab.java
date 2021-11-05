@@ -62,12 +62,10 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
         inverseJoinColumns = {@JoinColumn(name = "metadata_field_id")}
     )
     private Set<MetadataField> metadataSecurityFields;
-    @OneToMany(
-        mappedBy = "tab",
-        cascade = CascadeType.ALL,
-        orphanRemoval = true
-    )
-    private List<CrisLayoutTab2Box> tab2box = new ArrayList<>();
+    @Column(name = "leading")
+    private boolean leading;
+    @OneToMany(fetch = FetchType.LAZY)
+    private List<CrisLayoutRow> crisLayoutRow = new ArrayList<>();
 
     public Integer getID() {
         return id;
@@ -160,84 +158,91 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
         this.metadataSecurityFields.addAll(metadataFields);
     }
 
-    public void addBox(CrisLayoutBox box) {
-        this.addBox(box, null);
+    public boolean isLeading() {
+        return leading;
     }
 
-    public void addBox(CrisLayoutBox box, Integer position) {
-        if (this.tab2box.isEmpty()) {
-            position = 0;
-        } else if (position == null) {
-            position = 0;
-            for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
-                    it.hasNext(); ) {
-                CrisLayoutTab2Box t2b = it.next();
-                if (t2b.getPosition() >= position) {
-                    position = t2b.getPosition() + 1;
-                }
-            }
-        } else {
-            int currentPosition = -1;
-            for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
-                    it.hasNext(); ) {
-                CrisLayoutTab2Box b2f = it.next();
-                currentPosition = b2f.getPosition();
-                if (currentPosition >= position ) {
-                    b2f.setPosition(++currentPosition);
-                }
-            }
-            if (position > ++currentPosition) {
-                position = currentPosition;
-            }
-        }
-        CrisLayoutTab2Box tab2box = new CrisLayoutTab2Box(this, box, position);
-        this.tab2box.add(tab2box);
+    public void setLeading(boolean leading) {
+        this.leading = leading;
     }
 
-    public void removeBox(int boxId) {
-        boolean found = false;
-        for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
-                it.hasNext();) {
-            CrisLayoutTab2Box t2b = it.next();
-            if (found) {
-                t2b.setPosition(t2b.getPosition() - 1);
-            }
-            if (t2b.getTab().equals(this) &&
-                    t2b.getId().getCrisLayoutBoxId().equals(boxId)) {
-                it.remove();
-                t2b.getBox().getTab2box().remove(t2b);
-                t2b.setBox(null);
-                t2b.setTab(null);
-                found = true;
-            }
-        }
+    public List<CrisLayoutRow> getCrisLayoutRow() {
+        return crisLayoutRow;
     }
 
-    public void removeBox(CrisLayoutBox box) {
-        boolean found = false;
-        for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
-                it.hasNext();) {
-            CrisLayoutTab2Box t2b = it.next();
-            if (found) {
-                t2b.setPosition(t2b.getPosition() - 1);
-            }
-            if (t2b.getTab().equals(this) && t2b.getBox().equals(box)) {
-                it.remove();
-                t2b.getBox().getTab2box().remove(t2b);
-                t2b.setBox(null);
-                t2b.setTab(null);
-                found = true;
-            }
-        }
+    public void setCrisLayoutRow(List<CrisLayoutRow> crisLayoutRow) {
+        this.crisLayoutRow = crisLayoutRow;
     }
+    //    public void addBox(CrisLayoutBox box) {
+//        this.addBox(box, null);
+//    }
 
-    public List<CrisLayoutTab2Box> getTab2Box() {
-        return tab2box;
-    }
+//    public void addBox(CrisLayoutBox box, Integer position) {
+//        if (this.tab2box.isEmpty()) {
+//            position = 0;
+//        } else if (position == null) {
+//            position = 0;
+//            for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
+//                    it.hasNext(); ) {
+//                CrisLayoutTab2Box t2b = it.next();
+//                if (t2b.getPosition() >= position) {
+//                    position = t2b.getPosition() + 1;
+//                }
+//            }
+//        } else {
+//            int currentPosition = -1;
+//            for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
+//                    it.hasNext(); ) {
+//                CrisLayoutTab2Box b2f = it.next();
+//                currentPosition = b2f.getPosition();
+//                if (currentPosition >= position ) {
+//                    b2f.setPosition(++currentPosition);
+//                }
+//            }
+//            if (position > ++currentPosition) {
+//                position = currentPosition;
+//            }
+//        }
+//        CrisLayoutTab2Box tab2box = new CrisLayoutTab2Box(this, box, position);
+//        this.tab2box.add(tab2box);
+//    }
 
-    public void setTab2Box(List<CrisLayoutTab2Box> tab2Box) {
-        this.tab2box = tab2Box;
-    }
+//    public void removeBox(int boxId) {
+//        boolean found = false;
+//        for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
+//                it.hasNext();) {
+//            CrisLayoutTab2Box t2b = it.next();
+//            if (found) {
+//                t2b.setPosition(t2b.getPosition() - 1);
+//            }
+//            if (t2b.getTab().equals(this) &&
+//                    t2b.getId().getCrisLayoutBoxId().equals(boxId)) {
+//                it.remove();
+//                t2b.getBox().getTab2box().remove(t2b);
+//                t2b.setBox(null);
+//                t2b.setTab(null);
+//                found = true;
+//            }
+//        }
+//    }
+//
+//    public void removeBox(CrisLayoutBox box) {
+//        boolean found = false;
+//        for (Iterator<CrisLayoutTab2Box> it = this.tab2box.iterator();
+//             it.hasNext(); ) {
+//            CrisLayoutTab2Box t2b = it.next();
+//            if (found) {
+//                t2b.setPosition(t2b.getPosition() - 1);
+//            }
+//            if (t2b.getTab().equals(this) && t2b.getBox().equals(box)) {
+//                it.remove();
+//                t2b.getBox().getTab2box().remove(t2b);
+//                t2b.setBox(null);
+//                t2b.setTab(null);
+//                found = true;
+//            }
+//        }
+//    }
 
     @Override
     public int hashCode() {
@@ -276,4 +281,5 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
         }
         return true;
     }
+
 }

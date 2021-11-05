@@ -77,17 +77,15 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
             orphanRemoval = true
     )
     private List<CrisLayoutMetric2Box> metric2box;
-    @OneToMany(
-            mappedBy = "box",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<CrisLayoutTab2Box> tab2box = new ArrayList<>();
-    @Column(name = "clear")
-    private Boolean clear;
     @Column(name = "max_columns")
     private Integer maxColumns = null;
-
+    @ManyToOne
+    @JoinColumn(name = "cell")
+    private CrisLayoutCell crisLayoutCell;
+    @Column(name = "position")
+    private int position;
+    @Column(name = "container")
+    private boolean container;
     @Override
     public Integer getID() {
         return id;
@@ -227,14 +225,6 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         this.layoutFields = layoutFields;
     }
 
-    public Boolean getClear() {
-        return clear;
-    }
-
-    public void setClear(Boolean clear) {
-        this.clear = clear;
-    }
-
     public Integer getMaxColumns() {
         return maxColumns;
     }
@@ -251,12 +241,28 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         this.metric2box = box2metric;
     }
 
-    public List<CrisLayoutTab2Box> getTab2box() {
-        return tab2box;
+    public CrisLayoutCell getCrisLayoutCell() {
+        return crisLayoutCell;
     }
 
-    public void setTab2box(List<CrisLayoutTab2Box> tab2box) {
-        this.tab2box = tab2box;
+    public void setCrisLayoutCell(CrisLayoutCell crisLayoutCell) {
+        this.crisLayoutCell = crisLayoutCell;
+    }
+
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
+    public boolean isContainer() {
+        return container;
+    }
+
+    public void setContainer(boolean container) {
+        this.container = container;
     }
 
     @Override

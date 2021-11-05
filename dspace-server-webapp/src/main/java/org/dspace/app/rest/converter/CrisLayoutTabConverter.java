@@ -75,12 +75,12 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
         tab.setSecurity(LayoutSecurity.valueOf(rest.getSecurity()));
         tab.setShortName(rest.getShortname());
         tab.setEntity(eType);
-        if (rest.getBoxes() != null && rest.getBoxes().size() > 0) {
-            List<CrisLayoutBox> boxes = new ArrayList<>();
-            for (CrisLayoutBoxRest boxRest: rest.getBoxes()) {
-                tab.addBox( boxConverter.toModel(context, boxRest) );
-            }
-        }
+//        if (rest.getBoxes() != null && rest.getBoxes().size() > 0) {
+//            List<CrisLayoutBox> boxes = new ArrayList<>();
+//            for (CrisLayoutBoxRest boxRest: rest.getBoxes()) {
+//                tab.addBox( boxConverter.toModel(context, boxRest) );
+//            }
+//        }
         return tab;
     }
 }
