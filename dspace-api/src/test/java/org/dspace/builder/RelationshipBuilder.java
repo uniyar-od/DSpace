@@ -10,7 +10,8 @@ package org.dspace.builder;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.Relationship;
@@ -22,7 +23,7 @@ import org.dspace.discovery.SearchServiceException;
 public class RelationshipBuilder extends AbstractBuilder<Relationship, RelationshipService> {
 
     /* Log4j logger*/
-    private static final Logger log = Logger.getLogger(RelationshipBuilder.class);
+    private static final Logger log = LogManager.getLogger();
 
     private Relationship relationship;
 
@@ -107,16 +108,24 @@ public class RelationshipBuilder extends AbstractBuilder<Relationship, Relations
     public static RelationshipBuilder createRelationshipBuilder(Context context, Item leftItem, Item rightItem,
                                                                 RelationshipType relationshipType) {
 
+        return createRelationshipBuilder(context, leftItem, rightItem, relationshipType, 0, 0);
+    }
+
+    public static RelationshipBuilder createRelationshipBuilder(Context context, Item leftItem, Item rightItem,
+                                                                RelationshipType relationshipType,
+                                                                int leftPlace, int rightPlace) {
+
         RelationshipBuilder relationshipBuilder = new RelationshipBuilder(context);
-        return relationshipBuilder.create(context, leftItem, rightItem, relationshipType);
+        return relationshipBuilder.create(context, leftItem, rightItem, relationshipType, leftPlace, rightPlace);
     }
 
     private RelationshipBuilder create(Context context, Item leftItem, Item rightItem,
-                                       RelationshipType relationshipType) {
+                                       RelationshipType relationshipType, int leftPlace, int rightPlace) {
         this.context = context;
 
         try {
-            relationship = relationshipService.create(context, leftItem, rightItem, relationshipType, 0, 0);
+            relationship = relationshipService
+                               .create(context, leftItem, rightItem, relationshipType, leftPlace, rightPlace);
         } catch (SQLException | AuthorizeException e) {
             log.warn("Failed to create relationship", e);
         }
@@ -136,6 +145,11 @@ public class RelationshipBuilder extends AbstractBuilder<Relationship, Relations
 
     public RelationshipBuilder withLeftPlace(int leftPlace) {
         relationship.setLeftPlace(leftPlace);
+        return this;
+    }
+
+    public RelationshipBuilder withRightPlace(int rightPlace) {
+        relationship.setRightPlace(rightPlace);
         return this;
     }
 }

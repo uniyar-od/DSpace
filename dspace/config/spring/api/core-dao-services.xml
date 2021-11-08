@@ -41,6 +41,7 @@
     <bean class="org.dspace.eperson.dao.impl.GroupDAOImpl"/>
     <bean class="org.dspace.eperson.dao.impl.RegistrationDataDAOImpl"/>
     <bean class="org.dspace.eperson.dao.impl.SubscriptionDAOImpl"/>
+    <bean class="org.dspace.eperson.dao.impl.SubscriptionParameterDAOImpl"/>
 
     <bean class="org.dspace.handle.dao.impl.HandleDAOImpl"/>
 
@@ -54,9 +55,6 @@
 
     <bean class="org.dspace.versioning.dao.impl.VersionDAOImpl"/>
     <bean class="org.dspace.versioning.dao.impl.VersionHistoryDAOImpl"/>
-
-    <bean class="org.dspace.workflowbasic.dao.impl.BasicWorkflowItemDAOImpl"/>
-    <bean class="org.dspace.workflowbasic.dao.impl.TaskListItemDAOImpl"/>
 
     <bean class="org.dspace.xmlworkflow.storedcomponents.dao.impl.ClaimedTaskDAOImpl"/>
     <bean class="org.dspace.xmlworkflow.storedcomponents.dao.impl.CollectionRoleDAOImpl"/>
@@ -76,6 +74,7 @@
     <bean class="org.dspace.layout.dao.impl.CrisLayoutTabDAOImpl" />
     <bean class="org.dspace.layout.dao.impl.CrisLayoutBoxDAOImpl" />
     <bean class="org.dspace.layout.dao.impl.CrisLayoutFieldDAOImpl" />
+    <bean class="org.dspace.layout.dao.impl.CrisLayoutMetadataGroupDAOImpl" />
     <bean class="org.dspace.layout.dao.impl.CrisLayoutMetric2BoxDAOImpl" />
     
     <!-- Orcid DAO --> 

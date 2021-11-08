@@ -34,9 +34,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class OrcidQueueSearchRestPermissionEvaluatorPlugin extends RestObjectPermissionEvaluatorPlugin {
 
-    private static final Logger log = LoggerFactory.getLogger(OrcidQueueRestPermissionEvaluatorPlugin.class);
+    private static final Logger log = LoggerFactory.getLogger(OrcidQueueAndHistoryRestPermissionEvaluatorPlugin.class);
 
-    public static final String ORCID_SEARCH = "ORCID_SEARCH";
+    public static final String ORCID_QUEUE_SEARCH = "ORCID_QUEUE_SEARCH";
 
     @Autowired
     private RequestService requestService;
@@ -52,7 +52,7 @@ public class OrcidQueueSearchRestPermissionEvaluatorPlugin extends RestObjectPer
         if (!DSpaceRestPermission.READ.equals(restPermission)) {
             return false;
         }
-        if (!targetType.equals(ORCID_SEARCH)) {
+        if (!targetType.equals(ORCID_QUEUE_SEARCH)) {
             return false;
         }
 
@@ -79,7 +79,7 @@ public class OrcidQueueSearchRestPermissionEvaluatorPlugin extends RestObjectPer
     }
 
     private boolean hasAccess(EPerson ePerson, Item owner) {
-        List<MetadataValue> values = itemService.getMetadata(owner, "cris", "owner", null, null);
+        List<MetadataValue> values = itemService.getMetadata(owner, "cris", "owner", null, Item.ANY);
         if (values.get(0).getAuthority().equals(ePerson.getID().toString())) {
             return true;
         }

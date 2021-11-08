@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.content.service.DSpaceObjectService;
@@ -55,6 +56,8 @@ public interface EPersonService extends DSpaceObjectService<EPerson>, DSpaceObje
             = new MetadataFieldName(EPERSON, "phone");
     public static final MetadataFieldName MD_LANGUAGE
             = new MetadataFieldName(EPERSON, "language");
+    public static final MetadataFieldName MD_ORCID
+            = new MetadataFieldName(EPERSON, "orcid");
 
     /**
      * Find the eperson by their email address.
@@ -227,8 +230,7 @@ public interface EPersonService extends DSpaceObjectService<EPerson>, DSpaceObje
      * EPersons. Called by delete() to determine whether the eperson can
      * actually be deleted.
      *
-     * An EPerson cannot be deleted if it exists in the item, workflowitem, or
-     * tasklistitem tables.
+     * An EPerson cannot be deleted if it exists in the item, resourcepolicy or workflow-related tables.
      *
      * @param context The relevant DSpace Context.
      * @param ePerson EPerson to find
@@ -264,4 +266,16 @@ public interface EPersonService extends DSpaceObjectService<EPerson>, DSpaceObje
      * @throws SQLException An exception that provides information on a database access error or other errors.
      */
     int countTotal(Context context) throws SQLException;
+
+    /**
+     * Find the EPerson related to the given profile item. If the given item is not
+     * a profile item, null is returned.
+     *
+     * @param  context      The relevant DSpace Context.
+     * @param  profile      the profile item to search for
+     * @return              the EPerson, if any
+     * @throws SQLException An exception that provides information on a database
+     *                      access error or other errors.
+     */
+    EPerson findByProfileItem(Context context, Item profile) throws SQLException;
 }

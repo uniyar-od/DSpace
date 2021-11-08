@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.StringTokenizer;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.xml.transform.TransformerException;
 
@@ -29,6 +30,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authority.service.AuthorityValueService;
@@ -55,6 +57,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -456,7 +459,16 @@ public class ItemImportOA {
                 }
             }
         } else {
-            itemService.clearMetadata(c, item, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+
+            String[] metadataFieldsToKeep = configurationService.getArrayProperty(
+                "dbms-import.replace.metadata-to-keep", new String[] {});
+
+            List<MetadataValue> metadataToDelete = item.getMetadata().stream()
+                .filter(metadataValue -> shouldBeDeleted(metadataValue, metadataFieldsToKeep))
+                .collect(Collectors.toList());
+
+            itemService.removeMetadataValues(c, item, metadataToDelete);
+
         }
 
         // now fill out dublin core for item
@@ -510,6 +522,11 @@ public class ItemImportOA {
 
             // UPdate visibility
         }
+    }
+
+    private boolean shouldBeDeleted(MetadataValue metadataValue, String[] metadataFieldsToKeep) {
+        String metadataField = metadataValue.getMetadataField().toString('.');
+        return !ArrayUtils.contains(metadataFieldsToKeep, metadataField);
     }
 
     /**
@@ -665,6 +682,7 @@ public class ItemImportOA {
             schema = impSchema;
         }
         language = n.getTextLang();
+        Integer securityLevel = n.getSecurityLevel();
 
         System.out.println(
                 "\tSchema: " + schema + " Element: " + element + " Qualifier: " + qualifier + " Value: " + value);
@@ -702,9 +720,19 @@ public class ItemImportOA {
         if (authority != null && authority.equalsIgnoreCase("[GUESS]")) {
             // remove placeholder
             authority = null;
-            itemService.addMetadata(c, i, schema, element, qualifier, language, value);
+            if (securityLevel == null) {
+                itemService.addMetadata(c, i, schema, element, qualifier, language, value);
+            } else {
+                itemService.addSecuredMetadata(c, i, schema, element, qualifier, language, value, null, -1,
+                    securityLevel);
+            }
         } else {
-            itemService.addMetadata(c, i, schema, element, qualifier, language, value, authority, confidence);
+            if (securityLevel == null) {
+                itemService.addMetadata(c, i, schema, element, qualifier, language, value, authority, confidence);
+            } else {
+                itemService.addSecuredMetadata(c, i, schema, element, qualifier, language, value, authority,
+                    confidence, securityLevel);
+            }
         }
     }
 

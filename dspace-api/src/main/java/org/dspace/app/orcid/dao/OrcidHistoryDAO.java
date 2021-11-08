@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.dspace.app.orcid.OrcidHistory;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.GenericDAO;
 
@@ -36,4 +37,38 @@ public interface OrcidHistoryDAO extends GenericDAO<OrcidHistory> {
      * @throws SQLException if an SQL error occurs
      */
     List<OrcidHistory> findByOwnerAndEntity(Context context, UUID ownerId, UUID entityId) throws SQLException;
+
+    /**
+     * Get the OrcidHistory records where the given item is the owner or the entity
+     *
+     * @param  context      DSpace context object
+     * @param  item         the item to search for
+     * @return              the found OrcidHistory entities
+     * @throws SQLException if database error
+     */
+    public List<OrcidHistory> findByOwnerOrEntity(Context context, Item item) throws SQLException;
+
+    /**
+     * Find the OrcidHistory records related to the given entity item.
+     *
+     * @param  context      DSpace context object
+     * @param  entity       the entity item
+     * @return              the found put codes
+     * @throws SQLException if database error
+     */
+    List<OrcidHistory> findByEntity(Context context, Item entity) throws SQLException;
+
+    /**
+     * Find all the successfully Orcid history records with the given record type
+     * related to the given entity. An history record is considered successful if
+     * the status is between 200 and 300.
+     *
+     * @param  context      DSpace context object
+     * @param  entity       the entity item
+     * @param  recordType   the record type
+     * @return              the found orcid history records
+     * @throws SQLException if database error
+     */
+    List<OrcidHistory> findSuccessfullyRecordsByEntityAndType(Context context, Item entity,
+        String recordType) throws SQLException;
 }

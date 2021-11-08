@@ -123,6 +123,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     public static void resetDefaultConsumers() {
         ConfigurationService configService = DSpaceServicesFactory.getInstance().getConfigurationService();
         configService.setProperty("event.dispatcher.default.consumers", consumers);
+        EventService eventService = EventServiceFactory.getInstance().getEventService();
+        eventService.reloadConfiguration();
     }
 
     @Override
@@ -232,8 +234,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertThat("cris.sourceId value and author md5 hash should be equals", crisSourceId.getValue(),
                 equalTo(generateMd5Hash("Mario Rossi")));
 
-        MetadataValueRest relationshipType = findSingleMetadata(relatedItem, "relationship.type");
-        assertThat("The relationship.type should be Person", relationshipType.getValue(), equalTo("Person"));
+        MetadataValueRest entityType = findSingleMetadata(relatedItem, "dspace.entity.type");
+        assertThat("The dspace.entity.type should be Person", entityType.getValue(), equalTo("Person"));
 
         MetadataValueRest affiliation = findSingleMetadata(relatedItem, "person.affiliation.name");
         assertThat("The person.affiliation.name should be 4Science", affiliation.getValue(), equalTo("4Science"));
@@ -283,8 +285,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertThat("cris.sourceId and journal md5 hash should be equals",
                 crisSourceId.getValue(), equalTo(generateMd5Hash("The Journal")));
 
-        MetadataValueRest relationshipType = findSingleMetadata(relatedItem, "relationship.type");
-        assertThat("The relationship.type should be Journal", relationshipType.getValue(), equalTo("Journal"));
+        MetadataValueRest entityType = findSingleMetadata(relatedItem, "dspace.entity.type");
+        assertThat("The dspace.entity.type should be Journal", entityType.getValue(), equalTo("Journal"));
 
     }
 
@@ -375,12 +377,12 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     /**
      * Verify that the related entities are created when an item submission occurs
      * and that stored entities are not reused during different items submissions if
-     * the metadata value is the same but the relationship.type is different.
+     * the metadata value is the same but the dspace.entity.type is different.
      *
      * @throws Exception
      */
     @Test
-    public void testItemsSubmissionWithDifferentRelationshipTypeAndSameValue() throws Exception {
+    public void testItemsSubmissionWithDifferentEntityTypeAndSameValue() throws Exception {
 
         context.turnOffAuthorisationSystem();
         createCollection("Collection of projects", "Project", parentCommunity);
@@ -433,8 +435,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertThat("cris.sourceId value and author md5 hash should be equals",
                 crisSourceId.getValue(), equalTo(generateMd5Hash("Same Name")));
 
-        MetadataValueRest relationshipType = findSingleMetadata(authorItem, "relationship.type");
-        assertThat("The relationship.type should be Person", relationshipType.getValue(), equalTo("Person"));
+        MetadataValueRest entityType = findSingleMetadata(authorItem, "dspace.entity.type");
+        assertThat("The dspace.entity.type should be Person", entityType.getValue(), equalTo("Person"));
 
         ItemRest projectItem = getItemViaRestByID(authToken, UUID.fromString(projectAuthority));
 
@@ -442,14 +444,14 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertThat("cris.sourceId value and project md5 hash should be equals",
                 crisSourceId.getValue(), equalTo(generateMd5Hash("Same Name")));
 
-        relationshipType = findSingleMetadata(projectItem, "relationship.type");
-        assertThat("The relationship.type should be Project", relationshipType.getValue(), equalTo("Project"));
+        entityType = findSingleMetadata(projectItem, "dspace.entity.type");
+        assertThat("The dspace.entity.type should be Project", entityType.getValue(), equalTo("Project"));
 
     }
 
     /**
      * Verify no related entity is created when an item submission occurs but no
-     * collection of the same entity's relationship.type is found.
+     * collection of the same entity's dspace.entity.type is found.
      *
      * @throws Exception
      */
@@ -596,8 +598,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertThat("cris.sourceId value and author md5 hash should be equals", crisSourceId.getValue(),
                 equalTo(generateMd5Hash("Mario Rossi")));
 
-        MetadataValueRest relationshipType = findSingleMetadata(authorItem, "relationship.type");
-        assertThat("The relationship.type should be Person", relationshipType.getValue(), equalTo("Person"));
+        MetadataValueRest entityType = findSingleMetadata(authorItem, "dspace.entity.type");
+        assertThat("The dspace.entity.type should be Person", entityType.getValue(), equalTo("Person"));
 
         // search the related project item
         ItemRest projectItem = getItemViaRestByID(authToken, UUID.fromString(projectAuthority));
@@ -607,8 +609,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         assertThat("cris.sourceId value and author md5 hash should be equals", crisSourceId.getValue(),
                 equalTo(generateMd5Hash("Test project")));
 
-        relationshipType = findSingleMetadata(projectItem, "relationship.type");
-        assertThat("The relationship.type should be Person", relationshipType.getValue(), equalTo("Project"));
+        entityType = findSingleMetadata(projectItem, "dspace.entity.type");
+        assertThat("The dspace.entity.type should be Person", entityType.getValue(), equalTo("Project"));
 
     }
 
@@ -659,8 +661,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
             assertThat("cris.sourceId value and author md5 hash should be equals", crisSourceId.getValue(),
                     equalTo(generateMd5Hash(expectedName)));
 
-            MetadataValueRest relationshipType = findSingleMetadata(relatedItem, "relationship.type");
-            assertThat("The relationship.type should be Person", relationshipType.getValue(), equalTo("Person"));
+            MetadataValueRest entityType = findSingleMetadata(relatedItem, "dspace.entity.type");
+            assertThat("The dspace.entity.type should be Person", entityType.getValue(), equalTo("Person"));
 
             String expectedAffiliation = author.getPlace() == 0 ? "4Science" : "My org";
             MetadataValueRest affiliation = findSingleMetadata(relatedItem, "person.affiliation.name");
@@ -683,7 +685,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
             .build();
 
         Item publication = ItemBuilder.createItem(context, publicationCollection)
-            .withRelationshipType("Publication")
+            .withEntityType("Publication")
             .withAuthor("Walter White", AuthorityValueService.GENERATE + "ORCID::0000-0002-9079-593X")
             .build();
 
@@ -712,7 +714,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         createCollection("Collection of persons", "Person", subCommunity);
 
         Item publication = ItemBuilder.createItem(context, publicationCollection)
-            .withRelationshipType("Publication")
+            .withEntityType("Publication")
             .withAuthor("Walter White", AuthorityValueService.GENERATE + "ORCID::0000-0002-9079-593X")
             .build();
 
@@ -743,7 +745,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
             .build();
 
         Item publication = ItemBuilder.createItem(context, publicationCollection)
-            .withRelationshipType("Publication")
+            .withEntityType("Publication")
             .withAuthor("Walter White", AuthorityValueService.REFERENCE + "ORCID::0000-0002-9079-593X")
             .build();
 
@@ -772,7 +774,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         createCollection("Collection of persons", "Person", subCommunity);
 
         Item publication = ItemBuilder.createItem(context, publicationCollection)
-            .withRelationshipType("Publication")
+            .withEntityType("Publication")
             .withAuthor("Walter White", AuthorityValueService.REFERENCE + "ORCID::0000-0002-9079-593X")
             .build();
 
@@ -815,12 +817,8 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         String authToken = getAuthToken(submitter.getEmail(), password);
 
-        try {
-            configurationService.setProperty("cris-consumer.skip-empty-authority", true);
-            submitItemViaRest(authToken, wsitem.getID());
-        } finally {
-            configurationService.setProperty("cris-consumer.skip-empty-authority", false);
-        }
+        configurationService.setProperty("cris-consumer.skip-empty-authority", true);
+        submitItemViaRest(authToken, wsitem.getID());
 
         // verify the dc.contributor.author and dc.contributor.editor authority value
         ItemRest item = getItemViaRestByID(authToken, wsitem.getItem().getID());
@@ -869,20 +867,20 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         return objectMapper.readValue(result.getResponse().getContentAsString(), responseClass);
     }
 
-    private Collection createCollection(String name, String relationshipType, Community community) throws Exception {
+    private Collection createCollection(String name, String entityType, Community community) throws Exception {
         return CollectionBuilder.createCollection(context, community)
                 .withName(name)
-                .withRelationshipType(relationshipType)
+                .withEntityType(entityType)
                 .withSubmissionDefinition("traditional")
                 .withSubmitterGroup(submitter)
                 .build();
     }
 
-    private Collection createCollectionWithWorkflowGroup(String name, String relationshipType, Community community)
+    private Collection createCollectionWithWorkflowGroup(String name, String entityType, Community community)
             throws Exception {
         return CollectionBuilder.createCollection(context, community)
                 .withName(name)
-                .withRelationshipType(relationshipType)
+                .withEntityType(entityType)
                 .withSubmitterGroup(submitter)
                 .withWorkflowGroup(1, submitter)
                 .build();

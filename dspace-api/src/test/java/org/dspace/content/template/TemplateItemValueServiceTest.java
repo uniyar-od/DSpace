@@ -15,9 +15,11 @@ import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Context;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -46,11 +48,16 @@ public class TemplateItemValueServiceTest {
         final Item templateItem = mock(Item.class);
 
         final TemplateItemValueService templateItemValueService = new TemplateItemValueService(
-            Collections.singletonList(fakeTemplateItemValue(false, "value")));
+            Collections.singletonList(fakeTemplateItemValue(false, "value", null)));
 
-        final String value = templateItemValueService.value(context, item, templateItem, metadataValue("aValue"));
+        final List<MetadataValueVO> valueList = templateItemValueService.value(context, item, templateItem,
+            metadataValue("aValue", "authority"));
 
-        assertThat(value, is("aValue"));
+        final MetadataValueVO value = valueList.get(0);
+
+        assertThat(valueList.size(), is(1));
+        assertThat(value.getValue(), is("aValue"));
+        assertThat(value.getAuthority(), is("authority"));
 
     }
 
@@ -63,24 +70,28 @@ public class TemplateItemValueServiceTest {
 
         final TemplateItemValueService templateItemValueService = new TemplateItemValueService(
             Arrays.asList(
-                fakeTemplateItemValue(false, "NOTReturnedValue"),
-                fakeTemplateItemValue(true, "RETURNED Value")));
+                fakeTemplateItemValue(false, "NOTReturnedValue", null),
+                fakeTemplateItemValue(true, "RETURNED Value", "7fefea3a-757b-4bf4-a8c5-bc478214700f")));
 
-        final String valueFromService = templateItemValueService.value(context, item, templateItem,
-                                                                              metadataValue("aValue"));
+        final List<MetadataValueVO> valueFromServiceList = templateItemValueService.value(context, item, templateItem,
+            metadataValue("aValue"));
 
-        assertThat(valueFromService, is("RETURNED Value"));
+        final MetadataValueVO valueFromService = valueFromServiceList.get(0);
+
+        assertThat(valueFromServiceList.size(), is(1));
+        assertThat(valueFromService.getValue(), is("RETURNED Value"));
+        assertThat(valueFromService.getAuthority(), is("7fefea3a-757b-4bf4-a8c5-bc478214700f"));
 
     }
 
 
-    private TemplateItemValue fakeTemplateItemValue(final boolean appliesTo, final String returnedValue) {
+    private TemplateItemValue fakeTemplateItemValue(boolean appliesTo, String returnedValue, String returnedAuthority) {
         return new TemplateItemValue() {
 
             @Override
-            public String value(final Context context, final Item targetItem,
+            public List<MetadataValueVO> values(final Context context, final Item targetItem,
                                        final Item templateItem, final MetadataValue metadataValue) {
-                return returnedValue;
+                return Arrays.asList(new MetadataValueVO(returnedValue, returnedAuthority));
             }
 
             @Override
@@ -93,6 +104,13 @@ public class TemplateItemValueServiceTest {
     private MetadataValue metadataValue(final String aValue) {
         final MetadataValue metadataValue = Mockito.mock(MetadataValue.class);
         when(metadataValue.getValue()).thenReturn(aValue);
+        return metadataValue;
+    }
+
+    private MetadataValue metadataValue(final String aValue, final String authority) {
+        final MetadataValue metadataValue = Mockito.mock(MetadataValue.class);
+        when(metadataValue.getValue()).thenReturn(aValue);
+        when(metadataValue.getAuthority()).thenReturn(authority);
         return metadataValue;
     }
 }

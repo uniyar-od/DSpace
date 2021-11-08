@@ -28,6 +28,11 @@
 
     <dc-type>
         <schema>organization</schema>
+        <element>endDate</element>
+    </dc-type>
+
+    <dc-type>
+        <schema>organization</schema>
         <element>address</element>
         <qualifier>addressLocality</qualifier>
         <scope_note>Physical address locality (ex. Mountain View) of the organization.</scope_note>
@@ -75,6 +80,13 @@
     </dc-type>
 
     <!-- DSpace-CRIS Additions -->
+    <dc-type>
+        <schema>organization</schema>
+        <element>identifier</element>
+        <qualifier>lei</qualifier>
+        <scope_note>Legal Entity Identifier</scope_note>
+    </dc-type>
+
     <dc-type>
         <schema>organization</schema>
         <element>identifier</element>

@@ -50,7 +50,7 @@ public class OrcidHistorySendToOrcidRestPermissionEvaluatorPlugin extends RestOb
         if (!DSpaceRestPermission.ADD.equals(restPermission)) {
             return false;
         }
-        if (!targetType.equals(OrcidQueueRestPermissionEvaluatorPlugin.ORCID)) {
+        if (!targetType.equals(OrcidQueueAndHistoryRestPermissionEvaluatorPlugin.ORCID_HISTORY)) {
             return false;
         }
 
@@ -59,7 +59,7 @@ public class OrcidHistorySendToOrcidRestPermissionEvaluatorPlugin extends RestOb
 
         EPerson currentUser = context.getCurrentUser();
         String url = targetId.toString();
-        Pattern pattern = Pattern.compile("\\[\\/api\\/cris\\/orcidqueues\\/(.*)\\]");
+        Pattern pattern = Pattern.compile("\\[.*\\/api\\/cris\\/orcidqueues\\/(.*)\\]");
         Matcher matcher = pattern.matcher(url);
 
         matcher.find();

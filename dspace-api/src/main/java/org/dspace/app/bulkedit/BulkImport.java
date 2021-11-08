@@ -45,7 +45,6 @@ import org.dspace.app.bulkimport.exception.BulkImportException;
 import org.dspace.app.bulkimport.model.EntityRow;
 import org.dspace.app.bulkimport.model.ImportAction;
 import org.dspace.app.bulkimport.model.MetadataGroup;
-import org.dspace.app.bulkimport.model.MetadataValueVO;
 import org.dspace.app.bulkimport.utils.WorkbookUtils;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
@@ -66,6 +65,7 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.WorkspaceItemService;
+import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
@@ -142,6 +142,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private DCInputsReader reader;
 
+    private BulkImportTransformerService bulkImportTransformerService;
 
     private String collectionId;
 
@@ -167,6 +168,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         this.itemSearchService = new DSpace().getSingletonService(ItemSearchService.class);
         this.validationService = ValidationServiceFactory.getInstance().getValidationService();
         this.workflowItemService = WorkflowServiceFactory.getInstance().getWorkflowItemService();
+        this.bulkImportTransformerService = new DSpace().getServiceManager().getServiceByName(
+               BulkImportTransformerService.class.getName(), BulkImportTransformerService.class);
 
         try {
             this.reader = new DCInputsReader();
@@ -184,11 +187,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     @Override
     public void internalRun() throws Exception {
-        context = new Context();
-        context.setMode(Context.Mode.BATCH_EDIT);
+        context = new Context(Context.Mode.BATCH_EDIT);
         assignCurrentUserInContext();
-
-        //FIXME: see https://4science.atlassian.net/browse/CSTPER-236 for final solution
+        assignSpecialGroupsInContext();
 
         context.turnOffAuthorisationSystem();
 
@@ -650,6 +651,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             String language = getMetadataLanguage(field);
             MetadataField metadataField = metadataFieldService.findByString(context, getMetadataField(field), '.');
             for (MetadataValueVO metadataValue : metadata.get(field)) {
+                metadataValue = bulkImportTransformerService.converter(context, field, metadataValue);
                 String authority = metadataValue.getAuthority();
                 int confidence = metadataValue.getConfidence();
                 String value = metadataValue.getValue();
@@ -927,6 +929,12 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         if (uuid != null) {
             EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
             context.setCurrentUser(ePerson);
+        }
+    }
+
+    private void assignSpecialGroupsInContext() throws SQLException {
+        for (UUID uuid : handler.getSpecialGroups()) {
+            context.setSpecialGroup(uuid);
         }
     }
 

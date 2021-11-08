@@ -77,14 +77,14 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testPublicationIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Publication").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Publication").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-publication.xml");
         crosswalk.ingest(context, item, document.getRootElement(), false);
 
         List<MetadataValue> values = item.getMetadata();
-        assertThat(values, hasSize(22));
+        assertThat(values, hasSize(23));
 
         assertThat(values, hasItems(with("dc.type",
             "Controlled Vocabulary for Resource Type Genres::text::conference object::conference proceedings"
@@ -95,8 +95,8 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
         assertThat(values, hasItems(with("dc.title.alternative",
             "6th Research Conference, MTSR 2012, Cádiz, Spain, November 28-30, 2012. Proceedings")));
 
-        assertThat(values, hasItems(with("dc.relation.ispartof",
-            "The International Journal of Digital Curation")));
+        assertThat(values, hasItems(with("dc.relation.ispartof", "The International Journal of Digital Curation")));
+        assertThat(values, hasItems(with("dc.relation.ispartof", "Digital Curation", 1)));
 
         assertThat(values, hasItems(with("dc.date.issued", "2020-03-30")));
         assertThat(values, hasItems(with("oaire.citation.startPage", "10")));
@@ -121,7 +121,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testAnotherPublicationIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Publication").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Publication").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-publication-2.xml");
@@ -177,7 +177,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testExportPublicationIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Publication").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Publication").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(CROSSWALK_DIR_PATH, "publication.xml");
@@ -226,14 +226,14 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
             "will be generated::repository-id::mock-id", 0, 500)));
 
         assertThat(values, hasItems(with("dc.relation.conference", "The best Conference")));
-        assertThat(values, hasItems(with("dc.relation.dataset", "DataSet")));
+        assertThat(values, hasItems(with("dc.relation.product", "DataSet")));
     }
 
     @Test
     @SuppressWarnings("unchecked")
     public void testExportPersonIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Person").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Person").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(CROSSWALK_DIR_PATH, "person-cerif.xml");
@@ -268,7 +268,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testPersonIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Person").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Person").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-person.xml");
@@ -286,7 +286,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testProjectIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Project").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Project").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-project.xml");
@@ -307,7 +307,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testExportProjectIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Project").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Project").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(CROSSWALK_DIR_PATH, "project.xml");
@@ -344,7 +344,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testOrgUnitIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("OrgUnit").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("OrgUnit").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-orgUnit.xml");
@@ -360,7 +360,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testExportOrgUnitIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("OrgUnit").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("OrgUnit").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(CROSSWALK_DIR_PATH, "orgUnit.xml");
@@ -387,7 +387,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testEquipmentIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Equipment").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Equipment").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-equipment.xml");
@@ -405,7 +405,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testExportEquipmentIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Equipment").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Equipment").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(CROSSWALK_DIR_PATH, "equipment.xml");
@@ -425,7 +425,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
     @SuppressWarnings("unchecked")
     public void testExportFundingIngest() throws Exception {
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Funding").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Funding").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(CROSSWALK_DIR_PATH, "funding.xml");
@@ -455,7 +455,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
         crosswalk.setPreTransformXsl(OAI_PMH_DIR_PATH + "preTransformation.xsl");
 
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Equipment").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Equipment").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-equipment.xml");
@@ -477,7 +477,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
         crosswalk.setPostTransformXsl(OAI_PMH_DIR_PATH + "postTransformation.xsl");
 
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Equipment").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Equipment").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-equipment.xml");
@@ -499,7 +499,7 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
         crosswalk.setPostTransformXsl(OAI_PMH_DIR_PATH + "postTransformation.xsl");
 
         context.turnOffAuthorisationSystem();
-        Item item = ItemBuilder.createItem(context, collection).withRelationshipType("Equipment").build();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Equipment").build();
         context.restoreAuthSystemState();
 
         Document document = readDocument(OAI_PMH_DIR_PATH, "sample-equipment.xml");
@@ -512,6 +512,30 @@ public class CERIFIngestionCrosswalkIT extends AbstractIntegrationTestWithDataba
             + "AND SOUND SOURCE LOCALIZATION")));
         assertThat(values, hasItems(with("crisequipment.ownerou", "BA2E09 MACHINERY NOISE")));
         assertThat(values, hasItems(with("oairecerif.internalid", "TEST-ID")));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testProductIngest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Item item = ItemBuilder.createItem(context, collection).withEntityType("Product").build();
+        context.restoreAuthSystemState();
+
+        Document document = readDocument(OAI_PMH_DIR_PATH, "sample-product.xml");
+        crosswalk.ingest(context, item, document.getRootElement(), false);
+
+        List<MetadataValue> values = item.getMetadata();
+        assertThat(values, hasSize(14));
+        assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::image::"
+            + "moving image::video")));
+        assertThat(values, hasItems(with("dc.title", "PLOS and Open Access")));
+        assertThat(values, hasItems(with("dc.contributor.author", "Zivkovic, Bora")));
+        assertThat(values, hasItems(with("dc.publisher", "EUT Edizioni Università di Trieste")));
+        assertThat(values, hasItems(with("dc.subject", "open access")));
+        assertThat(values, hasItems(with("dc.subject", "accesso aperto", 1)));
+        assertThat(values, hasItems(with("dc.subject", "Comunicazione scientifica", 2)));
+        assertThat(values, hasItems(with("dc.relation.conference", "Trieste Next 2014 - EnergETHIC")));
+
     }
 
     private Document readDocument(String dir, String name) throws Exception {

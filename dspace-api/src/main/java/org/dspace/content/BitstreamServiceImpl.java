@@ -13,6 +13,7 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -28,8 +29,12 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
+import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.event.Event;
+import org.dspace.services.ConfigurationService;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
+import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -61,6 +66,12 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     protected BundleService bundleService;
     @Autowired(required = true)
     protected BitstreamStorageService bitstreamStorageService;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
+    private EPersonService ePersonService;
 
     protected BitstreamServiceImpl() {
         super();
@@ -410,6 +421,25 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     }
 
     @Override
+    public Bitstream getThumbnail(Context context, Bitstream bitstream) throws SQLException {
+        Pattern pattern = Pattern.compile("^" + bitstream.getName() + ".([^.]+)$");
+
+        for (Bundle bundle : bitstream.getBundles()) {
+            for (Item item : bundle.getItems()) {
+                for (Bundle thumbnails : itemService.getBundles(item, "THUMBNAIL")) {
+                    for (Bitstream thumbnail : thumbnails.getBitstreams()) {
+                        if (pattern.matcher(thumbnail.getName()).matches()) {
+                            return thumbnail;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Override
     public BitstreamFormat getFormat(Context context, Bitstream bitstream) throws SQLException {
         if (bitstream.getBitstreamFormat() == null) {
             return bitstreamFormatService.findUnknown(context);
@@ -467,5 +497,23 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
     @Override
     public Long getLastModified(Bitstream bitstream) throws IOException {
         return bitstreamStorageService.getLastModified(bitstream);
+    }
+
+    @Override
+    public boolean isRelatedToAProcessStartedByDefaultUser(Context context, Bitstream bitstream) throws SQLException {
+
+        UUID defaultUserId = UUIDUtils.fromString(configurationService.getProperty("process.start.default-user"));
+        if (defaultUserId == null) {
+            return false;
+        }
+
+        EPerson originalUser = context.getCurrentUser();
+
+        try {
+            context.setCurrentUser(ePersonService.find(context, defaultUserId));
+            return authorizeService.authorizeActionBoolean(context, bitstream, Constants.READ);
+        } finally {
+            context.setCurrentUser(originalUser);
+        }
     }
 }

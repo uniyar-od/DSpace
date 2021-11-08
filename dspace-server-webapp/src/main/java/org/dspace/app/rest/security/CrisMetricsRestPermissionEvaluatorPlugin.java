@@ -16,14 +16,18 @@ import org.dspace.app.metrics.CrisMetrics;
 import org.dspace.app.rest.model.CrisMetricsRest;
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.dspace.metrics.embeddable.impl.AbstractEmbeddableMetricProvider;
+import org.dspace.metricsSecurity.BoxMetricsLayoutConfigurationService;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
+import org.hibernate.proxy.HibernateProxy;
+import org.hibernate.proxy.LazyInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +36,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * {@link RestPermissionEvaluatorPlugin} class that evaluate READ, WRITE and DELETE permissions over a CrisMetrics
- * 
+ *
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
 @Component
@@ -54,14 +58,16 @@ public class CrisMetricsRestPermissionEvaluatorPlugin extends RestObjectPermissi
 
     @Autowired
     private ItemService itemService;
+    @Autowired
+    private BoxMetricsLayoutConfigurationService boxMetricsLayoutConfigurationService;
 
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
-            DSpaceRestPermission permission) {
+                                       DSpaceRestPermission permission) {
 
         DSpaceRestPermission restPermission = DSpaceRestPermission.convert(permission);
         if (!DSpaceRestPermission.READ.equals(restPermission)
-            || !StringUtils.equalsIgnoreCase(targetType, CrisMetricsRest.NAME)) {
+                || !StringUtils.equalsIgnoreCase(targetType, CrisMetricsRest.NAME)) {
             return false;
         }
 
@@ -69,13 +75,16 @@ public class CrisMetricsRestPermissionEvaluatorPlugin extends RestObjectPermissi
         Context context = ContextUtil.obtainContext(request.getServletRequest());
 
         try {
+
             Item item = itemFromMetricId(context, targetId.toString());
             if (Objects.isNull(item)) {
                 // this is needed to allow 404 instead than 403
                 return true;
             }
 
-            return crisItemMetricsAuthorizationService.isAuthorized(context, item);
+            CrisMetrics metric = crisItemMetricsService.find(context, targetId.toString());
+            return crisItemMetricsAuthorizationService.isAuthorized(context, item)
+                    && boxMetricsLayoutConfigurationService.checkPermissionOfMetricByBox(context,item, metric ) ;
 
         } catch (SQLException e) {
             log.error(e.getMessage(), e);
@@ -97,7 +106,21 @@ public class CrisMetricsRestPermissionEvaluatorPlugin extends RestObjectPermissi
         } else {
 
             CrisMetrics metric = crisItemMetricsService.find(context, target.toString());
-            return metric != null ? metric.getResource() : null;
+            if (Objects.isNull(metric)) {
+                return null;
+            }
+            DSpaceObject dSpaceObject = metric.getResource();
+            if (dSpaceObject instanceof HibernateProxy) {
+                HibernateProxy hibernateProxy = (HibernateProxy) dSpaceObject;
+                LazyInitializer initializer = hibernateProxy.getHibernateLazyInitializer();
+                dSpaceObject = (DSpaceObject) initializer.getImplementation();
+            }
+            if (dSpaceObject instanceof Item) {
+                return metric != null ? (Item) dSpaceObject : null;
+            } else {
+                return null;
+            }
+
         }
     }
 

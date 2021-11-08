@@ -25,7 +25,6 @@
     <bean id="contentServiceFactory" class="org.dspace.content.factory.ContentServiceFactoryImpl"/>
     <bean id="scriptServiceFactory" class="org.dspace.scripts.factory.impl.ScriptServiceFactoryImpl"/>
     <bean id="coreServiceFactory" class="org.dspace.core.factory.CoreServiceFactoryImpl"/>
-    <bean id="curateServiceFactory" class="org.dspace.curate.factory.CurateServiceFactoryImpl"/>
 
 
     <bean id="disseminateServiceFactory" class="org.dspace.disseminate.factory.DisseminateServiceFactoryImpl"/>
@@ -55,8 +54,7 @@
 	<!-- Imp factory -->
 	<bean id="impServiceFactory" class="org.dspace.batch.factory.ImpServiceFactoryImpl"/>
 
-	<bean id="orcidQueueServiceFactory" class="org.dspace.app.orcid.factory.OrcidQueueServiceFactoryImpl"/>
-	<bean id="orcidHistoryServiceFactory" class="org.dspace.app.orcid.factory.OrcidHistoryServiceFactoryImpl"/>
+	<bean id="orcidServiceFactory" class="org.dspace.app.orcid.factory.OrcidServiceFactoryImpl"/>
 
     <bean id="openURLTrackerLoggerServiceFactory" class="org.dspace.statistics.export.factory.OpenURLTrackerLoggerServiceFactoryImpl"/>
 

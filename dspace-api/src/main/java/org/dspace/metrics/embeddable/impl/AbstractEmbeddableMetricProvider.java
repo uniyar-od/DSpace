@@ -8,9 +8,12 @@
 package org.dspace.metrics.embeddable.impl;
 
 import java.sql.SQLException;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.dspace.app.metrics.CrisMetrics;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.logic.Filter;
 import org.dspace.content.logic.LogicalStatementException;
@@ -18,6 +21,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.metrics.embeddable.EmbeddableMetricProvider;
 import org.dspace.metrics.embeddable.model.EmbeddableCrisMetrics;
+import org.dspace.services.ConfigurationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,13 +34,17 @@ public abstract class AbstractEmbeddableMetricProvider implements EmbeddableMetr
 
     @Autowired(required = true)
     private ItemService itemService;
+    @Autowired(required = true)
+    protected ConfigurationService configurationService;
+    @Autowired(required = true)
+    protected AuthorizeService authorizeService;
 
     private Filter filterService;
 
     private boolean enabled = false;
 
     @Override
-    public boolean hasMetric(Context context, Item item) {
+    public boolean hasMetric(Context context, Item item,  List<CrisMetrics> retrivedStoredMetrics) {
         if (!this.isEnabled()) {
             return false;
         }
@@ -51,8 +59,9 @@ public abstract class AbstractEmbeddableMetricProvider implements EmbeddableMetr
     }
 
     @Override
-    public Optional<EmbeddableCrisMetrics> provide(Context context, Item item) {
-        if (!this.hasMetric(context, item)) {
+    public Optional<EmbeddableCrisMetrics> provide(Context context, Item item,
+            List<CrisMetrics> retrivedStoredMetrics) {
+        if (!this.hasMetric(context, item, retrivedStoredMetrics)) {
             return Optional.empty();
         }
         EmbeddableCrisMetrics metric = new EmbeddableCrisMetrics();
@@ -62,15 +71,15 @@ public abstract class AbstractEmbeddableMetricProvider implements EmbeddableMetr
         return Optional.of(metric);
     }
 
-    protected String getRelationshipType(Item item) {
-        return getItemService().getMetadataFirstValue(item, "relationship", "type", null, Item.ANY);
+    protected String getEntityType(Item item) {
+        return getItemService().getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
     }
 
     @Override
     public Optional<EmbeddableCrisMetrics> provide(Context context, String metricId) throws SQLException {
         UUID itemUuid = UUID.fromString(metricId.split(DYNAMIC_ID_SEPARATOR)[0]);
         Item item = getItemService().find(context, itemUuid);
-        return provide(context, item);
+        return provide(context, item, null);
     }
 
     @Override
@@ -81,6 +90,11 @@ public abstract class AbstractEmbeddableMetricProvider implements EmbeddableMetr
     @Override
     public String getId(Context context, Item item) {
         return item.getID() + DYNAMIC_ID_SEPARATOR + this.getMetricType();
+    }
+
+    @Override
+    public boolean fallbackOf(final String metricType) {
+        return false;
     }
 
     public boolean isEnabled() {
@@ -107,5 +121,8 @@ public abstract class AbstractEmbeddableMetricProvider implements EmbeddableMetr
         this.itemService = itemService;
     }
 
+    protected boolean isUsageAdmin() {
+        return configurationService.getBooleanProperty("usage-statistics.authorization.admin.usage", false);
+    }
 
 }

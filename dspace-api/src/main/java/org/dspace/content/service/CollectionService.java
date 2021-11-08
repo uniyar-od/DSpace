@@ -398,30 +398,28 @@ public interface CollectionService
 
     /**
      * Retrieve the first collection in the community or its descending that support
-     * the provided relationshipType
+     * the provided entityType
      *
-     * @param context    the DSpace context
-     * @param community        the root from where the search start
-     * @param relationshipType the requested entity type
-     * @return the first collection in the community or its descending that support
-     *         the provided relationshipType
+     * @param  context    the DSpace context
+     * @param  community  the root from where the search start
+     * @param  entityType the requested entity type
+     * @return            the first collection in the community or its descending
+     *                    that support the provided entityType
      */
-    public Collection retriveCollectionByRelationshipType(Context context, Community community,
-            String relationshipType);
+    public Collection retriveCollectionByEntityType(Context context, Community community, String entityType);
 
     /**
      * Retrieve the close collection to the item that support the provided
-     * relationshipType. Close mean the collection that can be reach with the
-     * minimum steps starting from the item (owningCollection, brothers collections,
-     * etc)
-     * 
-     * @param context    the DSpace context
-     * @param item        the item from where the search start
-     * @param relationshipType the requested entity type
-     * @return the first collection in the community or its descending that support
-     *         the provided relationshipType
+     * entityType. Close mean the collection that can be reach with the minimum
+     * steps starting from the item (owningCollection, brothers collections, etc)
+     *
+     * @param  context    the DSpace context
+     * @param  item       the item from where the search start
+     * @param  entityType the requested entity type
+     * @return            the first collection in the community or its descending
+     *                    that support the provided entityType
      */
-    public Collection retrieveCollectionByRelationshipType(Context context, Item item, String relationshipType)
+    public Collection retrieveCollectionByEntityType(Context context, Item item, String entityType)
             throws SQLException;
 
     /**
@@ -441,7 +439,25 @@ public interface CollectionService
      */
     List<Collection> findCollectionsAdministered(String query, Context context, int offset, int limit)
         throws SQLException, SearchServiceException;
-
+    /**
+     * Returns the collections that are administered by the current user.
+     *
+     * @param  query                  limit the returned collection to those with
+     *                                metadata values matching the query terms. The
+     *                                terms are used to make also a prefix query on
+     *                                SOLR so it can be used to implement an
+     *                                autosuggest feature over the collection name
+     * @param  entityType             entityType of the collection
+     * @param  context                DSpace Context
+     * @param  offset                 the position of the first result to return
+     * @param  limit                  paging limit
+     * @return                        discovery search result objects
+     * @throws SQLException           if something goes wrong
+     * @throws SearchServiceException if search error
+     */
+    List<Collection> findCollectionsAdministeredByEntityType(String query,String entityType,
+                                                             Context context, int offset, int limit)
+            throws SQLException, SearchServiceException;
     /**
      * Counts the collections that are administered by the current user.
      *
@@ -456,4 +472,27 @@ public interface CollectionService
      * @throws SearchServiceException if search error
      */
     int countCollectionsAdministered(String query, Context context) throws SQLException, SearchServiceException;
+
+    /**
+     * Returns the collection related to the given item. If the item is archived,
+     * this method returns the own collection of that item, otherwise returns the
+     * collection related to the current InProgressSubmission related to that item.
+     *
+     * @param  context      the DSpace context
+     * @param  item         the item from where the search start
+     * @return              the collection related to the given item
+     * @throws SQLException if an SQL error occurs
+     */
+    public Collection findByItem(Context context, Item item) throws SQLException;
+    /**
+     * Returns thenu number of collections administered by user of an entity type
+     *
+     * @param  context      the DSpace context
+     * @param  query        the query to be filtered
+     * @return entityType   the entity type of collection
+     * @throws SQLException if an SQL error occurs
+     * @throws SearchServiceException if an Solr error occurs
+     */
+    public int countCollectionsAdministeredByEntityType(String query, String entityType,
+                                                        Context context) throws SQLException, SearchServiceException;
 }

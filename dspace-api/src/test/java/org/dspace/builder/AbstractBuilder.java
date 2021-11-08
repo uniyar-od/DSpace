@@ -15,8 +15,7 @@ import org.apache.logging.log4j.Logger;
 import org.dspace.app.audit.AuditService;
 import org.dspace.app.metrics.service.CrisMetricsService;
 import org.dspace.app.nbevent.service.NBEventService;
-import org.dspace.app.orcid.factory.OrcidHistoryServiceFactory;
-import org.dspace.app.orcid.factory.OrcidQueueServiceFactory;
+import org.dspace.app.orcid.factory.OrcidServiceFactory;
 import org.dspace.app.orcid.service.OrcidHistoryService;
 import org.dspace.app.orcid.service.OrcidQueueService;
 import org.dspace.app.suggestion.SolrSuggestionStorageService;
@@ -47,12 +46,14 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.RegistrationDataService;
+import org.dspace.eperson.service.SubscribeService;
 import org.dspace.externalservices.scopus.factory.CrisMetricsServiceFactory;
 import org.dspace.harvest.factory.HarvestServiceFactory;
 import org.dspace.harvest.service.HarvestedCollectionService;
 import org.dspace.layout.factory.CrisLayoutServiceFactory;
 import org.dspace.layout.service.CrisLayoutBoxService;
 import org.dspace.layout.service.CrisLayoutFieldService;
+import org.dspace.layout.service.CrisLayoutMetadataGroupService;
 import org.dspace.layout.service.CrisLayoutMetric2BoxService;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.dspace.scripts.factory.ScriptServiceFactory;
@@ -109,6 +110,7 @@ public abstract class AbstractBuilder<T, S> {
     static CrisLayoutTabService crisLayoutTabService;
     static CrisLayoutBoxService crisLayoutBoxService;
     static CrisLayoutFieldService crisLayoutFieldService;
+    static CrisLayoutMetadataGroupService crisLayoutMetadataGroupService;
     static OrcidQueueService orcidQueueService;
     static OrcidHistoryService orcidHistoryService;
     static AuditService auditService;
@@ -117,6 +119,7 @@ public abstract class AbstractBuilder<T, S> {
     static HarvestedCollectionService harvestedCollectionService;
     static NBEventService nbEventService;
     static SolrSuggestionStorageService solrSuggestionService;
+    static SubscribeService subscribeService;
 
     protected Context context;
 
@@ -170,18 +173,19 @@ public abstract class AbstractBuilder<T, S> {
         inProgressUserService = XmlWorkflowServiceFactory.getInstance().getInProgressUserService();
         poolTaskService = XmlWorkflowServiceFactory.getInstance().getPoolTaskService();
         workflowItemRoleService = XmlWorkflowServiceFactory.getInstance().getWorkflowItemRoleService();
-
         crisLayoutTabService = CrisLayoutServiceFactory.getInstance().getTabService();
         crisLayoutBoxService = CrisLayoutServiceFactory.getInstance().getBoxService();
         crisLayoutFieldService = CrisLayoutServiceFactory.getInstance().getFieldService();
-        orcidQueueService = OrcidQueueServiceFactory.getInstance().getOrcidQueueService();
-        orcidHistoryService = OrcidHistoryServiceFactory.getInstance().getOrcidHistoryService();
+        crisLayoutMetadataGroupService = CrisLayoutServiceFactory.getInstance().getMetadataGroupService();
+        orcidQueueService = OrcidServiceFactory.getInstance().getOrcidQueueService();
+        orcidHistoryService = OrcidServiceFactory.getInstance().getOrcidHistoryService();
         auditService = new DSpace().getSingletonService(AuditService.class);
         crisMetricsService = CrisMetricsServiceFactory.getInstance().getCrisMetricsService();
         harvestedCollectionService = HarvestServiceFactory.getInstance().getHarvestedCollectionService();
         crisLayoutMetric2BoxService = CrisLayoutServiceFactory.getInstance().getMetric2BoxService();
         nbEventService = new DSpace().getSingletonService(NBEventService.class);
         solrSuggestionService = new DSpace().getSingletonService(SolrSuggestionStorageService.class);
+        subscribeService = ContentServiceFactory.getInstance().getSubscribeService();
     }
 
 
@@ -215,12 +219,14 @@ public abstract class AbstractBuilder<T, S> {
         crisLayoutTabService = null;
         crisLayoutBoxService = null;
         crisLayoutFieldService = null;
+        crisLayoutMetadataGroupService = null;
         orcidQueueService = null;
         orcidHistoryService = null;
         crisMetricsService = null;
         crisLayoutMetric2BoxService = null;
         nbEventService = null;
         harvestedCollectionService = null;
+        subscribeService = null;
     }
 
     public static void cleanupObjects() throws Exception {
@@ -256,12 +262,32 @@ public abstract class AbstractBuilder<T, S> {
      */
     public abstract void cleanup() throws Exception;
 
+    /**
+     * Create the object from the values that have been set on this builder.
+     * @return the initialized object.
+     * @throws SQLException passed through.
+     * @throws AuthorizeException passed through.
+     */
     public abstract T build() throws SQLException, AuthorizeException;
 
+    /**
+     * Remove the object from the persistence store.
+     *
+     * @param c current DSpace session.
+     * @param dso the object to be removed.
+     * @throws Exception passed through.
+     */
     public abstract void delete(Context c, T dso) throws Exception;
 
     protected abstract S getService();
 
+    /**
+     * Log an exception.
+     *
+     * @param <B> type of Builder which caught the exception.
+     * @param e exception to be handled.
+     * @return {@code null} always.
+     */
     protected <B> B handleException(final Exception e) {
         log.error(e.getMessage(), e);
         return null;

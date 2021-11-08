@@ -112,7 +112,7 @@ public class Context implements AutoCloseable {
     /**
      * Context mode
      */
-    private Mode mode = Mode.READ_WRITE;
+    private Mode mode;
 
     /**
      * Cache that is only used the context is in READ_ONLY mode
@@ -130,7 +130,6 @@ public class Context implements AutoCloseable {
     }
 
     protected Context(EventService eventService, DBConnection dbConnection) {
-        this.mode = Mode.READ_WRITE;
         this.eventService = eventService;
         this.dbConnection = dbConnection;
         init();
@@ -142,7 +141,6 @@ public class Context implements AutoCloseable {
      * No user is authenticated.
      */
     public Context() {
-        this.mode = Mode.READ_WRITE;
         init();
     }
 
@@ -187,7 +185,10 @@ public class Context implements AutoCloseable {
 
         authStateChangeHistory = new Stack<>();
         authStateClassCallHistory = new Stack<>();
-        setMode(this.mode);
+
+        if (this.mode != null) {
+            setMode(this.mode);
+        }
     }
 
     /**
@@ -595,6 +596,10 @@ public class Context implements AutoCloseable {
         }
     }
 
+    /**
+     * Close this Context, discarding any uncommitted changes and releasing its
+     * database connection.
+     */
     @Override
     public void close() {
         if (isValid()) {
@@ -793,15 +798,6 @@ public class Context implements AutoCloseable {
     }
 
     /**
-     * The current database mode of this context.
-     *
-     * @return The current mode
-     */
-    public Mode getCurrentMode() {
-        return mode;
-    }
-
-    /**
      * Enable or disable "batch processing mode" for this context.
      *
      * Enabling batch processing mode means that the database connection is configured so that it is optimized to
@@ -859,8 +855,13 @@ public class Context implements AutoCloseable {
     }
 
     public Boolean getCachedAuthorizationResult(DSpaceObject dspaceObject, int action, EPerson eperson) {
+        return getCachedAuthorizationResult(dspaceObject, action, eperson, null);
+    }
+
+    public Boolean getCachedAuthorizationResult(DSpaceObject dspaceObject, int action,
+        EPerson eperson, Boolean inheritance) {
         if (isReadOnly()) {
-            return readOnlyCache.getCachedAuthorizationResult(dspaceObject, action, eperson);
+            return readOnlyCache.getCachedAuthorizationResult(dspaceObject, action, eperson, inheritance);
         } else {
             return null;
         }
@@ -868,8 +869,13 @@ public class Context implements AutoCloseable {
 
     public void cacheAuthorizedAction(DSpaceObject dspaceObject, int action, EPerson eperson, Boolean result,
                                       ResourcePolicy rp) {
+        cacheAuthorizedAction(dspaceObject, action, eperson, null, result, rp);
+    }
+
+    public void cacheAuthorizedAction(DSpaceObject dspaceObject, int action, EPerson eperson,
+        Boolean inheritance, Boolean result, ResourcePolicy rp) {
         if (isReadOnly()) {
-            readOnlyCache.cacheAuthorizedAction(dspaceObject, action, eperson, result);
+            readOnlyCache.cacheAuthorizedAction(dspaceObject, action, eperson, inheritance, result);
             try {
                 uncacheEntity(rp);
             } catch (SQLException e) {

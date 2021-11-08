@@ -23,7 +23,6 @@ import org.dspace.services.model.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
@@ -66,7 +65,7 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
             if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME, targetType)) {
                 if (StringUtils.countMatches(targetId.toString(), "_") != 1) {
                     throw new IllegalArgumentException("Must end in objectUUID_reportId, example: " +
-                                                       "1911e8a4-6939-490c-b58b-a5d70f8d91fb_TopCountries");
+                        "1911e8a4-6939-490c-b58b-a5d70f8d91fb_TopCountries");
                 }
                 // Get uuid from uuidDSO_reportId pathParam
                 uuidObject = UUID.fromString(StringUtils.substringBefore(targetId.toString(), "_"));
@@ -79,7 +78,8 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
             try {
                 DSpaceObject dso = dspaceObjectUtil.findDSpaceObject(context, uuidObject);
                 if (dso == null) {
-                    throw new ResourceNotFoundException("No DSO found with this UUID: " + uuidObject);
+                    // allow to return a proper response code
+                    return true;
                 }
                 return authorizeService.authorizeActionBoolean(context, dso, restPermission.getDspaceApiActionId());
             } catch (SQLException e) {

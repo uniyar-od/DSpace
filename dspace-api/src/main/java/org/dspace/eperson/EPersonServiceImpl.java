@@ -7,6 +7,8 @@
  */
 package org.dspace.eperson;
 
+import static org.dspace.content.Item.ANY;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -30,9 +32,11 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.DSpaceObjectServiceImpl;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -43,6 +47,7 @@ import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.eperson.service.SubscribeService;
 import org.dspace.event.Event;
+import org.dspace.util.UUIDUtils;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.dao.VersionDAO;
@@ -51,24 +56,16 @@ import org.dspace.versioning.service.VersionHistoryService;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowService;
 import org.dspace.workflow.factory.WorkflowServiceFactory;
-import org.dspace.workflowbasic.BasicWorkflowItem;
-import org.dspace.workflowbasic.BasicWorkflowServiceImpl;
-import org.dspace.workflowbasic.factory.BasicWorkflowServiceFactory;
-import org.dspace.workflowbasic.service.BasicWorkflowItemService;
-import org.dspace.workflowbasic.service.BasicWorkflowService;
-import org.dspace.workflowbasic.service.TaskListItemService;
 import org.dspace.xmlworkflow.WorkflowConfigurationException;
 import org.dspace.xmlworkflow.factory.XmlWorkflowServiceFactory;
 import org.dspace.xmlworkflow.service.WorkflowRequirementsService;
 import org.dspace.xmlworkflow.service.XmlWorkflowService;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.CollectionRole;
-import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
 import org.dspace.xmlworkflow.storedcomponents.service.CollectionRoleService;
 import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
 import org.dspace.xmlworkflow.storedcomponents.service.WorkflowItemRoleService;
-import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -104,6 +101,8 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
     protected VersionDAO versionDAO;
     @Autowired(required = true)
     protected ClaimedTaskService claimedTaskService;
+    @Autowired(required = true)
+    protected MetadataSchemaService metadataSchemaService;
 
     protected EPersonServiceImpl() {
         super();
@@ -283,9 +282,7 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
         for (Group group: workFlowGroups) {
             List<EPerson> ePeople = groupService.allMembers(context, group);
             if (ePeople.size() == 1 && ePeople.contains(ePerson)) {
-                throw new IllegalStateException(
-                    "Refused to delete user " + ePerson.getID() + " because it the only member of the workflow group"
-                    + group.getID() + ". Delete the tasks and group first if you want to remove this user.");
+                throw new EmptyWorkflowGroupException(ePerson.getID(), group.getID());
             }
         }
         // check for presence of eperson in tables that
@@ -294,10 +291,6 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
         if (constraintList.size() > 0) {
             // Check if the constraints we found should be deleted
             if (cascade) {
-                boolean isBasicFramework = WorkflowServiceFactory.getInstance().getWorkflowService()
-                                           instanceof BasicWorkflowService;
-                boolean isXmlFramework = WorkflowServiceFactory.getInstance().getWorkflowService()
-                                         instanceof XmlWorkflowService;
                 Iterator<String> constraintsIterator = constraintList.iterator();
 
                 while (constraintsIterator.hasNext()) {
@@ -334,10 +327,8 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
                                 itemService.update(context, item);
                             }
                         }
-                    } else if (StringUtils.equals(tableName, "cwf_claimtask") && isXmlFramework) {
+                    } else if (StringUtils.equals(tableName, "cwf_claimtask")) {
                          // Unclaim all XmlWorkflow tasks
-                        XmlWorkflowItemService xmlWorkflowItemService = XmlWorkflowServiceFactory
-                                                                        .getInstance().getXmlWorkflowItemService();
                         ClaimedTaskService claimedTaskService = XmlWorkflowServiceFactory
                                                                 .getInstance().getClaimedTaskService();
                         XmlWorkflowService xmlWorkflowService = XmlWorkflowServiceFactory
@@ -345,8 +336,6 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
                         WorkflowRequirementsService workflowRequirementsService = XmlWorkflowServiceFactory
                                                                        .getInstance().getWorkflowRequirementsService();
 
-                        List<XmlWorkflowItem> xmlWorkflowItems = xmlWorkflowItemService
-                                                                 .findBySubmitter(context, ePerson);
                         List<ClaimedTask> claimedTasks = claimedTaskService.findByEperson(context, ePerson);
 
                         for (ClaimedTask task : claimedTasks) {
@@ -362,43 +351,13 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
                                                                                           .singletonList(tableName)));
                             }
                         }
-                    } else if (StringUtils.equals(tableName, "workflowitem") && isBasicFramework) {
-                        // Remove basicWorkflow workflowitem and unclaim them
-                        BasicWorkflowItemService basicWorkflowItemService = BasicWorkflowServiceFactory.getInstance()
-                                                                            .getBasicWorkflowItemService();
-                        BasicWorkflowService basicWorkflowService = BasicWorkflowServiceFactory.getInstance()
-                                                                    .getBasicWorkflowService();
-                        TaskListItemService taskListItemService = BasicWorkflowServiceFactory.getInstance()
-                                                                  .getTaskListItemService();
-                        List<BasicWorkflowItem> workflowItems = basicWorkflowItemService.findByOwner(context, ePerson);
-                        for (BasicWorkflowItem workflowItem : workflowItems) {
-                            int state = workflowItem.getState();
-                            // unclaim tasks that are in the pool.
-                            if (state == BasicWorkflowServiceImpl.WFSTATE_STEP1
-                                    || state == BasicWorkflowServiceImpl.WFSTATE_STEP2
-                                    || state == BasicWorkflowServiceImpl.WFSTATE_STEP3) {
-                                log.info(LogManager.getHeader(context, "unclaim_workflow",
-                                        "workflow_id=" + workflowItem.getID() + ", claiming EPerson is deleted"));
-                                basicWorkflowService.unclaim(context, workflowItem, context.getCurrentUser());
-                                // remove the EPerson from the list of persons that can (re-)claim the task
-                                // while we are doing it below, we must do this here as well as the previously
-                                // unclaimed tasks was put back into pool and we do not know the order the tables
-                                // are checked.
-                                taskListItemService.deleteByWorkflowItemAndEPerson(context, workflowItem, ePerson);
-                            }
-                        }
                     } else if (StringUtils.equals(tableName, "resourcepolicy")) {
                         // we delete the EPerson, it won't need any rights anymore.
                         authorizeService.removeAllEPersonPolicies(context, ePerson);
-                    } else if (StringUtils.equals(tableName, "tasklistitem") && isBasicFramework) {
-                        // remove EPerson from the list of EPersons that may claim some specific workflow tasks.
-                        TaskListItemService taskListItemService = BasicWorkflowServiceFactory.getInstance()
-                                                                  .getTaskListItemService();
-                        taskListItemService.deleteByEPerson(context, ePerson);
-                    } else if (StringUtils.equals(tableName, "cwf_pooltask") && isXmlFramework) {
+                    } else if (StringUtils.equals(tableName, "cwf_pooltask")) {
                         PoolTaskService poolTaskService = XmlWorkflowServiceFactory.getInstance().getPoolTaskService();
                         poolTaskService.deleteByEperson(context, ePerson);
-                    } else if (StringUtils.equals(tableName, "cwf_workflowitemrole") && isXmlFramework) {
+                    } else if (StringUtils.equals(tableName, "cwf_workflowitemrole")) {
                         WorkflowItemRoleService workflowItemRoleService = XmlWorkflowServiceFactory.getInstance()
                                                                           .getWorkflowItemRoleService();
                         workflowItemRoleService.deleteByEPerson(context, ePerson);
@@ -616,5 +575,14 @@ public class EPersonServiceImpl extends DSpaceObjectServiceImpl<EPerson> impleme
     @Override
     public int countTotal(Context context) throws SQLException {
         return ePersonDAO.countRows(context);
+    }
+
+    @Override
+    public EPerson findByProfileItem(Context context, Item profile) throws SQLException {
+        List<MetadataValue> crisOwners = itemService.getMetadata(profile, "cris", "owner", null, ANY);
+        if (CollectionUtils.isEmpty(crisOwners)) {
+            return null;
+        }
+        return find(context, UUIDUtils.fromString(crisOwners.get(0).getAuthority()));
     }
 }

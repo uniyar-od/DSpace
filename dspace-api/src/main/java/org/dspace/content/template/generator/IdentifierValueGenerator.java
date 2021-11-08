@@ -7,7 +7,11 @@
  */
 package org.dspace.content.template.generator;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.dspace.content.Item;
+import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Context;
 
 /**
@@ -16,10 +20,9 @@ import org.dspace.core.Context;
  * @author Corrado Lombardi (corrado.lombardi at 4science.it)
  */
 public class IdentifierValueGenerator implements TemplateValueGenerator {
-    @Override
-    public String generator(final Context context, final Item targetItem, final Item templateItem,
-                            final String extraParams) {
 
-        return targetItem.getID().toString();
+    @Override
+    public List<MetadataValueVO> generator(Context context, Item targetItem, Item templateItem, String extraParams) {
+        return Arrays.asList(new MetadataValueVO(targetItem.getID().toString()));
     }
 }

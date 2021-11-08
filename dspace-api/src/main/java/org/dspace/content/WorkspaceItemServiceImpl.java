@@ -27,6 +27,7 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataValueService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.content.template.TemplateItemValueService;
+import org.dspace.content.vo.MetadataValueVO;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -113,8 +114,8 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
         }
 
         Optional<MetadataValue> optionalType =
-            collection.getMetadata().stream().filter(x -> x.getMetadataField().toString('.')
-                .equalsIgnoreCase(MetadataSchemaEnum.RELATIONSHIP.getName() + ".type")).findFirst();
+            collection.getMetadata().stream()
+                .filter(x -> x.getMetadataField().toString('.').equalsIgnoreCase("dspace.entity.type")).findFirst();
         if (optionalType.isPresent()) {
             MetadataValue original = optionalType.get();
             MetadataField metadataField = original.getMetadataField();
@@ -129,18 +130,23 @@ public class WorkspaceItemServiceImpl implements WorkspaceItemService {
         Item templateItem = collection.getTemplateItem();
 
         if (template && (templateItem != null)) {
-            List<MetadataValue> md = itemService.getMetadata(templateItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+            List<MetadataValue> templateMetadataValues = itemService.getMetadata(templateItem, Item.ANY, Item.ANY,
+                Item.ANY, Item.ANY);
 
-            for (MetadataValue aMd : md) {
-                MetadataField metadataField = aMd.getMetadataField();
+            for (MetadataValue templateMetadataValue : templateMetadataValues) {
+
+                MetadataField metadataField = templateMetadataValue.getMetadataField();
                 MetadataSchema metadataSchema = metadataField.getMetadataSchema();
 
-                final String valueFromTemplate = templateItemValueService.value(context, item,
-                                                                                       templateItem, aMd);
+                List<MetadataValueVO> metadataValueFromTemplateList = templateItemValueService.value(context, item,
+                    templateItem, templateMetadataValue);
 
-                itemService.addMetadata(context, item, metadataSchema.getName(), metadataField.getElement(),
-                                        metadataField.getQualifier(), aMd.getLanguage(),
-                                        valueFromTemplate);
+                for (MetadataValueVO metadataValueFromTemplate : metadataValueFromTemplateList) {
+                    itemService.addMetadata(context, item, metadataSchema.getName(), metadataField.getElement(),
+                        metadataField.getQualifier(), templateMetadataValue.getLanguage(),
+                        metadataValueFromTemplate.getValue(), metadataValueFromTemplate.getAuthority(),
+                        metadataValueFromTemplate.getConfidence());
+                }
             }
         }
 

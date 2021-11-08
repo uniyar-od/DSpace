@@ -1,5 +1,9 @@
 # Docker images supporting DSpace
 
+***
+:warning: **NOT PRODUCTION READY**  The below Docker images/resources are not guaranteed "production ready" at this time. They have been built for development/testing only. Therefore, DSpace Docker images may not be fully secured or up-to-date. While you are welcome to base your own images on these DSpace images/resources, these should not be used "as is" in any production scenario.
+***
+
 ## Dockerfile.dependencies
 
 This Dockerfile is used to pre-cache Maven dependency downloads that will be used in subsequent DSpace docker builds.
@@ -106,32 +110,6 @@ Admins to our DockerHub repo can publish with the following command.
 docker push dspace/dspace-postgres-pgcrypto:loadsql
 ```
 
-## dspace/src/main/docker/solr/Dockerfile
-
-This is a standalone Solr image containing DSpace Solr cores & schemas required by DSpace 7.
-
-**WARNING:** Rebuilding this image first **requires** rebuilding `dspace-7_x` (i.e. `Dockerfile` listed above),
-as this Solr image copies the latest DSpace-specific Solr schemas & settings from that other image.
-
-```
-# First, rebuild dspace-7_x to grab the latest Solr configs
-cd [src]
-docker build -t dspace/dspace:dspace-7_x -f Dockerfile .
-
-# Then, rebuild dspace-solr based on that build of DSpace 7.
-cd dspace/src/main/docker/solr
-docker build -t dspace/dspace-solr .
-```
-
-**This image is built manually.**  It should be rebuilt when Solr schemas change or as new releases of Solr are incorporated.
-
-This file was introduced for DSpace 7.
-
-Admins to our DockerHub repo can publish with the following command.
-```
-docker push dspace/dspace-solr
-```
-
 ## dspace/src/main/docker/dspace-shibboleth/Dockerfile
 
 This is a test / demo image which provides an Apache HTTPD proxy (in front of Tomcat)
@@ -154,3 +132,13 @@ This image can also be rebuilt using the `../docker-compose/docker-compose-shibb
 ## local.cfg and test/ folder
 
 These resources are bundled into the `dspace/dspace` image at build time.
+
+
+## Debugging Docker builds
+
+When updating or debugging Docker image builds, it can be useful to briefly
+spin up an "intermediate container".  Here's how to do that:
+```
+# First find the intermediate container/image ID in your commandline logs
+docker run -i -t [container-id] /bin/bash
+```

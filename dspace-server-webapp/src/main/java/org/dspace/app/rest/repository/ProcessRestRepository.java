@@ -15,7 +15,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.ConverterService;
@@ -35,6 +36,7 @@ import org.dspace.scripts.Process;
 import org.dspace.scripts.ProcessQueryParameterContainer;
 import org.dspace.scripts.Process_;
 import org.dspace.scripts.service.ProcessService;
+import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -49,7 +51,7 @@ import org.springframework.stereotype.Component;
 @Component(ProcessRest.CATEGORY + "." + ProcessRest.NAME)
 public class ProcessRestRepository extends DSpaceRestRepository<ProcessRest, Integer> {
 
-    private static final Logger log = Logger.getLogger(ProcessRestRepository.class);
+    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     private ProcessService processService;
@@ -64,6 +66,8 @@ public class ProcessRestRepository extends DSpaceRestRepository<ProcessRest, Int
     @Autowired
     private EPersonService epersonService;
 
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Override
     @PreAuthorize("hasPermission(#id, 'PROCESS', 'READ')")
@@ -130,9 +134,8 @@ public class ProcessRestRepository extends DSpaceRestRepository<ProcessRest, Int
         if (process == null) {
             throw new ResourceNotFoundException("Process with id " + processId + " was not found");
         }
-        if ((context.getCurrentUser() == null) || (!context.getCurrentUser()
-                                                           .equals(process.getEPerson()) && !authorizeService
-            .isAdmin(context))) {
+        if (!isDefaultUser(process.getEPerson()) && ((context.getCurrentUser() == null) || (!context.getCurrentUser()
+            .equals(process.getEPerson()) && !authorizeService.isAdmin(context)))) {
             throw new AuthorizeException("The current user is not eligible to view the process with id: " + processId);
         }
         return process;
@@ -156,12 +159,13 @@ public class ProcessRestRepository extends DSpaceRestRepository<ProcessRest, Int
     }
 
     @Override
-    protected void delete(Context context, Integer integer)
+    @PreAuthorize("hasPermission(#id, 'PROCESS', 'DELETE')")
+    protected void delete(Context context, Integer id)
         throws AuthorizeException, RepositoryMethodNotImplementedException {
         try {
-            processService.delete(context, processService.find(context, integer));
+            processService.delete(context, processService.find(context, id));
         } catch (SQLException | IOException e) {
-            log.error("Something went wrong trying to find Process with id: " + integer, e);
+            log.error("Something went wrong trying to find Process with id: " + id, e);
             throw new RuntimeException(e.getMessage(), e);
         }
     }
@@ -262,6 +266,11 @@ public class ProcessRestRepository extends DSpaceRestRepository<ProcessRest, Int
             processQueryParameterContainer.addToQueryParameterMap(Process_.PROCESS_STATUS, processStatus);
         }
         return processQueryParameterContainer;
+    }
+
+    private boolean isDefaultUser(EPerson ePerson) {
+        return ePerson != null && ePerson.getID().toString()
+            .equals(configurationService.getProperty("process.start.default-user"));
     }
 
     @Override

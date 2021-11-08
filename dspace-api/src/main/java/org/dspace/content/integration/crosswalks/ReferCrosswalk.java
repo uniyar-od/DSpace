@@ -8,7 +8,6 @@
 package org.dspace.content.integration.crosswalks;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static org.apache.commons.collections4.iterators.EmptyIterator.emptyIterator;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 
@@ -21,7 +20,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,12 +55,10 @@ import org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMappe
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
-import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResultIterator;
-import org.dspace.discovery.configuration.DiscoveryConfiguration;
-import org.dspace.discovery.configuration.DiscoveryConfigurationService;
-import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
+import org.dspace.metadataSecurity.MetadataSecurityService;
 import org.dspace.services.ConfigurationService;
+import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 
@@ -77,7 +73,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
     private static Logger log = Logger.getLogger(ReferCrosswalk.class);
 
-    private static final Pattern FIELD_PATTERN = Pattern.compile("@[a-zA-Z0-9\\-.*]+(\\(.*\\))?@");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("@(.*)@");
 
     @Autowired
     private ConfigurationService configurationService;
@@ -86,13 +82,16 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
     private ItemService itemService;
 
     @Autowired
-    private DiscoveryConfigurationService searchConfigurationService;
+    private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
 
     @Autowired
     private VirtualFieldMapper virtualFieldMapper;
 
     @Autowired
     private ConditionEvaluatorMapper conditionEvaluatorMapper;
+
+    @Autowired
+    private MetadataSecurityService metadataSecurityService;
 
     private Converter<String, String> converter;
 
@@ -297,7 +296,11 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
 
             List<String> metadataValues = getMetadataValuesForLine(context, templateLine, item);
             for (String metadataValue : metadataValues) {
-                appendLine(lines, templateLine, metadataValue);
+                if (PLACEHOLDER_PARENT_METADATA_VALUE.equals(metadataValue)) {
+                    appendLine(lines, templateLine, StringUtils.EMPTY);
+                } else if (isNotBlank(metadataValue)) {
+                    appendLine(lines, templateLine, metadataValue);
+                }
             }
         }
     }
@@ -312,9 +315,11 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             String[] values = virtualField.getMetadata(context, item, line.getField());
             return values != null ? Arrays.asList(values) : Collections.emptyList();
         } else {
-            return itemService.getMetadataByMetadataString(item, line.getField()).stream()
-                .map(MetadataValue::getValue)
-                .collect(Collectors.toList());
+            List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(item, line.getField());
+            return metadataSecurityService.getPermissionFilteredMetadata(context, item, metadataValues)
+                                          .stream()
+                                          .map(MetadataValue::getValue)
+                                          .collect(Collectors.toList());
         }
     }
 
@@ -413,7 +418,7 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
             return findByAuthorities(context, item, relationName);
         }
 
-        return findByRelation(context, item, relationName);
+        return searchConfigurationUtilsService.findByRelation(context, item, relationName);
     }
 
     private boolean isMetadataField(String relationName) {
@@ -424,39 +429,10 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         return itemService.getMetadataByMetadataString(item, metadataField.replaceAll("-", ".")).stream()
             .map(MetadataValue::getAuthority)
             .filter(Objects::nonNull)
-            .map(authority -> findById(context, authority))
+            .filter(authority -> UUIDUtils.fromString(authority) != null)
+            .map(authority -> findById(context, UUIDUtils.fromString(authority)))
             .filter(Objects::nonNull)
             .iterator();
-    }
-
-    private Iterator<Item> findByRelation(Context context, Item item, String relationName) {
-        String entityType = itemService.getMetadataFirstValue(item, "relationship", "type", null, Item.ANY);
-        if (entityType == null) {
-            log.warn("The item with id " + item.getID() + " has no relationship.type. No related items is found.");
-            return emptyIterator();
-        }
-
-        DiscoveryConfiguration discoveryConfiguration = findDiscoveryConfiguration(entityType, relationName);
-        if (discoveryConfiguration == null) {
-            log.warn("No discovery configuration found for relation " + relationName + " for item with id "
-                + item.getID() + " and type " + entityType + ". No related items is found.");
-            return emptyIterator();
-        }
-
-        DiscoverQuery discoverQuery = new DiscoverQuery();
-        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
-        discoverQuery.setDiscoveryConfigurationName(discoveryConfiguration.getId());
-        List<String> defaultFilterQueries = discoveryConfiguration.getDefaultFilterQueries();
-        for (String defaultFilterQuery : defaultFilterQueries) {
-            discoverQuery.addFilterQueries(MessageFormat.format(defaultFilterQuery, item.getID()));
-        }
-
-        return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
-    }
-
-    private DiscoveryConfiguration findDiscoveryConfiguration(String entityType, String relationName) {
-        String configurationName = "RELATION." + entityType + "." + relationName;
-        return searchConfigurationService.getDiscoveryConfigurationByName(configurationName);
     }
 
     private void appendLine(List<String> lines, TemplateLine line, String value) {
@@ -475,17 +451,17 @@ public class ReferCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private Item findById(Context context, String id) {
+    private Item findById(Context context, UUID id) {
         try {
-            return itemService.findByIdOrLegacyId(context, id);
+            return itemService.find(context, id);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
     }
 
     private boolean hasExpectedEntityType(Item item) {
-        String relationshipType = itemService.getMetadataFirstValue(item, "relationship", "type", null, Item.ANY);
-        return Objects.equals(relationshipType, entityType);
+        String itemEntityType = itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY);
+        return Objects.equals(itemEntityType, entityType);
     }
 
     public void setConverter(Converter<String, String> converter) {

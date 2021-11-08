@@ -4,16 +4,16 @@
     <groupId>org.dspace</groupId>
     <artifactId>dspace-parent</artifactId>
     <packaging>pom</packaging>
-    <version>7.0-beta5-SNAPSHOT</version>
+    <version>cris-2021.02.01-SNAPSHOT</version>
     <name>DSpace Parent Project</name>
     <description>
-   	DSpace open source software is a turnkey institutional repository application.
+   	DSpace-CRIS is an open source extension of DSpace (http://www.dspace.org) providing out of box support for the CRIS / RIMS and moder Institution Repository use cases with advanced features and optimized configurations
     </description>
-    <url>https://github.com/dspace/DSpace</url>
+    <url>https://github.com/4Science/DSpace</url>
 
     <organization>
-        <name>LYRASIS</name>
-        <url>http://www.dspace.org</url>
+        <name>4Science</name>
+        <url>https://www.4science.it</url>
     </organization>
 
     <properties>
@@ -21,24 +21,23 @@
         <java.version>11</java.version>
         <spring.version>5.2.5.RELEASE</spring.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+        <spring-security.version>5.2.2.RELEASE</spring-security.version> <!-- sync with version used by spring-boot-->
         <hibernate.version>5.4.10.Final</hibernate.version>
         <hibernate-validator.version>6.0.18.Final</hibernate-validator.version>
         <postgresql.driver.version>42.2.9</postgresql.driver.version>
-        <!-- PIN Solr to 7.3.x until SOLR-12858 is fixed. This bug affects all integration tests that use Solr
-             https://issues.apache.org/jira/browse/SOLR-12858 -->
-        <solr.client.version>7.3.1</solr.client.version>
+        <solr.client.version>8.8.1</solr.client.version>
 
         <axiom.version>1.2.22</axiom.version>
         <errorprone.version>2.3.4</errorprone.version>
         <!-- NOTE: when updating jackson.version, also sync jackson-databind dependency below -->
-        <jackson.version>2.10.2</jackson.version>
+        <jackson.version>2.12.3</jackson.version>
         <javax-annotation.version>1.3.2</javax-annotation.version>
         <jaxb-api.version>2.3.1</jaxb-api.version>
         <jaxb-runtime.version>2.3.1</jaxb-runtime.version>
-        <!-- NOTE: Jetty needed for Handle Server & tests -->
-        <jetty.version>9.4.17.v20190418</jetty.version>
+        <!-- NOTE: Jetty needed for Solr, Handle Server & tests -->
+        <jetty.version>9.4.41.v20210516</jetty.version>
         <log4j.version>2.13.3</log4j.version>
-        <pdfbox-version>2.0.15</pdfbox-version>
+        <pdfbox-version>2.0.24</pdfbox-version>
         <poi-version>3.17</poi-version>
         <slf4j.version>1.7.25</slf4j.version>
 
@@ -114,6 +113,21 @@
                             <configuration>
                                 <rules>
                                     <DependencyConvergence />
+                                </rules>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>ban-dependencies</id>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <bannedDependencies>
+                                        <excludes>
+                                            <exclude>log4j:log4j</exclude>
+                                        </excludes>
+                                    </bannedDependencies>
                                 </rules>
                             </configuration>
                         </execution>
@@ -234,9 +248,9 @@
                             <id>verify-style</id>
                             <!-- Bind to verify so it runs after package & unit tests, but before install -->
                             <phase>verify</phase>
-                            <!-- <goals>
+                            <goals>
                                 <goal>check</goal>
-                            </goals> -->
+                            </goals>
                         </execution>
                     </executions>
                     <configuration>
@@ -648,6 +662,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>license-maven-plugin</artifactId>
+                        <version>2.0.0</version>
                         <!-- This plugin only needs to be run on the Parent POM
                              as it aggregates results from all child POMs. -->
                         <inherited>false</inherited>
@@ -709,42 +724,6 @@
                     </plugin>
                 </plugins>
             </build>
-        </profile>
-
-        <!-- PostgreSQL ships different JDBC drivers based on the version of Java
-             you are running. See https://jdbc.postgresql.org/download.html
-             These next two profiles handle pulling in the correct PostgreSQL JDBC driver. -->
-        <!-- Default PostgreSQL driver is only for Java 8 -->
-        <profile>
-            <id>postgresql-jdbc-default</id>
-            <activation>
-                <jdk>[1.8,)</jdk>
-            </activation>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgresql.driver.version}</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
-        </profile>
-        <!-- If running Java 7, use JRE7 PostgreSQL driver -->
-        <profile>
-            <id>postgresql-jdbc-jre7</id>
-            <activation>
-                <jdk>[1.7,1.8)</jdk>
-            </activation>
-            <dependencyManagement>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.postgresql</groupId>
-                        <artifactId>postgresql</artifactId>
-                        <version>${postgresql.driver.version}.jre7</version>
-                    </dependency>
-                </dependencies>
-            </dependencyManagement>
         </profile>
 
         <!--
@@ -848,14 +827,14 @@
                    <dependency>
                        <groupId>org.dspace</groupId>
                        <artifactId>dspace-rest</artifactId>
-                       <version>7.0-beta5-SNAPSHOT</version>
+                       <version>cris-2021.02.01-SNAPSHOT</version>
                        <type>jar</type>
                        <classifier>classes</classifier>
                    </dependency>
                    <dependency>
                        <groupId>org.dspace</groupId>
                        <artifactId>dspace-rest</artifactId>
-                       <version>7.0-beta5-SNAPSHOT</version>
+                       <version>cris-2021.02.01-SNAPSHOT</version>
                        <type>war</type>
                    </dependency>
                </dependencies>
@@ -936,9 +915,9 @@
                         <extensions>true</extensions>
                         <configuration>
                             <!-- In your settings.xml, your username/password
-                                 MUST be specified for server 'ossrh' -->
-                            <serverId>ossrh</serverId>
-                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                                 MUST be specified for server '4science-nexus' -->
+                            <serverId>4science-nexus</serverId>
+                            <nexusUrl>https://nexus.4science.it/</nexusUrl>
                             <!-- Require manual verification / release to Maven Central -->
                             <autoReleaseAfterClose>false</autoReleaseAfterClose>
                         </configuration>
@@ -1002,74 +981,80 @@
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api</artifactId>
                 <type>test-jar</type>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.dspace.modules</groupId>
                 <artifactId>additions</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
 
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-sword</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-swordv2</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-oai</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-services</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
                 <type>test-jar</type>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-rdf</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
                 <type>jar</type>
                 <classifier>classes</classifier>
             </dependency>
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-server-webapp</artifactId>
-                <version>7.0-beta5-SNAPSHOT</version>
+                <version>cris-2021.02.01-SNAPSHOT</version>
                 <type>war</type>
             </dependency>
             <!-- DSpace API Localization Packages -->
             <dependency>
                 <groupId>org.dspace</groupId>
                 <artifactId>dspace-api-lang</artifactId>
-                <version>[6.0.0,7.0.0)</version>
+                <version>[7.0.0,8.0.0)</version>
             </dependency>
 
             <!-- DSpace third Party Dependencies -->
+
+            <dependency>
+                <groupId>org.postgresql</groupId>
+                <artifactId>postgresql</artifactId>
+                <version>${postgresql.driver.version}</version>
+            </dependency>
 
             <!-- Solr introduces multiple versions of zookeeper. So,
                  we specify the version we want -->
@@ -1083,14 +1068,14 @@
             <dependency>
                 <groupId>org.apache.james</groupId>
                 <artifactId>apache-mime4j-core</artifactId>
-                <version>0.8.1</version>
+                <version>0.8.3</version>
             </dependency>
 
             <!-- solr-core, solr-cell disagree with nimbus-jose-jwt -->
             <dependency>
                 <groupId>org.ow2.asm</groupId>
                 <artifactId>asm</artifactId>
-                <version>7.1</version>
+                <version>8.0.1</version>
             </dependency>
 
             <dependency>
@@ -1205,9 +1190,14 @@
                         <groupId>org.junit.vintage</groupId>
                         <artifactId>junit-vintage-engine</artifactId>
                     </exclusion>
+                    <!-- We use a later version of Mockito -->
                     <exclusion>
                         <groupId>org.mockito</groupId>
                         <artifactId>mockito-junit-jupiter</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.mockito</groupId>
+                        <artifactId>mockito-core</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1221,6 +1211,35 @@
                 <groupId>org.apache.lucene</groupId>
                 <artifactId>lucene-core</artifactId>
                 <version>${solr.client.version}</version>
+            </dependency>
+            <!-- Used for full-text indexing with Solr. Should be synced with version of Tika in solr-cell -->
+            <dependency>
+                <groupId>org.apache.tika</groupId>
+                <artifactId>tika-parsers</artifactId>
+                <version>1.24.1</version>
+                <!-- Exclude a few tika-parsers dependencies that we already use, with slightly different versions -->
+                <exclusions>
+                    <exclusion>
+                        <groupId>com.google.protobuf</groupId>
+                        <artifactId>protobuf-java</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>net.sf.ehcache</groupId>
+                        <artifactId>ehcache-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>jakarta.ws.rs</groupId>
+                        <artifactId>jakarta.ws.rs-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>javax.xml.soap</groupId>
+                        <artifactId>javax.xml.soap-api</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jvnet.staxex</groupId>
+                        <artifactId>stax-ex</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <!-- Reminder: Keep icu4j (in Parent POM) synced with version used by lucene-analyzers-icu below,
              otherwise ICUFoldingFilterFactory may throw errors in tests.  -->
@@ -1243,10 +1262,11 @@
                 <scope>test</scope>
             </dependency>
 
+
             <dependency>
                 <groupId>org.apache.ant</groupId>
                 <artifactId>ant</artifactId>
-                <version>1.9.15</version>
+                <version>1.10.9</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.jena</groupId>
@@ -1257,6 +1277,11 @@
                     <exclusion>
                         <groupId>org.slf4j</groupId>
                         <artifactId>slf4j-log4j12</artifactId>
+                    </exclusion>
+                    <!-- Newer version brought in by solr-cell -->
+                    <exclusion>
+                        <groupId>org.apache.commons</groupId>
+                        <artifactId>commons-csv</artifactId>
                     </exclusion>
                 </exclusions>
             </dependency>
@@ -1335,7 +1360,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-dbcp2</artifactId>
-                <version>2.1.1</version>
+                <version>2.8.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-fileupload</groupId>
@@ -1345,7 +1370,7 @@
             <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
-                <version>2.6</version>
+                <version>2.7</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.commons</groupId>
@@ -1362,7 +1387,7 @@
             <dependency>
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-pool2</artifactId>
-                <version>2.4.2</version>
+                <version>2.9.0</version>
             </dependency>
             <dependency>
                 <groupId>commons-validator</groupId>
@@ -1462,11 +1487,30 @@
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml</artifactId>
                 <version>${poi-version}</version>
+                <exclusions>
+                    <!-- Newer version brought in by solr-cell -->
+                    <exclusion>
+                        <groupId>com.github.virtuald</groupId>
+                        <artifactId>curvesapi</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>org.apache.poi</groupId>
                 <artifactId>poi-ooxml-schemas</artifactId>
                 <version>${poi-version}</version>
+                <exclusions>
+                    <!-- Newer version pulled in below -->
+                    <exclusion>
+                        <groupId>org.apache.xmlbeans</groupId>
+                        <artifactId>xmlbeans</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.xmlbeans</groupId>
+                <artifactId>xmlbeans</artifactId>
+                <version>3.1.0</version>
             </dependency>
             <dependency>
                 <groupId>xalan</groupId>
@@ -1488,7 +1532,7 @@
             <dependency>
                 <groupId>com.ibm.icu</groupId>
                 <artifactId>icu4j</artifactId>
-                <version>59.1</version>
+                <version>62.1</version>
             </dependency>
             <dependency>
                 <groupId>com.oracle</groupId>
@@ -1508,7 +1552,7 @@
             <dependency>
                 <groupId>org.apache.httpcomponents</groupId>
                 <artifactId>httpclient</artifactId>
-                <version>4.5.1</version>
+                <version>4.5.13</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -1558,8 +1602,8 @@
             </dependency>
             <dependency>
                 <groupId>org.mockito</groupId>
-                <artifactId>mockito-core</artifactId>
-                <version>3.1.0</version>
+                <artifactId>mockito-inline</artifactId>
+                <version>3.8.0</version>
                 <scope>test</scope>
             </dependency>
             <!-- H2 is an in-memory database used for Unit/Integration tests -->
@@ -1650,12 +1694,7 @@
             <dependency>
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
-                <version>19.0</version>
-            </dependency>
-            <dependency>
-                <groupId>com.lyncode</groupId>
-                <artifactId>builder-commons</artifactId>
-                <version>1.0.2</version>
+                <version>30.0-jre</version>
             </dependency>
             <dependency>
                 <groupId>xom</groupId>
@@ -1684,8 +1723,8 @@
 
     <licenses>
         <license>
-            <name>DSpace BSD License</name>
-            <url>https://raw.github.com/DSpace/DSpace/main/LICENSE</url>
+            <name>DSpace-CRIS BSD License</name>
+            <url>https://github.com/4Science/DSpace/raw/dspace-cris-7/LICENSE</url>
             <distribution>repo</distribution>
             <comments>
                A BSD 3-Clause license for the DSpace codebase.
@@ -1695,7 +1734,7 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/DSpace/DSpace/issues</url>
+        <url>https://github.com/4Science/DSpace/issues</url>
     </issueManagement>
 
     <mailingLists>
@@ -1778,24 +1817,30 @@
       Information about the SCM repository where source code exists.
     -->
     <scm>
-        <connection>scm:git:git@github.com:DSpace/DSpace.git</connection>
-        <developerConnection>scm:git:git@github.com:DSpace/DSpace.git</developerConnection>
-        <url>git@github.com:DSpace/DSpace.git</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:git@github.com:4Science/DSpace.git</connection>
+        <developerConnection>scm:git:git@github.com:4Science/DSpace.git</developerConnection>
+        <url>git@github.com:4Science/DSpace.git</url>
+        <tag>dspace-cris-2021.02.00</tag>
     </scm>
 
 
     <!-- Configure our release repositories to use Sonatype.
          See: http://central.sonatype.org/pages/apache-maven.html -->
     <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
         <repository>
-            <id>ossrh</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+            <id>4science-nexus</id>
+            <name>4Science Public Releases</name>
+            <url>https://nexus.4science.it/repository/maven-releases/</url>
         </repository>
+        <snapshotRepository>
+            <id>4science-snapshot</id>
+            <name>4Science Public Snapshot</name>
+            <url>https://nexus.4science.it/repository/maven-snapshots/</url>
+        </snapshotRepository>
+        <site>
+            <id>website</id>
+            <url>https://wiki.duraspace.org/display/DSPACECRIS/DSpace-CRIS+Home</url>
+        </site>
     </distributionManagement>
 
     <repositories>
@@ -1821,29 +1866,10 @@
             <id>handle.net</id>
             <url>https://handle.net/maven</url>
         </repository>
-        <!-- For Solr 7.x, as the solr-parent POM has an old URL for this maven-restlet repository.
-             The URL is corrected (to the below value) as of Solr 8.3.x, but has not yet been backported to 7.x.
-             Once we upgrade to Solr 8+, we should be able to remove this repository. -->
-        <!-- Only necessary if maven.restlet.org becomes unavailable again. Disabled for now, as that URL has been
-             redirected to the new .com location. Leaving this here temporarily in case it is ever needed again.
         <repository>
-            <id>maven-restlet</id>
-            <name>Public online Restlet repository</name>
-            <url>https://maven.restlet.com</url>
+            <id>4science-repo-nexus</id>
+            <name>4Science Maven Repository</name>
+            <url>https://nexus.4science.it/repository/maven-public/</url>
         </repository>
-        -->
     </repositories>
-
-    <dependencies>
-    	<dependency>
-    		<groupId>org.apache.poi</groupId>
-    		<artifactId>poi-ooxml</artifactId>
-    		<exclusions>
-    			<exclusion>
-    				<groupId>stax</groupId>
-    				<artifactId>stax-api</artifactId>
-    			</exclusion>
-    		</exclusions>
-    	</dependency>
-    </dependencies>
 </project>

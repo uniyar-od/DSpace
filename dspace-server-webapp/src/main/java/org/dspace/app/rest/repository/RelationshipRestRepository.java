@@ -16,7 +16,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
@@ -49,7 +50,7 @@ import org.springframework.stereotype.Component;
 @Component(RelationshipRest.CATEGORY + "." + RelationshipRest.NAME)
 public class RelationshipRestRepository extends DSpaceRestRepository<RelationshipRest, Integer> {
 
-    private static final Logger log = Logger.getLogger(RelationshipRestRepository.class);
+    private static final Logger log = LogManager.getLogger();
 
     private static final String ALL = "all";
     private static final String LEFT = "left";
@@ -75,7 +76,12 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
     @PreAuthorize("permitAll()")
     public RelationshipRest findOne(Context context, Integer integer) {
         try {
-            return converter.toRest(relationshipService.find(context, integer), utils.obtainProjection());
+            Relationship relationship = relationshipService.find(context, integer);
+
+            if (relationship == null) {
+                return null;
+            }
+            return converter.toRest(relationship, utils.obtainProjection());
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -243,7 +249,12 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
             if (jsonNode.hasNonNull("leftPlace")) {
                 relationship.setLeftPlace(relationshipRest.getLeftPlace());
             }
-
+            // places are updated only if relationship sorting has to be kept. This happens in case
+            // relationshipType is set to handle single-side places (only leftPlace or rightPlace
+            // value should be considered
+            if (updateRelationshipPlaces(relationship.getRelationshipType())) {
+                relationshipService.updatePlaceInRelationship(context, relationship);
+            }
             relationshipService.update(context, relationship);
             context.commit();
             context.reloadEntity(relationship);
@@ -360,5 +371,10 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
         }
 
         return converter.toRestPage(relationships, pageable, total, utils.obtainProjection());
+    }
+
+    private boolean updateRelationshipPlaces(final RelationshipType relationshipType) {
+        return relationshipService.placesOnly(relationshipType, true)
+                   || relationshipService.placesOnly(relationshipType, false);
     }
 }

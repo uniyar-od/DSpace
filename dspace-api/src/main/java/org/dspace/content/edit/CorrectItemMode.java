@@ -28,7 +28,8 @@ public class CorrectItemMode implements AccessItemMode {
     private CrisSecurity security;
 
     /**
-     * Contains the list of groups metadata for CUSTOM security
+     * Contains the list of groups metadata for CUSTOM security or the groups
+     * name/uuid for the GROUP security
      */
     private List<String> groups = new ArrayList<String>();
 
@@ -37,19 +38,29 @@ public class CorrectItemMode implements AccessItemMode {
      */
     private List<String> users = new ArrayList<String>();
 
+    /**
+     * Contains the list of users metadata for CUSTOM security
+     */
+    private List<String> items = new ArrayList<String>();
+
     @Override
     public CrisSecurity getSecurity() {
         return security;
     }
 
     @Override
-    public List<String> getGroups() {
+    public List<String> getGroupMetadataFields() {
         return groups;
     }
 
     @Override
-    public List<String> getUsers() {
+    public List<String> getUserMetadataFields() {
         return users;
+    }
+
+    @Override
+    public List<String> getItemMetadataFields() {
+        return items;
     }
 
     public void setSecurity(CrisSecurity security) {
@@ -64,4 +75,12 @@ public class CorrectItemMode implements AccessItemMode {
         this.users = users;
     }
 
+    public void setItems(List<String> items) {
+        this.items = items;
+    }
+
+    @Override
+    public List<String> getGroups() {
+        return groups;
+    }
 }

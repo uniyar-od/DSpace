@@ -225,7 +225,7 @@ public class SubmissionConfigReader {
             }
         }
 
-        submitName = collService.getMetadataFirstValue(collection, "relationship", "type", null, null);
+        submitName = collService.getMetadataFirstValue(collection, "dspace", "entity", "type", null);
         if (submitName != null) {
             SubmissionConfig subConfig = getSubmissionConfigByName(submitName.toLowerCase());
             if (subConfig != null) {
@@ -569,6 +569,11 @@ public class SubmissionConfigReader {
         String mandatory = getAttribute(nStep, "mandatory");
         if (StringUtils.isNotBlank(mandatory)) {
             stepInfo.put("mandatory", mandatory);
+        }
+
+        String opened = getAttribute(nStep, "opened");
+        if (StringUtils.isNotBlank(opened)) {
+            stepInfo.put("opened", opened);
         }
 
         // look for REQUIRED 'step' information

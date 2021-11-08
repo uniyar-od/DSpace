@@ -8,6 +8,7 @@
 package org.dspace.content.integration.crosswalks.script;
 
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.dspace.discovery.configuration.DiscoverySortFunctionConfiguration.SORT_FUNCTION;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,7 +34,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverFilterQuery;
 import org.dspace.discovery.DiscoverQuery;
-import org.dspace.discovery.DiscoverResultIterator;
+import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.IndexableObject;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
@@ -44,9 +45,12 @@ import org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.discovery.configuration.DiscoverySortFunctionConfiguration;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.discovery.indexobject.IndexableWorkflowItem;
+import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.kernel.ServiceManager;
@@ -123,6 +127,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     public void internalRun() throws Exception {
         context = new Context();
         assignCurrentUserInContext();
+        assignSpecialGroupsInContext();
 
         if (exportFormat == null) {
             throw new IllegalArgumentException("The export format must be provided");
@@ -140,7 +145,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         }
 
         try {
-            DiscoverResultIterator<Item, UUID> itemsIterator = searchItemsToExport();
+            DiscoverResultItemIterator itemsIterator = searchItemsToExport();
             handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
 
             performExport(itemsIterator, streamDisseminationCrosswalk);
@@ -169,7 +174,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         handler.logInfo("Items exported successfully into file named " + name);
     }
 
-    private DiscoverResultIterator<Item, UUID> searchItemsToExport() throws SearchServiceException, SQLException {
+    private DiscoverResultItemIterator searchItemsToExport() throws SearchServiceException, SQLException {
         IndexableObject<?, ?> scopeObject = resolveScope();
         DiscoveryConfiguration discoveryConfiguration = discoveryConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
@@ -180,9 +185,9 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         DiscoverQuery discoverQuery = buildDiscoveryQuery(discoveryConfiguration, scopeObject);
 
         if (isRelatedItem) {
-            return new DiscoverResultIterator<Item, UUID>(context, discoverQuery);
+            return new DiscoverResultItemIterator(context, discoverQuery);
         } else {
-            return new DiscoverResultIterator<Item, UUID>(context, scopeObject, discoverQuery);
+            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery);
         }
     }
 
@@ -219,12 +224,14 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         IndexableObject<?, ?> scope) throws SQLException {
 
         DiscoverQuery discoverQuery = buildBaseQuery(discoveryConfiguration, scope);
-        discoverQuery.setDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.setQuery(query);
         discoverQuery.setMaxResults(QUERY_PAGINATION_SIZE);
         discoverQuery.addFilterQueries(getFilterQueries(discoveryConfiguration));
-        discoverQuery.addFilterQueries("entityType:" + entityType);
-        configureSorting(discoverQuery, discoveryConfiguration);
+        discoverQuery.addFilterQueries("search.entitytype:" + entityType);
+        configureSorting(discoverQuery, discoveryConfiguration, scope);
 
         return discoverQuery;
     }
@@ -240,9 +247,11 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
         List<String> filterQueries = discoveryConfiguration.getDefaultFilterQueries();
 
-        if (scope != null && discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration) {
-            for (String filterQuery : filterQueries) {
+        for (String filterQuery : filterQueries) {
+            if (discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration) {
                 discoverQuery.addFilterQueries(MessageFormat.format(filterQuery, scope.getID()));
+            } else {
+                discoverQuery.addFilterQueries(filterQuery);
             }
         }
 
@@ -265,7 +274,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
             String name = searchFilter.getIndexFieldName();
 
-            DiscoverFilterQuery filterQuery = searchService.toFilterQuery(context, name, filterOperator, filterValue);
+            DiscoverFilterQuery filterQuery = searchService.toFilterQuery(context, name, filterOperator, filterValue,
+                    discoveryConfiguration);
             if (filterQuery != null) {
                 filterQueries.add(filterQuery.getFilterQuery());
             }
@@ -274,7 +284,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         return filterQueries.toArray(new String[filterQueries.size()]);
     }
 
-    private void configureSorting(DiscoverQuery discoverQuery, DiscoveryConfiguration discoveryConfiguration) {
+    private void configureSorting(DiscoverQuery discoverQuery, DiscoveryConfiguration discoveryConfiguration,
+        IndexableObject<?, ?> scopeObject) {
 
         String sortBy = null;
         String sortOrder = null;
@@ -287,10 +298,10 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         DiscoverySortConfiguration searchSortConfiguration = discoveryConfiguration.getSearchSortConfiguration();
 
         if (sortBy == null) {
-            sortBy = getDefaultSortField(searchSortConfiguration);
+            sortBy = searchSortConfiguration.getDefaultSortField();
         }
         if (sortOrder == null) {
-            sortOrder = getDefaultSortDirection(searchSortConfiguration);
+            sortOrder = searchSortConfiguration.getDefaultSortDirection();
         }
 
         DiscoverySortFieldConfiguration fieldConfig = searchSortConfiguration.getSortFieldConfiguration(sortBy);
@@ -299,7 +310,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             throw new IllegalArgumentException(sortBy + " is not a valid sort field");
         }
 
-        String sortField = searchService.toSortFieldIndex(fieldConfig.getMetadataField(), fieldConfig.getType());
+        String sortField = calculateSortField(fieldConfig, scopeObject);
 
         if ("asc".equalsIgnoreCase(sortOrder)) {
             discoverQuery.setSortField(sortField, DiscoverQuery.SORT_ORDER.asc);
@@ -311,17 +322,14 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
     }
 
-    private String getDefaultSortDirection(DiscoverySortConfiguration searchSortConfiguration) {
-        return searchSortConfiguration.getDefaultSortOrder().toString();
-    }
+    private String calculateSortField(DiscoverySortFieldConfiguration sortFieldConfig,
+        IndexableObject<?, ?> scopeObject) {
 
-    private String getDefaultSortField(DiscoverySortConfiguration searchSortConfiguration) {
-        String sortBy = "score";
-        if (searchSortConfiguration != null && searchSortConfiguration.getDefaultSort() != null) {
-            DiscoverySortFieldConfiguration defaultSort = searchSortConfiguration.getDefaultSort();
-            sortBy = defaultSort.getMetadataField();
+        if (SORT_FUNCTION.equals(sortFieldConfig.getType()) && scopeObject != null) {
+            return ((DiscoverySortFunctionConfiguration) sortFieldConfig).getFunction(scopeObject.getID());
         }
-        return sortBy;
+
+        return searchService.toSortFieldIndex(sortFieldConfig.getMetadataField(), sortFieldConfig.getType());
     }
 
     private Map<String, String> parseSearchFilters() {
@@ -348,6 +356,12 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         if (uuid != null) {
             EPerson ePerson = EPersonServiceFactory.getInstance().getEPersonService().find(context, uuid);
             context.setCurrentUser(ePerson);
+        }
+    }
+
+    private void assignSpecialGroupsInContext() throws SQLException {
+        for (UUID uuid : handler.getSpecialGroups()) {
+            context.setSpecialGroup(uuid);
         }
     }
 

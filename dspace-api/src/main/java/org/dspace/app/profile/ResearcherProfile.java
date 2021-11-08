@@ -10,7 +10,9 @@ package org.dspace.app.profile;
 import static org.dspace.core.Constants.READ;
 import static org.dspace.eperson.Group.ANONYMOUS;
 
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -29,6 +31,13 @@ public class ResearcherProfile {
 
     private final MetadataValue crisOwner;
 
+    /**
+     * Create a new ResearcherProfile object from the given item.
+     *
+     * @param  item                     the profile item
+     * @throws IllegalArgumentException if the given item has not a cris.owner
+     *                                  metadata with a valid authority
+     */
     public ResearcherProfile(Item item) {
         Assert.notNull(item, "A researcher profile requires an item");
         this.item = item;
@@ -53,11 +62,24 @@ public class ResearcherProfile {
         return item;
     }
 
+    public Optional<String> getOrcid() {
+        return getMetadataValue(item, "person.identifier.orcid")
+            .map(metadataValue -> metadataValue.getValue());
+    }
+
     private MetadataValue getCrisOwnerMetadata(Item item) {
+        return getMetadataValue(item, "cris.owner")
+            .filter(metadata -> UUIDUtils.fromString(metadata.getAuthority()) != null)
+            .orElseThrow(() -> new IllegalArgumentException("A profile item must have a valid cris.owner metadata"));
+    }
+
+    private Optional<MetadataValue> getMetadataValue(Item item, String metadataField) {
+        return getMetadataValues(item, metadataField).findFirst();
+    }
+
+    private Stream<MetadataValue> getMetadataValues(Item item, String metadataField) {
         return item.getMetadata().stream()
-            .filter(metadata -> "cris.owner".equals(metadata.getMetadataField().toString('.')))
-            .findFirst()
-            .orElseThrow(() -> new IllegalArgumentException("A profile item must have a cris.owner metadata"));
+            .filter(metadata -> metadataField.equals(metadata.getMetadataField().toString('.')));
     }
 
 }

@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
@@ -36,14 +35,18 @@ public interface RelationshipService extends DSpaceCRUDService<Relationship> {
     /**
      * Retrieves the list of Relationships currently in the system for which the given Item is either
      * a leftItem or a rightItem object
-     * @param context   The relevant DSpace context
-     * @param item      The Item that has to be the left or right item for the relationship to be included in the list
-     * @param limit     paging limit
-     * @param offset    paging offset
-     * @return          The list of relationships for which each relationship adheres to the above listed constraint
-     * @throws SQLException If something goes wrong
+     * @param context         The relevant DSpace context
+     * @param item            The Item that has to be the left or right item for the relationship to be
+     *                        included in the list
+     * @param limit           paging limit
+     * @param offset          paging offset
+     * @param excludeTilted   If true, excludes tilted relationships
+     * @return                The list of relationships for which each relationship adheres to the above
+     *                        listed constraint
+     * @throws SQLException   If something goes wrong
      */
-    List<Relationship> findByItem(Context context, Item item, Integer limit, Integer offset) throws SQLException;
+    List<Relationship> findByItem(Context context, Item item, Integer limit, Integer offset, boolean excludeTilted)
+            throws SQLException;
 
     /**
      * Retrieves the full list of relationships currently in the system
@@ -372,25 +375,36 @@ public interface RelationshipService extends DSpaceCRUDService<Relationship> {
 
     /**
      * This method is used to delete a Relationship whilst given the possibility to copy the Virtual Metadata created
-     * by this relationship to the left and/or right item
-     * @param context               The relevant DSpace context
-     * @param relationship          The relationship to be deleted
-     * @param copyToLeftItem        A boolean indicating whether we should copy metadata to the left item or not
-     * @param copyToRightItem       A boolean indicating whether we should copy metadata to the right item or not
-     * @param forceBypassValidation A boolean indicating whether we should force by-pass validation
+     * by this relationship to the left and/or right item.
+     * This method will bypass the cardinality checks on the {@link RelationshipType} for the given {@link Relationship}
+     * This should only be used during the deletion of items so that the min cardinality check can't disallow items
+     * to be deleted
+     * @param context           The relevant DSpace context
+     * @param relationship      The relationship to be deleted
+     * @param copyToLeftItem    A boolean indicating whether we should copy metadata to the left item or not
+     * @param copyToRightItem   A boolean indicating whether we should copy metadata to the right item or not
      */
-    void delete(Context context, Relationship relationship, boolean copyToLeftItem, boolean copyToRightItem,
-            boolean bypassValidation) throws SQLException, AuthorizeException;
+    void forceDelete(Context context, Relationship relationship, boolean copyToLeftItem, boolean copyToRightItem)
+        throws SQLException, AuthorizeException;
 
     /**
-     * Check if the specified dspaceObject has the requested entity type (or support
-     * it - for collection)
-     * 
-     * @param dsObject         the dspace object ot check
-     * @param relationshipType the entity type to check
-     * @return true if the specified dspaceObject has the requested entity type (or
-     *         support it - for collection)
+     * This method establishes if for a given RelationshipType, among leftPlace and rightPlace value,
+     * only one of the two represents actually a position.
+     * In this case, value not used to represent a position is used to indicate the total number of relationship
+     * of the same type with one of the two related item in common.
+     *
+     * This decision is based on key configuration "relationship.place.onlyleft" or "relationship.place.onlyright"
+     * values.
+     *
+     * For example, if a relation between a Publication and a Person, with leftPlace set to 3 and rightPlace set to 1,
+     * means that the same Person has in total 3 relations of the same type with Publication and this relation is in
+     * the 2nd position out of 3 (valid place field value is 0-based).
+     *
+     * @param relationshipType type of relationship
+     * @param isLeft if true, it is checked if used places field is "leftPlace", "rightPlace" is used otherwise.
+     * @return
      */
-    boolean hasRelationshipType(DSpaceObject dsObject, String relationshipType);
+    boolean placesOnly(final RelationshipType relationshipType, final boolean isLeft);
+
 
 }

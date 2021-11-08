@@ -88,7 +88,10 @@
         <property name="hideNoMentions" value="${altmetric.hideNoMentions:#{null}}" />
         <property name="linkTarget" value="${altmetric.linkTarget:#{null}}" />
     </bean>
-
+    <bean class="org.dspace.metrics.embeddable.impl.DefaultViewEmbeddableMetricProvider">
+    </bean>
+    <bean class="org.dspace.metrics.embeddable.impl.DefaultDownloadEmbeddableProvider">
+    </bean>
     <!-- 
         VALIDATORS
      -->
@@ -98,7 +101,7 @@
     <bean id="item-is-person" class="org.dspace.content.logic.condition.MetadataValueMatchCondition">
         <property name="parameters">
             <map>
-                <entry key="field" value="relationship.type" />
+                <entry key="field" value="dspace.entity.type" />
                 <entry key="pattern" value="^Person$" />
             </map>
         </property>
@@ -107,7 +110,7 @@
     <bean id="item-is-publication" class="org.dspace.content.logic.condition.MetadataValueMatchCondition">
         <property name="parameters">
             <map>
-                <entry key="field" value="relationship.type" />
+                <entry key="field" value="dspace.entity.type" />
                 <entry key="pattern" value="^Publication$" />
             </map>
         </property>
@@ -116,7 +119,7 @@
     <bean id="item-is-product" class="org.dspace.content.logic.condition.MetadataValueMatchCondition">
         <property name="parameters">
             <map>
-                <entry key="field" value="relationship.type" />
+                <entry key="field" value="dspace.entity.type" />
                 <entry key="pattern" value="^Product$" />
             </map>
         </property>
@@ -246,6 +249,8 @@
             </map>
         </property>
     </bean>
+
+    <bean class="org.dspace.metrics.UpdateCrisMetricsInSolrDocService"/>
 
 
 </beans>

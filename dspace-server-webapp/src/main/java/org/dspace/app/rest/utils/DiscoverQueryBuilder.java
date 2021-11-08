@@ -15,12 +15,14 @@ import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.rest.converter.query.SearchQueryConverter;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.InvalidSearchRequestException;
 import org.dspace.app.rest.parameter.SearchFilter;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -39,6 +41,7 @@ import org.dspace.discovery.configuration.DiscoverySearchFilter;
 import org.dspace.discovery.configuration.DiscoverySearchFilterFacet;
 import org.dspace.discovery.configuration.DiscoverySortConfiguration;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.discovery.configuration.DiscoverySortFunctionConfiguration;
 import org.dspace.discovery.indexobject.factory.IndexFactory;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.InitializingBean;
@@ -118,9 +121,11 @@ public class DiscoverQueryBuilder implements InitializingBean {
 
         //Configure pagination and sorting
         configurePagination(page, queryArgs);
-        configureSorting(page, queryArgs, discoveryConfiguration.getSearchSortConfiguration());
+        configureSorting(page, queryArgs, discoveryConfiguration.getSearchSortConfiguration(), scope);
 
         addDiscoveryHitHighlightFields(discoveryConfiguration, queryArgs);
+
+        queryArgs.setScopeObject(scope);
         return queryArgs;
     }
 
@@ -193,7 +198,17 @@ public class DiscoverQueryBuilder implements InitializingBean {
         //Configure pagination
         configurePaginationForFacet(page, queryArgs);
 
+        addScopeForHiddenFilter(scope, discoveryConfiguration, queryArgs);
+
         return queryArgs;
+    }
+
+    private void addScopeForHiddenFilter(final IndexableObject scope,
+                                         final DiscoveryConfiguration discoveryConfiguration,
+                                         final DiscoverQuery queryArgs) {
+        if (scope != null) {
+            queryArgs.setScopeObject(scope);
+        }
     }
 
     private void configurePaginationForFacet(Pageable page, DiscoverQuery queryArgs) {
@@ -282,8 +297,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
                         new String[discoveryConfiguration.getDefaultFilterQueries()
                                                          .size()]);
 
-        if (discoveryConfiguration != null &&
-                discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration) {
+        if (scope != null && discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration) {
             if (queryArray != null) {
                 for ( int i = 0; i < queryArray.length; i++ ) {
                     queryArray[i] = MessageFormat.format(queryArray[i], scope.getID());
@@ -298,7 +312,8 @@ public class DiscoverQueryBuilder implements InitializingBean {
     }
 
     private void configureSorting(Pageable page, DiscoverQuery queryArgs,
-                                  DiscoverySortConfiguration searchSortConfiguration) throws DSpaceBadRequestException {
+                                  DiscoverySortConfiguration searchSortConfiguration,
+                                  final IndexableObject scope) throws DSpaceBadRequestException {
         String sortBy = null;
         String sortOrder = null;
 
@@ -312,12 +327,17 @@ public class DiscoverQueryBuilder implements InitializingBean {
             }
         }
 
+        if (StringUtils.isNotBlank(sortBy) && !isConfigured(sortBy, searchSortConfiguration)) {
+            throw new InvalidSearchRequestException(
+                         "The field: " + sortBy + "is not configured for the configuration!");
+        }
+
         //Load defaults if we did not receive values
         if (sortBy == null) {
-            sortBy = getDefaultSortField(searchSortConfiguration);
+            sortBy = searchSortConfiguration.getDefaultSortField();
         }
         if (sortOrder == null) {
-            sortOrder = getDefaultSortDirection(searchSortConfiguration, sortOrder);
+            sortOrder = searchSortConfiguration.getDefaultSortDirection();
         }
 
         //Update Discovery query
@@ -325,8 +345,18 @@ public class DiscoverQueryBuilder implements InitializingBean {
             .getSortFieldConfiguration(sortBy);
 
         if (sortFieldConfiguration != null) {
-            String sortField = searchService
-                .toSortFieldIndex(sortFieldConfiguration.getMetadataField(), sortFieldConfiguration.getType());
+            String sortField;
+
+            if (DiscoverySortFunctionConfiguration.SORT_FUNCTION.equals(sortFieldConfiguration.getType())) {
+                sortField = MessageFormat.format(
+                    ((DiscoverySortFunctionConfiguration) sortFieldConfiguration).getFunction(scope.getID()),
+                    scope.getID());
+            } else {
+                sortField = searchService
+                                .toSortFieldIndex(
+                                    sortFieldConfiguration.getMetadataField(), sortFieldConfiguration.getType());
+            }
+
 
             if ("asc".equalsIgnoreCase(sortOrder)) {
                 queryArgs.setSortField(sortField, DiscoverQuery.SORT_ORDER.asc);
@@ -341,22 +371,8 @@ public class DiscoverQueryBuilder implements InitializingBean {
         }
     }
 
-    private String getDefaultSortDirection(DiscoverySortConfiguration searchSortConfiguration, String sortOrder) {
-        if (searchSortConfiguration != null) {
-            sortOrder = searchSortConfiguration.getDefaultSortOrder()
-                                               .toString();
-        }
-        return sortOrder;
-    }
-
-    private String getDefaultSortField(DiscoverySortConfiguration searchSortConfiguration) {
-        String sortBy;// Attempt to find the default one, if none found we use SCORE
-        sortBy = "score";
-        if (searchSortConfiguration != null && searchSortConfiguration.getDefaultSort() != null) {
-            DiscoverySortFieldConfiguration defaultSort = searchSortConfiguration.getDefaultSort();
-            sortBy = defaultSort.getMetadataField();
-        }
-        return sortBy;
+    private boolean isConfigured(String sortBy, DiscoverySortConfiguration searchSortConfiguration) {
+        return Objects.nonNull(searchSortConfiguration.getSortFieldConfiguration(sortBy));
     }
 
     private void configurePagination(Pageable page, DiscoverQuery queryArgs) {
@@ -398,7 +414,8 @@ public class DiscoverQueryBuilder implements InitializingBean {
                 DiscoverFilterQuery filterQuery = searchService.toFilterQuery(context,
                                                                               filter.getIndexFieldName(),
                                                                               searchFilter.getOperator(),
-                                                                              searchFilter.getValue());
+                                                                              searchFilter.getValue(),
+                                                                              discoveryConfiguration);
 
                 if (filterQuery != null) {
                     filterQueries.add(filterQuery.getFilterQuery());

@@ -13,6 +13,7 @@ import static org.dspace.builder.ItemBuilder.createItem;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyString;
 import static org.hamcrest.Matchers.not;
 
@@ -44,7 +45,6 @@ import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.core.CrisConstants;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -53,7 +53,6 @@ import org.junit.Test;
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  *
  */
-@Ignore
 public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_OUTPUT_DIR_PATH = "./target/testing/dspace/assetstore/crosswalk/";
@@ -139,7 +138,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testPdfCrosswalkPersonDisseminateWithImage() throws Exception {
+    public void testPdfCrosswalkPersonDisseminateWithJpegImage() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -180,7 +179,48 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testRtfCrosswalkPersonDisseminateWithImage() throws Exception {
+    public void testPdfCrosswalkPersonDisseminateWithPngImage() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item personItem = buildPersonItem();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("First Publication")
+            .withIssueDate("2020-01-01")
+            .withAuthor("John Smith", personItem.getID().toString())
+            .withAuthor("Walter White")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Second Publication")
+            .withIssueDate("2020-04-01")
+            .withAuthor("John Smith", personItem.getID().toString())
+            .build();
+
+        Bundle bundle = BundleBuilder.createBundle(context, personItem)
+            .withName("ORIGINAL")
+            .build();
+
+        BitstreamBuilder.createBitstream(context, bundle, getFileInputStream("picture.png"))
+            .withType("personal picture")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "person-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, personItem, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            assertThatPdfHasContent(out, content -> assertThatPersonDocumentHasContent(content));
+        }
+
+    }
+
+    @Test
+    public void testRtfCrosswalkPersonDisseminateWithJpegImage() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -216,6 +256,49 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             streamCrosswalkDefault.disseminate(context, personItem, out);
             assertThat(out.toString(), not(isEmptyString()));
             assertThatRtfHasContent(out, content -> assertThatPersonDocumentHasContent(content));
+            assertThatRtfHasJpegImage(out);
+        }
+
+    }
+
+    @Test
+    public void testRtfCrosswalkPersonDisseminateWithPngImage() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item personItem = buildPersonItem();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("First Publication")
+            .withIssueDate("2020-01-01")
+            .withAuthor("John Smith", personItem.getID().toString())
+            .withAuthor("Walter White")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withTitle("Second Publication")
+            .withIssueDate("2020-04-01")
+            .withAuthor("John Smith", personItem.getID().toString())
+            .build();
+
+        Bundle bundle = BundleBuilder.createBundle(context, personItem)
+            .withName("ORIGINAL")
+            .build();
+
+        BitstreamBuilder.createBitstream(context, bundle, getFileInputStream("picture.png"))
+            .withType("personal picture")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "person-rtf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, personItem, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            assertThatRtfHasContent(out, content -> assertThatPersonDocumentHasContent(content));
+            assertThatRtfHasJpegImage(out);
         }
 
     }
@@ -226,7 +309,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         Item project = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Project")
+            .withEntityType("Project")
             .withTitle("Test Project")
             .withInternalId("111-222-333")
             .withAcronym("TP")
@@ -235,7 +318,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .build();
 
         ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Funding")
+            .withEntityType("Funding")
             .withTitle("Test Funding")
             .withType("Internal Funding")
             .withFunder("Test Funder")
@@ -243,7 +326,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .build();
 
         Item funding = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Funding")
+            .withEntityType("Funding")
             .withTitle("Another Test Funding")
             .withType("Contract")
             .withFunder("Another Test Funder")
@@ -251,7 +334,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .build();
 
         Item publication = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Publication")
+            .withEntityType("Publication")
             .withTitle("Test Publication")
             .withAlternativeTitle("Alternative publication title")
             .withRelationPublication("Published in publication")
@@ -298,13 +381,13 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         Item coordinator = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("OrgUnit")
+            .withEntityType("OrgUnit")
             .withTitle("Coordinator OrgUnit")
             .withAcronym("COU")
             .build();
 
         Item project = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Project")
+            .withEntityType("Project")
             .withAcronym("TP")
             .withTitle("Test Project")
             .withOpenaireId("11-22-33")
@@ -332,7 +415,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .build();
 
         ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Funding")
+            .withEntityType("Funding")
             .withTitle("Test funding")
             .withType("Award")
             .withFunder("OrgUnit Funder")
@@ -340,7 +423,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .build();
 
         ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Funding")
+            .withEntityType("Funding")
             .withTitle("Another Test funding")
             .withType("Award")
             .withFunder("Another OrgUnit Funder")
@@ -367,7 +450,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         Item equipment = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Equipment")
+            .withEntityType("Equipment")
             .withAcronym("T-EQ")
             .withTitle("Test Equipment")
             .withInternalId("ID-01")
@@ -396,13 +479,13 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         Item parent = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("OrgUnit")
+            .withEntityType("OrgUnit")
             .withAcronym("POU")
             .withTitle("Parent OrgUnit")
             .build();
 
         Item orgUnit = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("OrgUnit")
+            .withEntityType("OrgUnit")
             .withAcronym("TOU")
             .withTitle("Test OrgUnit")
             .withOrgUnitLegalName("Test OrgUnit LegalName")
@@ -415,15 +498,15 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
             .build();
 
         ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Person")
+            .withEntityType("Person")
             .withTitle("Walter White")
-            .withPersonAffiliationName("Test OrgUnit", orgUnit.getID().toString())
+            .withPersonMainAffiliationName("Test OrgUnit", orgUnit.getID().toString())
             .build();
 
         ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Person")
+            .withEntityType("Person")
             .withTitle("Jesse Pinkman")
-            .withPersonAffiliationName("Test OrgUnit", orgUnit.getID().toString())
+            .withPersonMainAffiliationName("Test OrgUnit", orgUnit.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -446,7 +529,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
 
         Item funding = ItemBuilder.createItem(context, collection)
-            .withRelationshipType("Funding")
+            .withEntityType("Funding")
             .withAcronym("T-FU")
             .withTitle("Test Funding")
             .withType("Gift")
@@ -476,9 +559,74 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void testPdfCrosswalkPatentDisseminate() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item patent = ItemBuilder.createItem(context, collection)
+            .withEntityType("Patent")
+            .withTitle("Test patent")
+            .withDateAccepted("2020-01-01")
+            .withIssueDate("2021-01-01")
+            .withPublisher("First publisher")
+            .withPublisher("Second publisher")
+            .withPatentNo("12345-666")
+            .withAuthor("Walter White", "b6ff8101-05ec-49c5-bd12-cba7894012b7")
+            .withAuthorAffiliation("4Science")
+            .withAuthor("Jesse Pinkman")
+            .withAuthorAffiliation(PLACEHOLDER_PARENT_METADATA_VALUE)
+            .withAuthor("John Smith", "will be referenced::ORCID::0000-0000-0012-3456")
+            .withAuthorAffiliation("4Science")
+            .withRightsHolder("Test Organization")
+            .withDescriptionAbstract("This is a patent")
+            .withRelationPatent("Another patent")
+            .withSubject("patent")
+            .withSubject("test")
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "patent-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, patent, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            assertThatPdfHasContent(out, content -> assertThatPatentDocumentHasContent(content));
+        }
+
+    }
+
+    @Test
+    public void testPdfCrosswalkPersonDisseminateWithEmptyPerson() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item personItem = ItemBuilder.createItem(context, collection)
+            .withEntityType("Person")
+            .withTitle("Test user")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        StreamDisseminationCrosswalk streamCrosswalkDefault = (StreamDisseminationCrosswalk) CoreServiceFactory
+            .getInstance().getPluginService().getNamedPlugin(StreamDisseminationCrosswalk.class, "person-pdf");
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            streamCrosswalkDefault.disseminate(context, personItem, out);
+            assertThat(out.toString(), not(isEmptyString()));
+            assertThatPdfHasContent(out, content -> {
+                assertThat(content, equalTo("Test user\n"));
+            });
+        }
+
+    }
+
     private Item buildPersonItem() {
         Item item = createItem(context, collection)
-            .withRelationshipType("Person")
+            .withEntityType("Person")
             .withTitle("John Smith")
             .withFullName("John Smith")
             .withVariantName("J.S.")
@@ -548,6 +696,10 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         rtfParser.read(new ByteArrayInputStream(out.toByteArray()), document, 0);
         String content = document.getText(0, document.getLength());
         assertConsumer.accept(content);
+    }
+
+    private void assertThatRtfHasJpegImage(ByteArrayOutputStream out) {
+        assertThat(out.toString(), containsString("\\jpegblip"));
     }
 
     private void assertThatPdfHasContent(ByteArrayOutputStream out, Consumer<String> assertConsumer)
@@ -690,6 +842,20 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         assertThat(content, containsString("Duration: from 2015-01-01 to 2020-01-01"));
         assertThat(content, containsString("OA Mandate: true"));
         assertThat(content, containsString("OA Policy URL: www.mandate.url"));
+    }
+
+    private void assertThatPatentDocumentHasContent(String text) {
+        assertThat(text, containsString("Test patent"));
+        assertThat(text, containsString("This is a patent"));
+        assertThat(text, containsString("Basic informations"));
+        assertThat(text, containsString("Registration date: 2021-01-01"));
+        assertThat(text, containsString("Approval date: 2020-01-01"));
+        assertThat(text, containsString("Patent number: 12345-666"));
+        assertThat(text, containsString("Issuer(s): First publisher, Second publisher"));
+        assertThat(text, containsString("Inventor(s): Walter White (4Science), Jesse Pinkman, John Smith (4Science)"));
+        assertThat(text, containsString("Holder(s): Test Organization"));
+        assertThat(text, containsString("Keyword(s): patent, test"));
+        assertThat(text, containsString("Predecessor(s): Another patent"));
     }
 
     private FileInputStream getFileInputStream(String name) throws FileNotFoundException {

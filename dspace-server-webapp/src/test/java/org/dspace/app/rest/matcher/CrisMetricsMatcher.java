@@ -8,6 +8,7 @@
 package org.dspace.app.rest.matcher;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
 
 import java.time.ZoneId;
@@ -35,7 +36,7 @@ public class CrisMetricsMatcher {
         return allOf(hasJsonPath("$.id", is(CrisMetricsBuilder.getRestStoredMetricId(crisMetrics.getID()))),
                      hasJsonPath("$.metricType", is(crisMetrics.getMetricType())),
                      hasJsonPath("$.metricCount", is(crisMetrics.getMetricCount())),
-                     hasJsonPath("$.acquisitionDate", is(formatDate(crisMetrics.getAcquisitionDate()))),
+//                     hasJsonPath("$.acquisitionDate", is(formatDate(crisMetrics.getAcquisitionDate()))),
                      hasJsonPath("$.last", is(crisMetrics.getLast())),
                      hasJsonPath("$.remark", is(crisMetrics.getRemark())),
                      hasJsonPath("$.deltaPeriod1", is(crisMetrics.getDeltaPeriod1())),
@@ -45,11 +46,15 @@ public class CrisMetricsMatcher {
                      );
     }
 
-    public static Matcher<? super Object> matchCrisDynamicMetrics(UUID itemUuid, String type) {
+    public static Matcher<? super Object> matchCrisDynamicMetrics(UUID itemUuid, String type, String remark) {
         return allOf(
-                hasJsonPath("$.id",
-                        itemUuid != null ? is(itemUuid.toString() + ":" + type) : Matchers.endsWith("-" + type)),
-                hasJsonPath("$.metricType", is(type)), hasJsonPath("$.type", is(CrisMetricsRest.NAME)));
+                hasJsonPath("$.id", itemUuid != null ?
+                                        is(itemUuid.toString() + ":" + type) :
+                                        Matchers.endsWith("-" + type)),
+                hasJsonPath("$.metricType", is(type)),
+                hasJsonPath("$.type", is(CrisMetricsRest.NAME)),
+                hasJsonPath("$.remark", containsString(remark))
+                );
     }
 
     private static String formatDate(Date date) {
@@ -57,5 +62,4 @@ public class CrisMetricsMatcher {
         String format = utc.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
         return format;
     }
-
 }

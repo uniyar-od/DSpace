@@ -37,13 +37,18 @@ public class EditItemMode implements AccessItemMode {
      */
     private String submissionDefinition;
     /**
-     * Contains the list of groups metadata for CUSTOM security
+     * Contains the list of groups metadata for CUSTOM security or groups name/uuid
+     * for GROUP security
      */
     private List<String> groups;
     /**
      * Contains the list of users metadata for CUSTOM security
      */
     private List<String> users;
+    /**
+     * Contains the list of items metadata for CUSTOM security
+     */
+    private List<String> items;
 
     public EditItemMode() {}
 
@@ -61,22 +66,7 @@ public class EditItemMode implements AccessItemMode {
         this.setName(name);
         if (config != null && config.length == 2) {
             // set the security mode
-            switch (config[0]) {
-                case "1":
-                    this.setSecurity(CrisSecurity.ADMIN);
-                    break;
-                case "2":
-                    this.setSecurity(CrisSecurity.OWNER);
-                    break;
-                case "3":
-                    this.setSecurity(CrisSecurity.ADMIN_OWNER);
-                    break;
-                case "4":
-                    this.setSecurity(CrisSecurity.CUSTOM);
-                    break;
-                default:
-                    this.setSecurity(CrisSecurity.NONE);
-            }
+            this.setSecurity(CrisSecurity.getByValue(config[0]));
             // set the submissionDefinition name
             this.setSubmissionDefinition(config[1]);
         }
@@ -107,17 +97,28 @@ public class EditItemMode implements AccessItemMode {
     public void setLabel(String label) {
         this.label = label;
     }
-    public List<String> getGroups() {
+    public List<String> getGroupMetadataFields() {
         return groups;
     }
     public void setGroups(List<String> groups) {
         this.groups = groups;
     }
-    public List<String> getUsers() {
+    public List<String> getUserMetadataFields() {
         return users;
     }
     public void setUsers(List<String> users) {
         this.users = users;
+    }
+    public List<String> getItemMetadataFields() {
+        return items;
+    }
+    public void setItems(List<String> items) {
+        this.items = items;
+    }
+
+    @Override
+    public List<String> getGroups() {
+        return groups;
     }
 
     @Override

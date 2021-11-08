@@ -83,6 +83,12 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
         return this;
     }
 
+    /**
+     * Set the user's preferred language.
+     * @param lang POSIX locale such as "en" or "en_US".
+     * @return this
+     * @throws SQLException passed through.
+     */
     public EPersonBuilder withLanguage(String lang) throws SQLException {
         ePerson.setLanguage(context, lang);
         return this;
@@ -119,6 +125,26 @@ public class EPersonBuilder extends AbstractDSpaceObjectBuilder<EPerson> {
 
     public EPersonBuilder withCanLogin(final boolean canLogin) {
         ePerson.setCanLogIn(canLogin);
+        return this;
+    }
+
+    public EPersonBuilder withOrcid(final String orcid) {
+        setMetadataSingleValue(ePerson, "eperson", "orcid", null, orcid);
+        return this;
+    }
+
+    public EPersonBuilder withOrcidAccessToken(final String accessToken) {
+        setMetadataSingleValue(ePerson, "eperson", "orcid", "access-token", accessToken);
+        return this;
+    }
+
+    public EPersonBuilder withOrcidRefreshToken(final String refreshToken) {
+        setMetadataSingleValue(ePerson, "eperson", "orcid", "refresh-token", refreshToken);
+        return this;
+    }
+
+    public EPersonBuilder withOrcidScope(final String scope) {
+        addMetadataValue(ePerson, "eperson", "orcid", "scope", scope);
         return this;
     }
 

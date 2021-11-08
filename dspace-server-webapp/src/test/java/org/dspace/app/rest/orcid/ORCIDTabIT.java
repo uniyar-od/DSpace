@@ -66,7 +66,7 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
                 .build();
 
         Collection personCol = CollectionBuilder.createCollection(context, parentCommunity)
-                         .withRelationshipType(eTypePer.getLabel())
+                         .withEntityType(eTypePer.getLabel())
                          .withName("Collection 1")
                          .build();
 
@@ -176,8 +176,9 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
             .withPersonIdentifierFirstName("John")
             .withPersonIdentifierLastName("Smith")
             .withOrcidIdentifier("0000-1111-2222-3333")
+            .withOrcidAccessToken("0023a083-1844-47ee-ab12-d066e735e092")
             .withBirthDate("1999-11-22")
-            .withRelationshipType(eTypePer.getLabel())
+            .withEntityType(eTypePer.getLabel())
             .withCrisOwner(eperson.getFullName(), eperson.getID().toString())
             .build();
 
@@ -186,8 +187,9 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
                 .withPersonIdentifierFirstName("Andrea")
                 .withPersonIdentifierLastName("Bollini")
                 .withOrcidIdentifier("0000-0002-9029-1854")
+            .withOrcidAccessToken("0023a083-1844-47ee-ab12-d066e735e092")
                 .withBirthDate("1980-08-04")
-                .withRelationshipType(eTypePer.getLabel())
+                .withEntityType(eTypePer.getLabel())
                 .withCrisOwner(admin.getFullName(), admin.getID().toString())
                 .build();
 
@@ -196,8 +198,9 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
                 .withPersonIdentifierFirstName("Mario")
                 .withPersonIdentifierLastName("Rossi")
                 .withOrcidIdentifier("4444-3333-2222-1111")
+            .withOrcidAccessToken("0023a083-1844-47ee-ab12-d066e735e092")
                 .withBirthDate("1944-04-17")
-                .withRelationshipType(eTypePer.getLabel())
+                .withEntityType(eTypePer.getLabel())
                 .build();
 
         // 4. linked to another user but without orcid
@@ -210,7 +213,7 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
                 .withPersonIdentifierFirstName("Carlo")
                 .withPersonIdentifierLastName("Verdi")
                 .withBirthDate("1966-01-21")
-                .withRelationshipType(eTypePer.getLabel())
+                .withEntityType(eTypePer.getLabel())
                 .withCrisOwner(anotherEPerson.getFullName(), anotherEPerson.getID().toString())
                 .build();
         context.restoreAuthSystemState();

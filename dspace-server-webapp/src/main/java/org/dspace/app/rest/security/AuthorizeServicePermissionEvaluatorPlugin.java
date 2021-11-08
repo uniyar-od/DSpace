@@ -13,9 +13,11 @@ import java.util.UUID;
 
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -52,6 +54,9 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
     @Autowired
     private ContentServiceFactory contentServiceFactory;
 
+    @Autowired
+    private BitstreamService bitstreamService;
+
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
                                        DSpaceRestPermission permission) {
@@ -86,13 +91,25 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                         return true;
                     }
 
-                    // If the item is still inprogress we can process here only the READ permission.
-                    // Other actions need to be evaluated against the wrapper object (workspace or workflow item)
+
                     if (dSpaceObject instanceof Item) {
-                        if (!DSpaceRestPermission.READ.equals(restPermission)
-                            && !((Item) dSpaceObject).isArchived() && !((Item) dSpaceObject).isWithdrawn()) {
+                        Item item = (Item) dSpaceObject;
+                        if (DSpaceRestPermission.STATUS.equals(restPermission) && item.isWithdrawn()) {
+                            return true;
+                        }
+                        // If the item is still inprogress we can process here only the READ permission.
+                        // Other actions need to be evaluated against the wrapper object (workspace or workflow item)
+                        if (!DSpaceRestPermission.READ.equals(restPermission) &&
+                                   !item.isArchived() && !item.isWithdrawn()) {
                             return false;
                         }
+                    }
+
+                    if (dSpaceObject instanceof Bitstream
+                        && context.getCurrentUser() == null
+                        && bitstreamService.isRelatedToAProcessStartedByDefaultUser(context,
+                            (Bitstream) dSpaceObject)) {
+                        return true;
                     }
 
                     return authorizeService.authorizeActionBoolean(context, ePerson, dSpaceObject,
