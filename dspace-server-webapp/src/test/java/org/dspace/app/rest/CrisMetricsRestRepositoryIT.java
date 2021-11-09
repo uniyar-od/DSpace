@@ -57,11 +57,6 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
     private AuthorizeService authorizeService;
     @Autowired
     private ConfigurationService configurationService;
-    String remarkEmbeddedDoiPlumX =
-            "<a href ='https://plu.mx/plum/a/?doi={{doi}}'" +
-                    " class = 'plumx-plum-print-popup'" + "></a>" +
-                    "<script type = 'text/javascript'" +
-                    " src= '//cdn.plu.mx/widget-popup.js'></script>";
     @Test
     public void findAllTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -535,7 +530,7 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
 
         assertEquals(0, status);
         String remarkGoogleScholar = "scholar.google.com/scholar?q=Title+item+A";
-        String remarkAltmetric = "data-doi=10.1016/j.gene.2009.04.019";
+        String remarkAltmetric = "10.1016/j.gene.2009.04.019";
         String remarkEmbeddedDownload = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(tokenAdmin).perform(get("/api/core/items/" + itemA.getID() + "/metrics"))
@@ -548,8 +543,7 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", remarkAltmetric),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download",
                                                                                    remarkEmbeddedDownload),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
-                                remarkEmbeddedDoiPlumX.replace("{{doi}}", "10.1016/j.gene.2009.04.019"))
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX", "10.1016/j.gene.2009.04.019")
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                         Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
@@ -624,7 +618,7 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
 
         String googleScholar = "https://scholar.google.com/scholar?q=Title+item+A";
         String embeddedView = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
-        String altmetric = "data-doi=10.1016/j.gene.2009.04.019";
+        String altmetric = "10.1016/j.gene.2009.04.019";
         String embeddedDownload = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
@@ -637,8 +631,7 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-view", embeddedView),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download",embeddedDownload),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", altmetric),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
-                                remarkEmbeddedDoiPlumX.replace("{{doi}}", "10.1016/j.gene.2009.04.019"))
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX", "10.1016/j.gene.2009.04.019")
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                                     Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
@@ -706,7 +699,7 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
         assertEquals(0, status);
 
         String googleScholar = "https://scholar.google.com/scholar?q=Title+item+A";
-        String altmetric = "data-doi=10.1016/j.gene.2009.04.019";
+        String altmetric = "10.1016/j.gene.2009.04.019";
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(tokenAdmin).perform(get("/api/core/items/" + itemA.getID() + "/metrics"))
@@ -718,8 +711,7 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                         CrisMetricsMatcher.matchCrisMetrics(metric_download),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "google-scholar", googleScholar),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", altmetric),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
-                                remarkEmbeddedDoiPlumX.replace("{{doi}}", "10.1016/j.gene.2009.04.019"))
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX", "10.1016/j.gene.2009.04.019")
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                                     Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
