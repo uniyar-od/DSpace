@@ -19,6 +19,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.CrisLayoutMetric2Box;
@@ -70,11 +72,13 @@ public class CrisLayoutBoxServiceImplTest {
     private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
     @Mock
     private CrisItemMetricsService crisItemMetricsService;
+    private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
 
     @Before
     public void setUp() throws Exception {
+        searchConfigurationUtilsService = Mockito.mock(DiscoveryConfigurationUtilsService.class);
         crisLayoutBoxService = new CrisLayoutBoxServiceImpl(dao, itemService, authorizeService, entityTypeService,
-                                                            crisLayoutBoxAccessService, crisItemMetricsService);
+                             crisLayoutBoxAccessService, crisItemMetricsService, searchConfigurationUtilsService);
     }
 
     @Test(expected = NullPointerException.class)
@@ -294,10 +298,63 @@ public class CrisLayoutBoxServiceImplTest {
 
     }
 
+    @Test
+    public void checkRelationBoxTest() throws Exception {
+        Item item = Mockito.mock(Item.class);
+        UUID itemUuid = UUID.randomUUID();
+        int tabId = 1;
+
+        MetadataField fooMetadata = mock(MetadataField.class);
+        MetadataField barMetadata = mock(MetadataField.class);
+        MetadataField bazMetadata = mock(MetadataField.class);
+        MetadataField notDisplayedMetadata = mock(MetadataField.class);
+
+        List<MetadataValue> itemMetadata = Arrays.asList(
+            metadataValue(fooMetadata),
+            metadataValue(notDisplayedMetadata),
+            metadataValue(barMetadata));
+
+        when(itemService.find(any(Context.class), eq(itemUuid)))
+            .thenReturn(item);
+
+        when(itemService.getMetadata(item, "dspace.entity.type"))
+            .thenReturn("Person");
+
+        when(dao.findByEntityType(any(Context.class), eq("Person"), eq(tabId), any(), any()))
+            .thenReturn(Arrays.asList(
+                crisLayoutBox("researchoutputs", fooMetadata, "RELATION"),
+                crisLayoutBox("projects", barMetadata, "RELATION"),
+                crisLayoutBox("box3", bazMetadata)));
+
+        when(crisLayoutBoxAccessService.hasAccess(any(), any(), any(), any()))
+            .thenReturn(true);
+
+        when(item.getMetadata()).thenReturn(itemMetadata);
+
+        Iterator<Item> mockIterator = mock(Iterator.class);
+        when(mockIterator.hasNext()).thenReturn(true);
+
+        when(searchConfigurationUtilsService.findByRelation(any(Context.class), any(), any()))
+                                            .thenReturn(mockIterator);
+
+        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
+
+        List<String> boxNames = boxes.stream().map(CrisLayoutBox::getShortname).sorted().collect(Collectors.toList());
+
+        assertThat(boxNames.size(), is(2));
+        assertThat(boxNames, is(Arrays.asList("projects", "researchoutputs")));
+
+    }
+
     private CrisLayoutBox crisLayoutBox(String shortname, MetadataField metadataField) {
+        return crisLayoutBox(shortname, metadataField, null);
+    }
+
+    private CrisLayoutBox crisLayoutBox(String shortname, MetadataField metadataField, String boxType) {
         CrisLayoutBox o = new CrisLayoutBox();
         o.addLayoutField(crisLayoutField(metadataField));
         o.setShortname(shortname);
+        o.setType(boxType);
         return o;
     }
 

@@ -57,7 +57,11 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
     private AuthorizeService authorizeService;
     @Autowired
     private ConfigurationService configurationService;
-
+    String remarkEmbeddedDoiPlumX =
+            "<a href ='https://plu.mx/plum/a/?doi={{doi}}'" +
+                    " class = 'plumx-plum-print-popup'" + "></a>" +
+                    "<script type = 'text/javascript'" +
+                    " src= '//cdn.plu.mx/widget-popup.js'></script>";
     @Test
     public void findAllTest() throws Exception {
         context.turnOffAuthorisationSystem();
@@ -533,7 +537,6 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
         String remarkGoogleScholar = "scholar.google.com/scholar?q=Title+item+A";
         String remarkAltmetric = "data-doi=10.1016/j.gene.2009.04.019";
         String remarkEmbeddedDownload = "http://localhost:4000/statistics/items/" + itemA.getID().toString();
-
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
         getClient(tokenAdmin).perform(get("/api/core/items/" + itemA.getID() + "/metrics"))
                 .andExpect(status().isOk())
@@ -544,11 +547,13 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "google-scholar",remarkGoogleScholar),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", remarkAltmetric),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download",
-                                                                                   remarkEmbeddedDownload)
+                                                                                   remarkEmbeddedDownload),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
+                                remarkEmbeddedDoiPlumX.replace("{{doi}}", "10.1016/j.gene.2009.04.019"))
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                         Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
-                .andExpect(jsonPath("$.page.totalElements", is(6)));
+                .andExpect(jsonPath("$.page.totalElements", is(7)));
     }
 
     @Test
@@ -631,11 +636,13 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "google-scholar", googleScholar),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-view", embeddedView),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download",embeddedDownload),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", altmetric)
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", altmetric),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
+                                remarkEmbeddedDoiPlumX.replace("{{doi}}", "10.1016/j.gene.2009.04.019"))
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                                     Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
-                .andExpect(jsonPath("$.page.totalElements", is(6)));
+                .andExpect(jsonPath("$.page.totalElements", is(7)));
     }
     @Test
     public void findLinkedEntitiesMetricsWithViewAndDownloadsMetricsTest() throws Exception {
@@ -710,11 +717,13 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                         CrisMetricsMatcher.matchCrisMetrics(metric3),
                         CrisMetricsMatcher.matchCrisMetrics(metric_download),
                         CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "google-scholar", googleScholar),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", altmetric)
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", altmetric),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
+                                remarkEmbeddedDoiPlumX.replace("{{doi}}", "10.1016/j.gene.2009.04.019"))
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                                     Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
-                .andExpect(jsonPath("$.page.totalElements", is(6)));
+                .andExpect(jsonPath("$.page.totalElements", is(7)));
     }
 
     @Test

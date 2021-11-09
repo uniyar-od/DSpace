@@ -87,6 +87,8 @@
     </bean>
     <bean class="org.dspace.metrics.embeddable.impl.DefaultDownloadEmbeddableProvider">
     </bean>
+    <bean class="org.dspace.metrics.embeddable.impl.EmbeddablePlumXMetricProvider">
+    </bean>
     <!-- 
         VALIDATORS
      -->
