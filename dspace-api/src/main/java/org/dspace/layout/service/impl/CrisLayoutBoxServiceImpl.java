@@ -173,15 +173,6 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     }
 
     /* (non-Javadoc)
-     * @see org.dspace.layout.service.CrisLayoutBoxService#findByShortname(org.dspace.core.Context, java.lang.String)
-     */
-    @Override
-    public CrisLayoutBox findByShortname(Context context, String entityType, String shortname) throws SQLException {
-        Integer entityId = entityTypeService.findByEntityType(context, entityType).getID();
-        return dao.findByShortname(context, entityId, shortname);
-    }
-
-    /* (non-Javadoc)
      * @see org.dspace.layout.service.CrisLayoutBoxService#hasContent()
      */
     @Override
@@ -293,10 +284,10 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
         }
     }
 
-    public List<CrisLayoutBox> findBoxesWithEntityAndType(Context context,String entity, String type) {
+    public List<CrisLayoutBox> findByEntityAndType(Context context,String entity, String type) {
 
         try {
-            return dao.findBoxesWithEntityAndType(context, entity, type);
+            return dao.findByEntityAndType(context, entity, type);
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

@@ -75,16 +75,6 @@ public interface CrisLayoutBoxService extends DSpaceCRUDService<CrisLayoutBox> {
     public List<CrisLayoutBox> findByItem(Context context, UUID itemUuid, Integer tabId) throws SQLException;
 
     /**
-     * find a box by its shortname
-     * @param context The relevant DSpace Context
-     * @param entityType the label of the entityType
-     * @param shortname of the box to search
-     * @return CrisLayoutBox if present, null otherwise
-     * @throws SQLException An exception that provides information on a database errors.
-     */
-    public CrisLayoutBox findByShortname(Context context, String entityType, String shortname) throws SQLException;
-
-    /**
      * Check if the box has content to show
      *
      * @param context The relevant DSpace Context
@@ -113,5 +103,5 @@ public interface CrisLayoutBoxService extends DSpaceCRUDService<CrisLayoutBox> {
      * @param entity    entity type
      * @return type type of the box
      */
-    public List<CrisLayoutBox> findBoxesWithEntityAndType(Context context, String entity, String type);
+    public List<CrisLayoutBox> findByEntityAndType(Context context, String entity, String type);
 }

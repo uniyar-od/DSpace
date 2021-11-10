@@ -56,7 +56,7 @@ public class BoxMetricsLayoutConfigurationService {
             String entityType = itemService.getMetadataFirstValue(item,
                     "dspace", "entity", "type", Item.ANY);
             // Metrics boxes with entity type
-            List<CrisLayoutBox> entityBoxes = crisLayoutBoxService.findBoxesWithEntityAndType(
+            List<CrisLayoutBox> entityBoxes = crisLayoutBoxService.findByEntityAndType(
                     context, entityType, "METRICS");
             try {
                 // if there are boxes
