@@ -16,12 +16,10 @@ CREATE TABLE  cris_layout_row
   id         INTEGER NOT NULL,
   style      CHARACTER VARYING(255),
   tab        INTEGER NOT NULL,
-  position   INTEGER
-  cell   INTEGER  NOT NULL,
+  position   INTEGER,
 
   CONSTRAINT cris_layout_row_pkey PRIMARY KEY (id),
-  CONSTRAINT cris_layout_tab_fkey  FOREIGN KEY  (tab) REFERENCES cris_layout_tab (id),
-  CONSTRAINT cris_layout_cell_fkey FOREIGN KEY (cell) REFERENCES cris_layout_cell (id)
+  CONSTRAINT cris_layout_tab_fkey  FOREIGN KEY  (tab) REFERENCES cris_layout_tab (id)
 );
 
 -------------------------------------------------------------------------------------
@@ -34,12 +32,10 @@ CREATE TABLE  cris_layout_cell
   id         INTEGER NOT NULL,
   style      CHARACTER VARYING(255),
   row        INTEGER NOT NULL,
-  position   INTEGER
-  box   INTEGER  NOT NULL,
+  position   INTEGER,
 
   CONSTRAINT cris_layout_cell_pkey PRIMARY KEY (id),
-  CONSTRAINT cris_layout_row_fkey  FOREIGN KEY  (row) REFERENCES cris_layout_row (id),
-  CONSTRAINT cris_layout_box_fkey FOREIGN KEY (box) REFERENCES cris_layout_box (id)
+  CONSTRAINT cris_layout_row_fkey  FOREIGN KEY  (row) REFERENCES cris_layout_row (id)
 );
 
 -------------------------------------------------------------------------------------
@@ -47,12 +43,11 @@ CREATE TABLE  cris_layout_cell
 -------------------------------------------------------------------------------------
 DROP TABLE cris_layout_tab2box;
 
-DROP SEQUENCE cris_layout_tab_id_seq;
 -------------------------------------------------------------------------------------
 ---- ALTER table cris_layout_box
 -------------------------------------------------------------------------------------
 
-ALTER TABLE cris_layout_box DROP COLUMN clear
+ALTER TABLE cris_layout_box DROP COLUMN clear;
 ALTER TABLE cris_layout_box ADD COLUMN cell INTEGER;
 ALTER TABLE cris_layout_box ADD COLUMN position INTEGER;
 ALTER TABLE cris_layout_box ADD COLUMN container BOOLEAN;
@@ -68,5 +63,5 @@ ALTER TABLE cris_layout_tab ADD COLUMN leading BOOLEAN;
 ---- ALTER table cris_layout_field
 -------------------------------------------------------------------------------------
 
-ALTER TABLE cris_layout_tab ADD COLUMN labelAsHeading BOOLEAN;
-ALTER TABLE cris_layout_tab ADD COLUMN valuesInline BOOLEAN;
+ALTER TABLE cris_layout_field ADD COLUMN label_as_heading BOOLEAN;
+ALTER TABLE cris_layout_field ADD COLUMN values_inline BOOLEAN;
