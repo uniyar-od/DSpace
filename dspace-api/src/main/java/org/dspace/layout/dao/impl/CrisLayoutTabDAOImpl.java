@@ -7,14 +7,16 @@
  */
 package org.dspace.layout.dao.impl;
 
+import static org.dspace.layout.CrisLayoutTab.ROWS_AND_CONTENT_GRAPH;
+
 import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
+import javax.persistence.EntityGraph;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Join;
-import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
 import org.dspace.content.EntityType;
@@ -33,6 +35,22 @@ import org.dspace.layout.dao.CrisLayoutTabDAO;
  *
  */
 public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> implements CrisLayoutTabDAO {
+
+    @Override
+    public CrisLayoutTab findAndEagerlyFetch(Context context, Integer id) throws SQLException {
+
+        CriteriaBuilder cb = getCriteriaBuilder(context);
+        CriteriaQuery<CrisLayoutTab> query = cb.createQuery(CrisLayoutTab.class);
+        Root<CrisLayoutTab> tabRoot = query.from(CrisLayoutTab.class);
+
+        query.where(cb.equal(tabRoot.get(CrisLayoutTab_.ID), id));
+
+        TypedQuery<CrisLayoutTab> typedQuery = getHibernateSession(context).createQuery(query);
+        EntityGraph<?> graph = getHibernateSession(context).createEntityGraph(ROWS_AND_CONTENT_GRAPH);
+        typedQuery.setHint("javax.persistence.loadgraph", graph);
+
+        return singleResult(typedQuery);
+    }
 
     /* (non-Javadoc)
      * @see org.dspace.layout.dao.CrisLayoutTabDAO#countTotal(org.dspace.core.Context)
@@ -58,21 +76,25 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
      * (org.dspace.core.Context, java.lang.String, java.lang.Integer, java.lang.Integer)
      */
     @Override
-    public List<CrisLayoutTab> findByEntityType(Context context, String entityType, Integer limit, Integer offset)
-            throws SQLException {
+    public List<CrisLayoutTab> findByEntityType(Context context, String entityType,
+        Integer limit, Integer offset) throws SQLException {
+
         CriteriaBuilder cb = getCriteriaBuilder(context);
         CriteriaQuery<CrisLayoutTab> query = cb.createQuery(CrisLayoutTab.class);
         Root<CrisLayoutTab> tabRoot = query.from(CrisLayoutTab.class);
-        tabRoot.fetch(CrisLayoutTab_.entity, JoinType.LEFT);
         query
             .where(cb.equal(tabRoot.get(CrisLayoutTab_.entity).get(EntityType_.LABEL), entityType))
             .orderBy(cb.asc(tabRoot.get(CrisLayoutTab_.PRIORITY)));
 
-        TypedQuery<CrisLayoutTab> exQuery = getHibernateSession(context).createQuery(query);
+        TypedQuery<CrisLayoutTab> typedQuery = getHibernateSession(context).createQuery(query);
         if ( limit != null && offset != null ) {
-            exQuery.setFirstResult(offset).setMaxResults(limit);
+            typedQuery.setFirstResult(offset).setMaxResults(limit);
         }
-        return exQuery.getResultList();
+
+        EntityGraph<?> graph = getHibernateSession(context).createEntityGraph(ROWS_AND_CONTENT_GRAPH);
+        typedQuery.setHint("javax.persistence.loadgraph", graph);
+
+        return typedQuery.getResultList();
     }
 
     /* (non-Javadoc)

@@ -34,12 +34,12 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 /**
  * This is the repository responsible to manage CrisLayoutTab Rest object
- * 
+ *
  * @author Danilo Di Nuzzo (danilo dot dinuzzo at 4science dot it)
  *
  */
 @Component(CrisLayoutTabRest.CATEGORY + "." + CrisLayoutTabRest.NAME)
-public class CrisLayoutTabRepository extends DSpaceRestRepository<CrisLayoutTabRest, Integer>
+public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayoutTabRest, Integer>
     implements ReloadableEntityObjectRepository<CrisLayoutTab, Integer> {
 
     private final CrisLayoutTabService service;
@@ -50,19 +50,16 @@ public class CrisLayoutTabRepository extends DSpaceRestRepository<CrisLayoutTabR
     @Autowired
     private ResourcePatch<CrisLayoutTab> resourcePatch;
 
-    public CrisLayoutTabRepository(CrisLayoutTabService service) {
+    public CrisLayoutTabRestRepository(CrisLayoutTabService service) {
         this.service = service;
     }
 
-    /* (non-Javadoc)
-     * @see org.dspace.app.rest.repository.DSpaceRestRepository#findOne(org.dspace.core.Context, java.io.Serializable)
-     */
     @Override
     @PreAuthorize("permitAll")
     public CrisLayoutTabRest findOne(Context context, Integer id) {
         CrisLayoutTab tab = null;
         try {
-            tab = service.find(context, id);
+            tab = service.findAndEagerlyFetch(context, id);
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
@@ -72,10 +69,6 @@ public class CrisLayoutTabRepository extends DSpaceRestRepository<CrisLayoutTabR
         return converter.toRest(tab, utils.obtainProjection());
     }
 
-    /* (non-Javadoc)
-     * @see org.dspace.app.rest.repository.DSpaceRestRepository#findAll
-     * (org.dspace.core.Context, org.springframework.data.domain.Pageable)
-     */
     @Override
     public Page<CrisLayoutTabRest> findAll(Context context, Pageable pageable) {
         throw new RepositoryMethodNotImplementedException("No implementation found; Method not allowed!", "");

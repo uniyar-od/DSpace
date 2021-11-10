@@ -44,48 +44,61 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     @SequenceGenerator(name = "cris_layout_box_id_seq", sequenceName = "cris_layout_box_id_seq", allocationSize = 1)
     @Column(name = "id", unique = true, nullable = false, insertable = true, updatable = false)
     private Integer id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "entity_id")
     private EntityType entitytype;
+
     @Column(name = "type")
     private String type;
+
     @Column(name = "collapsed", nullable = false)
     private Boolean collapsed;
+
     @Column(name = "shortname")
     private String shortname;
+
     @Column(name = "header")
     private String header;
+
     @Column(name = "minor", nullable = false)
     private Boolean minor;
+
     @Column(name = "security")
     private Integer security;
+
     @Column(name = "style")
     private String style;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "cris_layout_box2securitymetadata",
         joinColumns = {@JoinColumn(name = "box_id")},
         inverseJoinColumns = {@JoinColumn(name = "metadata_field_id")}
     )
-    private Set<MetadataField> metadataSecurityFields;
+    private Set<MetadataField> metadataSecurityFields = new HashSet<>();
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "box", cascade = CascadeType.ALL)
     @OrderBy(value = "row, priority")
-    private List<CrisLayoutField> layoutFields;
+    private List<CrisLayoutField> layoutFields = new ArrayList<>();
+
     @OneToMany(
             mappedBy = "box",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<CrisLayoutMetric2Box> metric2box;
+
     @Column(name = "max_columns")
     private Integer maxColumns = null;
+
     @ManyToOne
     @JoinColumn(name = "cell")
-    private CrisLayoutCell crisLayoutCell;
-    @Column(name = "position")
-    private int position;
+    private CrisLayoutCell cell;
+
     @Column(name = "container")
-    private boolean container;
+    private boolean container = true;
+
     @Override
     public Integer getID() {
         return id;
@@ -241,20 +254,13 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         this.metric2box = box2metric;
     }
 
-    public CrisLayoutCell getCrisLayoutCell() {
-        return crisLayoutCell;
+
+    public CrisLayoutCell getCell() {
+        return cell;
     }
 
-    public void setCrisLayoutCell(CrisLayoutCell crisLayoutCell) {
-        this.crisLayoutCell = crisLayoutCell;
-    }
-
-    public int getPosition() {
-        return position;
-    }
-
-    public void setPosition(int position) {
-        this.position = position;
+    public void setCell(CrisLayoutCell cell) {
+        this.cell = cell;
     }
 
     public boolean isContainer() {

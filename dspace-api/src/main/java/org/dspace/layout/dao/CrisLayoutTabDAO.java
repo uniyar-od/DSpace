@@ -30,6 +30,17 @@ import org.dspace.layout.CrisLayoutTab;
 public interface CrisLayoutTabDAO extends GenericDAO<CrisLayoutTab> {
 
     /**
+     * Find the tab with the given id and fetch all the rows, cells and boxes
+     * contained therein.
+     *
+     * @param  context The relevant DSpace Context
+     * @param  id      the tab id
+     * @return         the tab, if any
+     * @throws SQLException An exception that provides information on a database errors.
+     */
+    public CrisLayoutTab findAndEagerlyFetch(Context context, Integer id) throws SQLException;
+
+    /**
      * Returns the total number of tabs {@link CrisLayoutTab} in the database
      * @param context The relevant DSpace Context
      * @return total number of tabs in the database (Long)

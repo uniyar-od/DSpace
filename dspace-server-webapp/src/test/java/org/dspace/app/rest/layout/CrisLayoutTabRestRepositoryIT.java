@@ -9,8 +9,11 @@ package org.dspace.app.rest.layout;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.dspace.app.rest.matcher.CrisLayoutBoxMatcher.matchBox;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -21,17 +24,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dspace.app.rest.matcher.CrisLayoutBoxMatcher;
 import org.dspace.app.rest.matcher.CrisLayoutTabMatcher;
 import org.dspace.app.rest.model.CrisLayoutTabRest;
-import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
-import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
@@ -50,20 +49,21 @@ import org.dspace.content.MetadataSchema;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.layout.CrisLayoutBox;
+import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.LayoutSecurity;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * This test class verify the REST Services for the Layout Tabs functionality (endpoint /api/layout/tabs)
- * 
+ *
  * @author Danilo Di Nuzzo (danilo.dinuzzo at 4science.it)
+ * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  *
  */
-public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
+public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private MetadataSchemaService mdss;
@@ -71,137 +71,124 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
     @Autowired
     private MetadataFieldService mfss;
 
-    private final String BOX_URL = "http://localhost:8080/api/layout/boxes/";
     private final String METADATASECURITY_URL = "http://localhost:8080/api/core/metadatafield/";
 
     /**
-     * Test for endopint /api/layout/tabs/<ID>. It returns a determinate tab
-     * identified by its ID
+     * Test for endpoint /api/layout/tabs/<ID_TAB>.
      * @throws Exception
      */
     @Test
-    public void getSingleTab() throws Exception {
+    public void testFindOne() throws Exception {
         context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        // Create new Tab for Person Entity
-        CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Person Tab")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Person Tab header")
-                .build();
-        // Create new EntityType Publication
-        EntityType eTypeTwo = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
-        // Create new Tab for Publication Entity
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypeTwo, 0)
-                .withShortName("First Publication Tab")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("First Publication Tab header")
-                .build();
-        // Create second Tab for Publication Entity
-        CrisLayoutTabBuilder.createTab(context, eTypeTwo, 0)
-                .withShortName("Second Publication Tab")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("Second Publication Tab header")
-                .build();
-        context.restoreAuthSystemState();
-        // Get created tab by id from REST service and check its response
-        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(contentType))
-            .andExpect(jsonPath("$", Matchers.is(
-                    CrisLayoutTabMatcher.matchTab(tab))));
-    }
 
-    /**
-     * Test for endpoint /api/layout/tabs/<ID_TAB>/boxes. It returns all the boxes
-     * included in the tab. The boxes are sorted by priority ascending.
-     * This endpoint is reseved for the admin user
-     * @throws Exception
-     */
-    @Test
-    public void getTabBoxes() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
         EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        // Create new Boxes
+
+        MetadataSchema schema = mdss.find(context, "dc");
+        MetadataField isbn = mfss.findByElement(context, schema, "identifier", "isbn");
+        MetadataField uri = mfss.findByElement(context, schema, "identifier", "uri");
+        MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
+        MetadataField givenName = mfss.findByElement(context, schema, "givenName", null);
+
         CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
                 .withHeader("First New Box Header")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withShortname("Shortname for new first box")
                 .withStyle("STYLE")
                 .build();
+
         CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
                 .withHeader("Second New Box Header")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withShortname("Shortname for new second box")
                 .withStyle("STYLE")
+                .withType(CrisLayoutBoxTypes.METADATA.name())
                 .build();
-        // Create new Tab for Person Entity with two boxes
-        CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .addBox(boxOne)
-                .addBox(boxTwo)
-                .build();
-        // Create new Boxes
+
+        CrisLayoutFieldBuilder.createMetadataField(context, lastName, 0, 1)
+            .withLabel("LAST NAME")
+            .withRendering("TEXT")
+            .withBox(boxTwo)
+            .build();
+
+        CrisLayoutFieldBuilder.createMetadataField(context, givenName, 0, 1)
+            .withLabel("GIVEN NAME")
+            .withRendering("TEXT")
+            .withBox(boxTwo)
+            .build();
+
         CrisLayoutBox boxThree = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
                 .withHeader("Third New Box Header - priority 0")
                 .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname 3")
+                .withShortname("orgUnits")
                 .withStyle("STYLE")
+                .addMetadataSecurityField(isbn)
+                .withType(CrisLayoutBoxTypes.RELATION.name())
                 .build();
-        // Create new Boxes
+
         CrisLayoutBox boxFour = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
                 .withHeader("Fourth New Box Header - priority 1")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withShortname("Shortname 4")
                 .withStyle("STYLE")
+                .withType(CrisLayoutBoxTypes.METRICS.name())
+                .withMaxColumns(2)
                 .build();
-        // Create new Boxes
+
         CrisLayoutBox boxFive = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
                 .withHeader("Fifth New Box Header - priority 2")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withShortname("Shortname 5")
                 .withStyle("STYLE")
+                .addMetadataSecurityField(isbn)
+                .addMetadataSecurityField(uri)
                 .build();
-        // Create new Tab for Person Entity with three boxes
+
+        CrisLayoutBox boxSix = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
+                .withHeader("Sixth New Box Header - priority 2")
+                .withSecurity(LayoutSecurity.PUBLIC)
+                .withShortname("Shortname 6")
+                .withStyle("STYLE")
+                .addMetadataSecurityField(uri)
+                .build();
+
         CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
                 .withShortName("Another New Tab shortname")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .withHeader("New Tab header")
-                .addBox(boxThree)
-                .addBox(boxFour)
-                .addBox(boxFive)
+                .withLeading(true)
+                .addBoxIntoNewRow(boxOne)
+                .addBoxIntoNewRow(boxTwo, "rowTwoStyle", "cellOfRowTwoStyle")
+                .addBoxIntoLastRow(boxThree, "style")
+                .addBoxIntoLastCell(boxFour)
+                .addBoxIntoNewRow(boxFive)
+                .addBoxIntoLastCell(boxSix)
                 .build();
-        // Create new Tab for Person Entity without boxes
-        CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("Tab no box")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .build();
+
         context.restoreAuthSystemState();
-        // Test without authentication
-        getClient().perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-            .andExpect(status().isUnauthorized()); // 401 Unauthorized;
-        // Test with non admin user
-        String token = getAuthToken(eperson.getEmail(), password);
-        getClient(token).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-            .andExpect(status().isForbidden()); // 403 - user haven't sufficient permission
-        // Test with admin
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
+
+        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
-            .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-            .andExpect(jsonPath("$.page.totalElements", Matchers.is(3)))
-            .andExpect(jsonPath("$._embedded.boxes[0]", Matchers.is(
-                    CrisLayoutBoxMatcher.matchBox(boxThree))))
-            .andExpect(jsonPath("$._embedded.boxes[1]", Matchers.is(
-                    CrisLayoutBoxMatcher.matchBox(boxFour))))
-            .andExpect(jsonPath("$._embedded.boxes[2]", Matchers.is(
-                    CrisLayoutBoxMatcher.matchBox(boxFive))));
+            .andExpect(jsonPath("$.id", is(tab.getID())))
+            .andExpect(jsonPath("$.shortname", is("Another New Tab shortname")))
+            .andExpect(jsonPath("$.header", is("New Tab header")))
+            .andExpect(jsonPath("$.leading", is(true)))
+            .andExpect(jsonPath("$.security", is(LayoutSecurity.PUBLIC.getValue())))
+            .andExpect(jsonPath("$.rows", hasSize(3)))
+            .andExpect(jsonPath("$.rows[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes", contains(matchBox(boxOne))))
+            .andExpect(jsonPath("$.rows[1].style", is("rowTwoStyle")))
+            .andExpect(jsonPath("$.rows[1].cells", hasSize(2)))
+            .andExpect(jsonPath("$.rows[1].cells[0].style", is("cellOfRowTwoStyle")))
+            .andExpect(jsonPath("$.rows[1].cells[0].boxes", contains(matchBox(boxTwo))))
+            .andExpect(jsonPath("$.rows[1].cells[1].style", is("style")))
+            .andExpect(jsonPath("$.rows[1].cells[1].boxes", contains(matchBox(boxThree), matchBox(boxFour))))
+            .andExpect(jsonPath("$.rows[2].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[2].cells", hasSize(1)))
+            .andExpect(jsonPath("$.rows[2].cells[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[2].cells[0].boxes", contains(matchBox(boxFive), matchBox(boxSix))));
     }
 
     /**
@@ -524,6 +511,7 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
         MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
         MetadataField provenance = mfss.findByElement(context, schema, "description", "provenance");
         MetadataField sponsorship = mfss.findByElement(context, schema, "description", "sponsorship");
+
         // Create tabs for Person Entity
        CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
            .withShortname("Box shortname 1")
@@ -538,8 +526,9 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
             .withShortName("TabOne For Person - priority 0")
             .withSecurity(LayoutSecurity.PUBLIC)
             .withHeader("New Tab header")
-            .addBox(boxOne)
+            .addBoxIntoNewRow(boxOne)
             .build();
+
         CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
             .withShortname("Box shortname 2")
             .withSecurity(LayoutSecurity.PUBLIC)
@@ -557,9 +546,10 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
             .withShortName("TabTwo For Person - priority 1")
             .withSecurity(LayoutSecurity.PUBLIC)
             .withHeader("New Tab header")
-            .addBox(box)
-            .addBox(boxThree)
+            .addBoxIntoNewRow(box)
+            .addBoxIntoNewRow(boxThree)
             .build();
+
         // tab without data
         CrisLayoutTabBuilder.createTab(context, eTypePer, 2)
             .withShortName("New Tab For Person 2")
@@ -568,6 +558,7 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
             .addMetadatasecurity(provenance)
             .addMetadatasecurity(sponsorship)
             .build();
+
         CrisLayoutTab administratorSecuredTab = CrisLayoutTabBuilder.createTab(context, eTypePer, 2)
               .withShortName("AdministratorTab")
               .withSecurity(LayoutSecurity.ADMINISTRATOR)
@@ -575,6 +566,7 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
               .addMetadatasecurity(provenance)
               .addMetadatasecurity(sponsorship)
               .build();
+
         CrisLayoutBox administratorSecuredBox = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
             .withShortname("Box shortname secured")
             .withSecurity(LayoutSecurity.ADMINISTRATOR)
@@ -588,8 +580,9 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
            .withShortName("secured box holder - priority 1")
            .withSecurity(LayoutSecurity.PUBLIC)
            .withHeader("secured box holder")
-           .addBox(administratorSecuredBox)
+           .addBoxIntoNewRow(administratorSecuredBox)
            .build();
+
         context.restoreAuthSystemState();
         // Test
         getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
@@ -771,364 +764,8 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void addBoxTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                            .withShortName("New Tab shortname")
-                            .withSecurity(LayoutSecurity.PUBLIC)
-                            .build();
-
-        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withShortname("Shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("Header")
-                .withStyle("Style")
-                .build();
-
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(post("/api/layout/tabs/" + tab.getID() + "/boxes")
-                .contentType(org.springframework.http.MediaType.parseMediaType
-                        (org.springframework.data.rest.webmvc.RestMediaTypes
-                             .TEXT_URI_LIST_VALUE))
-                .content(BOX_URL + box.getID())
-                ).andExpect(status().isNoContent());
-
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-    }
-
-    @Test
-    public void addBoxUnauthorizedTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                            .withShortName("New Tab shortname")
-                            .withSecurity(LayoutSecurity.PUBLIC)
-                            .build();
-
-        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withShortname("Shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("Header")
-                .withStyle("Style")
-                .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(post("/api/layout/tabs/" + tab.getID() + "/boxes")
-                .contentType(org.springframework.http.MediaType.parseMediaType
-                        (org.springframework.data.rest.webmvc.RestMediaTypes
-                             .TEXT_URI_LIST_VALUE))
-                .content(BOX_URL + box.getID())
-                ).andExpect(status().isUnauthorized());
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes")).andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                // Expect an empty list of boxes because the previous POST invocation returns
-                // an unauthorized status
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.empty()));
-    }
-
-    @Test
-    public void addBoxForbiddenTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .build();
-
-        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withShortname("Shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("Header")
-                .withStyle("Style")
-                .build();
-
-        context.restoreAuthSystemState();
-
-        String tokenEperson = getAuthToken(eperson.getEmail(), password);
-        getClient(tokenEperson).perform(
-                post("/api/layout/tabs/" + tab.getID() + "/boxes")
-                .contentType(org.springframework.http.MediaType.parseMediaType
-                        (org.springframework.data.rest.webmvc.RestMediaTypes
-                             .TEXT_URI_LIST_VALUE))
-                .content(BOX_URL + box.getID())).andExpect(status().isForbidden());
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes")).andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                // Expect an empty list of boxes because the previous POST invocation returns
-                // an forbidden status
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.empty()));
-    }
-
-    @Test
-    public void addBoxNotFoundTabTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-
-        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withShortname("Shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("Header")
-                .withStyle("Style")
-                .build();
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin)
-                .perform(post("/api/layout/tabs/" + Integer.MAX_VALUE + "/boxes")
-                        .contentType(org.springframework.http.MediaType.parseMediaType
-                                (org.springframework.data.rest.webmvc.RestMediaTypes
-                                     .TEXT_URI_LIST_VALUE))
-                        .content(BOX_URL + box.getID()))
-                .andExpect(status().isNotFound());
-    }
-
-    @Test
-    public void addBoxDifferentEntityTypesTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityTypes
-        EntityType eTypePerson = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        EntityType eTypeOrgUnit = EntityTypeBuilder.createEntityTypeBuilder(context, "OrgUnit").build();
-
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypePerson, 0)
-                            .withShortName("New Tab shortname")
-                            .withSecurity(LayoutSecurity.PUBLIC)
-                            .build();
-
-        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypeOrgUnit, false, false)
-                .withShortname("Shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("Header")
-                .withStyle("Style")
-                .build();
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(post("/api/layout/tabs/" + tab.getID() + "/boxes")
-                .contentType(org.springframework.http.MediaType.parseMediaType
-                        (org.springframework.data.rest.webmvc.RestMediaTypes
-                             .TEXT_URI_LIST_VALUE))
-                .content(BOX_URL + box.getID()))
-                 .andExpect(status().isUnprocessableEntity());
-
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 // Expect an empty collection because previus POST return an Unprocessable Entity
-                 // cause by the different Entity Type of Tab and Box
-                 .andExpect(jsonPath("$._embedded.boxes", Matchers.empty()));
-
-    }
-
-    @Test
-    public void removeBoxTest() throws Exception {
-       context.turnOffAuthorisationSystem();
-       // Create new EntityType Person
-       EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-       // Create new Boxes
-       CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("First New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new first box")
-                .withStyle("STYLE")
-                .build();
-       CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("Second New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new second box")
-                .withStyle("STYLE")
-                .build();
-       // Create new Tab for Person Entity with two boxes
-       CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .addBox(boxOne)
-                .addBox(boxTwo)
-                .build();
-       context.restoreAuthSystemState();
-
-       // get boxes
-       String tokenAdmin = getAuthToken(admin.getEmail(), password);
-       getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-
-       getClient(tokenAdmin).perform(delete("/api/layout/tabs/" + tab.getID() + "/boxes/" + boxOne.getID()))
-                            .andExpect(status().isNoContent());
-
-        // get boxes
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
-    }
-
-    @Test
-    public void removeBoxUnauthorizedTest() throws Exception {
-       context.turnOffAuthorisationSystem();
-       // Create new EntityType Person
-       EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-       // Create new Boxes
-       CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("First New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new first box")
-                .withStyle("STYLE")
-                .build();
-       CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("Second New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new second box")
-                .withStyle("STYLE")
-                .build();
-       // Create new Tab for Person Entity with two boxes
-       CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .addBox(boxOne)
-                .addBox(boxTwo)
-                .build();
-       context.restoreAuthSystemState();
-
-       // get boxes
-       String tokenAdmin = getAuthToken(admin.getEmail(), password);
-       getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-
-       getClient().perform(delete("/api/layout/tabs/" + tab.getID() + "/boxes/" + boxOne.getID()))
-                  .andExpect(status().isUnauthorized());
-
-        // get boxes
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-    }
-
-    @Test
-    public void removeBoxForbiddenTest() throws Exception {
-       context.turnOffAuthorisationSystem();
-       // Create new EntityType Person
-       EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-       // Create new Boxes
-       CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("First New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new first box")
-                .withStyle("STYLE")
-                .build();
-       CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("Second New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new second box")
-                .withStyle("STYLE")
-                .build();
-       // Create new Tab for Person Entity with two boxes
-       CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .addBox(boxOne)
-                .addBox(boxTwo)
-                .build();
-       context.restoreAuthSystemState();
-
-       // get boxes
-       String tokenAdmin = getAuthToken(admin.getEmail(), password);
-       getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-
-       String tokenEperson = getAuthToken(eperson.getEmail(), password);
-       getClient(tokenEperson).perform(delete("/api/layout/tabs/" + tab.getID() + "/boxes/" + boxOne.getID()))
-                              .andExpect(status().isForbidden());
-
-       // get boxes
-       getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-    }
-
-    @Test
-    public void removeBoxNotFoundBoxTest() throws Exception {
-       context.turnOffAuthorisationSystem();
-       // Create new EntityType Person
-       EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-       // Create new Boxes
-       CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("First New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new first box")
-                .withStyle("STYLE")
-                .build();
-       CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("Second New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new second box")
-                .withStyle("STYLE")
-                .build();
-       // Create new Tab for Person Entity with two boxes
-       CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .addBox(boxOne)
-                .addBox(boxTwo)
-                .build();
-       context.restoreAuthSystemState();
-
-       // get boxes
-       String tokenAdmin = getAuthToken(admin.getEmail(), password);
-       getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-
-       getClient(tokenAdmin).perform(delete("/api/layout/tabs/" + tab.getID() + "/boxes/" + Integer.MAX_VALUE))
-                            .andExpect(status().isNoContent());
-
-        // get boxes
-        getClient(tokenAdmin).perform(get("/api/layout/tabs/" + tab.getID() + "/boxes"))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$._embedded.boxes", Matchers.not(Matchers.empty())))
-                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(2)));
-    }
-
-    @Test
-    @Ignore
     public void patchTabReplaceShortnameTest() throws Exception {
+
         context.turnOffAuthorisationSystem();
         // Create new EntityType Person
         EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
@@ -1160,130 +797,16 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
         getClient().perform(get("/api/layout/tabs/" + tab.getID()))
                    .andExpect(status().isOk())
                    .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$", Matchers.is(CrisLayoutTabMatcher.matchTab(tab))));
+            .andExpect(jsonPath("$", Matchers.allOf(
+                hasJsonPath("$.shortname", is(shortname)),
+                hasJsonPath("$.header", is(tab.getHeader())))));
+
+        tab = context.reloadEntity(tab);
+        assertThat(tab.getShortName(), is(shortname));
     }
 
     @Test
-    @Ignore
-    public void patchTabAddShortnameTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                            .withHeader("Tab Header")
-                            .withSecurity(LayoutSecurity.PUBLIC)
-                            .build();
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        String shortname = "Tab Shortname";
-        List<Operation> ops = new ArrayList<Operation>();
-        AddOperation addOperation = new AddOperation("/shortname", shortname);
-        ops.add(addOperation);
-        String patchBody = getPatchContent(ops);
-
-        getClient(tokenAdmin).perform(patch("/api/layout/tabs/" + tab.getID())
-                 .content(patchBody)
-                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                         hasJsonPath("$.shortname", is(shortname)),
-                         hasJsonPath("$.header", is(tab.getHeader()))
-                         )));
-
-        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
-                   .andExpect(status().isOk())
-                   .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$", Matchers.allOf(
-                           hasJsonPath("$.shortname", is(shortname)),
-                           hasJsonPath("$.header", is(tab.getHeader()))
-                           )));
-    }
-
-    @Test
-    @Ignore
-    public void patchTabRemoveShortnameTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                            .withShortName("Tab Shortname")
-                            .withHeader("Tab Header")
-                            .withSecurity(LayoutSecurity.PUBLIC)
-                            .build();
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        List<Operation> ops = new ArrayList<Operation>();
-        RemoveOperation removeOperation = new RemoveOperation("/shortname");
-        ops.add(removeOperation);
-        String patchBody = getPatchContent(ops);
-
-        getClient(tokenAdmin).perform(patch("/api/layout/tabs/" + tab.getID())
-                 .content(patchBody)
-                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                 .andExpect(status().isOk())
-                 .andExpect(content().contentType(contentType))
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                         hasJsonPath("$.shortname", nullValue()),
-                         hasJsonPath("$.header", is(tab.getHeader()))
-                         )));
-
-        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
-                   .andExpect(status().isOk())
-                   .andExpect(content().contentType(contentType))
-                   .andExpect(jsonPath("$", Matchers.allOf(
-                           hasJsonPath("$.shortname", nullValue()),
-                           hasJsonPath("$.header", is(tab.getHeader()))
-                           )));
-    }
-
-    @Test
-    @Ignore
-    public void patchTabRemoveShortnameWrongPathTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        // Create new EntityType Person
-        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                            .withShortName("Tab Shortname")
-                            .withHeader("Tab Header")
-                            .withSecurity(LayoutSecurity.PUBLIC)
-                            .build();
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        List<Operation> ops = new ArrayList<Operation>();
-        RemoveOperation removeOperation = new RemoveOperation("/wrongPath");
-        ops.add(removeOperation);
-        String patchBody = getPatchContent(ops);
-
-        getClient(tokenAdmin).perform(patch("/api/layout/tabs/" + tab.getID())
-                 .content(patchBody)
-                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                 .andExpect(status().isUnprocessableEntity());
-
-    }
-
-    @Test
-    @Ignore
-    public void patchTabAddShortnameBadRequestTest() throws Exception {
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        String shortname = "Tab Shortname";
-        List<Operation> ops = new ArrayList<Operation>();
-        AddOperation addOperation = new AddOperation("/shortname", shortname);
-        ops.add(addOperation);
-        String patchBody = getPatchContent(ops);
-
-        getClient(tokenAdmin).perform(patch("/api/layout/tabs/" + UUID.randomUUID())
-                             .content(patchBody)
-                             .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                             .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @Ignore
-    public void patchTabReplacePriotityTest() throws Exception {
+    public void patchTabReplacePriorityTest() throws Exception {
         context.turnOffAuthorisationSystem();
         // Create new EntityType Person
         EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
@@ -1324,8 +847,7 @@ public class TabsRestControllerIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    @Ignore
-    public void patchTabReplacePriotityBadRequestTest() throws Exception {
+    public void patchTabReplacePriorityBadRequestTest() throws Exception {
         context.turnOffAuthorisationSystem();
         // Create new EntityType Person
         EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();

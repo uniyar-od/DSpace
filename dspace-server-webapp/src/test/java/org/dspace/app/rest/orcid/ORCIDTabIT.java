@@ -91,7 +91,7 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
             .withShortName("tab1")
             .withSecurity(LayoutSecurity.PUBLIC)
             .withHeader("tab person 1")
-            .addBox(boxOne)
+            .addBoxIntoNewRow(boxOne)
             .build();
 
         CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
@@ -120,8 +120,8 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
             .withShortName("tab2")
             .withSecurity(LayoutSecurity.PUBLIC)
             .withHeader("Tab person 2")
-            .addBox(boxTwo)
-            .addBox(boxThree)
+            .addBoxIntoNewRow(boxTwo)
+            .addBoxIntoNewRow(boxThree)
             .build();
 
         CrisLayoutBox boxFour = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
@@ -138,7 +138,7 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
             .withShortName("tab3")
             .withSecurity(LayoutSecurity.PUBLIC)
             .withHeader("Tab person 3")
-            .addBox(boxFour)
+            .addBoxIntoNewRow(boxFour)
             .build();
 
         // Create the orcid boxes and tab
@@ -164,9 +164,9 @@ public class ORCIDTabIT extends AbstractControllerIntegrationTest {
                 .withShortName("orcid")
                 .withSecurity(LayoutSecurity.OWNER_ONLY)
                 .withHeader("ORCID")
-                .addBox(orcidsyncqueue)
-                .addBox(orcidsyncsettings)
-                .addBox(orcidauthorizations)
+                .addBoxIntoNewRow(orcidsyncqueue)
+                .addBoxIntoNewRow(orcidsyncsettings)
+                .addBoxIntoNewRow(orcidauthorizations)
                 .build();
 
         // create some people

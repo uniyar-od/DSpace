@@ -24,7 +24,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.ItemService;
@@ -142,55 +141,13 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
         box.setMinor(minor);
         box.setType(boxType);
         return dao.create(context, box);
-    }
 
-    /* (non-Javadoc)
-     * @see org.dspace.layout.service.CrisLayoutBoxService#findByTabId(org.dspace.core.Context, java.lang.Integer)
-     */
-    @Override
-    public List<CrisLayoutBox> findByTabId(Context context, Integer tabId) throws SQLException {
-        return dao.findByTabId(context, tabId);
-    }
-
-    /* (non-Javadoc)
-     * @see org.dspace.layout.service.CrisLayoutBoxService#findByTabId
-     * (org.dspace.core.Context, java.lang.Integer, java.lang.Integer, java.lang.Integer)
-     */
-    @Override
-    public List<CrisLayoutBox> findByTabId(Context context, Integer tabId, Integer limit, Integer offset)
-        throws SQLException {
-        return dao.findByTabId(context, tabId, limit, offset);
-    }
-
-    /* (non-Javadoc)
-     * @see org.dspace.layout.service.CrisLayoutBoxService#countTotalBoxesInTab
-     * (org.dspace.core.Context, java.lang.Integer)
-     */
-    @Override
-    public Long countTotalBoxesInTab(Context context, Integer tabId) throws SQLException {
-        return dao.countTotalBoxesInTab(context, tabId);
-    }
-
-    @Override
-    public Long countTotalEntityBoxes(Context context, String entityType) throws SQLException {
-        return dao.countTotalEntityBoxes(context, entityType);
     }
 
     @Override
     public List<CrisLayoutBox> findEntityBoxes(Context context, String entityType, Integer limit, Integer offset)
         throws SQLException {
         return dao.findByEntityType(context, entityType, null, limit, offset);
-    }
-
-    @Override
-    public List<MetadataField> getMetadataField(Context context, Integer boxId, Integer limit, Integer offset)
-        throws SQLException {
-        return dao.getMetadataField(context, boxId, limit, offset);
-    }
-
-    @Override
-    public Long totalMetadataField(Context context, Integer boxId) throws SQLException {
-        return dao.totalMetadatafield(context, boxId);
     }
 
     @Override
@@ -252,7 +209,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     }
 
     @Override
-    public CrisLayoutBoxConfiguration getConfiguration(Context context, CrisLayoutBox box) {
+    public CrisLayoutBoxConfiguration getConfiguration(CrisLayoutBox box) {
         return new CrisLayoutBoxConfiguration(box);
     }
 

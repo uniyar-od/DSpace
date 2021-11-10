@@ -8,7 +8,6 @@
 package org.dspace.layout.service.impl;
 
 import java.sql.SQLException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -25,7 +24,6 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBox;
-import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.dao.CrisLayoutTabDAO;
 import org.dspace.layout.service.CrisLayoutBoxAccessService;
@@ -96,6 +94,11 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     @Override
     public CrisLayoutTab find(Context context, int id) throws SQLException {
         return dao.findByID(context, CrisLayoutTab.class, id);
+    }
+
+    @Override
+    public CrisLayoutTab findAndEagerlyFetch(Context context, Integer id) throws SQLException {
+        return dao.findAndEagerlyFetch(context, id);
     }
 
     @Override
@@ -213,18 +216,10 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
                    .collect(Collectors.toList());
     }
 
-    private boolean hasABoxToDisplay(Context context, CrisLayoutTab tab,
-                                     Item item) {
+    private boolean hasABoxToDisplay(Context context, CrisLayoutTab tab, Item item) {
         Predicate<CrisLayoutBox> isGranted = box -> boxGrantedAccess(context, item, box);
         Predicate<CrisLayoutBox> hasContent = box -> boxService.hasContent(context, box, item, item.getMetadata());
-
-        return tab.getCrisLayoutRow().stream()
-                .map(crisLayoutRow -> crisLayoutRow.getCells().stream()
-                        .map(CrisLayoutCell::getBoxes)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList()))
-                .flatMap(Collection::stream)
-                .anyMatch(isGranted.and(hasContent));
+        return tab.getBoxes().stream().anyMatch(isGranted.and(hasContent));
     }
 
     private boolean boxGrantedAccess(Context context, Item item, CrisLayoutBox box) {

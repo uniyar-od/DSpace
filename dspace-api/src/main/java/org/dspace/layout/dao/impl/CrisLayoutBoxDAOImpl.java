@@ -21,7 +21,6 @@ import javax.persistence.criteria.Root;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.EntityType;
 import org.dspace.content.EntityType_;
-import org.dspace.content.MetadataField;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBox;
@@ -39,62 +38,6 @@ public class CrisLayoutBoxDAOImpl extends AbstractHibernateDAO<CrisLayoutBox> im
 
     @Autowired(required = true)
     protected AuthorizeService authorizeService;
-
-    /* (non-Javadoc)
-     * @see org.dspace.layout.dao.CrisLayoutBoxDAO#findByTabId(org.dspace.core.Context, java.lang.Integer)
-     */
-    @Override
-    public List<CrisLayoutBox> findByTabId(Context context, Integer tabId) throws SQLException {
-        return findByTabId(context, tabId, null, null);
-    }
-
-    /* (non-Javadoc)
-     * @see org.dspace.layout.dao.CrisLayoutBoxDAO#findByTabId
-     * (org.dspace.core.Context, java.lang.Integer, java.lang.Integer, java.lang.Integer)
-     */
-    @Override
-    public List<CrisLayoutBox> findByTabId(Context context, Integer tabId, Integer limit, Integer offset)
-            throws SQLException {
-        CriteriaBuilder cb = getHibernateSession(context).getCriteriaBuilder();
-        CriteriaQuery<CrisLayoutBox> q = cb.createQuery(CrisLayoutBox.class);
-//        Root<CrisLayoutTab2Box> tab2boxRoot = q.from(CrisLayoutTab2Box.class);
-//        q.where(cb.equal(tab2boxRoot.get(CrisLayoutTab2Box_.id).get(CrisLayoutTab2BoxId_.CRIS_LAYOUT_TAB_ID), tabId));
-//        q.orderBy(cb.asc(tab2boxRoot.get(CrisLayoutTab2Box_.POSITION)));
-//        Join<CrisLayoutTab2Box, CrisLayoutBox> tab2boxes = tab2boxRoot.join(CrisLayoutTab2Box_.BOX);
-//        CriteriaQuery<CrisLayoutBox> cqBoxes = q.select(tab2boxes);
-//        TypedQuery<CrisLayoutBox> query = getHibernateSession(context).createQuery(cqBoxes);
-//        // If present set pagination
-//        if ( limit != null && offset != null ) {
-//            query.setFirstResult(offset).setMaxResults(limit);
-//        }
-        return null;
-    }
-
-    /* (non-Javadoc)
-     * @see org.dspace.layout.dao.CrisLayoutBoxDAO#countTotalBoxesInTab
-     * (org.dspace.core.Context, java.lang.Integer)
-     */
-    @Override
-    public Long countTotalBoxesInTab(Context context, Integer tabId) throws SQLException {
-        CriteriaBuilder cb = getHibernateSession(context).getCriteriaBuilder();
-        CriteriaQuery<Long> q = cb.createQuery(Long.class);
-//        Root<CrisLayoutTab2Box> tab2boxRoot = q.from(CrisLayoutTab2Box.class);
-//        q.where(cb.equal(tab2boxRoot.get(CrisLayoutTab2Box_.id).get(CrisLayoutTab2BoxId_.CRIS_LAYOUT_TAB_ID), tabId));
-//        CriteriaQuery<Long> cqBoxes = q.select(cb.count(tab2boxRoot));
-        return null;
-    }
-
-    @Override
-    public Long countTotalEntityBoxes(Context context, String entityType) throws SQLException {
-        CriteriaBuilder cb = getCriteriaBuilder(context);
-        CriteriaQuery<Long> cc = cb.createQuery(Long.class);
-        Root<CrisLayoutBox> boxRoot = cc.from(CrisLayoutBox.class);
-        Join<CrisLayoutBox, EntityType> join = boxRoot.join(CrisLayoutBox_.entitytype);
-
-        cc.select(cb.count(boxRoot))
-            .where(cb.equal(join.get(EntityType_.LABEL), entityType));
-        return getHibernateSession(context).createQuery(cc).getSingleResult();
-    }
 
     @Override
     public List<CrisLayoutBox> findByEntityType(
@@ -127,31 +70,6 @@ public class CrisLayoutBoxDAOImpl extends AbstractHibernateDAO<CrisLayoutBox> im
             exQuery.setFirstResult(offset).setMaxResults(limit);
         }
         return exQuery.getResultList();
-    }
-
-    @Override
-    public Long totalMetadatafield(Context context, Integer boxId) throws SQLException {
-        CriteriaBuilder cb = getCriteriaBuilder(context);
-        CriteriaQuery<Long> metadatacount = cb.createQuery(Long.class);
-        Root<CrisLayoutBox> tabRoot = metadatacount.from(CrisLayoutBox.class);
-        Join<CrisLayoutBox, MetadataField> join = tabRoot.join(CrisLayoutBox_.metadataSecurityFields);
-        metadatacount.select(cb.count(join)).where(cb.equal(tabRoot.get(CrisLayoutBox_.ID), boxId));
-        return getHibernateSession(context).createQuery(metadatacount).getSingleResult();
-    }
-
-    @Override
-    public List<MetadataField> getMetadataField(Context context, Integer boxId, Integer limit, Integer offset)
-            throws SQLException {
-        CriteriaBuilder cb = getCriteriaBuilder(context);
-        CriteriaQuery<MetadataField> metadata = cb.createQuery(MetadataField.class);
-        Root<CrisLayoutBox> tabRoot = metadata.from(CrisLayoutBox.class);
-        Join<CrisLayoutBox, MetadataField> join = tabRoot.join(CrisLayoutBox_.metadataSecurityFields);
-        metadata.select(join).where(cb.equal(tabRoot.get(CrisLayoutBox_.ID), boxId));
-        TypedQuery<MetadataField> query = getHibernateSession(context).createQuery(metadata);
-        if (limit != null && offset != null) {
-            query.setMaxResults(limit).setFirstResult(offset);
-        }
-        return query.getResultList();
     }
 
     /*

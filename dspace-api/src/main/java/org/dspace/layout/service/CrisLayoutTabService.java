@@ -54,6 +54,17 @@ public interface CrisLayoutTabService extends DSpaceCRUDService<CrisLayoutTab> {
             throws SQLException, AuthorizeException;
 
     /**
+     * Find the tab with the given id and fetch all the rows, cells and boxes
+     * contained therein.
+     *
+     * @param  context The relevant DSpace Context
+     * @param  id      the tab id
+     * @return         the tab, if any
+     * @throws SQLException An exception that provides information on a database errors.
+     */
+    public CrisLayoutTab findAndEagerlyFetch(Context context, Integer id) throws SQLException;
+
+    /**
      * Find all CrisLayoutTab {@link CrisLayoutTab} in the database
      * @param context The relevant DSpace Context
      * @param limit how many results return

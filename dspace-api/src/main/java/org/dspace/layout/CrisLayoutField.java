@@ -42,39 +42,51 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cris_layout_field_field_id_seq")
-    @SequenceGenerator(
-        name = "cris_layout_field_field_id_seq",
+    @SequenceGenerator(name = "cris_layout_field_field_id_seq",
         sequenceName = "cris_layout_field_field_id_seq",
         allocationSize = 1)
     @Column(name = "field_id", unique = true, nullable = false, insertable = true, updatable = false)
     private Integer id;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "metadata_field_id", nullable = false)
     private MetadataField metadataField;
+
     @Column(name = "rendering")
     private String rendering;
+
     @Column(name = "row", nullable = false)
     private Integer row;
+
     @Column(name = "priority", nullable = false)
     private Integer priority;
+
     @Column(name = "label")
     private String label;
+
     @Column(name = "style")
     private String style;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "box_id")
     private CrisLayoutBox box;
+
     @Column(name = "style_label")
     private String styleLabel;
+
     @Column(name = "style_value")
     private String styleValue;
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "crisLayoutField", cascade = CascadeType.ALL)
     @OrderBy(value = "priority")
     private List<CrisMetadataGroup> crisMetadataGroupList = new ArrayList<>();
-    @Column(name = "labelAsHeading")
+
+    @Column(name = "label_as_heading")
     private boolean labelAsHeading;
-    @Column(name = "valuesInline")
+
+    @Column(name = "values_inline")
     private boolean valuesInline;
+
     @Override
     public Integer getID() {
         return id;
