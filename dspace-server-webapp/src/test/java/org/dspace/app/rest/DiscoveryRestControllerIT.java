@@ -75,6 +75,7 @@ import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.core.CrisConstants;
 import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SolrServiceValuePairsIndexPlugin;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
 import org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet;
@@ -104,6 +105,9 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     private DiscoveryConfigurationService discoveryConfigurationService;
     @Autowired
     private EntityTypeService entityTypeService;
+
+    @Autowired
+    private SolrServiceValuePairsIndexPlugin solrServiceValuePairsIndexPlugin;
 
     @Test
     public void rootDiscoverTest() throws Exception {
@@ -6851,6 +6855,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         String[] supportedLanguage = {"it","uk"};
         configurationService.setProperty("default.locale","it");
         configurationService.setProperty("webui.supported.locales",supportedLanguage);
+        solrServiceValuePairsIndexPlugin.setup();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -6858,32 +6863,30 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
                                            .withName("Collection 1")
+                                           .withSubmissionDefinition("languagetestprocess")
                                            .build();
 
         Item item1 = ItemBuilder.createItem(context, col1)
                                 .withTitle("Test 1")
                                 .withIssueDate("2010-10-17")
                                 .withAuthor("Testing, Works")
-                                .withEntityType("Person")
-                                .withPersonKnowsLanguages("it")
-                                .withSubject("ExtraEntry")
+                                .withEntityType("Publication")
+                                .withLanguage("it")
                                 .build();
 
         Item item2 = ItemBuilder.createItem(context, col1)
                                 .withTitle("Test 2")
                                 .withIssueDate("2010-10-17")
                                 .withAuthor("Testing, Works")
-                                .withEntityType("Person")
-                                .withPersonKnowsLanguages("uk")
-                                .withSubject("ExtraEntry")
+                                .withEntityType("Publication")
+                                .withLanguage("uk")
                                 .build();
 
         context.restoreAuthSystemState();
 
         getClient().perform(get("/api/discover/search/objects")
                    .param("sort", "dc.date.accessioned, ASC")
-                   .param("configuration", "person")
-                   .param("query", "knowsLanguage:(it)"))
+                   .param("query", "language:(it)"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItem(
@@ -6898,8 +6901,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         getClient().perform(get("/api/discover/search/objects")
                    .param("sort", "dc.date.accessioned, ASC")
-                   .param("configuration", "person")
-                   .param("query", "knowsLanguage:(uk)"))
+                   .param("query", "language:(uk)"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItem(
@@ -6914,8 +6916,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         getClient().perform(get("/api/discover/search/objects")
                    .param("sort", "dc.date.accessioned, ASC")
-                   .param("configuration", "person")
-                   .param("query", "knowsLanguage:(Inglese)"))
+                   .param("query", "language:(Italiano)"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItem(
@@ -6930,8 +6931,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
         getClient().perform(get("/api/discover/search/objects")
                    .param("sort", "dc.date.accessioned, ASC")
-                   .param("configuration", "person")
-                   .param("query", "knowsLanguage:(Англiйська)"))
+                   .param("query", "language:(Англiйська)"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.type", is("discover")))
                    .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItem(
@@ -6953,6 +6953,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         String[] supportedLanguage = {"it","uk"};
         configurationService.setProperty("default.locale","it");
         configurationService.setProperty("webui.supported.locales",supportedLanguage);
+        solrServiceValuePairsIndexPlugin.setup();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
@@ -6995,6 +6996,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         String[] supportedLanguage = {"it","uk"};
         configurationService.setProperty("default.locale","it");
         configurationService.setProperty("webui.supported.locales",supportedLanguage);
+        solrServiceValuePairsIndexPlugin.setup();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
