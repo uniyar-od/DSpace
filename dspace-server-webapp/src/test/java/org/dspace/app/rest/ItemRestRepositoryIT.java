@@ -90,15 +90,18 @@ import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.CollectionService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.service.VersioningService;
 import org.dspace.workflow.WorkflowItem;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.MvcResult;
@@ -120,6 +123,11 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private GroupService groupService;
+
+    @Autowired
+    private ItemService itemService;
 
     private Item publication1;
     private Item author1;
@@ -127,6 +135,11 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
     RelationshipType isAuthorOfPublication;
     private Relationship relationship1;
     private Relationship relationship2;
+
+    @Before
+    public void init() {
+        configurationService.setProperty("edit.metadata.allowed-group", "");
+    }
 
     @Test
     public void findAllTest() throws Exception {
@@ -1167,7 +1180,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         ReplaceOperation replaceOperation = new ReplaceOperation("/discoverable", "false");
         ops.add(replaceOperation);
         String patchBody = getPatchContent(ops);
-
+        context.restoreAuthSystemState();
         // make private
         getClient(token).perform(patch("/api/core/items/" + item.getID())
             .content(patchBody)
@@ -4330,6 +4343,120 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient().perform(get("/api/core/items/" + item.getID() + "/thumbnail"))
                    .andExpect(status().isNoContent());
     }
+    @Test
+    public void putItemMetadataWithUserNotPartOfGroupConfigured() throws Exception {
+        //We turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        String itemUuidString = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ItemRest itemRest = new ItemRest();
+            itemRest.setName("Practices of research data curation in institutional repositories:" +
+                    " A qualitative view from repository staff");
+            itemRest.setInArchive(true);
+            itemRest.setDiscoverable(true);
+            itemRest.setWithdrawn(false);
+            String token = getAuthToken(admin.getEmail(), password);
+            MvcResult mvcResult = getClient(token).perform(post("/api/core/items?owningCollection=" +
+                            col1.getID().toString())
+                            .content(mapper.writeValueAsBytes(itemRest))
+                            .contentType(contentType))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+            String content = mvcResult.getResponse().getContentAsString();
+            Map<String,Object> map = mapper.readValue(content, Map.class);
+            itemUuidString = String.valueOf(map.get("uuid"));
+            String itemHandleString = String.valueOf(map.get("handle"));
+            itemRest.setMetadata(new MetadataRest()
+                    .put("dc.description", new MetadataValueRest("<p>Some cool HTML code here</p>")));
+            itemRest.setUuid(itemUuidString);
+            itemRest.setHandle(itemHandleString);
+            Group group = GroupBuilder.createGroup(context).build();
+            configurationService.setProperty("edit.metadata.allowed-group", group.getID());
+            context.restoreAuthSystemState();
+            // expect forbidden, the user is not part of the group set in property {{edit.metadata.allowed-group}}
+            getClient(token).perform(put("/api/core/items/" + itemUuidString)
+                            .content(mapper.writeValueAsBytes(itemRest))
+                            .contentType(contentType))
+                    .andExpect(status().isForbidden());
+        } finally {
+            ItemBuilder.deleteItem(UUID.fromString(itemUuidString));
+        }
+    }
+    @Test
+    public void putItemMetadataWithUserPartOfGroupConfigured() throws Exception {
+        //We turn off the authorization system in order to create the structure as defined below
+        context.turnOffAuthorisationSystem();
+        // add group with eperson as member
+        Group group = GroupBuilder.createGroup(context).addMember(eperson).build();
+        groupService.update(context, group);
+        context.commit();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        String itemUuidString = null;
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            ItemRest itemRest = new ItemRest();
+            itemRest.setName("Practices of research data curation in institutional repositories:" +
+                    " A qualitative view from repository staff");
+            itemRest.setInArchive(true);
+            itemRest.setDiscoverable(true);
+            itemRest.setWithdrawn(false);
+            String token = getAuthToken(admin.getEmail(), password);
+            MvcResult mvcResult = getClient(token).perform(post("/api/core/items?owningCollection=" +
+                            col1.getID().toString())
+                            .content(mapper.writeValueAsBytes(itemRest))
+                            .contentType(contentType))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+            String content = mvcResult.getResponse().getContentAsString();
+            Map<String,Object> map = mapper.readValue(content, Map.class);
+            itemUuidString = String.valueOf(map.get("uuid"));
+            String itemHandleString = String.valueOf(map.get("handle"));
+            itemRest.setMetadata(new MetadataRest()
+                    .put("dc.description", new MetadataValueRest("<p>Some cool HTML code here</p>"))
+                    .put("dc.description.abstract",
+                            new MetadataValueRest("Sample item created via the REST API"))
+                    .put("dc.description.tableofcontents", new MetadataValueRest("<p>HTML News</p>"))
+                    .put("dc.rights", new MetadataValueRest("New Custom Copyright Text"))
+                    .put("dc.title", new MetadataValueRest("New title")));
+            itemRest.setUuid(itemUuidString);
+            itemRest.setHandle(itemHandleString);
+            // add write rights to the user
+            ResourcePolicyBuilder.createResourcePolicy(context)
+                    .withUser(eperson)
+                    .withAction(WRITE)
+                    .withDspaceObject(itemService.find(context, UUID.fromString(itemUuidString)))
+                    .build();
+
+            context.restoreAuthSystemState();
+            token = getAuthToken(eperson.getEmail(), password);
+            configurationService.setProperty("edit.metadata.allowed-group", group.getID());
+            // expect forbidden, the user is not part of the group set in property {{edit.metadata.allowed-group}}
+            getClient(token).perform(put("/api/core/items/" + itemUuidString)
+                            .content(mapper.writeValueAsBytes(itemRest))
+                            .contentType(contentType))
+                    .andExpect(status().isOk());
+        } finally {
+            ItemBuilder.deleteItem(UUID.fromString(itemUuidString));
+        }
+    }
 
     @Test
     public void finadVersionForItemTest() throws Exception {
@@ -4588,4 +4715,98 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                    .andExpect(status().isUnauthorized());
     }
 
+
+    @Test
+    public void patchItemMetadataWithUserPartOfGroupConfigured() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // add admin person as member to the group
+        Group group = GroupBuilder.createGroup(context).addMember(admin).build();
+        groupService.update(context, group);
+        context.commit();
+        // ** GIVEN **
+        // 1. A community-collection structure with one parent community with
+        // sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+            .withName("Sub Community")
+            .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+            .withName("Collection 1").build();
+        // 2. One public item
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Public item 1")
+            .withIssueDate("2017-10-17")
+            .withAuthor("Smith, Donald").withAuthor("Doe, John")
+            .withSubject("ExtraEntry")
+            .build();
+        // add write permission to the user admin
+        ResourcePolicyBuilder.createResourcePolicy(context)
+            .withUser(admin)
+            .withAction(WRITE)
+            .withDspaceObject(itemService.find(context, item.getID()))
+            .build();
+        context.restoreAuthSystemState();
+        configurationService.setProperty("edit.metadata.allowed-group", group.getID());
+        String token = getAuthToken(admin.getEmail(), password);
+        List<Operation> ops = new ArrayList<Operation>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/withdrawn", true);
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+        // withdraw item
+        // expect status to be OK as the user is part of the group configured in property edit.metadata.allowed-group
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.uuid", Matchers.is(item.getID().toString())))
+                .andExpect(jsonPath("$.withdrawn", Matchers.is(true)))
+                .andExpect(jsonPath("$.inArchive", Matchers.is(false)));
+    }
+
+    @Test
+    public void patchItemMetadataWithUserNotPartOfGroupConfigured() throws Exception {
+        context.turnOffAuthorisationSystem();
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and one collection.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                .withName("Parent Community")
+                .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                .withName("Sub Community")
+                .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                .withName("Collection 1").build();
+        //2. One public item
+        Item item = ItemBuilder.createItem(context, col1)
+                .withTitle("Public item 1")
+                .withIssueDate("2017-10-17")
+                .withAuthor("Smith, Donald").withAuthor("Doe, John")
+                .withSubject("ExtraEntry")
+                .build();
+        // add write rights to the user admin
+        ResourcePolicyBuilder.createResourcePolicy(context)
+                .withUser(admin)
+                .withAction(WRITE)
+                .withDspaceObject(itemService.find(context, item.getID()))
+                .build();
+        // add admin as member in the group
+        Group group = GroupBuilder.createGroup(context).build();
+        groupService.update(context, group);
+        context.commit();
+        context.restoreAuthSystemState();
+        configurationService.setProperty("edit.metadata.allowed-group", group.getID());
+        String token = getAuthToken(admin.getEmail(), password);
+        List<Operation> ops = new ArrayList<Operation>();
+        ReplaceOperation replaceOperation = new ReplaceOperation("/withdrawn", true);
+        ops.add(replaceOperation);
+        String patchBody = getPatchContent(ops);
+        // withdraw item
+        // expect forbidden, the user is not part of the group set in property {{edit.metadata.allowed-group}}
+        getClient(token).perform(patch("/api/core/items/" + item.getID())
+                        .content(patchBody)
+                        .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                .andExpect(status().isForbidden());
+    }
 }
