@@ -9,7 +9,6 @@ package org.dspace.layout.service;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.EntityType;
@@ -61,18 +60,8 @@ public interface CrisLayoutBoxService extends DSpaceCRUDService<CrisLayoutBox> {
      * @return List of CrisLayoutBox {@link CrisLayoutBox}
      * @throws SQLException An exception that provides information on a database errors.
      */
-    public List<CrisLayoutBox> findEntityBoxes(Context context, String entityType, Integer limit, Integer offset)
+    public List<CrisLayoutBox> findByEntityType(Context context, String entityType, Integer limit, Integer offset)
         throws SQLException;
-
-    /**
-     * Find all tabs associated at an specific item
-     * @param context The relevant DSpace Context
-     * @param itemUuid String that represents UUID of item
-     * @param tabId Id of tab container
-     * @return List of CrisLayoutBox {@link CrisLayoutBox}
-     * @throws SQLException An exception that provides information on a database errors.
-     */
-    public List<CrisLayoutBox> findByItem(Context context, UUID itemUuid, Integer tabId) throws SQLException;
 
     /**
      * Check if the box has content to show
@@ -84,6 +73,17 @@ public interface CrisLayoutBoxService extends DSpaceCRUDService<CrisLayoutBox> {
      * @return true if the box has content to show, false otherwise
      */
     public boolean hasContent(Context context, CrisLayoutBox box, Item item, List<MetadataValue> values);
+
+    /**
+     * Establishes wether or not, current user is enabled to have access to layout data
+     * contained in a layout box for a given Item.
+     *
+     * @param context current Context
+     * @param box     layout box
+     * @param item    item to whom metadata contained in the box belong to
+     * @return true if access has to be granded, false otherwise
+     */
+    public boolean hasAccess(Context context, CrisLayoutBox box, Item item);
 
     /**
      * Retrieve the configuration details of a specific box. By default the

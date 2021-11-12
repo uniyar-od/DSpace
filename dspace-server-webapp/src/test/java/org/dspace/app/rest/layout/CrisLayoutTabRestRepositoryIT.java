@@ -10,6 +10,7 @@ package org.dspace.app.rest.layout;
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.rest.matcher.CrisLayoutBoxMatcher.matchBox;
+import static org.dspace.app.rest.matcher.CrisLayoutTabMatcher.matchTab;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
@@ -413,7 +414,6 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         MetadataField abs = mfss.findByElement(context, schema, "description", "abstract");
         MetadataField provenance = mfss.findByElement(context, schema, "description", "provenance");
         MetadataField sponsorship = mfss.findByElement(context, schema, "description", "sponsorship");
-        MetadataField extent = mfss.findByElement(context, schema, "format", "extent");
         // Create entity type Publication
         EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
         // Create tabs
@@ -533,7 +533,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .withShortname("Box shortname 2")
             .withSecurity(LayoutSecurity.PUBLIC)
             .build();
-        CrisLayoutBox boxThree = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
+        CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
             .withShortname("Box shortname 33")
             .withSecurity(LayoutSecurity.ADMINISTRATOR)
             .build();
@@ -547,7 +547,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .withSecurity(LayoutSecurity.PUBLIC)
             .withHeader("New Tab header")
             .addBoxIntoNewRow(box)
-            .addBoxIntoNewRow(boxThree)
+            .addBoxIntoNewRow(boxTwo)
             .build();
 
         // tab without data
@@ -559,12 +559,18 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .addMetadatasecurity(sponsorship)
             .build();
 
+        CrisLayoutBox boxThree = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
+            .withShortname("Box shortname 3")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .build();
+
         CrisLayoutTab administratorSecuredTab = CrisLayoutTabBuilder.createTab(context, eTypePer, 2)
               .withShortName("AdministratorTab")
               .withSecurity(LayoutSecurity.ADMINISTRATOR)
               .withHeader("Administrator Tab header")
               .addMetadatasecurity(provenance)
               .addMetadatasecurity(sponsorship)
+              .addBoxIntoNewRow(boxThree)
               .build();
 
         CrisLayoutBox administratorSecuredBox = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
@@ -589,10 +595,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(2))) // only two tabs have contents to show
-            .andExpect(jsonPath("$._embedded.tabs[0]", Matchers.is(
-                    CrisLayoutTabMatcher.matchTab(tab))))
-            .andExpect(jsonPath("$._embedded.tabs[1]", Matchers.is(
-                    CrisLayoutTabMatcher.matchTab(tabTwo))));
+            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab), matchTab(tabTwo))));
     }
 
     /**

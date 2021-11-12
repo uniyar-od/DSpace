@@ -134,8 +134,7 @@ public interface CrisLayoutTabService extends DSpaceCRUDService<CrisLayoutTab> {
     public Long totalMetadataField(Context context, Integer tabId) throws SQLException;
 
     /**
-     * Find all tabs associated at an specific item. The tabs are sorted by priority ascending and the
-     * empty tabs are filter out.
+     * Find all tabs associated at an specific item. The tabs are sorted by priority ascending.
      * @param context The relevant DSpace Context
      * @param itemUuid String that represents UUID of the item {@link Item}
      * @return List of CrisLayoutTab {@link CrisLayoutTab}

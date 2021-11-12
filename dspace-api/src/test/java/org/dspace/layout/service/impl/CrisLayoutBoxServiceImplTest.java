@@ -7,45 +7,34 @@
  */
 package org.dspace.layout.service.impl;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.dspace.app.metrics.CrisMetrics;
 import org.dspace.authorize.service.AuthorizeService;
-import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.service.EntityTypeService;
-import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.CrisLayoutMetric2Box;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
-import org.dspace.layout.service.CrisLayoutBoxAccessService;
 import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.dspace.metrics.embeddable.model.EmbeddableCrisMetrics;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 /**
@@ -57,6 +46,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class CrisLayoutBoxServiceImplTest {
 
+    @InjectMocks
     private CrisLayoutBoxServiceImpl crisLayoutBoxService;
 
     @Mock
@@ -64,216 +54,13 @@ public class CrisLayoutBoxServiceImplTest {
     @Mock
     private CrisLayoutBoxDAO dao;
     @Mock
-    private ItemService itemService;
-    @Mock
     private AuthorizeService authorizeService;
-    @Mock
-    private EntityTypeService entityTypeService;
-    @Mock
-    private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
-    @Mock
-    private CrisItemMetricsService crisItemMetricsService;
     @Mock
     private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
     @Mock
+    private CrisItemMetricsService crisItemMetricsService;
+    @Mock
     private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
-
-
-    @Before
-    public void setUp() throws Exception {
-        crisLayoutBoxService = new CrisLayoutBoxServiceImpl(dao, itemService, authorizeService, entityTypeService,
-                                                            crisLayoutBoxAccessService,
-                                                            crisItemMetricsAuthorizationService,
-                                                            crisItemMetricsService,
-                                                            searchConfigurationUtilsService);
-    }
-
-    @Test(expected = NullPointerException.class)
-    public void nullItemThrowsException() throws Exception {
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(null);
-
-        crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-    }
-
-    @Test
-    public void nullBoxesReturnsEmptyList() throws Exception {
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        Item item = Mockito.mock(Item.class);
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("EntityType");
-
-        when(dao.findByEntityType(any(Context.class), eq("EntityType"), eq(tabId), any(), any()))
-            .thenReturn(null);
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        assertThat(boxes, is(emptyList()));
-    }
-
-    @Test
-    public void emptyBoxesReturnsEmptyList() throws Exception {
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        Item item = Mockito.mock(Item.class);
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("EntityType");
-
-        when(dao.findByEntityType(any(Context.class), eq("EntityType"), eq(tabId), any(), any()))
-            .thenReturn(emptyList());
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        assertThat(boxes, is(emptyList()));
-    }
-
-    @Test
-    public void nullItemMetadataReturnsEmptyList() throws Exception {
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        Item item = Mockito.mock(Item.class);
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("EntityType");
-
-        when(dao.findByEntityType(any(Context.class), eq("EntityType"), eq(tabId), any(), any()))
-            .thenReturn(singletonList(new CrisLayoutBox()));
-
-        when(item.getMetadata()).thenReturn(null);
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        assertThat(boxes, is(emptyList()));
-    }
-
-    @Test
-    public void emptyItemMetadataReturnsEmptyList() throws Exception {
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        Item item = Mockito.mock(Item.class);
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("EntityType");
-
-        when(dao.findByEntityType(any(Context.class), eq("EntityType"), eq(tabId), any(), any()))
-            .thenReturn(singletonList(new CrisLayoutBox()));
-
-        when(item.getMetadata()).thenReturn(emptyList());
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        assertThat(boxes, is(emptyList()));
-    }
-
-    @Test
-    public void onlyMatchingMetadataAreReturned() throws Exception {
-        Item item = Mockito.mock(Item.class);
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        MetadataField fooMetadata = mock(MetadataField.class);
-        MetadataField barMetadata = mock(MetadataField.class);
-        MetadataField bazMetadata = mock(MetadataField.class);
-        MetadataField notDisplayedMetadata = mock(MetadataField.class);
-
-        List<MetadataValue> itemMetadata = Arrays.asList(
-            metadataValue(fooMetadata),
-            metadataValue(notDisplayedMetadata),
-            metadataValue(barMetadata));
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("EntityType");
-
-        when(dao.findByEntityType(any(Context.class), eq("EntityType"), eq(tabId), any(), any()))
-            .thenReturn(Arrays.asList(
-                crisLayoutBox("box1", fooMetadata),
-                crisLayoutBox("box2", barMetadata),
-                crisLayoutBox("box3", bazMetadata)));
-
-        when(crisLayoutBoxAccessService.hasAccess(any(), any(), any(), any()))
-            .thenReturn(true);
-
-        when(item.getMetadata()).thenReturn(itemMetadata);
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        List<String> boxNames = boxes.stream().map(CrisLayoutBox::getShortname).sorted().collect(Collectors.toList());
-
-        assertThat(boxNames.size(), is(2));
-        assertThat(boxNames, is(Arrays.asList("box1", "box2")));
-
-    }
-
-    @Test
-    public void unauthorizedBoxNotReturned() throws Exception {
-        Item item = Mockito.mock(Item.class);
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        MetadataField fooMetadata = mock(MetadataField.class);
-        MetadataField barMetadata = mock(MetadataField.class);
-        MetadataField bazMetadata = mock(MetadataField.class);
-
-        List<MetadataValue> itemMetadata = Arrays.asList(
-            metadataValue(fooMetadata),
-            metadataValue(bazMetadata),
-            metadataValue(barMetadata));
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("EntityType");
-
-        CrisLayoutBox fooBox = crisLayoutBox("box1", fooMetadata);
-        CrisLayoutBox barBox = crisLayoutBox("box2", barMetadata);
-        CrisLayoutBox bazBox = crisLayoutBox("box3", bazMetadata);
-
-        when(dao.findByEntityType(any(Context.class), eq("EntityType"), eq(tabId), any(), any()))
-            .thenReturn(Arrays.asList(fooBox, barBox, bazBox));
-
-        when(crisLayoutBoxAccessService.hasAccess(any(), any(), eq(fooBox), any()))
-            .thenReturn(true);
-        when(crisLayoutBoxAccessService.hasAccess(any(), any(), eq(barBox), any()))
-            .thenReturn(true);
-        when(crisLayoutBoxAccessService.hasAccess(any(), any(), eq(bazBox), any()))
-            .thenReturn(false);
-
-        when(item.getMetadata()).thenReturn(itemMetadata);
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        List<String> boxNames = boxes.stream().map(CrisLayoutBox::getShortname).sorted().collect(Collectors.toList());
-
-        assertThat(boxNames.size(), is(2));
-        assertThat(boxNames, is(Arrays.asList("box1", "box2")));
-
-    }
 
     @Test
     public void hasMetricsBoxContent() {
@@ -315,63 +102,6 @@ public class CrisLayoutBoxServiceImplTest {
         CrisLayoutBox boxMetric1 = crisLayoutMetricBox("metric1");
         mockStoredCrisMetrics();
         mockEmbeddableCrisMetrics("metric1");
-
-        assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
-    }
-
-    @Test
-    @SuppressWarnings("unchecked")
-    public void checkRelationBoxTest() throws Exception {
-
-        // should return false if there is content but context has not an authenticated user
-        when(crisItemMetricsAuthorizationService.isAuthorized(any(), any(UUID.class))).thenReturn(false);
-        CrisLayoutBox boxMetric1 = crisLayoutMetricBox("metric1");
-        mockStoredCrisMetrics();
-        mockEmbeddableCrisMetrics("metric1");
-
-        Item item = Mockito.mock(Item.class);
-        UUID itemUuid = UUID.randomUUID();
-        int tabId = 1;
-
-        MetadataField fooMetadata = mock(MetadataField.class);
-        MetadataField barMetadata = mock(MetadataField.class);
-        MetadataField bazMetadata = mock(MetadataField.class);
-        MetadataField notDisplayedMetadata = mock(MetadataField.class);
-
-        List<MetadataValue> itemMetadata = Arrays.asList(
-            metadataValue(fooMetadata),
-            metadataValue(notDisplayedMetadata),
-            metadataValue(barMetadata));
-
-        when(itemService.find(any(Context.class), eq(itemUuid)))
-            .thenReturn(item);
-
-        when(itemService.getMetadata(item, "dspace.entity.type"))
-            .thenReturn("Person");
-
-        when(dao.findByEntityType(any(Context.class), eq("Person"), eq(tabId), any(), any()))
-            .thenReturn(Arrays.asList(
-                crisLayoutBox("researchoutputs", fooMetadata, "RELATION"),
-                crisLayoutBox("projects", barMetadata, "RELATION"),
-                crisLayoutBox("box3", bazMetadata)));
-
-        when(crisLayoutBoxAccessService.hasAccess(any(), any(), any(), any()))
-            .thenReturn(true);
-
-        when(item.getMetadata()).thenReturn(itemMetadata);
-
-        Iterator<Item> mockIterator = mock(Iterator.class);
-        when(mockIterator.hasNext()).thenReturn(true);
-
-        when(searchConfigurationUtilsService.findByRelation(any(Context.class), any(), any()))
-                                            .thenReturn(mockIterator);
-
-        List<CrisLayoutBox> boxes = crisLayoutBoxService.findByItem(context, itemUuid, tabId);
-
-        List<String> boxNames = boxes.stream().map(CrisLayoutBox::getShortname).sorted().collect(Collectors.toList());
-
-        assertThat(boxNames.size(), is(2));
-        assertThat(boxNames, is(Arrays.asList("projects", "researchoutputs")));
 
         assertFalse(crisLayoutBoxService.hasMetricsBoxContent(context, boxMetric1, UUID.randomUUID()));
     }

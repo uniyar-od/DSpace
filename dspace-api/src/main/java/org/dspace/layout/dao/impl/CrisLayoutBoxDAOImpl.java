@@ -8,11 +8,7 @@
 package org.dspace.layout.dao.impl;
 
 import static org.dspace.content.EntityType_.label;
-import static org.dspace.layout.CrisLayoutBox_.cell;
 import static org.dspace.layout.CrisLayoutBox_.entitytype;
-import static org.dspace.layout.CrisLayoutCell_.row;
-import static org.dspace.layout.CrisLayoutRow_.tab;
-import static org.dspace.layout.CrisLayoutTab_.id;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -43,7 +39,7 @@ public class CrisLayoutBoxDAOImpl extends AbstractHibernateDAO<CrisLayoutBox> im
     protected AuthorizeService authorizeService;
 
     @Override
-    public List<CrisLayoutBox> findByEntityType(Context context, String entityType, Integer tabId,
+    public List<CrisLayoutBox> findByEntityType(Context context, String entityType,
         Integer limit, Integer offset) throws SQLException {
 
         CriteriaBuilder cb = getCriteriaBuilder(context);
@@ -53,7 +49,6 @@ public class CrisLayoutBoxDAOImpl extends AbstractHibernateDAO<CrisLayoutBox> im
 
         List<Predicate> predicates = new ArrayList<>();
         predicates.add(cb.equal(boxRoot.get(entitytype).get(label), entityType));
-        predicates.add(cb.equal(boxRoot.get(cell).get(row).get(tab).get(id), tabId));
 
         Predicate[] predicateArray = new Predicate[predicates.size()];
         predicates.toArray(predicateArray);

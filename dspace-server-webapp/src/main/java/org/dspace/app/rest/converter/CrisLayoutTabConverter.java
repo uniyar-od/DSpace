@@ -9,15 +9,21 @@ package org.dspace.app.rest.converter;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.dspace.app.rest.model.CrisLayoutBoxRest;
 import org.dspace.app.rest.model.CrisLayoutCellRest;
 import org.dspace.app.rest.model.CrisLayoutRowRest;
 import org.dspace.app.rest.model.CrisLayoutTabRest;
 import org.dspace.app.rest.projection.Projection;
+import org.dspace.app.rest.repository.CrisLayoutTabRestRepository;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.content.EntityType;
+import org.dspace.content.Item;
 import org.dspace.content.service.EntityTypeService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.layout.CrisLayoutBox;
@@ -25,6 +31,9 @@ import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.LayoutSecurity;
+import org.dspace.layout.service.CrisLayoutBoxService;
+import org.dspace.services.RequestService;
+import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +50,16 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
     private EntityTypeService eService;
 
     @Autowired
+    private CrisLayoutBoxService crisLayoutBoxService;
+
+    @Autowired
     private CrisLayoutBoxConverter boxConverter;
+
+    @Autowired
+    private RequestService requestService;
+
+    @Autowired
+    private ItemService itemService;
 
     @Override
     public CrisLayoutTabRest convert(CrisLayoutTab model, Projection projection) {
@@ -52,7 +70,7 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
         rest.setHeader(model.getHeader());
         rest.setPriority(model.getPriority());
         rest.setSecurity(model.getSecurity());
-        rest.setRows(convertRows(model.getRows(), projection));
+        rest.setRows(convertRows(getScopeItem(), model.getRows(), projection));
         rest.setLeading(model.isLeading());
         return rest;
     }
@@ -74,32 +92,45 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
         return tab;
     }
 
-    private List<CrisLayoutRowRest> convertRows(List<CrisLayoutRow> rows, Projection projection) {
-        return rows.stream().map(row -> convertRow(row, projection)).collect(Collectors.toList());
+    private List<CrisLayoutRowRest> convertRows(Item item, List<CrisLayoutRow> rows, Projection projection) {
+        return rows.stream()
+            .map(row -> convertRow(item, row, projection))
+            .filter(row -> CollectionUtils.isNotEmpty(row.getCells()))
+            .collect(Collectors.toList());
     }
 
-    private CrisLayoutRowRest convertRow(CrisLayoutRow row, Projection projection) {
+    private CrisLayoutRowRest convertRow(Item item, CrisLayoutRow row, Projection projection) {
         CrisLayoutRowRest rest = new CrisLayoutRowRest();
         rest.setStyle(row.getStyle());
-        rest.setCells(convertCells(row.getCells(), projection));
+        rest.setCells(convertCells(item, row.getCells(), projection));
         return rest;
     }
 
-    private List<CrisLayoutCellRest> convertCells(List<CrisLayoutCell> cells, Projection projection) {
-        return cells.stream().map(cell -> convertCell(cell, projection)).collect(Collectors.toList());
+    private List<CrisLayoutCellRest> convertCells(Item item, List<CrisLayoutCell> cells, Projection projection) {
+        return cells.stream()
+            .map(cell -> convertCell(item, cell, projection))
+            .filter(cell -> CollectionUtils.isNotEmpty(cell.getBoxes()))
+            .collect(Collectors.toList());
     }
 
-    private CrisLayoutCellRest convertCell(CrisLayoutCell cell, Projection projection) {
+    private CrisLayoutCellRest convertCell(Item item, CrisLayoutCell cell, Projection projection) {
         CrisLayoutCellRest rest = new CrisLayoutCellRest();
         rest.setStyle(cell.getStyle());
-        rest.setBoxes(convertBoxes(cell.getBoxes(), projection));
+        rest.setBoxes(convertBoxes(item, cell.getBoxes(), projection));
         return rest;
     }
 
-    private List<CrisLayoutBoxRest> convertBoxes(List<CrisLayoutBox> boxes, Projection projection) {
+    private List<CrisLayoutBoxRest> convertBoxes(Item item, List<CrisLayoutBox> boxes, Projection projection) {
         return boxes.stream()
+            .filter(box -> item == null || hasAccess(item, box))
             .map(box -> boxConverter.convert(box, projection))
             .collect(Collectors.toList());
+    }
+
+    private boolean hasAccess(Item item, CrisLayoutBox box) {
+        Context context = ContextUtil.obtainCurrentRequestContext();
+        return crisLayoutBoxService.hasContent(context, box, item, item.getMetadata())
+            && crisLayoutBoxService.hasAccess(context, box, item);
     }
 
     private CrisLayoutRow toRowModel(Context context, CrisLayoutRowRest rowRest) {
@@ -113,7 +144,7 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
         CrisLayoutCell cell = new CrisLayoutCell();
         cell.setStyle(cellRest.getStyle());
         cellRest.getBoxes().forEach(box -> boxConverter.toModel(context, box));
-        return null;
+        return cell;
     }
 
     private EntityType findEntityType(Context context, CrisLayoutTabRest rest) {
@@ -121,6 +152,21 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
             return eService.findByEntityType(context, rest.getEntityType());
         } catch (SQLException e) {
             throw new SQLRuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private Item getScopeItem() {
+        return Optional.ofNullable(requestService.getCurrentRequest())
+            .map(rq -> (String) rq.getAttribute(CrisLayoutTabRestRepository.SCOPE_ITEM_ATTRIBUTE))
+            .map(itemId -> findItem(itemId))
+            .orElse(null);
+    }
+
+    private Item findItem(String uuid) {
+        try {
+            return itemService.find(ContextUtil.obtainCurrentRequestContext(), UUIDUtils.fromString(uuid));
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
     }
 }

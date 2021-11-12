@@ -8,16 +8,12 @@
 package org.dspace.layout.service.impl;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -26,8 +22,6 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.service.EntityTypeService;
-import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
 import org.dspace.layout.CrisLayoutBox;
@@ -51,16 +45,10 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private CrisLayoutBoxDAO dao;
 
     @Autowired
-    private ItemService itemService;
-
-    @Autowired
     private AuthorizeService authorizeService;
 
     @Autowired
     private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
-
-    @Autowired
-    private EntityTypeService entityTypeService;
 
     @Autowired
     private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
@@ -70,23 +58,6 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
 
     @Autowired
     private CrisItemMetricsService crisMetricService;
-
-    //constructor with all fields injected, used for test purposes (mock injection)
-    CrisLayoutBoxServiceImpl(CrisLayoutBoxDAO dao, ItemService itemService, AuthorizeService authorizeService,
-                             EntityTypeService entityTypeService,
-                             CrisLayoutBoxAccessService crisLayoutBoxAccessService,
-                             CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService,
-                             CrisItemMetricsService crisMetricService,
-                             DiscoveryConfigurationUtilsService searchConfigurationUtilsService) {
-        this.dao = dao;
-        this.itemService = itemService;
-        this.authorizeService = authorizeService;
-        this.entityTypeService = entityTypeService;
-        this.crisLayoutBoxAccessService = crisLayoutBoxAccessService;
-        this.crisItemMetricsAuthorizationService = crisItemMetricsAuthorizationService;
-        this.crisMetricService = crisMetricService;
-        this.searchConfigurationUtilsService = searchConfigurationUtilsService;
-    }
 
     public CrisLayoutBoxServiceImpl() {
     }
@@ -158,31 +129,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     }
 
     @Override
-    public List<CrisLayoutBox> findEntityBoxes(Context context, String entityType, Integer limit, Integer offset)
-        throws SQLException {
-        return dao.findByEntityType(context, entityType, null, limit, offset);
-    }
-
-    @Override
-    public List<CrisLayoutBox> findByItem(
-        Context context, UUID itemUuid, Integer tabId) throws SQLException {
-        Item item = Objects.requireNonNull(itemService.find(context, itemUuid),
-                                           "The item uuid entered does not match with any item");
-
-        String entityType = itemService.getMetadata(item, "dspace.entity.type");
-
-        List<CrisLayoutBox> boxes = dao.findByEntityType(context, entityType, tabId, null, null);
-        if (CollectionUtils.isEmpty(boxes)) {
-            return new ArrayList<>();
-        }
-        return Optional.ofNullable(item.getMetadata())
-                       .filter(im -> !im.isEmpty())
-                       .map(itemMetadata -> boxes
-                           .stream()
-                           .filter(b -> hasContent(context, b, item, itemMetadata))
-                           .filter(b -> accessGranted(context, item, b))
-                           .collect(Collectors.toList()))
-                       .orElse(new ArrayList<>());
+    public List<CrisLayoutBox> findByEntityType(Context context, String entityType,
+        Integer limit, Integer offset) throws SQLException {
+        return dao.findByEntityType(context, entityType, limit, offset);
     }
 
     /* (non-Javadoc)
@@ -210,6 +159,11 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
                 return hasMetadataBoxContent(box, values);
         }
 
+    }
+
+    @Override
+    public boolean hasAccess(Context context, CrisLayoutBox box, Item item) {
+        return crisLayoutBoxAccessService.hasAccess(context, context.getCurrentUser(), box, item);
     }
 
     @Override
@@ -287,16 +241,6 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             .filter(metadata -> metadata.getMetadataField().toString('.').equals(metadataField))
             .findFirst()
             .orElse(null);
-    }
-
-    // in private method so that exception can be handled and method can be invoked within a lambda
-    private boolean accessGranted(final Context context, final Item item, final CrisLayoutBox box) {
-
-        try {
-            return crisLayoutBoxAccessService.hasAccess(context, context.getCurrentUser(), box, item);
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
     }
 
     public List<CrisLayoutBox> findByEntityAndType(Context context,String entity, String type) {

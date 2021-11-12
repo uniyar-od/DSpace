@@ -29,14 +29,13 @@ public interface CrisLayoutBoxDAO extends GenericDAO<CrisLayoutBox> {
      * Returns the boxes that are available for the specified entity type
      * @param context The relevant DSpace Context
      * @param entityType entity type label {@link EntityType}
-     * @param tabId Id of tab container
      * @param limit how many results return
      * @param offset the position of the first result to return
      * @return List of CrisLayoutBox {@link CrisLayoutBox}
      * @throws SQLException An exception that provides information on a database errors.
      */
-    public List<CrisLayoutBox> findByEntityType
-        (Context context, String entityType, Integer tabId, Integer limit, Integer offset) throws SQLException;
+    public List<CrisLayoutBox> findByEntityType(Context context, String entityType,
+        Integer limit, Integer offset) throws SQLException;
 
     /**
      * Returns the boxes that are available for the specified entity type and with the given type

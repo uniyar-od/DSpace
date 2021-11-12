@@ -13,6 +13,7 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.collections.CollectionUtils;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.CrisLayoutTabConverter;
@@ -42,17 +43,16 @@ import org.springframework.stereotype.Component;
 public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayoutTabRest, Integer>
     implements ReloadableEntityObjectRepository<CrisLayoutTab, Integer> {
 
-    private final CrisLayoutTabService service;
+    public static final String SCOPE_ITEM_ATTRIBUTE = "cris-layout-tab.scope-item";
+
+    @Autowired
+    private CrisLayoutTabService service;
 
     @Autowired
     private CrisLayoutTabConverter tabConverter;
 
     @Autowired
     private ResourcePatch<CrisLayoutTab> resourcePatch;
-
-    public CrisLayoutTabRestRepository(CrisLayoutTabService service) {
-        this.service = service;
-    }
 
     @Override
     @PreAuthorize("permitAll")
@@ -76,17 +76,11 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
 
     @SearchRestMethod(name = "findByItem")
     public Page<CrisLayoutTabRest> findByItem(
-            @Parameter(value = "uuid", required = true) String itemUuid, Pageable pageable) {
-        Context context = obtainContext();
-        List<CrisLayoutTab> tabList = null;
-        try {
-            tabList = service.findByItem(
-                context,
-                itemUuid);
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-        return converter.toRestPage(tabList, pageable, utils.obtainProjection());
+        @Parameter(value = "uuid", required = true) String itemUuid, Pageable pageable) throws SQLException {
+        List<CrisLayoutTab> tabList = service.findByItem(obtainContext(), itemUuid);
+        getRequestService().getCurrentRequest().setAttribute(SCOPE_ITEM_ATTRIBUTE, itemUuid);
+        Page<CrisLayoutTabRest> restTabs = converter.toRestPage(tabList, pageable, utils.obtainProjection());
+        return filterTabWithoutRows(pageable, restTabs);
     }
 
     @SearchRestMethod(name = "findByEntityType")
@@ -191,5 +185,9 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    private Page<CrisLayoutTabRest> filterTabWithoutRows(Pageable pageable, Page<CrisLayoutTabRest> restTabs) {
+        return utils.getPage(restTabs.filter(tab -> CollectionUtils.isNotEmpty(tab.getRows())).toList(), pageable);
     }
 }

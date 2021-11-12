@@ -13,8 +13,6 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.core.Is.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -34,12 +32,9 @@ import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.dao.CrisLayoutTabDAO;
-import org.dspace.layout.service.CrisLayoutBoxAccessService;
-import org.dspace.layout.service.CrisLayoutBoxService;
-import org.dspace.layout.service.CrisLayoutTabAccessService;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
@@ -60,24 +55,12 @@ public class CrisLayoutTabServiceImplTest {
     private AuthorizeService authorizeService;
     @Mock
     private ItemService itemService;
-    @Mock
-    private CrisLayoutBoxService boxService;
-    @Mock
-    private CrisLayoutBoxAccessService crisLayoutBoxAccessService;
 
-    @Mock
-    private CrisLayoutTabAccessService crisLayoutTabAccessService;
-
+    @InjectMocks
     private CrisLayoutTabServiceImpl crisLayoutTabService;
 
-    @Before
-    public void setUp() throws Exception {
-        crisLayoutTabService = new CrisLayoutTabServiceImpl(tabDao, authorizeService, itemService, boxService,
-                                                            crisLayoutBoxAccessService, crisLayoutTabAccessService);
-    }
-
     @Test
-    public void onlyGrantedTabsContainingGrantedBoxesAreReturned() throws SQLException {
+    public void allTabsAreReturned() throws SQLException {
         String itemUuid = UUID.randomUUID().toString();
         Item item = mock(Item.class);
         String entityType = "relationshipEntity";
@@ -114,15 +97,13 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(item.getMetadata()).thenReturn(itemMetadata);
-
         when(tabDao.findByEntityType(context, entityType))
             .thenReturn(Arrays.asList(tabOne, tabTwo, tabThree, tabWithoutBoxes, tabWithOnlyForbiddenBoxes));
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 
         assertThat(tabs.stream().map(CrisLayoutTab::getShortName).collect(toList()),
-                   containsInAnyOrder("tab1", "tab2"));
+            containsInAnyOrder("tab1", "tab2", "tab3", "empty", "forbidden"));
 
     }
 
@@ -159,7 +140,7 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityType(context, entityType)).thenReturn(null);
+        when(tabDao.findByEntityType(context, entityType)).thenReturn(List.of());
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 
@@ -196,9 +177,6 @@ public class CrisLayoutTabServiceImplTest {
             cell.addBox(box);
         }
 
-        when(crisLayoutTabAccessService.hasAccess(eq(context), any(), eq(tab), any()))
-            .thenReturn(grantedAccess);
-
         return tab;
     }
 
@@ -222,10 +200,6 @@ public class CrisLayoutTabServiceImplTest {
         throws SQLException {
         CrisLayoutBox box = new CrisLayoutBox();
         box.setId(new Random().nextInt(10000));
-        when(boxService.hasContent(context, box, item, itemMetadata))
-            .thenReturn(hasContent);
-        when(crisLayoutBoxAccessService.hasAccess(any(), any(), eq(box), any()))
-            .thenReturn(grantedAccess);
         return box;
     }
 }
