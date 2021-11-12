@@ -1075,6 +1075,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
 
         List<Operation> operations = new ArrayList<Operation>();
+        List<Operation> operations2 = new ArrayList<Operation>();
 
         List<Map<String, String>> abstractValues = new ArrayList<Map<String, String>>();
         Map<String, String> value = new HashMap<String, String>();
@@ -1087,6 +1088,25 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         String patchBody = getPatchContent(operations);
         getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItem.getID() + ":FIRST")
                              .content(patchBody)
+                             .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                             .andExpect(status().isUnprocessableEntity());
+
+        // verify that the patch changes have not been persisted
+        getClient(tokenAdmin).perform(get("/api/core/edititems/" + editItem.getID() + ":FIRST"))
+                             .andExpect(status().isOk())
+                             .andExpect(jsonPath("$.sections.titleAndIssuedDate", Matchers.allOf(
+                                     hasJsonPath("$['dc.title'][0].value", is(itemA.getName())),
+                                     hasJsonPath("$['dc.date.issued'][0].value", is("2021-11-11"))
+                                     )))
+                             .andExpect(jsonPath("$.sections.titleAndIssuedDate['dc.description.abstract']")
+                             .doesNotExist());
+
+        operations2.add(new AddOperation("/sections/titleAndIssuedDate/dc.description.abstract", abstractValues));
+        operations2.add(new RemoveOperation("/sections/titleAndIssuedDate/dc.title/0"));
+
+        String patchBody2 = getPatchContent(operations2);
+        getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItem.getID() + ":FIRST")
+                             .content(patchBody2)
                              .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                              .andExpect(status().isUnprocessableEntity());
 
