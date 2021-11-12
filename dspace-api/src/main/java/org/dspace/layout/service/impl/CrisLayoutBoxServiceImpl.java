@@ -37,6 +37,7 @@ import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
 import org.dspace.layout.service.CrisLayoutBoxAccessService;
 import org.dspace.layout.service.CrisLayoutBoxService;
+import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,6 +58,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     private AuthorizeService authorizeService;
 
     @Autowired
+    private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
+
+    @Autowired
     private EntityTypeService entityTypeService;
 
     @Autowired
@@ -72,6 +76,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     CrisLayoutBoxServiceImpl(CrisLayoutBoxDAO dao, ItemService itemService, AuthorizeService authorizeService,
                              EntityTypeService entityTypeService,
                              CrisLayoutBoxAccessService crisLayoutBoxAccessService,
+                             CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService,
                              CrisItemMetricsService crisMetricService,
                              DiscoveryConfigurationUtilsService searchConfigurationUtilsService) {
         this.dao = dao;
@@ -79,6 +84,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
         this.authorizeService = authorizeService;
         this.entityTypeService = entityTypeService;
         this.crisLayoutBoxAccessService = crisLayoutBoxAccessService;
+        this.crisItemMetricsAuthorizationService = crisItemMetricsAuthorizationService;
         this.crisMetricService = crisMetricService;
         this.searchConfigurationUtilsService = searchConfigurationUtilsService;
     }
@@ -289,7 +295,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
         if (box.getMetric2box().isEmpty()) {
             return false;
         }
-//        final Set<String> boxTypes = box.getMetric2box().stream().map(mb -> mb.getType()).collect(Collectors.toSet());
+        if (!this.crisItemMetricsAuthorizationService.isAuthorized(context, itemUuid)) {
+            return false;
+        }
         final Set<String> boxTypes = new HashSet<>();
         box.getMetric2box().forEach(b -> {
             boxTypes.add(b.getType());
