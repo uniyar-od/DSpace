@@ -47,6 +47,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.log4j.Logger;
 import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrRequest;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -112,6 +113,7 @@ import org.dspace.handle.service.HandleService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.storage.rdbms.DatabaseUtils;
 import org.dspace.util.MultiFormatDateParser;
+import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -2696,5 +2698,92 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 			}
 		}
 	}
+	
+	@Override
+	public void diffIndex(Context context, Integer type)  throws SQLException, SearchServiceException, IOException {
+        if(type!=Constants.ITEM) {
+            throw new RuntimeException("Only ITEM is supported in this mode - type founded: " + type);
+        }
+        
+		List<String> uuids = getHibernateSession(context).createSQLQuery("select CAST(uuid as varchar) as identifierobject from item where in_archive = ? or withdrawn = ? order by last_modified asc").setParameter(0, true).setParameter(1, true).list();
+    	prepareDiffAndReindex(context, type, "search.resourcetype:2", uuids);
+    	
+	}
+
+	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<String> uuids)
+			throws SQLException, SearchServiceException, IOException {
+		System.out.println("Preparing diff...");
+
+        List<String> resultsSOLR = new ArrayList<String>();
+        
+		SolrQuery solrQuery = new SolrQuery();
+    	solrQuery.setQuery("*:*");
+    	solrQuery.setStart(0);
+    	solrQuery.setRows(Integer.MAX_VALUE);
+    	solrQuery.addFilterQuery("discoverable: true");
+    	solrQuery.addFilterQuery(fq);
+    	solrQuery.setFields("search.resourceid");
+    	solrQuery.setSort("lastModified", ORDER.asc);
+
+        QueryResponse response = search(solrQuery);
+        SolrDocumentList docList = response.getResults();
+        Iterator<SolrDocument> solrDoc = docList.iterator();
+        int countSOLR = 0;
+        while (solrDoc.hasNext())
+        {
+            SolrDocument doc = solrDoc.next();
+            String id = (String) doc
+                    .getFirstValue("search.resourceid");
+            resultsSOLR.add(id);
+            countSOLR++;
+        	if(countSOLR%1000==0) {
+        		System.out.println(countSOLR);
+        	}
+        }
+        
+        System.out.println("TOTAL DB:"+ uuids.size());
+        System.out.println("TOTAL SOLR:"+ countSOLR);
+        executeDiffAndReindex(context, type, uuids, resultsSOLR);
+	}
+	
+	protected void executeDiffAndReindex(Context context, Integer type, List<String> expectedrecords, List<String> actualrecords) throws IOException {
+		
+	    int linelength = -1;
+	    
+		List<String> unexpectedrecords = new ArrayList<String>();
+		
+	    if (expectedrecords.size() > actualrecords.size()) {
+	        linelength = expectedrecords.size();
+	    } else {
+	        linelength = actualrecords.size();
+	    }
+
+	    for (int i = 0; i < linelength; i++) {
+	        if (actualrecords.contains(expectedrecords.get(i))) {
+	            actualrecords.remove(expectedrecords.get(i));
+	        } else {
+	        	String item = expectedrecords.get(i);
+				log.info("Reindex Found type:" + type + " - objectID:" + item);
+	        	System.out.println("Reindex Found type:" + type + " - objectID:" + item);
+	            unexpectedrecords.add(item);
+	        }
+	    }
+	    if (unexpectedrecords.isEmpty())
+	    {
+	    	System.out.println("Nothing to update, exiting");
+	    	return;
+		}
+	    System.out.println("Update now...");
+	    
+		List<UUID> uuids = new ArrayList<UUID>();
+        for(String uuid : unexpectedrecords) {
+        	uuids.add(UUID.fromString(uuid));
+        }
+		updateIndex(context, uuids, true, type);
+	}
+	
+	protected static Session getHibernateSession(Context context) throws SQLException {
+        return ((Session) context.getDBConnection().getSession());
+    }
 	
 }
