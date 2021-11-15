@@ -13,9 +13,11 @@ import java.util.UUID;
 
 import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -52,6 +54,9 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
     @Autowired
     private ContentServiceFactory contentServiceFactory;
 
+    @Autowired
+    private BitstreamService bitstreamService;
+
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
                                        DSpaceRestPermission permission) {
@@ -62,7 +67,7 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
         }
 
         Request request = requestService.getCurrentRequest();
-        Context context = ContextUtil.obtainContext(request.getServletRequest());
+        Context context = ContextUtil.obtainContext(request.getHttpServletRequest());
         EPerson ePerson = null;
         try {
             if (targetId != null) {
@@ -76,7 +81,7 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                     return false;
                 }
 
-                ePerson = ePersonService.findByEmail(context, (String) authentication.getPrincipal());
+                ePerson = context.getCurrentUser();
 
                 if (dSpaceObjectService != null && dsoId != null) {
                     DSpaceObject dSpaceObject = dSpaceObjectService.find(context, dsoId);
@@ -98,6 +103,13 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                                    !item.isArchived() && !item.isWithdrawn()) {
                             return false;
                         }
+                    }
+
+                    if (dSpaceObject instanceof Bitstream
+                        && context.getCurrentUser() == null
+                        && bitstreamService.isRelatedToAProcessStartedByDefaultUser(context,
+                            (Bitstream) dSpaceObject)) {
+                        return true;
                     }
 
                     return authorizeService.authorizeActionBoolean(context, ePerson, dSpaceObject,

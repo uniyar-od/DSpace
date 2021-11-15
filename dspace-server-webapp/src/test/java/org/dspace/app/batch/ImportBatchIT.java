@@ -7,15 +7,20 @@
  */
 package org.dspace.app.batch;
 
+import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.dspace.batch.service.ImpRecordService.DELETE_OPERATION;
 import static org.dspace.batch.service.ImpRecordService.SEND_BACK_TO_WORKSPACE_STATUS;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +67,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
@@ -77,6 +83,7 @@ import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class ImportBatchIT extends AbstractControllerIntegrationTest {
     /**
@@ -108,6 +115,9 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
     private int impMedataSeq = 0;
     private int impBitstreamSeq;
     private int impBitstreamMetadatavalueSeq = 0;
+
+    @Autowired
+    private InstallItemService installItemService;
 
     @Before
     @Override
@@ -153,7 +163,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
     }
     /***
      * Create a new workspace item.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -199,7 +209,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Remove an item.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -239,7 +249,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Add some metadata to an existing item. Old metadata are cleared.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -295,7 +305,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Add some metadata to an existing item. Old metadata are kept.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -355,7 +365,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create some new workspace items.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -403,7 +413,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Complex example: some insert, followed by some deletion and updates.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -617,7 +627,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Test bitstream creation with one metadata. Embargo group is not set.
-     * 
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
@@ -708,7 +718,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
     /***
      * Test bitstream creation with one metadata. Embargo group is set to
      * administrator.
-     * 
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
@@ -799,9 +809,9 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
      * Test bitstream creation with one metadata. Embargo group is set to
      * administrator. Embargo start date is set to a valid data in format
      * dd/MM/yyyy.
-     * 
+     *
      * @See {@link SimpleDateFormat}
-     * 
+     *
      * @throws IOException
      * @throws URISyntaxException
      */
@@ -895,7 +905,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Start workflow.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -969,7 +979,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Reinstate an item.
-     * 
+     *
      * @throws IOException
      */
     @Test
@@ -1072,9 +1082,111 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
         assertThat(metadata.get(0).getSecurityLevel(), is(Integer.valueOf(2)));
     }
 
+    @Test
+    public void createItemWithAvailableDAteTest() throws Exception {
+        List<WorkspaceItem> wis = null;
+        String dateAvailable = "2010-11-21T08:56:26Z";
+        try {
+            // create one imp_record record with dc.date.accessioned metadata
+            for (int impRecordKey = 1; impRecordKey < 2; impRecordKey++) {
+                ImpRecord impRecord = createImpRecord(context, impRecordKey,
+                        ImpRecordService.SEND_BACK_TO_WORKSPACE_STATUS,
+                        ImpRecordService.INSERT_OR_UPDATE_OPERATION, admin, collection);
+                createImpMetadatavalue(context, impRecord, MetadataSchemaEnum.DC.getName(),
+                        "title", null, null, "Sample Item (" + impRecordKey + ")");
+                createImpMetadatavalue(context, impRecord, MetadataSchemaEnum.DC.getName(), "date",
+                        "available", null, dateAvailable, 1);
+            }
+
+            // Create a new item
+            String argv[] = new String[] { "-E", admin.getEmail() };
+            ItemImportMainOA.main(argv);
+
+            int nItem = workspaceItemService.countByEPerson(context, admin);
+            assertEquals("1 workspace Items found for " + admin.getID(), 1, nItem);
+
+            wis = workspaceItemService.findByEPerson(context, admin);
+            assertEquals("1 workspace items found for " + admin.getID(), 1, wis.size());
+
+            for (WorkspaceItem wi : wis) {
+                Item item = wi.getItem();
+
+                List<MetadataValue> metadata = item.getMetadata();
+                String defLanguage = configurationService.getProperty("default.language");
+                metadata = itemService.getMetadata(item, MetadataSchemaEnum.DC.getName(), "title", null, defLanguage);
+                assertEquals("Only one metadata is assigned to the item", 1, metadata.size());
+                assertTrue("Is the new metadata value the right one?",
+                        metadata.get(0).getValue().indexOf("Sample Item") == 0);
+            }
+            context.turnOffAuthorisationSystem();
+            installItemService.installItem(context, wis.get(0));
+            context.restoreAuthSystemState();
+        } catch (SQLException ex) {
+            throw new RuntimeException(ex);
+        } finally {
+            context.restoreAuthSystemState();
+        }
+
+        // check that the metadata dc.date.accessioned was not replaced
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/core/items/" + wis.get(0).getItem().getID()))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.metadata['dc.date.available'][0].value", is(dateAvailable)))
+                        .andExpect(jsonPath("$.metadata['dc.date.available'][1].value").doesNotExist())
+                        .andExpect(jsonPath("$.metadata['dc.title'][0].value", is("Sample Item (1)")));
+
+    }
+
+    @Test
+    public void testDSpaceEntityTypeIsKeeped() throws SQLException {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection publicationCollection = CollectionBuilder.createCollection(context, owningCommunity)
+            .withName("Publications")
+            .withEntityType("Publication")
+            .build();
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Test publication")
+            .withIssueDate("2020/01/02")
+            .withSubject("Research")
+            .build();
+
+        ImpRecord impRecord = createImpRecord(context, 1, ImpRecordService.SEND_BACK_TO_WORKSPACE_STATUS,
+            ImpRecordService.INSERT_OR_UPDATE_OPERATION, admin, publicationCollection);
+
+        createImpMetadatavalue(context, impRecord, MetadataSchemaEnum.DC.getName(), "title",
+            null, null, "New Test publication", 0);
+
+        createImpMetadatavalue(context, impRecord, MetadataSchemaEnum.DC.getName(), "contributor",
+            "author", null, "John Smith", 0);
+
+        context.restoreAuthSystemState();
+
+        assertThat(publication.getMetadata(), hasItem(with("dspace.entity.type", "Publication")));
+
+        // Create a new item
+        String argv[] = new String[] { "-E", admin.getEmail(),
+            "-o", publication.getID().toString(),
+            "-I", impRecord.getImpId().toString(),
+            "-e", admin.getID().toString(),
+            "-r",
+            "-c", publicationCollection.getID().toString() };
+
+        ItemImportOA.main(argv);
+
+        publication = context.reloadEntity(publication);
+
+        List<MetadataValue> metadataValues = publication.getMetadata();
+        assertThat(metadataValues, hasItem(with("dspace.entity.type", "Publication")));
+        assertThat(metadataValues, hasItem(with("dc.title", "New Test publication", "en_US", null, 0, -1)));
+        assertThat(metadataValues, hasItem(with("dc.contributor.author", "John Smith", "en_US", null, 0, -1)));
+    }
+
     /***
      * Create an ImpRecord.
-     * 
+     *
      * @param context      The context
      * @param impRecordKey The key
      * @param eperson      The submitter
@@ -1100,7 +1212,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create a Metadata of ImpRecord
-     * 
+     *
      * @param context             The context
      * @param impRecordKey        The ImpRecord key
      * @param schema              The schema
@@ -1143,7 +1255,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create a Metadata of ImpRecord
-     * 
+     *
      * @param context          The context
      * @param impRecordKey     The ImpRecord key
      * @param impBitstreamSeq   The impBitstream key
@@ -1187,7 +1299,7 @@ public class ImportBatchIT extends AbstractControllerIntegrationTest {
 
     /***
      * Create a Metadata of ImpRecord
-     * 
+     *
      * @param context                      The context
      * @param schema                       The schema
      * @param qualifier                    The qualifier

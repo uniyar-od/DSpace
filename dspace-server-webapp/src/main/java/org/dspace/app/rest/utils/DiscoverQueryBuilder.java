@@ -25,7 +25,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.InvalidSearchRequestException;
 import org.dspace.app.rest.parameter.SearchFilter;
 import org.dspace.core.Context;
-import org.dspace.core.LogManager;
+import org.dspace.core.LogHelper;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverFilterQuery;
 import org.dspace.discovery.DiscoverHitHighlightingField;
@@ -245,7 +245,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
                 queryArgs.addYearRangeFacet(facet, facetYearRange);
 
             } catch (Exception e) {
-                log.error(LogManager.getHeader(context, "Error in Discovery while setting up date facet range",
+                log.error(LogHelper.getHeader(context, "Error in Discovery while setting up date facet range",
                                                "date facet: " + facet), e);
             }
 
@@ -334,10 +334,10 @@ public class DiscoverQueryBuilder implements InitializingBean {
 
         //Load defaults if we did not receive values
         if (sortBy == null) {
-            sortBy = getDefaultSortField(searchSortConfiguration);
+            sortBy = searchSortConfiguration.getDefaultSortField();
         }
         if (sortOrder == null) {
-            sortOrder = getDefaultSortDirection(searchSortConfiguration, sortOrder);
+            sortOrder = searchSortConfiguration.getDefaultSortDirection();
         }
 
         //Update Discovery query
@@ -373,28 +373,6 @@ public class DiscoverQueryBuilder implements InitializingBean {
 
     private boolean isConfigured(String sortBy, DiscoverySortConfiguration searchSortConfiguration) {
         return Objects.nonNull(searchSortConfiguration.getSortFieldConfiguration(sortBy));
-    }
-
-    private String getDefaultSortDirection(DiscoverySortConfiguration searchSortConfiguration, String sortOrder) {
-        if (Objects.nonNull(searchSortConfiguration.getSortFields()) &&
-            !searchSortConfiguration.getSortFields().isEmpty()) {
-            sortOrder = searchSortConfiguration.getSortFields().get(0).getDefaultSortOrder().name();
-        }
-        return sortOrder;
-    }
-
-    private String getDefaultSortField(DiscoverySortConfiguration searchSortConfiguration) {
-        String sortBy;// Attempt to find the default one, if none found we use SCORE
-        sortBy = "score";
-        if (Objects.nonNull(searchSortConfiguration.getSortFields()) &&
-            !searchSortConfiguration.getSortFields().isEmpty()) {
-            DiscoverySortFieldConfiguration defaultSort = searchSortConfiguration.getSortFields().get(0);
-            if (StringUtils.isBlank(defaultSort.getMetadataField())) {
-                return sortBy;
-            }
-            sortBy = defaultSort.getMetadataField();
-        }
-        return sortBy;
     }
 
     private void configurePagination(Pageable page, DiscoverQuery queryArgs) {

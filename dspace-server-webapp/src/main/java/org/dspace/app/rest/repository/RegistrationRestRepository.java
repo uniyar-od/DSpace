@@ -122,8 +122,8 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
                 accountService.sendForgotPasswordInfo(context, registrationRest.getEmail(),
                         registrationRest.getGroups());
             } catch (SQLException | IOException | MessagingException | AuthorizeException e) {
-                log.error("Something went wrong with sending forgot password info for email: "
-                        + registrationRest.getEmail(), e);
+                log.error("Something went wrong with sending forgot password info email: "
+                              + registrationRest.getEmail(), e);
             }
         } else {
             try {
@@ -133,8 +133,8 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
                 }
                 accountService.sendRegistrationInfo(context, registrationRest.getEmail(), registrationRest.getGroups());
             } catch (SQLException | IOException | MessagingException | AuthorizeException e) {
-                log.error("Something with wrong with sending registration info for email: "
-                        + registrationRest.getEmail());
+                log.error("Something went wrong with sending registration info email: "
+                              + registrationRest.getEmail(), e);
             }
         }
         return null;

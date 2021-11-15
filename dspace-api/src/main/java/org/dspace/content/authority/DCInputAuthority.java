@@ -73,6 +73,11 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
     }
 
     @Override
+    public boolean isPublic() {
+        return true;
+    }
+
+    @Override
     public boolean storeAuthorityInMetadata() {
         // For backward compatibility value pairs don't store authority in
         // the metadatavalue
@@ -156,7 +161,8 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
         int found = 0;
         List<Choice> v = new ArrayList<Choice>();
         for (int i = 0; i < valuesLocale.length; ++i) {
-            if (query == null || StringUtils.containsIgnoreCase(valuesLocale[i], query)) {
+            if (query == null || StringUtils.containsIgnoreCase(valuesLocale[i], query) ||
+                    StringUtils.containsIgnoreCase(labelsLocale[i], query)) {
                 if (found >= start && v.size() < limit) {
                     v.add(new Choice(null, valuesLocale[i], labelsLocale[i]));
                     if (valuesLocale[i].equalsIgnoreCase(query)) {
