@@ -1026,7 +1026,7 @@ public class CrisSearchService extends SolrServiceImpl
                 	fq = "search.resourcetype:11";
                 }
                 
-                List<UUID> uuids = getHibernateSession(context).createSQLQuery(query).list();
+                List<String> uuids = getHibernateSession(context).createSQLQuery(query).list();
             	prepareDiffAndReindex(context, type, fq, uuids);
             }
             else

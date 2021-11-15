@@ -2705,27 +2705,16 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             throw new RuntimeException("Only ITEM is supported in this mode - type founded: " + type);
         }
         
-        //TODO Fix query error when returning uuid MAYBE
-		List<UUID> uuids = getHibernateSession(context).createSQLQuery("select uuid as identifierobject from item where in_archive = ? or withdrawn = ? order by last_modified asc").addEntity(UUID.class).setParameter(0, true).setParameter(1, true).list();
+		List<String> uuids = getHibernateSession(context).createSQLQuery("select CAST(uuid as varchar) as identifierobject from item where in_archive = ? or withdrawn = ? order by last_modified asc").setParameter(0, true).setParameter(1, true).list();
     	prepareDiffAndReindex(context, type, "search.resourcetype:2", uuids);
     	
 	}
 
-	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<UUID> uuids)
+	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<String> uuids)
 			throws SQLException, SearchServiceException, IOException {
 		System.out.println("Preparing diff...");
-//		List<UUID> resultsDB = new ArrayList<UUID>();
-//        
-//		int countDB = 0;
-//        for(UUID uuid : uuids) {
-//        	resultsDB.add(uuid);
-//        	countDB++;
-//        	if(countDB%1000==0) {
-//        		System.out.println(countDB);
-//        	}
-//        }
 
-        List<UUID> resultsSOLR = new ArrayList<UUID>();
+        List<String> resultsSOLR = new ArrayList<String>();
         
 		SolrQuery solrQuery = new SolrQuery();
     	solrQuery.setQuery("*:*");
@@ -2743,7 +2732,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         while (solrDoc.hasNext())
         {
             SolrDocument doc = solrDoc.next();
-            UUID id = (UUID) doc
+            String id = (String) doc
                     .getFirstValue("search.resourceid");
             resultsSOLR.add(id);
             countSOLR++;
@@ -2757,11 +2746,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         executeDiffAndReindex(context, type, uuids, resultsSOLR);
 	}
 	
-	protected void executeDiffAndReindex(Context context, Integer type, List<UUID> expectedrecords, List<UUID> actualrecords) throws IOException {
+	protected void executeDiffAndReindex(Context context, Integer type, List<String> expectedrecords, List<String> actualrecords) throws IOException {
 		
 	    int linelength = -1;
 	    
-		List<UUID> unexpectedrecords = new ArrayList<UUID>();
+		List<String> unexpectedrecords = new ArrayList<String>();
 		
 	    if (expectedrecords.size() > actualrecords.size()) {
 	        linelength = expectedrecords.size();
@@ -2773,7 +2762,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	        if (actualrecords.contains(expectedrecords.get(i))) {
 	            actualrecords.remove(expectedrecords.get(i));
 	        } else {
-	        	UUID item = expectedrecords.get(i);
+	        	String item = expectedrecords.get(i);
 				log.info("Reindex Found type:" + type + " - objectID:" + item);
 	        	System.out.println("Reindex Found type:" + type + " - objectID:" + item);
 	            unexpectedrecords.add(item);
@@ -2785,7 +2774,12 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 	    	return;
 		}
 	    System.out.println("Update now...");
-		updateIndex(context, unexpectedrecords, true, type);
+	    
+		List<UUID> uuids = new ArrayList<UUID>();
+        for(String uuid : unexpectedrecords) {
+        	uuids.add(UUID.fromString(uuid));
+        }
+		updateIndex(context, uuids, true, type);
 	}
 	
 	protected static Session getHibernateSession(Context context) throws SQLException {
