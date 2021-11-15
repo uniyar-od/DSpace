@@ -13,7 +13,6 @@ import java.util.List;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxConfiguration;
@@ -72,7 +71,7 @@ public interface CrisLayoutBoxService extends DSpaceCRUDService<CrisLayoutBox> {
      * @param values  metadataValue of item
      * @return true if the box has content to show, false otherwise
      */
-    public boolean hasContent(Context context, CrisLayoutBox box, Item item, List<MetadataValue> values);
+    public boolean hasContent(Context context, CrisLayoutBox box, Item item);
 
     /**
      * Establishes wether or not, current user is enabled to have access to layout data

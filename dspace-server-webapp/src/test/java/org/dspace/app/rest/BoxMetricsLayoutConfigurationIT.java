@@ -8,10 +8,6 @@
 package org.dspace.app.rest;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.withSettings;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -51,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrationTest {
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger
             (BoxMetricsLayoutConfigurationService.class);
+    @Autowired
     protected BoxMetricsLayoutConfigurationService boxMetricsLayoutConfigurationService;
     @Autowired
     protected CrisLayoutBoxAccessService crisLayoutBoxAccessService;
@@ -66,11 +63,6 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        boxMetricsLayoutConfigurationService = mock(BoxMetricsLayoutConfigurationService.class,
-                withSettings().useConstructor(crisLayoutBoxAccessService,
-                        crisLayoutBoxService, itemService, authorizeService));
-        when(boxMetricsLayoutConfigurationService.checkPermissionOfMetricByBox(any(),
-                any(), any())).thenCallRealMethod();
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent community")

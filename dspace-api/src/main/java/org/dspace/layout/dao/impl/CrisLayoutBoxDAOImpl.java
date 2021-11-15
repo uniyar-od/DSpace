@@ -24,6 +24,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.AbstractHibernateDAO;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBox;
+import org.dspace.layout.CrisLayoutBox_;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -69,7 +70,8 @@ public class CrisLayoutBoxDAOImpl extends AbstractHibernateDAO<CrisLayoutBox> im
         CriteriaQuery<CrisLayoutBox> cq = cb.createQuery(CrisLayoutBox.class);
         Root<CrisLayoutBox> boxRoot = cq.from(CrisLayoutBox.class);
         boxRoot.fetch(entitytype, JoinType.LEFT);
-        cq.where(cb.and(cb.equal(boxRoot.get(entitytype).get(label), entity)), cb.equal(boxRoot.get(type), type));
+        cq.where(cb.and(cb.equal(boxRoot.get(entitytype).get(label), entity)),
+            cb.equal(boxRoot.get(CrisLayoutBox_.type), type));
         TypedQuery<CrisLayoutBox> query = getHibernateSession(context).createQuery(cq);
         return query.getResultList();
     }

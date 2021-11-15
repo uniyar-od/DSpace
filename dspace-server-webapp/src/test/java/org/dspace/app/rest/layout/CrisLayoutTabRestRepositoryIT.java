@@ -38,6 +38,7 @@ import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.CrisLayoutBoxBuilder;
 import org.dspace.builder.CrisLayoutFieldBuilder;
+import org.dspace.builder.CrisLayoutMetric2BoxBuilder;
 import org.dspace.builder.CrisLayoutTabBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.ItemBuilder;
@@ -595,7 +596,9 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
             .andExpect(jsonPath("$.page.totalElements", Matchers.is(2))) // only two tabs have contents to show
-            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab), matchTab(tabTwo))));
+            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab), matchTab(tabTwo))))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", contains(matchBox(boxOne))))
+            .andExpect(jsonPath("$._embedded.tabs[1].rows[0].cells[0].boxes", contains(matchBox(box))));
     }
 
     /**
@@ -882,5 +885,214 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
                            hasJsonPath("$.priority", is(0)),
                            hasJsonPath("$.header", is(tab.getHeader()))
                            )));
+    }
+
+    @Test
+    public void testGetTabWithMetadataBox() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // Create entity type Publication
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+        // get metadata field
+        MetadataSchema schema = mdss.find(context, "dc");
+        MetadataSchema schemaOaire = mdss.find(context, "oairecerif");
+        MetadataField isbn = mfss.findByElement(context, schema, "identifier", "isbn");
+        MetadataField uri = mfss.findByElement(context, schema, "identifier", "uri");
+        MetadataField abs = mfss.findByElement(context, schema, "description", "abstract");
+        MetadataField provenance = mfss.findByElement(context, schema, "description", "provenance");
+        MetadataField sponsorship = mfss.findByElement(context, schema, "description", "sponsorship");
+        MetadataField extent = mfss.findByElement(context, schema, "format", "extent");
+        // nested metadata
+        MetadataField author = mfss.findByElement(context, schema, "contributor", "author");
+        MetadataField affiliation = mfss.findByElement(context, schemaOaire, "author", "affiliation");
+        List<MetadataField> nestedMetadata = new ArrayList<>();
+        nestedMetadata.add(author);
+        nestedMetadata.add(affiliation);
+        // Create boxes
+        CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+            .withShortname("box-shortname-one")
+            .build();
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType, true, true)
+            .withShortname("box-shortname-two")
+            .build();
+        CrisLayoutFieldBuilder.createMetadataField(context, isbn, 0, 0)
+            .withLabel("LABEL ISBN")
+            .withRendering("RENDERIGN ISBN")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withBox(box)
+            .build();
+        CrisLayoutFieldBuilder.createMetadataField(context, uri, 0, 1)
+            .withLabel("LABEL URI")
+            .withRendering("RENDERIGN URI")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withBox(box)
+            .build();
+        CrisLayoutFieldBuilder.createMetadataField(context, abs, 1, 0)
+            .withLabel("LABEL ABS")
+            .withRendering("RENDERIGN ABS")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withBox(box)
+            .build();
+        CrisLayoutFieldBuilder.createMetadataField(context, provenance, 1, 1)
+            .withLabel("LABEL PROVENANCE")
+            .withRendering("RENDERIGN PROVENANCE")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withBox(box)
+            .build();
+        CrisLayoutFieldBuilder.createMetadataField(context, sponsorship, 1, 2)
+            .withLabel("LABEL SPRONSORSHIP")
+            .withRendering("RENDERIGN SPRONSORSHIP")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withBox(box)
+            .build();
+        CrisLayoutFieldBuilder.createMetadataField(context, extent, 2, 0)
+            .withLabel("LABEL EXTENT")
+            .withRendering("RENDERIGN EXTENT")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withBox(box)
+            .build();
+        // nested field
+        CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 1)
+            .withLabel("Authors")
+            .withRendering("table")
+            .withStyle("row")
+            .withLabelStyle("col-6")
+            .withValueStyle("col-6")
+            .withNestedField(nestedMetadata)
+            .withBox(box)
+            .build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
+            .withShortName("TabOne For Person - priority 0")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withHeader("New Tab header")
+            .addBoxIntoNewRow(box)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.id", is(tab.getID())))
+            .andExpect(jsonPath("$.rows", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields", hasSize(3)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[1].fields", hasSize(3)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[2].fields", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadata",
+                is("dc.contributor.author")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].label", is("Authors")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].rendering", is("table")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].style", is("row")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].styleLabel", is("col-6")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].styleValue", is("col-6")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadataGroup.leading",
+                is("dc.contributor.author")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadataGroup.elements",
+                hasSize(2)))
+            .andExpect(jsonPath(
+                "$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadataGroup.elements[1].metadata",
+                is("oairecerif.author.affiliation")));
+    }
+
+    @Test
+    public void testGetTabWithMetricsBox() throws Exception {
+        context.turnOffAuthorisationSystem();
+        // Create entity type Publication
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        // Create boxes
+        CrisLayoutBoxBuilder.createBuilder(context, eType, CrisLayoutBoxTypes.METRICS.name(), true, true)
+            .withShortname("box-shortname-one")
+            .build();
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType,
+            CrisLayoutBoxTypes.METRICS.name(), true, true)
+            .withShortname("box-shortname-two")
+            .withMaxColumns(2)
+            .build();
+        // Add metrics
+        CrisLayoutMetric2BoxBuilder.create(context, box, "metric1", 0).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "metric2", 1).build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
+            .withShortName("TabOne For Person - priority 0")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withHeader("New Tab header")
+            .addBoxIntoNewRow(box)
+            .build();
+
+        CrisLayoutBoxBuilder.createBuilder(context, eType, CrisLayoutBoxTypes.METRICS.name(), true, true)
+            .withShortname("box-shortname-three")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.id", is(tab.getID())))
+            .andExpect(jsonPath("$.rows", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.maxColumns", Matchers.is(2)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.metrics", hasSize(2)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.metrics[0]", Matchers.is("metric1")))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.metrics[1]", Matchers.is("metric2")));
+    }
+
+    @Test
+    public void testGetTabWithRelationBox() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EntityType eType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        CrisLayoutBoxBuilder.createBuilder(context, eType, CrisLayoutBoxTypes.RELATION.name(), true, true)
+            .withShortname("box-shortname-one")
+            .build();
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eType,
+            CrisLayoutBoxTypes.RELATION.name(), true, true)
+            .withShortname("authors")
+            .build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
+            .withShortName("TabOne For Person - priority 0")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withHeader("New Tab header")
+            .addBoxIntoNewRow(box)
+            .build();
+
+        CrisLayoutBoxBuilder.createBuilder(context, eType, CrisLayoutBoxTypes.RELATION.name(), true, true)
+            .withShortname("box-shortname-three")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/layout/tabs/" + tab.getID()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.id", is(tab.getID())))
+            .andExpect(jsonPath("$.rows", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].style").doesNotExist())
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes", hasSize(1)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.discovery-configuration",
+                is("RELATION.Publication.authors")));
     }
 }

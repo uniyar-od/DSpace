@@ -87,7 +87,7 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<CrisLayoutMetric2Box> metric2box;
+    private List<CrisLayoutMetric2Box> metric2box = new ArrayList<>();
 
     @Column(name = "max_columns")
     private Integer maxColumns = null;

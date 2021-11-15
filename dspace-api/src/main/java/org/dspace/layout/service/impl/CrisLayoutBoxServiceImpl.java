@@ -134,12 +134,11 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
         return dao.findByEntityType(context, entityType, limit, offset);
     }
 
-    /* (non-Javadoc)
-     * @see org.dspace.layout.service.CrisLayoutBoxService#hasContent()
-     */
     @Override
-    public boolean hasContent(Context context, CrisLayoutBox box, Item item, List<MetadataValue> values) {
+    public boolean hasContent(Context context, CrisLayoutBox box, Item item) {
         String boxType = box.getType();
+        List<MetadataValue> values = item.getMetadata();
+
         if (StringUtils.isEmpty(boxType)) {
             return hasMetadataBoxContent(box, values);
         }

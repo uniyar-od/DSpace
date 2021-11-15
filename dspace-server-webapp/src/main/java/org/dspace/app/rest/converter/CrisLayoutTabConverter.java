@@ -129,7 +129,7 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
 
     private boolean hasAccess(Item item, CrisLayoutBox box) {
         Context context = ContextUtil.obtainCurrentRequestContext();
-        return crisLayoutBoxService.hasContent(context, box, item, item.getMetadata())
+        return crisLayoutBoxService.hasContent(context, box, item)
             && crisLayoutBoxService.hasAccess(context, box, item);
     }
 
