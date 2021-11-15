@@ -1089,7 +1089,9 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItem.getID() + ":FIRST")
                              .content(patchBody)
                              .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                             .andExpect(status().isUnprocessableEntity());
+                             .andExpect(status().isUnprocessableEntity())
+                             .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
+                             .andExpect(jsonPath("$.errors[0].paths[0]", is("/sections/titleAndIssuedDate/dc.title")));
 
         // verify that the patch changes have not been persisted
         getClient(tokenAdmin).perform(get("/api/core/edititems/" + editItem.getID() + ":FIRST"))
@@ -1108,7 +1110,9 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         getClient(tokenAdmin).perform(patch("/api/core/edititems/" + editItem.getID() + ":FIRST")
                              .content(patchBody2)
                              .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
-                             .andExpect(status().isUnprocessableEntity());
+                             .andExpect(status().isUnprocessableEntity())
+                             .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
+                             .andExpect(jsonPath("$.errors[0].paths[0]", is("/sections/titleAndIssuedDate/dc.title")));
 
         // verify that the patch changes have not been persisted
         getClient(tokenAdmin).perform(get("/api/core/edititems/" + editItem.getID() + ":FIRST"))
