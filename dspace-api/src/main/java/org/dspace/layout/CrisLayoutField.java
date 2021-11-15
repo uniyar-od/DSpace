@@ -171,8 +171,9 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
         return crisMetadataGroupList;
     }
 
-    public void setCrisMetadataGroupList(List<CrisMetadataGroup> crisMetadataGroupList) {
-        this.crisMetadataGroupList = crisMetadataGroupList;
+    public void addCrisMetadataGroupList(CrisMetadataGroup metadataGroup) {
+        this.crisMetadataGroupList.add(metadataGroup);
+        metadataGroup.setCrisLayoutField(this);
     }
 
     public boolean isLabelAsHeading() {

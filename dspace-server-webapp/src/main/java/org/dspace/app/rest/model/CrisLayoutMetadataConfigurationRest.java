@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import org.dspace.app.rest.RestResourceController;
 
 /**
  * The CrisLayoutMetadataConfiguration details
@@ -20,43 +19,20 @@ import org.dspace.app.rest.RestResourceController;
  * @author Danilo Di Nuzzo (danilo.dinuzzo at 4science.it)
  *
  */
-public class CrisLayoutMetadataConfigurationRest extends BaseObjectRest<Integer>
-    implements CrisLayoutBoxConfigurationRest {
-    private static final long serialVersionUID = -4103165494268147700L;
+public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigurationRest {
 
     public static final String NAME = "boxmetadataconfiguration";
-    public static final String CATEGORY = RestAddressableModel.LAYOUT;
 
-    private List<Row> rows;
+    private List<Row> rows = new ArrayList<>();
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.dspace.app.rest.model.RestModel#getType()
-     */
-    @Override
+    private String type = NAME;
+
     public String getType() {
-        return NAME;
+        return type;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.dspace.app.rest.model.RestAddressableModel#getCategory()
-     */
-    @Override
-    public String getCategory() {
-        return CATEGORY;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.dspace.app.rest.model.RestAddressableModel#getController()
-     */
-    @Override
-    public Class<RestResourceController> getController() {
-        return RestResourceController.class;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public List<Row> getRows() {
@@ -75,7 +51,7 @@ public class CrisLayoutMetadataConfigurationRest extends BaseObjectRest<Integer>
     }
 
     public static class Row {
-        private List<Field> fields;
+        private List<Field> fields = new ArrayList<>();
 
         public List<Field> getFields() {
             return fields;
@@ -113,6 +89,7 @@ public class CrisLayoutMetadataConfigurationRest extends BaseObjectRest<Integer>
 
         private String styleValue;
 
+        @JsonInclude(Include.NON_NULL)
         private MetadataGroup metadataGroup;
 
         private boolean labelAsHeading;
@@ -297,7 +274,7 @@ public class CrisLayoutMetadataConfigurationRest extends BaseObjectRest<Integer>
 
         private String leading;
 
-        private List<Field> elements;
+        private List<Field> elements = new ArrayList<>();
 
         public String getLeading() {
             return leading;

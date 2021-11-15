@@ -10,11 +10,15 @@ package org.dspace.app.rest.layout;
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.rest.matcher.CrisLayoutBoxMatcher.matchBox;
+import static org.dspace.app.rest.matcher.CrisLayoutTabMatcher.matchRest;
 import static org.dspace.app.rest.matcher.CrisLayoutTabMatcher.matchTab;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -23,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
@@ -52,8 +59,11 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxTypes;
+import org.dspace.layout.CrisLayoutCell;
+import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.LayoutSecurity;
+import org.dspace.layout.service.CrisLayoutTabService;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,11 +77,16 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegrationTest {
 
+    private static final String BASE_TEST_DIR = "./target/testing/dspace/assetstore/layout/";
+
     @Autowired
     private MetadataSchemaService mdss;
 
     @Autowired
     private MetadataFieldService mfss;
+
+    @Autowired
+    private CrisLayoutTabService crisLayoutTabService;
 
     private final String METADATASECURITY_URL = "http://localhost:8080/api/core/metadatafield/";
 
@@ -517,6 +532,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
        CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
            .withShortname("Box shortname 1")
            .withSecurity(LayoutSecurity.PUBLIC)
+            .withContainer(false)
            .build();
        CrisLayoutFieldBuilder.createMetadataField(context, firstName, 0, 1)
            .withLabel("LAST NAME")
@@ -678,49 +694,114 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         AtomicReference<Integer> idRef = new AtomicReference<Integer>();
         try {
             // Create entity type
-            EntityType eTypePer = EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
+            EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
             context.restoreAuthSystemState();
 
-            CrisLayoutTabRest rest = new CrisLayoutTabRest();
-            rest.setPriority(0);
-            rest.setSecurity(0);
-            rest.setShortname("short-name");
-            rest.setHeader("header");
-            rest.setEntityType(eTypePer.getLabel());
+            CrisLayoutTabRest rest = parseJson("tab.json");
 
             ObjectMapper mapper = new ObjectMapper();
+
             // Test without authentication
-            getClient()
-                    .perform(post("/api/layout/tabs")
-                            .content(mapper.writeValueAsBytes(rest))
-                            .contentType(contentType))
-                    .andExpect(status().isUnauthorized());
+            getClient().perform(post("/api/layout/tabs")
+                .content(mapper.writeValueAsBytes(rest))
+                .contentType(contentType))
+                .andExpect(status().isUnauthorized());
+
             // Test with a non admin user
             String token = getAuthToken(eperson.getEmail(), password);
-            getClient(token)
-                .perform(post("/api/layout/tabs")
-                        .content(mapper.writeValueAsBytes(rest))
-                        .contentType(contentType))
+            getClient(token).perform(post("/api/layout/tabs")
+                .content(mapper.writeValueAsBytes(rest))
+                .contentType(contentType))
                 .andExpect(status().isForbidden());
+
             // Test with admin user
             String tokenAdmin = getAuthToken(admin.getEmail(), password);
-            getClient(tokenAdmin)
-                .perform(post("/api/layout/tabs")
-                        .content(mapper.writeValueAsBytes(rest))
-                        .contentType(contentType))
+            getClient(tokenAdmin).perform(post("/api/layout/tabs")
+                .content(mapper.writeValueAsBytes(rest))
+                .contentType(contentType))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$", Matchers.is(
-                    CrisLayoutTabMatcher.matchRest(rest))))
+                .andExpect(jsonPath("$", Matchers.is(matchRest(rest))))
                 .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
             // Get created tab by id from REST service and check its response
             getClient().perform(get("/api/layout/tabs/" + idRef.get()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
-                .andExpect(jsonPath("$", Matchers.is(
-                        CrisLayoutTabMatcher.matchRest(rest))));
+                .andExpect(jsonPath("$", Matchers.is(matchRest(rest))));
+
+            CrisLayoutTab tab = crisLayoutTabService.find(context, idRef.get());
+            assertThat(tab, notNullValue());
+            assertThat(tab.getEntity().getLabel(), is("Publication"));
+            assertThat(tab.getHeader(), is("Publication HEADER"));
+            assertThat(tab.getShortName(), is("info"));
+            assertThat(tab.getPriority(), is(1));
+            assertThat(tab.getSecurity(), is(0));
+            assertThat(tab.isLeading(), is(true));
+
+            assertThat(tab.getRows(), hasSize(2));
+
+            CrisLayoutRow firstRow = tab.getRows().get(0);
+            assertThat(firstRow.getStyle(), nullValue());
+            assertThat(firstRow.getCells(), hasSize(2));
+
+            CrisLayoutCell firstCell = firstRow.getCells().get(0);
+            assertThat(firstCell.getStyle(), is("col-md-6"));
+            assertThat(firstCell.getBoxes(), hasSize(1));
+
+            CrisLayoutBox firstBox = firstCell.getBoxes().get(0);
+            assertThat(firstBox.getShortname(), is("primary"));
+            assertThat(firstBox.getHeader(), is("Primary Information"));
+            assertThat(firstBox.getEntitytype().getLabel(), is("Publication"));
+            assertThat(firstBox.getCollapsed(), is(true));
+            assertThat(firstBox.isContainer(), is(false));
+            assertThat(firstBox.getStyle(), is("col-md-6"));
+            assertThat(firstBox.getSecurity(), is(0));
+            assertThat(firstBox.getType(), is("METADATA"));
+            assertThat(firstBox.getMetadataSecurityFields(), hasSize(1));
+            assertThat(firstBox.getLayoutFields(), hasSize(2));
+
+            CrisLayoutCell secondCell = firstRow.getCells().get(1);
+            assertThat(secondCell.getStyle(), is("col-md-6"));
+            assertThat(secondCell.getBoxes(), hasSize(1));
+
+            CrisLayoutBox secondBox = secondCell.getBoxes().get(0);
+            assertThat(secondBox.getShortname(), is("orgUnits"));
+            assertThat(secondBox.getHeader(), is("OrgUnits"));
+            assertThat(secondBox.getEntitytype().getLabel(), is("Publication"));
+            assertThat(secondBox.getCollapsed(), is(false));
+            assertThat(secondBox.isContainer(), is(true));
+            assertThat(secondBox.getStyle(), is("col-md-6"));
+            assertThat(secondBox.getSecurity(), is(0));
+            assertThat(secondBox.getType(), is("RELATION"));
+            assertThat(secondBox.getMetadataSecurityFields(), empty());
+            assertThat(secondBox.getLayoutFields(), empty());
+
+            CrisLayoutRow secondRow = tab.getRows().get(1);
+            assertThat(secondRow.getStyle(), is("bg-light"));
+            assertThat(secondRow.getCells(), hasSize(1));
+
+            CrisLayoutCell thirdCell = secondRow.getCells().get(0);
+            assertThat(thirdCell.getStyle(), is("col-md-12"));
+            assertThat(thirdCell.getBoxes(), hasSize(1));
+
+            CrisLayoutBox thirdBox = thirdCell.getBoxes().get(0);
+            assertThat(thirdBox.getShortname(), is("metrics"));
+            assertThat(thirdBox.getHeader(), is("Metrics"));
+            assertThat(thirdBox.getEntitytype().getLabel(), is("Publication"));
+            assertThat(thirdBox.getCollapsed(), is(false));
+            assertThat(thirdBox.isContainer(), is(true));
+            assertThat(thirdBox.getStyle(), nullValue());
+            assertThat(thirdBox.getSecurity(), is(0));
+            assertThat(thirdBox.getType(), is("METRICS"));
+            assertThat(thirdBox.getMetadataSecurityFields(), empty());
+            assertThat(thirdBox.getLayoutFields(), empty());
+            assertThat(thirdBox.getMaxColumns(), is(2));
+            assertThat(thirdBox.getMetric2box(), hasSize(2));
+
         } finally {
-            CrisLayoutTabBuilder.delete(idRef.get());
+            if (idRef.get() != null) {
+                CrisLayoutTabBuilder.delete(idRef.get());
+            }
         }
     }
 
@@ -1094,5 +1175,13 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.rows[0].cells[0].boxes", hasSize(1)))
             .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.discovery-configuration",
                 is("RELATION.Publication.authors")));
+    }
+
+    private CrisLayoutTabRest parseJson(String name) throws Exception {
+        return new ObjectMapper().readValue(getFileInputStream(name), CrisLayoutTabRest.class);
+    }
+
+    private FileInputStream getFileInputStream(String name) throws FileNotFoundException {
+        return new FileInputStream(new File(BASE_TEST_DIR, name));
     }
 }

@@ -143,7 +143,7 @@ public class CrisLayoutTabConverter implements DSpaceConverter<CrisLayoutTab, Cr
     private CrisLayoutCell toCellModel(Context context, CrisLayoutCellRest cellRest) {
         CrisLayoutCell cell = new CrisLayoutCell();
         cell.setStyle(cellRest.getStyle());
-        cellRest.getBoxes().forEach(box -> boxConverter.toModel(context, box));
+        cellRest.getBoxes().forEach(box -> cell.addBox(boxConverter.toModel(context, box)));
         return cell;
     }
 

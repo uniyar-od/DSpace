@@ -140,7 +140,7 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
         try {
             tabRest = mapper.readValue(req.getInputStream(), CrisLayoutTabRest.class);
         } catch (IOException e1) {
-            throw new UnprocessableEntityException("error parsing the body... maybe this is not the right error code");
+            throw new UnprocessableEntityException("error parsing the body", e1);
         }
 
         CrisLayoutTab tab = tabConverter.toModel(context, tabRest);

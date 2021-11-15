@@ -10,8 +10,6 @@ package org.dspace.app.rest;
 import static org.junit.Assert.assertEquals;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.metrics.CrisMetrics;
@@ -104,9 +102,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0)
                     .build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.setCurrentUser(null);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService
@@ -133,9 +129,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0)
                     .build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService
                     .checkPermissionOfMetricByBox(context, item, metric);
@@ -158,9 +152,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisMetrics metric = CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("view").build();
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0).build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService
                     .checkPermissionOfMetricByBox(context, item, metric);
@@ -183,9 +175,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisMetrics metric = CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("view").build();
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0).build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService
                     .checkPermissionOfMetricByBox(context, item, metric);
@@ -215,9 +205,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0)
                     .build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.setCurrentUser(admin);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService
@@ -243,9 +231,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0)
                     .build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.setCurrentUser(admin);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService
@@ -270,9 +256,7 @@ public class BoxMetricsLayoutConfigurationIT extends AbstractControllerIntegrati
             CrisLayoutMetric2Box crisLayoutMetric2Box = CrisLayoutMetric2BoxBuilder
                     .create(context, crisLayoutBox, metric.getMetricType(), 0)
                     .build();
-            List<CrisLayoutMetric2Box> crisLayoutMetric2BoxList = new ArrayList<>();
-            crisLayoutMetric2BoxList.add(crisLayoutMetric2Box);
-            crisLayoutBox.setMetric2box(crisLayoutMetric2BoxList);
+            crisLayoutBox.addMetric2box(crisLayoutMetric2Box);
             context.setCurrentUser(admin);
             context.restoreAuthSystemState();
             boolean permission = boxMetricsLayoutConfigurationService

@@ -8,7 +8,6 @@
 package org.dspace.builder;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -154,7 +153,6 @@ public class CrisLayoutFieldBuilder extends AbstractBuilder<CrisLayoutField, Cri
 
     public CrisLayoutFieldBuilder withNestedField(List<MetadataField> metadataFieldList) {
         int priority = 0;
-        List<CrisMetadataGroup> metadataGroupList = new ArrayList<>();
         for (MetadataField metadataField : metadataFieldList) {
             CrisMetadataGroup metadatanested = new CrisMetadataGroup();
             metadatanested.setMetadataField(metadataField);
@@ -162,13 +160,12 @@ public class CrisLayoutFieldBuilder extends AbstractBuilder<CrisLayoutField, Cri
             metadatanested.setPriority(priority);
             try {
                 CrisMetadataGroup nested_field = getNestedService().create(context, metadatanested);
-                metadataGroupList.add(nested_field);
+                this.field.addCrisMetadataGroupList(nested_field);
                 priority++;
             } catch (Exception e) {
                 log.error("Error in CrisLayoutTabBuilder.create(..), error: ", e);
             }
         }
-        this.field.setCrisMetadataGroupList(metadataGroupList);
         return this;
     }
 }

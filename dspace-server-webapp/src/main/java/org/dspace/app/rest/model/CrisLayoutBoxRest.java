@@ -21,8 +21,6 @@ public class CrisLayoutBoxRest implements Serializable {
 
     private static final long serialVersionUID = 1759482359230180793L;
 
-    public static final String NAME = "box";
-    public static final String CATEGORY = RestAddressableModel.LAYOUT;
     public static final String FIELDS = "fields";
     public static final String SECURITY_METADATA = "securitymetadata";
     public static final String CONFIGURATON = "configuration";
@@ -51,7 +49,7 @@ public class CrisLayoutBoxRest implements Serializable {
 
     private List<String> metadataSecurityFields = new ArrayList<String>();
 
-    private boolean container;
+    private boolean container = true;
 
     public String getShortname() {
         return shortname;

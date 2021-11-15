@@ -11,11 +11,14 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.CrisLayoutBoxConfigurationRest;
 import org.dspace.app.rest.model.CrisLayoutBoxRest;
 import org.dspace.app.rest.projection.Projection;
 import org.dspace.content.EntityType;
+import org.dspace.content.MetadataField;
 import org.dspace.content.service.EntityTypeService;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.layout.CrisLayoutBox;
@@ -42,6 +45,9 @@ public class CrisLayoutBoxConverter implements DSpaceConverter<CrisLayoutBox, Cr
     @Autowired
     private CrisLayoutBoxConfigurationConverter boxConfigurationConverter;
 
+    @Autowired
+    private MetadataFieldService metadataFieldService;
+
     @Override
     public CrisLayoutBoxRest convert(CrisLayoutBox box, Projection projection) {
         CrisLayoutBoxRest rest = new CrisLayoutBoxRest();
@@ -55,6 +61,7 @@ public class CrisLayoutBoxConverter implements DSpaceConverter<CrisLayoutBox, Cr
         rest.setShortname(box.getShortname());
         rest.setStyle(box.getStyle());
         rest.setMaxColumns(box.getMaxColumns());
+        rest.setContainer(box.isContainer());
         rest.setConfiguration(getBoxConfiguration(box, projection));
         rest.setMetadataSecurityFields(getMetadataSecurityFields(box, projection));
         return rest;
@@ -77,6 +84,9 @@ public class CrisLayoutBoxConverter implements DSpaceConverter<CrisLayoutBox, Cr
         box.setShortname(rest.getShortname());
         box.setStyle(rest.getStyle());
         box.setMaxColumns(rest.getMaxColumns());
+        box.setContainer(rest.isContainer());
+        rest.getMetadataSecurityFields().forEach(field -> addMetadataSecurityField(context, field, box));
+        boxConfigurationConverter.configure(context, box, rest.getConfiguration());
         return box;
     }
 
@@ -90,11 +100,31 @@ public class CrisLayoutBoxConverter implements DSpaceConverter<CrisLayoutBox, Cr
             .collect(Collectors.toList());
     }
 
+    private void addMetadataSecurityField(Context context, String metadataField, CrisLayoutBox box) {
+        box.addMetadataSecurityFields(getMetadataField(context, metadataField));
+    }
+
     private EntityType findEntityType(Context context, CrisLayoutBoxRest rest) {
         try {
             return eService.findByEntityType(context, rest.getEntityType());
         } catch (SQLException e) {
             throw new SQLRuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private MetadataField getMetadataField(Context context, String metadataField) {
+        if (metadataField == null) {
+            return null;
+        }
+
+        try {
+            MetadataField entity = metadataFieldService.findByString(context, metadataField, '.');
+            if (entity == null) {
+                throw new UnprocessableEntityException("MetadataField <" + metadataField + "> not exists!");
+            }
+            return entity;
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
     }
 }

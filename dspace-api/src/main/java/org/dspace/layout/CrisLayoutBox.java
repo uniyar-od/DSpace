@@ -82,11 +82,7 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     @OrderBy(value = "row, priority")
     private List<CrisLayoutField> layoutFields = new ArrayList<>();
 
-    @OneToMany(
-            mappedBy = "box",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
+    @OneToMany(mappedBy = "box", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CrisLayoutMetric2Box> metric2box = new ArrayList<>();
 
     @Column(name = "max_columns")
@@ -217,10 +213,11 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     }
 
     public void addMetadataSecurityFields(Set<MetadataField> metadataFields) {
-        if (this.metadataSecurityFields == null) {
-            this.metadataSecurityFields = new HashSet<>();
-        }
         this.metadataSecurityFields.addAll(metadataFields);
+    }
+
+    public void addMetadataSecurityFields(MetadataField metadataField) {
+        this.metadataSecurityFields.add(metadataField);
     }
 
     public List<CrisLayoutField> getLayoutFields() {
@@ -232,10 +229,7 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
             this.layoutFields = new ArrayList<>();
         }
         this.layoutFields.add(layoutField);
-    }
-
-    public void setLayoutFields(List<CrisLayoutField> layoutFields) {
-        this.layoutFields = layoutFields;
+        layoutField.setBox(this);
     }
 
     public Integer getMaxColumns() {
@@ -250,8 +244,9 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         return metric2box;
     }
 
-    public void setMetric2box(List<CrisLayoutMetric2Box> box2metric) {
-        this.metric2box = box2metric;
+    public void addMetric2box(CrisLayoutMetric2Box box2metric) {
+        box2metric.setBox(this);
+        this.metric2box.add(box2metric);
     }
 
 
