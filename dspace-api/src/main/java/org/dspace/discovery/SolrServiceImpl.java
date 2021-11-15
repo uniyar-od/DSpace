@@ -2705,26 +2705,25 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             throw new RuntimeException("Only ITEM is supported in this mode - type founded: " + type);
         }
         
-        //TODO Fix query error when returning uuid
-		List<Object[]> rows = getHibernateSession(context).createSQLQuery("select uuid as identifierobject from item where in_archive='1' or withdrawn='1' order by last_modified asc").list();
-    	prepareDiffAndReindex(context, type, "search.resourcetype:2", rows);
+        //TODO Fix query error when returning uuid MAYBE
+		List<UUID> uuids = getHibernateSession(context).createSQLQuery("select uuid as identifierobject from item where in_archive = ? or withdrawn = ? order by last_modified asc").addEntity(UUID.class).setParameter(0, true).setParameter(1, true).list();
+    	prepareDiffAndReindex(context, type, "search.resourcetype:2", uuids);
     	
 	}
 
-	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<Object[]> rows)
+	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<UUID> uuids)
 			throws SQLException, SearchServiceException, IOException {
 		System.out.println("Preparing diff...");
-		List<UUID> resultsDB = new ArrayList<UUID>();
-        
-		int countDB = 0;
-        for(Object[] row : rows) {
-        	UUID id = (UUID) row[0]; //.getIntColumn("identifierobject");
-        	resultsDB.add(id);
-        	countDB++;
-        	if(countDB%1000==0) {
-        		System.out.println(countDB);
-        	}
-        }
+//		List<UUID> resultsDB = new ArrayList<UUID>();
+//        
+//		int countDB = 0;
+//        for(UUID uuid : uuids) {
+//        	resultsDB.add(uuid);
+//        	countDB++;
+//        	if(countDB%1000==0) {
+//        		System.out.println(countDB);
+//        	}
+//        }
 
         List<UUID> resultsSOLR = new ArrayList<UUID>();
         
@@ -2753,9 +2752,9 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         	}
         }
         
-        System.out.println("TOTAL DB:"+ countDB);
+        System.out.println("TOTAL DB:"+ uuids.size());
         System.out.println("TOTAL SOLR:"+ countSOLR);
-        executeDiffAndReindex(context, type, resultsDB, resultsSOLR);
+        executeDiffAndReindex(context, type, uuids, resultsSOLR);
 	}
 	
 	protected void executeDiffAndReindex(Context context, Integer type, List<UUID> expectedrecords, List<UUID> actualrecords) throws IOException {
