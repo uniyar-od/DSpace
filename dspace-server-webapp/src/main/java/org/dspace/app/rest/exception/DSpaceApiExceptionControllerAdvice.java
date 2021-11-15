@@ -160,6 +160,15 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
         );
     }
 
+    @ExceptionHandler(UnprocessableEditException.class)
+    protected ResponseEntity<Object> handleCustomUnprocessableEditException(HttpServletRequest request,
+                                                                            HttpServletResponse response,
+                                                                            UnprocessableEditException ex)
+                                                                     throws IOException {
+        return new ResponseEntity<>(new UnprocessableEditExceptionCustomError(ex.getErrors()), null,
+                HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     @ExceptionHandler(QueryMethodParameterConversionException.class)
     protected void ParameterConversionException(HttpServletRequest request, HttpServletResponse response, Exception ex)
         throws IOException {

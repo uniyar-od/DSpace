@@ -15,11 +15,11 @@ import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.NotFoundException;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.UnprocessableEditException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.EditItemRest;
 import org.dspace.app.rest.model.ErrorRest;
@@ -303,8 +303,8 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
         }
 
         List<ValidationError> errors = validationService.validate(context, source);
-        if (CollectionUtils.isNotEmpty(errors)) {
-            throw new UnprocessableEntityException("Mandatory fields must be compiled!");
+        if (errors != null && !errors.isEmpty()) {
+            throw new UnprocessableEditException(errors);
         }
 
         eis.update(context, source);
