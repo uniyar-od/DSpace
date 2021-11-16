@@ -73,6 +73,8 @@ public class CrisLayoutMetadataBoxConfigurator implements CrisLayoutBoxConfigura
                 field.setStyle(layoutField.getStyle());
                 field.setStyleLabel(layoutField.getStyleLabel());
                 field.setStyleValue(layoutField.getStyleValue());
+                field.setLabelAsHeading(layoutField.isLabelAsHeading());
+                field.setValuesInline(layoutField.isValuesInline());
                 if (layoutField instanceof CrisLayoutFieldMetadata) {
                     field.setMetadata(composeMetadataFieldIdentifier(layoutField.getMetadataField()));
                     field.setFieldType("METADATA");
@@ -101,6 +103,8 @@ public class CrisLayoutMetadataBoxConfigurator implements CrisLayoutBoxConfigura
                         nestedField.setStyle(crisMetadataGroup.getStyle());
                         nestedField.setStyleLabel(crisMetadataGroup.getStyleLabel());
                         nestedField.setStyleValue(crisMetadataGroup.getStyleValue());
+                        nestedField.setLabelAsHeading(crisMetadataGroup.isLabelAsHeading());
+                        nestedField.setValuesInline(crisMetadataGroup.isValuesInline());
                         nestedField.setFieldType("METADATA");
                         nestedFieldList.add(nestedField);
                     }
@@ -166,6 +170,8 @@ public class CrisLayoutMetadataBoxConfigurator implements CrisLayoutBoxConfigura
             nestedField.setStyle(element.getStyle());
             nestedField.setStyleLabel(element.getStyleLabel());
             nestedField.setStyleValue(element.getStyleValue());
+            nestedField.setLabelAsHeading(element.isLabelAsHeading());
+            nestedField.setValuesInline(element.isValuesInline());
             fieldEntity.addCrisMetadataGroupList(nestedField);
         }
 

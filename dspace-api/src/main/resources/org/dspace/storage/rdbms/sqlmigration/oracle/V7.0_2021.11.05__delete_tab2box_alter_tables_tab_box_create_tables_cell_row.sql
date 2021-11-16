@@ -65,3 +65,10 @@ ALTER TABLE cris_layout_tab ADD COLUMN leading BOOLEAN;
 
 ALTER TABLE cris_layout_field ADD COLUMN label_as_heading BOOLEAN;
 ALTER TABLE cris_layout_field ADD COLUMN values_inline BOOLEAN;
+
+-------------------------------------------------------------------------------------
+---- ALTER table cris_layout_field2nested
+-------------------------------------------------------------------------------------
+
+ALTER TABLE cris_layout_field2nested ADD COLUMN label_as_heading BOOLEAN;
+ALTER TABLE cris_layout_field2nested ADD COLUMN values_inline BOOLEAN;

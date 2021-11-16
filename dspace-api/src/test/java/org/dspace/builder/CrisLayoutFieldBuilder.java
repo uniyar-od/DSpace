@@ -78,6 +78,7 @@ public class CrisLayoutFieldBuilder extends AbstractBuilder<CrisLayoutField, Cri
     public static CrisLayoutFieldBuilder createBistreamField(
             Context context, MetadataField mf, String bundle, int row, int priority) {
         CrisLayoutFieldBitstream bitstream = new CrisLayoutFieldBitstream();
+        bitstream.setBundle(bundle);
         return createField(context, bitstream, mf, row, priority);
     }
 
@@ -133,6 +134,16 @@ public class CrisLayoutFieldBuilder extends AbstractBuilder<CrisLayoutField, Cri
 
     public CrisLayoutFieldBuilder withStyle(String style) {
         this.field.setStyle(style);
+        return this;
+    }
+
+    public CrisLayoutFieldBuilder withLabelAsHeading(boolean labelAsHeading) {
+        this.field.setLabelAsHeading(labelAsHeading);
+        return this;
+    }
+
+    public CrisLayoutFieldBuilder withValuesInline(boolean valuesInline) {
+        this.field.setValuesInline(valuesInline);
         return this;
     }
 

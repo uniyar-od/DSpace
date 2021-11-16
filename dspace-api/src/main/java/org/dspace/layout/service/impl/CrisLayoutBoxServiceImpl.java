@@ -100,6 +100,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             throw new AuthorizeException(
                 "You must be an admin to delete a Box");
         }
+        box.getMetric2box().clear();
         dao.delete(context, box);
     }
 
