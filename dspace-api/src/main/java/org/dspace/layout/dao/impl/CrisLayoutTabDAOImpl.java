@@ -11,7 +11,6 @@ import static org.dspace.layout.CrisLayoutTab.ROWS_AND_CONTENT_GRAPH;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 import javax.persistence.EntityGraph;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -37,7 +36,7 @@ import org.dspace.layout.dao.CrisLayoutTabDAO;
 public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> implements CrisLayoutTabDAO {
 
     @Override
-    public CrisLayoutTab findAndEagerlyFetch(Context context, Integer id) throws SQLException {
+    public CrisLayoutTab findAndEagerlyFetchBoxes(Context context, Integer id) throws SQLException {
 
         CriteriaBuilder cb = getCriteriaBuilder(context);
         CriteriaQuery<CrisLayoutTab> query = cb.createQuery(CrisLayoutTab.class);
@@ -67,16 +66,13 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
      * @see org.dspace.layout.dao.CrisLayoutTabDAO#findByEntityType(java.lang.String)
      */
     @Override
-    public List<CrisLayoutTab> findByEntityType(Context context, String entityType) throws SQLException {
-        return findByEntityType(context, entityType, null, null);
+    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context,
+        String entityType) throws SQLException {
+        return findByEntityTypeAndEagerlyFetchBoxes(context, entityType, null, null);
     }
 
-    /* (non-Javadoc)
-     * @see org.dspace.layout.dao.CrisLayoutTabDAO#findByEntityType
-     * (org.dspace.core.Context, java.lang.String, java.lang.Integer, java.lang.Integer)
-     */
     @Override
-    public List<CrisLayoutTab> findByEntityType(Context context, String entityType,
+    public List<CrisLayoutTab> findByEntityTypeAndEagerlyFetchBoxes(Context context, String entityType,
         Integer limit, Integer offset) throws SQLException {
 
         CriteriaBuilder cb = getCriteriaBuilder(context);
@@ -136,11 +132,6 @@ public class CrisLayoutTabDAOImpl extends AbstractHibernateDAO<CrisLayoutTab> im
             query.setMaxResults(limit).setFirstResult(offset);
         }
         return query.getResultList();
-    }
-
-    @Override
-    public List<CrisLayoutTab> findByItem(Context context, UUID intemUUid) throws SQLException {
-        return null;
     }
 
 }

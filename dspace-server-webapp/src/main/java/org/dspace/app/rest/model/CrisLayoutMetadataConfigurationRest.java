@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 /**
  * The CrisLayoutMetadataConfiguration details
- *
+ * 
  * @author Danilo Di Nuzzo (danilo.dinuzzo at 4science.it)
  *
  */

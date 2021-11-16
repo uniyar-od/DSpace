@@ -42,7 +42,8 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "cris_layout_field_field_id_seq")
-    @SequenceGenerator(name = "cris_layout_field_field_id_seq",
+    @SequenceGenerator(
+        name = "cris_layout_field_field_id_seq",
         sequenceName = "cris_layout_field_field_id_seq",
         allocationSize = 1)
     @Column(name = "field_id", unique = true, nullable = false, insertable = true, updatable = false)

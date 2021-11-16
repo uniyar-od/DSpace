@@ -67,7 +67,7 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
 
     @Override
     public CrisLayoutTab findAndEagerlyFetch(Context context, Integer id) throws SQLException {
-        return dao.findAndEagerlyFetch(context, id);
+        return dao.findAndEagerlyFetchBoxes(context, id);
     }
 
     @Override
@@ -131,7 +131,7 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
      */
     @Override
     public List<CrisLayoutTab> findByEntityType(Context context, String entityType) throws SQLException {
-        return dao.findByEntityType(context, entityType);
+        return dao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType);
     }
 
     /* (non-Javadoc)
@@ -141,7 +141,7 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
     @Override
     public List<CrisLayoutTab> findByEntityType(Context context, String entityType, Integer limit, Integer offset)
             throws SQLException {
-        return dao.findByEntityType(context, entityType, limit, offset);
+        return dao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType, limit, offset);
     }
 
     /* (non-Javadoc)

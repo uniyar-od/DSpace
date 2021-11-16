@@ -97,7 +97,7 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityType(context, entityType))
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType))
             .thenReturn(Arrays.asList(tabOne, tabTwo, tabThree, tabWithoutBoxes, tabWithOnlyForbiddenBoxes));
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
@@ -120,7 +120,7 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityType(context, entityType)).thenReturn(emptyList());
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType)).thenReturn(emptyList());
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 
@@ -140,7 +140,7 @@ public class CrisLayoutTabServiceImplTest {
         when(itemService.getMetadata(item, "dspace.entity.type"))
             .thenReturn(entityType);
 
-        when(tabDao.findByEntityType(context, entityType)).thenReturn(List.of());
+        when(tabDao.findByEntityTypeAndEagerlyFetchBoxes(context, entityType)).thenReturn(List.of());
 
         List<CrisLayoutTab> tabs = crisLayoutTabService.findByItem(context, itemUuid);
 

@@ -123,8 +123,7 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
     }
 
     /**
-     * This attribute is the label or the i18n key to use to present the section to
-     * the user
+     * This attribute is the label or the i18n key to use to present the section to the user
      * @return
      */
     public String getHeader() {
@@ -132,8 +131,7 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
     }
 
     /**
-     * This attribute is the label or the i18n key to use to present the section to
-     * the user
+     * This attribute is the label or the i18n key to use to present the section to the user
      * @param header
      */
     public void setHeader(String header) {
@@ -141,8 +139,12 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
     }
 
     /**
-     * This field manages the visibility of the tab It can take the following
-     * values: 0-PUBLIC 1-ADMINISTRATOR 2-OWNER ONLY 3-OWNER & ADMINISTRATOR
+     * This field manages the visibility of the tab
+     * It can take the following values:
+     * 0-PUBLIC
+     * 1-ADMINISTRATOR
+     * 2-OWNER ONLY
+     * 3-OWNER & ADMINISTRATOR
      * 4-CUSTOM DATA
      * @return
      */
@@ -151,8 +153,12 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
     }
 
     /**
-     * This field manages the visibility of the tab It can take the following
-     * values: 0-PUBLIC 1-ADMINISTRATOR 2-OWNER ONLY 3-OWNER & ADMINISTRATOR
+     * This field manages the visibility of the tab
+     * It can take the following values:
+     * 0-PUBLIC
+     * 1-ADMINISTRATOR
+     * 2-OWNER ONLY
+     * 3-OWNER & ADMINISTRATOR
      * 4-CUSTOM DATA
      * @param security {@link LayoutSecurity}
      */
