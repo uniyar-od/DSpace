@@ -5,10 +5,11 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.app.bulkimport.utils;
+package org.dspace.util;
 
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
+import static org.apache.poi.ss.usermodel.Row.MissingCellPolicy.CREATE_NULL_AS_BLANK;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,6 +72,13 @@ public final class WorkbookUtils {
         return StreamSupport.stream(Spliterators.spliteratorUnknownSize(sheet.rowIterator(), 0), false);
     }
 
+    public static List<Row> getNotEmptyRowsSkippingHeader(Sheet sheet) {
+        return getRows(sheet)
+            .filter(WorkbookUtils::isNotFirstRow)
+            .filter(WorkbookUtils::isNotEmptyRow)
+            .collect(Collectors.toList());
+    }
+
     public static List<String> getRowValues(Row row, int size) {
         List<String> values = new ArrayList<String>();
         for (int i = 0; i < size; i++) {
@@ -101,6 +109,15 @@ public final class WorkbookUtils {
     public static List<String> getAllHeaders(Sheet sheet) {
         return getCells(sheet.getRow(0))
             .map(cell -> getCellValue(cell))
+            .collect(Collectors.toList());
+    }
+
+    public static List<Cell> getColumnWithoutHeader(Sheet sheet, int column) {
+        return WorkbookUtils.getRows(sheet)
+            .filter(WorkbookUtils::isNotFirstRow)
+            .filter(WorkbookUtils::isNotEmptyRow)
+            .map(row -> row.getCell(column, CREATE_NULL_AS_BLANK))
+            .filter(cell -> WorkbookUtils.isCellNotEmpty(cell))
             .collect(Collectors.toList());
     }
 }

@@ -8,6 +8,7 @@
 package org.dspace.layout.factory.impl;
 
 import org.dspace.layout.factory.CrisLayoutServiceFactory;
+import org.dspace.layout.script.validator.CrisLayoutToolValidator;
 import org.dspace.layout.service.CrisLayoutBoxService;
 import org.dspace.layout.service.CrisLayoutFieldService;
 import org.dspace.layout.service.CrisLayoutMetadataGroupService;
@@ -42,6 +43,9 @@ public class CrisLayoutServiceFactoryImpl extends CrisLayoutServiceFactory {
     @Autowired(required = true)
     private CrisLayoutSectionService sectionService;
 
+    @Autowired(required = true)
+    private CrisLayoutToolValidator validator;
+
     @Override
     public CrisLayoutTabService getTabService() {
         return this.tabService;
@@ -70,6 +74,11 @@ public class CrisLayoutServiceFactoryImpl extends CrisLayoutServiceFactory {
     @Override
     public CrisLayoutSectionService getSectionService() {
         return sectionService;
+    }
+
+    @Override
+    public CrisLayoutToolValidator getCrisLayoutToolValidator() {
+        return validator;
     }
 
 }
