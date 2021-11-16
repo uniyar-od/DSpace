@@ -96,7 +96,7 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
         if (StringUtils.isBlank(registrationRest.getEmail())) {
             throw new UnprocessableEntityException("The email cannot be omitted from the Registration endpoint");
         }
-        if (Objects.nonNull(registrationRest.getGroups())) {
+        if (Objects.nonNull(registrationRest.getGroups()) && registrationRest.getGroups().size() > 0) {
             try {
                 if (Objects.isNull(context.getCurrentUser())
                     || (!authorizeService.isAdmin(context)
