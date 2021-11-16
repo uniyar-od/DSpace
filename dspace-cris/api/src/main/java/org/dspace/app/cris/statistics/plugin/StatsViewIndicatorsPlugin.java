@@ -107,7 +107,7 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
 	                    QueryResponse qr = statsService.query("search.uniqueid:"+ resourceTypeId+"-"+resourceId,  Integer.MAX_VALUE);
 	                    url =  baseItemURL+ uuid;
 	                    remark.put("link", url);
-	                    buildIndicator(pService, applicationService,
+	                    buildIndicator(context, pService, applicationService,
 	                            uuid, resourceType, resourceId,
 	                            qr.getResults().getNumFound(),
 	                            ConstantMetrics.STATS_INDICATOR_TYPE_VIEW,
@@ -116,7 +116,7 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
 	                    qr = statsService.query(joinQuery+ "search.resourceid:"+resourceId+" AND -withdrawn:true",  Integer.MAX_VALUE);
 	                    remark.clear();
 	                    remark.put("link", url +"&amp;type=bitstream" );
-	                    buildIndicator(pService, applicationService,
+	                    buildIndicator(context, pService, applicationService,
 	                            uuid, resourceType, resourceId,
 	                            qr.getResults().getNumFound(),
 	                            ConstantMetrics.STATS_INDICATOR_TYPE_DOWNLOAD,
@@ -139,7 +139,7 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
                     	url = baseCRISURL + publicPath  + ".html?id="+ resourceId;
 	                    remark.put("link", url);
 	                    QueryResponse qr = statsService.query(resourceTypeId+"-"+resourceId,  Integer.MAX_VALUE);
-	                    buildIndicator(pService, applicationService,
+	                    buildIndicator(context, pService, applicationService,
 	                            uuid, resourceType, resourceId,
 	                            qr.getResults().getNumFound(),
 	                            ConstantMetrics.STATS_INDICATOR_TYPE_VIEW,
@@ -148,7 +148,7 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
                         remark.put("link", url+"&amp;type=bitstream");
                         
                         qr = statsService.query(resourceTypeId+"-"+resourceId, "sectionid:*", null,0, Integer.MAX_VALUE, null, null, null, null, null, false);
-                        buildIndicator(pService, applicationService,
+                        buildIndicator(context, pService, applicationService,
                                 uuid, resourceType, resourceId,
                                 qr.getResults().getNumFound(),
                                 ConstantMetrics.STATS_INDICATOR_TYPE_DOWNLOAD,

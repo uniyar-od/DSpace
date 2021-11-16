@@ -91,11 +91,16 @@ public class MetricsPersistenceService extends PersistenceService
         return metricsDao.uniqueLastMetricByResourceIdAndResourceTypeIdAndMetricsType(resourceID, resourceTypeId, metricsType);
     }
     
-    public List<CrisMetrics> getLastMetricByResourceIDAndResourceTypeAndMetricsTypes(Integer resourceID, Integer resourceTypeId, List<String> metricsTypes)
+    public List<CrisMetrics> findLastMetricByResourceIDAndResourceTypeAndMetricsTypes(UUID resourceID, Integer resourceTypeId, List<String> metricsTypes)
     {
         return metricsDao.findLastMetricByResourceIdAndResourceTypeIdAndMetricsTypes(resourceID, resourceTypeId, metricsTypes);
     }
 
+    public List<CrisMetrics> findAllLastMetricByResourceIDAndResourceType(UUID resourceID, Integer resourceTypeId)
+    {
+        return metricsDao.findAllLastMetricByResourceIDAndResourceType(resourceID, resourceTypeId);
+    }
+    
     @Override
     public <T extends Identifiable> void saveOrUpdate(Class<T> modelClass, T transientObject) {
     	if (modelClass.isAssignableFrom(CrisMetrics.class)) {
@@ -114,5 +119,10 @@ public class MetricsPersistenceService extends PersistenceService
 			throw new RuntimeException(e.getMessage(), e);
 		}
 		
+	}
+	
+	public void deleteAllMetricsByResourceIdAndResourceTypeAndMetricsType(UUID resourceID, Integer resourceType, String metricsType1, String metricsType2)
+	{
+		metricsDao.deleteAllMetricsByResourceIdAndResourceTypeAndMetricsType(resourceID, resourceType, metricsType1, metricsType2);
 	}
 }

@@ -307,6 +307,7 @@ authentication-oauth.application-client-name=
 cris.ametrics.elsevier.scopus.enabled = false
 cris.ametrics.elsevier.scopus.endpoint = https://api.elsevier.com/content/search/scopus
 cris.ametrics.elsevier.scopus.apikey = 
+cris.ametrics.elsevier.scopus.insttoken =
 ### Article Match Retrieval (AMR) http://wokinfo.com/directlinks/amrfaq/ ###
 cris.ametrics.thomsonreuters.wos.enabled = false
 cris.ametrics.thomsonreuters.wos.endpoint = https://ws.isiknowledge.com/cps/xrpc
@@ -433,3 +434,6 @@ assetstore.s3.awsSecretKey =
 assetstore.s3.awsRegionName =
 
 sherpa.romeo.apikey = 
+
+wos.metrics.username =
+wos.metrics.password =

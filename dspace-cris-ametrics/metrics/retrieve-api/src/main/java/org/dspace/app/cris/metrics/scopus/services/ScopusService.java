@@ -7,6 +7,8 @@
  */
 package org.dspace.app.cris.metrics.scopus.services;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,6 +21,7 @@ import org.apache.http.config.SocketConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.app.cris.metrics.scopus.dto.ScopusResponse;
@@ -73,6 +76,7 @@ public class ScopusService {
 
 		String endpoint = ConfigurationManager.getProperty("cris", "ametrics.elsevier.scopus.endpoint");
 		String apiKey = ConfigurationManager.getProperty("cris", "ametrics.elsevier.scopus.apikey");
+		String token = ConfigurationManager.getProperty("cris", "ametrics.elsevier.scopus.insttoken");
 
 		HttpGet method = null;
 		ScopusResponse scopusResponse = null;
@@ -115,20 +119,25 @@ public class ScopusService {
 
 				method.addHeader("Accept", "application/xml");
 				method.addHeader("X-ELS-APIKey", apiKey);
+				if(StringUtils.isNotBlank(token)) {
+					method.addHeader("X-ELS-Insttoken",token);
+				}
 
 				// Execute the method.
 				HttpResponse response = client.execute(method);
 				int statusCode = response.getStatusLine().getStatusCode();
 				HttpEntity responseBody = response.getEntity();
+				String body = EntityUtils.toString(responseBody);
 
 				if (statusCode != HttpStatus.SC_OK) {
 					scopusResponse = new ScopusResponse("Scopus return not OK status: " + statusCode, ConstantMetrics.STATS_INDICATOR_TYPE_ERROR);
 				} else if (null != responseBody) {
                     if (log.isDebugEnabled())
                     {                      
-                        log.debug(responseBody.getContent());
+                        log.debug(body);
                     }
-					scopusResponse = new ScopusResponse(responseBody.getContent());
+                    InputStream is = new ByteArrayInputStream(body.getBytes());
+					scopusResponse = new ScopusResponse(is);
 				} else {
 					scopusResponse = new ScopusResponse("Scopus returned no response", ConstantMetrics.STATS_INDICATOR_TYPE_ERROR);
 				}

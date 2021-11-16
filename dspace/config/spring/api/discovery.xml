@@ -93,6 +93,11 @@
 			
 	<!--  Additional indexing plugin to index multilanguage for authority field -->
 	<bean id="ownerAuthorityIndexer" class="org.dspace.app.cris.discovery.OwnerRPAuthorityIndexer"/>
+	
+	<!--  Additional indexing plugin to index cris metrics additional info -->
+	<bean id="crisMetricsIndexer" class="org.dspace.app.webui.discovery.CrisMetricsIndexPlugin">
+		<property name="metricsPersistenceService" ref="org.dspace.app.cris.metrics.common.services.MetricsPersistenceService" />
+	</bean>
 					
 	<!--Bean that is used for mapping communities/collections to certain discovery 
 		configurations. -->
