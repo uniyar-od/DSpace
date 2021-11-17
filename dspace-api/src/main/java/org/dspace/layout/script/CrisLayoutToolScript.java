@@ -10,6 +10,7 @@ package org.dspace.layout.script;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
@@ -17,14 +18,18 @@ import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.factory.CrisLayoutServiceFactory;
-import org.dspace.layout.script.validator.CrisLayoutToolValidationResult;
-import org.dspace.layout.script.validator.CrisLayoutToolValidator;
+import org.dspace.layout.script.service.CrisLayoutToolParser;
+import org.dspace.layout.script.service.CrisLayoutToolValidationResult;
+import org.dspace.layout.script.service.CrisLayoutToolValidator;
+import org.dspace.layout.service.CrisLayoutTabService;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
 
@@ -38,7 +43,11 @@ public class CrisLayoutToolScript extends DSpaceRunnable<CrisLayoutToolScriptCon
 
     private AuthorizeService authorizeService;
 
+    private CrisLayoutTabService tabService;
+
     private CrisLayoutToolValidator validator;
+
+    private CrisLayoutToolParser parser;
 
     private String filename;
 
@@ -49,6 +58,8 @@ public class CrisLayoutToolScript extends DSpaceRunnable<CrisLayoutToolScriptCon
 
         this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
         this.validator = CrisLayoutServiceFactory.getInstance().getCrisLayoutToolValidator();
+        this.parser = CrisLayoutServiceFactory.getInstance().getCrisLayoutToolParser();
+        this.tabService = CrisLayoutServiceFactory.getInstance().getTabService();
 
         filename = commandLine.getOptionValue('f');
     }
@@ -82,6 +93,9 @@ public class CrisLayoutToolScript extends DSpaceRunnable<CrisLayoutToolScriptCon
     private void performImport(InputStream inputStream) {
         Workbook workbook = createWorkbook(inputStream);
         validateWorkbook(workbook);
+        List<CrisLayoutTab> tabs = parser.parse(context, workbook);
+        cleanUpLayout();
+        tabs.forEach(this::importTab);
     }
 
     private Workbook createWorkbook(InputStream is) {
@@ -100,6 +114,19 @@ public class CrisLayoutToolScript extends DSpaceRunnable<CrisLayoutToolScriptCon
         } else {
             validationResult.getWarnings().forEach(handler::logWarning);
             handler.logInfo("The given workbook is valid. Proceed with the import");
+        }
+    }
+
+    private void cleanUpLayout() {
+        // TODO Auto-generated method stub
+
+    }
+
+    private void importTab(CrisLayoutTab tab) {
+        try {
+            this.tabService.create(context, tab);
+        } catch (SQLException | AuthorizeException e) {
+            throw new RuntimeException(e);
         }
     }
 

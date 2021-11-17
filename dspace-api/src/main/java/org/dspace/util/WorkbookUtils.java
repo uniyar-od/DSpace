@@ -92,6 +92,11 @@ public final class WorkbookUtils {
         return getCellValue(cell);
     }
 
+    public static String getCellValue(Row row, String headerName) {
+        int headerIndex = getCellIndexFromHeaderName(row.getSheet(), headerName);
+        return headerIndex != -1 ? getCellValue(row.getCell(headerIndex)) : null;
+    }
+
     public static String getCellValue(Cell cell) {
         if (cell == null) {
             return "";
@@ -119,5 +124,17 @@ public final class WorkbookUtils {
             .map(row -> row.getCell(column, CREATE_NULL_AS_BLANK))
             .filter(cell -> WorkbookUtils.isCellNotEmpty(cell))
             .collect(Collectors.toList());
+    }
+
+    public static int getCellIndexFromHeaderName(Sheet sheet, String headerName) {
+        Row row = sheet.getRow(0);
+        if (row == null) {
+            return -1;
+        }
+
+        return WorkbookUtils.getCells(row)
+            .filter(cell -> headerName.equals(WorkbookUtils.getCellValue(cell)))
+            .map(cell -> cell.getColumnIndex())
+            .findFirst().orElse(-1);
     }
 }

@@ -5,9 +5,10 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.layout.script.validator;
+package org.dspace.layout.script.service.impl;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.dspace.util.WorkbookUtils.getCellIndexFromHeaderName;
 import static org.dspace.util.WorkbookUtils.getCellValue;
 import static org.dspace.util.WorkbookUtils.getColumnWithoutHeader;
 import static org.dspace.util.WorkbookUtils.getNotEmptyRowsSkippingHeader;
@@ -30,6 +31,8 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.layout.CrisLayoutBoxTypes;
+import org.dspace.layout.script.service.CrisLayoutToolValidationResult;
+import org.dspace.layout.script.service.CrisLayoutToolValidator;
 import org.dspace.util.WorkbookUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -70,14 +73,14 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             return;
         }
 
-        int entityTypeColumn = getCellIndex(tabSheet, ENTITY_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(tabSheet, ENTITY_COLUMN);
         if (entityTypeColumn != -1) {
             validateEntityTypes(result, tabSheet, entityTypeColumn, allEntityTypes);
         } else {
             result.addError("The sheet " + TAB_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
 
-        int shortnameColumn = getCellIndex(tabSheet, SHORTNAME_COLUMN);
+        int shortnameColumn = getCellIndexFromHeaderName(tabSheet, SHORTNAME_COLUMN);
         if (shortnameColumn == -1) {
             result.addError("The sheet " + TAB_SHEET + " has no " + SHORTNAME_COLUMN + " column");
         }
@@ -97,21 +100,21 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             return;
         }
 
-        int typeColumn = getCellIndex(boxSheet, TYPE_COLUMN);
+        int typeColumn = getCellIndexFromHeaderName(boxSheet, TYPE_COLUMN);
         if (typeColumn != -1) {
             validateBoxTypes(result, boxSheet, typeColumn);
         } else {
             result.addError("The sheet " + BOX_SHEET + " has no " + TYPE_COLUMN + " column");
         }
 
-        int entityTypeColumn = getCellIndex(boxSheet, ENTITY_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(boxSheet, ENTITY_COLUMN);
         if (entityTypeColumn != -1) {
             validateEntityTypes(result, boxSheet, entityTypeColumn, allEntityTypes);
         } else {
             result.addError("The sheet " + BOX_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
 
-        int shortnameColumn = getCellIndex(boxSheet, SHORTNAME_COLUMN);
+        int shortnameColumn = getCellIndexFromHeaderName(boxSheet, SHORTNAME_COLUMN);
         if (shortnameColumn == -1) {
             result.addError("The sheet " + BOX_SHEET + " has no " + SHORTNAME_COLUMN + " column");
         }
@@ -130,15 +133,15 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             return;
         }
 
-        if (getCellIndex(tab2boxSheet, ENTITY_COLUMN) == -1) {
+        if (getCellIndexFromHeaderName(tab2boxSheet, ENTITY_COLUMN) == -1) {
             result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + ENTITY_COLUMN + " column");
         }
 
-        if (getCellIndex(tab2boxSheet, TAB_COLUMN) == -1) {
+        if (getCellIndexFromHeaderName(tab2boxSheet, TAB_COLUMN) == -1) {
             result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + TAB_COLUMN + " column");
         }
 
-        if (getCellIndex(tab2boxSheet, BOXES_COLUMN) == -1) {
+        if (getCellIndexFromHeaderName(tab2boxSheet, BOXES_COLUMN) == -1) {
             result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + BOXES_COLUMN + " column");
         }
 
@@ -155,26 +158,26 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             return;
         }
 
-        int fieldTypeColumn = getCellIndex(box2metadataSheet, FIELD_TYPE_COLUMN);
+        int fieldTypeColumn = getCellIndexFromHeaderName(box2metadataSheet, FIELD_TYPE_COLUMN);
         if (fieldTypeColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + FIELD_TYPE_COLUMN + " column");
         } else {
             validateBox2MetadataFieldTypes(box2metadataSheet, result, fieldTypeColumn);
         }
 
-        int metadataColumn = getCellIndex(box2metadataSheet, METADATA_COLUMN);
+        int metadataColumn = getCellIndexFromHeaderName(box2metadataSheet, METADATA_COLUMN);
         if (metadataColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + METADATA_COLUMN + " column");
         } else {
             validateBox2MetadataFields(context, box2metadataSheet, result, metadataColumn);
         }
 
-        int entityTypeColumn = getCellIndex(box2metadataSheet, ENTITY_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(box2metadataSheet, ENTITY_COLUMN);
         if (entityTypeColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
 
-        int boxColumn = getCellIndex(box2metadataSheet, BOX_COLUMN);
+        int boxColumn = getCellIndexFromHeaderName(box2metadataSheet, BOX_COLUMN);
         if (boxColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + BOX_COLUMN + " column");
         }
@@ -187,12 +190,12 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private void validateBox2MetadataFieldTypes(Sheet sheet, CrisLayoutToolValidationResult result, int typeColumn) {
 
-        int bundleColumn = getCellIndex(sheet, BUNDLE_COLUMN);
+        int bundleColumn = getCellIndexFromHeaderName(sheet, BUNDLE_COLUMN);
         if (bundleColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + BUNDLE_COLUMN + " column");
         }
 
-        int valueColumn = getCellIndex(sheet, VALUE_COLUMN);
+        int valueColumn = getCellIndexFromHeaderName(sheet, VALUE_COLUMN);
         if (valueColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + VALUE_COLUMN + " column");
         }
@@ -259,9 +262,9 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private void validateTab2BoxRowsReferences(Sheet tab2boxSheet, CrisLayoutToolValidationResult result) {
 
-        int entityTypeColumn = getCellIndex(tab2boxSheet, ENTITY_COLUMN);
-        int tabColumn = getCellIndex(tab2boxSheet, TAB_COLUMN);
-        int boxesColumn = getCellIndex(tab2boxSheet, BOXES_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(tab2boxSheet, ENTITY_COLUMN);
+        int tabColumn = getCellIndexFromHeaderName(tab2boxSheet, TAB_COLUMN);
+        int boxesColumn = getCellIndexFromHeaderName(tab2boxSheet, BOXES_COLUMN);
 
         if (entityTypeColumn != -1 && tabColumn != -1 && boxesColumn != -1) {
             getNotEmptyRowsSkippingHeader(tab2boxSheet)
@@ -318,20 +321,20 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private void validateTab2BoxRowsStyle(Sheet tab2boxSheet, CrisLayoutToolValidationResult result) {
 
-        int rowStyleColumn = getCellIndex(tab2boxSheet, ROW_STYLE_COLUMN);
+        int rowStyleColumn = getCellIndexFromHeaderName(tab2boxSheet, ROW_STYLE_COLUMN);
         if (rowStyleColumn == -1) {
             result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + ROW_STYLE_COLUMN + " column");
             return;
         }
 
-        int rowColumn = getCellIndex(tab2boxSheet, ROW_COLUMN);
+        int rowColumn = getCellIndexFromHeaderName(tab2boxSheet, ROW_COLUMN);
         if (rowColumn == -1) {
             result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + ROW_COLUMN + " column");
             return;
         }
 
-        int entityTypeColumn = getCellIndex(tab2boxSheet, ENTITY_COLUMN);
-        int tabColumn = getCellIndex(tab2boxSheet, TAB_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(tab2boxSheet, ENTITY_COLUMN);
+        int tabColumn = getCellIndexFromHeaderName(tab2boxSheet, TAB_COLUMN);
         if (entityTypeColumn == -1 || tabColumn == -1) {
             return;
         }
@@ -372,10 +375,10 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private List<Integer> findSameRowsWithDifferentStyle(Sheet sheet, String entity,
         String tab, String row, String style, int excelRowNum) {
-        int rowStyleColumn = getCellIndex(sheet, ROW_STYLE_COLUMN);
-        int entityTypeColumn = getCellIndex(sheet, ENTITY_COLUMN);
-        int tabColumn = getCellIndex(sheet, TAB_COLUMN);
-        int rowColumn = getCellIndex(sheet, ROW_COLUMN);
+        int rowStyleColumn = getCellIndexFromHeaderName(sheet, ROW_STYLE_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(sheet, ENTITY_COLUMN);
+        int tabColumn = getCellIndexFromHeaderName(sheet, TAB_COLUMN);
+        int rowColumn = getCellIndexFromHeaderName(sheet, ROW_COLUMN);
         return getNotEmptyRowsSkippingHeader(sheet).stream()
             .filter(sheetRow -> excelRowNum != sheetRow.getRowNum())
             .filter(sheetRow -> isNotBlank(getCellValue(sheetRow, rowStyleColumn)))
@@ -393,8 +396,8 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             return false;
         }
 
-        int entityTypeColumn = getCellIndex(sheet, ENTITY_COLUMN);
-        int shortnameColumn = getCellIndex(sheet, SHORTNAME_COLUMN);
+        int entityTypeColumn = getCellIndexFromHeaderName(sheet, ENTITY_COLUMN);
+        int shortnameColumn = getCellIndexFromHeaderName(sheet, SHORTNAME_COLUMN);
         if (entityTypeColumn == -1 || shortnameColumn == -1) {
             // Return false to avoid many validation error if one of the two columns is
             // missing
@@ -407,8 +410,8 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private boolean isNotPresentOnTab2Box(Sheet tab2boxSheet, String columnName, String entityType, String shortname) {
 
-        int entityTypeColumn = getCellIndex(tab2boxSheet, ENTITY_COLUMN);
-        int nameColumn = getCellIndex(tab2boxSheet, columnName);
+        int entityTypeColumn = getCellIndexFromHeaderName(tab2boxSheet, ENTITY_COLUMN);
+        int nameColumn = getCellIndexFromHeaderName(tab2boxSheet, columnName);
         if (entityTypeColumn == -1 || nameColumn == -1) {
             // Return false to avoid many validation error if one of the two columns is
             // missing
@@ -469,18 +472,6 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
-    }
-
-    private int getCellIndex(Sheet sheet, String name) {
-        Row row = sheet.getRow(0);
-        if (row == null) {
-            return -1;
-        }
-
-        return WorkbookUtils.getCells(row)
-            .filter(cell -> name.equals(WorkbookUtils.getCellValue(cell)))
-            .map(cell -> cell.getColumnIndex())
-            .findFirst().orElse(-1);
     }
 
     public boolean isNotInteger(String number) {

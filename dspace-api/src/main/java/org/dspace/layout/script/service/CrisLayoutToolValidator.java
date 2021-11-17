@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.layout.script.validator;
+package org.dspace.layout.script.service;
 
 import java.util.List;
 
@@ -29,8 +29,30 @@ public interface CrisLayoutToolValidator {
 
     String BOX2METADATA_SHEET = "box2metadata";
 
+    String BOX2METRICS_SHEET = "box2metrics";
+
+    String TAB_POLICY_SHEET = "tabpolicy";
+
+    String BOX_POLICY_SHEET = "boxpolicy";
+
+
+    String CONTAINER_COLUMN = "CONTAINER";
+
+    String MINOR_COLUMN = "MINOR";
+
+    String STYLE_COLUMN = "STYLE";
+
+    String COLLAPSED_COLUMN = "COLLAPSED";
 
     String ENTITY_COLUMN = "ENTITY";
+
+    String HEADER_COLUMN = "LABEL";
+
+    String LEADING_COLUMN = "LEADING";
+
+    String PRIORITY_COLUMN = "PRIORITY";
+
+    String SECURITY_COLUMN = "SECURITY";
 
     String TYPE_COLUMN = "TYPE";
 
@@ -39,6 +61,8 @@ public interface CrisLayoutToolValidator {
     String BOX_COLUMN = "BOX";
 
     String BOXES_COLUMN = "BOXES";
+
+    String CELL_STYLE_COLUMN = "CELL-STYLE";
 
     String ROW_STYLE_COLUMN = "ROW-STYLE";
 
@@ -53,6 +77,8 @@ public interface CrisLayoutToolValidator {
     String VALUE_COLUMN = "VALUE";
 
     String BUNDLE_COLUMN = "BUNDLE";
+
+    String METRIC_TYPE_COLUMN = "METRIC_TYPE";
 
 
     String METADATA_TYPE = "METADATA";

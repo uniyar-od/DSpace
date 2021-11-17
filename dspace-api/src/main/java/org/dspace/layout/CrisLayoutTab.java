@@ -166,6 +166,10 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
         this.security = security.getValue();
     }
 
+    public void setSecurity(Integer security) {
+        this.security = security;
+    }
+
     public Set<MetadataField> getMetadataSecurityFields() {
         return metadataSecurityFields;
     }
@@ -196,10 +200,6 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
 
     public List<CrisLayoutRow> getRows() {
         return rows;
-    }
-
-    public void setRows(List<CrisLayoutRow> rows) {
-        this.rows = rows;
     }
 
     public List<CrisLayoutBox> getBoxes() {

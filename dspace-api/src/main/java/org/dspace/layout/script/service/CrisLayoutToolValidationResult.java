@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.layout.script.validator;
+package org.dspace.layout.script.service;
 
 import java.util.ArrayList;
 import java.util.Collections;
