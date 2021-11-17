@@ -697,7 +697,7 @@ public class SolrImportExport
 	 */
 	private static String makeSolrUrl(String indexName)
 	{
-		if (indexName.startsWith("statistics"))
+		if (indexName.endsWith("statistics"))
 		{
 			// TODO account for year shards properly?
 			return ConfigurationManager.getProperty("solr-statistics", "server") + indexName.replaceFirst("statistics", "");
