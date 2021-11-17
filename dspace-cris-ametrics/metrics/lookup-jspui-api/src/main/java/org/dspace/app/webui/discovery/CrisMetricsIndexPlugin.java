@@ -38,6 +38,9 @@ public class CrisMetricsIndexPlugin implements CrisServiceIndexPlugin,
         SolrServiceIndexPlugin
 {
 
+    private static final String placeholder = "crismetrics";
+    private static final String separator = "_";
+    
     private static final Logger log = Logger
             .getLogger(CrisMetricsIndexPlugin.class);
 
@@ -56,8 +59,6 @@ public class CrisMetricsIndexPlugin implements CrisServiceIndexPlugin,
     {
         List<CrisMetrics> metrics = metricsPersistenceService.findAllLastMetricByResourceIDAndResourceType(uuid, type);
         for(CrisMetrics metric : metrics) {
-            String placeholder = "crismetrics";
-            String separator = "_";
             String metrictype = metric.getMetricType();  
             document.addField(placeholder+separator+metrictype, metric.getMetricCount());
             if (StringUtils.isNotBlank(metric.getRemark()))

@@ -75,7 +75,7 @@ public abstract class AStatsIndicatorsPlugin implements StatsIndicatorsPlugin
         indicator.setStartDate(startDate);
         indicator.setEndDate(endDate);
         indicator.setMetricType(metricsType);
-
+        
         indicator.setContext(context);
         pService.saveOrUpdate(CrisMetrics.class, indicator);
     }

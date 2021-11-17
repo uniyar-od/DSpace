@@ -107,7 +107,7 @@ public class MetricsItemHomeProcessor implements ItemHomeProcessor {
 						}
 					}
 				}
-				dto.moreLink=(String) doc.getFieldValue(t+fieldSuffix+"remark");
+				dto.moreLink=(String) doc.getFieldValue(t+ConstantMetrics.SEPARATOR_FIELD+"remark"+fieldSuffix);
 				metricsList.add(dto);
 			}
 		

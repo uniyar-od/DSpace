@@ -74,7 +74,7 @@ public class CrisMetrics implements Identifiable, HasTimeStampInfo
     private Integer resourceTypeId;
     
     private boolean last;
-
+    
     @Transient
     private Context context;
 
