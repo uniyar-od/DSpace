@@ -7,8 +7,10 @@
  */
 package org.dspace.app.cris.metrics.wos.services;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.util.List;
 
 import org.apache.http.HttpEntity;
@@ -25,6 +27,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.CharsetUtils;
+import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.app.cris.metrics.wos.dto.WosResponse;
@@ -122,15 +125,17 @@ public class WosService {
 		        
 				int statusCode = response.getStatusLine().getStatusCode();
 				HttpEntity responseBody = response.getEntity();
+				String body = EntityUtils.toString(responseBody);
 
 				if (statusCode != HttpStatus.SC_OK) {
 					wosResponse = new WosResponse("WOS return not OK status: " + statusCode, ConstantMetrics.STATS_INDICATOR_TYPE_ERROR);
 				} else if (null != responseBody) {
                     if (log.isDebugEnabled())
                     {                      
-                        log.debug(responseBody.getContent());
+                        log.debug(body);
                     }
-					wosResponse = new WosResponse(responseBody.getContent());
+                    InputStream is = new ByteArrayInputStream(body.getBytes());
+					wosResponse = new WosResponse(is);
 				} else {
 					wosResponse = new WosResponse("WOS returned no response", ConstantMetrics.STATS_INDICATOR_TYPE_ERROR);
 				}

@@ -184,7 +184,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
     }
 
-    protected HttpSolrServer getSolr()
+    public HttpSolrServer getSolr()
     {
         if ( solr == null)
         {

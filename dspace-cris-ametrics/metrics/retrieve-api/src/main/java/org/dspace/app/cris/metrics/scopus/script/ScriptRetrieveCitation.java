@@ -201,9 +201,10 @@ public class ScriptRetrieveCitation {
 							}
 						}
 					}
+					context.uncacheEntity((Item) dso);
 				}
 
-				context.commit();
+				
 			}
 			Date endDate = new Date();
 			long processTime = (endDate.getTime() - startDate.getTime()) / 1000;

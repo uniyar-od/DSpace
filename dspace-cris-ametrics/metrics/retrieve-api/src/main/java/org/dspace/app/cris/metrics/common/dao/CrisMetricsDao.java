@@ -24,6 +24,11 @@ public interface CrisMetricsDao extends PaginableObjectDao<CrisMetrics, Integer>
     public CrisMetrics uniqueLastMetricByResourceIdAndResourceTypeIdAndMetricsType(UUID resourceID, Integer resourceTypeId, String metricsType);
 
     public List<CrisMetrics> findLastMetricByResourceIdAndResourceTypeIdAndMetricsTypes(
-            Integer resourceID, Integer resourceTypeId,
+            UUID resourceID, Integer resourceTypeId,
             List<String> metricsTypes);
+    
+    public List<CrisMetrics> findAllLastMetricByResourceIDAndResourceType(UUID resourceID, Integer resourceTypeId);
+    
+    public void deleteAllMetricsByResourceIdAndResourceTypeAndMetricsType(UUID resourceID, Integer resourceType, String metricsType1, String metricsType2);
+    
 }

@@ -35,6 +35,11 @@
 					</entry>
 				</map>
 			</property>		
+			<property name="listenerOnPostUpdate">
+				<list>
+					<ref local="CrisMetricsListener" />								
+				</list>
+			</property>					
 			</bean>
 		</property>
 	</bean>
@@ -132,4 +137,8 @@
         <property name="sleepBetweenEachCall" value="1000" />        
         <property name="timeout" value="5000" />
     </bean>    
+    
+	<bean id="CrisMetricsListener" class="org.dspace.app.cris.model.listener.CrisMetricsListener">
+		<property name="searchService" ref="org.dspace.discovery.SearchService" />
+	</bean>        
 </beans>

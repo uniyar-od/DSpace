@@ -119,14 +119,14 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
             }
 
             Date timestamp = new Date();
-            buildIndicator(pService, applicationService, rp.getUuid(), rp.getType(),
-                    rp.getID(), citations,
-                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AGGREGATE,
-                    null, timestamp, null);
-            buildIndicator(pService, applicationService, rp.getUuid(), rp.getType(),
-                    rp.getID(), itemsCited,
-                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT,
-                    null, timestamp, null);
+            buildIndicator(context, pService, applicationService, rp.getUuid(),
+                    rp.getType(), rp.getID(),
+                    citations,
+                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AGGREGATE, null, timestamp, null);
+            buildIndicator(context, pService, applicationService, rp.getUuid(),
+                    rp.getType(), rp.getID(),
+                    itemsCited,
+                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT, null, timestamp, null);
             
             if (buildMath)
             {
@@ -141,22 +141,22 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
                     Arrays.sort(elementsArray);
                     median = IndicatorsUtils.median(elementsArray);
 
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getID(), average,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE,
-                            null, timestamp, null);
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getID(), max,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX,
-                            null, timestamp, null);
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getID(), min,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN,
-                            null, timestamp, null);
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getID(), median,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN,
-                            null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            average,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE, null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            max,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX, null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            min,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN, null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            median,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN, null, timestamp, null);
                 }
             }
         }
