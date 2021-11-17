@@ -309,6 +309,9 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 		        conn = DriverManager.getConnection(dbprops.get("database.url"),
 		                dbprops.get("database.username"),
 		                dbprops.get("database.password"));
+		        String schema=dbprops.get("database.schema");
+		        if(StringUtils.isNotBlank(schema))
+		        	conn.setSchema(schema);
 		        ps = conn.prepareStatement(
 		                "select resourceid, resourcetypeid, metrictype, remark, metriccount, timestampcreated, startdate, enddate from cris_metrics where last = true");
 		        rs = ps.executeQuery();
