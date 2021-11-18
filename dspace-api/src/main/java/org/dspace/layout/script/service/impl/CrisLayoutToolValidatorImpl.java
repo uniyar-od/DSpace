@@ -16,6 +16,7 @@ import static org.dspace.util.WorkbookUtils.getNotEmptyRowsSkippingHeader;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -29,6 +30,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.dspace.content.service.EntityTypeService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
+import org.dspace.core.ReloadableEntity;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.script.service.CrisLayoutToolValidationResult;
@@ -54,35 +56,48 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
     public CrisLayoutToolValidationResult validate(Context context, Workbook workbook) {
 
         List<String> allEntityTypes = getAllEntityTypes(context);
+        List<String> allMetadataFields = getAllMetadataFields(context);
 
         CrisLayoutToolValidationResult result = new CrisLayoutToolValidationResult();
-        validateTabSheet(context, workbook, result, allEntityTypes);
-        validateBoxSheet(context, workbook, result, allEntityTypes);
-        validateTab2BoxSheet(context, workbook, result);
-        validateBox2MetadataSheet(context, workbook, result);
+
+        validateTabSheet(workbook, result, allEntityTypes);
+        validateBoxSheet(workbook, result, allEntityTypes);
+        validateTab2BoxSheet(workbook, result);
+        validateBox2MetadataSheet(allMetadataFields, workbook, result);
+        validateMetadataGroupsSheet(allMetadataFields, workbook, result);
+        validateBox2MetricsSheet(workbook, result);
+        validateBoxPolicySheet(allMetadataFields, workbook, result);
+        validateTabPolicySheet(allMetadataFields, workbook, result);
 
         return result;
     }
 
-    private void validateTabSheet(Context context, Workbook workbook, CrisLayoutToolValidationResult result,
-        List<String> allEntityTypes) {
+    private void validateTabSheet(Workbook workbook, CrisLayoutToolValidationResult result, List<String> entityTypes) {
 
         Sheet tabSheet = workbook.getSheet(TAB_SHEET);
         if (tabSheet == null) {
-            result.addError("The " + TAB_SHEET + " is missing");
+            result.addError("The " + TAB_SHEET + " sheet is missing");
             return;
         }
 
         int entityTypeColumn = getCellIndexFromHeaderName(tabSheet, ENTITY_COLUMN);
         if (entityTypeColumn != -1) {
-            validateEntityTypes(result, tabSheet, entityTypeColumn, allEntityTypes);
+            validateEntityTypes(result, tabSheet, entityTypeColumn, entityTypes);
         } else {
             result.addError("The sheet " + TAB_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
 
+        validateBooleanColumn(tabSheet, LEADING_COLUMN, result);
+        validateIntegerColumn(tabSheet, PRIORITY_COLUMN, result);
+        validateSecurityColumn(tabSheet, SECURITY_COLUMN, result);
+
         int shortnameColumn = getCellIndexFromHeaderName(tabSheet, SHORTNAME_COLUMN);
         if (shortnameColumn == -1) {
             result.addError("The sheet " + TAB_SHEET + " has no " + SHORTNAME_COLUMN + " column");
+        }
+
+        if (getCellIndexFromHeaderName(tabSheet, LABEL_COLUMN) == -1) {
+            result.addError("The sheet " + TAB_SHEET + " has no " + LABEL_COLUMN + " column");
         }
 
         if (entityTypeColumn != -1 && shortnameColumn != -1) {
@@ -91,12 +106,11 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
-    private void validateBoxSheet(Context context, Workbook workbook, CrisLayoutToolValidationResult result,
-        List<String> allEntityTypes) {
+    private void validateBoxSheet(Workbook workbook, CrisLayoutToolValidationResult result, List<String> entityTypes) {
 
         Sheet boxSheet = workbook.getSheet(BOX_SHEET);
         if (boxSheet == null) {
-            result.addError("The " + BOX_SHEET + " is missing");
+            result.addError("The " + BOX_SHEET + " sheet is missing");
             return;
         }
 
@@ -109,10 +123,15 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
         int entityTypeColumn = getCellIndexFromHeaderName(boxSheet, ENTITY_COLUMN);
         if (entityTypeColumn != -1) {
-            validateEntityTypes(result, boxSheet, entityTypeColumn, allEntityTypes);
+            validateEntityTypes(result, boxSheet, entityTypeColumn, entityTypes);
         } else {
             result.addError("The sheet " + BOX_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
+
+        validateBooleanColumn(boxSheet, COLLAPSED_COLUMN, result);
+        validateBooleanColumn(boxSheet, CONTAINER_COLUMN, result);
+        validateBooleanColumn(boxSheet, MINOR_COLUMN, result);
+        validateSecurityColumn(boxSheet, SECURITY_COLUMN, result);
 
         int shortnameColumn = getCellIndexFromHeaderName(boxSheet, SHORTNAME_COLUMN);
         if (shortnameColumn == -1) {
@@ -125,38 +144,36 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
-    private void validateTab2BoxSheet(Context context, Workbook workbook, CrisLayoutToolValidationResult result) {
+    private void validateTab2BoxSheet(Workbook workbook, CrisLayoutToolValidationResult result) {
 
         Sheet tab2boxSheet = workbook.getSheet(TAB2BOX_SHEET);
         if (tab2boxSheet == null) {
-            result.addError("The " + TAB2BOX_SHEET + " is missing");
+            result.addError("The " + TAB2BOX_SHEET + " sheet is missing");
             return;
         }
 
-        if (getCellIndexFromHeaderName(tab2boxSheet, ENTITY_COLUMN) == -1) {
-            result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + ENTITY_COLUMN + " column");
-        }
-
-        if (getCellIndexFromHeaderName(tab2boxSheet, TAB_COLUMN) == -1) {
-            result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + TAB_COLUMN + " column");
-        }
-
-        if (getCellIndexFromHeaderName(tab2boxSheet, BOXES_COLUMN) == -1) {
-            result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + BOXES_COLUMN + " column");
-        }
+        validateColumnsPresence(tab2boxSheet, result, ENTITY_COLUMN, TAB_COLUMN, BOXES_COLUMN);
 
         validateTab2BoxRowsReferences(tab2boxSheet, result);
         validateTab2BoxRowsStyle(tab2boxSheet, result);
 
     }
 
-    private void validateBox2MetadataSheet(Context context, Workbook workbook, CrisLayoutToolValidationResult result) {
+    private void validateBox2MetadataSheet(List<String> allMetadataFields,
+        Workbook workbook, CrisLayoutToolValidationResult result) {
 
         Sheet box2metadataSheet = workbook.getSheet(BOX2METADATA_SHEET);
         if (box2metadataSheet == null) {
-            result.addError("The " + BOX2METADATA_SHEET + " is missing");
+            result.addError("The " + BOX2METADATA_SHEET + " sheet is missing");
             return;
         }
+
+        validateIntegerColumn(box2metadataSheet, ROW_COLUMN, result);
+
+        validateBooleanColumn(box2metadataSheet, LABEL_AS_HEADING_COLUMN, result);
+        validateBooleanColumn(box2metadataSheet, VALUES_INLINE_COLUMN, result);
+
+        validateColumnsPresence(box2metadataSheet, result, BUNDLE_COLUMN, VALUE_COLUMN);
 
         int fieldTypeColumn = getCellIndexFromHeaderName(box2metadataSheet, FIELD_TYPE_COLUMN);
         if (fieldTypeColumn == -1) {
@@ -169,7 +186,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         if (metadataColumn == -1) {
             result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + METADATA_COLUMN + " column");
         } else {
-            validateBox2MetadataFields(context, box2metadataSheet, result, metadataColumn);
+            validateMetadataFields(allMetadataFields, box2metadataSheet, metadataColumn, result);
         }
 
         int entityTypeColumn = getCellIndexFromHeaderName(box2metadataSheet, ENTITY_COLUMN);
@@ -188,55 +205,128 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
-    private void validateBox2MetadataFieldTypes(Sheet sheet, CrisLayoutToolValidationResult result, int typeColumn) {
+    private void validateMetadataGroupsSheet(List<String> allMetadataFields,
+        Workbook workbook, CrisLayoutToolValidationResult result) {
 
-        int bundleColumn = getCellIndexFromHeaderName(sheet, BUNDLE_COLUMN);
-        if (bundleColumn == -1) {
-            result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + BUNDLE_COLUMN + " column");
+        Sheet metadataGroupsSheet = workbook.getSheet(METADATAGROUPS_SHEET);
+        if (metadataGroupsSheet == null) {
+            result.addError("The " + METADATAGROUPS_SHEET + " sheet is missing");
+            return;
         }
 
-        int valueColumn = getCellIndexFromHeaderName(sheet, VALUE_COLUMN);
-        if (valueColumn == -1) {
-            result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + VALUE_COLUMN + " column");
+        validateColumnsPresence(metadataGroupsSheet, result, ENTITY_COLUMN);
+
+        int metadataColumn = getCellIndexFromHeaderName(metadataGroupsSheet, METADATA_COLUMN);
+        if (metadataColumn == -1) {
+            result.addError("The sheet " + METADATAGROUPS_SHEET + " has no " + METADATA_COLUMN + " column");
+        } else {
+            validateMetadataFields(allMetadataFields, metadataGroupsSheet, metadataColumn, result);
         }
 
-        for (Row row : getNotEmptyRowsSkippingHeader(sheet)) {
-
-            String fieldType = getCellValue(row, typeColumn);
-            if (!ALLOWED_FIELD_TYPES.contains(fieldType)) {
-                result.addError("The " + sheet.getSheetName() + " contains an unknown field type" + fieldType
-                    + " at row " + row.getRowNum());
-            }
-
-            if (METADATA_TYPE.equals(fieldType) && bundleColumn != -1 && valueColumn != -1) {
-                String bundle = getCellValue(row, bundleColumn);
-                String value = getCellValue(row, valueColumn);
-                if (StringUtils.isNotBlank(bundle) || StringUtils.isNotBlank(value)) {
-                    result.addError("The " + sheet.getSheetName() + " contains a " + METADATA_TYPE + " field "
-                        + fieldType + " with " + BUNDLE_COLUMN + " or " + VALUE_COLUMN + " set at row "
-                        + row.getRowNum());
-                }
-            }
-
-            if (BITSTREAM_TYPE.equals(fieldType) && bundleColumn != -1) {
-                String bundle = getCellValue(row, bundleColumn);
-                if (StringUtils.isBlank(bundle)) {
-                    result.addError("The " + sheet.getSheetName() + " contains a " + BITSTREAM_TYPE + " field "
-                        + fieldType + " without " + BUNDLE_COLUMN + " at row " + row.getRowNum());
-                }
-            }
-
+        int parentColumn = getCellIndexFromHeaderName(metadataGroupsSheet, PARENT_COLUMN);
+        if (parentColumn == -1) {
+            result.addError("The sheet " + METADATAGROUPS_SHEET + " has no " + PARENT_COLUMN + " column");
+        } else {
+            validateMetadataFields(allMetadataFields, metadataGroupsSheet, parentColumn, result);
         }
 
     }
 
-    private void validateBox2MetadataFields(Context context, Sheet sheet, CrisLayoutToolValidationResult result,
-        int metadataColumn) {
+    private void validateBox2MetricsSheet(Workbook workbook, CrisLayoutToolValidationResult result) {
 
-        List<String> allMetadataFields = findAllMetadataFields(context);
+        Sheet box2MetricsSheet = workbook.getSheet(BOX2METRICS_SHEET);
+        if (box2MetricsSheet == null) {
+            result.addError("The " + BOX2METRICS_SHEET + " sheet is missing");
+            return;
+        }
+
+        validateColumnsPresence(box2MetricsSheet, result, ENTITY_COLUMN, BOX_COLUMN, METRIC_TYPE_COLUMN);
+
+    }
+
+    private void validateBoxPolicySheet(List<String> allMetadataFields, Workbook workbook,
+        CrisLayoutToolValidationResult result) {
+        validatePolicySheet(allMetadataFields, workbook, result, BOX_POLICY_SHEET);
+    }
+
+    private void validateTabPolicySheet(List<String> allMetadataFields, Workbook workbook,
+        CrisLayoutToolValidationResult result) {
+        validatePolicySheet(allMetadataFields, workbook, result, TAB_POLICY_SHEET);
+
+    }
+
+    private void validatePolicySheet(List<String> allMetadataFields, Workbook workbook,
+        CrisLayoutToolValidationResult result, String policySheetName) {
+
+        Sheet policySheet = workbook.getSheet(policySheetName);
+        if (policySheet == null) {
+            result.addError("The " + policySheetName + " sheet is missing");
+            return;
+        }
+
+        int metadataColumn = getCellIndexFromHeaderName(policySheet, METADATA_COLUMN);
+        if (metadataColumn == -1) {
+            result.addError("The sheet " + policySheetName + " has no " + METADATA_COLUMN + " column");
+        } else {
+            validateMetadataFields(allMetadataFields, policySheet, metadataColumn, result);
+        }
+
+        validateColumnsPresence(policySheet, result, ENTITY_COLUMN, SHORTNAME_COLUMN);
+
+    }
+
+    private void validateBox2MetadataFieldTypes(Sheet sheet, CrisLayoutToolValidationResult result, int typeColumn) {
+
+        int bundleColumn = getCellIndexFromHeaderName(sheet, BUNDLE_COLUMN);
+        int valueColumn = getCellIndexFromHeaderName(sheet, VALUE_COLUMN);
+
+        for (Row row : getNotEmptyRowsSkippingHeader(sheet)) {
+            String fieldType = getCellValue(row, typeColumn);
+            validateFieldType(row, result, bundleColumn, valueColumn, fieldType);
+        }
+
+    }
+
+    private void validateFieldType(Row row, CrisLayoutToolValidationResult result, int bundleColumn,
+        int valueColumn, String fieldType) {
+
+        String sheetName = row.getSheet().getSheetName();
+        int rowNum = row.getRowNum();
+
+        if (StringUtils.isBlank(fieldType)) {
+            result.addError("The " + sheetName + " contains an empty field type at row " + rowNum);
+            return;
+        }
+
+        if (!ALLOWED_FIELD_TYPES.contains(fieldType)) {
+            result.addError("The " + sheetName + " contains an unknown field type " + fieldType + " at row " + rowNum);
+            return;
+        }
+
+        if (METADATA_TYPE.equals(fieldType) && bundleColumn != -1 && valueColumn != -1) {
+            String bundle = getCellValue(row, bundleColumn);
+            String value = getCellValue(row, valueColumn);
+            if (StringUtils.isNotBlank(bundle) || StringUtils.isNotBlank(value)) {
+                result.addError("The " + sheetName + " contains a " + METADATA_TYPE + " field " + fieldType +
+                    " with " + BUNDLE_COLUMN + " or " + VALUE_COLUMN + " set at row " + rowNum);
+            }
+        }
+
+        if (BITSTREAM_TYPE.equals(fieldType) && bundleColumn != -1) {
+            String bundle = getCellValue(row, bundleColumn);
+            if (StringUtils.isBlank(bundle)) {
+                result.addError("The " + sheetName + " contains a " + BITSTREAM_TYPE + " field "
+                    + fieldType + " without " + BUNDLE_COLUMN + " at row " + rowNum);
+            }
+        }
+    }
+
+    private void validateMetadataFields(List<String> allMetadataFields, Sheet sheet,
+        int metadataColumn, CrisLayoutToolValidationResult result) {
+
         for (Cell cell : getColumnWithoutHeader(sheet, metadataColumn)) {
             String metadataField = WorkbookUtils.getCellValue(cell);
-            if (!allMetadataFields.contains(metadataField)) {
+            if (StringUtils.isNotBlank(metadataField) && !allMetadataFields.contains(metadataField)) {
                 result.addError("The " + sheet.getSheetName() + " contains an unknown metadata field " + metadataField
                     + " at row " + cell.getRowIndex());
             }
@@ -436,8 +526,8 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         for (Cell entityTypeCell : getColumnWithoutHeader(sheet, entityColumn)) {
             String entityType = WorkbookUtils.getCellValue(entityTypeCell);
             if (!allEntityTypes.contains(entityType)) {
-                result.addError("The " + sheet.getSheetName() + " contains an unknown entity type " + entityType
-                    + " at row " + entityTypeCell.getRowIndex());
+                result.addError("The " + sheet.getSheetName() + " contains an unknown entity type '" + entityType
+                    + "' at row " + entityTypeCell.getRowIndex());
             }
         }
     }
@@ -446,7 +536,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
         for (Cell typeCell : getColumnWithoutHeader(sheet, typeColumn)) {
             String type = WorkbookUtils.getCellValue(typeCell);
-            if (type != null && !EnumUtils.isValidEnum(CrisLayoutBoxTypes.class, type)) {
+            if (StringUtils.isNotBlank(type) && !EnumUtils.isValidEnum(CrisLayoutBoxTypes.class, type)) {
                 result.addError("The sheet " + sheet.getSheetName() + " has contains an invalid type " + type
                     + " at row " + typeCell.getRowIndex());
             }
@@ -454,9 +544,51 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
+    private void validateColumnsPresence(Sheet sheet, CrisLayoutToolValidationResult result, String... columns) {
+        for (String column : columns) {
+            if (getCellIndexFromHeaderName(sheet, column) == -1) {
+                result.addError("The sheet " + sheet.getSheetName() + " has no " + column + " column");
+            }
+        }
+    }
+
+    private void validateBooleanColumn(Sheet sheet, String columnName, CrisLayoutToolValidationResult result) {
+        validateColumn(sheet, columnName, (value) -> isNotBoolean(value), result);
+    }
+
+    private void validateIntegerColumn(Sheet sheet, String columnName, CrisLayoutToolValidationResult result) {
+        validateColumn(sheet, columnName, (value) -> isNotInteger(value), result);
+    }
+
+    private void validateSecurityColumn(Sheet sheet, String columnName, CrisLayoutToolValidationResult result) {
+        validateColumn(sheet, columnName, (value) -> !ALLOWED_SECURITY_VALUES.contains(value), result);
+    }
+
+    private void validateColumn(Sheet sheet, String columnName, Predicate<String> predicate,
+        CrisLayoutToolValidationResult result) {
+
+        int rowColumn = getCellIndexFromHeaderName(sheet, columnName);
+        if (rowColumn == -1) {
+            result.addError("The sheet " + sheet.getSheetName() + " has no " + columnName + " column");
+            return;
+        }
+
+        for (Row row : getNotEmptyRowsSkippingHeader(sheet)) {
+            String rowValue = getCellValue(row, rowColumn);
+            if (StringUtils.isBlank(rowValue)) {
+                result.addError("The " + columnName + " value specified on the row " + row.getRowNum() + " of sheet "
+                    + sheet.getSheetName() + " is empty");
+            } else if (predicate.test(rowValue)) {
+                result.addError("The " + columnName + " value specified on the row " + row.getRowNum() + " of sheet "
+                    + sheet.getSheetName() + " is not valid: " + rowValue);
+            }
+        }
+    }
+
     private List<String> getAllEntityTypes(Context context) {
         try {
             return entityTypeService.findAll(context).stream()
+                .peek(entityType -> uncacheEntity(context, entityType))
                 .map(entityType -> entityType.getLabel())
                 .collect(Collectors.toList());
         } catch (SQLException e) {
@@ -464,9 +596,10 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         }
     }
 
-    private List<String> findAllMetadataFields(Context context) {
+    private List<String> getAllMetadataFields(Context context) {
         try {
             return metadataFieldService.findAll(context).stream()
+                .peek(metadataField -> uncacheEntity(context, metadataField))
                 .map(metadataField -> metadataField.toString('.'))
                 .collect(Collectors.toList());
         } catch (SQLException e) {
@@ -474,13 +607,26 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         }
     }
 
-    public boolean isNotInteger(String number) {
+    private void uncacheEntity(Context context, ReloadableEntity<?> object) {
+        try {
+            context.uncacheEntity(object);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    private boolean isNotInteger(String number) {
         try {
             Integer.parseInt(number);
         } catch (Exception e) {
             return true;
         }
         return false;
+    }
+
+    private boolean isNotBoolean(String value) {
+        List<String> acceptedValues = List.of("yes", "y", "no", "n");
+        return !acceptedValues.contains(value);
     }
 
 }

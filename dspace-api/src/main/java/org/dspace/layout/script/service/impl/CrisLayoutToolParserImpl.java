@@ -7,31 +7,45 @@
  */
 package org.dspace.layout.script.service.impl;
 
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.BITSTREAM_TYPE;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX2METADATA_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX2METRICS_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOXES_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX_POLICY_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX_SHEET;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.BUNDLE_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.CELL_STYLE_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.COLLAPSED_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.CONTAINER_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.ENTITY_COLUMN;
-import static org.dspace.layout.script.service.CrisLayoutToolValidator.HEADER_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.FIELD_TYPE_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.LABEL_AS_HEADING_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.LABEL_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.LEADING_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.METADATAGROUPS_SHEET;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.METADATAGROUP_TYPE;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.METADATA_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.METADATA_TYPE;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.METRIC_TYPE_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.MINOR_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.PARENT_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.PRIORITY_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.RENDERING_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.ROW_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.ROW_STYLE_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.SECURITY_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.SHORTNAME_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.STYLE_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.STYLE_LABEL_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.STYLE_VALUE_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.TAB2BOX_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.TAB_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.TAB_POLICY_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.TAB_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.TYPE_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.VALUES_INLINE_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.VALUE_COLUMN;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -41,6 +55,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,9 +75,12 @@ import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutField;
+import org.dspace.layout.CrisLayoutFieldBitstream;
+import org.dspace.layout.CrisLayoutFieldMetadata;
 import org.dspace.layout.CrisLayoutMetric2Box;
 import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
+import org.dspace.layout.CrisMetadataGroup;
 import org.dspace.layout.LayoutSecurity;
 import org.dspace.layout.script.service.CrisLayoutToolParser;
 import org.dspace.util.WorkbookUtils;
@@ -84,11 +102,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
 
     @Override
     public List<CrisLayoutTab> parse(Context context, Workbook workbook) {
-        Sheet tabSheet = workbook.getSheet(TAB_SHEET);
-        if (tabSheet == null) {
-            throw new IllegalArgumentException("The given workbook has not the " + TAB_SHEET + " sheet");
-        }
-
+        Sheet tabSheet = getSheetByName(workbook, TAB_SHEET);
         return WorkbookUtils.getNotEmptyRowsSkippingHeader(tabSheet).stream()
             .map(row -> buildTab(context, row))
             .collect(Collectors.toList());
@@ -103,7 +117,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
 
         tab.setEntity(getEntityType(context, entityType));
         tab.setShortName(name);
-        tab.setHeader(getCellValue(tabRow, HEADER_COLUMN));
+        tab.setHeader(getCellValue(tabRow, LABEL_COLUMN));
         tab.setLeading(toBoolean(getCellValue(tabRow, LEADING_COLUMN)));
         tab.setPriority(toInteger(getCellValue(tabRow, PRIORITY_COLUMN)));
         tab.setSecurity(toSecurity(getCellValue(tabRow, SECURITY_COLUMN)));
@@ -115,18 +129,14 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
     }
 
     private List<CrisLayoutRow> buildTabRows(Context context, Workbook workbook, String entityType, String shortname) {
-        Sheet tab2boxSheet = workbook.getSheet(TAB2BOX_SHEET);
-        if (tab2boxSheet == null) {
-            throw new IllegalArgumentException("The given workbook has not the " + TAB2BOX_SHEET + " sheet");
-        }
+        Sheet tab2boxSheet = getSheetByName(workbook, TAB2BOX_SHEET);
 
-        Map<Integer, List<Row>> tabExcelRows = WorkbookUtils.getNotEmptyRowsSkippingHeader(tab2boxSheet).stream()
-            .filter(row -> shortname.equals(getCellValue(row, TAB_COLUMN)))
-            .filter(row -> entityType.equals(getCellValue(row, ENTITY_COLUMN)))
+        Map<Integer, List<Row>> groupSheetRowsByRowColumn =
+            getRowsByEntityAndColumnValue(tab2boxSheet, entityType, TAB_COLUMN, shortname)
             .collect(Collectors.groupingBy(row -> toInteger(getCellValue(row, ROW_COLUMN))));
 
-        return tabExcelRows.keySet().stream().sorted()
-            .map(rowIndex -> buildTabRow(context, tabExcelRows.get(rowIndex)))
+        return groupSheetRowsByRowColumn.keySet().stream().sorted()
+            .map(rowIndex -> buildTabRow(context, groupSheetRowsByRowColumn.get(rowIndex)))
             .collect(Collectors.toList());
 
     }
@@ -161,11 +171,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
                 + tab2boxRow.getSheet().getSheetName() + " has no " + BOXES_COLUMN);
         }
 
-        Workbook workbook = tab2boxRow.getSheet().getWorkbook();
-        Sheet boxSheet = workbook.getSheet(BOX_SHEET);
-        if (boxSheet == null) {
-            throw new IllegalArgumentException("The given workbook has not the " + BOX_SHEET + " sheet");
-        }
+        Sheet boxSheet = getSheetByName(tab2boxRow.getSheet().getWorkbook(), BOX_SHEET);
 
         return Arrays.stream(boxes.split(","))
             .map(String::trim)
@@ -191,7 +197,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
         box.setCollapsed(toBoolean(getCellValue(boxRow, COLLAPSED_COLUMN)));
         box.setContainer(toBoolean(getCellValue(boxRow, CONTAINER_COLUMN)));
         box.setEntitytype(getEntityType(context, entityType));
-        box.setHeader(getCellValue(boxRow, HEADER_COLUMN));
+        box.setHeader(getCellValue(boxRow, LABEL_COLUMN));
         box.setMinor(toBoolean(getCellValue(boxRow, MINOR_COLUMN)));
         box.setSecurity(toSecurity(getCellValue(boxRow, SECURITY_COLUMN)));
         box.setShortname(boxName);
@@ -200,7 +206,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
             BOX_POLICY_SHEET, entityType, boxName));
 
         if (boxType.equals(CrisLayoutBoxTypes.METADATA.name())) {
-            buildCrisLayoutFields().forEach(box::addLayoutField);
+            buildCrisLayoutFields(context, workbook, entityType, boxName).forEach(box::addLayoutField);
         } else if (boxType.equals(CrisLayoutBoxTypes.METRICS.name())) {
             buildBoxMetrics(workbook, entityType, boxName).forEach(box::addMetric2box);
         }
@@ -208,20 +214,97 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
         return box;
     }
 
-    private List<CrisLayoutField> buildCrisLayoutFields() {
-        // TODO Auto-generated method stub
-        return List.of();
+    private List<CrisLayoutField> buildCrisLayoutFields(Context context, Workbook workbook, String entityType,
+        String boxName) {
+
+        Sheet box2metadataSheet = getSheetByName(workbook, BOX2METADATA_SHEET);
+
+        AtomicInteger priority = new AtomicInteger(0);
+        return getRowsByEntityAndColumnValue(box2metadataSheet, entityType, BOX_COLUMN, boxName)
+            .map(row -> buildCrisLayoutField(context, row, priority))
+            .collect(Collectors.toList());
+    }
+
+    private CrisLayoutField buildCrisLayoutField(Context context, Row row, AtomicInteger priority) {
+
+        CrisLayoutField field = buildCrisLayoutFieldByType(context, row);
+
+        field.setLabel(getCellValue(row, LABEL_COLUMN));
+        field.setLabelAsHeading(toBoolean(getCellValue(row, LABEL_AS_HEADING_COLUMN)));
+        String metadataField = getCellValue(row, METADATA_COLUMN);
+        if (StringUtils.isNotBlank(metadataField)) {
+            field.setMetadataField(getMetadataField(context, metadataField));
+        }
+        field.setPriority(priority.getAndIncrement());
+        field.setRendering(getCellValue(row, RENDERING_COLUMN));
+        field.setRow(toInteger(getCellValue(row, ROW_COLUMN)));
+        field.setStyle(getCellValue(row, STYLE_COLUMN));
+        field.setStyleLabel(getCellValue(row, STYLE_LABEL_COLUMN));
+        field.setStyleValue(getCellValue(row, STYLE_VALUE_COLUMN));
+        field.setValuesInline(toBoolean(getCellValue(row, VALUES_INLINE_COLUMN)));
+
+        return field;
+    }
+
+    private CrisLayoutField buildCrisLayoutFieldByType(Context context, Row row) {
+        String fieldType = getCellValue(row, FIELD_TYPE_COLUMN);
+
+        switch (fieldType) {
+            case METADATAGROUP_TYPE:
+                return buildMetadataGroupField(context, row);
+            case BITSTREAM_TYPE:
+                return buildBitstreamField(row);
+            case METADATA_TYPE:
+            default:
+                return new CrisLayoutFieldMetadata();
+        }
+    }
+
+    private CrisLayoutField buildMetadataGroupField(Context context, Row row) {
+        CrisLayoutFieldMetadata field = new CrisLayoutFieldMetadata();
+        buildCrisMetadataGroups(context, row).forEach(field::addCrisMetadataGroupList);
+        return field;
+    }
+
+    private List<CrisMetadataGroup> buildCrisMetadataGroups(Context context, Row row) {
+        String metadataField = getCellValue(row, METADATA_COLUMN);
+        String entity = getCellValue(row, ENTITY_COLUMN);
+
+        Sheet metadatagroupsSheet = getSheetByName(row.getSheet().getWorkbook(), METADATAGROUPS_SHEET);
+
+        AtomicInteger priority = new AtomicInteger(0);
+        return getRowsByEntityAndColumnValue(metadatagroupsSheet, entity, PARENT_COLUMN, metadataField)
+            .map(groupRow -> buildCrisMetadataGroup(context, groupRow, entity, priority))
+            .collect(Collectors.toList());
+    }
+
+    private CrisMetadataGroup buildCrisMetadataGroup(Context context, Row row, String entity, AtomicInteger priority) {
+        CrisMetadataGroup metadataGroup = new CrisMetadataGroup();
+        metadataGroup.setLabel(getCellValue(row, LABEL_COLUMN));
+        metadataGroup.setLabelAsHeading(toBoolean(getCellValue(row, LABEL_AS_HEADING_COLUMN)));
+        String metadataField = getCellValue(row, METADATA_COLUMN);
+        if (StringUtils.isNotBlank(metadataField)) {
+            metadataGroup.setMetadataField(getMetadataField(context, metadataField));
+        }
+        metadataGroup.setPriority(priority.getAndIncrement());
+        metadataGroup.setRendering(getCellValue(row, RENDERING_COLUMN));
+        metadataGroup.setStyle(getCellValue(row, STYLE_COLUMN));
+        metadataGroup.setStyleLabel(getCellValue(row, STYLE_LABEL_COLUMN));
+        metadataGroup.setStyleValue(getCellValue(row, STYLE_VALUE_COLUMN));
+        metadataGroup.setValuesInline(toBoolean(getCellValue(row, VALUES_INLINE_COLUMN)));
+        return metadataGroup;
+    }
+
+    private CrisLayoutField buildBitstreamField(Row row) {
+        CrisLayoutFieldBitstream field = new CrisLayoutFieldBitstream();
+        field.setBundle(getCellValue(row, BUNDLE_COLUMN));
+        field.setMetadataValue(getCellValue(row, VALUE_COLUMN));
+        return field;
     }
 
     private List<CrisLayoutMetric2Box> buildBoxMetrics(Workbook workbook, String entityType, String boxName) {
-        Sheet metricsSheet = workbook.getSheet(BOX2METRICS_SHEET);
-        if (metricsSheet == null) {
-            throw new IllegalArgumentException("The given workbook has not the " + BOX2METRICS_SHEET + " sheet");
-        }
-
-        return WorkbookUtils.getNotEmptyRowsSkippingHeader(metricsSheet).stream()
-            .filter(row -> boxName.equals(getCellValue(row, BOX_COLUMN)))
-            .filter(row -> entityType.equals(getCellValue(row, ENTITY_COLUMN)))
+        Sheet metricsSheet = getSheetByName(workbook, BOX2METRICS_SHEET);
+        return getRowsByEntityAndColumnValue(metricsSheet, entityType, BOX_COLUMN, boxName)
             .map(row -> getCellValue(row, METRIC_TYPE_COLUMN))
             .filter(metrics -> StringUtils.isNotBlank(metrics))
             .flatMap(metrics -> buildBoxMetrics(metrics.split(",")))
@@ -241,9 +324,7 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
     }
 
     private Row getBowRowFromBoxSheet(Sheet boxSheet, String entity, String boxName) {
-        return WorkbookUtils.getNotEmptyRowsSkippingHeader(boxSheet).stream()
-            .filter(row -> boxName.equals(getCellValue(row, SHORTNAME_COLUMN)))
-            .filter(row -> entity.equals(getCellValue(row, ENTITY_COLUMN)))
+        return getRowsByEntityAndColumnValue(boxSheet, entity, SHORTNAME_COLUMN, boxName)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException("No box found with entity "
                 + entity + " and name " + boxName));
@@ -259,17 +340,19 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
     private Set<MetadataField> buildMetadataSecurityField(Context context, Workbook workbook,
         String sheetName, String entity, String name) {
 
-        Sheet sheet = workbook.getSheet(sheetName);
-        if (sheet == null) {
-            throw new IllegalArgumentException("The given workbook has not the " + sheetName + " sheet");
-        }
+        Sheet sheet = getSheetByName(workbook, sheetName);
 
-        return WorkbookUtils.getNotEmptyRowsSkippingHeader(sheet).stream()
-            .filter(row -> name.equals(getCellValue(row, SHORTNAME_COLUMN)))
-            .filter(row -> entity.equals(getCellValue(row, ENTITY_COLUMN)))
+        return getRowsByEntityAndColumnValue(sheet, entity, SHORTNAME_COLUMN, name)
             .map(row -> getCellValue(row, METADATA_COLUMN))
             .map(metadataField -> getMetadataField(context, metadataField))
             .collect(Collectors.toSet());
+
+    }
+
+    private Stream<Row> getRowsByEntityAndColumnValue(Sheet sheet, String entity, String columnName, String value) {
+        return WorkbookUtils.getNotEmptyRowsSkippingHeader(sheet).stream()
+            .filter(row -> value.equals(getCellValue(row, columnName)))
+            .filter(row -> entity.equals(getCellValue(row, ENTITY_COLUMN)));
     }
 
     private boolean toBoolean(String value) {
@@ -295,6 +378,14 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
             throw new IllegalArgumentException("Invalid security value: " + securityValue);
         }
         return LayoutSecurity.valueOf(securityValue).getValue();
+    }
+
+    private Sheet getSheetByName(Workbook workbook, String name) {
+        Sheet tabSheet = workbook.getSheet(name);
+        if (tabSheet == null) {
+            throw new IllegalArgumentException("The given workbook has not the " + name + " sheet");
+        }
+        return tabSheet;
     }
 
     private MetadataField getMetadataField(Context context, String metadataSecurityField) {

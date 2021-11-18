@@ -83,7 +83,7 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
         @JoinColumn(name = "tab_id") }, inverseJoinColumns = { @JoinColumn(name = "metadata_field_id") })
     private Set<MetadataField> metadataSecurityFields = new HashSet<>();
 
-    @Column(name = "leading")
+    @Column(name = "is_leading")
     private boolean leading;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "tab", cascade = CascadeType.ALL)

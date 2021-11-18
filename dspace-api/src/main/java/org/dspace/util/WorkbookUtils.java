@@ -122,7 +122,6 @@ public final class WorkbookUtils {
             .filter(WorkbookUtils::isNotFirstRow)
             .filter(WorkbookUtils::isNotEmptyRow)
             .map(row -> row.getCell(column, CREATE_NULL_AS_BLANK))
-            .filter(cell -> WorkbookUtils.isCellNotEmpty(cell))
             .collect(Collectors.toList());
     }
 

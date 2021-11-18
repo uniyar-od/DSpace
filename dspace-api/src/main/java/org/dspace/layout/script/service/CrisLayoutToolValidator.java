@@ -29,6 +29,8 @@ public interface CrisLayoutToolValidator {
 
     String BOX2METADATA_SHEET = "box2metadata";
 
+    String METADATAGROUPS_SHEET = "metadatagroups";
+
     String BOX2METRICS_SHEET = "box2metrics";
 
     String TAB_POLICY_SHEET = "tabpolicy";
@@ -46,7 +48,17 @@ public interface CrisLayoutToolValidator {
 
     String ENTITY_COLUMN = "ENTITY";
 
-    String HEADER_COLUMN = "LABEL";
+    String LABEL_COLUMN = "LABEL";
+
+    String LABEL_AS_HEADING_COLUMN = "LABEL_AS_HEADING";
+
+    String RENDERING_COLUMN = "RENDERING";
+
+    String VALUES_INLINE_COLUMN = "VALUES_INLINE";
+
+    String STYLE_LABEL_COLUMN = "STYLE_LABEL";
+
+    String STYLE_VALUE_COLUMN = "STYLE_VALUE";
 
     String LEADING_COLUMN = "LEADING";
 
@@ -80,6 +92,8 @@ public interface CrisLayoutToolValidator {
 
     String METRIC_TYPE_COLUMN = "METRIC_TYPE";
 
+    String PARENT_COLUMN = "PARENT";
+
 
     String METADATA_TYPE = "METADATA";
 
@@ -88,6 +102,9 @@ public interface CrisLayoutToolValidator {
     String METADATAGROUP_TYPE = "METADATAGROUP";
 
     List<String> ALLOWED_FIELD_TYPES = List.of(METADATA_TYPE, BITSTREAM_TYPE, METADATAGROUP_TYPE);
+
+    List<String> ALLOWED_SECURITY_VALUES = List.of("PUBLIC", "ADMINISTRATOR", "OWNER ONLY", "OWNER & ADMINISTRATOR",
+        "CUSTOM DATA", "CUSTOM DATA & ADMINISTRATOR");
 
     /**
      * Validate the given workbook.

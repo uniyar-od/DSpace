@@ -110,6 +110,11 @@ public class CrisLayoutTabServiceImpl implements CrisLayoutTabService {
         return dao.create(context, tab);
     }
 
+    @Override
+    public List<CrisLayoutTab> findAll(Context context) throws SQLException {
+        return dao.findAll(context, CrisLayoutTab.class);
+    }
+
     /* (non-Javadoc)
      * @see org.dspace.layout.service.CrisLayoutTabService#findAll(org.dspace.core.Context)
      */

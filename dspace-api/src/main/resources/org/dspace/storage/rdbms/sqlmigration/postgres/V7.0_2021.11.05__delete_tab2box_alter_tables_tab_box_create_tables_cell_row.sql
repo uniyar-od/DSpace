@@ -57,7 +57,7 @@ ALTER TABLE cris_layout_box ADD CONSTRAINT cris_layout_cell_id_fk FOREIGN KEY (c
 ---- ALTER table cris_layout_tab
 -------------------------------------------------------------------------------------
 
-ALTER TABLE cris_layout_tab ADD COLUMN "leading" BOOLEAN;
+ALTER TABLE cris_layout_tab ADD COLUMN is_leading BOOLEAN;
 
 -------------------------------------------------------------------------------------
 ---- ALTER table cris_layout_field

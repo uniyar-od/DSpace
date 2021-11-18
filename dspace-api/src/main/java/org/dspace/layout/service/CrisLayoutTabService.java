@@ -75,6 +75,14 @@ public interface CrisLayoutTabService extends DSpaceCRUDService<CrisLayoutTab> {
     public List<CrisLayoutTab> findAll(Context context, Integer limit, Integer offset) throws SQLException;
 
     /**
+     * Find all CrisLayoutTab {@link CrisLayoutTab} in the database
+     * @param context The relevant DSpace Context
+     * @return List of CrisLayoutTab {@link CrisLayoutTab}
+     * @throws SQLException An exception that provides information on a database errors.
+     */
+    public List<CrisLayoutTab> findAll(Context context) throws SQLException;
+
+    /**
      * Returns the total number of tabs {@link CrisLayoutTab} in the database
      * @param context The relevant DSpace Context
      * @return number of tab in the database (Long)

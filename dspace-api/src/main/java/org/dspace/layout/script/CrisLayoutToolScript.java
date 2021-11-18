@@ -83,18 +83,28 @@ public class CrisLayoutToolScript extends DSpaceRunnable<CrisLayoutToolScriptCon
         try {
             performImport(inputStream);
             context.complete();
-            context.restoreAuthSystemState();
+            handler.logInfo("Import completed successfully");
         } catch (Exception e) {
             handler.handleException(e);
             context.abort();
+        } finally {
+            context.restoreAuthSystemState();
         }
     }
 
-    private void performImport(InputStream inputStream) {
+    private void performImport(InputStream inputStream) throws SQLException, AuthorizeException {
         Workbook workbook = createWorkbook(inputStream);
+
         validateWorkbook(workbook);
+        handler.logInfo("The given workbook is valid. Proceed with the import");
+
         List<CrisLayoutTab> tabs = parser.parse(context, workbook);
+        handler.logInfo("The workbook has been parsed correctly, found " + tabs.size() + " tabs to import");
+        handler.logInfo("Proceed with the clearing of the previous layout");
+
         cleanUpLayout();
+        handler.logInfo("The previous layout has been deleted, proceed with the import of the new configuration");
+
         tabs.forEach(this::importTab);
     }
 
@@ -113,13 +123,17 @@ public class CrisLayoutToolScript extends DSpaceRunnable<CrisLayoutToolScriptCon
             throw new IllegalArgumentException("The given workbook is not valid. Import canceled");
         } else {
             validationResult.getWarnings().forEach(handler::logWarning);
-            handler.logInfo("The given workbook is valid. Proceed with the import");
         }
     }
 
-    private void cleanUpLayout() {
-        // TODO Auto-generated method stub
+    private void cleanUpLayout() throws SQLException, AuthorizeException {
+        List<CrisLayoutTab> tabs = this.tabService.findAll(context);
+        handler.logInfo("Found " + tabs.size() + " tabs to delete");
+        for (CrisLayoutTab tab : tabs) {
+            this.tabService.delete(context, tab);
+        }
 
+        context.flush();
     }
 
     private void importTab(CrisLayoutTab tab) {
