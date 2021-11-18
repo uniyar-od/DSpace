@@ -1066,7 +1066,7 @@ public class ItemImportOA
 
             // 0: all
             // 1: embargo
-            // 2: only an authorized group
+            // 2: only an authorized group retrieved from configuration
             // 3: not visible
             int embargo_policy = imp_bitstream.getIntColumn("embargo_policy");
             String embargo_start_date = imp_bitstream
@@ -1081,7 +1081,11 @@ public class ItemImportOA
                 }
                 else if (embargo_policy == 2)
                 {
-                    embargoGroup = Group.find(c, embargo_policy);
+                    // retrieve group from configuration
+                    // if no one set by default the embargo_policy for backward compatibility
+                    int groupID = ConfigurationManager.getIntProperty(
+                            "batch.import-framework.bitstreams.authorized-group", embargo_policy);
+                    embargoGroup = Group.find(c, groupID);
                     if (embargo_start_date != null)
                     {
                         start_date = embargo_start_date;
