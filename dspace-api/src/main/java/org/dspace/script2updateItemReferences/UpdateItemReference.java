@@ -20,6 +20,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authority.service.ItemSearcherMapper;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.ItemServiceImpl;
 import org.dspace.content.MetadataValue;
@@ -92,7 +93,8 @@ public class UpdateItemReference
         }
     }
 
-    private void resolveReferences(Item item, List<String> referencesResolved, List<String> referencesNotResolved) {
+    private void resolveReferences(Item item, List<String> referencesResolved, List<String> referencesNotResolved)
+            throws SQLException, AuthorizeException {
         List<MetadataValue> metadataValues = item.getMetadata();
         for (MetadataValue metadata : metadataValues) {
 
@@ -111,7 +113,7 @@ public class UpdateItemReference
                     String searchedItemEntityType = itemService.getMetadataFirstValue(searchedItem,
                             "dspace", "entity", "type", Item.ANY);
                     if (StringUtils.equals(entityType, searchedItemEntityType)) {
-                        setAuthorityAndReferences(metadata, searchedItem, checkWhetherTitleNeedsToBeSet());
+                        setReferences(metadata, searchedItem, checkWhetherTitleNeedsToBeSet());
                         referencesResolved.add("The starting item with uuid: " + item.getID() + " and reference value "
                                 + providerAndId[1] + ":" + providerAndId[2] + " was resolved for item with uuid: "
                                 + searchedItem.getID());
@@ -122,6 +124,7 @@ public class UpdateItemReference
                                 + searchedItem.getID() + ") are different (" + entityType + ", "
                                 + searchedItemEntityType + ")");
                     }
+                    context.uncacheEntity(searchedItem);
                 } else {
                     referencesNotResolved.add("The item with uuid: " + item.getID() + " and reference value: "
                             + authority + " because item with " + providerAndId[1] + ":" + providerAndId[2]
@@ -132,6 +135,7 @@ public class UpdateItemReference
                         + " has not been solved!");
             }
         }
+        context.uncacheEntity(item);
     }
 
     private String getFieldKey(MetadataValue metadata) {
@@ -142,13 +146,15 @@ public class UpdateItemReference
         return configurationService.getBooleanProperty("cris.item-reference-resolution.override-metadata-value", false);
     }
 
-    private void setAuthorityAndReferences(MetadataValue metadataValue, Item item, boolean isValueToUpdate) {
+    private void setReferences(MetadataValue metadataValue, Item item, boolean isValueToUpdate)
+            throws SQLException, AuthorizeException {
         metadataValue.setAuthority(item.getID().toString());
         metadataValue.setConfidence(Choices.CF_ACCEPTED);
         String newMetadataValue = itemService.getMetadata(item, "dc.title");
         if (isValueToUpdate && StringUtils.isNotBlank(newMetadataValue)) {
             metadataValue.setValue(newMetadataValue);
         }
+        itemService.update(context, item);
     }
 
     private String[] getProviderAndId(String authority) {

@@ -93,12 +93,6 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
                                  .withOrcidIdentifier("0000-0000-0078-9101")
                                  .build();
 
-        System.out.println("p1 " + publication1.getID());
-        System.out.println("p2 " + publication2.getID());
-        System.out.println("p3 " + publication3.getID());
-        System.out.println("m " + misha.getID());
-        System.out.println("v " + viktor.getID());
-
         context.restoreAuthSystemState();
 
         //verify that the authority values was not resolved yet
