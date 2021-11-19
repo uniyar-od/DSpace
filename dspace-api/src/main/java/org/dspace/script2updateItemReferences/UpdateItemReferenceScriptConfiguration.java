@@ -45,6 +45,11 @@ public class UpdateItemReferenceScriptConfiguration<T extends UpdateItemReferenc
     public Options getOptions() {
         if (options == null) {
             Options options = new Options();
+
+            options.addOption("a", "isArchived", true, "Only archieve items to use");
+            options.getOption("a").setType(Boolean.class);
+            options.getOption("a").setRequired(false);
+
             super.options = options;
         }
         return options;
