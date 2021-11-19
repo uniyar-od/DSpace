@@ -441,4 +441,17 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
         return count(query);
 
     }
+
+    @Override
+    public Iterator<Item> findByLikeAuthorityValue(Context context,
+            String likeAuthority, boolean inArchive) throws SQLException {
+        Query query = createQuery(context,
+                "SELECT DISTINCT item FROM Item as item join item.metadata metadatavalue "
+                        + "WHERE item.inArchive=:in_archive AND "
+                        + "metadatavalue.authority like :authority ORDER BY item.id");
+        query.setParameter("in_archive", inArchive);
+        query.setParameter("authority", likeAuthority);
+        return iterate(query);
+    }
+
 }
