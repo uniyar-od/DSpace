@@ -49,7 +49,7 @@ public class CrisLayoutBoxRest implements Serializable {
 
     private List<String> metadataSecurityFields = new ArrayList<String>();
 
-    private boolean container = true;
+    private Boolean container = true;
 
     public String getShortname() {
         return shortname;
@@ -194,14 +194,14 @@ public class CrisLayoutBoxRest implements Serializable {
     /**
      * @return the container
      */
-    public boolean isContainer() {
+    public Boolean isContainer() {
         return container;
     }
 
     /**
      * @param container the container to set
      */
-    public void setContainer(boolean container) {
+    public void setContainer(Boolean container) {
         this.container = container;
     }
 }

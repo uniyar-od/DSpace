@@ -41,7 +41,7 @@ public class CrisLayoutTabRest extends BaseObjectRest<Integer> {
     private String entityType;
     private Integer priority;
     private Integer security;
-    private boolean leading;
+    private Boolean leading;
     private List<CrisLayoutRowRest> rows = new ArrayList<>();
 
     /* (non-Javadoc)
@@ -150,14 +150,14 @@ public class CrisLayoutTabRest extends BaseObjectRest<Integer> {
     /**
      * @return the leading
      */
-    public boolean isLeading() {
+    public Boolean isLeading() {
         return leading;
     }
 
     /**
      * @param leading the leading to set
      */
-    public void setLeading(boolean leading) {
+    public void setLeading(Boolean leading) {
         this.leading = leading;
     }
 

@@ -83,10 +83,10 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
     private List<CrisMetadataGroup> crisMetadataGroupList = new ArrayList<>();
 
     @Column(name = "label_as_heading")
-    private boolean labelAsHeading;
+    private Boolean labelAsHeading;
 
     @Column(name = "values_inline")
-    private boolean valuesInline;
+    private Boolean valuesInline;
 
     @Override
     public Integer getID() {
@@ -177,19 +177,19 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
         metadataGroup.setCrisLayoutField(this);
     }
 
-    public boolean isLabelAsHeading() {
+    public Boolean isLabelAsHeading() {
         return labelAsHeading;
     }
 
-    public void setLabelAsHeading(boolean labelAsHeading) {
+    public void setLabelAsHeading(Boolean labelAsHeading) {
         this.labelAsHeading = labelAsHeading;
     }
 
-    public boolean isValuesInline() {
+    public Boolean isValuesInline() {
         return valuesInline;
     }
 
-    public void setValuesInline(boolean valuesInline) {
+    public void setValuesInline(Boolean valuesInline) {
         this.valuesInline = valuesInline;
     }
 }

@@ -92,9 +92,9 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
         @JsonInclude(Include.NON_NULL)
         private MetadataGroup metadataGroup;
 
-        private boolean labelAsHeading;
+        private Boolean labelAsHeading;
 
-        private boolean valuesInline;
+        private Boolean valuesInline;
 
         public String getMetadata() {
             return metadata;
@@ -220,19 +220,19 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
             return this.metadataGroup;
         }
 
-        public boolean isLabelAsHeading() {
+        public Boolean isLabelAsHeading() {
             return labelAsHeading;
         }
 
-        public void setLabelAsHeading(boolean labelAsHeading) {
+        public void setLabelAsHeading(Boolean labelAsHeading) {
             this.labelAsHeading = labelAsHeading;
         }
 
-        public boolean isValuesInline() {
+        public Boolean isValuesInline() {
             return valuesInline;
         }
 
-        public void setValuesInline(boolean valuesInline) {
+        public void setValuesInline(Boolean valuesInline) {
             this.valuesInline = valuesInline;
         }
     }

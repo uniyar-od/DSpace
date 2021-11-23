@@ -84,7 +84,7 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
     private Set<MetadataField> metadataSecurityFields = new HashSet<>();
 
     @Column(name = "is_leading")
-    private boolean leading;
+    private Boolean leading;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "tab", cascade = CascadeType.ALL)
     @OrderColumn(name = "position")
@@ -185,11 +185,11 @@ public class CrisLayoutTab implements ReloadableEntity<Integer> {
         this.metadataSecurityFields.addAll(metadataFields);
     }
 
-    public boolean isLeading() {
+    public Boolean isLeading() {
         return leading;
     }
 
-    public void setLeading(boolean leading) {
+    public void setLeading(Boolean leading) {
         this.leading = leading;
     }
 

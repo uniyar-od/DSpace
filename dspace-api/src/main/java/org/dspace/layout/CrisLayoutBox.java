@@ -93,7 +93,7 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     private CrisLayoutCell cell;
 
     @Column(name = "container")
-    private boolean container = true;
+    private Boolean container = true;
 
     @Override
     public Integer getID() {
@@ -262,11 +262,11 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         this.cell = cell;
     }
 
-    public boolean isContainer() {
+    public Boolean isContainer() {
         return container;
     }
 
-    public void setContainer(boolean container) {
+    public void setContainer(Boolean container) {
         this.container = container;
     }
 
