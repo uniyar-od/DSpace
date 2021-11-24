@@ -296,7 +296,8 @@ footer .container {
 
 .form-control{
 	color:#000;
-	height: auto !important;
+	height: auto;
+	width: auto !important;
 }
 
 .modal.in .modal-dialog {
