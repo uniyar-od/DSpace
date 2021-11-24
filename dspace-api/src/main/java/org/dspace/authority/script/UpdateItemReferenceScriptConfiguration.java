@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.script2updateItemReferences;
+package org.dspace.authority.script;
 import java.sql.SQLException;
 
 import org.apache.commons.cli.Options;
@@ -46,7 +46,8 @@ public class UpdateItemReferenceScriptConfiguration<T extends UpdateItemReferenc
         if (options == null) {
             Options options = new Options();
 
-            options.addOption("a", "isArchived", true, "Only archieve items to use");
+            options.addOption("a", "all", false, "Default will search only archived items,"
+                                    + " by providing this param will search also not archived items ");
             options.getOption("a").setType(Boolean.class);
             options.getOption("a").setRequired(false);
 

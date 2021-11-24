@@ -1359,7 +1359,7 @@ prevent the generation of resource policy entry values with null dspace_object a
 
     @Override
     public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
-            boolean inArchive) throws SQLException {
+            Boolean inArchive) throws SQLException {
         return itemDAO.findByLikeAuthorityValue(context, likeAuthority, inArchive);
     }
 

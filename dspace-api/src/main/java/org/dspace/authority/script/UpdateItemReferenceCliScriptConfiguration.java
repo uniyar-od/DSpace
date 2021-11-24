@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.script2updateItemReferences;
+package org.dspace.authority.script;
 
 /**
  * Extension of {@link UpdateItemReferenceScriptConfiguration} for CLI.

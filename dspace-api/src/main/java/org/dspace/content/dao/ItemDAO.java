@@ -83,12 +83,12 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
      * @param likeAuthority   value that will be used with operator LIKE on field
      *                        authority, it's possible to enter '%' to improve
      *                        searching
-     * @param inArchive       true for archived items
+     * @param inArchive       true for archived items, null for all items (archived and not)
      * @return
      * @throws SQLException   if database error
      */
     public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
-            boolean inArchive) throws SQLException;
+            Boolean inArchive) throws SQLException;
 
     public Iterator<Item> findArchivedByCollection(Context context, Collection collection, Integer limit,
                                                    Integer offset) throws SQLException;

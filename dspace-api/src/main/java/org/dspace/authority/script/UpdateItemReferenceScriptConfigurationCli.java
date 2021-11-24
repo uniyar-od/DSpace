@@ -5,13 +5,14 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.script2updateItemReferences;
+package org.dspace.authority.script;
 
 /**
- * Extension of {@link UpdateItemReference} for CLI.
- * 
+ * Extension of {@link UpdateItemReferenceScriptConfiguration} for CLI.
+ *
  * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4science.it)
  */
-public class UpdateItemReferenceCli extends UpdateItemReference {
+@SuppressWarnings("rawtypes")
+public class UpdateItemReferenceScriptConfigurationCli extends UpdateItemReferenceScriptConfiguration {
 
 }

@@ -167,7 +167,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
         // perform the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "update-item-references", "-a", "true" };
+        String[] args = new String[] { "update-item-references" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         //verify that the authority values was resolved
@@ -273,7 +273,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
         // perform the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "update-item-references", "-a", "true" };
+        String[] args = new String[] { "update-item-references" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         //verify that the authority values was resolved
@@ -335,7 +335,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
         // perform the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "update-item-references", "-a", "true" };
+        String[] args = new String[] { "update-item-references" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         publication = context.reloadEntity(publication);
@@ -385,7 +385,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
         // perform the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "update-item-references", "-a", "true" };
+        String[] args = new String[] { "update-item-references", "-a" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         //verify that the authority values was not resolved
@@ -400,7 +400,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void updateOnlyWithdrawnItemReferenceTest() throws Exception {
+    public void updateAllItemsReferenceTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Community rootCommunity = CommunityBuilder.createCommunity(context)
@@ -430,12 +430,12 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
                                 .withOrcidIdentifier("0000-0000-0012-3456")
                                 .build();
 
-        ItemBuilder.createItem(context, collection)
-                   .withEntityType("Person")
-                   .withFullName("Viktor Stus")
-                   .withTitle("Viktor Stus")
-                   .withOrcidIdentifier("0000-0000-0078-9101")
-                   .build();
+        Item viktor = ItemBuilder.createItem(context, collection)
+                                 .withEntityType("Person")
+                                 .withFullName("Viktor Stus")
+                                 .withTitle("Viktor Stus")
+                                 .withOrcidIdentifier("0000-0000-0078-9101")
+                                 .build();
 
         context.restoreAuthSystemState();
 
@@ -459,7 +459,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
         // perform the script
         TestDSpaceRunnableHandler testDSpaceRunnableHandler = new TestDSpaceRunnableHandler();
-        String[] args = new String[] { "update-item-references" };
+        String[] args = new String[] { "update-item-references", "-a" };
         ScriptLauncher.handleScript(args, ScriptLauncher.getConfig(kernelImpl), testDSpaceRunnableHandler, kernelImpl);
 
         //verify that the authority values was resolved only for withdrawn items
@@ -475,7 +475,7 @@ public class UpdateItemReferenceIT extends AbstractControllerIntegrationTest {
 
         // check authority value
         assertEquals(1, values2.size());
-        assertEquals("will be referenced::ORCID::0000-0000-0078-9101", values2.get(0).getAuthority());
+        assertEquals(viktor.getID().toString(), values2.get(0).getAuthority());
         // check metadata value
         assertEquals("V.Stus", values2.get(0).getValue());
     }

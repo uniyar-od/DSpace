@@ -5,7 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.script2updateItemReferences;
+package org.dspace.authority.script;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 import java.sql.SQLException;
@@ -48,7 +48,7 @@ public class UpdateItemReference
     private static final Logger log = LogManager.getLogger(UpdateItemReference.class);
 
     private Context context;
-    private Boolean isArchive;
+    private Boolean all;
 
     private ItemService itemService;
     private ItemSearcherMapper itemSearcherMapper;
@@ -63,7 +63,7 @@ public class UpdateItemReference
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         choiceAuthorityService = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         itemService = serviceManager.getServiceByName(ItemServiceImpl.class.getName(), ItemServiceImpl.class);
-        isArchive = Boolean.valueOf(commandLine.getOptionValue('a'));
+        all = commandLine.hasOption("a") ? null : true;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class UpdateItemReference
             context.turnOffAuthorisationSystem();
             List<String> referencesResolved = new LinkedList<String>();
             List<String> referencesNotResolved = new LinkedList<String>();
-            Iterator<Item> itemIterator = itemService.findByLikeAuthorityValue(context, AUTHORITY, isArchive);
+            Iterator<Item> itemIterator = itemService.findByLikeAuthorityValue(context, AUTHORITY, all);
             handler.logInfo("Script start");
             while (itemIterator.hasNext()) {
                 Item item = itemIterator.next();
@@ -88,6 +88,7 @@ public class UpdateItemReference
             referencesNotResolved.stream().forEach((m) -> handler.logInfo(m));
             handler.logInfo("Script end");
         } catch (SQLException e) {
+            context.rollback();
             log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
         } finally {
