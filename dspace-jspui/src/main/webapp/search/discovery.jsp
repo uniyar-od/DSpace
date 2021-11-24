@@ -902,6 +902,7 @@ if((showGlobalFacet) || (brefine)) {
 	    {
 	        currFp = 0;
 	    }
+	    String locationQueryArg = StringUtils.isBlank(searchScope) ? "" : ("&amp;location=" + Utils.addEntities(searchScope));
 	    for (FacetResult fvalue : facet)
 	    { 
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
@@ -909,7 +910,7 @@ if((showGlobalFacet) || (brefine)) {
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= searchName
                 + "?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + Utils.addEntities(searchScope)
+				+ locationQueryArg
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
@@ -936,7 +937,7 @@ if((showGlobalFacet) || (brefine)) {
 	        <a class="pull-left" href="<%= searchName
                 + "?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + Utils.addEntities(searchScope)
+				+ locationQueryArg
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
@@ -950,7 +951,7 @@ if((showGlobalFacet) || (brefine)) {
             <a href="<%= searchName
                 + "?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + Utils.addEntities(searchScope)
+				+ locationQueryArg
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
