@@ -48,7 +48,7 @@ public class UpdateItemReference
     private static final Logger log = LogManager.getLogger(UpdateItemReference.class);
 
     private Context context;
-    private Boolean all;
+    private Boolean onlyArchived;
 
     private ItemService itemService;
     private ItemSearcherMapper itemSearcherMapper;
@@ -63,7 +63,7 @@ public class UpdateItemReference
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         choiceAuthorityService = ContentAuthorityServiceFactory.getInstance().getChoiceAuthorityService();
         itemService = serviceManager.getServiceByName(ItemServiceImpl.class.getName(), ItemServiceImpl.class);
-        all = commandLine.hasOption("a") ? null : true;
+        onlyArchived = commandLine.hasOption("a") ? null : true;
     }
 
     @Override
@@ -73,7 +73,7 @@ public class UpdateItemReference
             context.turnOffAuthorisationSystem();
             List<String> referencesResolved = new LinkedList<String>();
             List<String> referencesNotResolved = new LinkedList<String>();
-            Iterator<Item> itemIterator = itemService.findByLikeAuthorityValue(context, AUTHORITY, all);
+            Iterator<Item> itemIterator = itemService.findByLikeAuthorityValue(context, AUTHORITY, onlyArchived);
             handler.logInfo("Script start");
             while (itemIterator.hasNext()) {
                 Item item = itemIterator.next();
