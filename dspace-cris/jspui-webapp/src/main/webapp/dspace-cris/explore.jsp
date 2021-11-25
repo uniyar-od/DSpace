@@ -60,12 +60,23 @@ function newRow(){
 	newRow.insertBefore(jQuery('#lastRow'));
 	
 	newRow.find('select.index option').filter(function() {
-	    return $(this).text() == jQuery('#lastRow').find('select.index').val(); 
-	}).prop('selected', true);
+	    return $(this).val() == jQuery('#lastRow').find('select.index').val(); 
+	}).attr('selected', true);
 	
 	newRow.find('input.query').val(jQuery('#lastRow').find('input.query').val());
 	jQuery('#lastRow').find('select.index option:first').prop('selected', true);
 	jQuery('#lastRow').find('input.query').val('');
+	
+	newRow.find('select.conjuction option').filter(function() {
+	    return $(this).val() == jQuery('#lastRow').find('select.conjuction').val(); 
+	}).attr('selected', true);
+	
+	if (jQuery('#lastRow').find('select.conjuction').length == 0)
+	{
+		jQuery('select.conjuction').first().remove();
+		var newConjuction = jQuery('select.conjuction').first().clone();
+		jQuery('#lastRow').children().first().append(newConjuction);
+	}
 }
 
 function resetForm() {
@@ -149,9 +160,9 @@ function submitForm() {
 		</div>
 		<div class="col-xs-2">
 		<select class="conjuction form-control">
-			<option>AND</option>
-			<option>OR</option>
-			<option>NOT</option>
+			<option value="AND">AND</option>
+			<option value="OR">OR</option>
+			<option value="NOT">NOT</option>
 		</select>
 		</div>
 		</div>
@@ -188,9 +199,9 @@ function submitForm() {
 		</div>
 		<div class="col-xs-2">
 		<select class="conjuction form-control">
-			<option>AND</option>
-			<option>OR</option>
-			<option>NOT</option>
+				<option value="AND">AND</option>
+				<option value="OR">OR</option>
+				<option value="NOT">NOT</option>
 		</select>
 		</div>
 		</div>

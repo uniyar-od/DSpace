@@ -68,7 +68,7 @@ public class DiscoverUtility
     {
         // Get the location parameter, if any
         String location = request.getParameter("location");
-        if (location == null)
+        if (StringUtils.isBlank(location))
         {
             if (UIUtil.getCollectionLocation(request) != null)
             {
@@ -692,7 +692,7 @@ public class DiscoverUtility
                             // limited to
                             // the 10 years in our span due to our
                             // filterquery
-                            queryArgs.addFacetField(new DiscoverFacetField(
+                        	queryArgs.addFacetField(new DiscoverFacetField(
                                     facet.getIndexFieldName(), facet.getType(),
                                     10, facet.getSortOrder(),false));
                         }
