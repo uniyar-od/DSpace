@@ -55,12 +55,6 @@ public class CrisMetadataGroup {
     @Column(name = "style_value")
     private String styleValue;
 
-    @Column(name = "label_as_heading")
-    private boolean labelAsHeading;
-
-    @Column(name = "values_inline")
-    private boolean valuesInline;
-
     @ManyToOne
     @JoinColumn(name = "field_id")
     private CrisLayoutField crisLayoutField;
@@ -137,19 +131,4 @@ public class CrisMetadataGroup {
         this.crisLayoutField = crisLayoutField;
     }
 
-    public boolean isLabelAsHeading() {
-        return labelAsHeading;
-    }
-
-    public void setLabelAsHeading(boolean labelAsHeading) {
-        this.labelAsHeading = labelAsHeading;
-    }
-
-    public boolean isValuesInline() {
-        return valuesInline;
-    }
-
-    public void setValuesInline(boolean valuesInline) {
-        this.valuesInline = valuesInline;
-    }
 }

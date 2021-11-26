@@ -59,14 +59,20 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
     @Column(name = "row", nullable = false)
     private Integer row;
 
+    @Column(name = "cell", nullable = false)
+    private Integer cell;
+
     @Column(name = "priority", nullable = false)
     private Integer priority;
 
     @Column(name = "label")
     private String label;
 
-    @Column(name = "style")
-    private String style;
+    @Column(name = "row_style")
+    private String rowStyle;
+
+    @Column(name = "cell_style")
+    private String cellStyle;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "box_id")
@@ -137,12 +143,20 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
         this.label = label;
     }
 
-    public String getStyle() {
-        return style;
+    public String getRowStyle() {
+        return rowStyle;
     }
 
-    public void setStyle(String style) {
-        this.style = style;
+    public void setRowStyle(String rowStyle) {
+        this.rowStyle = rowStyle;
+    }
+
+    public String getCellStyle() {
+        return cellStyle;
+    }
+
+    public void setCellStyle(String cellStyle) {
+        this.cellStyle = cellStyle;
     }
 
     public CrisLayoutBox getBox() {
@@ -192,4 +206,13 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
     public void setValuesInline(boolean valuesInline) {
         this.valuesInline = valuesInline;
     }
+
+    public Integer getCell() {
+        return cell;
+    }
+
+    public void setCell(Integer cell) {
+        this.cell = cell;
+    }
+
 }
