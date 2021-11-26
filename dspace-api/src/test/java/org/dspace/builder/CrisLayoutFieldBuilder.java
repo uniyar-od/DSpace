@@ -60,26 +60,33 @@ public class CrisLayoutFieldBuilder extends AbstractBuilder<CrisLayoutField, Cri
         return field;
     }
 
-    private static CrisLayoutFieldBuilder createField(
-            Context ctx, CrisLayoutField field, MetadataField mf, int row, int priority) {
-        CrisLayoutFieldBuilder builder = new CrisLayoutFieldBuilder(ctx);
-        field.setMetadataField(mf);
-        field.setRow(row);
-        field.setPriority(priority);
-        return builder.create(ctx, field);
-    }
-
 
     public static CrisLayoutFieldBuilder createMetadataField(Context context, MetadataField mf, int row, int priority) {
         CrisLayoutFieldMetadata metadata = new CrisLayoutFieldMetadata();
-        return createField(context, metadata, mf, row, priority);
+        return createField(context, metadata, mf, row, 0, priority);
+    }
+
+    public static CrisLayoutFieldBuilder createMetadataField(Context context, MetadataField mf,
+        int row, int cell, int priority) {
+        CrisLayoutFieldMetadata metadata = new CrisLayoutFieldMetadata();
+        return createField(context, metadata, mf, row, cell, priority);
     }
 
     public static CrisLayoutFieldBuilder createBistreamField(
-            Context context, MetadataField mf, String bundle, int row, int priority) {
+        Context context, MetadataField mf, String bundle, int row, int cell, int priority) {
         CrisLayoutFieldBitstream bitstream = new CrisLayoutFieldBitstream();
         bitstream.setBundle(bundle);
-        return createField(context, bitstream, mf, row, priority);
+        return createField(context, bitstream, mf, row, cell, priority);
+    }
+
+    private static CrisLayoutFieldBuilder createField(
+        Context ctx, CrisLayoutField field, MetadataField mf, int row, int cell, int priority) {
+        CrisLayoutFieldBuilder builder = new CrisLayoutFieldBuilder(ctx);
+        field.setMetadataField(mf);
+        field.setRow(row);
+        field.setCell(cell);
+        field.setPriority(priority);
+        return builder.create(ctx, field);
     }
 
     private CrisLayoutFieldBuilder create(Context context, CrisLayoutField field) {
@@ -132,8 +139,13 @@ public class CrisLayoutFieldBuilder extends AbstractBuilder<CrisLayoutField, Cri
         return this;
     }
 
-    public CrisLayoutFieldBuilder withStyle(String style) {
-        this.field.setStyle(style);
+    public CrisLayoutFieldBuilder withRowStyle(String style) {
+        this.field.setRowStyle(style);
+        return this;
+    }
+
+    public CrisLayoutFieldBuilder withCellStyle(String style) {
+        this.field.setCellStyle(style);
         return this;
     }
 

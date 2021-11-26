@@ -998,7 +998,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, isbn, 0, 0)
             .withLabel("LABEL ISBN")
             .withRendering("RENDERIGN ISBN")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withBox(box)
@@ -1006,7 +1006,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, uri, 0, 1)
             .withLabel("LABEL URI")
             .withRendering("RENDERIGN URI")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withBox(box)
@@ -1014,7 +1014,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, abs, 1, 0)
             .withLabel("LABEL ABS")
             .withRendering("RENDERIGN ABS")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withBox(box)
@@ -1022,7 +1022,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, provenance, 1, 1)
             .withLabel("LABEL PROVENANCE")
             .withRendering("RENDERIGN PROVENANCE")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withBox(box)
@@ -1030,7 +1030,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, sponsorship, 1, 2)
             .withLabel("LABEL SPRONSORSHIP")
             .withRendering("RENDERIGN SPRONSORSHIP")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withBox(box)
@@ -1038,7 +1038,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, extent, 2, 0)
             .withLabel("LABEL EXTENT")
             .withRendering("RENDERIGN EXTENT")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withBox(box)
@@ -1047,7 +1047,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         CrisLayoutFieldBuilder.createMetadataField(context, author, 0, 1)
             .withLabel("Authors")
             .withRendering("table")
-            .withStyle("row")
+            .withRowStyle("row")
             .withLabelStyle("col-6")
             .withValueStyle("col-6")
             .withNestedField(nestedMetadata)
@@ -1063,6 +1063,8 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
 
         context.restoreAuthSystemState();
 
+        String firstConfigurationCell = "$.rows[0].cells[0].boxes[0].configuration.rows[0].cells[0]";
+
         getClient().perform(get("/api/layout/tabs/" + tab.getID()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(contentType))
@@ -1072,22 +1074,18 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.rows[0].cells", hasSize(1)))
             .andExpect(jsonPath("$.rows[0].cells[0].style").doesNotExist())
             .andExpect(jsonPath("$.rows[0].cells[0].boxes", hasSize(1)))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields", hasSize(3)))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[1].fields", hasSize(3)))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[2].fields", hasSize(1)))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadata",
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].cells[0].fields", hasSize(3)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[1].cells[0].fields", hasSize(3)))
+            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[2].cells[0].fields", hasSize(1)))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].metadata", is("dc.contributor.author")))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].label", is("Authors")))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].rendering", is("table")))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].styleLabel", is("col-6")))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].styleValue", is("col-6")))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].metadataGroup.leading",
                 is("dc.contributor.author")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].label", is("Authors")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].rendering", is("table")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].style", is("row")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].styleLabel", is("col-6")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].styleValue", is("col-6")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadataGroup.leading",
-                is("dc.contributor.author")))
-            .andExpect(jsonPath("$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadataGroup.elements",
-                hasSize(2)))
-            .andExpect(jsonPath(
-                "$.rows[0].cells[0].boxes[0].configuration.rows[0].fields[2].metadataGroup.elements[1].metadata",
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].metadataGroup.elements", hasSize(2)))
+            .andExpect(jsonPath(firstConfigurationCell + ".fields[2].metadataGroup.elements[1].metadata",
                 is("oairecerif.author.affiliation")));
     }
 

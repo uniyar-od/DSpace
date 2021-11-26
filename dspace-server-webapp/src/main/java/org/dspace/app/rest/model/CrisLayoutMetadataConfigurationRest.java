@@ -51,6 +51,41 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
     }
 
     public static class Row {
+
+        @JsonInclude(Include.NON_NULL)
+        private String style;
+
+        private List<Cell> cells = new ArrayList<>();
+
+        public List<Cell> getCells() {
+            return cells;
+        }
+
+        public void setCells(List<Cell> cells) {
+            this.cells = cells;
+        }
+
+        public void addCell(Cell cell) {
+            if (this.cells == null) {
+                this.cells = new ArrayList<>();
+            }
+            this.cells.add(cell);
+        }
+
+        public String getStyle() {
+            return style;
+        }
+
+        public void setStyle(String style) {
+            this.style = style;
+        }
+    }
+
+    public static class Cell {
+
+        @JsonInclude(Include.NON_NULL)
+        private String style;
+
         private List<Field> fields = new ArrayList<>();
 
         public List<Field> getFields() {
@@ -67,7 +102,16 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
             }
             this.fields.add(field);
         }
+
+        public String getStyle() {
+            return style;
+        }
+
+        public void setStyle(String style) {
+            this.style = style;
+        }
     }
+
 
     public static final class Field {
 
@@ -82,8 +126,6 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
         private String rendering;
 
         private String fieldType;
-
-        private String style;
 
         private String styleLabel;
 
@@ -170,22 +212,6 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
          */
         public void setFieldType(String fieldType) {
             this.fieldType = fieldType;
-        }
-
-        /**
-         * This attribute allows to set arbitrary css styles to the generated html
-         * @return
-         */
-        public String getStyle() {
-            return style;
-        }
-
-        /**
-         * This attribute allows to set arbitrary css styles to the generated html
-         * @param style
-         */
-        public void setStyle(String style) {
-            this.style = style;
         }
 
         public Bitstream getBitstream() {

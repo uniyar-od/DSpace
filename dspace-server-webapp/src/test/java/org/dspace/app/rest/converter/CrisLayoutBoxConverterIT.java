@@ -22,6 +22,7 @@ import java.util.List;
 import org.dspace.app.rest.model.CrisLayoutBoxRelationConfigurationRest;
 import org.dspace.app.rest.model.CrisLayoutBoxRest;
 import org.dspace.app.rest.model.CrisLayoutMetadataConfigurationRest;
+import org.dspace.app.rest.model.CrisLayoutMetadataConfigurationRest.Cell;
 import org.dspace.app.rest.model.CrisLayoutMetadataConfigurationRest.Field;
 import org.dspace.app.rest.model.CrisLayoutMetadataConfigurationRest.Row;
 import org.dspace.app.rest.model.CrisLayoutMetricsConfigurationRest;
@@ -69,32 +70,38 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
         MetadataSchema schema = mdss.find(context, "dc");
         MetadataSchema oairecerif = mdss.find(context, "oairecerif");
         MetadataField title = mfss.findByElement(context, schema, "title", null);
+        MetadataField language = mfss.findByElement(context, schema, "language", "iso");
         MetadataField date = mfss.findByElement(context, schema, "date", "issued");
         MetadataField subject = mfss.findByElement(context, schema, "subject", null);
         MetadataField patentno = mfss.findByElement(context, schema, "identifier", "patentno");
         MetadataField author = mfss.findByElement(context, schema, "contributor", "author");
         MetadataField affiliation = mfss.findByElement(context, oairecerif, "author", "affiliation");
 
-        CrisLayoutField titleField = CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 1)
+        CrisLayoutField titleField = CrisLayoutFieldBuilder.createMetadataField(context, title, 0, 0, 1)
             .withLabel("Title")
             .withLabelStyle("bold")
-            .withStyle("title style")
+            .withCellStyle("cell-style")
             .withValueStyle("value style")
             .withLabelAsHeading(true)
             .build();
 
-        CrisLayoutField issuedDate = CrisLayoutFieldBuilder.createMetadataField(context, date, 0, 0)
+        CrisLayoutField issuedDate = CrisLayoutFieldBuilder.createMetadataField(context, date, 0, 0, 0)
             .withLabel("Date")
+            .withRowStyle("row-style")
             .build();
 
-        CrisLayoutField image = CrisLayoutFieldBuilder.createBistreamField(context, null, "ORIGINAL", 1, 0)
+        CrisLayoutField languageField = CrisLayoutFieldBuilder.createMetadataField(context, language, 0, 1, 0)
+            .withLabel("Language")
+            .build();
+
+        CrisLayoutField image = CrisLayoutFieldBuilder.createBistreamField(context, null, "ORIGINAL", 1, 0, 0)
             .withRendering("attachment")
             .build();
 
-        CrisLayoutField authorField = CrisLayoutFieldBuilder.createMetadataField(context, author, 1, 1)
+        CrisLayoutField authorField = CrisLayoutFieldBuilder.createMetadataField(context, author, 1, 0, 1)
             .withLabel("LABEL Author")
             .withRendering("crisref")
-            .withStyle("STYLE")
+            .withRowStyle("STYLE")
             .withNestedField(List.of(author, affiliation))
             .withValuesInline(true)
             .build();
@@ -108,6 +115,7 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
             .withSecurity(LayoutSecurity.ADMINISTRATOR)
             .addMetadataSecurityField(subject)
             .addMetadataSecurityField(patentno)
+            .addField(languageField)
             .addField(image)
             .addField(titleField)
             .addField(issuedDate)
@@ -137,9 +145,14 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
         assertThat(config.getRows(), hasSize(2));
 
         Row firstRow = config.getRows().get(0);
-        assertThat(firstRow.getFields(), hasSize(2));
+        assertThat(firstRow.getStyle(), is("row-style"));
+        assertThat(firstRow.getCells(), hasSize(2));
 
-        Field firstField = firstRow.getFields().get(0);
+        Cell firstCell = firstRow.getCells().get(0);
+        assertThat(firstCell.getStyle(), is("cell-style"));
+        assertThat(firstCell.getFields(), hasSize(2));
+
+        Field firstField = firstCell.getFields().get(0);
         assertThat(firstField.getFieldType(), is("METADATA"));
         assertThat(firstField.getBitstream(), nullValue());
         assertThat(firstField.getLabel(), is("Date"));
@@ -147,12 +160,11 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
         assertThat(firstField.getMetadata(), is("dc.date.issued"));
         assertThat(firstField.getMetadataGroup(), nullValue());
         assertThat(firstField.getRendering(), nullValue());
-        assertThat(firstField.getStyle(), nullValue());
         assertThat(firstField.getStyleValue(), nullValue());
         assertThat(firstField.isLabelAsHeading(), is(false));
         assertThat(firstField.isValuesInline(), is(false));
 
-        Field secondField = firstRow.getFields().get(1);
+        Field secondField = firstCell.getFields().get(1);
         assertThat(secondField.getFieldType(), is("METADATA"));
         assertThat(secondField.getBitstream(), nullValue());
         assertThat(secondField.getLabel(), is("Title"));
@@ -160,32 +172,48 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
         assertThat(secondField.getMetadata(), is("dc.title"));
         assertThat(secondField.getMetadataGroup(), nullValue());
         assertThat(secondField.getRendering(), nullValue());
-        assertThat(secondField.getStyle(), is("title style"));
         assertThat(secondField.getStyleValue(), is("value style"));
         assertThat(secondField.isLabelAsHeading(), is(true));
         assertThat(secondField.isValuesInline(), is(false));
 
+        Cell secondCell = firstRow.getCells().get(1);
+        assertThat(secondCell.getFields(), hasSize(1));
+
+        Field thirdField = secondCell.getFields().get(0);
+        assertThat(thirdField.getFieldType(), is("METADATA"));
+        assertThat(thirdField.getBitstream(), nullValue());
+        assertThat(thirdField.getLabel(), is("Language"));
+        assertThat(thirdField.getStyleLabel(), nullValue());
+        assertThat(thirdField.getMetadata(), is("dc.language.iso"));
+        assertThat(thirdField.getMetadataGroup(), nullValue());
+        assertThat(thirdField.getRendering(), nullValue());
+        assertThat(thirdField.getStyleValue(), nullValue());
+        assertThat(thirdField.isLabelAsHeading(), is(false));
+        assertThat(thirdField.isValuesInline(), is(false));
+
         Row secondRow = config.getRows().get(1);
-        assertThat(secondRow.getFields(), hasSize(2));
+        assertThat(secondRow.getCells(), hasSize(1));
 
-        Field thirdField = secondRow.getFields().get(0);
-        assertThat(thirdField.getFieldType(), is("BITSTREAM"));
-        assertThat(thirdField.getBitstream(), notNullValue());
-        assertThat(thirdField.getBitstream().getBundle(), is("ORIGINAL"));
-        assertThat(thirdField.getRendering(), is("attachment"));
+        Cell thirdCell = secondRow.getCells().get(0);
+        assertThat(thirdCell.getFields(), hasSize(2));
 
-        Field fourthField = secondRow.getFields().get(1);
-        assertThat(fourthField.getFieldType(), is("METADATAGROUP"));
-        assertThat(fourthField.getBitstream(), nullValue());
-        assertThat(fourthField.getLabel(), is("LABEL Author"));
-        assertThat(fourthField.getRendering(), is("crisref"));
-        assertThat(fourthField.getStyle(), is("STYLE"));
-        assertThat(fourthField.isValuesInline(), is(true));
-        assertThat(fourthField.getMetadata(), is("dc.contributor.author"));
-        assertThat(fourthField.getMetadataGroup(), notNullValue());
-        assertThat(fourthField.getMetadataGroup().getLeading(), is("dc.contributor.author"));
+        Field fourthField = thirdCell.getFields().get(0);
+        assertThat(fourthField.getFieldType(), is("BITSTREAM"));
+        assertThat(fourthField.getBitstream(), notNullValue());
+        assertThat(fourthField.getBitstream().getBundle(), is("ORIGINAL"));
+        assertThat(fourthField.getRendering(), is("attachment"));
 
-        List<Field> nestedMetadataFields = fourthField.getMetadataGroup().getElements();
+        Field fifthField = thirdCell.getFields().get(1);
+        assertThat(fifthField.getFieldType(), is("METADATAGROUP"));
+        assertThat(fifthField.getBitstream(), nullValue());
+        assertThat(fifthField.getLabel(), is("LABEL Author"));
+        assertThat(fifthField.getRendering(), is("crisref"));
+        assertThat(fifthField.isValuesInline(), is(true));
+        assertThat(fifthField.getMetadata(), is("dc.contributor.author"));
+        assertThat(fifthField.getMetadataGroup(), notNullValue());
+        assertThat(fifthField.getMetadataGroup().getLeading(), is("dc.contributor.author"));
+
+        List<Field> nestedMetadataFields = fifthField.getMetadataGroup().getElements();
         assertThat(nestedMetadataFields, hasSize(2));
         assertThat(nestedMetadataFields.get(0).getMetadata(), is("dc.contributor.author"));
         assertThat(nestedMetadataFields.get(1).getMetadata(), is("oairecerif.author.affiliation"));

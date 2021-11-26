@@ -29,23 +29,27 @@
                 "type": "boxmetadataconfiguration",
                 "rows": [
                   {
-                    "fields": [
-                      {
-                        "metadata": "dc.title",
-                        "label": "Name",
-                        "labelAsHeading": true,
-                        "fieldType": "metadata"
-                      },
-                      {
-				          "metadata": "dc.date.issued",
-				          "label": "Date Issued",
-				          "rendering": null,
-				          "fieldType": "METADATA",
-				          "style": "container row",
-				          "styleLabel": "font-weight-bold col-4",
-				          "styleValue": "col",
-				          "metadataGroup": null
-				        }
+				    "style": "container row",
+                    "cells": [
+                    	{
+	                    	"fields": [
+		                      {
+		                        "metadata": "dc.title",
+		                        "label": "Name",
+		                        "labelAsHeading": true,
+		                        "fieldType": "metadata"
+		                      },
+		                      {
+						          "metadata": "dc.date.issued",
+						          "label": "Date Issued",
+						          "rendering": null,
+						          "fieldType": "METADATA",
+						          "styleLabel": "font-weight-bold col-4",
+						          "styleValue": "col",
+						          "metadataGroup": null
+						        }
+		                    ]
+                    	}
                     ]
                   }
                 ]
