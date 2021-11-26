@@ -23,8 +23,6 @@ import org.dspace.core.Context;
 
 public class DSpaceObjectsSitemapGenerator implements ISitemapGeneratorPlugin {
 
-	private ContentServiceFactory contentServiceFactory = ContentServiceFactory.getInstance();
-
 	@Override
 	public String addUrls(Context c, boolean makeHTMLMap, boolean makeSitemapOrg, List<String> includes,
 			AbstractGenerator html, AbstractGenerator sitemapsOrg) throws SQLException, IOException {
@@ -32,7 +30,7 @@ public class DSpaceObjectsSitemapGenerator implements ISitemapGeneratorPlugin {
 		StringBuffer objectDetails = new StringBuffer();
 		if (includes.contains("community")) {
 
-			List<Community> communities = contentServiceFactory.getCommunityService().findAll(c);
+			List<Community> communities = ContentServiceFactory.getInstance().getCommunityService().findAll(c);
 
 			for (Community com : communities) {
 				String url = handleURLStem + com.getHandle();
@@ -49,7 +47,7 @@ public class DSpaceObjectsSitemapGenerator implements ISitemapGeneratorPlugin {
 		}
 
 		if (includes.contains("collection")) {
-			List<Collection> collections = contentServiceFactory.getCollectionService().findAll(c);
+			List<Collection> collections = ContentServiceFactory.getInstance().getCollectionService().findAll(c);
 			for (Collection collection : collections) {
 				String url = handleURLStem + collection.getHandle();
 
@@ -66,7 +64,7 @@ public class DSpaceObjectsSitemapGenerator implements ISitemapGeneratorPlugin {
 
 		if (includes.contains("item")) {
 			int itemCount = 0;
-			Iterator<Item> items = contentServiceFactory.getItemService().findAll(c);
+			Iterator<Item> items = ContentServiceFactory.getInstance().getItemService().findAll(c);
 
 			while (items.hasNext()) {
 				Item i = items.next();
