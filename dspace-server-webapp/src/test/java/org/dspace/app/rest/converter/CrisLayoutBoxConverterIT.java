@@ -83,19 +83,26 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
             .withCellStyle("cell-style")
             .withValueStyle("value style")
             .withLabelAsHeading(true)
+            .withValuesInline(false)
             .build();
 
         CrisLayoutField issuedDate = CrisLayoutFieldBuilder.createMetadataField(context, date, 0, 0, 0)
             .withLabel("Date")
             .withRowStyle("row-style")
+            .withLabelAsHeading(false)
+            .withValuesInline(false)
             .build();
 
         CrisLayoutField languageField = CrisLayoutFieldBuilder.createMetadataField(context, language, 0, 1, 0)
             .withLabel("Language")
+            .withLabelAsHeading(false)
+            .withValuesInline(false)
             .build();
 
         CrisLayoutField image = CrisLayoutFieldBuilder.createBistreamField(context, null, "ORIGINAL", 1, 0, 0)
             .withRendering("attachment")
+            .withLabelAsHeading(false)
+            .withValuesInline(false)
             .build();
 
         CrisLayoutField authorField = CrisLayoutFieldBuilder.createMetadataField(context, author, 1, 0, 1)
@@ -104,6 +111,7 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
             .withRowStyle("STYLE")
             .withNestedField(List.of(author, affiliation))
             .withValuesInline(true)
+            .withLabelAsHeading(false)
             .build();
 
         CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, entityType, true, true)
@@ -123,6 +131,8 @@ public class CrisLayoutBoxConverterIT extends AbstractControllerIntegrationTest 
             .build();
 
         context.commit();
+
+        box = context.reloadEntity(box);
 
         context.restoreAuthSystemState();
 

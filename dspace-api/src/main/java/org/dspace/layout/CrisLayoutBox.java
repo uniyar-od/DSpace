@@ -79,7 +79,7 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     private Set<MetadataField> metadataSecurityFields = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "box", cascade = CascadeType.ALL)
-    @OrderBy(value = "row, priority")
+    @OrderBy(value = "row, cell, priority")
     private List<CrisLayoutField> layoutFields = new ArrayList<>();
 
     @OneToMany(mappedBy = "box", cascade = CascadeType.ALL, orphanRemoval = true)

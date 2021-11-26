@@ -134,8 +134,10 @@ public class CrisLayoutMetadataConfigurationRest implements CrisLayoutBoxConfigu
         @JsonInclude(Include.NON_NULL)
         private MetadataGroup metadataGroup;
 
+        @JsonInclude(Include.NON_NULL)
         private Boolean labelAsHeading;
 
+        @JsonInclude(Include.NON_NULL)
         private Boolean valuesInline;
 
         public String getMetadata() {

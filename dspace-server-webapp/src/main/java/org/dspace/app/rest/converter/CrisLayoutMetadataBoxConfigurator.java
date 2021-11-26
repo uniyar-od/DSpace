@@ -7,11 +7,8 @@
  */
 package org.dspace.app.rest.converter;
 
-import static java.util.Collections.sort;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,7 +61,7 @@ public class CrisLayoutMetadataBoxConfigurator implements CrisLayoutBoxConfigura
 
         CrisLayoutMetadataConfigurationRest configurationRest = new CrisLayoutMetadataConfigurationRest();
 
-        for (CrisLayoutField layoutField : getFieldsOrderedByRowAndCellAndPriority(box)) {
+        for (CrisLayoutField layoutField : box.getLayoutFields()) {
 
             Field field = new Field();
             field.setLabel(layoutField.getLabel());
@@ -138,14 +135,6 @@ public class CrisLayoutMetadataBoxConfigurator implements CrisLayoutBoxConfigura
             rowIndex++;
         }
 
-    }
-
-    private List<CrisLayoutField> getFieldsOrderedByRowAndCellAndPriority(CrisLayoutBox box) {
-        List<CrisLayoutField> layoutFields = box.getLayoutFields();
-        sort(layoutFields, Comparator.comparing(CrisLayoutField::getRow)
-            .thenComparing(CrisLayoutField::getCell)
-            .thenComparing(CrisLayoutField::getPriority));
-        return layoutFields;
     }
 
     private void setAdditionalAttributesByType(CrisLayoutField layoutField, Field field) {

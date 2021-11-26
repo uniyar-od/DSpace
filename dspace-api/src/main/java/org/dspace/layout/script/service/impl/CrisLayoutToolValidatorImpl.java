@@ -15,11 +15,12 @@ import static org.dspace.util.WorkbookUtils.getNotEmptyRowsSkippingHeader;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,9 +88,9 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             result.addError("The sheet " + TAB_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
 
-        validateBooleanColumn(tabSheet, LEADING_COLUMN, result);
-        validateIntegerColumn(tabSheet, PRIORITY_COLUMN, result);
-        validateSecurityColumn(tabSheet, SECURITY_COLUMN, result);
+        validateBooleanColumns(tabSheet, result, LEADING_COLUMN);
+        validateIntegerColumns(tabSheet, result, PRIORITY_COLUMN);
+        validateSecurityColumns(tabSheet, result, SECURITY_COLUMN);
 
         int shortnameColumn = getCellIndexFromHeaderName(tabSheet, SHORTNAME_COLUMN);
         if (shortnameColumn == -1) {
@@ -128,10 +129,8 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             result.addError("The sheet " + BOX_SHEET + " has no " + ENTITY_COLUMN + " column");
         }
 
-        validateBooleanColumn(boxSheet, COLLAPSED_COLUMN, result);
-        validateBooleanColumn(boxSheet, CONTAINER_COLUMN, result);
-        validateBooleanColumn(boxSheet, MINOR_COLUMN, result);
-        validateSecurityColumn(boxSheet, SECURITY_COLUMN, result);
+        validateBooleanColumns(boxSheet, result, COLLAPSED_COLUMN, CONTAINER_COLUMN, MINOR_COLUMN);
+        validateSecurityColumns(boxSheet, result, SECURITY_COLUMN);
 
         int shortnameColumn = getCellIndexFromHeaderName(boxSheet, SHORTNAME_COLUMN);
         if (shortnameColumn == -1) {
@@ -155,7 +154,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         validateColumnsPresence(tab2boxSheet, result, ENTITY_COLUMN, TAB_COLUMN, BOXES_COLUMN);
 
         validateTab2BoxRowsReferences(tab2boxSheet, result);
-        validateTab2BoxRowsStyle(tab2boxSheet, result);
+        validateRowStyleColumn(tab2boxSheet, TAB_COLUMN, result);
 
     }
 
@@ -168,13 +167,10 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             return;
         }
 
-        validateIntegerColumn(box2metadataSheet, ROW_COLUMN, result);
-        validateIntegerColumn(box2metadataSheet, CELL_COLUMN, result);
-
-        validateBooleanColumn(box2metadataSheet, LABEL_AS_HEADING_COLUMN, result);
-        validateBooleanColumn(box2metadataSheet, VALUES_INLINE_COLUMN, result);
-
+        validateIntegerColumns(box2metadataSheet, result, ROW_COLUMN, CELL_COLUMN);
+        validateBooleanColumns(box2metadataSheet, result, LABEL_AS_HEADING_COLUMN, VALUES_INLINE_COLUMN);
         validateColumnsPresence(box2metadataSheet, result, BUNDLE_COLUMN, VALUE_COLUMN);
+        validateRowStyleColumn(box2metadataSheet, BOX_COLUMN, result);
 
         int fieldTypeColumn = getCellIndexFromHeaderName(box2metadataSheet, FIELD_TYPE_COLUMN);
         if (fieldTypeColumn == -1) {
@@ -253,7 +249,6 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
     private void validateTabPolicySheet(List<String> allMetadataFields, Workbook workbook,
         CrisLayoutToolValidationResult result) {
         validatePolicySheet(allMetadataFields, workbook, result, TAB_POLICY_SHEET);
-
     }
 
     private void validatePolicySheet(List<String> allMetadataFields, Workbook workbook,
@@ -390,9 +385,9 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
         Sheet tab2boxSheet = row.getSheet();
 
-        String entityType = WorkbookUtils.getCellValue(row, entityTypeColumn);
-        String tab = WorkbookUtils.getCellValue(row, tabColumn);
-        String[] boxes = WorkbookUtils.getCellValue(row, boxesColumn).split(",");
+        String entityType = getCellValue(row, entityTypeColumn);
+        String tab = getCellValue(row, tabColumn);
+        String[] boxes = splitByCommaAndTrim(getCellValue(row, boxesColumn));
 
         if (isNotPresentOnSheet(tab2boxSheet.getWorkbook(), TAB_SHEET, entityType, tab)) {
             result.addError("The Tab with name " + tab + " and entity type " + entityType + " in the row " +
@@ -410,31 +405,32 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
-    private void validateTab2BoxRowsStyle(Sheet tab2boxSheet, CrisLayoutToolValidationResult result) {
+    private void validateRowStyleColumn(Sheet sheet, String containerColumnName,
+        CrisLayoutToolValidationResult result) {
 
-        int rowStyleColumn = getCellIndexFromHeaderName(tab2boxSheet, ROW_STYLE_COLUMN);
+        int rowStyleColumn = getCellIndexFromHeaderName(sheet, ROW_STYLE_COLUMN);
         if (rowStyleColumn == -1) {
-            result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + ROW_STYLE_COLUMN + " column");
+            result.addError("The sheet " + sheet.getSheetName() + " has no " + ROW_STYLE_COLUMN + " column");
             return;
         }
 
-        int rowColumn = getCellIndexFromHeaderName(tab2boxSheet, ROW_COLUMN);
+        int rowColumn = getCellIndexFromHeaderName(sheet, ROW_COLUMN);
         if (rowColumn == -1) {
-            result.addError("The sheet " + tab2boxSheet.getSheetName() + " has no " + ROW_COLUMN + " column");
+            result.addError("The sheet " + sheet.getSheetName() + " has no " + ROW_COLUMN + " column");
             return;
         }
 
-        int entityTypeColumn = getCellIndexFromHeaderName(tab2boxSheet, ENTITY_COLUMN);
-        int tabColumn = getCellIndexFromHeaderName(tab2boxSheet, TAB_COLUMN);
-        if (entityTypeColumn == -1 || tabColumn == -1) {
+        int entityTypeColumn = getCellIndexFromHeaderName(sheet, ENTITY_COLUMN);
+        int containerColumn = getCellIndexFromHeaderName(sheet, containerColumnName);
+        if (entityTypeColumn == -1 || containerColumn == -1) {
             return;
         }
 
-        List<Integer> detectedRowWIthConflicts = new ArrayList<Integer>();
+        List<Integer> detectedRowWithConflicts = new ArrayList<Integer>();
 
-        for (Row row : getNotEmptyRowsSkippingHeader(tab2boxSheet)) {
+        for (Row row : getNotEmptyRowsSkippingHeader(sheet)) {
 
-            if (detectedRowWIthConflicts.contains(row.getRowNum())) {
+            if (detectedRowWithConflicts.contains(row.getRowNum())) {
                 continue;
             }
 
@@ -444,40 +440,44 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             }
 
             String entityType = getCellValue(row, entityTypeColumn);
-            String tab = getCellValue(row, tabColumn);
+            String container = getCellValue(row, containerColumn);
             String rowCount = getCellValue(row, rowColumn);
             if (isNotInteger(rowCount)) {
                 result.addError("The " + ROW_COLUMN + " value specified on the row " + row.getRowNum() + " of sheet "
-                    + tab2boxSheet.getSheetName() + " is not valid " + rowCount);
+                    + sheet.getSheetName() + " is not valid " + rowCount);
                 continue;
             }
 
-            List<Integer> sameRowsWithDifferentStyle = findSameRowsWithDifferentStyle(tab2boxSheet,
-                entityType, tab, rowCount, style, row.getRowNum());
+            List<Integer> sameRowsWithDifferentStyle = findSameRowsWithDifferentStyle(sheet,
+                entityType, container, containerColumn, rowCount, style, row.getRowNum());
 
             if (CollectionUtils.isNotEmpty(sameRowsWithDifferentStyle)) {
-                detectedRowWIthConflicts.addAll(sameRowsWithDifferentStyle);
-                result.addError("Row style conflict between rows " + row.getRowNum() + " and rows"
-                    + sameRowsWithDifferentStyle.toString() + " of sheet " + tab2boxSheet.getSheetName());
+                detectedRowWithConflicts.addAll(sameRowsWithDifferentStyle);
+                result.addError("Row style conflict between rows " + row.getRowNum() + " and rows "
+                    + sameRowsWithDifferentStyle.toString() + " of sheet " + sheet.getSheetName());
             }
 
         }
     }
 
     private List<Integer> findSameRowsWithDifferentStyle(Sheet sheet, String entity,
-        String tab, String row, String style, int excelRowNum) {
+        String container, int containerColumn, String row, String style, int excelRowNum) {
         int rowStyleColumn = getCellIndexFromHeaderName(sheet, ROW_STYLE_COLUMN);
         int entityTypeColumn = getCellIndexFromHeaderName(sheet, ENTITY_COLUMN);
-        int tabColumn = getCellIndexFromHeaderName(sheet, TAB_COLUMN);
         int rowColumn = getCellIndexFromHeaderName(sheet, ROW_COLUMN);
         return getNotEmptyRowsSkippingHeader(sheet).stream()
             .filter(sheetRow -> excelRowNum != sheetRow.getRowNum())
-            .filter(sheetRow -> isNotBlank(getCellValue(sheetRow, rowStyleColumn)))
             .filter(sheetRow -> row.equals(getCellValue(sheetRow, rowColumn)))
-            .filter(sheetRow -> tab.equals(getCellValue(sheetRow, tabColumn)))
+            .filter(sheetRow -> container.equals(getCellValue(sheetRow, containerColumn)))
             .filter(sheetRow -> entity.equals(getCellValue(sheetRow, entityTypeColumn)))
+            .filter(sheetRow -> hasDifferentStyle(sheetRow, rowStyleColumn, style))
             .map(Row::getRowNum)
             .collect(Collectors.toList());
+    }
+
+    private boolean hasDifferentStyle(Row row, int rowStyleColumn, String style) {
+        String cellValue = getCellValue(row, rowStyleColumn);
+        return isNotBlank(cellValue) && !style.trim().equals(cellValue.trim());
     }
 
     private boolean isNotPresentOnSheet(Workbook workbook, String sheetName, String entityType, String shortname) {
@@ -490,8 +490,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         int entityTypeColumn = getCellIndexFromHeaderName(sheet, ENTITY_COLUMN);
         int shortnameColumn = getCellIndexFromHeaderName(sheet, SHORTNAME_COLUMN);
         if (entityTypeColumn == -1 || shortnameColumn == -1) {
-            // Return false to avoid many validation error if one of the two columns is
-            // missing
+            // Return false to avoid many validation error if one of the two columns is missing
             return false;
         }
 
@@ -516,9 +515,19 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private boolean sameEntityTypeAndName(Row row, int entityTypeColumn, String entityType,
         int nameColumn, String name) {
-        String[] names = name.split(",");
-        return entityType.equals(getCellValue(row, entityTypeColumn))
-            && ArrayUtils.contains(names, getCellValue(row, nameColumn));
+
+        if (!entityType.equals(getCellValue(row, entityTypeColumn))) {
+            return false;
+        }
+
+        if (name.contains(",")) {
+            String[] names = splitByCommaAndTrim(name);
+            return ArrayUtils.contains(names, getCellValue(row, nameColumn));
+        } else {
+            String[] namesOnColumn = splitByCommaAndTrim(getCellValue(row, nameColumn));
+            return ArrayUtils.contains(namesOnColumn, name);
+        }
+
     }
 
     private void validateEntityTypes(CrisLayoutToolValidationResult result, Sheet sheet,
@@ -553,16 +562,22 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         }
     }
 
-    private void validateBooleanColumn(Sheet sheet, String columnName, CrisLayoutToolValidationResult result) {
-        validateColumn(sheet, columnName, (value) -> isNotBoolean(value), result);
+    private void validateBooleanColumns(Sheet sheet, CrisLayoutToolValidationResult result, String... columnNames) {
+        for (String columnName : columnNames) {
+            validateColumn(sheet, columnName, (value) -> isNotBoolean(value), result);
+        }
     }
 
-    private void validateIntegerColumn(Sheet sheet, String columnName, CrisLayoutToolValidationResult result) {
-        validateColumn(sheet, columnName, (value) -> isNotInteger(value), result);
+    private void validateIntegerColumns(Sheet sheet, CrisLayoutToolValidationResult result, String... columnNames) {
+        for (String columnName : columnNames) {
+            validateColumn(sheet, columnName, (value) -> isNotInteger(value), result);
+        }
     }
 
-    private void validateSecurityColumn(Sheet sheet, String columnName, CrisLayoutToolValidationResult result) {
-        validateColumn(sheet, columnName, (value) -> !ALLOWED_SECURITY_VALUES.contains(value), result);
+    private void validateSecurityColumns(Sheet sheet, CrisLayoutToolValidationResult result, String... columnNames) {
+        for (String columnName : columnNames) {
+            validateColumn(sheet, columnName, (value) -> !ALLOWED_SECURITY_VALUES.contains(value), result);
+        }
     }
 
     private void validateColumn(Sheet sheet, String columnName, Predicate<String> predicate,
@@ -628,6 +643,10 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
     private boolean isNotBoolean(String value) {
         List<String> acceptedValues = List.of("yes", "y", "no", "n");
         return !acceptedValues.contains(value);
+    }
+
+    private String[] splitByCommaAndTrim(String name) {
+        return Arrays.stream(name.split(",")).map(String::trim).toArray(String[]::new);
     }
 
 }
