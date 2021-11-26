@@ -13,7 +13,7 @@
 ALTER TABLE cris_layout_field DROP COLUMN style;
 ALTER TABLE cris_layout_field ADD COLUMN row_style CHARACTER VARYING(255);
 ALTER TABLE cris_layout_field ADD COLUMN cell_style CHARACTER VARYING(255);
-ALTER TABLE cris_layout_field ADD COLUMN cell INTEGER NOT NULL;
+ALTER TABLE cris_layout_field ADD COLUMN cell INTEGER NOT NULL DEFAULT 0;
 
 -------------------------------------------------------------------------------------
 ---- ALTER table cris_layout_field2nested
