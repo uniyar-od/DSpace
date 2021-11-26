@@ -169,6 +169,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         }
 
         validateIntegerColumn(box2metadataSheet, ROW_COLUMN, result);
+        validateIntegerColumn(box2metadataSheet, CELL_COLUMN, result);
 
         validateBooleanColumn(box2metadataSheet, LABEL_AS_HEADING_COLUMN, result);
         validateBooleanColumn(box2metadataSheet, VALUES_INLINE_COLUMN, result);

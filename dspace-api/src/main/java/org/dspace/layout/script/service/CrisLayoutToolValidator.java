@@ -74,11 +74,13 @@ public interface CrisLayoutToolValidator {
 
     String BOXES_COLUMN = "BOXES";
 
-    String CELL_STYLE_COLUMN = "CELL-STYLE";
+    String CELL_STYLE_COLUMN = "CELL_STYLE";
 
-    String ROW_STYLE_COLUMN = "ROW-STYLE";
+    String ROW_STYLE_COLUMN = "ROW_STYLE";
 
     String ROW_COLUMN = "ROW";
+
+    String CELL_COLUMN = "CELL";
 
     String SHORTNAME_COLUMN = "SHORTNAME";
 

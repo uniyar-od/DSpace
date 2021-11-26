@@ -107,7 +107,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(39));
+        assertThat(errorMessages, hasSize(40));
         assertThat(errorMessages.get(0), containsString("The sheet tab has no ENTITY column"));
         assertThat(errorMessages.get(1), containsString("The sheet tab has no LEADING column"));
         assertThat(errorMessages.get(2), containsString("The sheet tab has no PRIORITY column"));
@@ -124,29 +124,30 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(errorMessages.get(13), containsString("The sheet tab2box has no ENTITY column"));
         assertThat(errorMessages.get(14), containsString("The sheet tab2box has no TAB column"));
         assertThat(errorMessages.get(15), containsString("The sheet tab2box has no BOXES column"));
-        assertThat(errorMessages.get(16), containsString("The sheet tab2box has no ROW-STYLE column"));
+        assertThat(errorMessages.get(16), containsString("The sheet tab2box has no ROW_STYLE column"));
         assertThat(errorMessages.get(17), containsString("The sheet box2metadata has no ROW column"));
-        assertThat(errorMessages.get(18), containsString("The sheet box2metadata has no LABEL_AS_HEADING column"));
-        assertThat(errorMessages.get(19), containsString("The sheet box2metadata has no VALUES_INLINE column"));
-        assertThat(errorMessages.get(20), containsString("The sheet box2metadata has no BUNDLE column"));
-        assertThat(errorMessages.get(21), containsString("The sheet box2metadata has no VALUE column"));
-        assertThat(errorMessages.get(22), containsString("The sheet box2metadata has no FIELDTYPE column"));
-        assertThat(errorMessages.get(23), containsString("The sheet box2metadata has no METADATA column"));
-        assertThat(errorMessages.get(24), containsString("The sheet box2metadata has no ENTITY column"));
-        assertThat(errorMessages.get(25), containsString("The sheet box2metadata has no BOX column"));
-        assertThat(errorMessages.get(26), containsString("The sheet metadatagroups has no ENTITY column"));
-        assertThat(errorMessages.get(27), containsString("The sheet metadatagroups has no METADATA column"));
-        assertThat(errorMessages.get(28), containsString("The sheet metadatagroups has no PARENT column"));
-        assertThat(errorMessages.get(29), containsString("The sheet box2metrics has no ENTITY column"));
-        assertThat(errorMessages.get(30), containsString("The sheet box2metrics has no BOX column"));
-        assertThat(errorMessages.get(31), containsString("The sheet box2metrics has no METRIC_TYPE column"));
-        assertThat(errorMessages.get(32), containsString("The sheet boxpolicy has no METADATA column"));
-        assertThat(errorMessages.get(33), containsString("The sheet boxpolicy has no ENTITY column"));
-        assertThat(errorMessages.get(34), containsString("The sheet boxpolicy has no SHORTNAME column"));
-        assertThat(errorMessages.get(35), containsString("The sheet tabpolicy has no METADATA column"));
-        assertThat(errorMessages.get(36), containsString("The sheet tabpolicy has no ENTITY column"));
-        assertThat(errorMessages.get(37), containsString("The sheet tabpolicy has no SHORTNAME column"));
-        assertThat(errorMessages.get(38), containsString("The given workbook is not valid. Import canceled"));
+        assertThat(errorMessages.get(18), containsString("The sheet box2metadata has no CELL column"));
+        assertThat(errorMessages.get(19), containsString("The sheet box2metadata has no LABEL_AS_HEADING column"));
+        assertThat(errorMessages.get(20), containsString("The sheet box2metadata has no VALUES_INLINE column"));
+        assertThat(errorMessages.get(21), containsString("The sheet box2metadata has no BUNDLE column"));
+        assertThat(errorMessages.get(22), containsString("The sheet box2metadata has no VALUE column"));
+        assertThat(errorMessages.get(23), containsString("The sheet box2metadata has no FIELDTYPE column"));
+        assertThat(errorMessages.get(24), containsString("The sheet box2metadata has no METADATA column"));
+        assertThat(errorMessages.get(25), containsString("The sheet box2metadata has no ENTITY column"));
+        assertThat(errorMessages.get(26), containsString("The sheet box2metadata has no BOX column"));
+        assertThat(errorMessages.get(27), containsString("The sheet metadatagroups has no ENTITY column"));
+        assertThat(errorMessages.get(28), containsString("The sheet metadatagroups has no METADATA column"));
+        assertThat(errorMessages.get(29), containsString("The sheet metadatagroups has no PARENT column"));
+        assertThat(errorMessages.get(30), containsString("The sheet box2metrics has no ENTITY column"));
+        assertThat(errorMessages.get(31), containsString("The sheet box2metrics has no BOX column"));
+        assertThat(errorMessages.get(32), containsString("The sheet box2metrics has no METRIC_TYPE column"));
+        assertThat(errorMessages.get(33), containsString("The sheet boxpolicy has no METADATA column"));
+        assertThat(errorMessages.get(34), containsString("The sheet boxpolicy has no ENTITY column"));
+        assertThat(errorMessages.get(35), containsString("The sheet boxpolicy has no SHORTNAME column"));
+        assertThat(errorMessages.get(36), containsString("The sheet tabpolicy has no METADATA column"));
+        assertThat(errorMessages.get(37), containsString("The sheet tabpolicy has no ENTITY column"));
+        assertThat(errorMessages.get(38), containsString("The sheet tabpolicy has no SHORTNAME column"));
+        assertThat(errorMessages.get(39), containsString("The given workbook is not valid. Import canceled"));
 
     }
 

@@ -15,6 +15,7 @@ import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX_COLUM
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX_POLICY_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BOX_SHEET;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.BUNDLE_COLUMN;
+import static org.dspace.layout.script.service.CrisLayoutToolValidator.CELL_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.CELL_STYLE_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.COLLAPSED_COLUMN;
 import static org.dspace.layout.script.service.CrisLayoutToolValidator.CONTAINER_COLUMN;
@@ -238,7 +239,9 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
         field.setPriority(priority.getAndIncrement());
         field.setRendering(getCellValue(row, RENDERING_COLUMN));
         field.setRow(toInteger(getCellValue(row, ROW_COLUMN)));
-        field.setStyle(getCellValue(row, STYLE_COLUMN));
+        field.setCell(toInteger(getCellValue(row, CELL_COLUMN)));
+        field.setRowStyle(getCellValue(row, ROW_STYLE_COLUMN));
+        field.setCellStyle(getCellValue(row, CELL_STYLE_COLUMN));
         field.setStyleLabel(getCellValue(row, STYLE_LABEL_COLUMN));
         field.setStyleValue(getCellValue(row, STYLE_VALUE_COLUMN));
         field.setValuesInline(toBoolean(getCellValue(row, VALUES_INLINE_COLUMN)));
@@ -281,17 +284,14 @@ public class CrisLayoutToolParserImpl implements CrisLayoutToolParser {
     private CrisMetadataGroup buildCrisMetadataGroup(Context context, Row row, String entity, AtomicInteger priority) {
         CrisMetadataGroup metadataGroup = new CrisMetadataGroup();
         metadataGroup.setLabel(getCellValue(row, LABEL_COLUMN));
-        metadataGroup.setLabelAsHeading(toBoolean(getCellValue(row, LABEL_AS_HEADING_COLUMN)));
         String metadataField = getCellValue(row, METADATA_COLUMN);
         if (StringUtils.isNotBlank(metadataField)) {
             metadataGroup.setMetadataField(getMetadataField(context, metadataField));
         }
         metadataGroup.setPriority(priority.getAndIncrement());
         metadataGroup.setRendering(getCellValue(row, RENDERING_COLUMN));
-        metadataGroup.setStyle(getCellValue(row, STYLE_COLUMN));
         metadataGroup.setStyleLabel(getCellValue(row, STYLE_LABEL_COLUMN));
         metadataGroup.setStyleValue(getCellValue(row, STYLE_VALUE_COLUMN));
-        metadataGroup.setValuesInline(toBoolean(getCellValue(row, VALUES_INLINE_COLUMN)));
         return metadataGroup;
     }
 
