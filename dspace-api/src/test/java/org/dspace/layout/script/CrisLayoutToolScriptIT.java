@@ -8,8 +8,11 @@
 package org.dspace.layout.script;
 
 import static org.dspace.app.launcher.ScriptLauncher.handleScript;
+import static org.dspace.app.matcher.LambdaMatcher.matches;
 import static org.dspace.layout.LayoutSecurity.OWNER_ONLY;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -36,6 +39,7 @@ import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.CrisMetadataGroup;
 import org.dspace.layout.LayoutSecurity;
 import org.dspace.layout.factory.CrisLayoutServiceFactory;
+import org.dspace.layout.script.service.CrisLayoutToolValidator;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.junit.After;
 import org.junit.Test;
@@ -95,15 +99,16 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(9));
-        assertThat(errorMessages.get(0), containsString("The tab sheet is missing"));
-        assertThat(errorMessages.get(1), containsString("The box sheet is missing"));
-        assertThat(errorMessages.get(2), containsString("The tab2box sheet is missing"));
-        assertThat(errorMessages.get(3), containsString("The box2metadata sheet is missing"));
-        assertThat(errorMessages.get(4), containsString("The metadatagroups sheet is missing"));
-        assertThat(errorMessages.get(5), containsString("The box2metrics sheet is missing"));
-        assertThat(errorMessages.get(6), containsString("The boxpolicy sheet is missing"));
-        assertThat(errorMessages.get(7), containsString("The tabpolicy sheet is missing"));
-        assertThat(errorMessages.get(8), containsString("The given workbook is not valid. Import canceled"));
+        assertThat(errorMessages, containsInAnyOrder(
+            "The tab sheet is missing",
+            "The box sheet is missing",
+            "The tab2box sheet is missing",
+            "The box2metadata sheet is missing",
+            "The metadatagroups sheet is missing",
+            "The box2metrics sheet is missing",
+            "The boxpolicy sheet is missing",
+            "The tabpolicy sheet is missing",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
     }
 
     @Test
@@ -119,51 +124,114 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, hasSize(41));
-        assertThat(errorMessages.get(0), containsString("The sheet tab has no ENTITY column"));
-        assertThat(errorMessages.get(1), containsString("The sheet tab has no LEADING column"));
-        assertThat(errorMessages.get(2), containsString("The sheet tab has no PRIORITY column"));
-        assertThat(errorMessages.get(3), containsString("The sheet tab has no SECURITY column"));
-        assertThat(errorMessages.get(4), containsString("The sheet tab has no SHORTNAME column"));
-        assertThat(errorMessages.get(5), containsString("The sheet tab has no LABEL column"));
-        assertThat(errorMessages.get(6), containsString("The sheet box has no TYPE column"));
-        assertThat(errorMessages.get(7), containsString("The sheet box has no ENTITY column"));
-        assertThat(errorMessages.get(8), containsString("The sheet box has no COLLAPSED column"));
-        assertThat(errorMessages.get(9), containsString("The sheet box has no CONTAINER column"));
-        assertThat(errorMessages.get(10), containsString("The sheet box has no MINOR column"));
-        assertThat(errorMessages.get(11), containsString("The sheet box has no SECURITY column"));
-        assertThat(errorMessages.get(12), containsString("The sheet box has no SHORTNAME column"));
-        assertThat(errorMessages.get(13), containsString("The sheet tab2box has no ENTITY column"));
-        assertThat(errorMessages.get(14), containsString("The sheet tab2box has no TAB column"));
-        assertThat(errorMessages.get(15), containsString("The sheet tab2box has no BOXES column"));
-        assertThat(errorMessages.get(16), containsString("The sheet tab2box has no ROW_STYLE column"));
-        assertThat(errorMessages.get(17), containsString("The sheet box2metadata has no ROW column"));
-        assertThat(errorMessages.get(18), containsString("The sheet box2metadata has no CELL column"));
-        assertThat(errorMessages.get(19), containsString("The sheet box2metadata has no LABEL_AS_HEADING column"));
-        assertThat(errorMessages.get(20), containsString("The sheet box2metadata has no VALUES_INLINE column"));
-        assertThat(errorMessages.get(21), containsString("The sheet box2metadata has no BUNDLE column"));
-        assertThat(errorMessages.get(22), containsString("The sheet box2metadata has no VALUE column"));
-        assertThat(errorMessages.get(23), containsString("The sheet box2metadata has no ROW_STYLE column"));
-        assertThat(errorMessages.get(24), containsString("The sheet box2metadata has no FIELDTYPE column"));
-        assertThat(errorMessages.get(25), containsString("The sheet box2metadata has no METADATA column"));
-        assertThat(errorMessages.get(26), containsString("The sheet box2metadata has no ENTITY column"));
-        assertThat(errorMessages.get(27), containsString("The sheet box2metadata has no BOX column"));
-        assertThat(errorMessages.get(28), containsString("The sheet metadatagroups has no ENTITY column"));
-        assertThat(errorMessages.get(29), containsString("The sheet metadatagroups has no METADATA column"));
-        assertThat(errorMessages.get(30), containsString("The sheet metadatagroups has no PARENT column"));
-        assertThat(errorMessages.get(31), containsString("The sheet box2metrics has no ENTITY column"));
-        assertThat(errorMessages.get(32), containsString("The sheet box2metrics has no BOX column"));
-        assertThat(errorMessages.get(33), containsString("The sheet box2metrics has no METRIC_TYPE column"));
-        assertThat(errorMessages.get(34), containsString("The sheet boxpolicy has no METADATA column"));
-        assertThat(errorMessages.get(35), containsString("The sheet boxpolicy has no ENTITY column"));
-        assertThat(errorMessages.get(36), containsString("The sheet boxpolicy has no SHORTNAME column"));
-        assertThat(errorMessages.get(37), containsString("The sheet tabpolicy has no METADATA column"));
-        assertThat(errorMessages.get(38), containsString("The sheet tabpolicy has no ENTITY column"));
-        assertThat(errorMessages.get(39), containsString("The sheet tabpolicy has no SHORTNAME column"));
-        assertThat(errorMessages.get(40), containsString("The given workbook is not valid. Import canceled"));
+        assertThat(errorMessages, containsInAnyOrder(
+            "The sheet tab has no ENTITY column",
+            "The sheet tab has no LEADING column",
+            "The sheet tab has no PRIORITY column",
+            "The sheet tab has no SECURITY column",
+            "The sheet tab has no SHORTNAME column",
+            "The sheet tab has no LABEL column",
+            "The sheet box has no TYPE column",
+            "The sheet box has no ENTITY column",
+            "The sheet box has no COLLAPSED column",
+            "The sheet box has no CONTAINER column",
+            "The sheet box has no MINOR column",
+            "The sheet box has no SECURITY column",
+            "The sheet box has no SHORTNAME column",
+            "The sheet tab2box has no ENTITY column",
+            "The sheet tab2box has no TAB column",
+            "The sheet tab2box has no BOXES column",
+            "The sheet tab2box has no ROW_STYLE column",
+            "The sheet box2metadata has no ROW column",
+            "The sheet box2metadata has no CELL column",
+            "The sheet box2metadata has no LABEL_AS_HEADING column",
+            "The sheet box2metadata has no VALUES_INLINE column",
+            "The sheet box2metadata has no BUNDLE column",
+            "The sheet box2metadata has no VALUE column",
+            "The sheet box2metadata has no ROW_STYLE column",
+            "The sheet box2metadata has no FIELDTYPE column",
+            "The sheet box2metadata has no METADATA column",
+            "The sheet box2metadata has no ENTITY column",
+            "The sheet box2metadata has no BOX column",
+            "The sheet metadatagroups has no ENTITY column",
+            "The sheet metadatagroups has no METADATA column",
+            "The sheet metadatagroups has no PARENT column",
+            "The sheet box2metrics has no ENTITY column",
+            "The sheet box2metrics has no BOX column",
+            "The sheet box2metrics has no METRIC_TYPE column",
+            "The sheet boxpolicy has no METADATA column",
+            "The sheet boxpolicy has no ENTITY column",
+            "The sheet boxpolicy has no SHORTNAME column",
+            "The sheet tabpolicy has no METADATA column",
+            "The sheet tabpolicy has no ENTITY column",
+            "The sheet tabpolicy has no SHORTNAME column",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
 
     }
 
     @Test
+    public void testWithInvalidFile() throws InstantiationException, IllegalAccessException {
+
+        context.turnOffAuthorisationSystem();
+        createEntityType("Person");
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("invalid-tabs.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasSize(30));
+        assertThat(errorMessages, containsInAnyOrder(
+            "The tab contains an unknown entity type 'Publication' at row 3",
+            "The LEADING value specified on the row 2 of sheet tab is not valid: u. Allowed values: [yes, y, no, n]",
+            "The SECURITY value specified on the row 1 of sheet tab is not valid: INVALID. Allowed values: "
+                + CrisLayoutToolValidator.ALLOWED_SECURITY_VALUES.toString(),
+            "The sheet box contains an invalid type UNKNOWN at row 3",
+            "The box contains an unknown entity type 'Publication' at row 5",
+            "The box contains an unknown entity type 'Publication' at row 6",
+            "The COLLAPSED value specified on the row 3 of sheet box is not valid: a. Allowed values: [yes, y, no, n]",
+            "The COLLAPSED value specified on the row 5 of sheet box is empty. Allowed values: [yes, y, no, n]",
+            "The CONTAINER value specified on the row 5 of sheet box is not valid: z. Allowed values: [yes, y, no, n]",
+            "The MINOR value specified on the row 1 of sheet box is not valid: b. Allowed values: [yes, y, no, n]",
+            "The SECURITY value specified on the row 5 of sheet box is not valid: INVALID. Allowed values: "
+                + CrisLayoutToolValidator.ALLOWED_SECURITY_VALUES.toString(),
+            "The Tab with name unkownTab and entity type Person in the row 1 of sheet tab2box"
+                + " is not present in the tab sheet",
+            "The Box with name unknownBox1 and entity type Person in the row 4 of sheet tab2box"
+                + " is not present in the box sheet",
+            "The Box with name unknownBox2 and entity type Publication in the row 6 of sheet tab2box"
+                + " is not present in the box sheet",
+            "The Box with name unknownBox3 and entity type Publication in the row 7 of sheet tab2box"
+                + " is not present in the box sheet",
+            "Row style conflict between rows 3 and rows [4] of sheet tab2box",
+            "The ROW value specified on the row 3 of sheet box2metadata is not valid: X. "
+                + "Allowed values: integer values",
+            "The CELL value specified on the row 6 of sheet box2metadata is not valid: Y. "
+                + "Allowed values: integer values",
+            "The LABEL_AS_HEADING value specified on the row 6 of sheet box2metadata is not valid: a. "
+                + "Allowed values: [yes, y, no, n]",
+            "The VALUES_INLINE value specified on the row 7 of sheet box2metadata is not valid: invalid. "
+                + "Allowed values: [yes, y, no, n]",
+            "The box2metadata contains an unknown field type INVALID_TYPE at row 2",
+            "The box2metadata contains an empty field type at row 3",
+            "The box2metadata contains an empty field type at row 4",
+            "The box2metadata contains a METADATA field METADATA with BUNDLE or VALUE set at row 5",
+            "The box2metadata contains a METADATA field METADATA with BUNDLE or VALUE set at row 9",
+            "The box2metadata contains a METADATA field METADATA with BUNDLE or VALUE set at row 11",
+            "The box2metadata contains a BITSTREAM field  without BUNDLE at row 13",
+            "The box2metadata contains an unknown metadata field invalid.metadata.field at row 7",
+            "The box with name unknown and entity type Publication in the row 10 of sheet box2metadata"
+                + " is not present in the box sheet",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
     public void testWithValidLayout() throws InstantiationException, IllegalAccessException, SQLException {
 
         context.turnOffAuthorisationSystem();
@@ -259,7 +327,9 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             is("oairecerif.person.gender"));
 
         CrisLayoutTab secondPersonTab = personTabs.get(1);
-        assertThatTabHas(secondPersonTab, "publications", "Person", "Publications", 2, 0, false, 2, OWNER_ONLY);
+        assertThatTabHas(secondPersonTab, "publications", "Person", "Publications", 2, 1, false, 2, OWNER_ONLY);
+        assertThat(secondPersonTab.getMetadataSecurityFields(),
+            contains(matches(metadataField -> metadataField.toString('.').equals("cris.policy.eperson"))));
 
         CrisLayoutRow secondPersonTabFirstRow = secondPersonTab.getRows().get(0);
         assertThat(secondPersonTabFirstRow.getStyle(), nullValue());
@@ -281,14 +351,60 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         CrisLayoutBox profileResearchoutputsBox = secondPersonTabSecondRowCell.getBoxes().get(0);
         assertThatBoxHas(profileResearchoutputsBox, "researchoutputs", "RELATION", "Person", "Publications", 0,
-            0, 0, false, false, true, "researchoutputs-style", LayoutSecurity.PUBLIC);
+            1, 0, false, false, true, "researchoutputs-style", LayoutSecurity.PUBLIC);
+        assertThat(profileResearchoutputsBox.getMetadataSecurityFields(),
+            contains(matches(metadataField -> metadataField.toString('.').equals("cris.owner"))));
 
         List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication");
         assertThat(publicationTabs, hasSize(1));
 
         CrisLayoutTab publicationTab = publicationTabs.get(0);
+        assertThatTabHas(publicationTab, "details", "Publication", "Details", 1, 1, true, 0,
+            LayoutSecurity.CUSTOM_DATA_AND_ADMINISTRATOR);
+        assertThat(publicationTab.getMetadataSecurityFields(),
+            contains(matches(metadataField -> metadataField.toString('.').equals("cris.policy.group"))));
 
-        // TODO continue....
+        CrisLayoutRow publicationTabRow = publicationTab.getRows().get(0);
+        assertThat(publicationTabRow.getStyle(), is("test-style"));
+        assertThat(publicationTabRow.getCells(), hasSize(2));
+
+        CrisLayoutCell publicationTabFirstCell = publicationTabRow.getCells().get(0);
+        assertThat(publicationTabFirstCell.getStyle(), nullValue());
+        assertThat(publicationTabFirstCell.getBoxes(), hasSize(1));
+
+        CrisLayoutBox publicationDetailsBox = publicationTabFirstCell.getBoxes().get(0);
+        assertThatBoxHas(publicationDetailsBox, "details", "METADATA", "Publication", "Details", 4, 0,
+            0, true, false, true, null, LayoutSecurity.PUBLIC);
+
+        CrisLayoutField publicationTitleField = publicationDetailsBox.getLayoutFields().get(0);
+        assertThatMetadataFieldHas(publicationTitleField, "Title", "container row", null, 1, 1, 0, null,
+            0, "dc.title", null, null, false, false);
+
+        CrisLayoutField publicationIsPartOfField = publicationDetailsBox.getLayoutFields().get(1);
+        assertThatMetadataFieldHas(publicationIsPartOfField, "Journal", "container row", null, 1, 2, 1, null,
+            0, "dc.relation.ispartof", null, null, false, false);
+
+        CrisLayoutField publicationAuthorsField = publicationDetailsBox.getLayoutFields().get(2);
+        assertThatMetadataFieldHas(publicationAuthorsField, "Author(s)", "container row", null, 2, 1, 2, "inline",
+            2, "dc.contributor.author", null, null, false, false);
+
+        CrisLayoutField publicationAttachmentField = publicationDetailsBox.getLayoutFields().get(3);
+        assertThatBitstreamFieldHas(publicationAttachmentField, "File(s)", "container row", null, 7, 1, 3,
+            "attachment", 0, null, "font-weight-bold col-4", null, false, false, "ORIGINAL", null);
+
+        CrisLayoutCell publicationTabSecondCell = publicationTabRow.getCells().get(1);
+        assertThat(publicationTabSecondCell.getStyle(), is("cell-1-style"));
+        assertThat(publicationTabSecondCell.getBoxes(), hasSize(1));
+
+        CrisLayoutBox publicationMetricsBox = publicationTabSecondCell.getBoxes().get(0);
+        assertThatBoxHas(publicationMetricsBox, "metrics", "METRICS", "Publication", "Metrics", 0, 2, 2, false,
+            true, true, null, LayoutSecurity.CUSTOM_DATA);
+        assertThat(publicationMetricsBox.getMetadataSecurityFields(), contains(
+            matches(metadataField -> metadataField.toString('.').equals("cris.policy.group")),
+            matches(metadataField -> metadataField.toString('.').equals("cris.policy.eperson"))));
+        assertThat(publicationMetricsBox.getMetric2box(),containsInAnyOrder(
+            matches(metric -> metric.getType().equals("scopusCitation")),
+            matches(metric -> metric.getType().equals("wosCitation"))));
 
     }
 
@@ -324,7 +440,11 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(field.getRowStyle(), is(rowStyle));
         assertThat(field.getCellStyle(), is(cellStyle));
         assertThat(field.getCrisMetadataGroupList(), hasSize(metadataGroupSize));
-        assertThat(field.getMetadataField().toString('.'), is(metadataField));
+        if (metadataField != null) {
+            assertThat(field.getMetadataField().toString('.'), is(metadataField));
+        } else {
+            assertThat(field.getMetadataField(), nullValue());
+        }
         assertThat(field.getPriority(), is(priority));
         assertThat(field.getRendering(), is(rendering));
         assertThat(field.getStyleLabel(), is(labelStyle));
