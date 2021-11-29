@@ -176,11 +176,11 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                             Matchers.containsString("page=2"), Matchers.containsString("size=1"))))
                         .andExpect(jsonPath("$._links.last.href", Matchers.allOf(
                                 Matchers.containsString("/api/system/scripts?"),
-                                Matchers.containsString("page=19"), Matchers.containsString("size=1"))))
+                                Matchers.containsString("page=20"), Matchers.containsString("size=1"))))
                         .andExpect(jsonPath("$.page.size", is(1)))
                         .andExpect(jsonPath("$.page.number", is(1)))
-                        .andExpect(jsonPath("$.page.totalPages", is(20)))
-                        .andExpect(jsonPath("$.page.totalElements", is(20)));
+                        .andExpect(jsonPath("$.page.totalPages", is(21)))
+                        .andExpect(jsonPath("$.page.totalElements", is(21)));
     }
 
     @Test
