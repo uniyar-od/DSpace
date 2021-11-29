@@ -108,6 +108,8 @@ public interface CrisLayoutToolValidator {
     List<String> ALLOWED_SECURITY_VALUES = List.of("PUBLIC", "ADMINISTRATOR", "OWNER ONLY", "OWNER & ADMINISTRATOR",
         "CUSTOM DATA", "CUSTOM DATA & ADMINISTRATOR");
 
+    List<String> ALLOWED_BOOLEAN_VALUES = List.of("yes", "y", "no", "n");
+
     /**
      * Validate the given workbook.
      *

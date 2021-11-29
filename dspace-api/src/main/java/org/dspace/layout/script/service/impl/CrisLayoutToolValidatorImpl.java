@@ -312,7 +312,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             String bundle = getCellValue(row, bundleColumn);
             if (StringUtils.isBlank(bundle)) {
                 result.addError("The " + sheetName + " contains a " + BITSTREAM_TYPE + " field "
-                    + fieldType + " without " + BUNDLE_COLUMN + " at row " + rowNum);
+                    + " without " + BUNDLE_COLUMN + " at row " + rowNum);
             }
         }
     }
@@ -416,7 +416,6 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
         int rowColumn = getCellIndexFromHeaderName(sheet, ROW_COLUMN);
         if (rowColumn == -1) {
-            result.addError("The sheet " + sheet.getSheetName() + " has no " + ROW_COLUMN + " column");
             return;
         }
 
@@ -442,11 +441,6 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             String entityType = getCellValue(row, entityTypeColumn);
             String container = getCellValue(row, containerColumn);
             String rowCount = getCellValue(row, rowColumn);
-            if (isNotInteger(rowCount)) {
-                result.addError("The " + ROW_COLUMN + " value specified on the row " + row.getRowNum() + " of sheet "
-                    + sheet.getSheetName() + " is not valid " + rowCount);
-                continue;
-            }
 
             List<Integer> sameRowsWithDifferentStyle = findSameRowsWithDifferentStyle(sheet,
                 entityType, container, containerColumn, rowCount, style, row.getRowNum());
@@ -516,17 +510,8 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
     private boolean sameEntityTypeAndName(Row row, int entityTypeColumn, String entityType,
         int nameColumn, String name) {
 
-        if (!entityType.equals(getCellValue(row, entityTypeColumn))) {
-            return false;
-        }
-
-        if (name.contains(",")) {
-            String[] names = splitByCommaAndTrim(name);
-            return ArrayUtils.contains(names, getCellValue(row, nameColumn));
-        } else {
-            String[] namesOnColumn = splitByCommaAndTrim(getCellValue(row, nameColumn));
-            return ArrayUtils.contains(namesOnColumn, name);
-        }
+        String[] namesOnColumn = splitByCommaAndTrim(getCellValue(row, nameColumn));
+        return entityType.equals(getCellValue(row, entityTypeColumn)) && ArrayUtils.contains(namesOnColumn, name);
 
     }
 
@@ -547,7 +532,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
         for (Cell typeCell : getColumnWithoutHeader(sheet, typeColumn)) {
             String type = WorkbookUtils.getCellValue(typeCell);
             if (StringUtils.isNotBlank(type) && !EnumUtils.isValidEnum(CrisLayoutBoxTypes.class, type)) {
-                result.addError("The sheet " + sheet.getSheetName() + " has contains an invalid type " + type
+                result.addError("The sheet " + sheet.getSheetName() + " contains an invalid type " + type
                     + " at row " + typeCell.getRowIndex());
             }
         }
@@ -564,24 +549,26 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     private void validateBooleanColumns(Sheet sheet, CrisLayoutToolValidationResult result, String... columnNames) {
         for (String columnName : columnNames) {
-            validateColumn(sheet, columnName, (value) -> isNotBoolean(value), result);
+            validateColumn(sheet, columnName, (value) -> isNotBoolean(value), result,
+                ALLOWED_BOOLEAN_VALUES.toString());
         }
     }
 
     private void validateIntegerColumns(Sheet sheet, CrisLayoutToolValidationResult result, String... columnNames) {
         for (String columnName : columnNames) {
-            validateColumn(sheet, columnName, (value) -> isNotInteger(value), result);
+            validateColumn(sheet, columnName, (value) -> isNotInteger(value), result, "integer values");
         }
     }
 
     private void validateSecurityColumns(Sheet sheet, CrisLayoutToolValidationResult result, String... columnNames) {
         for (String columnName : columnNames) {
-            validateColumn(sheet, columnName, (value) -> !ALLOWED_SECURITY_VALUES.contains(value), result);
+            validateColumn(sheet, columnName, (value) -> !ALLOWED_SECURITY_VALUES.contains(value), result,
+                ALLOWED_SECURITY_VALUES.toString());
         }
     }
 
     private void validateColumn(Sheet sheet, String columnName, Predicate<String> predicate,
-        CrisLayoutToolValidationResult result) {
+        CrisLayoutToolValidationResult result, String allowedValues) {
 
         int rowColumn = getCellIndexFromHeaderName(sheet, columnName);
         if (rowColumn == -1) {
@@ -593,10 +580,10 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             String rowValue = getCellValue(row, rowColumn);
             if (StringUtils.isBlank(rowValue)) {
                 result.addError("The " + columnName + " value specified on the row " + row.getRowNum() + " of sheet "
-                    + sheet.getSheetName() + " is empty");
+                    + sheet.getSheetName() + " is empty. Allowed values: " + allowedValues);
             } else if (predicate.test(rowValue)) {
                 result.addError("The " + columnName + " value specified on the row " + row.getRowNum() + " of sheet "
-                    + sheet.getSheetName() + " is not valid: " + rowValue);
+                    + sheet.getSheetName() + " is not valid: " + rowValue + ". Allowed values: " + allowedValues);
             }
         }
     }
@@ -641,8 +628,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
     }
 
     private boolean isNotBoolean(String value) {
-        List<String> acceptedValues = List.of("yes", "y", "no", "n");
-        return !acceptedValues.contains(value);
+        return !ALLOWED_BOOLEAN_VALUES.contains(value);
     }
 
     private String[] splitByCommaAndTrim(String name) {

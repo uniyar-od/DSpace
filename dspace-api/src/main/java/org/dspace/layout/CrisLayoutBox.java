@@ -88,7 +88,7 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     @Column(name = "max_columns")
     private Integer maxColumns = null;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cell")
     private CrisLayoutCell cell;
 
