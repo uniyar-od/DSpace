@@ -19,6 +19,7 @@ import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.io.File;
@@ -29,7 +30,10 @@ import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.CrisLayoutBoxBuilder;
+import org.dspace.builder.CrisLayoutTabBuilder;
 import org.dspace.builder.EntityTypeBuilder;
+import org.dspace.content.EntityType;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutField;
@@ -421,6 +425,89 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
     }
 
+    @Test
+    public void testOldLayoutCleanup() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EntityType publicationType = createEntityType("Publication");
+        createEntityType("Person");
+
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, publicationType, false, false)
+            .withHeader("New Box Header - priority")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withShortname("Shortname")
+            .withStyle("STYLE")
+            .build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
+            .withShortName("New Tab shortname")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withHeader("New Tab header")
+            .withLeading(true)
+            .addBoxIntoNewRow(box)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        assertThat(tabService.findAll(context), hasSize(1));
+
+        String fileLocation = getXlsFilePath("valid-layout-with-3-tabs.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        assertThat(tabService.findAll(context), hasSize(3));
+        assertThat(context.reloadEntity(tab), nullValue());
+        assertThat(context.reloadEntity(box), nullValue());
+
+    }
+
+    @Test
+    public void testNoCleanUpOccursIfNewLayoutIsInvalid() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EntityType publicationType = createEntityType("Publication");
+        createEntityType("Person");
+
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, publicationType, false, false)
+            .withHeader("New Box Header - priority")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withShortname("Shortname")
+            .withStyle("STYLE")
+            .build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
+            .withShortName("New Tab shortname")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .withHeader("New Tab header")
+            .withLeading(true)
+            .addBoxIntoNewRow(box)
+            .build();
+
+        context.restoreAuthSystemState();
+        context.commit();
+
+        assertThat(tabService.findAll(context), hasSize(1));
+
+        String fileLocation = getXlsFilePath("invalid-tabs.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(), not(empty()));
+        assertThat(handler.getWarningMessages(), empty());
+
+        assertThat(tabService.findAll(context), hasSize(1));
+        assertThat(context.reloadEntity(tab), notNullValue());
+        assertThat(context.reloadEntity(box), notNullValue());
+
+    }
+
     private void assertThatMetadataFieldHas(CrisLayoutField field, String label, String rowStyle, String cellStyle,
         int row, int cell, int priority, String rendering, int metadataGroupSize, String metadataField,
         String labelStyle, String valueStyle, boolean labelAsHeading, boolean valuesInline) {
@@ -488,8 +575,8 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
     }
 
-    private void createEntityType(String entityType) {
-        EntityTypeBuilder.createEntityTypeBuilder(context, entityType).build();
+    private EntityType createEntityType(String entityType) {
+        return EntityTypeBuilder.createEntityTypeBuilder(context, entityType).build();
     }
 
     private String getXlsFilePath(String name) {
