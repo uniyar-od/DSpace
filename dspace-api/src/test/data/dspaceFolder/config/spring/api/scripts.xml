@@ -109,6 +109,11 @@
         <property name="description" value="Script to import CRIS layout configuration from excel file"/>
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.CrisLayoutToolScript"/>
     </bean>
+        
+    <bean id="update-item-references" class="org.dspace.authority.script.UpdateItemReferenceCliScriptConfiguration">
+        <property name="description" value="Perform the resolutrion of authority references"/>
+        <property name="dspaceRunnableClass" value="org.dspace.authority.script.UpdateItemReferenceCli"/>
+    </bean>
 
     <!-- Keep as last script; for test ScriptRestRepository#findOneScriptByNameTest -->
     <bean id="mock-script" class="org.dspace.scripts.MockDSpaceRunnableScriptConfiguration" scope="prototype">

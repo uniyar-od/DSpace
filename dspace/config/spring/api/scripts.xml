@@ -119,4 +119,9 @@
         <property name="dspaceRunnableClass" value="org.dspace.layout.script.CrisLayoutToolScript"/>
     </bean>
     
+    <bean id="update-item-references" class="org.dspace.authority.script.UpdateItemReferenceCliScriptConfiguration">
+        <property name="description" value="Perform the resolutrion of authority references"/>
+        <property name="dspaceRunnableClass" value="org.dspace.authority.script.UpdateItemReferenceCli"/>
+    </bean>
+
 </beans>
