@@ -142,6 +142,9 @@ public class CrisMetricsUpdateListener implements SolrEventListener
 					continue;
 				}
 				String[] kv = StringUtils.split(line, "=");
+				if (kv.length < 2) {
+					continue;
+				}
 				dbprops.put(kv[0], kv[1]);
 			}
 			Class.forName(dbprops.get("database.driverClassName"));
