@@ -46,7 +46,7 @@ public class LDNInBoxServlet extends DSpaceServlet {
 			throws ServletException, IOException, SQLException, AuthorizeException {
 		if(!LDNServiceCheckAuthorization.checkIfHostIsAuthorized(request)) {
 			//No authorization found for the requesting ip
-			sendStatusCode(HttpServletResponse.SC_UNAUTHORIZED, response);
+			sendErrorCode(HttpServletResponse.SC_UNAUTHORIZED, response);
 			return;
 		}
 		
@@ -82,8 +82,12 @@ public class LDNInBoxServlet extends DSpaceServlet {
 		return notifyLDNRequestDTO;
 	}
 	
-	private static final void sendStatusCode(int statusCode, HttpServletResponse response) {
-		response.setStatus(statusCode);
+	private static final void sendErrorCode(int statusCode, HttpServletResponse response) {
+		try {
+			response.sendError(statusCode);
+		} catch (IOException e) {
+			logger.error(e);
+		}
 	}
 	
 }
