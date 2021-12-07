@@ -17,7 +17,6 @@ import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
-import org.dspace.core.Context.Mode;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -52,7 +51,7 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
 
     @Override
     public void internalRun() throws Exception {
-        context = new Context(Mode.BATCH_EDIT);
+        context = new Context();
         assignCurrentUserInContext();
         assignSpecialGroupsInContext();
 
