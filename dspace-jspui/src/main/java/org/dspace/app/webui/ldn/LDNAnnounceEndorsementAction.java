@@ -1,11 +1,15 @@
 package org.dspace.app.webui.ldn;
 
-public class LDNAnnounceEndorsementAction implements LDNPayloadProcessor {
+public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 
 	@Override
 	public void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO) {
-		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
+		return null;
 	}
 
 }

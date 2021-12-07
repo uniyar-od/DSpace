@@ -1,11 +1,15 @@
 package org.dspace.app.webui.ldn;
 
-public class LDNOfferIngestAction implements LDNPayloadProcessor {
+public class LDNOfferIngestAction extends LDNPayloadProcessor {
 
 	@Override
 	public void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO) {
-		// TODO Auto-generated method stub
 
+	}
+
+	@Override
+	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
+		return null;
 	}
 
 }
