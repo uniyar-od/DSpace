@@ -54,26 +54,22 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     }
 
     @Override
-    public boolean enhance(Context context, Item item) {
+    public void enhance(Context context, Item item) {
         try {
-            boolean updated = cleanObsoleteVirtualFields(context, item);
-            boolean enhanced = performEnhancement(context, item);
-            return enhanced || updated;
+            cleanObsoleteVirtualFields(context, item);
+            performEnhancement(context, item);
         } catch (SQLException e) {
             LOGGER.error("An error occurs enhancing item with id {}: {}", item.getID(), e.getMessage(), e);
             throw new SQLRuntimeException(e);
         }
     }
 
-    private boolean cleanObsoleteVirtualFields(Context context, Item item) throws SQLException {
+    private void cleanObsoleteVirtualFields(Context context, Item item) throws SQLException {
 
         List<MetadataValue> metadataValuesToDelete = getObsoleteVirtualFields(item);
         if (!metadataValuesToDelete.isEmpty()) {
             itemService.removeMetadataValues(context, item, metadataValuesToDelete);
-            return true;
         }
-
-        return false;
 
     }
 
@@ -104,9 +100,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
             .findFirst();
     }
 
-    private boolean performEnhancement(Context context, Item item) throws SQLException {
-
-        boolean itemEnhanced = false;
+    private void performEnhancement(Context context, Item item) throws SQLException {
 
         for (MetadataValue metadataValue : getEnhanceableMetadataValue(item)) {
 
@@ -123,12 +117,10 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
             for (MetadataValue relatedItemMetadataValue : relatedItemMetadataValues) {
                 addVirtualField(context, item, relatedItemMetadataValue.getValue());
                 addVirtualSourceField(context, item, metadataValue);
-                itemEnhanced = true;
             }
 
         }
 
-        return itemEnhanced;
     }
 
     private List<MetadataValue> getEnhanceableMetadataValue(Item item) {

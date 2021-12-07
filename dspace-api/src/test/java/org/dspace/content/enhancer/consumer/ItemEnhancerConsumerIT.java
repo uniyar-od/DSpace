@@ -22,11 +22,14 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.ReloadableEntity;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -255,6 +258,33 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
 
     }
 
+    @Test
+    public void testWithWorkspaceItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Item person = ItemBuilder.createItem(context, collection)
+            .withTitle("Walter White")
+            .withPersonMainAffiliation("4Science")
+            .build();
+
+        String personId = person.getID().toString();
+
+        WorkspaceItem publication = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+            .withTitle("Test publication")
+            .withEntityType("Publication")
+            .withAuthor("Walter White", personId)
+            .build();
+
+        context.restoreAuthSystemState();
+        publication = commitAndReload(publication);
+
+        List<MetadataValue> metadataValues = publication.getItem().getMetadata();
+        assertThat(metadataValues, hasSize(3));
+        assertThat(getMetadataValues(publication, "cris.virtual.department"), empty());
+        assertThat(getMetadataValues(publication, "cris.virtualsource.department"), empty());
+
+    }
+
     private MetadataValue getFirstMetadataValue(Item item, String metadataField) {
         return getMetadataValues(item, metadataField).get(0);
     }
@@ -263,9 +293,14 @@ public class ItemEnhancerConsumerIT extends AbstractIntegrationTestWithDatabase 
         return itemService.getMetadataByMetadataString(item, metadataField);
     }
 
-    private Item commitAndReload(Item item) throws SQLException, AuthorizeException {
+    private List<MetadataValue> getMetadataValues(WorkspaceItem item, String metadataField) {
+        return itemService.getMetadataByMetadataString(item.getItem(), metadataField);
+    }
+
+    @SuppressWarnings("rawtypes")
+    private <T extends ReloadableEntity> T commitAndReload(T entity) throws SQLException, AuthorizeException {
         context.commit();
-        return context.reloadEntity(item);
+        return context.reloadEntity(entity);
     }
 
 }

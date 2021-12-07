@@ -41,14 +41,10 @@ public interface ItemEnhancer {
      * method returns true if the given item's metadata values are changed. The
      * enhancement is idempotent: multiple invocations on the same item must not
      * produce metadata different from those that would be obtained with a single
-     * invocation. The only difference between multiple invocations of this method
-     * is that the first one may return true while all the others false, since the
-     * enhancement will actually only be done the first time.
+     * invocation.
      *
      * @param  context the DSpace Context
      * @param  item    the item to enhance
-     * @return         true if the given item's metadata values are changed, false
-     *                 otherwise
      */
-    boolean enhance(Context context, Item item);
+    void enhance(Context context, Item item);
 }

@@ -115,6 +115,11 @@
         <property name="dspaceRunnableClass" value="org.dspace.authority.script.UpdateItemReferenceCli"/>
     </bean>
 
+    <bean id="item-enhancer" class="org.dspace.content.enhancer.script.ItemEnhancerScriptConfiguration" >
+        <property name="description" value="Script that allows to enhance all items"/>
+        <property name="dspaceRunnableClass" value="org.dspace.content.enhancer.script.ItemEnhancerScript"/>
+    </bean>
+
     <!-- Keep as last script; for test ScriptRestRepository#findOneScriptByNameTest -->
     <bean id="mock-script" class="org.dspace.scripts.MockDSpaceRunnableScriptConfiguration" scope="prototype">
         <property name="description" value="Mocking a script for testing purposes" />
