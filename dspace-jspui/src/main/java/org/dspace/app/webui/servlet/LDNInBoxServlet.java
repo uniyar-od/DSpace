@@ -17,6 +17,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.webui.ldn.LDNPayloadProcessor;
+import org.dspace.app.webui.ldn.LDNServiceCheckAuthorization;
 import org.dspace.app.webui.ldn.NotifyLDNRequestDTO;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -43,6 +44,12 @@ public class LDNInBoxServlet extends DSpaceServlet {
 	@Override
 	protected void doDSPost(Context context, HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, AuthorizeException {
+		if(!LDNServiceCheckAuthorization.checkIfHostIsAuthorized(request)) {
+			//No authorization found for the requesting ip
+			sendStatusCode(HttpServletResponse.SC_UNAUTHORIZED, response);
+			return;
+		}
+		
 		String payloadRequest = getPayload(request);
 		NotifyLDNRequestDTO ldnRequestDTO = payloadToDTO(payloadRequest);
 		
@@ -73,6 +80,10 @@ public class LDNInBoxServlet extends DSpaceServlet {
 			e.printStackTrace();
 		}
 		return notifyLDNRequestDTO;
+	}
+	
+	private static final void sendStatusCode(int statusCode, HttpServletResponse response) {
+		response.setStatus(statusCode);
 	}
 	
 }
