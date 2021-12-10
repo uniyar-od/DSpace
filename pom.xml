@@ -1317,16 +1317,13 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
-            <dependency>
-			    <groupId>com.github.jsonld-java</groupId>
-			    <artifactId>jsonld-java</artifactId>
-			    <version>0.13.3</version>
-			</dependency>
+			<!-- Used for mapping java object to Json-ld -->
 			<dependency>
-				  <groupId>com.io-informatics.oss</groupId>
-				  <artifactId>jackson-jsonld</artifactId>
-				  <version>0.1.1</version>
+			    <groupId>de.escalon.hypermedia</groupId>
+			    <artifactId>hydra-jsonld</artifactId>
+			    <version>0.4.2</version>
 			</dependency>
+
         </dependencies>
     </dependencyManagement>
 

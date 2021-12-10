@@ -1,9 +1,14 @@
 package org.dspace.app.webui.ldn;
 
+import java.sql.SQLException;
+
+import org.dspace.core.Context;
+
 public class LDNOfferIngestAction extends LDNPayloadProcessor {
 
 	@Override
-	public void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO) {
+	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+			throws IllegalStateException, SQLException {
 
 	}
 
@@ -11,5 +16,5 @@ public class LDNOfferIngestAction extends LDNPayloadProcessor {
 	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
 		return null;
 	}
-
+	
 }

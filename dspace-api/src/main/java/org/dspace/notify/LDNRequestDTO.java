@@ -1,13 +1,20 @@
-package org.dspace.app.webui.ldn;
+package org.dspace.notify;
 
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.BeanDescription;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
+import com.fasterxml.jackson.databind.ser.std.BeanSerializerBase;
 
+import de.escalon.hypermedia.hydra.mapping.Expose;
+import de.escalon.hypermedia.hydra.mapping.ContextProvider;
+import de.escalon.hypermedia.hydra.serialize.JacksonHydraSerializer;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class NotifyLDNRequestDTO {
+@Expose("")
+public class LDNRequestDTO {
+
 
 	@JsonProperty("actor")
 	private Actor actor;
@@ -27,7 +34,6 @@ public class NotifyLDNRequestDTO {
 	@JsonProperty("target")
 	private Target target;
 
-	@JsonProperty("type")
 	private String[] type;
 	
 	@JsonProperty("inReplyTo")
@@ -98,8 +104,7 @@ public class NotifyLDNRequestDTO {
 		this.type = type;
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class Context {
+	public static class Context {
 
 		@JsonProperty("id")
 		private String id;
@@ -145,7 +150,6 @@ public class NotifyLDNRequestDTO {
 			this.url = url;
 		}
 
-		@JsonIgnoreProperties(ignoreUnknown = true)
 		public class Url {
 
 			@JsonProperty("id")
@@ -184,8 +188,7 @@ public class NotifyLDNRequestDTO {
 		}
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class Actor {
+	public static class Actor {
 
 		@JsonProperty("id")
 		private String id;
@@ -222,8 +225,7 @@ public class NotifyLDNRequestDTO {
 
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class Object {
+	public static class Object {
 
 		@JsonProperty("id")
 		private String id;
@@ -260,8 +262,7 @@ public class NotifyLDNRequestDTO {
 
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class Origin {
+	public static class Origin {
 
 		@JsonProperty("id")
 		private String id;
@@ -298,8 +299,7 @@ public class NotifyLDNRequestDTO {
 
 	}
 
-	@JsonIgnoreProperties(ignoreUnknown = true)
-	public class Target {
+	public static class Target {
 
 		@JsonProperty("id")
 		private String id;
@@ -333,5 +333,28 @@ public class NotifyLDNRequestDTO {
 		public void setType(String type) {
 			this.type = type;
 		}
+	}
+	
+	public static final SimpleModule getJacksonHydraSerializerModule() {
+	    return new SimpleModule() {
+	        @Override
+	        public void setupModule(SetupContext context) {
+	            super.setupModule(context);
+
+	            context.addBeanSerializerModifier(new BeanSerializerModifier() {
+	                @Override
+	                public JsonSerializer<?> modifySerializer(
+	                  SerializationConfig config, 
+	                  BeanDescription beanDesc, 
+	                  JsonSerializer<?> serializer) {
+	                    if (serializer instanceof BeanSerializerBase) {
+	                        return new JacksonHydraSerializer((BeanSerializerBase) serializer);
+	                    } else {
+	                        return serializer;
+	                    }
+	                }
+	            });
+	        }
+	    };
 	}
 }

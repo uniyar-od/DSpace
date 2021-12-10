@@ -12,96 +12,91 @@
            http://www.springframework.org/schema/context/spring-context-3.0.xsd
            http://www.springframework.org/schema/util
            http://www.springframework.org/schema/util/spring-util-3.0.xsd"
-	default-autowire-candidates="*Service,*DAO,javax.sql.DataSource">
+	default-autowire-candidates="*">
 
 	<context:annotation-config /> <!-- allows us to use spring annotations in beans -->
+	
+	<bean id="ldnActionsMapping" name="ldnActionsMapping"
+		class="java.util.HashMap">
+		<constructor-arg>
+			<map key-type="java.util.Set"
+				value-type="org.dspace.app.webui.ldn.LDNPayloadProcessor">
+				<entry>
+					<key>
+						<set>
+							<value>Announce</value>
+							<value>coar-notify:ReviewAction</value>
+						</set>
+					</key>
+					<ref bean="announceReviewAction" />
+				</entry>
+				<entry>
+					<key>
+						<set>
+							<value>Announce</value>
+							<value>coar-notify:EndorsementAction</value>
+						</set>
+					</key>
+					<ref bean="announceEndorsementAction" />
+				</entry>
+				<entry>
+					<key>
+						<set>
+							<value>Offer</value>
+							<value>coar-notify:ReviewAction</value>
+						</set>
+					</key>
+					<ref bean="offerReviewAction" />
+				</entry>
+				<entry>
+					<key>
+						<set>
+							<value>Accept</value>
+							<value>coar-notify:ReviewAction</value>
+						</set>
+					</key>
+					<ref bean="acceptReviewAction" />
+				</entry>
+				<entry>
+					<key>
+						<set>
+							<value>Offer</value>
+							<value>coar-notify:IngestAction</value>
+						</set>
+					</key>
+					<ref bean="offerIngestAction" />
+				</entry>
+				<entry>
+					<key>
+						<set>
+							<value>Announce</value>
+							<value>coar-notify:IngestAction</value>
+						</set>
+					</key>
+					<ref bean="announceIngestAction" />
+				</entry>
 
-	<util:map class="java.util.HashMap" id="ldnActionsMapping" name="ldnActionsMapping">
-		<entry>
-			<key>
-				<set>
-					<value>Announce</value>
-					<value>coar-notify:ReviewAction</value>
-				</set>
-			</key>
-			<value>
-				 <ref bean="announceReviewAction"/>
-			</value>
-		</entry>
-		<entry>
-			<key>
-				<set>
-					<value>Announce</value>
-					<value>coar-notify:EndorsementAction</value>
-				</set>
-			</key>
-			<value>
-				 <ref bean="announceEndorsementAction"/>
-			</value>
-		</entry>
-		<entry>
-			<key>
-				<set>
-					<value>Offer</value>
-					<value>coar-notify:ReviewAction</value>
-				</set>
-			</key>
-			<value>
-				 <ref bean="offerReviewAction"/>
-			</value>
-		</entry>
-		<entry>
-			<key>
-				<set>
-					<value>Accept</value>
-					<value>coar-notify:ReviewAction</value>
-				</set>
-			</key>
-			<value>
-				 <ref bean="acceptReviewAction"/>
-			</value>
-		</entry>
-		<entry>
-			<key>
-				<set>
-					<value>Offer</value>
-					<value>coar-notify:IngestAction</value>
-				</set>
-			</key>
-			<value>
-				 <ref bean="offerIngestAction"/>
-			</value>
-		</entry>
-		<entry>
-			<key>
-				<set>
-					<value>Announce</value>
-					<value>coar-notify:IngestAction</value>
-				</set>
-			</key>
-			<value>
-				 <ref bean="org.dspace.app.webui.ldn.LDNAnnounceIngestAction"/>
-			</value>
-		</entry>
-		
-	</util:map>
-	
-	
+			</map>
+		</constructor-arg>
+	</bean>
+
+
+
 	<bean name="announceReviewAction"
 		class="org.dspace.app.webui.ldn.LDNAnnounceReviewAction" />
-		
+
 	<bean name="announceEndorsementAction"
 		class="org.dspace.app.webui.ldn.LDNAnnounceEndorsementAction" />
-		
+
 	<bean name="offerReviewAction"
 		class="org.dspace.app.webui.ldn.LDNOfferReviewAction" />
-		
+
 	<bean name="acceptReviewAction"
 		class="org.dspace.app.webui.ldn.LDNAcceptReviewAction" />
-		
+
 	<bean name="offerIngestAction"
 		class="org.dspace.app.webui.ldn.LDNOfferIngestAction" />
-		
+
 	<bean name="announceIngestAction"
 		class="org.dspace.app.webui.ldn.LDNAnnounceIngestAction" />
 

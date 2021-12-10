@@ -1,9 +1,14 @@
 package org.dspace.app.webui.ldn;
 
+import java.sql.SQLException;
+
+import org.dspace.core.Context;
+
 public class LDNAcceptReviewAction extends LDNPayloadProcessor {
 
 	@Override
-	public void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO) {
+	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+			throws IllegalStateException, SQLException {
 
 	}
 

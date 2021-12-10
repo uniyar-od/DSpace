@@ -699,6 +699,12 @@
             <artifactId>json</artifactId>
             <version>20180130</version>
         </dependency>
+        <!-- Used for mapping java object to Json-ld  -->
+		<dependency>
+			<groupId>de.escalon.hypermedia</groupId>
+			<artifactId>hydra-jsonld</artifactId>
+			<version>0.4.2</version>
+		</dependency>
     </dependencies>
 
 </project>

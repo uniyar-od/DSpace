@@ -17,47 +17,34 @@ import static org.dspace.app.webui.ldn.LDNMetadataFields.SCHEMA;
 import static org.dspace.app.webui.ldn.LDNMetadataFields.ELEMENT;
 
 public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
-	
+
 	/*
-	 * Used in Scenario 2 - 5 - 9
-	 * Used to record the decision to start one of the above
-	 * scenarios with a notification of type: Offer, ReviewAction
+	 * Used in Scenario 2 - 5 - 9 Used to record the decision to start one of the
+	 * above scenarios with a notification of type: Offer, ReviewAction
 	 * 
 	 * uses metadata coar.notify.request
 	 */
 
 	@Override
-	public void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO) {
+	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+			throws IllegalStateException, SQLException {
 
-		Context context = null;
-		try {
-			context = new Context();
+		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
 
-			String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
+		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
+		Item item = Item.find(context, dso.getID());
+		String metadataValue = generateMetadataValue(ldnRequestDTO);
+		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REVIEW, null, metadataValue);
 
-			DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
-			Item item = Item.find(context, dso.getID());
-			String metadataValue = generateMetadataValue(ldnRequestDTO);
-			item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REVIEW, null, metadataValue);
-
-			//Removes metadata from previous step OfferReviewAction
-			removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.INITIALIZE);
-
-		} catch (SQLException e) {
-
-		} finally {
-			// Abort the context if it's still valid
-			if ((context != null) && context.isValid()) {
-				context.abort();
-			}
-		}
+		// Removes metadata from previous step OfferReviewAction
+		removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.INITIALIZE);
 
 	}
-	
+
 	@Override
 	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
 		// setting up coar.notify.request metadata
-		
+
 		String delimiter = "//";
 		StringBuilder builder = new StringBuilder();
 
@@ -74,5 +61,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 
 		return builder.toString();
 	}
+	
+
 
 }
