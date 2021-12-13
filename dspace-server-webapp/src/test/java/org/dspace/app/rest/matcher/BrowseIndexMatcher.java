@@ -76,7 +76,7 @@ public class BrowseIndexMatcher {
 
     public static Matcher<? super Object> rodeptBrowseIndex(final String order) {
         return allOf(
-            hasJsonPath("$.metadata", contains("oairecerif.author.affiliation", "oairecerif.editor.affiliation")),
+            hasJsonPath("$.metadata", contains("cris.virtual.department")),
             hasJsonPath("$.metadataBrowse", Matchers.is(true)),
             hasJsonPath("$.order", equalToIgnoringCase(order)),
             hasJsonPath("$.sortOptions[*].name", containsInAnyOrder("title", "dateissued", "dateaccessioned")),
