@@ -381,21 +381,17 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
         return converter.toRest(item, utils.obtainProjection());
     }
 
-    // @PreAuthorize("hasPermission(#id, 'ITEM', 'READ') || hasPermission(#id, 'ITEM', 'STATUS')")
+
     @SearchRestMethod(name = "objects")
     public Page<AuthorizationRest> findByObjects(@Parameter(value = "uuid", required = true) List<String> uuidList,
-            Pageable pageable) throws AuthorizeException, SQLException {
+            Pageable pageable) throws SQLException {
 
         Context context = obtainContext();
 
         List<Item> items = new ArrayList<Item>();
-        for (String uuid : uuidList) {
-            // TODO check item permission
-            Item item = itemService.find(context, UUID.fromString(uuid));
-            if (item != null) {
-                items.add(item);
-            }
-        }
-        return converter.toRestPage(items, null, utils.obtainProjection());
+
+        itemService.findByIds(context, uuidList).forEachRemaining(items::add);
+
+        return converter.toRestPage(items, pageable, items.size(), utils.obtainProjection());
     }
 }
