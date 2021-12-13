@@ -58,7 +58,6 @@ import org.dspace.subscriptions.service.DSpaceObjectUpdates;
 import org.dspace.subscriptions.service.SubscriptionGenerator;
 import org.hamcrest.Matchers;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
@@ -124,7 +123,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type content and frequence weekly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeContentWeekly() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -177,7 +175,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type content and frequence weekly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeContentNoSubscription() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -220,7 +217,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
     //verify that method that invokes mail send is called correctly for type
     // content and frequence weekly for two different users
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeContentWeeklyForTwoPersons() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -276,7 +272,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type content and frequence weekly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeContentMonthly() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -338,7 +333,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type content and frequence weekly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeContentDaily() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -390,7 +384,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type statistics and frequence monthly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeStatisticsWeekly() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -463,7 +456,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type statistics and frequence monthly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeStatisticsMonthly() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
@@ -532,7 +524,6 @@ public class SubscriptionsSendEmailNotificationIT extends AbstractControllerInte
 
     //verify that method that invokes mail send is called correctly for type statistics and frequence monthly
     @Test
-    @Ignore
     public void sendSubscriptionMailTypeStatisticsDaily() throws Exception {
         context.turnOffAuthorisationSystem();
         Community community = CommunityBuilder.createCommunity(context).build();
