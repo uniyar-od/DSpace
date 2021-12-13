@@ -203,12 +203,12 @@ it, please enter the types and the actual numbers or codes.</hint>
        <field>
          <dc-schema>coar</dc-schema>
          <dc-element>notify</dc-element>
-         <dc-qualifier>inizialize</dc-qualifier>
+         <dc-qualifier>initialize</dc-qualifier>
          <repeatable>false</repeatable>
          <label>Service</label>
          <input-type value-pairs-name="service_type">dropdown</input-type>
-         <hint>Select the type of service.</hint>
-         <required>*</required>
+         <hint>Ask the review to one of these services.</hint>
+         <required></required>
        </field>
      </page>
    </form>
@@ -412,17 +412,20 @@ it, please enter the types and the actual numbers or codes.</hint>
      </pair>
    </value-pairs>
 
+	<value-pairs value-pairs-name="service_type" dc-term="type">
+	<pair>
+		<displayed-value></displayed-value>
+		<stored-value></stored-value>
+	</pair>
+	<pair>
+		<displayed-value>Service 1</displayed-value>
+		<stored-value>service1</stored-value>
+	</pair>
+	<pair>
+		<displayed-value>Service 2</displayed-value>
+		<stored-value>service2</stored-value>
+	</pair>
+</value-pairs>
+   
  </form-value-pairs>
- 
- <value-pairs value-pairs-name="service_type" dc-term="type">
-     <pair>
-       <displayed-value>Service</displayed-value>
-       <stored-value>Service ID</stored-value>
-     </pair>
-     <pair>
-       <displayed-value>Service 2</displayed-value>
-       <stored-value>Service ID 2</stored-value>
-     </pair>
-   </value-pairs>
-
 </input-forms>

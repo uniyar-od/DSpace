@@ -1,4 +1,4 @@
-package org.dspace.app.webui.ldn;
+package org.dspace.ldn;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -13,8 +13,10 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
 
-import static org.dspace.app.webui.ldn.LDNMetadataFields.SCHEMA;
-import static org.dspace.app.webui.ldn.LDNMetadataFields.ELEMENT;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
+import static org.dspace.ldn.LDNMetadataFields.ELEMENT;
+import static org.dspace.ldn.LDNMetadataFields.SCHEMA;
 
 public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 
@@ -29,39 +31,53 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException {
 
+		generateMetadataValue(ldnRequestDTO);
+		
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
 
 		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
 		Item item = Item.find(context, dso.getID());
+
+		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
+				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
+
+		removeMetadata(item, SCHEMA, ELEMENT,
+				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
+				metadataIdentifierServiceID);
+
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
 		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REVIEW, null, metadataValue);
-
-		// Removes metadata from previous step OfferReviewAction
-		removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.INITIALIZE);
 
 	}
 
 	@Override
 	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
-		// setting up coar.notify.request metadata
+		// setting up coar.notify.review metadata
 
-		String delimiter = "//";
 		StringBuilder builder = new StringBuilder();
 
-		String timestamp = new SimpleDateFormat("yyyy-mm-ddTHH:MM:SSZ").format(Calendar.getInstance().getTime());
+		String timestamp = new SimpleDateFormat(LDNUtils.DATE_PATTERN).format(Calendar.getInstance().getTime());
 		String reviewServiceId = ldnRequestDTO.getObject().getId();
+		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
+		String linkToTheReview = ldnRequestDTO.getObject().getId();
 
 		builder.append(timestamp);
-		builder.append(delimiter);
+		builder.append(LDNUtils.METADATA_DELIMITER);
 
 		builder.append(reviewServiceId);
-		builder.append(delimiter);
+		builder.append(LDNUtils.METADATA_DELIMITER);
 
-		// TODO missing Repository-MessageId- CHECK ReviewServiceId is the value set up
+		builder.append(repositoryInitializedMessageId);
+		builder.append(LDNUtils.METADATA_DELIMITER);
+
+		builder.append("success");
+		builder.append(LDNUtils.METADATA_DELIMITER);
+
+		builder.append(linkToTheReview);
+
+		logger.info(builder.toString());
 
 		return builder.toString();
 	}
-	
-
 
 }

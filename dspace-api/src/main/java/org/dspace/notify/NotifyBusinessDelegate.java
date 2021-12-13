@@ -1,7 +1,6 @@
 package org.dspace.notify;
 
 import java.io.IOException;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
@@ -12,23 +11,19 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
-import org.dspace.app.sherpa.SHERPAResponse;
-import org.dspace.app.sherpa.SHERPAService;
 import org.dspace.content.Item;
-import org.dspace.core.ConfigurationManager;
+import org.dspace.ldn.LDNUtils;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 
 public class NotifyBusinessDelegate {
-	
+
 	private CloseableHttpClient client = null;
-	private int maxNumberOfTries;
+	private int maxNumberOfTries = 3;
 	private long sleepBetweenTimeouts;
 	private int timeout;
-	// Endpoint is configured in ldn-trusted-services.cfg
-	private static final String NOTIFY_ENDOINT = ConfigurationManager.getProperty("coar.notify.inbox-endpoint");
 	/** log4j category */
 	private static final Logger log = Logger.getLogger(NotifyBusinessDelegate.class);
 	private static final ObjectMapper objectMapper;
@@ -38,48 +33,50 @@ public class NotifyBusinessDelegate {
 		client = custom.disableAutomaticRetries().setMaxConnTotal(5)
 				.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build()).build();
 	}
-	
+
 	static {
 		objectMapper = new ObjectMapper();
 		objectMapper.registerModule(LDNRequestDTO.getJacksonHydraSerializerModule());
 		objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
 	}
 
-	public void setInitializeMetadataForItem(Item item) {
+	@SuppressWarnings("deprecation")
+	public void reachEndpoitToRequestReview(Item item, String endpointId) {
 		try {
 
 			HttpPost method = null;
-			SHERPAResponse sherpaResponse = null;
+			int statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 			int numberOfTries = 0;
 
-			while (numberOfTries < maxNumberOfTries && sherpaResponse == null) {
+			while (numberOfTries < maxNumberOfTries && statusCode != HttpStatus.SC_OK) {
 				numberOfTries++;
 
 				try {
 					Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
 
-					URIBuilder uriBuilder = new URIBuilder(NOTIFY_ENDOINT);
-					uriBuilder.addParameter("versions", "all");
+					URIBuilder uriBuilder = new URIBuilder(endpointId);
 
-					
-					String jsonld= createLDNRequestObjectToString(item);
-					
-					StringEntity requestEntity = new StringEntity(jsonld, "application/json", "utf-8");
-					
+					LDNRequestDTO objectJsonLd = createLDNRequestObject(item);
+
+					String repositoryMessageID = objectJsonLd.getId();
+					objectJsonLd.setId(repositoryMessageID);
+
+					StringEntity requestEntity = new StringEntity(LDNRequestObjectToString(objectJsonLd),
+							"application/json", "utf-8");
+
 					method = new HttpPost(uriBuilder.build());
 					method.setEntity(requestEntity);
 					// Execute the method.
 
 					HttpResponse response = client.execute(method);
-					int statusCode = response.getStatusLine().getStatusCode();
+					statusCode = response.getStatusLine().getStatusCode();
 
-					if (statusCode != HttpStatus.SC_OK) {
-						log.error("LDN InBox has returned " + statusCode);
-						log.error("LDN InBox has was probably not properly configured!");
-						log.error("Check ldn-trusted-services.cfg to set up LDN InBox");
+					if (statusCode == HttpStatus.SC_OK) {
+						log.info(endpointId + " has returned " + statusCode);
+						LDNUtils.saveMetadataRequestForItem(item, endpointId, repositoryMessageID);
 					} else {
-
-						log.info("LDN InBox has returned " + statusCode);
+						log.error(endpointId + " has returned " + statusCode);
+						log.error(endpointId + " was probably not properly configured!");
 					}
 
 				} catch (Exception e) {
@@ -98,12 +95,21 @@ public class NotifyBusinessDelegate {
 
 	}
 
-	private static String createLDNRequestObjectToString(Item item) throws JsonProcessingException {
-		LDNRequestDTO ldnRequestDTO =new LDNRequestDTO();
-		
-		//call setter methods on ldnRequestDTO to set required data
-		
-		return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(ldnRequestDTO);
+	private static LDNRequestDTO createLDNRequestObject(Item item) {
+		LDNRequestDTO ldnRequestDTO = new LDNRequestDTO();
+		// call setter methods on ldnRequestDTO to set required data
+		ldnRequestDTO.setId(LDNUtils.generateRandomUrnUUID());
+
+		return ldnRequestDTO;
+	}
+
+	private static String LDNRequestObjectToString(LDNRequestDTO ldnRequestDTO) throws JsonProcessingException {
+		String jsonLd = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(ldnRequestDTO);
+
+		jsonLd = jsonLd.replace("\"@context\" : {\n" + "    \"@vocab\" : \"http://schema.org/\"\n" + "  }",
+				"\"@context\": [\n" + "    \"https://www.w3.org/ns/activitystreams\",\n"
+						+ "    \"https://purl.org/coar/notify\"\n" + "  ]");
+		return jsonLd;
 	}
 
 	public void setMaxNumberOfTries(int maxNumberOfTries) {

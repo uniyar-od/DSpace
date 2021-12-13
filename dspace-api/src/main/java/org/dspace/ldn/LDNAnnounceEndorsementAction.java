@@ -1,7 +1,7 @@
-package org.dspace.app.webui.ldn;
+package org.dspace.ldn;
 
-import static org.dspace.app.webui.ldn.LDNMetadataFields.ELEMENT;
-import static org.dspace.app.webui.ldn.LDNMetadataFields.SCHEMA;
+import static org.dspace.ldn.LDNMetadataFields.ELEMENT;
+import static org.dspace.ldn.LDNMetadataFields.SCHEMA;
 
 import java.sql.SQLException;
 
@@ -20,15 +20,24 @@ public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 
 		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
 		Item item = Item.find(context, dso.getID());
+		
+		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER).append(ldnRequestDTO.getOrigin().getId())
+				.append(LDNUtils.METADATA_DELIMITER).toString();
+
+		removeMetadata(item, SCHEMA, ELEMENT,
+				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
+				metadataIdentifierServiceID);
+		
+		
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
 		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.ENDORSMENT, null, metadataValue);
 
-		// Removes metadata from previous step OfferReviewAction
-		removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED);
+		
 	}
 
 	@Override
 	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
+		//coar.notify.endorsement
 		return null;
 	}
 

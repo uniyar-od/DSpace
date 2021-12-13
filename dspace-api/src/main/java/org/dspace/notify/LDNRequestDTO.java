@@ -15,6 +15,9 @@ import de.escalon.hypermedia.hydra.serialize.JacksonHydraSerializer;
 @Expose("")
 public class LDNRequestDTO {
 
+	@Expose("@context")
+	private String atContex[]=new String[]{"https://www.w3.org/ns/activitystreams",
+		    "https://purl.org/coar/notify"};
 
 	@JsonProperty("actor")
 	private Actor actor;

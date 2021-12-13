@@ -1,4 +1,4 @@
-package org.dspace.app.webui.ldn;
+package org.dspace.ldn;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

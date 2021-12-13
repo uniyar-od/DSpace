@@ -20,7 +20,7 @@
 		class="java.util.HashMap">
 		<constructor-arg>
 			<map key-type="java.util.Set"
-				value-type="org.dspace.app.webui.ldn.LDNPayloadProcessor">
+				value-type="org.dspace.ldn.LDNPayloadProcessor">
 				<entry>
 					<key>
 						<set>
@@ -42,15 +42,6 @@
 				<entry>
 					<key>
 						<set>
-							<value>Offer</value>
-							<value>coar-notify:ReviewAction</value>
-						</set>
-					</key>
-					<ref bean="offerReviewAction" />
-				</entry>
-				<entry>
-					<key>
-						<set>
 							<value>Accept</value>
 							<value>coar-notify:ReviewAction</value>
 						</set>
@@ -60,44 +51,27 @@
 				<entry>
 					<key>
 						<set>
-							<value>Offer</value>
-							<value>coar-notify:IngestAction</value>
+							<value>Reject</value>
+							<value>coar-notify:ReviewAction</value>
 						</set>
 					</key>
-					<ref bean="offerIngestAction" />
+					<ref bean="rejectReviewAction" />
 				</entry>
-				<entry>
-					<key>
-						<set>
-							<value>Announce</value>
-							<value>coar-notify:IngestAction</value>
-						</set>
-					</key>
-					<ref bean="announceIngestAction" />
-				</entry>
-
 			</map>
 		</constructor-arg>
 	</bean>
 
-
-
 	<bean name="announceReviewAction"
-		class="org.dspace.app.webui.ldn.LDNAnnounceReviewAction" />
+		class="org.dspace.ldn.LDNAnnounceReviewAction" />
 
 	<bean name="announceEndorsementAction"
-		class="org.dspace.app.webui.ldn.LDNAnnounceEndorsementAction" />
-
-	<bean name="offerReviewAction"
-		class="org.dspace.app.webui.ldn.LDNOfferReviewAction" />
+		class="org.dspace.ldn.LDNAnnounceEndorsementAction" />
 
 	<bean name="acceptReviewAction"
-		class="org.dspace.app.webui.ldn.LDNAcceptReviewAction" />
+		class="org.dspace.ldn.LDNAcceptReviewAction" />
+		
+	<bean name="rejectReviewAction"
+		class="org.dspace.ldn.LDNRejectReviewAction" />
 
-	<bean name="offerIngestAction"
-		class="org.dspace.app.webui.ldn.LDNOfferIngestAction" />
-
-	<bean name="announceIngestAction"
-		class="org.dspace.app.webui.ldn.LDNAnnounceIngestAction" />
 
 </beans>
