@@ -12,7 +12,6 @@ import java.util.Iterator;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
-import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.content.enhancer.service.ItemEnhancerService;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -89,16 +88,15 @@ public class ItemEnhancerScript extends DSpaceRunnable<ItemEnhancerScriptConfigu
             itemEnhancerService.enhance(context, item);
         }
 
-        updateAndUncacheItem(item);
+        uncacheItem(item);
 
     }
 
-    private void updateAndUncacheItem(Item item) {
+    private void uncacheItem(Item item) {
         try {
-            itemService.update(context, item);
             context.uncacheEntity(item);
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
     }
 

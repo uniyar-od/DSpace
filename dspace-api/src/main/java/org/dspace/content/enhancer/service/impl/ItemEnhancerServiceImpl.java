@@ -47,6 +47,8 @@ public class ItemEnhancerServiceImpl implements ItemEnhancerService {
             .filter(itemEnhancer -> itemEnhancer.canEnhance(context, item))
             .forEach(itemEnhancer -> itemEnhancer.enhance(context, item));
 
+        updateItem(context, item);
+
     }
 
     @Override
