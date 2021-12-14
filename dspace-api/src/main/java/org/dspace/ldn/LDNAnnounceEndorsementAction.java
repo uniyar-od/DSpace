@@ -4,6 +4,8 @@ import static org.dspace.ldn.LDNMetadataFields.ELEMENT;
 import static org.dspace.ldn.LDNMetadataFields.SCHEMA;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
@@ -13,7 +15,7 @@ import org.dspace.handle.HandleManager;
 public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 
 	@Override
-	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException {
 
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
@@ -36,9 +38,33 @@ public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 	}
 
 	@Override
-	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
+	protected String generateMetadataValue(NotifyLDNDTO ldnRequestDTO) {
 		//coar.notify.endorsement
-		return null;
+
+		StringBuilder builder = new StringBuilder();
+
+		String timestamp = new SimpleDateFormat(LDNUtils.DATE_PATTERN).format(Calendar.getInstance().getTime());
+		String reviewServiceId = ldnRequestDTO.getObject().getId();
+		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
+		String linkToTheEndorsment = ldnRequestDTO.getObject().getId();
+
+		builder.append(timestamp);
+		builder.append(LDNUtils.METADATA_DELIMITER);
+
+		builder.append(reviewServiceId);
+		builder.append(LDNUtils.METADATA_DELIMITER);
+
+		builder.append(repositoryInitializedMessageId);
+		builder.append(LDNUtils.METADATA_DELIMITER);
+
+		builder.append("success");
+		builder.append(LDNUtils.METADATA_DELIMITER);
+
+		builder.append(linkToTheEndorsment);
+
+		logger.info(builder.toString());
+
+		return builder.toString();
 	}
 
 	

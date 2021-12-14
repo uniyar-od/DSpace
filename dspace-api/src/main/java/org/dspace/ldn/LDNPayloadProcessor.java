@@ -29,10 +29,10 @@ public abstract class LDNPayloadProcessor {
 			removeMetadata(item, schema, element, qualifier, identifiers);
 	}
 
-	protected abstract void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+	protected abstract void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException;
 
-	public final void processRequest(NotifyLDNRequestDTO ldnRequestDTO) {
+	public final void processRequest(NotifyLDNDTO ldnRequestDTO) {
 
 		Context context = null;
 		try {
@@ -49,5 +49,5 @@ public abstract class LDNPayloadProcessor {
 		}
 	}
 
-	protected abstract String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO);
+	protected abstract String generateMetadataValue(NotifyLDNDTO ldnRequestDTO);
 }

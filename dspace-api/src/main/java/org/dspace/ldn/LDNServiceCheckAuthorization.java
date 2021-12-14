@@ -17,36 +17,65 @@ public class LDNServiceCheckAuthorization {
 
 	private static List<String> authorizedIpList;
 
+	private static boolean isLocalhostTrustedByDefault;
+
 	static {
+		isLocalhostTrustedByDefault = ConfigurationManager.getBooleanProperty("ldn-trusted-services",
+				"ldn-trusted.localhost.default");
 		String authorisedIpString = ConfigurationManager.getProperty("ldn-trusted-services", "ldn-trusted.from.ip");
+		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-trusted-services",
+				"ldn-trusted.from.hostname");
 
 		List<String> tmpList = new LinkedList<>();
 
-			if (StringUtils.isNotEmpty(authorisedIpString)) {
-				if (authorisedIpString.contains(",")) {
-					String[] ipArray = authorisedIpString.split(",");
-					for (String tmpIp : ipArray) {
-						tmpList.add(tmpIp);
-					}
-				} else {
-					tmpList.add(authorisedIpString);
+		// Authorized IP Addresses
+		if (StringUtils.isNotEmpty(authorisedIpString)) {
+			if (authorisedIpString.contains(",")) {
+				String[] ipArray = authorisedIpString.split(",");
+				for (String tmpIp : ipArray) {
+					tmpList.add(tmpIp);
 				}
+			} else {
+				tmpList.add(authorisedIpString);
 			}
+		}
 
+		// Authorized Hostnames
+		if (StringUtils.isNotEmpty(authorisedHostnameString)) {
+			if (authorisedHostnameString.contains(",")) {
+				String[] hostnameArray = authorisedHostnameString.split(",");
+				for (String hostname : hostnameArray) {
+					tmpList.add(parseHostnameToString(hostname));
+				}
+			} else {
+				tmpList.add(parseHostnameToString(authorisedHostnameString));
+			}
+		}
 
 		authorizedIpList = tmpList;
 	}
 
 	public static boolean isHostAuthorized(HttpServletRequest request) {
 		String ipFromRequest = request.getRemoteAddr();
-		InetAddress ip = null;
-		try {
-			ip = InetAddress.getByName(ipFromRequest);
-			return authorizedIpList.contains(ipFromRequest) || ip.isLoopbackAddress();
-		} catch (UnknownHostException e) {
-			logger.error(e);
+		if (isLocalhostTrustedByDefault) {
+			try {
+				InetAddress ip = InetAddress.getByName(ipFromRequest);
+				return authorizedIpList.contains(ipFromRequest) || ip.isLoopbackAddress();
+			} catch (UnknownHostException e) {
+				logger.error(e);
+			}
 		}
 		return authorizedIpList.contains(ipFromRequest);
+	}
+
+	public static String parseHostnameToString(String hostname) {
+		String tmpIpAddress = null;
+		try {
+			tmpIpAddress = InetAddress.getByName(hostname).getHostAddress();
+		} catch (UnknownHostException e) {
+			logger.error("Hostname " + hostname + " is unknown ", e);
+		}
+		return tmpIpAddress;
 	}
 
 }

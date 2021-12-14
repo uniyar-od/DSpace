@@ -204,10 +204,10 @@ it, please enter the types and the actual numbers or codes.</hint>
          <dc-schema>coar</dc-schema>
          <dc-element>notify</dc-element>
          <dc-qualifier>initialize</dc-qualifier>
-         <repeatable>false</repeatable>
+         <repeatable>true</repeatable>
          <label>Service</label>
-         <input-type value-pairs-name="service_type">dropdown</input-type>
-         <hint>Ask the review to one of these services.</hint>
+         <input-type value-pairs-name="service_type">list</input-type>
+         <hint>Select the services you want to ask for a review</hint>
          <required></required>
        </field>
      </page>
@@ -413,10 +413,6 @@ it, please enter the types and the actual numbers or codes.</hint>
    </value-pairs>
 
 	<value-pairs value-pairs-name="service_type" dc-term="type">
-	<pair>
-		<displayed-value></displayed-value>
-		<stored-value></stored-value>
-	</pair>
 	<pair>
 		<displayed-value>Service 1</displayed-value>
 		<stored-value>service1</stored-value>

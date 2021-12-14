@@ -16,7 +16,7 @@ import org.dspace.handle.HandleManager;
 public class LDNRejectReviewAction extends LDNPayloadProcessor {
 
 	@Override
-	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException {
 
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
@@ -40,7 +40,7 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 	}
 
 	@Override
-	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
+	protected String generateMetadataValue(NotifyLDNDTO ldnRequestDTO) {
 		// coar.notify.refused
 		StringBuilder builder = new StringBuilder();
 

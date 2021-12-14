@@ -28,7 +28,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 	 */
 
 	@Override
-	protected void processLDNPayload(NotifyLDNRequestDTO ldnRequestDTO, Context context)
+	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException {
 
 		generateMetadataValue(ldnRequestDTO);
@@ -51,7 +51,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 	}
 
 	@Override
-	protected String generateMetadataValue(NotifyLDNRequestDTO ldnRequestDTO) {
+	protected String generateMetadataValue(NotifyLDNDTO ldnRequestDTO) {
 		// setting up coar.notify.review metadata
 
 		StringBuilder builder = new StringBuilder();

@@ -14,7 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.dspace.ldn.LDNPayloadProcessor;
 import org.dspace.ldn.LDNServiceCheckAuthorization;
-import org.dspace.ldn.NotifyLDNRequestDTO;
+import org.dspace.ldn.NotifyLDNDTO;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
@@ -54,7 +54,7 @@ public class LDNInBoxServlet extends DSpaceServlet {
 		}
 
 		String payloadRequest = getPayload(request);
-		NotifyLDNRequestDTO ldnRequestDTO = payloadToDTO(payloadRequest);
+		NotifyLDNDTO ldnRequestDTO = payloadToDTO(payloadRequest);
 
 		Set<String> actionIdentifier = new HashSet<String>();
 		Collections.addAll(actionIdentifier, ldnRequestDTO.getType());
@@ -75,14 +75,14 @@ public class LDNInBoxServlet extends DSpaceServlet {
 		return IOUtils.toString(request.getReader());
 	}
 
-	private static NotifyLDNRequestDTO payloadToDTO(String payload) {
+	private static NotifyLDNDTO payloadToDTO(String payload) {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
 
-		NotifyLDNRequestDTO notifyLDNRequestDTO = null;
+		NotifyLDNDTO notifyLDNRequestDTO = null;
 		try {
-			notifyLDNRequestDTO = objectMapper.readValue(payload, NotifyLDNRequestDTO.class);
+			notifyLDNRequestDTO = objectMapper.readValue(payload, NotifyLDNDTO.class);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

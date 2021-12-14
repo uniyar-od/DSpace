@@ -1,23 +1,21 @@
-package org.dspace.notify;
+package org.dspace.ldn;
 
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.BeanDescription;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializationConfig;
+import com.fasterxml.jackson.databind.Module.SetupContext;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.ser.BeanSerializerModifier;
 import com.fasterxml.jackson.databind.ser.std.BeanSerializerBase;
 
-import de.escalon.hypermedia.hydra.mapping.Expose;
-import de.escalon.hypermedia.hydra.mapping.ContextProvider;
 import de.escalon.hypermedia.hydra.serialize.JacksonHydraSerializer;
 
-@Expose("")
-public class LDNRequestDTO {
 
-	@Expose("@context")
-	private String atContex[]=new String[]{"https://www.w3.org/ns/activitystreams",
-		    "https://purl.org/coar/notify"};
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class NotifyLDNDTO {
 
 	@JsonProperty("actor")
 	private Actor actor;
@@ -37,6 +35,7 @@ public class LDNRequestDTO {
 	@JsonProperty("target")
 	private Target target;
 
+	@JsonProperty("type")
 	private String[] type;
 	
 	@JsonProperty("inReplyTo")
@@ -107,6 +106,7 @@ public class LDNRequestDTO {
 		this.type = type;
 	}
 
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Context {
 
 		@JsonProperty("id")
@@ -153,6 +153,7 @@ public class LDNRequestDTO {
 			this.url = url;
 		}
 
+		@JsonIgnoreProperties(ignoreUnknown = true)
 		public class Url {
 
 			@JsonProperty("id")
@@ -189,8 +190,10 @@ public class LDNRequestDTO {
 			}
 
 		}
+		
 	}
 
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Actor {
 
 		@JsonProperty("id")
@@ -228,6 +231,7 @@ public class LDNRequestDTO {
 
 	}
 
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Object {
 
 		@JsonProperty("id")
@@ -238,6 +242,9 @@ public class LDNRequestDTO {
 
 		@JsonProperty("type")
 		private String[] type;
+		
+		@JsonProperty("url")
+		private Url url;
 
 		public String getId() {
 			return id;
@@ -263,8 +270,54 @@ public class LDNRequestDTO {
 			this.type = type;
 		}
 
+		public Url getUrl() {
+			return url;
+		}
+
+		public void setUrl(Url url) {
+			this.url = url;
+		}
+		
+		@JsonIgnoreProperties(ignoreUnknown = true)
+		public static class Url {
+
+			@JsonProperty("id")
+			private String id;
+
+			@JsonProperty("media-type")
+			private String mediaType;
+
+			@JsonProperty("type")
+			private String[] type;
+
+			public String getId() {
+				return id;
+			}
+
+			public void setId(String id) {
+				this.id = id;
+			}
+
+			public String getMediaType() {
+				return mediaType;
+			}
+
+			public void setMediaType(String mediaType) {
+				this.mediaType = mediaType;
+			}
+
+			public String[] getType() {
+				return type;
+			}
+
+			public void setType(String[] type) {
+				this.type = type;
+			}
+
+		}
 	}
 
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Origin {
 
 		@JsonProperty("id")
@@ -302,6 +355,7 @@ public class LDNRequestDTO {
 
 	}
 
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class Target {
 
 		@JsonProperty("id")
@@ -337,6 +391,8 @@ public class LDNRequestDTO {
 			this.type = type;
 		}
 	}
+	
+	
 	
 	public static final SimpleModule getJacksonHydraSerializerModule() {
 	    return new SimpleModule() {
