@@ -44,6 +44,9 @@ public class RelationshipTypeRestControllerIT extends AbstractEntityIntegrationT
 
     @Test
     public void findAllEntityTypes() throws Exception {
+        context.turnOffAuthorisationSystem();
+        entityTypeService.initDefaultEntityTypeNames(context);
+        context.restoreAuthSystemState();
 
         getClient().perform(get("/api/core/entitytypes"))
 
