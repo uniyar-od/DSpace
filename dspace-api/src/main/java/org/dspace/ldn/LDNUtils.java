@@ -3,6 +3,7 @@ package org.dspace.ldn;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -16,11 +17,23 @@ import static org.dspace.ldn.LDNMetadataFields.SCHEMA;
 import static org.dspace.ldn.LDNMetadataFields.REQUEST;
 
 public class LDNUtils {
-	
-	public final static String DATE_PATTERN="yyyy-mm-dd HH:MM:SSZ";
+
+	public final static String DATE_PATTERN = "yyyy-mm-dd HH:MM:SSZ";
 	public final static String METADATA_DELIMITER = "||";
 
 	private static Pattern handleRegexMatch = Pattern.compile("\\d{1,}\\/\\d{1,}");
+
+	private static HashMap<String, String> notifyStatuses;
+
+	static {
+		notifyStatuses = new HashMap<>();
+		notifyStatuses.put("coar.notify.initialize", "initialized");
+		notifyStatuses.put("coar.notify.request", "pending review");
+		notifyStatuses.put("coar.notify.examination", "ongoing");
+		notifyStatuses.put("coar.notify.refused", "refused");
+		notifyStatuses.put("coar.notify.review", "reviewed");
+		notifyStatuses.put("coar.notify.endorsement", "endorsed");
+	}
 
 	public static String getHandleFromURL(String url) {
 		Matcher matcher = handleRegexMatch.matcher(url);
@@ -73,9 +86,10 @@ public class LDNUtils {
 	}
 
 	public static void saveMetadataRequestForItem(Item item, String endpointId, String repositoryMessageID) {
-		item.addMetadata(SCHEMA, ELEMENT, REQUEST, null, generateMetadataValueForRequestQualifier(endpointId, repositoryMessageID));
+		item.addMetadata(SCHEMA, ELEMENT, REQUEST, null,
+				generateMetadataValueForRequestQualifier(endpointId, repositoryMessageID));
 	}
-	
+
 	private static String generateMetadataValueForRequestQualifier(String endpointId, String repositoryMessageID) {
 		// coar.notify.request
 		StringBuilder builder = new StringBuilder();
@@ -90,12 +104,16 @@ public class LDNUtils {
 
 		builder.append(repositoryMessageID);
 
-		
 		return builder.toString();
 	}
 
 	public static String generateRandomUrnUUID() {
 		return "urn:uuid:" + UUID.randomUUID().toString();
+	}
+
+	public static String getNotifyStatusFromMetadata(String metadata) {
+		String status = notifyStatuses.get(metadata);
+		return status != null ? status : "";
 	}
 
 }

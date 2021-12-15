@@ -40,15 +40,24 @@
 <%@ page import="java.util.List"%>
 <%@ page import="org.dspace.handle.HandleManager"%>
 <%@ page import="org.dspace.content.Item"%>
-
+<%@ page import="java.text.SimpleDateFormat"%>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace"%>
 
 <%
-	List<Item> items = (List<Item>) request.getAttribute("list-of-items");
+	Item[] items = (Item[]) request.getAttribute("list-of-items");
+
+	Integer offset = 0;
+	if (request.getParameter("offset") != null)
+		offset = Integer.parseInt(request.getParameter("offset"));
+	Integer pageSize = (Integer) request.getAttribute("page-size");
+	String selectedStatus = request.getParameter("selected_status");
+
+	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 %>
 
 
-	<script type="text/javascript" src="<%= request.getContextPath() %>/notify.js"></script>
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/notify.js"></script>
 
 <dspace:layout titlekey="jsp.coar-notify.title">
 
@@ -64,35 +73,72 @@
 		<fmt:message key="jsp.coar-notify.text1" />
 	</p>
 
-	<form method="get" action="<%= request.getContextPath() %>/notify-details-report" id="choose_metadata_for_details">
-		<ul class="media-list">
-			<li class="media well">
-				<ul class="media-list">
-					<li class="media well">
-						<div class="media-body">
-							<span class="h5 pull-left">
-								<div class="h2">Status</div>
-							</span> <span class="h2 pull-right"><p>Occurences</p></span>
-						</div>
-					</li>
-					<%
+	<ul class="media-list">
+		<li class="media well">
+			<ul class="media-list">
+				<li class="media">
+					<div class="media-body">
+						<span class="h5 pull-left">
+							<div class="h2">
+								<fmt:message
+									key='<%=(items.length != 0) ? "jsp.coar-notify.items-message" : "jsp.coar-notify.no-items-message"%>'>
+									<fmt:param><%=selectedStatus%></fmt:param>
+								</fmt:message>
+							</div>
+						</span>
+					</div>
+				</li>
+				<%
 					String itemHandleCanonicalForm;
-						for (Item item : items) {
-								itemHandleCanonicalForm=HandleManager.getCanonicalForm(item.getHandle());
-					%>
-					<li class="media well">
-						<div class="media-body">
-							<span class="h5 pull-left">
-								<div class="h3"><%=itemHandleCanonicalForm%></div>
-							</span> <span class="h3 pull-right"><p><%=item.getLastModified()%></p></span>
-						</div>
-					</li>
-					<%
-						}
-					%>
-				</ul>
-			</li>
-		</ul>
-		<input type="hidden" id="selected_metadata" name="selected_metadata"/>
+						String lastModifiedDate;
+						for (int i = offset; i < (offset + pageSize) && i < items.length; i++) {
+							Item item = items[i];
+							lastModifiedDate = format.format(item.getLastModified());
+							itemHandleCanonicalForm = HandleManager.getCanonicalForm(item.getHandle());
+				%>
+				<li class="media well">
+					<div class="media-body">
+						<span class="h5 pull-left">
+							<p>
+								<a class="h3" href="<%=itemHandleCanonicalForm%>"><%=item.getName()%></a>
+							</p>
+							<p class="h5">
+								Handle:
+								<%=item.getHandle()%></p>
+						</span> <span class="pull-right"><p class="text-right">Last
+								Modified</p>
+							<p class="h4"><%=lastModifiedDate%></p></span>
+					</div>
+				</li>
+				<%
+					}
+				%>
+			</ul>
+		</li>
+	</ul>
+	<%
+		if (items.length != 0) {
+	%>
+	<form method="get"
+		action="<%=request.getContextPath()%>/notify-details-report"
+		id="notify_report_pagination_form">
+
+		<button class="btn btn-success"
+			onclick="goToPage('<%=offset%>','<%=pageSize%>','previous')"
+			<%=(offset == 0) ? "disabled" : ""%>>
+			<i class="h2">&#8592;</i>
+		</button>
+		<button class="btn btn-success"
+			onclick="goToPage('<%=offset%>','<%=pageSize%>','next')"
+			<%=(offset + pageSize >= items.length) ? "disabled" : ""%>>
+			<i class="h2">&#8594;</i>
+		</button>
+
+		<input type="hidden" id="selected_status" name="selected_status"
+			value="<%=selectedStatus%>" /> <input type="hidden" id="offset"
+			name="offset" value="<%=offset%>" />
 	</form>
+	<%
+		}
+	%>
 </dspace:layout>

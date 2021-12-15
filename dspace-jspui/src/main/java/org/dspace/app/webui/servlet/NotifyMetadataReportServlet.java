@@ -3,6 +3,7 @@ package org.dspace.app.webui.servlet;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
@@ -13,7 +14,10 @@ import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
+import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.notify.NotifyStatus;
+import org.dspace.notify.NotifyStatusManager;
 import org.dspace.storage.rdbms.DatabaseManager;
 import org.dspace.storage.rdbms.TableRow;
 import org.dspace.storage.rdbms.TableRowIterator;
@@ -30,9 +34,12 @@ public class NotifyMetadataReportServlet extends DSpaceServlet {
 	protected void doDSGet(Context context, HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, AuthorizeException {
 
-		HashMap<String, Integer> metadata = retrieveNotifyMetadata(context);
-
-		request.setAttribute("coar-notify-metadata", metadata);
+		HashMap<NotifyStatus, List<Item>> notifyItemsReport = NotifyStatusManager.getItemsForEachNotifyStatus();
+		request.setAttribute("coar-notify-items-report", notifyItemsReport);
+		
+		//USED FOR TESTING GUI
+//		HashMap<String, Integer> metadata = retrieveNotifyMetadata(context);
+//		request.setAttribute("coar-notify-metadata", metadata);
 
 		JSPManager.showJSP(request, response, "/notify-metadata-report.jsp");
 

@@ -38,16 +38,22 @@
 <%@ page import="java.io.IOException"%>
 <%@ page import="java.sql.SQLException"%>
 <%@ page import="java.util.HashMap"%>
+<%@ page import="java.util.List"%>
 <%@ page import="java.util.Map.Entry"%>
+<%@ page import="org.dspace.content.Item"%>
+<%@ page import="org.dspace.notify.NotifyStatus"%>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace"%>
 
 <%
-	HashMap<String, Integer> metadata = (HashMap<String, Integer>) request.getAttribute("coar-notify-metadata");
+	HashMap<NotifyStatus, List<Item>> notifyItemsReport = (HashMap<NotifyStatus, List<Item>>) request
+			.getAttribute("coar-notify-items-report");
 %>
 
-<link rel="stylesheet" href="<%= request.getContextPath() %>/notify-custom.css" type="text/css">
-	<script type="text/javascript" src="<%= request.getContextPath() %>/notify.js"></script>
+<link rel="stylesheet"
+	href="<%=request.getContextPath()%>/notify-custom.css" type="text/css">
+<script type="text/javascript"
+	src="<%=request.getContextPath()%>/notify.js"></script>
 
 <dspace:layout titlekey="jsp.coar-notify.title">
 
@@ -63,28 +69,30 @@
 		<fmt:message key="jsp.coar-notify.text1" />
 	</p>
 
-	<form method="get" action="<%= request.getContextPath() %>/notify-details-report" id="choose_metadata_for_details">
+	<form method="get"
+		action="<%=request.getContextPath()%>/notify-details-report"
+		id="choose_status_for_details">
 		<ul class="media-list">
 			<li class="media well">
 				<ul class="media-list">
-					<li class="media well">
+					<li class="media">
 						<div class="media-body">
 							<span class="h5 pull-left">
 								<div class="h2">Status</div>
-							</span> <span class="h2 pull-right"><p>Occurences</p></span>
+							</span> <span class="h2 pull-right"><p>Items</p></span>
 						</div>
 					</li>
 					<%
-						for (Entry<String, Integer> entry : metadata.entrySet()) {
-								String key = entry.getKey();
-								Integer value = entry.getValue();
+						for (Entry<NotifyStatus, List<Item>> entry : notifyItemsReport.entrySet()) {
+								NotifyStatus key = entry.getKey();
+								List<Item> items = entry.getValue();
 					%>
-					<li class="media well notifyListButton" onclick="selectMetadataAndSubmit('<%=key%>');">
+					<li class="media well notifyListButton"
+						onclick="selectMetadataAndSubmit('<%=key%>');">
 						<div class="media-body">
 							<span class="h5 pull-left">
-								<div class="h3"><%=key.replace("coar.notify.", "")%></div>
-								<div class="h5"><%=key%></div>
-							</span> <span class="h3 pull-right"><p><%=value%></p></span>
+								<div class="h3"><%=key.toString()%></div>
+							</span> <span class="h3 pull-right"><p><%=items.size()%></p></span>
 						</div>
 					</li>
 					<%
@@ -93,6 +101,6 @@
 				</ul>
 			</li>
 		</ul>
-		<input type="hidden" id="selected_metadata" name="selected_metadata"/>
+		<input type="hidden" id="selected_status" name="selected_status" />
 	</form>
 </dspace:layout>

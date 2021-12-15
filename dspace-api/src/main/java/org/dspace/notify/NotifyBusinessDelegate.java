@@ -56,7 +56,7 @@ public class NotifyBusinessDelegate {
 	public void reachEndpoitToRequestReview(Item item, String serviceId) {
 		try {
 
-			String serviceEndpoint = ConfigurationManager.getProperty("ldn-trusted-services", "external."+serviceId+".endpoint");
+			String serviceEndpoint = ConfigurationManager.getProperty("ldn-trusted-services", "review."+serviceId+".endpoint");
 			HttpPost method = null;
 			int statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 			int numberOfTries = 0;
