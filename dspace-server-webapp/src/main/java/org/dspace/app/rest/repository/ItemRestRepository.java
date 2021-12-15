@@ -19,7 +19,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -382,15 +381,15 @@ public class ItemRestRepository extends DSpaceObjectRestRepository<Item, ItemRes
     }
 
 
-    @SearchRestMethod(name = "objects")
-    public Page<AuthorizationRest> findByObjects(@Parameter(value = "uuid", required = true) List<String> uuidList,
+    @SearchRestMethod(name = "findAllById")
+    public Page<AuthorizationRest> findAllById(@Parameter(value = "id", required = true) List<String> ids,
             Pageable pageable) throws SQLException {
 
         Context context = obtainContext();
 
         List<Item> items = new ArrayList<Item>();
 
-        itemService.findByIds(context, uuidList).forEachRemaining(items::add);
+        itemService.findByIds(context, ids).forEachRemaining(items::add);
 
         return converter.toRestPage(items, pageable, items.size(), utils.obtainProjection());
     }
