@@ -9,6 +9,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 <div class="table-responsive">
+
 		<table class="table table-bordered datatable-mostviewed">
 			<thead>
 				<tr>
@@ -19,7 +20,8 @@
 			</thead>
 				<tbody>
 				<c:set var="total" value="0" />
-				<c:forEach items="${data.resultBean.dataBeans[statType][objectName][pieType].limitedDataTable}" var="row" end="${data.maxListMostViewedItem}" varStatus="status">
+				<c:set var="sizelimiteddatatable" value="${fn:length(data.resultBean.dataBeans[statType][objectName][pieType].limitedDataTable)}" />
+				<c:forEach items="${data.resultBean.dataBeans[statType][objectName][pieType].limitedDataTable}" var="row" end="${data.maxListMostViewedItem==null?sizelimiteddatatable:data.maxListMostViewedItem}" varStatus="status">
 				<c:set var="id" scope="page">${statType}_${objectName}_${pieType}_${status.count}</c:set>
 					<tr>
 						<td>
