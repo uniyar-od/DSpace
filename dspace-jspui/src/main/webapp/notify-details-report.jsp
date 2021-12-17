@@ -20,6 +20,7 @@
   -    admin_button - Boolean, show admin 'Create Top-Level Community' button
   --%>
 
+<%@page import="org.dspace.content.DCDate"%>
 <%@page import="org.dspace.content.Bitstream"%>
 <%@page import="org.apache.commons.lang.StringUtils"%>
 <%@ page contentType="text/html;charset=UTF-8"%>
@@ -33,6 +34,7 @@
 <%@ page import="org.dspace.browse.ItemCounter"%>
 <%@ page import="org.dspace.content.Collection"%>
 <%@ page import="org.dspace.content.Community"%>
+<%@ page import="org.dspace.content.DCDate"%>
 <%@ page import="org.dspace.core.ConfigurationManager"%>
 <%@ page import="javax.servlet.jsp.jstl.fmt.LocaleSupport"%>
 <%@ page import="java.io.IOException"%>
@@ -96,6 +98,7 @@
 							lastModifiedDate = format.format(item.getLastModified());
 							itemHandleCanonicalForm = HandleManager.getCanonicalForm(item.getHandle());
 				%>
+				
 				<li class="media well">
 					<div class="media-body">
 						<span class="h5 pull-left">
@@ -107,7 +110,7 @@
 								<%=item.getHandle()%></p>
 						</span> <span class="pull-right"><p class="text-right">Last
 								Modified</p>
-							<p class="h4"><%=lastModifiedDate%></p></span>
+							<p class="h4"><dspace:date date="<%=new DCDate(item.getLastModified()) %>"/></p></span>
 					</div>
 				</li>
 				<%

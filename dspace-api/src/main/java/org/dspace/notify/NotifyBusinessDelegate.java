@@ -86,7 +86,7 @@ public class NotifyBusinessDelegate {
 
 					if (statusCode == HttpStatus.SC_OK) {
 						log.info(serviceEndpoint + " has returned " + statusCode);
-						LDNUtils.saveMetadataRequestForItem(item, serviceEndpoint, repositoryMessageID);
+						LDNUtils.saveMetadataRequestForItem(item, serviceId, repositoryMessageID);
 					} else {
 						log.error(serviceEndpoint + " has returned " + statusCode);
 						log.error(serviceId + " check if service id is properly configured!");

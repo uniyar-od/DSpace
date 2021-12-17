@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -17,12 +18,12 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 
 	@Override
 	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
-			throws IllegalStateException, SQLException {
+			throws IllegalStateException, SQLException, AuthorizeException {
 
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
 
 		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
-		Item item = Item.find(context, dso.getID());
+		Item item = (Item) dso;
 
 		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
 				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
@@ -30,12 +31,13 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 		if (StringUtils.isNotBlank(ldnRequestDTO.getInReplyTo())) {
 			String repositoryMessageID = new StringBuilder(LDNUtils.METADATA_DELIMITER).append(ldnRequestDTO.getInReplyTo())
 					.toString();
-			removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.EXAMINATION,
+			LDNUtils.removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.EXAMINATION,
 					new String[] { metadataIdentifierServiceID, repositoryMessageID });
 		}
 
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
-		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.EXAMINATION, null, metadataValue);
+		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REFUSED, LDNUtils.getDefaultLanguageQualifier(), metadataValue);
+		item.update();
 
 	}
 

@@ -14,6 +14,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.notify.NotifyStatus;
 import org.dspace.notify.NotifyStatusManager;
@@ -34,7 +35,7 @@ public class NotifyDetailsReportServlet extends DSpaceServlet {
 			+ "	GROUP BY metadatafieldregistry.qualifier,item.item_id\n" + "	ORDER BY item.last_modified DESC\n"
 			+ "";
 
-	private static final int PAGE_SIZE = 5;
+	private static final int PAGE_SIZE = ConfigurationManager.getIntProperty("ldn-trusted-services", "notify.status.details-page.page-size");
 
 	@Override
 	protected void doDSGet(Context context, HttpServletRequest request, HttpServletResponse response)

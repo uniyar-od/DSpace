@@ -2,6 +2,7 @@ package org.dspace.ldn;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -10,12 +11,16 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.notify.NotifyStatus;
+import org.dspace.notify.NotifyStatusManager;
 
 public class LDNServiceCheckAuthorization {
 	/** Logger */
 	private static Logger logger = Logger.getLogger(LDNServiceCheckAuthorization.class);
 
 	private static List<String> authorizedIpList;
+	
+	private static List<String> authorizedServiceList;
 
 	private static boolean isLocalhostTrustedByDefault;
 
@@ -53,6 +58,10 @@ public class LDNServiceCheckAuthorization {
 		}
 
 		authorizedIpList = tmpList;
+		
+		authorizedServiceList=new LinkedList<>();
+		authorizedServiceList.addAll(Arrays.asList(LDNUtils.getServicesForServiceType("review")));
+		authorizedServiceList.addAll(Arrays.asList(LDNUtils.getServicesForServiceType("endorsement")));
 	}
 
 	public static boolean isHostAuthorized(HttpServletRequest request) {
@@ -76,6 +85,10 @@ public class LDNServiceCheckAuthorization {
 			logger.error("Hostname " + hostname + " is unknown ", e);
 		}
 		return tmpIpAddress;
+	}
+
+	public static boolean isServiceIdAuthorized(NotifyLDNDTO notifyLDNDTO) {
+		return authorizedServiceList.contains(notifyLDNDTO.getOrigin().getId());
 	}
 
 }

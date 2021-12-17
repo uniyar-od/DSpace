@@ -25,7 +25,7 @@ public class NotifyConsumer implements Consumer {
 	@Override
 	public void consume(Context ctx, Event event) throws Exception {
 		if (event.getSubjectType() == Constants.ITEM) {
-
+			ctx.turnOffAuthorisationSystem();
 			Item item = (Item) event.getSubject(ctx);
 			Metadatum[] ar = null;
 
@@ -38,6 +38,8 @@ public class NotifyConsumer implements Consumer {
 				repositoryMessageIdInitialize = LDNUtils.generateRandomUrnUUID();
 				new NotifyBusinessDelegate().reachEndpoitToRequestReview(item, metadatum.value);
 			}
+			ctx.restoreAuthSystemState();
+			ctx.commit();
 
 		}
 	}

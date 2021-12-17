@@ -8,6 +8,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -29,25 +30,26 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 
 	@Override
 	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
-			throws IllegalStateException, SQLException {
+			throws IllegalStateException, SQLException, AuthorizeException {
 
 		generateMetadataValue(ldnRequestDTO);
-		
+
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
 
 		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
-		Item item = Item.find(context, dso.getID());
+		Item item = (Item) dso;
 
 		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
 				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
 
-		removeMetadata(item, SCHEMA, ELEMENT,
+		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
+		LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
 				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
-				metadataIdentifierServiceID);
-
+				new String[] { metadataIdentifierServiceID, repositoryInitializedMessageId });
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
-		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REVIEW, null, metadataValue);
-
+		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REVIEW, LDNUtils.getDefaultLanguageQualifier(),
+				metadataValue);
+		item.update();
 	}
 
 	@Override
@@ -57,7 +59,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 		StringBuilder builder = new StringBuilder();
 
 		String timestamp = new SimpleDateFormat(LDNUtils.DATE_PATTERN).format(Calendar.getInstance().getTime());
-		String reviewServiceId = ldnRequestDTO.getObject().getId();
+		String reviewServiceId = ldnRequestDTO.getOrigin().getId();
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 		String linkToTheReview = ldnRequestDTO.getObject().getId();
 

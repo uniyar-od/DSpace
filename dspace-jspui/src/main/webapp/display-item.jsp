@@ -138,6 +138,7 @@
                 <code><%= HandleManager.getCanonicalForm(handle) %></code></strong>--%>
                 <div class="well"><fmt:message key="jsp.display-item.identifier"/>
                 <code><%= HandleManager.getCanonicalForm(handle) %></code></div>
+                
 <%
         if (admin_button)  // admin edit button
         { %>
@@ -187,8 +188,12 @@
 
     String displayStyle = (displayAll ? "full" : "");
 %>
+
+    <dspace:notify-status handle="<%=handle %>"/>
     <dspace:item-preview item="<%= item %>" />
     <dspace:item item="<%= item %>" collections="<%= collections %>" style="<%= displayStyle %>" />
+    
+
 <div class="container row">
 <%
     String locationLink = request.getContextPath() + "/handle/" + handle;

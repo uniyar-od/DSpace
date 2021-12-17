@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -16,35 +17,36 @@ public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 
 	@Override
 	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
-			throws IllegalStateException, SQLException {
+			throws IllegalStateException, SQLException, AuthorizeException {
 
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
 
 		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
-		Item item = Item.find(context, dso.getID());
-		
-		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER).append(ldnRequestDTO.getOrigin().getId())
-				.append(LDNUtils.METADATA_DELIMITER).toString();
+		Item item = (Item) dso;
 
-		removeMetadata(item, SCHEMA, ELEMENT,
+		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
+				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
+
+		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
+		LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
 				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
-				metadataIdentifierServiceID);
-		
-		
-		String metadataValue = generateMetadataValue(ldnRequestDTO);
-		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.ENDORSMENT, null, metadataValue);
+				new String[] { metadataIdentifierServiceID, repositoryInitializedMessageId });
 
-		
+		String metadataValue = generateMetadataValue(ldnRequestDTO);
+		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.ENDORSMENT, LDNUtils.getDefaultLanguageQualifier(),
+				metadataValue);
+		item.update();
+
 	}
 
 	@Override
 	protected String generateMetadataValue(NotifyLDNDTO ldnRequestDTO) {
-		//coar.notify.endorsement
+		// coar.notify.endorsement
 
 		StringBuilder builder = new StringBuilder();
 
 		String timestamp = new SimpleDateFormat(LDNUtils.DATE_PATTERN).format(Calendar.getInstance().getTime());
-		String reviewServiceId = ldnRequestDTO.getObject().getId();
+		String reviewServiceId = ldnRequestDTO.getOrigin().getId();
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 		String linkToTheEndorsment = ldnRequestDTO.getObject().getId();
 
@@ -67,5 +69,4 @@ public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 		return builder.toString();
 	}
 
-	
 }
