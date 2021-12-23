@@ -63,6 +63,7 @@ public class ScopusResponse {
 			Element errElement = XMLUtils.getSingleElement(dataRoot, "error");
 			if (errElement != null) {
 			    log.error("Message: " + errElement.getTextContent());
+			    error = true;
 			} else {
 				String eid = XMLUtils.getElementValue(dataRoot, "eid");
 				String numCitations = XMLUtils.getElementValue(dataRoot, "citedby-count");
