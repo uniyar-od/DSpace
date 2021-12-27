@@ -1497,6 +1497,29 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
         ;
+
+        getClient().perform(get("/api/discover/search/objects")
+                .param("query", "test"))
+                .andExpect(status().isOk());
+
+        getClient().perform(get("/api/discover/search/objects")
+                .param("query", "test:"))
+                .andExpect(status().isUnprocessableEntity());
+
+    }
+
+
+    @Test
+    public void discoverSearchObjectsTestWithInvalidSolrQuery() throws Exception {
+
+        getClient().perform(get("/api/discover/search/objects")
+                .param("query", "test"))
+                .andExpect(status().isOk());
+
+        getClient().perform(get("/api/discover/search/objects")
+                .param("query", "test:"))
+                .andExpect(status().isUnprocessableEntity());
+
     }
 
 
@@ -4080,7 +4103,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         getClient().perform(get("/api/discover/search/objects")
                                 .param("query", "OR"))
 
-                   .andExpect(status().isBadRequest())
+                   .andExpect(status().isUnprocessableEntity())
         ;
 
     }
