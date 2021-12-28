@@ -50,10 +50,12 @@ public class CrisMetricsListener implements NativePostUpdateEventListener {
 
 		String uuid = null;
 		try {
+			log.debug("###Work on Identifier " + metric.getResourceId());
 		    double count = metric.getMetricCount();
 		    uuid = metric.getUuid();
 		    String metrictype = metric.getMetricType();
 		    Context context = metric.getContext();
+		    //maybe a safety check to not encounter an inconsistent state (it could be removed.. good luck)
 		    if(context!=null) {
     			if (StringUtils.isNotBlank(uuid) && count>0) {
 			        // create the document for the atomic update

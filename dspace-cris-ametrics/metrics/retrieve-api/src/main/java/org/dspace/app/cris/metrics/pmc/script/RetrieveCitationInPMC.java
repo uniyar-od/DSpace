@@ -298,6 +298,7 @@ public class RetrieveCitationInPMC
             crisMetrics.setEndDate(new Date());
             crisMetrics.setResourceId(itemID);
             crisMetrics.setResourceTypeId(Constants.ITEM);
+            crisMetrics.setContext(context);
             query = new SolrQuery();
             query.setQuery("search.unique:" + Constants.ITEM + "-" + itemID);
             query.setRows(1);
