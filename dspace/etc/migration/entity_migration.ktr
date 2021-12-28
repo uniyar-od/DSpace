@@ -553,7 +553,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>is date or text or boolean</from>
+      <from>is date or text or boolean or link</from>
       <to>is pointer</to>
       <enabled>Y</enabled>
     </hop>
@@ -643,7 +643,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>is date or text or boolean</from>
+      <from>is date or text or boolean or link</from>
       <to>calculate metadata value</to>
       <enabled>Y</enabled>
     </hop>
@@ -859,7 +859,7 @@
     </hop>
     <hop>
       <from>Sort rows</from>
-      <to>is date or text or boolean</to>
+      <to>is date or text or boolean or link</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -3250,6 +3250,8 @@ WHERE property_def.id = properties.typo_id
 	var metadata_value = datevalue;
 } else if(dtype == 'boolean'){
 	var metadata_value = booleanvalue;
+} else if(dtype == 'link'){
+	var metadata_value = linkvalue;
 }</jsScript_script>
       </jsScript>
     </jsScripts>
@@ -3425,7 +3427,7 @@ and parent_id = ?</sql>
       <exclude_filemask/>
       <file_required>N</file_required>
       <include_subfolders>N</include_subfolders>
-      <name>/home/luca/git/dspace-cris/dspace/etc/conftool/migration_configuration.xls</name>
+      <name>${Internal.Entry.Current.Directory}/migration_configuration.xls</name>
       <filemask/>
       <exclude_filemask/>
       <file_required>N</file_required>
@@ -5268,7 +5270,7 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
-    <name>is date or text or boolean</name>
+    <name>is date or text or boolean or link</name>
     <type>FilterRows</type>
     <description/>
     <distribute>Y</distribute>
@@ -5328,6 +5330,22 @@ WHERE property_def.id = properties.typo_id
                   <name>constant</name>
                   <type>String</type>
                   <text>boolean</text>
+                  <length>-1</length>
+                  <precision>-1</precision>
+                  <isnull>N</isnull>
+                  <mask/>
+                </value>
+              </condition>
+              <condition>
+                <negated>N</negated>
+                <operator>OR</operator>
+                <leftvalue>dtype</leftvalue>
+                <function>=</function>
+                <rightvalue/>
+                <value>
+                  <name>constant</name>
+                  <type>String</type>
+                  <text>link</text>
                   <length>-1</length>
                   <precision>-1</precision>
                   <isnull>N</isnull>
