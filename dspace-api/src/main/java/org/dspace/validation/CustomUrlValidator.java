@@ -10,7 +10,6 @@ package org.dspace.validation;
 import static java.util.Spliterator.ORDERED;
 import static java.util.Spliterators.spliteratorUnknownSize;
 import static java.util.stream.StreamSupport.stream;
-import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 import static org.dspace.validation.service.ValidationService.OPERATION_PATH_SECTIONS;
 
 import java.sql.SQLException;
@@ -19,6 +18,7 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import org.apache.commons.collections4.iterators.IteratorChain;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.InProgressSubmission;
@@ -43,7 +43,7 @@ public class CustomUrlValidator implements SubmissionStepValidator {
 
     private static final String ERROR_VALIDATION_CONFLICT = "error.validation.custom-url.conflict";
 
-    private static final Pattern URL_PATH_PATTERN = Pattern.compile("[\\/.a-zA-Z0-9-]+$");
+    private static final Pattern URL_PATH_PATTERN = Pattern.compile("[\\/.a-zA-Z0-9-_]+$");
 
     @Autowired
     private ItemService itemService;
@@ -52,24 +52,30 @@ public class CustomUrlValidator implements SubmissionStepValidator {
 
     @Override
     public List<ValidationError> validate(Context context, InProgressSubmission<?> obj, SubmissionStepConfig config) {
-
         Item item = obj.getItem();
-
         String customUrl = getCustomUrl(item);
+        return validate(context, item, customUrl, config);
+    }
+
+    public boolean isValid(Context context, Item item, String customUrl) {
+        return customUrl != null && validate(context, item, customUrl, null).isEmpty();
+    }
+
+    private List<ValidationError> validate(Context context, Item item, String customUrl, SubmissionStepConfig config) {
         if (customUrl == null) {
             return List.of();
         }
 
-        if (customUrl.isBlank() && hasRedirectUrls(item)) {
-            return validationError(ERROR_VALIDATION_EMPTY, config);
+        if (customUrl.isBlank()) {
+            return urlValidationError(ERROR_VALIDATION_EMPTY, config);
         }
 
         if (hasInvalidCharacters(customUrl)) {
-            return validationError(ERROR_VALIDATION_INVALID_CHARS, config);
+            return urlValidationError(ERROR_VALIDATION_INVALID_CHARS, config);
         }
 
         if (existsAnotherItemWithSameCustomUrl(context, item, customUrl)) {
-            return validationError(ERROR_VALIDATION_CONFLICT, config);
+            return urlValidationError(ERROR_VALIDATION_CONFLICT, config);
         }
 
         return List.of();
@@ -79,22 +85,25 @@ public class CustomUrlValidator implements SubmissionStepValidator {
         return itemService.getMetadataFirstValue(item, "cris", "customurl", null, Item.ANY);
     }
 
-    private boolean hasRedirectUrls(Item item) {
-        return isNotEmpty(itemService.getMetadataByMetadataString(item, "cris.customurl.old"));
-    }
-
     private boolean hasInvalidCharacters(String customUrl) {
         return !URL_PATH_PATTERN.matcher(customUrl).matches();
     }
 
     private boolean existsAnotherItemWithSameCustomUrl(Context context, Item item, String customUrl) {
-        return convertToStream(findItemsByCustomUrl(context))
-            .anyMatch(foundItem -> foundItem.isArchived() && !foundItem.getID().equals(item.getID()));
+        return convertToStream(findItemsByCustomUrl(context, customUrl))
+            .anyMatch(foundItem -> !foundItem.getID().equals(item.getID()));
     }
 
-    private Iterator<Item> findItemsByCustomUrl(Context context) {
+    private Iterator<Item> findItemsByCustomUrl(Context context, String customUrl) {
+        return new IteratorChain<Item>(
+            findArchivedByMetadataField(context, "cris", "customurl", null, customUrl),
+            findArchivedByMetadataField(context, "cris", "customurl", "old", customUrl));
+    }
+
+    private Iterator<Item> findArchivedByMetadataField(Context context, String schema, String element,
+        String qualifier, String value) {
         try {
-            return itemService.findUnfilteredByMetadataField(context, "cris", "customurl", null, Item.ANY);
+            return itemService.findArchivedByMetadataField(context, schema, element, qualifier, value);
         } catch (SQLException | AuthorizeException e) {
             throw new RuntimeException(e);
         }
@@ -104,10 +113,12 @@ public class CustomUrlValidator implements SubmissionStepValidator {
         return stream(spliteratorUnknownSize(iterator, ORDERED), false);
     }
 
-    private List<ValidationError> validationError(String message, SubmissionStepConfig config) {
+    private List<ValidationError> urlValidationError(String message, SubmissionStepConfig config) {
         ValidationError error = new ValidationError();
         error.setMessage(message);
-        error.getPaths().add("/" + OPERATION_PATH_SECTIONS + "/" + config.getId());
+        if (config != null) {
+            error.getPaths().add("/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/url");
+        }
         return List.of(error);
     }
 

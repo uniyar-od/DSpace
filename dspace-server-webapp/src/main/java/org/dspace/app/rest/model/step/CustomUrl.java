@@ -9,6 +9,7 @@ package org.dspace.app.rest.model.step;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -23,7 +24,8 @@ public class CustomUrl implements SectionData {
 
     private String url;
 
-    @JsonProperty("redirect-urls")
+    @JsonProperty("redirected-urls")
+    @JsonInclude(JsonInclude.Include.NON_EMPTY)
     private List<String> redirectedUrls;
 
     public String getUrl() {

@@ -28,6 +28,10 @@
         <property name="uploadConfigurationService" ref="uploadConfigurationService"/>
     </bean>
     
+    <bean name="customUrlValidation" class="org.dspace.validation.CustomUrlValidator">
+        <property name="name" value="custom-url"/>
+    </bean>
+    
     <bean name="fundingHasAtLeastOneInvestigatorOrOneLeadOrganization" class="org.dspace.validation.LogicalStatementValidator">
         <property name="errorKey" value="error.validation.fundingInvestigatorOrLeadOrganizationRequired"/>
         <property name="metadataFields">

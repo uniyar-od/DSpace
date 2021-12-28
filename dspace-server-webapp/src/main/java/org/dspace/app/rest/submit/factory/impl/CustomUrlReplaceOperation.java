@@ -15,13 +15,13 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.model.step.CustomUrl;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.validation.CustomUrlValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -34,6 +34,9 @@ public class CustomUrlReplaceOperation extends ReplacePatchOperation<CustomUrl> 
 
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private CustomUrlValidator customUrlValidator;
 
     @Override
     @SuppressWarnings("rawtypes")
@@ -52,14 +55,15 @@ public class CustomUrlReplaceOperation extends ReplacePatchOperation<CustomUrl> 
         removeAnyRedirectedUrlsEqualsToNewUrl(context, item, newUrl);
         replaceCustomUrl(context, item, newUrl);
 
-        if (StringUtils.isNotBlank(currentUrl)) {
+        if (customUrlValidator.isValid(context, item, currentUrl)) {
             addOldCustomUrlToRedirectedUrls(context, item, currentUrl);
         }
 
     }
 
     private void replaceCustomUrl(Context context, Item item, String newUrl) throws SQLException {
-        itemService.replaceMetadata(context, item, "cris", "customurl", null, ANY, newUrl, null, -1, 0);
+        itemService.clearMetadata(context, item, "cris", "customurl", null, ANY);
+        itemService.addMetadata(context, item, "cris", "customurl", null, null, newUrl);
     }
 
     private void removeAnyRedirectedUrlsEqualsToNewUrl(Context context, Item item, String newUrl) throws SQLException {
