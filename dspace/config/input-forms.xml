@@ -413,15 +413,15 @@ it, please enter the types and the actual numbers or codes.</hint>
    </value-pairs>
 
 	<value-pairs value-pairs-name="service_type" dc-term="type">
-	<pair>
-		<displayed-value>Service 1</displayed-value>
-		<stored-value>service1</stored-value>
-	</pair>
-	<pair>
-		<displayed-value>Service 2</displayed-value>
-		<stored-value>service2</stored-value>
-	</pair>
-</value-pairs>
+		<pair>
+			<displayed-value>Service 1</displayed-value>
+			<stored-value>service1</stored-value>
+		</pair>
+		<pair>
+			<displayed-value>Service 2</displayed-value>
+			<stored-value>service2</stored-value>
+		</pair>
+	</value-pairs>
    
  </form-value-pairs>
 </input-forms>
