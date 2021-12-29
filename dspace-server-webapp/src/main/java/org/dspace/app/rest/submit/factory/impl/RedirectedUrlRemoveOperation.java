@@ -7,17 +7,12 @@
  */
 package org.dspace.app.rest.submit.factory.impl;
 
-import static org.dspace.content.Item.ANY;
-
-import java.sql.SQLException;
-import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
+import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.rest.model.step.CustomUrl;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
-import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -30,7 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RedirectedUrlRemoveOperation extends RemovePatchOperation<CustomUrl> {
 
     @Autowired
-    private ItemService itemService;
+    private CustomUrlService customUrlService;
 
     @Override
     @SuppressWarnings("rawtypes")
@@ -41,9 +36,9 @@ public class RedirectedUrlRemoveOperation extends RemovePatchOperation<CustomUrl
         int index = calculateRemoveIndex(path);
 
         if (index == -1) {
-            removeAllRedirectedUrls(context, item);
+            customUrlService.deleteAllOldCustomUrls(context, item);
         } else {
-            removeRedirectedUrlByIndex(context, item, index);
+            customUrlService.deleteOldCustomUrlByIndex(context, item, index);
         }
 
     }
@@ -52,22 +47,6 @@ public class RedirectedUrlRemoveOperation extends RemovePatchOperation<CustomUrl
         String absolutePath = getAbsolutePath(path);
         String[] splittedPath = absolutePath.split("/");
         return splittedPath.length == 1 ? -1 : Integer.valueOf(splittedPath[1]);
-    }
-
-    private void removeAllRedirectedUrls(Context context, Item item) throws SQLException {
-        itemService.clearMetadata(context, item, "cris", "customurl", "old", ANY);
-    }
-
-    private void removeRedirectedUrlByIndex(Context context, Item item, int index) throws SQLException {
-
-        List<MetadataValue> redirectedUrls = itemService.getMetadata(item, "cris", "customurl", "old", ANY);
-
-        if (index >= redirectedUrls.size()) {
-            throw new IllegalArgumentException(
-                "The provided index is not consistent with the cardinality of redirected urls");
-        }
-
-        itemService.removeMetadataValues(context, item, List.of(redirectedUrls.get(index)));
     }
 
     @Override

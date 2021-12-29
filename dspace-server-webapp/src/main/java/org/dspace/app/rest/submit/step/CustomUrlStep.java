@@ -9,11 +9,10 @@ package org.dspace.app.rest.submit.step;
 
 import static java.util.Optional.of;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
+import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.step.CustomUrl;
@@ -24,8 +23,8 @@ import org.dspace.app.rest.submit.factory.impl.PatchOperation;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
+import org.dspace.utils.DSpace;
 
 /**
  * Implementation of {@link DataProcessingStep} that expose and allow patching
@@ -37,6 +36,7 @@ import org.dspace.core.Context;
 @SuppressWarnings("rawtypes")
 public class CustomUrlStep extends AbstractProcessingStep {
 
+    private CustomUrlService customUrlService = new DSpace().getSingletonService(CustomUrlService.class);
 
     @Override
     @SuppressWarnings("unchecked")
@@ -46,8 +46,8 @@ public class CustomUrlStep extends AbstractProcessingStep {
         Item item = obj.getItem();
 
         CustomUrl customUrl = new CustomUrl();
-        customUrl.setUrl(getUrl(item));
-        customUrl.setRedirectedUrls(getRedirectedUrls(item));
+        customUrl.setUrl(customUrlService.getCustomUrl(item));
+        customUrl.setRedirectedUrls(customUrlService.getOldCustomUrls(item));
 
         return customUrl;
     }
@@ -82,14 +82,6 @@ public class CustomUrlStep extends AbstractProcessingStep {
         return Optional.empty();
     }
 
-    private String getUrl(Item item) {
-        return itemService.getMetadataFirstValue(item, "cris", "customurl", null, Item.ANY);
-    }
 
-    private List<String> getRedirectedUrls(Item item) {
-        return itemService.getMetadataByMetadataString(item, "cris.customurl.old").stream()
-            .map(MetadataValue::getValue)
-            .collect(Collectors.toList());
-    }
 
 }
