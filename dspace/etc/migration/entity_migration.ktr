@@ -3114,6 +3114,48 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
+    <name>add order 2</name>
+    <type>FieldsChangeSequence</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <start>0</start>
+    <increment>1</increment>
+    <resultfieldName>metadata_order</resultfieldName>
+    <fields>
+      <field>
+        <name>schema</name>
+      </field>
+      <field>
+        <name>element</name>
+      </field>
+      <field>
+        <name>qualifier</name>
+      </field>
+      <field>
+        <name>parent_id</name>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>1744</xloc>
+      <yloc>1248</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
     <name>add order 3</name>
     <type>FieldsChangeSequence</type>
     <description/>
@@ -3251,7 +3293,11 @@ WHERE property_def.id = properties.typo_id
 } else if(dtype == 'boolean'){
 	var metadata_value = booleanvalue;
 } else if(dtype == 'link'){
-	var metadata_value = linkvalue;
+    if (linkvalue == null) {
+		metadata_value = linkdescription; 
+	} else {
+		var metadata_value = linkvalue;
+	}
 }</jsScript_script>
       </jsScript>
     </jsScripts>
@@ -5496,7 +5542,7 @@ WHERE property_def.id = properties.typo_id
     <accept_field/>
     <accept_stepname/>
     <file>
-      <name>/home/luca/git/dspace-cris/dspace/etc/conftool/migration_configuration.xls</name>
+      <name>${Internal.Entry.Current.Directory}/migration_configuration.xls</name>
       <filemask/>
       <exclude_filemask/>
       <file_required>N</file_required>
@@ -5643,7 +5689,12 @@ WHERE property_def.id = properties.typo_id
     <accept_field/>
     <accept_stepname/>
     <file>
-      <name>/home/luca/git/dspace-cris/dspace/etc/conftool/migration_configuration.xls</name>
+      <name>${Internal.Entry.Current.Directory}/migration_configuration.xls</name>
+      <filemask/>
+      <exclude_filemask/>
+      <file_required>N</file_required>
+      <include_subfolders>N</include_subfolders>
+      <name/>
       <filemask/>
       <exclude_filemask/>
       <file_required>N</file_required>
@@ -5742,7 +5793,7 @@ WHERE property_def.id = properties.typo_id
     <accept_field/>
     <accept_stepname/>
     <file>
-      <name>/home/luca/git/dspace-cris/dspace/etc/conftool/migration_configuration.xls</name>
+      <name>${Internal.Entry.Current.Directory}/migration_configuration.xls</name>
       <filemask/>
       <exclude_filemask/>
       <file_required>N</file_required>
@@ -5889,7 +5940,7 @@ WHERE property_def.id = properties.typo_id
     <accept_field/>
     <accept_stepname/>
     <file>
-      <name>/home/luca/git/dspace-cris/dspace/etc/conftool/migration_configuration.xls</name>
+      <name>${Internal.Entry.Current.Directory}/migration_configuration.xls</name>
       <filemask/>
       <exclude_filemask/>
       <file_required>N</file_required>
@@ -6000,7 +6051,7 @@ WHERE property_def.id = properties.typo_id
     <accept_field/>
     <accept_stepname/>
     <file>
-      <name>/home/luca/git/dspace-cris/dspace/etc/conftool/migration_configuration.xls</name>
+      <name>${Internal.Entry.Current.Directory}/migration_configuration.xls</name>
       <filemask/>
       <exclude_filemask/>
       <file_required>N</file_required>
@@ -6598,48 +6649,6 @@ WHERE property_def.id = properties.typo_id
     <GUI>
       <xloc>976</xloc>
       <yloc>1840</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>add order 2</name>
-    <type>FieldsChangeSequence</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <start>0</start>
-    <increment>1</increment>
-    <resultfieldName>metadata_order</resultfieldName>
-    <fields>
-      <field>
-        <name>schema</name>
-      </field>
-      <field>
-        <name>element</name>
-      </field>
-      <field>
-        <name>qualifier</name>
-      </field>
-      <field>
-        <name>parent_id</name>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>1744</xloc>
-      <yloc>1248</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
