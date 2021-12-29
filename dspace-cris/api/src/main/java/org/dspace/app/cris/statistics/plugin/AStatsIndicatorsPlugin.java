@@ -16,6 +16,7 @@ import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.content.generator.DateValueGenerator;
+import org.dspace.core.Context;
 
 public abstract class AStatsIndicatorsPlugin implements StatsIndicatorsPlugin
 {
@@ -41,10 +42,10 @@ public abstract class AStatsIndicatorsPlugin implements StatsIndicatorsPlugin
         this.name = name;
     }
 
-    public static void buildIndicator(MetricsPersistenceService pService, ApplicationService applicationService,
-            String uuid, Integer resourceType, Integer resourceId, Object value,
-            String metricsType, Date startDate, Date endDate,
-            Map<String, String> maps)
+    public static void buildIndicator(Context context, MetricsPersistenceService pService,
+            ApplicationService applicationService, String uuid, Integer resourceType, Integer resourceId,
+            Object value, String metricsType, Date startDate,
+            Date endDate, Map<String, String> maps)
     {
         CrisMetrics indicator = new CrisMetrics();
 
@@ -73,7 +74,8 @@ public abstract class AStatsIndicatorsPlugin implements StatsIndicatorsPlugin
         indicator.setStartDate(startDate);
         indicator.setEndDate(endDate);
         indicator.setMetricType(metricsType);
-
+        
+        indicator.setContext(context);
         pService.saveOrUpdate(CrisMetrics.class, indicator);
     }
 

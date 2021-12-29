@@ -84,10 +84,10 @@ public class StatsPercentileIndicatorsPlugin extends AStatsIndicatorsPlugin
             long numFound = results.getNumFound();
 			double percentile = ((double) position)/((double) numFound);
             
-            buildIndicator(pService, applicationService, uuid, resourceType,
-                    resourceId, percentile,
-                    metrics + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_RANKING,
-                    null, endDate, null);
+            buildIndicator(context, pService, applicationService, uuid,
+                    resourceType, resourceId,
+                    percentile,
+                    metrics + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_RANKING, null, endDate, null);
             position++;
         }
 

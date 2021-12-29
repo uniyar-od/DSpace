@@ -279,7 +279,8 @@ public class ScriptRetrieveCitation
                         citation.setUuid((String)doc.getFirstValue("handle"));
                         break;
                     }
-
+                    
+                    citation.setContext(context);
                     pService.saveOrUpdate(CrisMetrics.class, citation);
                     check = true;
                     if (enrichMetadataItem)
