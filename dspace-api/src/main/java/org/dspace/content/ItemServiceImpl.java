@@ -1402,6 +1402,12 @@ prevent the generation of resource policy entry values with null dspace_object a
     }
 
     @Override
+    public Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException {
+        return itemDAO.findByIds(context,
+                ids.stream().map(uuid -> UUID.fromString(uuid)).collect(Collectors.toList()));
+    }
+
+    @Override
     public int countItems(Context context, Collection collection) throws SQLException {
         return itemDAO.countItems(context, collection, true, false);
     }
