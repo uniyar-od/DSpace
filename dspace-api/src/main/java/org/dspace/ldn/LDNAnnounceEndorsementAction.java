@@ -29,7 +29,7 @@ public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 		LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
-				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
+				new String[] { LDNMetadataFields.REQUEST_ENDORSEMENT, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
 				new String[] { metadataIdentifierServiceID, repositoryInitializedMessageId });
 
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
@@ -57,9 +57,6 @@ public class LDNAnnounceEndorsementAction extends LDNPayloadProcessor {
 		builder.append(LDNUtils.METADATA_DELIMITER);
 
 		builder.append(repositoryInitializedMessageId);
-		builder.append(LDNUtils.METADATA_DELIMITER);
-
-		builder.append("success");
 		builder.append(LDNUtils.METADATA_DELIMITER);
 
 		builder.append(linkToTheEndorsment);

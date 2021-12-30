@@ -95,7 +95,7 @@ public class NotifyStatusTag extends TagSupport {
 							+ format.format(formatFromString.parse(splittedMetadataValues[0])) + "</td>");
 					String linkIfAvailable = (splittedMetadataValues.length > 3)
 							? "<a href=\"" + splittedMetadataValues[4] + "\">" + splittedMetadataValues[4] + "</a>"
-							: "";
+							: "N/A";
 					out.println("<td class=\"standard\">" + linkIfAvailable + "</td>");
 					out.println("</tr>");
 				}

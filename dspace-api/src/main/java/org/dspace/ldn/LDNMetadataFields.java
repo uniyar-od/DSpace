@@ -8,7 +8,8 @@ public final class LDNMetadataFields {
 	
 	//Qualifiers
 	public static final String INITIALIZE = "initialize";
-	public static final String REQUEST = "request";
+	public static final String REQUEST_REVIEW = "requestreview";
+	public static final String REQUEST_ENDORSEMENT = "requestendorsement";
 	public static final String EXAMINATION = "examination";
 	public static final String REFUSED = "refused";
 	public static final String REVIEW = "review";

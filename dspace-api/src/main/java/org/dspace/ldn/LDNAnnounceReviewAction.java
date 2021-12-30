@@ -21,13 +21,6 @@ import static org.dspace.ldn.LDNMetadataFields.SCHEMA;
 
 public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 
-	/*
-	 * Used in Scenario 2 - 5 - 9 Used to record the decision to start one of the
-	 * above scenarios with a notification of type: Offer, ReviewAction
-	 * 
-	 * uses metadata coar.notify.request
-	 */
-
 	@Override
 	protected void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException, AuthorizeException {
@@ -44,7 +37,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 		LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
-				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
+				new String[] { LDNMetadataFields.REQUEST_REVIEW, LDNMetadataFields.EXAMINATION, LDNMetadataFields.REFUSED },
 				new String[] { metadataIdentifierServiceID, repositoryInitializedMessageId });
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
 		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REVIEW, LDNUtils.getDefaultLanguageQualifier(),
@@ -70,9 +63,6 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 		builder.append(LDNUtils.METADATA_DELIMITER);
 
 		builder.append(repositoryInitializedMessageId);
-		builder.append(LDNUtils.METADATA_DELIMITER);
-
-		builder.append("success");
 		builder.append(LDNUtils.METADATA_DELIMITER);
 
 		builder.append(linkToTheReview);

@@ -17,35 +17,25 @@
 		<element>notify</element>
 		<qualifier>initialize</qualifier>
 		<scope_note>
-			Used to record the decision to start one of the following
-			scenarios:
-			Scenario 2 - Author requests review with possible
-			endorsement (via
-			repository)
-			Scenario 5 - Repository requests review
-			(on behalf of corresponding author)
-			Scenario 9 - Author requests
-			review from review service, via
-			repository
+			Used to record the services to whom the repository needs to ask the review.
 		</scope_note>
 	</dc-type>
 
 	<dc-type>
 		<schema>coar</schema>
 		<element>notify</element>
-		<qualifier>request</qualifier>
+		<qualifier>requestreview</qualifier>
 		<scope_note>
-			Used to record the start of the following scenarios:
-			Scenario 2 - Author requests review with possible endorsement (via
-			repository)
-			Scenario 5 - Repository requests review (on behalf of
-			corresponding author)
-			Scenario 9 - Author requests review from review
-			service, via
-			repository
-			Once set, the corresponding
-			coar.notify.initialize metadata will be
-			removed
+			Used to record the request sent to the service for review - Item goes in the pending review state.
+		</scope_note>
+	</dc-type>
+	
+	<dc-type>
+		<schema>coar</schema>
+		<element>notify</element>
+		<qualifier>requestendorsement</qualifier>
+		<scope_note>
+			Used to record the request sent to the service for review - Item goes in the pending endorsement state.
 		</scope_note>
 	</dc-type>
 
@@ -54,20 +44,7 @@
 		<element>notify</element>
 		<qualifier>examination</qualifier>
 		<scope_note>
-			Used to record the acceptance of the request to make a
-			review and/or
-			evaluate an endorsement. This means that the repository
-			resource is
-			under active examination.
-			Once set the corresponding
-			coar.notify.request metadata will be removed.
-			If present, a
-			coar.notify.refused metadata for the same third party
-			service and with
-			the same initialize repository message ID it will be
-			removed. This
-			allows the external service to amend a previous wrong
-			acknowledgement.
+			Used to record the acceptance of the request to make a review - Item goes in the ongoing state.
 		</scope_note>
 	</dc-type>
 
@@ -76,22 +53,7 @@
 		<element>notify</element>
 		<qualifier>refused</qualifier>
 		<scope_note>
-			Used to record the rejection of the request to make a
-			review and/or
-			evaluate an endorsement. This means that the repository
-			resource has
-			been NOT examined. Please note that this is different
-			from a negative
-			review.
-			Once set, the corresponding coar.notify.request
-			metadata will be removed.
-			If present, a coar.notify.examination
-			metadata for the same third
-			party service and with the same initialize
-			repository message ID it
-			will be removed. This allows the external
-			service to amend a previous
-			wrong acknowledgement.
+			Used to record the rejection of the request to make a review.
 		</scope_note>
 	</dc-type>
 
@@ -100,24 +62,7 @@
 		<element>notify</element>
 		<qualifier>review</qualifier>
 		<scope_note>
-			Used to record a received review. It can also be
-			unsolicited as in
-			scenarios 1 and 8.
-			Once set, the corresponding
-			coar.notify.request and eventually the
-			coar.notify.examination (or
-			coar.notify.refused) metadata will be
-			removed.
-			The coar.notify.request
-			should have been removed when the
-			coar.notify.examination has been set
-			but due to the async nature of
-			the communication the acknowledge
-			message from the review/endorsement
-			service could have been lost.
-			Moreover, acknowledgement is not
-			guaranteed to be sent in all the
-			scenarios.
+			Used to record a received review. - Item goes in the reviewed state.
 		</scope_note>
 	</dc-type>
 
@@ -126,12 +71,7 @@
 		<element>notify</element>
 		<qualifier>endorsement</qualifier>
 		<scope_note>
-			Used to record a received endorsement. It can also be unsolicited as in
-			scenarios 1 and 4.
-			Once set, the coar.notify.request / coar.notify.examination /
-			coar.notify.refused metadata will be cleaned if present to deal with
-			lost review messages or unplanned scenarios where the endorsement is
-			granted without a review.
+			Used to record a received endorsement. - Item goes in the endorsed stae.
 		</scope_note>
 	</dc-type>
 

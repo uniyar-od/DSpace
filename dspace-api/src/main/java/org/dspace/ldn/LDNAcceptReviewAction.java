@@ -23,14 +23,13 @@ public class LDNAcceptReviewAction extends LDNPayloadProcessor {
 			throws IllegalStateException, SQLException, AuthorizeException {
 
 		String itemHandle = LDNUtils.getHandleFromURL(ldnRequestDTO.getContext().getId());
-
 		DSpaceObject dso = HandleManager.resolveToObject(context, itemHandle);
 		Item item = (Item) dso;
 
 		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
 				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
 		LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
-				new String[] { LDNMetadataFields.REQUEST, LDNMetadataFields.REFUSED }, metadataIdentifierServiceID);
+				new String[] { LDNMetadataFields.REQUEST_REVIEW, LDNMetadataFields.REFUSED }, metadataIdentifierServiceID);
 
 		if (StringUtils.isNotBlank(ldnRequestDTO.getInReplyTo())) {
 			String repositoryMessageID = new StringBuilder(LDNUtils.METADATA_DELIMITER)

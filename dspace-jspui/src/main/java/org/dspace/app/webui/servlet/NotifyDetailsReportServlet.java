@@ -35,7 +35,7 @@ public class NotifyDetailsReportServlet extends DSpaceServlet {
 			+ "	GROUP BY metadatafieldregistry.qualifier,item.item_id\n" + "	ORDER BY item.last_modified DESC\n"
 			+ "";
 
-	private static final int PAGE_SIZE = ConfigurationManager.getIntProperty("ldn-trusted-services", "notify.status.details-page.page-size");
+	private static final int PAGE_SIZE = ConfigurationManager.getIntProperty("ldn-coar-notify", "notify.status.details-page.page-size");
 
 	@Override
 	protected void doDSGet(Context context, HttpServletRequest request, HttpServletResponse response)
@@ -56,6 +56,7 @@ public class NotifyDetailsReportServlet extends DSpaceServlet {
 			log.info("Starting with offset: 0");
 			request.setAttribute("offset", 0);
 		}
+		
 		request.setAttribute("list-of-items", items);
 		request.setAttribute("page-size", PAGE_SIZE);
 		request.setAttribute("selected_status", selectedStatus);

@@ -37,13 +37,13 @@ public enum NotifyStatus {
 	public String getQualifierForNotifyStatus() {
 		switch (this) {
 		case PENDING_REVIEW:
-			return LDNMetadataFields.REQUEST;
+			return LDNMetadataFields.REQUEST_REVIEW;
 		case ONGOING:
 			return LDNMetadataFields.EXAMINATION;
 		case REVIEWED:
 			return LDNMetadataFields.REVIEW;
 		case PENDING_ENDORSEMENT:
-			return LDNMetadataFields.REQUEST;
+			return LDNMetadataFields.REQUEST_ENDORSEMENT;
 		case ENDORSED:
 			return LDNMetadataFields.ENDORSMENT;
 		default:

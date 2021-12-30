@@ -20,6 +20,7 @@
   -    admin_button - Boolean, show admin 'Create Top-Level Community' button
   --%>
 
+<%@page import="java.util.Date"%>
 <%@page import="org.dspace.content.DCDate"%>
 <%@page import="org.dspace.content.Bitstream"%>
 <%@page import="org.apache.commons.lang.StringUtils"%>
@@ -27,8 +28,7 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
 
-<%@ page
-	import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet"%>
+<%@ page import="org.dspace.app.webui.servlet.admin.EditCommunitiesServlet"%>
 <%@ page import="org.dspace.app.webui.util.UIUtil"%>
 <%@ page import="org.dspace.browse.ItemCountException"%>
 <%@ page import="org.dspace.browse.ItemCounter"%>
@@ -43,6 +43,8 @@
 <%@ page import="org.dspace.handle.HandleManager"%>
 <%@ page import="org.dspace.content.Item"%>
 <%@ page import="java.text.SimpleDateFormat"%>
+<%@ page import="org.dspace.notify.NotifyStatus"%>
+<%@ page import="org.dspace.ldn.LDNUtils"%>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace"%>
 
 <%
@@ -53,8 +55,8 @@
 		offset = Integer.parseInt(request.getParameter("offset"));
 	Integer pageSize = (Integer) request.getAttribute("page-size");
 	String selectedStatus = request.getParameter("selected_status");
-
-	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+	NotifyStatus status = NotifyStatus.getEnumFromString(selectedStatus);
+	SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
 %>
 
 
@@ -92,25 +94,36 @@
 				</li>
 				<%
 					String itemHandleCanonicalForm;
-						String lastModifiedDate;
+						Date requestDate;
+						String[] metadataValueSplitted;
 						for (int i = offset; i < (offset + pageSize) && i < items.length; i++) {
 							Item item = items[i];
-							lastModifiedDate = format.format(item.getLastModified());
+							metadataValueSplitted = LDNUtils.getNotifyMetadataValueFromStatus(item, status);
+
+							requestDate = format.parse(metadataValueSplitted[0]);
 							itemHandleCanonicalForm = HandleManager.getCanonicalForm(item.getHandle());
 				%>
-				
+
 				<li class="media well">
 					<div class="media-body">
 						<span class="h5 pull-left">
 							<p>
 								<a class="h3" href="<%=itemHandleCanonicalForm%>"><%=item.getName()%></a>
 							</p>
-							<p class="h5">
-								Handle:
-								<%=item.getHandle()%></p>
-						</span> <span class="pull-right"><p class="text-right">Last
-								Modified</p>
-							<p class="h4"><dspace:date date="<%=new DCDate(item.getLastModified()) %>"/></p></span>
+							<p class="h4">
+								Handle:	<%=item.getHandle()%>
+							</p>
+						</span> 
+						<span class="pull-right">
+							<p class="text-right"><b>Request Date</b></p>
+							<p class="h4">
+								<dspace:date date="<%=new DCDate(requestDate)%>" />
+							</p>
+						</span>
+					</div>
+					<div class="media">
+						<span class="h4 pull-left">Service: <b><%=ConfigurationManager.getProperty("ldn-coar-notify", "service."+metadataValueSplitted[1]+".name")%></b> </span> 
+						
 					</div>
 				</li>
 				<%

@@ -1,5 +1,9 @@
 package org.dspace.ldn;
 
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -11,14 +15,22 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.util.Util;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.AuthorizeManager;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
+import org.dspace.notify.NotifyStatus;
 
 import static org.dspace.ldn.LDNMetadataFields.ELEMENT;
 import static org.dspace.ldn.LDNMetadataFields.SCHEMA;
-import static org.dspace.ldn.LDNMetadataFields.REQUEST;
+import static org.dspace.ldn.LDNMetadataFields.REQUEST_REVIEW;
+import static org.dspace.ldn.LDNMetadataFields.REQUEST_ENDORSEMENT;
 
 public class LDNUtils {
 	/** Logger */
@@ -92,14 +104,18 @@ public class LDNUtils {
 		return true;
 	}
 
-	public static void saveMetadataRequestForItem(Item item, String serviceId, String repositoryMessageID)
-			throws SQLException, AuthorizeException {
+	public static void saveMetadataRequestForItem(Item item, String serviceId, String repositoryMessageID,
+			boolean isEndorsementSupported) throws SQLException, AuthorizeException {
 
 		boolean removed = LDNUtils.removeMetadata(item, SCHEMA, ELEMENT, new String[] { LDNMetadataFields.INITIALIZE },
 				new String[] { serviceId });
 		if (removed) {
-			item.addMetadata(SCHEMA, ELEMENT, REQUEST, getDefaultLanguageQualifier(),
+			item.addMetadata(SCHEMA, ELEMENT, REQUEST_REVIEW, getDefaultLanguageQualifier(),
 					generateMetadataValueForRequestQualifier(serviceId, repositoryMessageID));
+			if (isEndorsementSupported) {
+				item.addMetadata(SCHEMA, ELEMENT, REQUEST_ENDORSEMENT, getDefaultLanguageQualifier(),
+						generateMetadataValueForRequestQualifier(serviceId, repositoryMessageID));
+			}
 			item.update();
 		}
 	}
@@ -165,14 +181,10 @@ public class LDNUtils {
 		return anyOfThem;
 	}
 
-	public static String[] getServicesForServiceType(String serviceType) {
+	public static String[] getServicesForReviewEndorsement() {
 		String serviceEndpoint = "";
 		String[] services;
-		if (serviceType.equals("review")) {
-			serviceEndpoint = ConfigurationManager.getProperty("ldn-trusted-services", "review.service-id.ldn");
-		} else if (serviceType.equals("endorsement")) {
-			serviceEndpoint = ConfigurationManager.getProperty("ldn-trusted-services", "endorsement.service-id.ldn");
-		}
+		serviceEndpoint = ConfigurationManager.getProperty("ldn-coar-notify", "service.service-id.ldn");
 		services = serviceEndpoint.split(",");
 		for (int i = 0; i < services.length; i++) {
 			services[i] = services[i].trim();
@@ -182,15 +194,125 @@ public class LDNUtils {
 
 	public static HashMap<String, String> getServicesAndNames() {
 		HashMap<String, String> map = new HashMap<String, String>();
-		for (String serviceID : getServicesForServiceType("review")) {
+		for (String serviceID : getServicesForReviewEndorsement()) {
 			map.put(serviceID,
-					ConfigurationManager.getProperty("ldn-trusted-services", "review." + serviceID + ".name"));
-		}
-		for (String serviceID : getServicesForServiceType("endorsement")) {
-			map.put(serviceID,
-					ConfigurationManager.getProperty("ldn-trusted-services", "endorsement." + serviceID + ".name"));
+					ConfigurationManager.getProperty("ldn-coar-notify", "service." + serviceID + ".name"));
 		}
 
 		return map;
+	}
+
+	private static boolean isPublic(Context context, Bitstream bitstream) {
+		if (bitstream == null) {
+			return false;
+		}
+		boolean result = false;
+		try {
+			result = AuthorizeManager.authorizeActionBoolean(context, bitstream, Constants.READ, true);
+		} catch (SQLException e) {
+			logger.error("Cannot determine whether bitstream is public, assuming it isn't. bitstream_id="
+					+ bitstream.getID(), e);
+		}
+		return result;
+	}
+
+	/**
+	 * A bitstream is considered linkable fulltext when it is either
+	 * <ul>
+	 * <li>the item's only bitstream (in the ORIGINAL bundle); or</li>
+	 * <li>the primary bitstream</li>
+	 * </ul>
+	 * Additionally, this bitstream must be publicly viewable.
+	 * 
+	 * Copy of the method in org.dspace.app.util.GoogleMetadata to avoid changing
+	 * type visibility
+	 * 
+	 * @param item
+	 * @return
+	 * @throws SQLException
+	 */
+	private static Bitstream findLinkableFulltext(Context context, Item item) throws SQLException {
+		Bitstream bestSoFar = null;
+		Bundle[] contentBundles = item.getBundles("ORIGINAL");
+		for (Bundle bundle : contentBundles) {
+			int primaryBitstreamId = bundle.getPrimaryBitstreamID();
+			Bitstream[] bitstreams = bundle.getBitstreams();
+			for (Bitstream candidate : bitstreams) {
+				if (candidate.getID() == primaryBitstreamId) { // is primary -> use this one
+					if (isPublic(context, candidate)) {
+						return candidate;
+					}
+				} else {
+
+					if (bestSoFar == null && isPublic(context, candidate)) { // if bestSoFar is null but the candidate
+																				// is not public you don't use it and
+																				// try to find another
+						bestSoFar = candidate;
+					}
+				}
+			}
+		}
+
+		return bestSoFar;
+	}
+
+	/**
+	 * Gets the URL to a PDF using a very basic strategy by assuming that the PDF is
+	 * in the default content bundle, and that the item only has one public
+	 * bitstream and it is a PDF.
+	 * 
+	 * Copy of the method in org.dspace.app.util.GoogleMetadata to avoid changing
+	 * type visibility
+	 *
+	 * @param item
+	 * @return URL that the PDF can be directly downloaded from
+	 */
+	public static String getPDFSimpleUrl(Context context, Item item) {
+		try {
+			Bitstream bitstream = findLinkableFulltext(context, item);
+			if (bitstream != null) {
+				StringBuilder path = new StringBuilder();
+				path.append(ConfigurationManager.getProperty("dspace.url"));
+
+				if (item.getHandle() != null) {
+					path.append("/bitstream/");
+					path.append(item.getHandle());
+					path.append("/");
+					path.append(bitstream.getSequenceID());
+				} else {
+					path.append("/retrieve/");
+					path.append(bitstream.getID());
+				}
+
+				path.append("/");
+				path.append(Util.encodeBitstreamName(bitstream.getName(), Constants.DEFAULT_ENCODING));
+				return path.toString();
+			}
+		} catch (UnsupportedEncodingException ex) {
+			logger.debug(ex.getMessage());
+		} catch (SQLException ex) {
+			logger.debug(ex.getMessage());
+		}
+
+		return "";
+	}
+
+	public static String retrieveMimeTypeFromFilePath(String stringPath) {
+		String mimeType = "";
+		try {
+			Path path = new File(stringPath).toPath();
+			mimeType = Files.probeContentType(path);
+		} catch (Exception e) {
+			logger.error(e);
+		}
+		return mimeType;
+	}
+
+	public static String[] getNotifyMetadataValueFromStatus(Item item, NotifyStatus notifyStatus) {
+		Metadatum[] metadatum = item.getMetadata(SCHEMA, ELEMENT, notifyStatus.getQualifierForNotifyStatus(), getDefaultLanguageQualifier());
+		if(metadatum.length>0) {
+			return metadatum[0].value.split(Pattern.quote(METADATA_DELIMITER));
+		}
+		return null;
 	}
 }

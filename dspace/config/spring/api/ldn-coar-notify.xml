@@ -15,7 +15,7 @@
 	default-autowire-candidates="*">
 
 	<context:annotation-config /> <!-- allows us to use spring annotations in beans -->
-	
+
 	<bean id="ldnActionsMapping" name="ldnActionsMapping"
 		class="java.util.HashMap">
 		<constructor-arg>
@@ -62,16 +62,60 @@
 	</bean>
 
 	<bean name="announceReviewAction"
-		class="org.dspace.ldn.LDNAnnounceReviewAction" />
+		class="org.dspace.ldn.LDNAnnounceReviewAction">
+		<property name="ldnActions">
+			<list value-type="org.dspace.ldn.LDNAction">
+				<bean name="sendEmail" class="org.dspace.ldn.LDNEmailAction">
+					<property name="actionSendFilter"
+						value="stefano.maffei@4science.com" />
+					<property name="actionSendEmailTextFile"
+						value="coar_notify_reviewed" />
+				</bean>
+			</list>
+		</property>
+	</bean>
 
 	<bean name="announceEndorsementAction"
-		class="org.dspace.ldn.LDNAnnounceEndorsementAction" />
+		class="org.dspace.ldn.LDNAnnounceEndorsementAction">
+		<property name="ldnActions">
+			<list value-type="org.dspace.ldn.LDNAction">
+				<bean name="sendEmail" class="org.dspace.ldn.LDNEmailAction">
+					<property name="actionSendFilter"
+						value="stefano.maffei@4science.com" />
+					<property name="actionSendEmailTextFile"
+						value="coar_notify_endorsed" />
+				</bean>
+			</list>
+		</property>
+	</bean>
 
 	<bean name="acceptReviewAction"
-		class="org.dspace.ldn.LDNAcceptReviewAction" />
-		
+		class="org.dspace.ldn.LDNAcceptReviewAction">
+		<property name="ldnActions">
+			<list value-type="org.dspace.ldn.LDNAction">
+				<bean name="sendEmail" class="org.dspace.ldn.LDNEmailAction">
+					<property name="actionSendFilter"
+						value="stefano.maffei@4science.com" />
+					<property name="actionSendEmailTextFile"
+						value="coar_notify_accepted" />
+				</bean>
+			</list>
+		</property>
+	</bean>
+
 	<bean name="rejectReviewAction"
-		class="org.dspace.ldn.LDNRejectReviewAction" />
+		class="org.dspace.ldn.LDNRejectReviewAction">
+		<property name="ldnActions">
+			<list value-type="org.dspace.ldn.LDNAction">
+				<bean name="sendEmail" class="org.dspace.ldn.LDNEmailAction">
+					<property name="actionSendFilter"
+						value="stefano.maffei@4science.com" />
+					<property name="actionSendEmailTextFile"
+						value="coar_notify_rejected" />
+				</bean>
+			</list>
+		</property>
+	</bean>
 
 
 </beans>

@@ -29,14 +29,17 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
 
 		if (StringUtils.isNotBlank(ldnRequestDTO.getInReplyTo())) {
-			String repositoryMessageID = new StringBuilder(LDNUtils.METADATA_DELIMITER).append(ldnRequestDTO.getInReplyTo())
-					.toString();
-			LDNUtils.removeMetadata(item, SCHEMA, ELEMENT, LDNMetadataFields.EXAMINATION,
+			String repositoryMessageID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
+					.append(ldnRequestDTO.getInReplyTo()).toString();
+			LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
+					new String[] { LDNMetadataFields.EXAMINATION, LDNMetadataFields.REQUEST_REVIEW,
+							LDNMetadataFields.REQUEST_ENDORSEMENT },
 					new String[] { metadataIdentifierServiceID, repositoryMessageID });
 		}
 
 		String metadataValue = generateMetadataValue(ldnRequestDTO);
-		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REFUSED, LDNUtils.getDefaultLanguageQualifier(), metadataValue);
+		item.addMetadata(SCHEMA, ELEMENT, LDNMetadataFields.REFUSED, LDNUtils.getDefaultLanguageQualifier(),
+				metadataValue);
 		item.update();
 
 	}
@@ -59,7 +62,7 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 		builder.append(repositoryInitializedMessageId);
 
 		logger.info(builder.toString());
-		
+
 		return builder.toString();
 	}
 

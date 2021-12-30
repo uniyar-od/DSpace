@@ -33,10 +33,9 @@ public class NotifyConsumer implements Consumer {
 
 			// Each metadata coar.notify.initialize is a different service to reach
 			// NotifyBusinessDelegate will reach out the service to notify
-			String repositoryMessageIdInitialize;
+
 			for (Metadatum metadatum : ar) {
-				repositoryMessageIdInitialize = LDNUtils.generateRandomUrnUUID();
-				new NotifyBusinessDelegate().reachEndpoitToRequestReview(item, metadatum.value);
+				new NotifyBusinessDelegate(ctx).askServicesForReviewEndorsement(item, metadatum.value);
 			}
 			ctx.restoreAuthSystemState();
 			ctx.commit();

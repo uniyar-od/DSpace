@@ -1379,8 +1379,6 @@ public abstract class DSpaceObject
                 return new String[]{"eperson","phone",null};
             case "language":
                 return new String[]{"eperson","language",null};
-            case "orcid":
-                return new String[]{"eperson","orcid",null};
             default:
                 return new String[]{null, null, null};
         }

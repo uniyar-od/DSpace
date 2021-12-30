@@ -79,40 +79,17 @@ public class NotifyStatusManager {
 	}
 
 	public static String[] getMetadataValueFor(NotifyStatus itemStatus, Item item) {
-		String[] values;
 		Metadatum[] metadatum;
-
-		HashMap<String, Metadatum> uniqueTextValue = new HashMap<>();
-
-		// Remove duplicate Metadata for each qualifier if there is any
-		// filtering any duplicated value with an hashmap
+		String[] metadataValues;
 		metadatum = item.getMetadata(LDNMetadataFields.SCHEMA, LDNMetadataFields.ELEMENT,
 				itemStatus.getQualifierForNotifyStatus(), LDNUtils.getDefaultLanguageQualifier());
-		for (Metadatum tmpMetadatum : metadatum) {
-			uniqueTextValue.put(tmpMetadatum.value, tmpMetadatum);
+		metadataValues=new String[metadatum.length];
+		
+		for (int i=0;i<metadataValues.length;i++) {
+			metadataValues[i]=metadatum[i].value;
 		}
-		// If status is PENDING_ENDORSEMENT or PENDING_REVIEW the associated metadata is
-		// the same and we need to filter by service identifiers
-		if (itemStatus.equals(NotifyStatus.PENDING_ENDORSEMENT) || itemStatus.equals(NotifyStatus.PENDING_REVIEW)) {
 
-			String[] services = LDNUtils.getServicesForServiceType(
-					itemStatus.equals(NotifyStatus.PENDING_ENDORSEMENT) ? "endorsement" : "review");
-			List<String> matchingMetadataValue = new LinkedList<>();
-			for (String metadataTextValue : uniqueTextValue.keySet()) {
-				for (String service : services) {
-					if (metadataTextValue
-							.contains(LDNUtils.METADATA_DELIMITER + service + LDNUtils.METADATA_DELIMITER)) {
-						// there is a match with the service we are looking for
-						matchingMetadataValue.add(metadataTextValue);
-					}
-				}
-			}
-			values = new String[matchingMetadataValue.size()];
-			return matchingMetadataValue.toArray(values);
-		} else {
-			values = new String[uniqueTextValue.keySet().size()];
-			return uniqueTextValue.keySet().toArray(values);
-		}
+		return metadataValues;
 
 	}
 
@@ -174,7 +151,7 @@ public class NotifyStatusManager {
 
 	private static String generateWhereForServicesMatch(String serviceType) {
 
-		String[] services = LDNUtils.getServicesForServiceType(serviceType);
+		String[] services = LDNUtils.getServicesForReviewEndorsement();
 		for (int i = 0; i < services.length; i++) {
 			services[i] = "metadatavalue.text_value like '%" + LDNUtils.METADATA_DELIMITER + services[i]
 					+ LDNUtils.METADATA_DELIMITER + "%'";

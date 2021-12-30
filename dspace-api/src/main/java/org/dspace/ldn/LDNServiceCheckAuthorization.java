@@ -25,10 +25,10 @@ public class LDNServiceCheckAuthorization {
 	private static boolean isLocalhostTrustedByDefault;
 
 	static {
-		isLocalhostTrustedByDefault = ConfigurationManager.getBooleanProperty("ldn-trusted-services",
+		isLocalhostTrustedByDefault = ConfigurationManager.getBooleanProperty("ldn-coar-notify",
 				"ldn-trusted.localhost.default");
-		String authorisedIpString = ConfigurationManager.getProperty("ldn-trusted-services", "ldn-trusted.from.ip");
-		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-trusted-services",
+		String authorisedIpString = ConfigurationManager.getProperty("ldn-coar-notify", "ldn-trusted.from.ip");
+		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-coar-notify",
 				"ldn-trusted.from.hostname");
 
 		List<String> tmpList = new LinkedList<>();
@@ -60,8 +60,7 @@ public class LDNServiceCheckAuthorization {
 		authorizedIpList = tmpList;
 		
 		authorizedServiceList=new LinkedList<>();
-		authorizedServiceList.addAll(Arrays.asList(LDNUtils.getServicesForServiceType("review")));
-		authorizedServiceList.addAll(Arrays.asList(LDNUtils.getServicesForServiceType("endorsement")));
+		authorizedServiceList.addAll(Arrays.asList(LDNUtils.getServicesForReviewEndorsement()));
 	}
 
 	public static boolean isHostAuthorized(HttpServletRequest request) {

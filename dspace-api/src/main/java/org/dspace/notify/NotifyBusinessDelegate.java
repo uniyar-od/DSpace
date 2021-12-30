@@ -2,6 +2,7 @@ package org.dspace.notify;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.SQLException;
@@ -16,11 +17,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
+import org.dspace.app.util.Util;
+import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
 import org.dspace.ldn.LDNUtils;
 import org.dspace.ldn.NotifyLDNDTO;
@@ -43,11 +48,13 @@ public class NotifyBusinessDelegate {
 	/** log4j category */
 	private static final Logger log = Logger.getLogger(NotifyBusinessDelegate.class);
 	private static final ObjectMapper objectMapper;
+	private Context context;
 
-	public NotifyBusinessDelegate() {
+	public NotifyBusinessDelegate(Context context) {
 		HttpClientBuilder custom = HttpClients.custom();
 		client = custom.disableAutomaticRetries().setMaxConnTotal(5)
 				.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build()).build();
+		this.context = context;
 	}
 
 	static {
@@ -60,11 +67,14 @@ public class NotifyBusinessDelegate {
 	}
 
 	@SuppressWarnings("deprecation")
-	public void reachEndpoitToRequestReview(Item item, String serviceId) {
+	public void askServicesForReviewEndorsement(Item item, String serviceId) {
 		try {
 
-			String serviceEndpoint = ConfigurationManager.getProperty("ldn-trusted-services",
-					"review." + serviceId + ".endpoint");
+			String serviceEndpoint = ConfigurationManager.getProperty("ldn-coar-notify",
+					"service." + serviceId + ".endpoint");
+			boolean isEndorsementSupported = ConfigurationManager.getBooleanProperty("ldn-coar-notify",
+					"service." + serviceId + ".endorsement");
+			
 			HttpPost method = null;
 			int statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 			int numberOfTries = 0;
@@ -94,7 +104,7 @@ public class NotifyBusinessDelegate {
 
 					if (statusCode == HttpStatus.SC_OK) {
 						log.info(serviceEndpoint + " has returned " + statusCode);
-						LDNUtils.saveMetadataRequestForItem(item, serviceId, repositoryMessageID);
+						LDNUtils.saveMetadataRequestForItem(item, serviceId, repositoryMessageID, isEndorsementSupported);
 					} else {
 						log.error(serviceEndpoint + " has returned " + statusCode);
 						log.error(serviceId + " check if service id is properly configured!");
@@ -116,8 +126,8 @@ public class NotifyBusinessDelegate {
 
 	}
 
-	private static NotifyLDNDTO createLDNRequestObject(Item item, String serviceId, String endpoint) {
-		String localLDNInBoxEndpoint = ConfigurationManager.getProperty("ldn-trusted-services",
+	private NotifyLDNDTO createLDNRequestObject(Item item, String serviceId, String endpoint) {
+		String localLDNInBoxEndpoint = ConfigurationManager.getProperty("ldn-coar-notify",
 				"coar.notify.local-inbox-endpoint");
 		String dspaceBaseUrl = ConfigurationManager.getProperty("dspace.baseUrl");
 
@@ -126,63 +136,24 @@ public class NotifyBusinessDelegate {
 		ldnRequestDTO.setId(LDNUtils.generateRandomUrnUUID());
 
 		Actor actor = new Actor();
-		try {
-			String orcidId = item.getSubmitter().getMetadata("orcid");
-			if (orcidId == null)
-				orcidId = "";
-			actor.setId(orcidId);
-			actor.setName(item.getSubmitter().getFullName());
-			actor.setType("Person");
-			ldnRequestDTO.setActor(actor);
-		} catch (SQLException e) {
-			log.error(actor.toString(), e);
-		}
+		actor.setId(ConfigurationManager.getProperty("dspace.url"));
+		actor.setName(ConfigurationManager.getProperty("dspace.name"));
+		actor.setType("Service");
+		ldnRequestDTO.setActor(actor);
 
 		NotifyLDNDTO.Object object = new Object();
 		object.setId(dspaceBaseUrl + "/handle/" + item.getHandle());
 		object.setIetfCiteAs(HandleManager.getCanonicalForm(item.getHandle()));
-		object.setType(new String[] { "sorg:AboutPage" });
+		object.setType(new String[] { item.getName() });
 		ldnRequestDTO.setObject(object);
 
-		Bundle[] bundles;
-		try {
-			bundles = item.getBundles();
-			String bitstreamId = "";
-			if (bundles.length > 1) {
+		NotifyLDNDTO.Object.Url url = new NotifyLDNDTO.Object.Url();
+		String bitstreamId = LDNUtils.getPDFSimpleUrl(context, item);
+		url.setId(bitstreamId);
+		url.setType(parseItemMetadataType(item));
+		url.setMediaType(LDNUtils.retrieveMimeTypeFromFilePath(bitstreamId));
+		object.setUrl(url);
 
-				NotifyLDNDTO.Object.Url url = new NotifyLDNDTO.Object.Url();
-				bitstreamId = bundles[0].getBitstreams()[0].getMetadata("dc.source");
-				url.setId(bitstreamId);
-				
-				//try setting up dc.type of the item
-				Metadatum[] metadatum=item.getMetadataByMetadataString("dc.type");
-				String[] stringMetadata=new String[metadatum.length];
-				int counter=0;
-				for(Metadatum tmp:metadatum) {
-					stringMetadata[counter++]=tmp.value;
-				}
-				try {
-					url.setType(stringMetadata);
-				}catch (Exception e) {
-					log.error(e);
-				}
-				
-				//try setting up the mime type of the file
-				try {
-				    Path path = new File(bitstreamId).toPath();
-				    String mimeType = Files.probeContentType(path);
-				    url.setMediaType(mimeType);
-				}catch (Exception e) {
-					log.error(e);
-				}
-				
-				
-
-				object.setUrl(url);
-			}
-		} catch (SQLException e) {
-			log.error("Error while setting url property",e);
-		}
 		Origin origin = new Origin();
 		origin.setId(localLDNInBoxEndpoint);
 		origin.setInbox(localLDNInBoxEndpoint);
@@ -198,6 +169,20 @@ public class NotifyBusinessDelegate {
 		ldnRequestDTO.setType(new String[] { "Offer", "coar-notify:ReviewAction" });
 
 		return ldnRequestDTO;
+	}
+
+	private static String[] parseItemMetadataType(Item item) {
+		Metadatum[] metadatum = item.getMetadataByMetadataString("dc.type");
+		String[] types = new String[metadatum.length];
+		try {
+			int counter = 0;
+			for (Metadatum tmp : metadatum) {
+				types[counter++] = tmp.value;
+			}
+		} catch (Exception e) {
+			log.error("error while parsing metadata", e);
+		}
+		return types;
 	}
 
 	private static String LDNRequestObjectToString(NotifyLDNDTO ldnRequestDTO) throws JsonProcessingException {
