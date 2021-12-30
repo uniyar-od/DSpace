@@ -413,7 +413,7 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                            UUID.randomUUID().toString()
                            ))
                    .andExpect(status().isOk())
-                   .andExpect(jsonPath("$._embedded.items", Matchers.contains(
+                   .andExpect(jsonPath("$._embedded.items", Matchers.hasItems(
                        ItemMatcher.matchItemProperties(publicItem1),
                        ItemMatcher.matchItemProperties(publicItem2)
                    )))
