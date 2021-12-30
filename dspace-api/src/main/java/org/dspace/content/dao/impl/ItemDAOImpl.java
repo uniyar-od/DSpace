@@ -458,4 +458,12 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
         return iterate(query);
     }
 
+    @Override
+    public Iterator<Item> findByIds(Context context, List<UUID> ids) throws SQLException {
+        Query query = createQuery(context,
+                "SELECT item " + "FROM Item as item WHERE item.id IN (:ids)");
+        query.setParameter("ids", ids);
+        return iterate(query);
+    }
+
 }
