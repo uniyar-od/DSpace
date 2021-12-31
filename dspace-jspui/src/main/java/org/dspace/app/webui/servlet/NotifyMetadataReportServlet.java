@@ -13,6 +13,7 @@ import org.dspace.app.webui.util.JSPManager;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.eperson.Group;
 import org.dspace.notify.NotifyStatus;
 import org.dspace.notify.NotifyStatusManager;
 
@@ -25,11 +26,16 @@ public class NotifyMetadataReportServlet extends DSpaceServlet {
 
 		HashMap<NotifyStatus, List<Item>> notifyItemsReport = NotifyStatusManager.getItemsForEachNotifyStatus();
 		request.setAttribute("coar-notify-items-report", notifyItemsReport);
-		
 
-		JSPManager.showJSP(request, response, "/notify-metadata-report.jsp");
+		// is the user a member of the Administrator (1) group
+		boolean admin = Group.isMember(context, Group.ADMIN_ID);
+
+		if (admin) {
+			JSPManager.showJSP(request, response, "/notify-metadata-report.jsp");
+		} else {
+			throw new AuthorizeException();
+		}
 
 	}
-
 
 }

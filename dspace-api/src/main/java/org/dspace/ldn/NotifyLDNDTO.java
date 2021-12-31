@@ -333,6 +333,10 @@ public class NotifyLDNDTO {
 			return id;
 		}
 
+		public String parseIdWithRemovedProtocol() {
+			return id.replaceFirst("^https?:\\/\\/(www\\.)?", "");
+		}
+
 		public void setId(String id) {
 			this.id = id;
 		}

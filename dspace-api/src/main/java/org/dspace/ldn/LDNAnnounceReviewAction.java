@@ -33,7 +33,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 		Item item = (Item) dso;
 
 		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
-				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
+				.append(ldnRequestDTO.getOrigin().parseIdWithRemovedProtocol()).append(LDNUtils.METADATA_DELIMITER).toString();
 
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 		LDNUtils.removeMetadata(item, SCHEMA, ELEMENT,
@@ -52,7 +52,7 @@ public class LDNAnnounceReviewAction extends LDNPayloadProcessor {
 		StringBuilder builder = new StringBuilder();
 
 		String timestamp = new SimpleDateFormat(LDNUtils.DATE_PATTERN).format(Calendar.getInstance().getTime());
-		String reviewServiceId = ldnRequestDTO.getOrigin().getId();
+		String reviewServiceId = ldnRequestDTO.getOrigin().parseIdWithRemovedProtocol();
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 		String linkToTheReview = ldnRequestDTO.getObject().getId();
 

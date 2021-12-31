@@ -1,51 +1,46 @@
 package org.dspace.notify;
 
 import java.sql.SQLException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.kernel.ServiceManager;
 import org.dspace.ldn.LDNMetadataFields;
 import org.dspace.ldn.LDNUtils;
-import org.dspace.storage.rdbms.DatabaseManager;
-import org.dspace.storage.rdbms.TableRow;
-import org.dspace.storage.rdbms.TableRowIterator;
-
-import com.google.common.base.Joiner;
+import org.dspace.utils.DSpace;
 
 public class NotifyStatusManager {
 	/** log4j category */
 	private static Logger log = Logger.getLogger(NotifyStatusManager.class);
 
-	public static final String SELECT_WITH_WHERE_PLACEHOLDER = "SELECT item.item_id as item, metadatafieldregistry.qualifier, item.last_modified\n"
-			+ "	FROM public.metadatafieldregistry JOIN public.metadatavalue ON metadatavalue.metadata_field_id = metadatafieldregistry.metadata_field_id\n"
-			+ "	JOIN public.metadataschemaregistry ON metadataschemaregistry.metadata_schema_id = metadatafieldregistry.metadata_schema_id\n"
-			+ "	JOIN public.item ON metadatavalue.resource_id = item.item_id\n"
-			+ "	where metadataschemaregistry.short_id = 'coar' and element = 'notify' and [[WHERE_CLAUSE]]"
-			+ "	GROUP BY item.item_id, metadatafieldregistry.qualifier\n" + "	ORDER BY item.last_modified DESC";
-
 	public static List<Item> getItemListForStatus(NotifyStatus status) throws SQLException {
-		List<Item> itemsInStatus = new LinkedList<>();
 		Context context = new Context();
 		switch (status) {
 		case PENDING_REVIEW:
-			return getItemsInPendingReview(itemsInStatus, context);
+			return getItemsInPendingReview(context);
 		case ONGOING:
-			return getItemsInOngoing(itemsInStatus, context);
+			return getItemsInOngoing(context);
 		case REVIEWED:
-			return getItemsInReviewed(itemsInStatus, context);
+			return getItemsInReviewed(context);
 		case PENDING_ENDORSEMENT:
-			return getItemsInPendingEndorsement(itemsInStatus, context);
+			return getItemsInPendingEndorsement(context);
 		case ENDORSED:
-			return getItemsInEndorsed(itemsInStatus, context);
+			return getItemsInEndorsed(context);
 		default:
-			return itemsInStatus;
+			return Collections.emptyList();
 		}
 	}
 
@@ -67,7 +62,7 @@ public class NotifyStatusManager {
 		HashMap<NotifyStatus, List<Item>> itemForEachStatus = new HashMap<>();
 		itemForEachStatus = getItemsForEachNotifyStatus();
 
-		List<NotifyStatus> statuses = new LinkedList();
+		List<NotifyStatus> statuses = new LinkedList<>();
 		for (Entry<NotifyStatus, List<Item>> entry : itemForEachStatus.entrySet()) {
 			if (entry.getValue().contains(filteringItem)) {
 				// then the item is found in that status
@@ -83,81 +78,63 @@ public class NotifyStatusManager {
 		String[] metadataValues;
 		metadatum = item.getMetadata(LDNMetadataFields.SCHEMA, LDNMetadataFields.ELEMENT,
 				itemStatus.getQualifierForNotifyStatus(), LDNUtils.getDefaultLanguageQualifier());
-		metadataValues=new String[metadatum.length];
-		
-		for (int i=0;i<metadataValues.length;i++) {
-			metadataValues[i]=metadatum[i].value;
+		metadataValues = new String[metadatum.length];
+
+		for (int i = 0; i < metadataValues.length; i++) {
+			metadataValues[i] = metadatum[i].value;
 		}
 
 		return metadataValues;
 
 	}
 
-	private static List<Item> getItemsInEndorsed(List<Item> itemsInStatus, Context context) {
-		String whereClause = "metadatafieldregistry.qualifier = '" + NotifyStatus.ENDORSED.getQualifierForNotifyStatus()
-				+ "'";
-		return retrieveItems(itemsInStatus, context, whereClause);
+	private static List<Item> getItemsInEndorsed(Context context) {
+		return getItemsInSolr(context,NotifyStatus.ENDORSED.getQualifierForNotifyStatus());
 	}
 
-	private static List<Item> getItemsInPendingEndorsement(List<Item> itemsInStatus, Context context) {
-		// check if the request is sent to one of the Endorsement Services
-		String whereClause = "metadatafieldregistry.qualifier = '"
-				+ NotifyStatus.PENDING_ENDORSEMENT.getQualifierForNotifyStatus() + "' AND "
-				+ generateWhereForServicesMatch("endorsement");
-		return retrieveItems(itemsInStatus, context, whereClause);
+	private static List<Item> getItemsInPendingEndorsement(Context context) {
+		return getItemsInSolr(context,NotifyStatus.PENDING_ENDORSEMENT.getQualifierForNotifyStatus());
 	}
 
-	private static List<Item> getItemsInReviewed(List<Item> itemsInStatus, Context context) {
-		String whereClause = "metadatafieldregistry.qualifier = '" + NotifyStatus.REVIEWED.getQualifierForNotifyStatus()
-				+ "'";
-		return retrieveItems(itemsInStatus, context, whereClause);
+	private static List<Item> getItemsInReviewed(Context context) {
+		return getItemsInSolr(context,NotifyStatus.REVIEWED.getQualifierForNotifyStatus());
 	}
 
-	private static List<Item> getItemsInOngoing(List<Item> itemsInStatus, Context context) {
-		String whereClause = "metadatafieldregistry.qualifier = '" + NotifyStatus.ONGOING.getQualifierForNotifyStatus()
-				+ "'";
-		return retrieveItems(itemsInStatus, context, whereClause);
+	private static List<Item> getItemsInOngoing(Context context) {
+		return getItemsInSolr(context,NotifyStatus.ONGOING.getQualifierForNotifyStatus());
 	}
 
-	private static List<Item> getItemsInPendingReview(List<Item> itemsInStatus, Context context) {
-		// check if the request is sent to one of the Review Services
-		String whereClause = "metadatafieldregistry.qualifier = '"
-				+ NotifyStatus.PENDING_REVIEW.getQualifierForNotifyStatus() + "' AND "
-				+ generateWhereForServicesMatch("review");
-		return retrieveItems(itemsInStatus, context, whereClause);
+	private static List<Item> getItemsInPendingReview(Context context) {
+		return getItemsInSolr(context,NotifyStatus.PENDING_REVIEW.getQualifierForNotifyStatus());
 	}
 
-	private static List<Item> retrieveItems(List<Item> itemsInStatus, Context context, String whereClause) {
-		int itemId;
-		TableRow row;
-		TableRowIterator tableRowIterator = null;
-		String localQuery = SELECT_WITH_WHERE_PLACEHOLDER.replace("[[WHERE_CLAUSE]]", whereClause);
+	private static List<Item> getItemsInSolr(Context context, String qualifier) {
+		List<Item> itemsInStatus = new LinkedList<>();
 		try {
-			tableRowIterator = DatabaseManager.query(context, localQuery);
-			while (tableRowIterator.hasNext()) {
-				row = tableRowIterator.next();
-				itemId = row.getIntColumn("item");
-				itemsInStatus.add(Item.find(context, itemId));
+			ServiceManager manager = new DSpace().getServiceManager();
+			SearchService searchService = manager.getServiceByName(SearchService.class.getName(), SearchService.class);
+
+			DiscoverQuery query = new DiscoverQuery();
+			
+			query.setQuery("*:*");
+			query.addFilterQueries(LDNMetadataFields.SCHEMA+"."+LDNMetadataFields.ELEMENT+"."+qualifier+":[* TO *]");
+			query.addFilterQueries("search.resourcetype:2");
+			query.setSortField("SolrIndexer.lastIndexed", SORT_ORDER.desc);
+			
+			query.setMaxResults(Integer.MAX_VALUE);
+
+			DiscoverResult discoveryResult;
+			discoveryResult = searchService.search(context, query);
+
+			List<DSpaceObject> resultDSOs = discoveryResult.getDspaceObjects();
+			for (DSpaceObject dso : resultDSOs) {
+				if (dso != null) {
+					itemsInStatus.add((Item)dso);
+				}
 			}
-		} catch (SQLException e) {
+		} catch (SearchServiceException e) {
 			log.error(e);
-		} finally {
-			if (tableRowIterator != null) {
-				tableRowIterator.close();
-			}
 		}
 		return itemsInStatus;
 	}
-
-	private static String generateWhereForServicesMatch(String serviceType) {
-
-		String[] services = LDNUtils.getServicesForReviewEndorsement();
-		for (int i = 0; i < services.length; i++) {
-			services[i] = "metadatavalue.text_value like '%" + LDNUtils.METADATA_DELIMITER + services[i]
-					+ LDNUtils.METADATA_DELIMITER + "%'";
-		}
-
-		return "(" + Joiner.on(" OR ").skipNulls().join(Arrays.asList(services)) + ")";
-	}
-
 }

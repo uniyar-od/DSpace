@@ -414,12 +414,12 @@ it, please enter the types and the actual numbers or codes.</hint>
 
 	<value-pairs value-pairs-name="service_type" dc-term="type">
 		<pair>
-			<displayed-value>Service 1</displayed-value>
-			<stored-value>service1</stored-value>
+			<displayed-value> Example Review Endorsement - WITH ENDORSEMENT</displayed-value>
+			<stored-value>example.com</stored-value>
 		</pair>
 		<pair>
-			<displayed-value>Service 2</displayed-value>
-			<stored-value>service2</stored-value>
+			<displayed-value>ldninbox.antleaf.com - NO ENDORSEMENT</displayed-value>
+			<stored-value>ldninbox.antleaf.com/inbox</stored-value>
 		</pair>
 	</value-pairs>
    

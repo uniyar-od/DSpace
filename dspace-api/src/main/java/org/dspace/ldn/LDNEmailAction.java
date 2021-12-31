@@ -1,6 +1,7 @@
 package org.dspace.ldn;
 
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.LinkedList;
@@ -55,6 +56,8 @@ public class LDNEmailAction extends LDNAction {
             Locale supportedLocale = I18nUtil.getEPersonLocale(context.getCurrentUser());
             Email email = Email.getEmail(I18nUtil.getEmailFilename(supportedLocale, actionSendEmailTextFile));
             
+            SimpleDateFormat sdf = new SimpleDateFormat();
+            sdf.applyPattern("dd-MM-yyyy HH:mm:ss");
 
             //Setting recipients email
             List<String> recipients=retrieveRecipientsEmail(item);
@@ -74,7 +77,7 @@ public class LDNEmailAction extends LDNAction {
             email.addArgument(ldnRequestDTO.getActor().getId());
             email.addArgument(ldnRequestDTO.getContext().getId());
             email.addArgument(item.getSubmitter().getFullName());
-            email.addArgument(new DCDate(Calendar.getInstance().getTime()).toString());
+            email.addArgument(sdf.format(Calendar.getInstance().getTime()));
 
             email.send();
         }

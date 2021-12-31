@@ -1,12 +1,6 @@
 package org.dspace.notify;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.sql.SQLException;
-
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.HttpPost;
@@ -17,14 +11,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.log4j.Logger;
-import org.dspace.app.util.Util;
-import org.dspace.authorize.AuthorizeManager;
-import org.dspace.content.Bitstream;
-import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.handle.HandleManager;
 import org.dspace.ldn.LDNUtils;
@@ -42,10 +31,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class NotifyBusinessDelegate {
 
 	private CloseableHttpClient client = null;
-	private int maxNumberOfTries = 3;
-	private long sleepBetweenTimeouts;
-	private int timeout;
-	/** log4j category */
+	private int maxNumberOfAttempts = ConfigurationManager.getIntProperty("ldn-coar-notify","coar.notify.max.attempts.request-review");
+	private long sleepBetweenTimeouts = ConfigurationManager.getLongProperty("ldn-coar-notify","coar.notify.sleep-between-attempts.request-review");
+	private int timeout=ConfigurationManager.getIntProperty("ldn-coar-notify","coar.notify.timeout.request-review");
 	private static final Logger log = Logger.getLogger(NotifyBusinessDelegate.class);
 	private static final ObjectMapper objectMapper;
 	private Context context;
@@ -74,13 +62,12 @@ public class NotifyBusinessDelegate {
 					"service." + serviceId + ".endpoint");
 			boolean isEndorsementSupported = ConfigurationManager.getBooleanProperty("ldn-coar-notify",
 					"service." + serviceId + ".endorsement");
-			
+
 			HttpPost method = null;
 			int statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 			int numberOfTries = 0;
 
-			while (numberOfTries < maxNumberOfTries && statusCode != HttpStatus.SC_OK) {
-				numberOfTries++;
+			while (numberOfTries++ < maxNumberOfAttempts && (statusCode < 200 || statusCode > 300)) {
 
 				try {
 					Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
@@ -93,23 +80,22 @@ public class NotifyBusinessDelegate {
 					objectJsonLd.setId(repositoryMessageID);
 
 					StringEntity requestEntity = new StringEntity(LDNRequestObjectToString(objectJsonLd),
-							"application/json", "utf-8");
+							"application/ld+json", "utf-8");
 
 					method = new HttpPost(uriBuilder.build());
 					method.setEntity(requestEntity);
-					// Execute the method.
 
 					HttpResponse response = client.execute(method);
 					statusCode = response.getStatusLine().getStatusCode();
 
 					if (statusCode == HttpStatus.SC_OK) {
-						log.info(serviceEndpoint + " has returned " + statusCode);
-						LDNUtils.saveMetadataRequestForItem(item, serviceId, repositoryMessageID, isEndorsementSupported);
+						LDNUtils.saveMetadataRequestForItem(item, serviceId, repositoryMessageID,
+								isEndorsementSupported);
 					} else {
-						log.error(serviceEndpoint + " has returned " + statusCode);
 						log.error(serviceId + " check if service id is properly configured!");
 					}
-
+					log.info(serviceEndpoint + " has returned " + statusCode);
+					log.info("Response message: " + response.getStatusLine().getReasonPhrase());
 				} catch (Exception e) {
 					log.error(e.getMessage(), e);
 				}
@@ -173,12 +159,13 @@ public class NotifyBusinessDelegate {
 
 	private static String[] parseItemMetadataType(Item item) {
 		Metadatum[] metadatum = item.getMetadataByMetadataString("dc.type");
-		String[] types = new String[metadatum.length];
+		String[] types = new String[metadatum.length + 1];
 		try {
 			int counter = 0;
 			for (Metadatum tmp : metadatum) {
 				types[counter++] = tmp.value;
 			}
+			types[types.length - 1] = item.getName();
 		} catch (Exception e) {
 			log.error("error while parsing metadata", e);
 		}
@@ -188,19 +175,14 @@ public class NotifyBusinessDelegate {
 	private static String LDNRequestObjectToString(NotifyLDNDTO ldnRequestDTO) throws JsonProcessingException {
 		String jsonLd = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(ldnRequestDTO);
 
-		jsonLd = jsonLd.replace("\"@context\" : {\n" + "    \"@vocab\" : \"http://schema.org/\"\n" + "  }",
-				"\"@context\": [\n" + "    \"https://www.w3.org/ns/activitystreams\",\n"
-						+ "    \"https://purl.org/coar/notify\"\n" + "  ]");
-		jsonLd = jsonLd.replace("\n    \"@type\" : \"Actor\",", "").replace("\n  \"@type\" : \"NotifyLDNDTO\",", "")
-				.replace("\n    \"@type\" : \"Object\",", "").replace("\n    \"@type\" : \"Origin\",", "")
-				.replace("\n      \"@type\" : \"Url\"", "").replace("\n    \"@type\" : \"Target\",", "");
-		log.info("JSON-LD to ask for a review");
+		log.info("JSON-LD Request body to ask a review to a service");
 		log.info(jsonLd);
+		
 		return jsonLd;
 	}
 
 	public void setMaxNumberOfTries(int maxNumberOfTries) {
-		this.maxNumberOfTries = maxNumberOfTries;
+		this.maxNumberOfAttempts = maxNumberOfTries;
 	}
 
 	public void setSleepBetweenTimeouts(long sleepBetweenTimeouts) {

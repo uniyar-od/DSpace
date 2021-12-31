@@ -13,9 +13,12 @@ import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 import javax.servlet.jsp.tagext.TagSupport;
 
+import org.dspace.app.webui.util.JSPManager;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
+import org.dspace.eperson.Group;
 import org.dspace.handle.HandleManager;
 import org.dspace.ldn.LDNUtils;
 import org.dspace.notify.NotifyStatus;
@@ -55,6 +58,7 @@ public class NotifyStatusTag extends TagSupport {
 		DateFormat formatFromString = new SimpleDateFormat(LDNUtils.DATE_PATTERN);
 		try {
 			context = new Context();
+			
 			Item item = (Item) HandleManager.resolveToObject(context, handle);
 			JspWriter out = pageContext.getOut();
 			List<NotifyStatus> notifyStatuses = NotifyStatusManager.getNotifyStatusForItem(item);
@@ -94,7 +98,7 @@ public class NotifyStatusTag extends TagSupport {
 					out.println("<td class=\"standard\">"
 							+ format.format(formatFromString.parse(splittedMetadataValues[0])) + "</td>");
 					String linkIfAvailable = (splittedMetadataValues.length > 3)
-							? "<a href=\"" + splittedMetadataValues[4] + "\">" + splittedMetadataValues[4] + "</a>"
+							? "<a href=\"" + splittedMetadataValues[3] + "\">" + splittedMetadataValues[3] + "</a>"
 							: "N/A";
 					out.println("<td class=\"standard\">" + linkIfAvailable + "</td>");
 					out.println("</tr>");

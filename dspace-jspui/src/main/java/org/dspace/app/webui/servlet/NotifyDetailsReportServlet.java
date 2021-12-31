@@ -16,6 +16,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Item;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.eperson.Group;
 import org.dspace.notify.NotifyStatus;
 import org.dspace.notify.NotifyStatusManager;
 import org.dspace.storage.rdbms.DatabaseManager;
@@ -26,14 +27,6 @@ public class NotifyDetailsReportServlet extends DSpaceServlet {
 
 	/** log4j category */
 	private static Logger log = Logger.getLogger(NotifyDetailsReportServlet.class);
-	public static final String SELECT_ITEM_FOR_EACH_STATUS = "SELECT metadatafieldregistry.qualifier ,item.item_id, item.last_modified\n"
-			+ "	FROM public.metadatafieldregistry JOIN public.metadatavalue ON metadatavalue.metadata_field_id = metadatafieldregistry.metadata_field_id\n"
-			+ "	JOIN public.metadataschemaregistry ON metadataschemaregistry.metadata_schema_id = metadatafieldregistry.metadata_schema_id\n"
-			+ "	JOIN public.item ON metadatavalue.resource_id = item.item_id\n"
-			+ "	JOIN handle ON handle.resource_id = item.item_id\n"
-			+ "	where metadataschemaregistry.short_id = 'coar' and element = 'notify' and metadatafieldregistry.qualifier = ?\n"
-			+ "	GROUP BY metadatafieldregistry.qualifier,item.item_id\n" + "	ORDER BY item.last_modified DESC\n"
-			+ "";
 
 	private static final int PAGE_SIZE = ConfigurationManager.getIntProperty("ldn-coar-notify", "notify.status.details-page.page-size");
 
@@ -56,38 +49,19 @@ public class NotifyDetailsReportServlet extends DSpaceServlet {
 			log.info("Starting with offset: 0");
 			request.setAttribute("offset", 0);
 		}
-		
-		request.setAttribute("list-of-items", items);
-		request.setAttribute("page-size", PAGE_SIZE);
-		request.setAttribute("selected_status", selectedStatus);
+		// is the user a member of the Administrator (1) group
+		boolean admin = Group.isMember(context, Group.ADMIN_ID);
 
-		JSPManager.showJSP(request, response, "/notify-details-report.jsp");
-	}
+		if (admin) {
+			request.setAttribute("list-of-items", items);
+			request.setAttribute("page-size", PAGE_SIZE);
+			request.setAttribute("selected_status", selectedStatus);
 
-	@SuppressWarnings("deprecation")
-	private List<Item> retrieveItems(Context context, String qualifier) {
-		List<Item> items = new LinkedList();
-		TableRowIterator tableRowIterator = null;
-		try {
-			tableRowIterator = DatabaseManager.query(context, SELECT_ITEM_FOR_EACH_STATUS, qualifier);
-
-			Integer id;
-			while (tableRowIterator.hasNext()) {
-				TableRow row = tableRowIterator.next();
-
-				id = row.getIntColumn("item_id");
-
-				items.add(Item.find(context, id));
-
-			}
-		} catch (SQLException e) {
-			log.error(e);
-		} finally {
-			if (tableRowIterator != null) {
-				tableRowIterator.close();
-			}
+			JSPManager.showJSP(request, response, "/notify-details-report.jsp");
+		} else {
+			throw new AuthorizeException();
 		}
-
-		return items;
+		
 	}
+
 }

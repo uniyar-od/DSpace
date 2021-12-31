@@ -26,7 +26,7 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 		Item item = (Item) dso;
 
 		String metadataIdentifierServiceID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
-				.append(ldnRequestDTO.getOrigin().getId()).append(LDNUtils.METADATA_DELIMITER).toString();
+				.append(ldnRequestDTO.getOrigin().parseIdWithRemovedProtocol()).append(LDNUtils.METADATA_DELIMITER).toString();
 
 		if (StringUtils.isNotBlank(ldnRequestDTO.getInReplyTo())) {
 			String repositoryMessageID = new StringBuilder(LDNUtils.METADATA_DELIMITER)
@@ -50,7 +50,7 @@ public class LDNRejectReviewAction extends LDNPayloadProcessor {
 		StringBuilder builder = new StringBuilder();
 
 		String timestamp = new SimpleDateFormat(LDNUtils.DATE_PATTERN).format(Calendar.getInstance().getTime());
-		String reviewServiceId = ldnRequestDTO.getOrigin().getId();
+		String reviewServiceId = ldnRequestDTO.getOrigin().parseIdWithRemovedProtocol();
 		String repositoryInitializedMessageId = ldnRequestDTO.getInReplyTo();
 
 		builder.append(timestamp);

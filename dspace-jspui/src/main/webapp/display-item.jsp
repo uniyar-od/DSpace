@@ -46,7 +46,7 @@
 <%@page import="org.dspace.eperson.EPerson"%>
 <%@page import="org.dspace.versioning.VersionHistory"%>
 <%
-    // Attributes
+	// Attributes
     Boolean displayAllBoolean = (Boolean) request.getAttribute("display.all");
     boolean displayAll = (displayAllBoolean != null && displayAllBoolean.booleanValue());
     Boolean suggest = (Boolean)request.getAttribute("suggest.enable");
@@ -55,53 +55,50 @@
     Collection[] collections = (Collection[]) request.getAttribute("collections");
     Boolean admin_b = (Boolean)request.getAttribute("admin_button");
     boolean admin_button = (admin_b == null ? false : admin_b.booleanValue());
-    
-    // get the workspace id if one has been passed
-    Integer workspace_id = (Integer) request.getAttribute("workspace_id");
+	Boolean admin = (Boolean) request.getAttribute("is.admin");
 
-    // get the handle if the item has one yet
-    String handle = item.getHandle();
+	// get the workspace id if one has been passed
+	Integer workspace_id = (Integer) request.getAttribute("workspace_id");
 
-    // CC URL & RDF
-    String cc_url = CreativeCommons.getLicenseURL(item);
-    String cc_rdf = CreativeCommons.getLicenseRDF(item);
+	// get the handle if the item has one yet
+	String handle = item.getHandle();
 
-    // Full title needs to be put into a string to use as tag argument
-    String title = "";
-    if (handle == null)
- 	{
+	// CC URL & RDF
+	String cc_url = CreativeCommons.getLicenseURL(item);
+	String cc_rdf = CreativeCommons.getLicenseRDF(item);
+
+	// Full title needs to be put into a string to use as tag argument
+	String title = "";
+	if (handle == null) {
 		title = "Workspace Item";
-	}
-	else 
-	{
+	} else {
 		Metadatum[] titleValue = item.getDC("title", null, Item.ANY);
-		if (titleValue.length != 0)
-		{
+		if (titleValue.length != 0) {
 			title = titleValue[0].value;
-		}
-		else
-		{
+		} else {
 			title = "Item " + handle;
 		}
 	}
-    
-    Boolean versioningEnabledBool = (Boolean)request.getAttribute("versioning.enabled");
-    boolean versioningEnabled = (versioningEnabledBool!=null && versioningEnabledBool.booleanValue());
-    Boolean hasVersionButtonBool = (Boolean)request.getAttribute("versioning.hasversionbutton");
-    Boolean hasVersionHistoryBool = (Boolean)request.getAttribute("versioning.hasversionhistory");
-    boolean hasVersionButton = (hasVersionButtonBool!=null && hasVersionButtonBool.booleanValue());
-    boolean hasVersionHistory = (hasVersionHistoryBool!=null && hasVersionHistoryBool.booleanValue());
-    
-    Boolean newversionavailableBool = (Boolean)request.getAttribute("versioning.newversionavailable");
-    boolean newVersionAvailable = (newversionavailableBool!=null && newversionavailableBool.booleanValue());
-    Boolean showVersionWorkflowAvailableBool = (Boolean)request.getAttribute("versioning.showversionwfavailable");
-    boolean showVersionWorkflowAvailable = (showVersionWorkflowAvailableBool!=null && showVersionWorkflowAvailableBool.booleanValue());
-    
-    String latestVersionHandle = (String)request.getAttribute("versioning.latestversionhandle");
-    String latestVersionURL = (String)request.getAttribute("versioning.latestversionurl");
-    
-    VersionHistory history = (VersionHistory)request.getAttribute("versioning.history");
-    List<Version> historyVersions = (List<Version>)request.getAttribute("versioning.historyversions");
+
+	Boolean versioningEnabledBool = (Boolean) request.getAttribute("versioning.enabled");
+	boolean versioningEnabled = (versioningEnabledBool != null && versioningEnabledBool.booleanValue());
+	Boolean hasVersionButtonBool = (Boolean) request.getAttribute("versioning.hasversionbutton");
+	Boolean hasVersionHistoryBool = (Boolean) request.getAttribute("versioning.hasversionhistory");
+	boolean hasVersionButton = (hasVersionButtonBool != null && hasVersionButtonBool.booleanValue());
+	boolean hasVersionHistory = (hasVersionHistoryBool != null && hasVersionHistoryBool.booleanValue());
+
+	Boolean newversionavailableBool = (Boolean) request.getAttribute("versioning.newversionavailable");
+	boolean newVersionAvailable = (newversionavailableBool != null && newversionavailableBool.booleanValue());
+	Boolean showVersionWorkflowAvailableBool = (Boolean) request
+			.getAttribute("versioning.showversionwfavailable");
+	boolean showVersionWorkflowAvailable = (showVersionWorkflowAvailableBool != null
+			&& showVersionWorkflowAvailableBool.booleanValue());
+
+	String latestVersionHandle = (String) request.getAttribute("versioning.latestversionhandle");
+	String latestVersionURL = (String) request.getAttribute("versioning.latestversionurl");
+
+	VersionHistory history = (VersionHistory) request.getAttribute("versioning.history");
+	List<Version> historyVersions = (List<Version>) request.getAttribute("versioning.historyversions");
 %>
 
 <%@page import="org.dspace.app.webui.servlet.MyDSpaceServlet"%>
@@ -188,9 +185,14 @@
 
     String displayStyle = (displayAll ? "full" : "");
 %>
-
-    <dspace:notify-status handle="<%=handle %>"/>
-    <dspace:item-preview item="<%= item %>" />
+	<%
+		if (admin) {
+	%>
+	<dspace:notify-status handle="<%=handle%>" />
+	<%
+		}
+	%>
+	<dspace:item-preview item="<%= item %>" />
     <dspace:item item="<%= item %>" collections="<%= collections %>" style="<%= displayStyle %>" />
     
 

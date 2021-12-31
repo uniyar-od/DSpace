@@ -455,6 +455,7 @@ public class HandleServlet extends DSpaceServlet
         request.setAttribute("suggest.enable", Boolean.valueOf(suggestEnable));
         request.setAttribute("display.all", Boolean.valueOf(displayAll));
         request.setAttribute("item", item);
+        request.setAttribute("is.admin",  Group.isMember(context, Group.ADMIN_ID));
         request.setAttribute("collections", collections);
         request.setAttribute("dspace.layout.head", headMetadata);
         JSPManager.showJSP(request, response, "/display-item.jsp");

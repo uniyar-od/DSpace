@@ -28,8 +28,7 @@ public class LDNServiceCheckAuthorization {
 		isLocalhostTrustedByDefault = ConfigurationManager.getBooleanProperty("ldn-coar-notify",
 				"ldn-trusted.localhost.default");
 		String authorisedIpString = ConfigurationManager.getProperty("ldn-coar-notify", "ldn-trusted.from.ip");
-		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-coar-notify",
-				"ldn-trusted.from.hostname");
+		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-coar-notify","ldn-trusted.from.hostname");
 
 		List<String> tmpList = new LinkedList<>();
 
@@ -79,7 +78,7 @@ public class LDNServiceCheckAuthorization {
 	public static String parseHostnameToString(String hostname) {
 		String tmpIpAddress = null;
 		try {
-			tmpIpAddress = InetAddress.getByName(hostname).getHostAddress();
+			tmpIpAddress = InetAddress.getByName(hostname.trim()).getHostAddress();
 		} catch (UnknownHostException e) {
 			logger.error("Hostname " + hostname + " is unknown ", e);
 		}
@@ -87,7 +86,7 @@ public class LDNServiceCheckAuthorization {
 	}
 
 	public static boolean isServiceIdAuthorized(NotifyLDNDTO notifyLDNDTO) {
-		return authorizedServiceList.contains(notifyLDNDTO.getOrigin().getId());
+		return authorizedServiceList.contains(notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
 	}
 
 }

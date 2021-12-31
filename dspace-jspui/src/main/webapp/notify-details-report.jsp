@@ -63,7 +63,7 @@
 <script type="text/javascript"
 	src="<%=request.getContextPath()%>/notify.js"></script>
 
-<dspace:layout titlekey="jsp.coar-notify.title">
+<dspace:layout titlekey="jsp.coar-notify.title" navbar="admin">
 
 
 	<dspace:sidebar>

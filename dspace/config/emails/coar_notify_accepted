@@ -13,7 +13,7 @@ Subject: DSpace: The Service {0} has accepted to review the Item "{1}"
 An acceptance notification has been received by the service: {0}
 for the Item: {1}
 
-Here's a more detailed report:
+Here is a more detailed report:
 Item: {1}
 Item URL: {3}
 Submitted by: {4}
@@ -22,6 +22,6 @@ Has a new status: ONGOING REVIEW
 
 By Service: {0}
 Service URL: {2}
-In date: {5}
+Date: {5}
 
 DSpace
