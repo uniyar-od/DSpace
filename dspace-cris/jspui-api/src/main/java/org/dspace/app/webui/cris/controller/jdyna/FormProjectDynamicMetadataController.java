@@ -31,10 +31,9 @@ import org.dspace.app.cris.model.jdyna.ProjectProperty;
 import org.dspace.app.cris.model.jdyna.TabProject;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.springframework.validation.BindException;
@@ -73,16 +72,37 @@ public class FormProjectDynamicMetadataController
 
         // collection of edit tabs (all edit tabs created on system associate to
         // visibility)
-        List<EditTabProject> tabs = getApplicationService()
-                .getTabsByVisibility(EditTabProject.class, isAdmin);
+        String entId = request.getParameter("id");
+        if (entId == null) {
+			return null;
+		}
+        Integer entityId = Integer.parseInt(entId);
+        Context context = UIUtil.obtainContext(request);
+
+        List<EditTabProject> tabs = getApplicationService().getList(EditTabProject.class);
+        List<EditTabProject> authorizedTabs = new LinkedList<EditTabProject>();
+
+        for(EditTabProject tab : tabs) {
+            if(CrisAuthorizeManager.authorize(context, getApplicationService(), Project.class, ProjectPropertiesDefinition.class, entityId, tab)) {
+                authorizedTabs.add(tab);
+            }
+        }
 
         // check if request tab from view is active (check on collection before)
         EditTabProject editT = getApplicationService().get(
                 EditTabProject.class, anagraficaObjectDTO.getTabId());
-        if (!tabs.contains(editT))
+        if (!authorizedTabs.contains(editT))
         {
-            throw new AuthorizeException(
-                    "You not have needed authorization level to display this tab");
+        	if (authorizedTabs.size() > 0) 
+        	{
+        		editT = authorizedTabs.get(0);
+        		anagraficaObjectDTO.setTabId(editT.getId());
+        	}
+        	else 
+        	{
+	            throw new AuthorizeException(
+	                    "You not have needed authorization level to display this tab");
+        	}
         }
 
         // collection of boxs
@@ -141,7 +161,7 @@ public class FormProjectDynamicMetadataController
         map.put("propertiesHolders", propertyHoldersCurrentAccessLevel);
         map.put("propertiesDefinitionsInTab", pDInTab);
         map.put("propertiesDefinitionsInHolder", mapBoxToContainables);
-        map.put("tabList", tabs);
+        map.put("tabList", authorizedTabs);
         map.put("simpleNameAnagraficaObject", getClazzAnagraficaObject()
                 .getSimpleName());
         map.put("addModeType", "edit");
@@ -163,29 +183,19 @@ public class FormProjectDynamicMetadataController
         }
         Project grant = getApplicationService().get(Project.class, id);
         Context context = UIUtil.obtainContext(request);
-        Boolean isAdmin = false;
-        if (CrisAuthorizeManager.isAdmin(context, grant))
+        Boolean canEdit = false;
+        if (CrisAuthorizeManager.canEdit(context, getApplicationService(), EditTabProject.class, grant))
         {
-            isAdmin = true;
+            canEdit = true;
         }
         else {
             throw new AuthorizeException("Only system admin can edit");
         }
 
-        Integer areaId;
+        Integer areaId = null;
         if (paramTabId == null)
         {
-            if (paramFuzzyTabId == null)
-            {
-                List<EditTabProject> tabs = getApplicationService()
-                        .getTabsByVisibility(EditTabProject.class, isAdmin);
-                if (tabs.isEmpty())
-                {
-                    throw new AuthorizeException("No tabs defined!!");
-                }
-                areaId = tabs.get(0).getId();
-            }
-            else
+            if (paramFuzzyTabId != null)
             {
                 EditTabProject fuzzyEditTab = (EditTabProject) ((ApplicationService) getApplicationService())
                         .<BoxProject, TabProject, EditTabProject, ProjectPropertiesDefinition>getEditTabByDisplayTab(
@@ -199,8 +209,32 @@ public class FormProjectDynamicMetadataController
             areaId = Integer.parseInt(paramTabId);
         }
 
-        EditTabProject editT = getApplicationService().get(
+        EditTabProject editT = null;
+        if (areaId != null) 
+        {
+        	editT = getApplicationService().get(
                 EditTabProject.class, areaId);
+        }
+
+        List<EditTabProject> tabs = getApplicationService().getList(EditTabProject.class);
+        List<EditTabProject> authorizedTabs = new LinkedList<EditTabProject>();
+
+        for(EditTabProject tab : tabs) {
+            if(CrisAuthorizeManager.authorize(context, getApplicationService(), Project.class, ProjectPropertiesDefinition.class, id, tab)) {
+                authorizedTabs.add(tab);
+            }
+        }
+        if (!authorizedTabs.contains(editT))
+        {
+        	if (authorizedTabs.size() > 0) {
+        		editT = authorizedTabs.get(0);
+        		areaId = editT.getId();
+        	}
+        	else {
+	            throw new AuthorizeException(
+	                    "You not have needed authorization level to display this tab");
+        	}
+        }
         List<BoxProject> propertyHolders = new LinkedList<BoxProject>();
         if (editT.getDisplayTab() != null)
         {

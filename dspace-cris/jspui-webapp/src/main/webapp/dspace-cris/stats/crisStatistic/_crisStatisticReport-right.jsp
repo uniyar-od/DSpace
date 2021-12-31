@@ -8,7 +8,7 @@
 
 --%>
 <c:set var="link"><%=request.getContextPath() %>/cris/stats/${data.object.publicPath}.html?id=${data.object.uuid}</c:set>
-<c:set var="subscribeLink"><%=request.getContextPath() %>/cris/tools/stats/subscription/subscribe?uid=${data.object.uuid}&amp;type=${data.object.type}</c:set>
+<c:set var="subscribeLink"><%=request.getContextPath() %>/cris/tools/stats/subscription/subscribe?uid=${data.object.uuid}&amp;type=${fn:escapeXml(data.object.type)}</c:set>
 <c:set var="rssLink"><%=request.getContextPath() %>/cris/stats/rss/</c:set>
 
 <c:set var="oldsubscription">
@@ -35,7 +35,7 @@
 	<div class="titlestats tab-content with-padding">
 		<div class="btn-group pull-right">
 		<span onmouseover="hover(this);" onmouseout="out(this);">
-			<a href="" class="btn btn-default" data-toggle="dropdown"><fmt:message key="view.stats.subscribe.statistics.label" /> <span class="fa fa-caret-down"></span></a>
+			<a href="#" class="btn btn-default" data-toggle="dropdown"><fmt:message key="view.stats.subscribe.statistics.label" /> <span class="fa fa-caret-down"></span></a>
 			<!-- <button data-toggle="dropdown" class="btn btn-default dropdown-toggle" type="button">
    				<i class="fa fa-cog"></i> <i class="fa fa-caret-down"></i>
  				</button> -->
@@ -83,7 +83,7 @@
 		</div>
 		<div class="btn-group  pull-right">
 		<span onmouseover="hover(this);" onmouseout="out(this);">
-		<a href="" class="btn btn-default" data-toggle="dropdown"><fmt:message key="view.stats.subscribe.rss.label" /> <span class="fa fa-caret-down"></span></a>
+		<a href="#" class="btn btn-default" data-toggle="dropdown"><fmt:message key="view.stats.subscribe.rss.label" /> <span class="fa fa-caret-down"></span></a>
 		<!-- <button data-toggle="dropdown" class="btn btn-default dropdown-toggle" type="button">
   			<i class="fa fa-cog"></i> <i class="fa fa-caret-down"></i>
 		</button> -->

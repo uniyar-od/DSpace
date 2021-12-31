@@ -25,19 +25,18 @@ import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.DynamicProperty;
+import org.dspace.app.cris.model.jdyna.EditTabDynamicObject;
 import org.dspace.app.cris.model.jdyna.TabDynamicObject;
-import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -104,6 +103,7 @@ public class DynamicObjectDetailsController
         }
         
         boolean isAdmin = CrisAuthorizeManager.isAdmin(context,dyn);
+        boolean canEdit = isAdmin || CrisAuthorizeManager.canEdit(context, applicationService, EditTabDynamicObject.class, dyn);
         if ((dyn.getStatus() == null || dyn.getStatus().booleanValue() == false)
                 && !isAdmin)
         {
@@ -132,6 +132,9 @@ public class DynamicObjectDetailsController
             model.put("do_page_menu", new Boolean(true));
         }
 
+        if (canEdit) {
+			model.put("canEdit", new Boolean(true));
+		}
         ModelAndView mvc = null;
 
         try

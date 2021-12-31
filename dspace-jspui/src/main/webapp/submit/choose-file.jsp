@@ -435,8 +435,8 @@
                             </td>
                             <td class="progress-text" nowrap="nowrap"></td>
                             <td class="progress-pause" nowrap="nowrap">
-                                <a href="#" onclick="resume(); return(false);" class="progress-resume-link"><img src="image/submit/resume.png" title="Resume upload" /></a>
-                                <a href="#" onclick="r.pause(); return(false);" class="progress-pause-link"><img src="image/submit/pause.png" title="Pause upload" /></a>
+                                <button class="btn btn-link progress-resume-link"><img src="image/submit/resume.png" title="Resume upload" /></button>
+                                <button class="btn btn-link progress-pause-link"><img src="image/submit/pause.png" title="Pause upload" /></button>
                             </td>
                         </tr>
                     </table>
@@ -543,16 +543,23 @@
                                 $('.progress-bar').css({width:Math.floor(r.progress()*100) + '%'});
                             });
 
-                            
+                            function resume() {
+                                // Show pause, hide resume
+                                $('.resumable-progress .progress-resume-link').hide();
+                                $('.resumable-progress .progress-pause-link').show();
+                                r.upload();
+                            }
                         }
+                        
+                        $(".progress-pause-link").on("click", function(){
+                        	r.pause();
+                        	return(false);
+                        });
+                        $(".progress-resume-link").on("click", function(){
+                        	resume();
+                        	return(false);
+                        });                        
                     });
-			
-		    function resume() {
-                    	// Show pause, hide resume
-                        $('.resumable-progress .progress-resume-link').hide();
-                        $('.resumable-progress .progress-pause-link').show();
-                        r.upload();
-                    }
                 </script>
             <% } %>
             

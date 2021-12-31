@@ -4,8 +4,11 @@
 
 <beans xmlns="http://www.springframework.org/schema/beans"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:util="http://www.springframework.org/schema/util"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-                           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd">
+                           http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+                           http://www.springframework.org/schema/util
+                           http://www.springframework.org/schema/util/spring-util-3.0.xsd">
 
 	<!-- **************************************************************************************************** -->
 	<!-- BTE Batch import Service 																			  -->
@@ -25,7 +28,7 @@
 				<entry key="ciniiXML" value-ref="ciniiFileDataLoader" />
 				<entry key="bibtex" value-ref="bibTeXDataLoader" />
 				<entry key="ris" value-ref="risDataLoader" />
-				<entry key="wosris" value-ref="wosRISDataLoader" />
+				<entry key="isiceciw" value-ref="isiceCiwDataLoader" />
 				<entry key="endnote" value-ref="endnoteDataLoader" />
 				<entry key="csv" value-ref="csvDataLoader" />
 				<entry key="tsv" value-ref="tsvDataLoader" />
@@ -130,7 +133,7 @@
 	            <entry key="ciniiXML" value-ref="ciniiFileDataLoader"/>
 	            <entry key="bibtex" value-ref="bibTeXDataLoader"/>
 	            <entry key="ris" value-ref="risDataLoader"/>
-	            <entry key="wosris" value-ref="wosRISDataLoader"/>
+	            <entry key="isiceciw" value-ref="isiceCiwDataLoader"/>
 	            <entry key="endnote" value-ref="endnoteDataLoader"/>
 	            <entry key="csv" value-ref="csvDataLoader"/>
 	            <entry key="tsv" value-ref="tsvDataLoader"/>
@@ -330,9 +333,9 @@
 			</map>
 		</property>
 		<property name="mappingAuthorityConfiguration">
-			<map>
-				<entry key="journalname" value="journal" />
-			</map>
+			<list>
+				<value>journal</value>
+			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearchObject" />
 	</bean>
@@ -340,7 +343,9 @@
 	<bean name="authorsModifier"
 		class="org.dspace.submit.lookup.AuthorityLookupModifier">
 		<property name="searchService" ref="org.dspace.discovery.SearchService" />
-		<property name="resourceTypeID" value="9" />
+		<property name="resourceTypeID">
+			<util:constant static-field="org.dspace.app.cris.model.CrisConstants.RP_TYPE_ID"></util:constant>
+		</property>
 		<property name="metadataInputConfiguration">
 			<map>
 				<entry key="authors" value="crisauthoritylookup" />
@@ -352,9 +357,9 @@
 			</map>
 		</property>
 		<property name="mappingAuthorityConfiguration">
-			<map>
-				<entry key="fullName" value="authors" />
-			</map>
+			<list>
+				<value>authors</value>
+			</list>
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearcherPage" />
 	</bean>
@@ -464,7 +469,7 @@
 
 	<!-- The keys in the RIS data loader map have to be the RIS tags that 
 		need to be loaded. -->
-	<bean id="risDataLoader" class="gr.ekt.bteio.loaders.RISDataLoader">
+	<bean id="risDataLoader" class="org.dspace.submit.extraction.RisDataLoader">
 		<property name="fieldMap">
 			<map>
 				<entry key="T1" value="title" />
@@ -490,7 +495,7 @@
 		</property>
 	</bean>
 
-	<bean id="wosRISDataLoader" class="org.dspace.submit.extraction.WOSRISDataLoader">
+	<bean id="isiceCiwDataLoader" class="org.dspace.submit.extraction.ISICECiwDataLoader">
 		<property name="fieldMap">
 			<map>
 				<entry key="TI" value="title" />
@@ -661,6 +666,7 @@
 				<entry key="language" value="language" />
 				<entry key="authors" value="authors" />				
 				<entry key="orcid" value="orcid" />		
+				<entry key="putcode" value="externalID" />
 				<entry key="arxiv" value="arxiv" />
 				<entry key="eid" value="eid" />
 				<entry key="doi" value="doi" />
@@ -795,6 +801,7 @@
 				<entry value="others" key="dc.contributor.other" />
 				<entry value="abstract" key="dc.description.abstract" />
 				<entry value="description" key="dc.description" />
+				<entry value="externalID" key="dc.identifier.external" />
 				<entry value="allkeywords" key="dc.subject" />
 				<entry value="arxivCategory" key="dc.subject" />
 				<entry value="doi" key="dc.identifier.doi" />
@@ -1118,5 +1125,29 @@
 		<property name="sourceIdMetadata" value="dc.identifier.isi" />
 		<property name="providerName" value="wos" />		
 	</bean>
-	
+
+	<!--  ORCID FEED -->
+	<bean name="orcidFeedTransformationEnginePhaseOne" class="gr.ekt.bte.core.TransformationEngine">
+		<property name="dataLoader" ref="orcidDataLoader"/>
+		<property name="workflow" ref="phase1LinearWorkflow"/>
+		<property name="outputGenerator" ref="org.dspace.submit.lookup.SubmissionLookupOutputGenerator"/>
+	</bean>
+	<bean name="orcidDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader">
+		<property name="dataloadersMap">
+			<map>
+				<entry key="orcid" value-ref="orcidOnlineDataLoader"/>
+			</map>
+		</property>
+	</bean>
+	<bean name="orcidFeedTransformationEnginePhaseTwo" class="gr.ekt.bte.core.TransformationEngine">
+		<property name="dataLoader" ref="submissionItemDataLoader"/>
+		<property name="workflow" ref="phase2linearWorkflow"/>
+		<property name="outputGenerator" ref="orcidGenerator"/>
+	</bean>
+	<bean name="orcidGenerator" class="org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator">
+		<property name="outputMap" ref="outputMap"/>
+		<property name="sourceIdMetadata" value="dc.identifier.external" />
+		<property name="providerName" value="orcid" />
+	</bean>
+
 </beans>

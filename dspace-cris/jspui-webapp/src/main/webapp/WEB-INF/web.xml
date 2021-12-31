@@ -536,6 +536,11 @@
   	</servlet>
 		
 	<servlet>
+    	<servlet-name>authority-claim</servlet-name>
+    	<servlet-class>org.dspace.app.webui.cris.servlet.AuthorityClaimServlet</servlet-class>
+  	</servlet>
+  	
+	<servlet>
     	<servlet-name>sherpapolicy</servlet-name>
     	<servlet-class>org.dspace.app.webui.servlet.SHERPAPublisherPolicyServlet</servlet-class>
     </servlet>  
@@ -544,6 +549,11 @@
         <servlet-name>SearchResultLogServlet</servlet-name>
         <servlet-class>org.dspace.app.webui.servlet.SearchResultLogServlet</servlet-class>
     </servlet>  	
+
+    <servlet>
+        <servlet-name>relations</servlet-name>
+        <servlet-class>org.dspace.app.webui.cris.servlet.RelationServlet</servlet-class>
+    </servlet>
 
 	<!-- spring mvc cris -->
 	<servlet>
@@ -838,7 +848,7 @@
 
 	<servlet-mapping>
 		<servlet-name>metadataexport</servlet-name>
-		<url-pattern>/dspace-admin/metadataexport</url-pattern>
+		<url-pattern>/tools/metadataexport</url-pattern>
 	</servlet-mapping>
 
 	<servlet-mapping>
@@ -986,6 +996,16 @@
         <url-pattern>/dspace-admin/authority</url-pattern>
     </servlet-mapping>
     
+    <servlet-mapping>
+        <servlet-name>authority-management</servlet-name>
+        <url-pattern>/tools/authority</url-pattern>
+    </servlet-mapping>
+
+  	<servlet-mapping>
+    	<servlet-name>authority-claim</servlet-name>
+    	<url-pattern>/tools/claim</url-pattern>
+  	</servlet-mapping>
+      
   	<servlet-mapping>
     	<servlet-name>sherpapolicy</servlet-name>
     	<url-pattern>/tools/sherpaPolicy</url-pattern>
@@ -1198,4 +1218,10 @@
         <servlet-name>spring-ws</servlet-name>
         <url-pattern>/webservices/*</url-pattern>
     </servlet-mapping>
+    
+    <servlet-mapping>
+        <servlet-name>relations</servlet-name>
+        <url-pattern>/tools/relations</url-pattern>
+    </servlet-mapping>
+
 </web-app>

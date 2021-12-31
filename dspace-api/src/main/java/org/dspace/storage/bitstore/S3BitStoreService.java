@@ -22,17 +22,22 @@ import org.dspace.core.Utils;
 import org.springframework.beans.factory.annotation.Required;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.transfer.Download;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import com.amazonaws.services.s3.transfer.Upload;
+import com.amazonaws.services.s3.transfer.model.UploadResult;
 
 /**
  * Asset store using Amazon's Simple Storage Service (S3).
@@ -42,7 +47,7 @@ import com.amazonaws.services.s3.model.S3Object;
  * @author Richard Rodgers, Peter Dietz
  */ 
 
-public class S3BitStoreService implements BitStoreService
+public class S3BitStoreService extends ABitStoreService
 {
     /** log4j log */
     private static Logger log = Logger.getLogger(S3BitStoreService.class);
@@ -63,6 +68,9 @@ public class S3BitStoreService implements BitStoreService
 	/** S3 service */
 	private AmazonS3 s3Service = null;
 
+    /** transfer manager */
+    private TransferManager transferManager = null;
+
     public S3BitStoreService()
     {
     }
@@ -75,13 +83,32 @@ public class S3BitStoreService implements BitStoreService
      *  - bucket name
      */
     public void init() throws IOException {
-        if(StringUtils.isBlank(getAwsAccessKey()) || StringUtils.isBlank(getAwsSecretKey())) {
-            log.warn("Empty S3 access or secret");
-        }
+        if(StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
+            log.warn("Use S3 credentials read from the xml file");
 
-        // init client
-        AWSCredentials awsCredentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
-        s3Service = new AmazonS3Client(awsCredentials);
+            // region
+            Regions regions = Regions.DEFAULT_REGION;
+            if (StringUtils.isNotBlank(awsRegionName)) {
+                try {
+                    regions = Regions.fromName(awsRegionName);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid aws_region: " + awsRegionName);
+                }
+            }
+    
+            // init client
+            AWSCredentials awsCredentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
+            s3Service = AmazonS3ClientBuilder.standard()
+                    .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                    .withRegion(regions)
+                    .build();
+            log.info("S3 Region set to: " + regions.getName());
+    
+        } else {
+            log.warn("Use IAM role or aws environment credentials");
+            
+            s3Service = AmazonS3ClientBuilder.defaultClient();
+        }
 
         // bucket name
         if(StringUtils.isEmpty(bucketName)) {
@@ -90,7 +117,7 @@ public class S3BitStoreService implements BitStoreService
         }
 
         try {
-            if(! s3Service.doesBucketExist(bucketName)) {
+            if(! s3Service.doesBucketExistV2(bucketName)) {
                 s3Service.createBucket(bucketName);
                 log.info("Creating new S3 Bucket: " + bucketName);
             }
@@ -101,18 +128,10 @@ public class S3BitStoreService implements BitStoreService
             throw new IOException(e);
         }
 
-        // region
-        if(StringUtils.isNotBlank(awsRegionName)) {
-            try {
-                Regions regions = Regions.fromName(awsRegionName);
-                Region region = Region.getRegion(regions);
-                s3Service.setRegion(region);
-                log.info("S3 Region set to: " + region.getName());
-            } catch (IllegalArgumentException e) {
-                log.warn("Invalid aws_region: " + awsRegionName);
-            }
-        }
-
+        transferManager = TransferManagerBuilder.standard()
+                .withS3Client(s3Service)
+                .build();
+        
         log.info("AWS S3 Assetstore ready to go! bucket:"+bucketName);
     }
 	
@@ -144,8 +163,14 @@ public class S3BitStoreService implements BitStoreService
         String key = getFullKey(bitstream.getInternalId());
 		try
 		{
-            S3Object object = s3Service.getObject(new GetObjectRequest(bucketName, key));
-			return (object != null) ? object.getObjectContent() : null;
+            File tempFile = File.createTempFile("s3-disk-copy", "temp");
+            tempFile.deleteOnExit();
+
+            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
+            Download download = transferManager.download(getObjectRequest, tempFile);
+            download.waitForCompletion();
+
+            return new DeleteOnCloseFileInputStream(tempFile);
 		}
         catch (Exception e)
 		{
@@ -177,10 +202,11 @@ public class S3BitStoreService implements BitStoreService
             Long contentLength = Long.valueOf(scratchFile.length());
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, scratchFile);
-            PutObjectResult putObjectResult = s3Service.putObject(putObjectRequest);
+            Upload upload = transferManager.upload(putObjectRequest);
+            UploadResult uploadResult = upload.waitForUploadResult();
 
             bitstream.setSizeBytes(contentLength);
-            bitstream.setChecksum(putObjectResult.getETag());
+            bitstream.setChecksum(uploadResult.getETag());
             bitstream.setChecksumAlgorithm(CSA);
 
             scratchFile.delete();
@@ -262,16 +288,24 @@ public class S3BitStoreService implements BitStoreService
 	}
 
     /**
-     * Utility Method: Prefix the key with a subfolder, if this instance assets are stored within subfolder
+     * Utility Method to retrieve file path.
+     * Prefix the path with a subfolder, if this instance assets are stored within subfolder.
      * @param id
-     * @return full key prefixed with a subfolder, if applicable
+     * @return
      */
     public String getFullKey(String id) {
-        if(StringUtils.isNotEmpty(subfolder)) {
-            return subfolder + "/" + id;
-        } else {
-            return id;
+        StringBuilder bufFilename = new StringBuilder();
+        if (StringUtils.isNotEmpty(subfolder)) {
+            bufFilename.append(subfolder);
+            bufFilename.append(File.separator);
         }
+        bufFilename.append(getRelativePath(id));
+        if (log.isDebugEnabled()) {
+            log.debug("S3 filepath for " + id + " is "
+                    + bufFilename.toString());
+        }
+
+        return bufFilename.toString();
     }
 
     public String getAwsAccessKey() {
@@ -423,6 +457,12 @@ public class S3BitStoreService implements BitStoreService
 
 	@Override
 	public String path(Bitstream bitstream) throws IOException {
-		return "s3://" + getBucketName() + "/" + getFullKey(bitstream.getInternalId()); 
+		return virtualPath(bitstream);
 	}
+
+    @Override
+    public String virtualPath(Bitstream bitstream) throws IOException {
+        return getBaseDir().getCanonicalPath() + "/" + getFullKey(
+                bitstream.getInternalId());
+    }
 }

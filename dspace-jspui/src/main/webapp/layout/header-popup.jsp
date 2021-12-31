@@ -41,6 +41,7 @@
         <title><%= siteName %>: <%= title %></title>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
         <meta name="Generator" content="DSpace" />
+        <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/jquery-ui/redmond/jquery-ui-1.12.1.css" type="text/css" />
         <link rel="stylesheet" href="<%= request.getContextPath() %>/styles.css" type="text/css" />
         <link rel="stylesheet" href="<%= request.getContextPath() %>/print.css" media="print" type="text/css" />
         <link rel="shortcut icon" href="<%= request.getContextPath() %>/favicon.ico" type="image/x-icon"/>
@@ -52,6 +53,8 @@
         }
 %>
 
+	<script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.4.1.min.js"></script>
+	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.12.1.min.js'></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/scriptaculous/prototype.js"> </script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/scriptaculous/effects.js"> </script>

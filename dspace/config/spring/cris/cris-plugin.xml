@@ -46,13 +46,13 @@
 	<bean class="org.dspace.app.cris.integration.authority.ItemMetadataImportFiller" id="fullitemMetadataConfiguration" abstract="true">
 		<property name="applicationService" ref="applicationService" />
 		<property name="metricsPersistenceService" ref="org.dspace.app.cris.metrics.common.services.MetricsPersistenceService" />
-		<property name="allowsUpdateByDefault" value="true" />
+		<property name="allowsUpdateByDefault" value="false" />
 		<property name="configurations">
 			<map>
 				<entry key="dc.contributor.author">
 					<bean
 						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
-						<property name="updateEnabled" value="true" />
+						<property name="updateEnabled" value="false" />
 						<property name="mapping">
 							<map>
 								<entry key="dc.contributor.affiliation">
@@ -69,7 +69,7 @@
 				<entry key="dc.contributor.editor">
 					<bean
 						class="org.dspace.app.cris.integration.authority.ItemMetadataImportFillerConfiguration">
-						<property name="updateEnabled" value="true" />
+						<property name="updateEnabled" value="false" />
 						<property name="mapping">
 							<map>
 								<entry key="dc.contributor.editoraffiliation">

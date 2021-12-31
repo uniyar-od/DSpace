@@ -30,7 +30,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
-<%@page import="org.apache.commons.lang.StringUtils"%>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
 <%@page import="org.dspace.content.Collection" %>
 <%@page import="org.dspace.content.Item" %>
 <%@page import="org.dspace.core.ConfigurationManager" %>
@@ -144,6 +144,9 @@
 	String[] cfg = ConfigurationManager.getArrayProperty("dspacecris","exportcitation.options");
 	boolean coreRecommender = ConfigurationManager.getBooleanProperty("core-aggregator","enabled");
 	String coreCredentials = ConfigurationManager.getProperty("core-aggregator", "credentials");
+	
+	// author crisID
+	String crisID = (String)request.getAttribute("crisID");
 %>
 
 
@@ -164,34 +167,54 @@ j(document).ready(function() {
 	<% } %>
 	
 	<% if (dedupEnabled && admin_button) { %>
-	j.ajax({
-		url : "<%=request.getContextPath()%>/json/duplicate",
-		data : {																			
-			"itemid" : <%= item.getID()%>,
-			"typeid" : "2",
-			"admin": true
-		},
-		success : function(data) {
-			if(data.iTotalDisplayRecords==0) {
-				j('div.dedup').hide();
+		j.ajax({
+			url : "<%=request.getContextPath()%>/json/duplicate",
+			data : {																			
+				"itemid" : <%= item.getID()%>,
+				"typeid" : "2",
+				"admin": true
+			},
+			success : function(data) {
+				if(data.iTotalDisplayRecords==0) {
+					j('div.dedup').hide();
+				}
+				else {
+					j('#dedupCounter').html(data.iTotalDisplayRecords);
+					var queryString = "?";
+					var tmp_itemid_list = <%= item.getID()%> + ",";
+					j.each(data.aaData, function( index, value ) {
+						tmp_itemid_list += value.entityID;
+						tmp_itemid_list += ",";
+					});				
+					var itemid_list = tmp_itemid_list.substr(0, tmp_itemid_list.length-1);
+					queryString += 'scope=0&submitcheck=submitcheck&itemid_list='+itemid_list;
+					j('#dedupCounter').attr('href', '<%=request.getContextPath()%>/tools/duplicate' + queryString);
+				}			
+			},
+			error : function(data) {
 			}
-			else {
-				j('#dedupCounter').html(data.iTotalDisplayRecords);
-				var queryString = "?";
-				var tmp_itemid_list = <%= item.getID()%> + ",";
-				j.each(data.aaData, function( index, value ) {
-					tmp_itemid_list += value.entityID;
-					tmp_itemid_list += ",";
-				});				
-				var itemid_list = tmp_itemid_list.substr(0, tmp_itemid_list.length-1);
-				queryString += 'scope=0&submitcheck=submitcheck&itemid_list='+itemid_list;
-				j('#dedupCounter').attr('href', '<%=request.getContextPath()%>/tools/duplicate' + queryString);
-			}			
-		},
-		error : function(data) {
+		});
+	<% } %> 
+	<% 
+		if(StringUtils.isNotBlank(crisID)) {
+	%>
+		j.ajax({
+			url : "<%=request.getContextPath()%>/json/checkclaimpublicationmetadata",
+			data : {																			
+				"item" : "<%= item.getID()%>",
+				"crisid": "<%= crisID %>"
+			},
+			success : function(data) {
+					j.each(data, function( index, value ) {
+						j('#claim-usertools').append("<a class=\"btn btn-primary col-md-12\" href=\"<%= request.getContextPath() %>/tools/claim?action=" + value.action + "&metadata=" + value.metadata + "&handle=<%= handle %>\">" + value.message + "</a>");	
+					});				
+			},
+			error : function(data) {
+			}
+		});	
+	<%
 		}
-	});
-	<% } %>
+	%>
 });
 --></script>
 	<% if(coreRecommender) { %>
@@ -285,7 +308,7 @@ j(document).ready(function() {
                     <input type="hidden" name="step" value="<%= MyDSpaceServlet.REQUEST_MIGRATE_ARCHIVE %>" />
                     <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.mydspace.request.export.migrateitem"/>" />
                 </form>
-                <form method="post" action="<%= request.getContextPath() %>/dspace-admin/metadataexport">
+                <form method="post" action="<%= request.getContextPath() %>/tools/metadataexport">
                     <input type="hidden" name="handle" value="<%= item.getHandle() %>" />
                     <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.metadataexport.button"/>" />
                 </form>
@@ -465,7 +488,7 @@ if (dedupEnabled && admin_button) { %>
 	</div>
 	<div id="dedupResult" class="media-body text-center">
 		<h4 class="media-heading"><fmt:message key="jsp.display-item.dedup.heading"/></h4>
-	    <span class="metric-counter"><a id="dedupCounter" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.dedup.tooltip"/>" href=""><fmt:message key="jsp.display-item.dedup.check"/></a></span>
+	    <span class="metric-counter"><a id="dedupCounter" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.dedup.tooltip"/>" href="#"><fmt:message key="jsp.display-item.dedup.check"/></a></span>
 	</div>
 </div>	
 </div>
@@ -650,7 +673,19 @@ if (dedupEnabled && admin_button) { %>
 <% }%>
 <%
     }
-%>
+    if(StringUtils.isNotBlank(crisID)) { %>
+	
+	       <div class="col-sm-5 col-md-4 col-lg-3">
+            <div class="panel panel-warning">
+            	<div class="panel-heading"><fmt:message key="jsp.usertools"/></div>
+            	<div class="panel-body">
+        			<div id="claim-usertools">
+			    	</div>  	
+            	</div>
+            </div>
+            </div>
+    <% } %>
+   
 </div>
 </div>
 <div class="container">

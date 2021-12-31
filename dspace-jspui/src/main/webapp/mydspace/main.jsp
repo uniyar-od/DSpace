@@ -20,6 +20,7 @@
   -    workflow.pooled   List<WorkflowItem> array of pooled tasks
   --%>
 
+<%@page import="java.util.ArrayList"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
@@ -195,27 +196,27 @@
         
         <h2 id="h2-cris-rp-status" class="cris-rp-status">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
-        	<a href=""><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-loading"/></span>
+        	<a href="#"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-loading"/></span>
         	<span class="fa fa-edit"></span></a>
         </h2>
         <h2 id="h2-cris-rp-status-active" class="cris-rp-status" style="display:none;">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
-        	<a href="" class="cris-rp-status-active" data-toggle="modal" data-target="#cris-rp-change-active"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-active"/></span>
+        	<a href="#" class="cris-rp-status-active" data-toggle="modal" data-target="#cris-rp-change-active"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-active"/></span>
         	<span class="fa fa-edit"></span></a>
         </h2>
 		<h2 id="h2-cris-rp-status-active-admin" class="cris-rp-status" style="display:none;">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
-        	<a href="" class="cris-rp-status-active" data-toggle="modal" data-target="#cris-rp-change-admin"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-active"/></span>
+        	<a href="#" class="cris-rp-status-active" data-toggle="modal" data-target="#cris-rp-change-admin"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-active"/></span>
         	<span class="fa fa-edit"></span></a>
         </h2>                                
         <h2 id="h2-cris-rp-status-inactive" class="cris-rp-status" style="display:none;">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
-        	<a href="" class="cris-rp-status-inactive" data-toggle="modal" data-target="#cris-rp-change-inactive"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-inactive"/></span>
+        	<a href="#" class="cris-rp-status-inactive" data-toggle="modal" data-target="#cris-rp-change-inactive"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-inactive"/></span>
         	<span class="fa fa-edit"></span></a>
         </h2>
 		<h2 id="h2-cris-rp-status-inactive-admin" class="cris-rp-status" style="display:none;">
         	<fmt:message key="jsp.mydspace.cris.rp-status-label"/> 
-        	<a href="" class="cris-rp-status-inactive" data-toggle="modal" data-target="#cris-rp-change-admin"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-inactive"/></span>
+        	<a href="#" class="cris-rp-status-inactive" data-toggle="modal" data-target="#cris-rp-change-admin"><span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.rp-status-inactive"/></span>
         	<span class="fa fa-edit"></span></a>
         </h2>
 
@@ -238,6 +239,7 @@
 <%
     int idxUsersMatches = 0;
 	int suggestions = 0;
+	List<String> alreadySuggested = new ArrayList();
 	for(Choices possibleUsersMatch : possibleUsersMatches) {
 	
         if (possibleUsersMatch!=null && possibleUsersMatch.values!=null && possibleUsersMatch.values.length > 0) {
@@ -247,7 +249,9 @@
 	            Choice mdav = possibleUsersMatch.values[i];
 	            if (mdav.authority != null) {
 	                 if (!mdav.authority.startsWith(AuthorityValueService.GENERATE)) {
-	                    suggestions++;
+	                	 if (!alreadySuggested.contains(mdav.authority)) {
+	                	 	suggestions++;
+	                	 	alreadySuggested.add(mdav.authority);
 %>
 	                    <li class="list-group-item"><a href="<%= request.getContextPath() %>/cris/rp/<%= mdav.authority %>">
 	                        <fmt:message key="jsp.mydspace.cris.suggested-rp">
@@ -257,6 +261,7 @@
 	                    </a>
 	                    </li>
 	                <% }
+	                 }
 	            } 
 	     	}
 %>
@@ -279,7 +284,7 @@
 %>	 
 		</div>
         <div class="panel-footer">
-       	<a href="" class="cris-rp-status-undefined" data-toggle="modal" data-target="#cris-rp-change-undefined">
+       	<a href="#" class="cris-rp-status-undefined" data-toggle="modal" data-target="#cris-rp-change-undefined">
        	<span class="cris-rp-status-value"><fmt:message key="jsp.mydspace.cris.create-new-rp"/></span>
        	<span class="fa fa-edit"></span></a>
 		</div>
@@ -716,7 +721,7 @@
 						</div>
 						<div class="modal-footer">
 						<div class="btn-group btn-group-sm" role="group">
-							 <a href="" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+							 <a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
 							 <button type="button" id="activeDialogChangeInActive" class="btn btn-warning" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.inactive"/></button>
 							 <button type="button" id="activeDialogChangeRemove" class="btn btn-danger" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.remove"/></button>
 							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-active"/></button>
@@ -740,7 +745,7 @@
 						</div>
 						<div class="modal-footer">
 						<div class="btn-group btn-group-sm" role="group">
-							 <a href="" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+							 <a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
 							 <button type="button" id="inactiveDialogChangeActive" class="btn btn-success" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.active"/></button>
 							 <button type="button" id="inactiveDialogChangeRemove" class="btn btn-danger" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.remove"/></button>
 							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-inactive"/></button>
@@ -783,7 +788,7 @@
 							<p><fmt:message key="jsp.mydspace.cris.rp-status-change.dialog-admin.text"/></p>
 						</div>
 						<div class="modal-footer">
-							 <a href="" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
+							 <a href="#" class="btn btn-info myrpstatus-url"><fmt:message key="jsp.mydspace.cris.rp-status-change.go"/></a>
 							 <button type="button" class="btn btn-default" data-dismiss="modal"><fmt:message key="jsp.mydspace.cris.rp-status-change.keep-undefined"/></button>
 						</div>
 					</div>

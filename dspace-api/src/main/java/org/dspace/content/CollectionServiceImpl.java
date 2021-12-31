@@ -862,6 +862,11 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
     }
 
     @Override
+    public List<Collection> findCollectionsByItem(Context context, Item item) throws SQLException {
+        return collectionDAO.findCollectionsByItem(context, item);
+    }
+
+    @Override
     public DSpaceObject getAdminObject(Context context, Collection collection, int action) throws SQLException {
         DSpaceObject adminObject = null;
         Community community = null;

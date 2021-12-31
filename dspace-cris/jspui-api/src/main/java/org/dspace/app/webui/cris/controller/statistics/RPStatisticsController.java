@@ -33,7 +33,7 @@ public class RPStatisticsController
         if (uuid != null && !uuid.isEmpty())
         {
             return String.valueOf(getApplicationService().getEntityByUUID(uuid)
-                    .getId());
+                    .getID());
         }
         Context context = null;
         String crisID = "";
@@ -47,7 +47,7 @@ public class RPStatisticsController
             throw new RuntimeException(e);
         }
         return String.valueOf(getApplicationService().getEntityByCrisId(
-                crisID, ResearcherPage.class).getId());
+                crisID, ResearcherPage.class).getID());
     }
     
     @Override

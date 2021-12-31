@@ -18,10 +18,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.configuration.RelationService;
 import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.webui.discovery.DiscoverUtility;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.DSpaceObject;
+import org.dspace.content.RootObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
@@ -146,7 +149,7 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpace
             if (DiscoverySearchMultilanguageFilterFacet.class.isAssignableFrom(facet.getClass())) {
             	discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                         DiscoveryConfigurationParameters.TYPE_TEXT, facet.getFacetLimit(), facet
-                        .getSortOrder(), I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() + "_",false));
+                        .getSortOrder(), context != null ? I18nUtil.getSupportedLocale(context.getCurrentLocale()).getLanguage() : I18nUtil.getDefaultLocale().getLanguage() + "_",false));
 			} else {
 				discoveryQuery.addFacetField(new DiscoverFacetField(facet.getIndexFieldName(),
                     facet.getType(), facet.getFacetLimit(), facet.getSortOrder(), false));
@@ -270,5 +273,26 @@ public abstract class AFacetedQueryConfigurerComponent<T extends BrowsableDSpace
         this.facets = facets;
     }
 
+    public boolean forceDisplay(HttpServletRequest request, RootObject object)
+    {
+        try {
+            if (request != null) {
+                Context context = UIUtil.obtainContext(request);
+                RelationService relationService = getRelationServiceConfiguration()
+                        .getRelationService(
+                                getRelationConfiguration()
+                                .getRelationName());
+                if (relationService != null) {
+                    return relationService
+                            .isAuthorized(
+                                    context,
+                                    object);
+                }
+            }
+        } catch (SQLException ex) {
+            log.error(ex.getMessage(), ex);
+        }
 
+        return false;
+    }
 }

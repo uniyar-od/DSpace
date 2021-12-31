@@ -23,21 +23,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.jdyna.BoxOrganizationUnit;
+import org.dspace.app.cris.model.jdyna.EditTabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.OUPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.OUProperty;
 import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
-import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
@@ -101,6 +100,7 @@ public class OUDetailsController
         }
         
         boolean isAdmin = CrisAuthorizeManager.isAdmin(context,ou);
+        boolean canEdit = isAdmin || CrisAuthorizeManager.canEdit(context, applicationService, EditTabOrganizationUnit.class, ou);
         if ((ou.getStatus() == null || ou.getStatus().booleanValue() == false)
                 && !isAdmin)
         {
@@ -129,6 +129,10 @@ public class OUDetailsController
             model.put("ou_page_menu", new Boolean(true));
         }
 
+        if (canEdit) 
+		{
+			model.put("canEdit", new Boolean(true));
+		}
         ModelAndView mvc = null;
 
         try

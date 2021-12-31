@@ -25,7 +25,7 @@ public abstract class ImpRecordDAO
     /** log4j logger */
     private static Logger log = Logger.getLogger(ImpRecordDAO.class);
 
-    private final String GET_IMPRECORDIDTOITEMID_BY_IMP_RECORD_ID_QUERY = "SELECT * FROM imp_record_to_item WHERE imp_record_id = :par0";
+    private final String GET_IMPRECORDIDTOITEMID_BY_IMP_RECORD_ID_QUERY = "SELECT * FROM imp_record_to_item WHERE imp_record_id = ?";
 
     protected Context context;
     
@@ -77,7 +77,7 @@ public abstract class ImpRecordDAO
                 + impRecord.getHandle() + " )");
         getHibernateSession(context).createSQLQuery(
                 "INSERT INTO imp_record(imp_id, imp_record_id, imp_eperson_id, imp_collection_id, status, operation, integra, last_modified, handle, imp_sourceref)"
-                        + " VALUES (:par0, :par1, :par2, :par3, :par4, :par5, null, null, null, :par6)").setParameter(0, 
+                        + " VALUES (?, ?, ?, ?, ?, ?, null, null, null, ?)").setParameter(0, 
                 impRecord.getImp_id()).setParameter(1, imp_record_id).setParameter(2, impRecord.getImp_eperson_id()).setParameter(3, impRecord.getImp_collection_id()).setParameter(4,
                 impRecord.getStatus()).setParameter(5, impRecord.getOperation()).setParameter(6,
                 impRecord.getImp_sourceRef()).executeUpdate();
@@ -93,13 +93,13 @@ public abstract class ImpRecordDAO
             if(o.getImp_qualifier()!=null && !o.getImp_qualifier().isEmpty()) {
             	getHibernateSession(context).createSQLQuery(
                         "INSERT INTO imp_metadatavalue(imp_metadatavalue_id, imp_id, imp_schema, imp_element, imp_qualifier, imp_value, imp_authority, imp_confidence, imp_share, metadata_order, text_lang)"
-                                + " VALUES (:par0, :par1, :par2, :par3, :par4, :par5, null, null, null, :par6, :par7)").setParameter(0, o.getPkey()).setParameter(1, impRecord.getImp_id()).setParameter(2, o.getImp_schema()).setParameter(3, o.getImp_element()).setParameter(4, o.getImp_qualifier()).setParameter(5, o.getImp_value()).setParameter(6,
+                                + " VALUES (?, ?, ?, ?, ?, ?, null, null, null, ?, ?)").setParameter(0, o.getPkey()).setParameter(1, impRecord.getImp_id()).setParameter(2, o.getImp_schema()).setParameter(3, o.getImp_element()).setParameter(4, o.getImp_qualifier()).setParameter(5, o.getImp_value()).setParameter(6,
                         o.getMetadata_order()).setParameter(7, "en").executeUpdate();
             }
             else {
             	getHibernateSession(context).createSQLQuery(
                     "INSERT INTO imp_metadatavalue(imp_metadatavalue_id, imp_id, imp_schema, imp_element, imp_qualifier, imp_value, imp_authority, imp_confidence, imp_share, metadata_order, text_lang)"
-                            + " VALUES (:par0, :par1, :par2, :par3, null, :par4, null, null, null, :par5, :par6)").setParameter(0, 
+                            + " VALUES (?, ?, ?, ?, null, ?, null, null, null, ?, ?)").setParameter(0, 
                     o.getPkey()).setParameter(1, impRecord.getImp_id()).setParameter(2, o.getImp_schema()).setParameter(3, o.getImp_element()).setParameter(4, o.getImp_value()).setParameter(5,                    
                     o.getMetadata_order()).setParameter(6, "en").executeUpdate();
             }

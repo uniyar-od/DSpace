@@ -35,6 +35,22 @@ public class ORCIDAuthority extends RPAuthority {
 		return new Choices(addExternalResults(field, query, choices, start, limit==0?DEFAULT_MAX_ROWS:limit), choices.start, choices.total, choices.confidence, choices.more);
 	}
 
+	@Override
+	/**
+	 * This method overlay has an extra boolean parameter to explicit as for
+	 * external results. For backward compatibility the simple method invocation
+	 * always assume that the external results must be included
+	 */
+	public Choices getMatches(String field, String query, Collection collection, int start, int limit, String locale, boolean includeExtra) {
+		if (includeExtra) {
+			return getMatches(field, query, collection, start, limit, locale);
+		} else {
+			// if we don't want the external results just delegate to the RPAuthority
+			return super.getMatches(field, query, collection, start, limit, locale);
+		}
+	}
+	
+	
 	protected Choice[] addExternalResults(String field, String text, Choices choices, int start, int max) {
 		if (source != null) {
 			try {

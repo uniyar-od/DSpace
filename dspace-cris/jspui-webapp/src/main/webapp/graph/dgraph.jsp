@@ -58,18 +58,15 @@
 	<link href="<%=request.getContextPath()%>/css/researcher.css" type="text/css"  rel="stylesheet" />	
 	<link href="<%=request.getContextPath()%>/css/jdyna.css" type="text/css"  rel="stylesheet" />
 	
-	<%--link href="<%=request.getContextPath()%>/css/smoothness/jquery-ui-1.8.18.custom.css" type="text/css" rel="stylesheet" /--%>
-	<link rel="stylesheet" href="http://code.jquery.com/ui/1.9.0/themes/smoothness/jquery-ui.css" />
+	<link href="<%=request.getContextPath()%>/static/css/bootstrap/bootstrap.min.css" rel="stylesheet">
+	<link href="<%=request.getContextPath()%>/static/css/font-awesome/css/font-awesome.min.css" rel="stylesheet">
     <link href="<%=request.getContextPath()%>/css/collaborationNetwork.css" rel="stylesheet" type="text/css" />
-    <%--link href="<%=request.getContextPath()%>/css/layout-default-latest.css" rel="stylesheet" type="text/css" /--%>
-	<link rel="stylesheet" href="http://layout.jquery-dev.net/lib/css/layout-default-latest.css" />
-        
-    <%--script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-1.4.4.min.js"></script--%>
-    <%--script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery-ui-1.8.18.custom.min.js"></script--%>
-    <script src="http://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="http://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+	<link type="text/css" href="<%=request.getContextPath()%>/static/css/jquery/ui/all/jquery-ui-latest.custom.css" rel="stylesheet" media="all"/>
+
+   	<script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.4.1.min.js"></script>
+	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.12.1.min.js'></script>
+	<script type='text/javascript' src="<%=request.getContextPath()%>/js/jquery.layout-1.4.4.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/jit.js"></script>
-    <script src="<%=request.getContextPath()%>/js/jquery.layout-latest.min.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/collaborationNetwork.js"></script>
     <script type="text/javascript" src="<%=request.getContextPath()%>/js/jquery.dataTables.js"></script>
         

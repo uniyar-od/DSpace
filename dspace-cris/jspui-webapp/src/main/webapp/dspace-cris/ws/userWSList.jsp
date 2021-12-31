@@ -18,7 +18,6 @@
 <%@page import="javax.servlet.jsp.jstl.fmt.LocaleSupport"%>
 
 <c:set var="dspace.layout.head.last" scope="request">
-	<script type="text/javascript" src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.4.1.min.js"></script>
 		<script type="text/javascript">
 	var j = jQuery.noConflict();
 	j(document).ready(function() {

@@ -61,13 +61,15 @@ public class StatisticsController extends AStatisticsController
 
         Date startDate = null;
         Date endDate = null;
+        String sStartDate = "";
+        String sEndDate = "";
         String startDateParam = request.getParameter("stats_from_date");
         String endDateParam = request.getParameter("stats_to_date");
         try {
 			if (StringUtils.isNotBlank(startDateParam)) {
 				
         		startDate = df.parse(startDateParam);
-
+        		sStartDate = df.format(startDate);
         	}
         }
         catch (Exception ex) {
@@ -76,6 +78,7 @@ public class StatisticsController extends AStatisticsController
         try {
 			if (StringUtils.isNotBlank(endDateParam)) {
         		endDate = df.parse(endDateParam);
+        		sEndDate = df.format(endDate);
         	}
         }
         catch (Exception ex) {
@@ -123,8 +126,8 @@ public class StatisticsController extends AStatisticsController
             data.put("seeParentObject", canSeeStatistics(c, parentObject));
             data.put("childrenObjects",getChildrenObjects(c,dso));
             data.put("seeUpload", canSeeUpload(c,dso));
-            data.put("stats_from_date", startDateParam);
-            data.put("stats_to_date", endDateParam);
+            data.put("stats_from_date", sStartDate);
+            data.put("stats_to_date", sEndDate);
             data.put("type", type);
             data.put("showExtraTab", statsComponentsService.isShowExtraTab());
             modelAndView.addObject("data", data);

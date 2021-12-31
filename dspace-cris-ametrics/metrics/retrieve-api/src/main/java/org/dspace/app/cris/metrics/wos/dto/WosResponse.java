@@ -60,7 +60,7 @@ public class WosResponse {
 				Element errElement = XMLUtils.getSingleElement(fnElement, "error");
 				if (errElement != null) {
 				    log.error("Code: " + errElement.getAttribute("code") + " - Message: " + errElement.getTextContent());
-					
+					error = true;
 				} else {
 					Element mapElement = XMLUtils.getSingleElement(fnElement, "map");
 		

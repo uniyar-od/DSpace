@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.core.Context;
+import org.hibernate.Session;
 
 /**
  * Interface used for indexing BrowsableDSpaceObject into discovery
@@ -69,4 +70,7 @@ public interface IndexingService {
     void optimize() throws SearchServiceException;
 
     void buildSpellCheck() throws SearchServiceException;
+
+	void diffIndex(Context context, Integer type)  throws SQLException, SearchServiceException, IOException;
+	
 }

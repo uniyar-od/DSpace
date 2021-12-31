@@ -133,7 +133,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService
         if (externalInput && ma instanceof SolrAuthority) {
             ((SolrAuthority)ma).addExternalResultsInNextMatches();
         }
-        return ma.getMatches(fieldKey, query, collection, start, limit, locale);
+        return ma.getMatches(fieldKey, query, collection, start, limit, locale, externalInput);
     }
 
     @Override

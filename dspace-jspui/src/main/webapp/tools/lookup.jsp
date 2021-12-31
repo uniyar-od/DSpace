@@ -86,6 +86,7 @@
           <input type="hidden" name="paramIsClosed"       value="<%= getDefaultedRequestParameter(request,"isClosed", "false") %>" />
           <input type="hidden" name="paramConfIndicatorID" value="<%= getDefaultedRequestParameter(request,"confIndicatorID", "") %>" />
           <input type="hidden" name="paramCollection"      value="<%= getDefaultedRequestParameter(request,"collection", "") %>" />
+		  <input type="hidden" name="onlyLocal"			  value="<%= getDefaultedRequestParameter(request,"onlyLocal", "false") %>" />
 
           <%-- XXX get this from dspace config if available..?? --%>
           <input type="hidden" name="paramNonAuthority"   value="<%= LocaleSupport.getLocalizedMessage(pageContext, "jsp.tools.lookup.field."+mdfield+".nonauthority") %>" />

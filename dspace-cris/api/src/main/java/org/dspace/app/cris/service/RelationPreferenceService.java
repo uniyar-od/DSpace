@@ -252,7 +252,12 @@ public class RelationPreferenceService
         }
     }
 
-    public void setApplicationService(ApplicationService applicationService)
+    public ApplicationService getApplicationService() 
+    {
+		return applicationService;
+	}
+
+	public void setApplicationService(ApplicationService applicationService)
     {
         this.applicationService = applicationService;
     }

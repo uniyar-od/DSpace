@@ -532,8 +532,8 @@
         else
            dateIssued = new org.dspace.content.DCDate("");
    
-        sb.append("<div class=\"row col-md-12\"><div class=\"input-group col-md-10\"><div class=\"row\">")
-			.append("<span class=\"input-group col-md-6\"><span class=\"input-group-addon\">")
+         sb.append("<div class=\"row col-md-12\"><div class=\"col-md-10\"><div class=\"row\">")
+			.append("<div class=\"col-md-6\"><span class=\"input-group\"><span class=\"input-group-addon\">")
         	.append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.month"))
            .append("</span><select class=\"form-control\" name=\"")
            .append(fieldName)
@@ -568,8 +568,8 @@
              .append("</option>");
         }
    
-        sb.append("</select></span>")
-	            .append("<span class=\"input-group col-md-2\"><span class=\"input-group-addon\">")
+        sb.append("</select></span></div>")
+               .append("<div class=\"col-md-2\"><span class=\"input-group\"><span class=\"input-group-addon\">")
                .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.day"))
                .append("</span><input class=\"form-control\" type=\"text\" name=\"")
            .append(fieldName)
@@ -583,7 +583,7 @@
         sb.append("\" size=\"2\" maxlength=\"2\" value=\"")
            .append((dateIssued.getDay() > 0 ?
                     String.valueOf(dateIssued.getDay()) : "" ))
-               .append("\"/></span><span class=\"input-group col-md-4\"><span class=\"input-group-addon\">")
+               .append("\"/></span></div><div class=\"col-md-4\"><span class=\"input-group\"><span class=\"input-group-addon\">")
                .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.year"))
                .append("</span><input class=\"form-control\" type=\"text\" name=\"")
            .append(fieldName)
@@ -597,7 +597,7 @@
         sb.append("\" size=\"4\" maxlength=\"4\" value=\"")
            .append((dateIssued.getYear() > 0 ?
                 String.valueOf(dateIssued.getYear()) : "" ))
-           .append("\"/></span></div></div>\n");
+           .append("\"/></span></div></div></div>\n");
    
         if (!hasParent && repeatable && !readonly && count < defaults.size())
         {
@@ -1272,21 +1272,17 @@
 	void doQualdropValue(JspWriter out, Item item, String fieldName, String schema, String element, DCInputSet inputs,
 			boolean repeatable, boolean required, boolean readonly, int fieldCountIncr, List qualMap, String label,
 			PageContext pageContext, List<DCInput> children, boolean hasParent) throws IOException {
-		List<IMetadataValue> unfiltered = ContentServiceFactory.getInstance().getItemService().getMetadata(item, schema,
-				element, Item.ANY, Item.ANY);
-		// filter out both unqualified and qualified values occurring elsewhere in inputs
-		List<IMetadataValue> filtered = new ArrayList<>();
-		for (int i = 0; i < unfiltered.size(); i++) {
-			String unfilteredFieldName = unfiltered.get(i).getMetadataField().getElement();
-			if (unfiltered.get(i).getMetadataField().getQualifier() != null
-					&& unfiltered.get(i).getMetadataField().getQualifier().length() > 0)
-				unfilteredFieldName += "." + unfiltered.get(i).getMetadataField().getQualifier();
-
-			if (!inputs.isFieldPresent(unfilteredFieldName)) {
-				filtered.add(unfiltered.get(i));
+		
+		// retrieve metadata using qualMap values
+		List<IMetadataValue> supportedQualifiers = new ArrayList<IMetadataValue>();
+		for (int i = 0; i < qualMap.size(); i+=2) {
+			List<IMetadataValue> metadata = item.getMetadata(schema, element, (String)qualMap.get(i+1), Item.ANY);
+			for (int j = 0; j < metadata.size(); j++)
+			{
+				supportedQualifiers.add(metadata.get(j));
 			}
 		}
-		List<IMetadataValue> defaults = filtered;
+		List<IMetadataValue> defaults = supportedQualifiers;
 
 		int fieldCount = defaults.size() + fieldCountIncr;
 		StringBuffer sb = new StringBuffer();
@@ -1312,7 +1308,7 @@
 
 			// do the dropdown box
 			sb.append(
-					"<div class=\"row col-md-12\"><span class=\"input-group col-md-10\"><span class=\"input-group-addon\"><select name=\"")
+					"<div class=\"row col-md-12\"><div class=\"col-md-10\"><span class=\"input-group\"><span class=\"input-group-addon\"><select name=\"")
 					.append(fieldName).append("_qualifier");
 			if (repeatable)
 				sb.append("_").append(j + 1);
@@ -1335,7 +1331,7 @@
 			if (readonly) {
 				sb.append("\" readonly=\"readonly\"");
 			}
-			sb.append("\" size=\"34\" value=\"").append(currentVal.replaceAll("\"", "&quot;")).append("\"/></span>\n");
+			sb.append("\" size=\"34\" value=\"").append(currentVal.replaceAll("\"", "&quot;")).append("\"/></span></div>\n");
 
 			if (repeatable && !readonly && j < fieldCount - 1) {
 				// put a remove button next to filled in values

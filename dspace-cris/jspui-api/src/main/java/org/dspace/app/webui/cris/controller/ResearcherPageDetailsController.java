@@ -25,16 +25,17 @@ import org.apache.log4j.Logger;
 import org.dspace.app.cris.integration.RPAuthority;
 import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.BoxResearcherPage;
+import org.dspace.app.cris.model.jdyna.EditTabResearcherPage;
 import org.dspace.app.cris.model.jdyna.RPPropertiesDefinition;
 import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.service.CrisSubscribeService;
 import org.dspace.app.cris.statistics.util.StatsConfig;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
@@ -50,6 +51,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.usage.UsageEvent;
 import org.dspace.utils.DSpace;
@@ -87,6 +89,10 @@ public class ResearcherPageDetailsController
 
     private CrisSubscribeService subscribeService;
     
+    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
+    
+    private ConfigurationService configurationService = new DSpace().getConfigurationService();
+    
     private List<ICrisHomeProcessor<ResearcherPage>> processors;
     
     public void setSubscribeService(CrisSubscribeService rpSubscribeService)
@@ -113,6 +119,7 @@ public class ResearcherPageDetailsController
         EPerson currUser = context.getCurrentUser();
         
         model.put("selfClaimRP", new Boolean(false));
+        model.put("publicationSelfClaimRP", new Boolean(false));
         if(currUser != null) {
             model.put("isLoggedIn", new Boolean(true));
             ResearcherPage rp = ((ApplicationService) applicationService).getResearcherPageByEPersonId(currUser.getID());
@@ -136,13 +143,27 @@ public class ResearcherPageDetailsController
                     }
                 }
             }
+            String nameGroupPublicationSelfClaim = configurationService.getProperty("cris.publication.claim.group.name");
+            if (StringUtils.isNotBlank(nameGroupPublicationSelfClaim))
+            {
+                Group selfClaimGroup = groupService.findByName(context,
+                		nameGroupPublicationSelfClaim);
+                if (selfClaimGroup != null)
+                {
+                    if (groupService.isMember(context, selfClaimGroup))
+                    {
+                        model.put("publicationSelfClaimRP", new Boolean(true));
+                    }
+                }
+            }
         }
         else {
             model.put("isLoggedIn", new Boolean(false));
         }
         
         boolean isAdmin = CrisAuthorizeManager.isAdmin(context,researcher);
-      
+        boolean canEdit = isAdmin
+				|| CrisAuthorizeManager.canEdit(context, applicationService, EditTabResearcherPage.class, researcher);
         
         if (isAdmin
                 || (currUser != null && (researcher.getEpersonID() != null && currUser
@@ -152,16 +173,10 @@ public class ResearcherPageDetailsController
             model.put("authority_key",
                     ResearcherPageUtils.getPersistentIdentifier(researcher));
 
-            if (isAdmin)
-            {
-                AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
-                long pendingItems = dao
-                        .countIssuedItemsByAuthorityValueInAuthority(
-                                RPAuthority.RP_AUTHORITY_NAME,
-                                ResearcherPageUtils
-                                        .getPersistentIdentifier(researcher));
-                model.put("pendingItems", new Long(pendingItems));
-            }
+            AuthorityDAO dao = AuthorityDAOFactory.getInstance(context);
+			long pendingItems = dao.countIssuedItemsByAuthorityValueInAuthority(RPAuthority.RP_AUTHORITY_NAME,
+					ResearcherPageUtils.getPersistentIdentifier(researcher));
+			model.put("pendingItems", new Long(pendingItems));
         }
         
         else if ((researcher.getStatus() == null || researcher.getStatus()
@@ -214,7 +229,7 @@ public class ResearcherPageDetailsController
         List<ICrisHomeProcessor<ResearcherPage>> resultProcessors = new ArrayList<ICrisHomeProcessor<ResearcherPage>>();
         Map<String, Object> extraTotal = new HashMap<String, Object>();
         Map<String, ItemMetricsDTO> metricsTotal = new HashMap<String, ItemMetricsDTO>();
-        HashSet<String> metricsTypeTotal = new LinkedHashSet<String>();
+        HashSet metricsTypeTotal = new LinkedHashSet<String>();
         for (ICrisHomeProcessor processor : processors)
         {
             if (ResearcherPage.class.isAssignableFrom(processor.getClazz()))
@@ -236,9 +251,8 @@ public class ResearcherPageDetailsController
                 }
             }
         }
-        
-        List<String> metricsTypes = new ArrayList<String>( metricsTypeTotal);
-        extraTotal.put("metricTypes",metricsTypes );
+        List<String> metricsTypes = new ArrayList<String>(metricsTypeTotal);
+        extraTotal.put("metricTypes", metricsTypes);
         extraTotal.put("metrics", metricsTotal);
         request.setAttribute("extra", extraTotal);  
         request.setAttribute("components", super.getComponents());
@@ -251,6 +265,11 @@ public class ResearcherPageDetailsController
                         ConfigurationManager
                                 .getBooleanProperty(SolrLoggerServiceImpl.CFG_STAT_MODULE,"authorization.admin"));
         mvc.getModel().put("isAdmin", isAdmin);
+        
+        if (canEdit)
+        {
+        	mvc.getModel().put("canEdit", new Boolean(true));
+        }
         
         // Fire usage event.
         request.setAttribute("sectionid", StatsConfig.DETAILS_SECTION);

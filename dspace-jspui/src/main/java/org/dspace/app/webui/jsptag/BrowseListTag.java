@@ -132,6 +132,10 @@ public class BrowseListTag extends TagSupport
      * select the item
      */
     private String inputName;
+
+    private boolean relationButton;
+
+    private String type;
     
     private static final long serialVersionUID = 8091584920304256107L;
     
@@ -432,7 +436,7 @@ public class BrowseListTag extends TagSupport
             
             for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
             {
-                String field = browseFields[colIdx].toLowerCase().trim();
+                String field = browseFields[colIdx].trim();
                 cOddOrEven[colIdx] = (((colIdx + 1) % 2) == 0 ? "Odd" : "Even");
 
                 String style = null;
@@ -561,7 +565,7 @@ public class BrowseListTag extends TagSupport
                                 css += " sortable";
                                 csssort += "fa fa-sort pull-right";
                             }
-                            thJs += ")\"";
+                            thJs += ",'" + getType() + "')\"";
 
                             break;
                         }
@@ -610,6 +614,16 @@ public class BrowseListTag extends TagSupport
                         + (emph[emph.length - 2] ? "</strong>" : "") + "</th>");
             }
 
+            if (relationButton) {
+                String css = "oddRow" + cOddOrEven[cOddOrEven.length - 2]
+                        + "Col";
+
+                // output the header
+                out.print("<th id=\"" + id +  "\" class=\"" + css + "\">"
+                        + (emph[emph.length - 2] ? "<strong>" : "") + "&nbsp;"
+                        + (emph[emph.length - 2] ? "</strong>" : "") + "</th>");
+            }
+
             out.print("</tr>");
             int i = 0;
             // now output each item row
@@ -653,7 +667,7 @@ public class BrowseListTag extends TagSupport
                     int k = 0;
                     while (eq.hasMoreTokens())
                     {
-                        tokens[k] = eq.nextToken().toLowerCase().trim();
+                        tokens[k] = eq.nextToken().trim();
                         k++;
                     }
                     String schema = tokens[0];
@@ -760,7 +774,7 @@ public class BrowseListTag extends TagSupport
                     String id = "t" + Integer.toString(colIdx + 1);
                     out.print("<td headers=\"" + id + "\" class=\""
                             + rOddOrEven + "Row" + cOddOrEven[colIdx]
-                            + "Col\" " + (extras != null ? extras : "") + ">"
+                            + "Col " + (extras != null ? extras : "") + "\">"
                             + metadata + "</td>");
                 }
 
@@ -797,6 +811,22 @@ public class BrowseListTag extends TagSupport
                                 + "</td>");
                     }
                 }
+
+                if (relationButton) {
+                    IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) CoreServiceFactory.getInstance().getPluginService()
+                            .getNamedPlugin(
+                                    IDisplayMetadataValueStrategy.class,
+                                    "managerelation");
+
+                    String metadata = strategy.getMetadataDisplay(hrq, -1, true, null, null,
+                            null, null, item, disableCrossLinks, false);
+
+                    out.print("<td headers=\"" + id + "\" class=\""
+                            + rOddOrEven + "Row" + cOddOrEven[cOddOrEven.length - 2]
+                            + "Col\">"
+                            + metadata + "</td>");
+                }
+
                 out.println("</tr>");
             }
 
@@ -957,6 +987,7 @@ public class BrowseListTag extends TagSupport
         radioButton = false;
         sortBy = null;
         order = null;
+        relationButton = false;
     }
 
     public void setInputName(String inputName) {
@@ -965,5 +996,21 @@ public class BrowseListTag extends TagSupport
 
     public void setRadioButton(boolean radioButton) {
         this.radioButton = radioButton;
+    }
+
+    public boolean getRelationButton() {
+        return relationButton;
+    }
+
+    public void setRelationButton(boolean relationButton) {
+        this.relationButton = relationButton;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

@@ -7,6 +7,9 @@
  */
 package org.dspace.app.sherpa;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -17,7 +20,10 @@ import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
+import org.dspace.app.sherpa.v2.SHERPAResponse;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.services.ConfigurationService;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class SHERPAService
 {
@@ -29,6 +35,9 @@ public class SHERPAService
 
     /** log4j category */
     private static final Logger log = Logger.getLogger(SHERPAService.class);
+
+    @Autowired
+    ConfigurationService configurationService;
 
     public SHERPAService() {
         HttpClientBuilder builder = HttpClientBuilder.create();
@@ -65,10 +74,15 @@ public class SHERPAService
                 Thread.sleep(sleepBetweenTimeouts);
 
                 URIBuilder uriBuilder = new URIBuilder(endpoint);
-                uriBuilder.addParameter("issn", query);
-                uriBuilder.addParameter("versions", "all");
-                if (StringUtils.isNotBlank(apiKey))
-                    uriBuilder.addParameter("ak", apiKey);
+
+                uriBuilder.addParameter("item-type", "publication");
+                uriBuilder.addParameter("filter", "[[\"issn\",\"equals\",\""+query+"\"]]");
+                uriBuilder.addParameter("format", "Json");
+                if (StringUtils.isNotBlank(apiKey)) {
+                    uriBuilder.addParameter("api-key", apiKey);
+                }
+
+                log.debug("Searching SHERPA endpoint with " + uriBuilder.toString());
 
                 method = new HttpGet(uriBuilder.build());
                 method.setConfig(RequestConfig.custom()
@@ -88,12 +102,25 @@ public class SHERPAService
 
                 HttpEntity responseBody = response.getEntity();
 
-                if (null != responseBody)
-                    sherpaResponse = new SHERPAResponse(responseBody.getContent());
-                else
+                if (null != responseBody) {
+                    InputStream content = null;
+                    try {
+                        content = responseBody.getContent();
+                        sherpaResponse = new SHERPAResponse(responseBody.getContent(), SHERPAResponse.SHERPAFormat.JSON);
+                    } catch (IOException e) {
+                        log.error("Encountered exception parsing response from  SHERPA/RoMEO: "
+                            + e.getMessage(), e);
+                    } finally {
+                        if (content != null) {
+                            content.close();
+                        }
+                    }
+                }
+                else {
                     sherpaResponse = new SHERPAResponse("SHERPA/RoMEO returned no response");
+                }
             } catch (Exception e) {
-                log.warn("Encountered exception while contacting SHERPA/RoMEO: " + e.getMessage(), e);
+                log.error("Encountered exception while contacting SHERPA/RoMEO: " + e.getMessage(), e);
             } finally {
                 if (method != null) {
                     method.releaseConnection();

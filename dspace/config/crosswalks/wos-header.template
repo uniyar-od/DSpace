@@ -4,10 +4,9 @@
 	<fn name="LinksAMR.retrieve">
 		<list>
 			<map>
-			<!-- USE ONLY IF YOU AUTHENTICATE VIA USERNAME/PASSWORD
-				            <val name="username">YOUR_USERNAME</val>
-                    		<val name="password">YOUR_PASSWORD</val>			
-			-->			
+				<!-- USE ONLY IF YOU AUTHENTICATE VIA USERNAME/PASSWORD -->
+				<val name="username">wos.metrics.username</val>
+				<val name="password">wos.metrics.password</val>			
 			</map>
 			<map>
 				<list name="WOS">

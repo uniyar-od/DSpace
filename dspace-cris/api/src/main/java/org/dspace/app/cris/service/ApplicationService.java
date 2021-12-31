@@ -595,6 +595,33 @@ public class ApplicationService extends ExtendedTabService
         return applicationDao.getList(model, ids);
     }
 
+    public <T extends ACrisObject> List<T> getCrisObjectPaginate(Class<T> crisEntityClazz, Integer crisEntityTypeId) {
+        List<T> crisObjs = new ArrayList<>();
+
+        final int MAX_RESULT = 50;
+        if (crisEntityTypeId > 1000)
+        {
+            DynamicObjectType dynamicType = get(DynamicObjectType.class, crisEntityTypeId);
+            long tot = countResearchObjectByType(dynamicType);
+            long numpages = (tot / MAX_RESULT) + 1;
+            for (int page = 1; page <= numpages; page++)
+            {
+                crisObjs.addAll((List<T>)getResearchObjectPaginateListByType(dynamicType, "id", false, page, MAX_RESULT));
+            }
+        }
+        else
+        {
+            long tot = count(crisEntityClazz);
+            long numpages = (tot / MAX_RESULT) + 1;
+            for (int page = 1; page <= numpages; page++)
+            {
+                crisObjs.addAll(getPaginateList(crisEntityClazz, "id", false, page, MAX_RESULT));
+            }
+        }
+
+        return crisObjs;
+    }
+
     public ResearcherPage getResearcherPageByEPersonId(UUID id)
     {
 		if (cacheRpByEPerson != null) {
@@ -964,11 +991,26 @@ public class ApplicationService extends ExtendedTabService
     {
         try
         {
-        	cache.removeAll();
-			cacheRpByEPerson.removeAll();
-			cacheBySource.removeAll();
-			cacheByCrisID.removeAll();
-			cacheByUUID.removeAll();
+        	if (cache != null)
+        	{
+        		cache.removeAll();
+			}
+        	if (cacheRpByEPerson != null)
+        	{
+        		cacheRpByEPerson.removeAll();
+			}
+        	if (cacheBySource != null)
+        	{
+        		cacheBySource.removeAll();
+			}
+        	if (cacheByCrisID != null)
+        	{
+        		cacheByCrisID.removeAll();
+			}
+        	if (cacheByUUID != null)
+        	{
+        		cacheByUUID.removeAll();
+			}
         }
         catch (Exception ex)
         {
@@ -976,7 +1018,7 @@ public class ApplicationService extends ExtendedTabService
         }	
     }
 	
-	public <T extends Serializable, PK extends Serializable> void putToCache(Class<T> model,
+	public synchronized <T extends Serializable, PK extends Serializable> void putToCache(Class<T> model,
             T object, PK objectId)
     {
 		if (object == null) {

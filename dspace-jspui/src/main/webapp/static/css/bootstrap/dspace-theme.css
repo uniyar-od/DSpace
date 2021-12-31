@@ -135,6 +135,18 @@ span.batchimport-error-caused {
 	word-wrap:        break-word;
 }
 
+.discovery-search-form {
+	margin-left: 0px;
+}
+
+.discovery-result-pagination {
+	margin-left: 0px;
+}
+
+.discovery-result-results {
+	margin-left: 0px;
+}
+
 div.carousel-inner div.item div.list-group-item {
 	background-color: inherit;
 }
@@ -289,6 +301,7 @@ footer .container {
 
 .form-control{
 	color:#000;
+	height: auto !important;
 }
 
 .modal.in .modal-dialog {
@@ -305,4 +318,12 @@ footer .container {
 
 .submit-identifier > .form-control{
 	width:50%;
+}
+
+.dropdown-menu.menu-global-processor {
+    margin: 16px 0 0;
+}
+
+.list-group-item.active > .badge, .nav-pills > .active > a > .badge {
+    color: #fff;
 }

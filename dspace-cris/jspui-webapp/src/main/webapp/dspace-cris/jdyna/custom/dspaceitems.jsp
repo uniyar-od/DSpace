@@ -38,6 +38,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt"%>
+<%@ taglib uri="http://www.springframework.org/tags" prefix="spring"%>
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 
 <c:set var="root"><%=request.getContextPath()%></c:set>
@@ -54,7 +55,11 @@
 	ComponentInfoDTO info = ((Map<String, ComponentInfoDTO>)(request.getAttribute("componentinfomap"))).get(holder.getShortName());
 	
 	String relationName = info.getRelationName();
-	
+
+	String crisID = info.getCrisID();
+	boolean addRelations = info.isAddRelations();
+	boolean removeRelations = info.isRemoveRelations();
+
 	List<String[]> subLinks = (List<String[]>) request.getAttribute("activeTypes"+relationName);
 	
 	DiscoverResult qResults = (DiscoverResult) request.getAttribute("qResults"+relationName);
@@ -68,16 +73,18 @@
 	    int idx = 1;
 	    for (String[] filter : appliedFilters)
 	    {
-	        httpFilters += "&amp;filter_field_" + relationName + "_"+idx+"="+URLEncoder.encode(filter[0],"UTF-8");
-	        httpFilters += "&amp;filter_type_" + relationName + "_"+idx+"="+URLEncoder.encode(filter[1],"UTF-8");
-	        httpFilters += "&amp;filter_value_" + relationName + "_"+idx+"="+URLEncoder.encode(filter[2],"UTF-8");
+	        httpFilters += "&amp;filter_field_" + relationName + "_"+idx+"="+((filter[0]!=null)?URLEncoder.encode(filter[0],"UTF-8"):"");
+	        httpFilters += "&amp;filter_type_" + relationName + "_"+idx+"="+((filter[1]!=null)?URLEncoder.encode(filter[1],"UTF-8"):"");
+	        httpFilters += "&amp;filter_value_" + relationName + "_"+idx+"="+((filter[2]!=null)?URLEncoder.encode(filter[2],"UTF-8"):"");
 	        idx++;
 	    }
 	}
 	
+	String query = request.getQueryString();
 	boolean globalShowFacets = false;
-	if (info!=null && info.getItems()!=null && info.getItems().size() > 0) {
+	if (addRelations || (info!=null && info.getItems()!=null && info.getItems().size() > 0)) {
 	    
+	    String infoOrder = Utils.addEntities(info.getOrder());
 %>
 
 <c:set var="info" value="<%= info %>" scope="request" />
@@ -125,16 +132,25 @@
     	<div class="panel-heading">
     		<h4 class="panel-title">
         		<a data-toggle="collapse" data-parent="#${holder.shortName}" href="#collapseOne${holder.shortName}">
-          			${holder.title} 
+          			<spring:message code="${entity.class.simpleName}.box.${holder.shortName}.label" text="${holder.title}"></spring:message>
         		</a>
         		<% if(subLinks!=null && subLinks.size()>0 && globalShowFacets) {%>
         			<jsp:include page="common/commonComponentGeneralFiltersAndFacets.jsp"></jsp:include>
 				<% } else { %>
 					<jsp:include page="common/commonComponentGeneralFilters.jsp"></jsp:include>
 				<% } %>
+				<% if (addRelations && removeRelations) { %>
+					<a href="<%= request.getContextPath() %>/tools/relations?crisID=<%= crisID %>&relationName=<%= relationName %>" class="btn btn-default" style="margin-top: -7px;" title="<fmt:message key="jsp.layout.cris.relations.title"/>">
+						<fmt:message key="jsp.layout.cris.relations.title"/>
+					</a>
+				<% } else if (addRelations) { %>
+					<a href="<%= request.getContextPath() %>/tools/relations?crisID=<%= crisID %>&relationName=<%= relationName %>" class="btn btn-default" style="margin-top: -7px;" title="<fmt:message key="jsp.layout.cris.addrelations.title"/>">
+						<fmt:message key="jsp.layout.cris.addrelations.title"/>
+					</a>
+				<% } %>
 			</h4>        		
     	</div>
-		<div id="collapseOne${holder.shortName}" class="panel-collapse collapse in">
+		<div id="collapseOne${holder.shortName}" class="panel-collapse collapse<c:if test="${holder.collapsed==false}"> in</c:if>">
 		<div class="panel-body">	
 	
 	<% if(subLinks!=null && subLinks.size()>0) { %>
@@ -150,8 +166,8 @@
     StringBuilder sb = new StringBuilder();
 	sb.append("<div class=\"block text-center\"><ul class=\"pagination\">");
 	
-    String prevURL = info.buildPrevURL(); 
-    String nextURL = info.buildNextURL();
+    String prevURL = info.buildPrevURL(query); 
+    String nextURL = info.buildNextURL(query);
 
 
 if (info.getPagefirst() != info.getPagecurrent()) {
@@ -162,7 +178,7 @@ if (info.getPagefirst() != info.getPagecurrent()) {
 
 for( int q = info.getPagefirst(); q <= info.getPagelast(); q++ )
 {
-   	String myLink = info.buildMyLink(q);
+   	String myLink = info.buildMyLink(query,q);
     sb.append("<li");
     if (q == info.getPagecurrent()) {
     	sb.append(" class=\"active\"");	
@@ -186,12 +202,18 @@ sb.append("</ul></div>");
 <% } %>
 <div align="center" class="browse_range">
 
-	<p align="center"><fmt:message key="jsp.search.results.results">
-        <fmt:param><%=info.getStart()+1%></fmt:param>
+	<p align="center">
+	<% if (info.getTotal() > 0) { %>
+	<fmt:message key="jsp.search.results.results">
+        <fmt:param><%= info.getStart()+1%></fmt:param>
         <fmt:param><%=info.getStart()+info.getItems().size()%></fmt:param>
         <fmt:param><%=info.getTotal()%></fmt:param>
         <fmt:param><%=(float)info.getSearchTime() / 1000%></fmt:param>
-    </fmt:message></p>
+	</fmt:message>
+	<% } else { %>
+        <fmt:message key="jsp.search.results.noresults" />
+	<% } %>
+	</p>
 
 </div>
 <%
@@ -205,21 +227,22 @@ if (info.getPagetotal() > 1)
 			
 <form id="sortform<%= info.getType() %>" action="#<%= info.getType() %>" method="get">
 	   <input id="sort_by<%= info.getType() %>" type="hidden" name="sort_by<%= info.getType() %>" value=""/>
-       <input id="order<%= info.getType() %>" type="hidden" name="order<%= info.getType() %>" value="<%= info.getOrder() %>" />
+       <input id="order<%= info.getType() %>" type="hidden" name="order<%= info.getType() %>" value="<%= infoOrder %>" />
        <% if (appliedFilters != null && appliedFilters.size() >0 ) 
    		{
 	   	    int idx = 1;
 	   	    for (String[] filter : appliedFilters)
 	   	    { %>
-	   	    	<input id="filter_field_<%= relationName + "_" + idx %>" type="hidden" name="filter_field_<%= relationName + "_" + idx %>" value="<%= filter[0]%>"/>
-	   	    	<input id="filter_type_<%= relationName + "_" + idx %>" type="hidden" name="filter_type_<%= relationName + "_" + idx %>" value="<%= filter[1]%>"/>
-	   	    	<input id="filter_value_<%= relationName + "_" + idx %>" type="hidden" name="filter_value_<%= relationName + "_" + idx %>" value="<%= filter[2] %>"/>
+	   	    	<input id="filter_field_<%= relationName + "_" + idx %>" type="hidden" name="filter_field_<%= relationName + "_" + idx %>" value="<%= Utils.addEntities(filter[0]) %>"/>
+	   	    	<input id="filter_type_<%= relationName + "_" + idx %>" type="hidden" name="filter_type_<%= relationName + "_" + idx %>" value="<%= Utils.addEntities(filter[1]) %>"/>
+	   	    	<input id="filter_value_<%= relationName + "_" + idx %>" type="hidden" name="filter_value_<%= relationName + "_" + idx %>" value="<%= Utils.addEntities(filter[2]) %>"/>
 	   	      <%  
 	   	        idx++;
 	   	    }
    		} %>
 	   <input type="hidden" name="open" value="<%= info.getType() %>" />
 </form>
+<% if (info!=null && info.getItems()!=null && info.getItems().size() > 0) { %>
 <div class="row">
 <div class="table-responsive">
 
@@ -251,19 +274,20 @@ if (info.getPagetotal() > 1)
 		</label>
 			<input id="<%= info.getType() %>submit_export" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= infoOrder %>" config="${info[holder.shortName].type}" radioButton="false" inputName="<%= info.getType() + \"item_id\"%>" type="<%= info.getType() %>"/>
 		</form>
 <% } else { %>
-		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= info.getOrder() %>" config="${info[holder.shortName].type}"/>
+		<dspace:itemlist itemStart="<%=info.getStart()+1%>" items="<%= info.getItems() %>" sortOption="<%= info.getSo() %>" authorLimit="<%= info.getEtAl() %>" order="<%= infoOrder %>" config="${info[holder.shortName].type}" type="<%= info.getType() %>"/>
 <% } %>
 </div>
 </div>
+<% } %>
 
 <script type="text/javascript"><!--
-    function sortBy(sort_by, order) {
-        j('#sort_by<%= info.getType() %>').val(sort_by);
-        j('#order<%= info.getType() %>').val(order);
-        j('#sortform<%= info.getType() %>').submit();        
+    function sortBy(sort_by, order, type) {
+        j('#sort_by' + type).val(sort_by);
+        j('#order' + type).val(order);
+        j('#sortform' + type).submit();
     }
     
 	j("#<%= info.getType() %>item_idchecker").click(function() {

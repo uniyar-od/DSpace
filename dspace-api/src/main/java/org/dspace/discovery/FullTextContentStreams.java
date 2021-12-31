@@ -162,7 +162,13 @@ public class FullTextContentStreams extends ContentStreamBase
 
         public String getContentType(final Context context) throws SQLException {
             BitstreamFormat format = bitstream.getFormat(context);
-            return format == null ? null : StringUtils.trimToEmpty(format.getMIMEType());
+            if (format == null) return null;
+            String contentType = StringUtils.trimToEmpty(format.getMIMEType());
+            // check if mime type contains parameters
+            if (StringUtils.contains(contentType, ";")) {
+                return StringUtils.strip(StringUtils.substringBefore(contentType, ";"));
+            }
+            return contentType;
         }
 
         public String getFileName() {

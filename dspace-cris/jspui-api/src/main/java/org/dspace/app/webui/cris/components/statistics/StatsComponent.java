@@ -52,7 +52,10 @@ public abstract class StatsComponent<T extends BrowsableDSpaceObject> extends AS
         return relationObjectClass;
     }
 
-
+    protected String getObjectId(String id)
+    {
+        return id;
+    }
     
     public abstract String getMode();
 

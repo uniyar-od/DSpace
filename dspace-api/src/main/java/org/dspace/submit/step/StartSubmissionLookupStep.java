@@ -35,6 +35,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.Group;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.AbstractProcessingStep;
 import org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator;
@@ -290,7 +291,7 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
             }
             if(!b_dto.isEmpty()){
             	
-				Thread thread = new ThreadImporter(request, context.getCurrentUser().getID(), b_dto, id,inputSet);
+				Thread thread = new ThreadImporter(request, context.getCurrentUser().getID(), context.getSpecialGroups(), b_dto, id,inputSet);
 				thread.start();
             	
             }
@@ -300,10 +301,10 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
                 // update Submission Information with this Workspace Item
             	WorkspaceItem wsi= result.get(0);
             	if(StringUtils.isNotBlank(fPath) && result.size() == 1){
-            		File file = File.createTempFile("submission-lookup", uuid_batch);
-            		if(file.exists()){
+            		File file = new File(fPath);	
+            		if (file.exists()) {
             			Item item = wsi.getItem();
-            			Bitstream bit = itemService.createSingleBitstream(context, new FileInputStream(fPath), item, Constants.DEFAULT_BUNDLE_NAME);
+            			Bitstream bit = itemService.createSingleBitstream(context, new FileInputStream(file), item, Constants.DEFAULT_BUNDLE_NAME);
             			bit.setName(context, fName);
             			bit.setSource(context, fPath);
             			bit.setFormat(context, bitstreamFormatService.guessFormat(context, bit));
@@ -367,6 +368,8 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
 
     	private UUID epersonid;
 
+    	private List<Group> specialGroups;
+
     	private UUID col;
     	
     	DCInputSet inputset;
@@ -375,9 +378,10 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
     	/** log4j logger */
     	private Logger log = Logger.getLogger(ThreadImporter.class);
 
-    	public ThreadImporter(HttpServletRequest request, UUID epersonid, List<ItemSubmissionLookupDTO> dto, UUID col, DCInputSet inputset) {
+    	public ThreadImporter(HttpServletRequest request, UUID epersonid, List<Group> specialGroups, List<ItemSubmissionLookupDTO> dto, UUID col, DCInputSet inputset) {
     		this.dto = dto;
     		this.epersonid = epersonid;
+    		this.specialGroups = specialGroups;
     		this.col = col;
     		this.inputset =inputset;
     		this.request = request;
@@ -390,6 +394,11 @@ public class StartSubmissionLookupStep extends AbstractProcessingStep
     			context.turnOffItemWrapper();
     			EPerson eperson = epersonService.find(context, epersonid);
     			context.setCurrentUser(eperson);
+    			if (specialGroups != null && !specialGroups.isEmpty()) {
+    				for (Group specialGroup : specialGroups) {
+    					context.setSpecialGroup(specialGroup.getID());
+    				}
+    			}
     			SubmissionLookupService slService = DSpaceServicesFactory.getInstance().getServiceManager().getServiceByName(
     					SubmissionLookupService.class.getCanonicalName(), SubmissionLookupService.class);
 

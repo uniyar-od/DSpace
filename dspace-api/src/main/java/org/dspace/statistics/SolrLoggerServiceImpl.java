@@ -72,6 +72,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -83,6 +84,7 @@ import org.dspace.statistics.util.DnsLookup;
 import org.dspace.statistics.util.SpiderDetector;
 import org.dspace.usage.UsageWorkflowEvent;
 import org.dspace.utils.DSpace;
+import org.hibernate.LazyInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -126,7 +128,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     private List<String> statisticYearCores = new ArrayList<String>();
 
     private boolean statisticYearCoresInit = false;
-    
+
+    @Autowired(required = true)
+    protected CollectionService collectionService;
     @Autowired(required = true)
     protected BitstreamService bitstreamService;
     @Autowired(required = true)
@@ -640,7 +644,14 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         else if (dso instanceof Item)
         {
             Item item = (Item) dso;
-            List<Collection> collections = item.getCollections();
+            List<Collection> collections = new ArrayList<>();
+            try {
+                collections = item.getCollections();
+            } catch (LazyInitializationException e) {
+                log.warn(e.getMessage(), e);
+                Context context = new Context();
+                collections = collectionService.findCollectionsByItem(context, item);
+            }
             for (Collection collection : collections) {
                 doc1.addField("owningColl", collection.getID());
                 storeParents(doc1, collection);
@@ -889,9 +900,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public void query(String query, int max) throws SolrServerException
+    public QueryResponse query(String query, int max) throws SolrServerException
     {
-        query(query, null, null,0, max, null, null, null, null, null, false);
+       return query(query, null, null,0, max, null, null, null, null, null, false);
     }
 
     @Override

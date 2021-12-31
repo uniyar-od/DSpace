@@ -120,6 +120,10 @@ public class ItemListTag extends TagSupport {
 
 	private static int itemStart = 1;
 
+	private boolean relationButton;
+
+	private String type;
+
     private static final long serialVersionUID = 348762897199116432L;
     
     private final transient ConfigurationService configurationService
@@ -333,7 +337,7 @@ public class ItemListTag extends TagSupport {
 
             for (int colIdx = 0; colIdx < browseFields.length; colIdx++)
             {
-                String field = browseFields[colIdx].toLowerCase().trim();
+                String field = browseFields[colIdx].trim();
                 cOddOrEven[colIdx] = (((colIdx + 1) % 2) == 0 ? "Odd" : "Even");
 
                 String style = null;
@@ -416,7 +420,7 @@ public class ItemListTag extends TagSupport {
 							css += " sortable";
 							csssort += "fa fa-sort pull-right";
 						}
-						thJs += ")\"";
+						thJs += ",'" + getType() + "')\"";
 						break;
 					}
 				}
@@ -443,6 +447,16 @@ public class ItemListTag extends TagSupport {
                 out.print("<th id=\"" + id +  "\" class=\"" + css + "\">"
                         + (emph[emph.length - 2] ? "<strong>" : "")
                         + "&nbsp;" //LocaleSupport.getLocalizedMessage(pageContext, message)
+                        + (emph[emph.length - 2] ? "</strong>" : "") + "</th>");
+            }
+
+            if (relationButton) {
+                String css = "oddRow" + cOddOrEven[cOddOrEven.length - 2]
+                        + "Col";
+
+                // output the header
+                out.print("<th id=\"" + id +  "\" class=\"" + css + "\">"
+                        + (emph[emph.length - 2] ? "<strong>" : "") + "&nbsp;"
                         + (emph[emph.length - 2] ? "</strong>" : "") + "</th>");
             }
 
@@ -490,7 +504,7 @@ public class ItemListTag extends TagSupport {
                     int k = 0;
                     while(eq.hasMoreTokens())
                     {
-                        tokens[k] = eq.nextToken().toLowerCase().trim();
+                        tokens[k] = eq.nextToken().trim();
                         k++;
                     }
                     String schema = tokens[0];
@@ -605,6 +619,20 @@ public class ItemListTag extends TagSupport {
                             + "</td>");
                     }
 				}
+
+                if (relationButton) {
+                    
+                    IDisplayMetadataValueStrategy strategy = (IDisplayMetadataValueStrategy) pluginService
+                            .getNamedPlugin(IDisplayMetadataValueStrategy.class,
+                                    "managerelation");
+                    String metadata = strategy.getMetadataDisplay(hrq, -1, true, null, null,
+                            null, null, item, disableCrossLinks, false);
+
+                    out.print("<td headers=\"" + id + "\" class=\""
+                            + rOddOrEven + "Row" + cOddOrEven[cOddOrEven.length - 2]
+                            + "Col\">"
+                            + metadata + "</td>");
+                }
 
                 out.println("</tr>");
                 i++;
@@ -753,6 +781,7 @@ public class ItemListTag extends TagSupport {
 		inputName = null;
 		radioButton = false;
 		isDesc = false;
+		relationButton = false;
 	}
 
 
@@ -784,6 +813,22 @@ public class ItemListTag extends TagSupport {
     {
 		this.config = config;
 	}
+
+    public boolean getRelationButton() {
+        return relationButton;
+    }
+
+    public void setRelationButton(boolean relationButton) {
+        this.relationButton = relationButton;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 
     private String getMetadataDisplayByStrategy(HttpServletRequest hrq,
             boolean[] emph, boolean[] viewFull, String[] browseType, int i,

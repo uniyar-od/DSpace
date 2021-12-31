@@ -335,6 +335,16 @@ public interface CollectionService extends DSpaceObjectService<Collection>, DSpa
 
     List<Collection> findCollectionsWithSubscribers(Context context) throws SQLException;
 
+    /**
+     * Get the collections this item is in. Returns an unordered array of the
+     * collections this item is in.
+     *
+     * @param item Item
+     * @return the collections this item is in.
+     * @throws SQLException if database error
+     */
+    public List<Collection> findCollectionsByItem(Context context, Item item) throws SQLException;
+
     int countTotal(Context context) throws SQLException;
 
     /**
