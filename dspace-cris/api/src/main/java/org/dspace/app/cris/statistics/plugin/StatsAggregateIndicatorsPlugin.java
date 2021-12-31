@@ -62,29 +62,7 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
                 MetricsPersistenceService.class.getName(),
                 MetricsPersistenceService.class);
 
-        List<ACO> rs = new ArrayList<ACO>();
-
-        if (crisEntityTypeId > 1000)
-        {
-            DynamicObjectType dynamicType = applicationService.get(DynamicObjectType.class, crisEntityTypeId);
-        	long tot = applicationService.countResearchObjectByType(dynamicType);
-          	final int MAX_RESULT = 50;
-        	long numpages = (tot / MAX_RESULT) + 1;
-            for (int page = 1; page <= numpages; page++)
-            {
-        		rs.addAll((List<ACO>)applicationService.getResearchObjectPaginateListByType(dynamicType, "id", false, page, MAX_RESULT));
-        	}
-        }
-        else
-        {
-        	long tot = applicationService.count(crisEntityClazz);
-          	final int MAX_RESULT = 50;
-        	long numpages = (tot / MAX_RESULT) + 1;
-            for (int page = 1; page <= numpages; page++)
-            {
-        		rs.addAll(applicationService.getPaginateList(crisEntityClazz, "id", false, page, MAX_RESULT));
-        	}
-        }
+        List<ACO> rs = applicationService.getCrisObjectPaginate(crisEntityClazz, crisEntityTypeId);
 
         for (ACO rp : rs)
         {
@@ -132,14 +110,14 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
             }
 
             Date timestamp = new Date();
-            buildIndicator(pService, applicationService, rp.getUuid(), rp.getType(),
-                    rp.getId(), citations,
-                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AGGREGATE,
-                    null, timestamp, null);
-            buildIndicator(pService, applicationService, rp.getUuid(), rp.getType(),
-                    rp.getId(), itemsCited,
-                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT,
-                    null, timestamp, null);
+            buildIndicator(context, pService, applicationService, rp.getUuid(),
+                    rp.getType(), rp.getID(),
+                    citations,
+                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AGGREGATE, null, timestamp, null);
+            buildIndicator(context, pService, applicationService, rp.getUuid(),
+                    rp.getType(), rp.getID(),
+                    itemsCited,
+                    type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT, null, timestamp, null);
             
             if (buildMath)
             {
@@ -154,22 +132,22 @@ public class StatsAggregateIndicatorsPlugin<ACO extends ACrisObject>
                     Arrays.sort(elementsArray);
                     median = IndicatorsUtils.median(elementsArray);
 
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), average,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE,
-                            null, timestamp, null);
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), max,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX,
-                            null, timestamp, null);
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), min,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN,
-                            null, timestamp, null);
-                    buildIndicator(pService, applicationService, rp.getUuid(),
-                            rp.getType(), rp.getId(), median,
-                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN,
-                            null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            average,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE, null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            max,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX, null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            min,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN, null, timestamp, null);
+                    buildIndicator(context, pService, applicationService,
+                            rp.getUuid(), rp.getType(), rp.getID(),
+                            median,
+                            type + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN, null, timestamp, null);
                 }
             }
         }

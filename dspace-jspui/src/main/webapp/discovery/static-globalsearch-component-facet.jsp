@@ -126,7 +126,7 @@
 		        %>
 
 					<li class="menu-global-processor">
-						<a href=""
+						<a href="#"
 						title="<%=fvalue.getAuthorityKey()%>"><span class="badge pull-right"><%=fvalue.getCount()%></span> <%=StringUtils.abbreviate(fvalue.getDisplayedValue(), 36)%> &nbsp;&nbsp;&nbsp; <span class="badge invisible"><%=fvalue.getCount()%></span> </a></li>
 					<%
 			    	}

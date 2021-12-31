@@ -59,7 +59,7 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
-import org.dspace.xoai.services.api.config.ConfigurationService;
+import org.dspace.utils.DSpace;
 import org.dspace.xoai.services.api.database.CollectionsService;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
 import org.dspace.xoai.solr.DSpaceSolrSearch;
@@ -72,14 +72,14 @@ import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
 import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 
+import static org.dspace.content.Item.find;
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
 public class XOAI {
     public static final String ITEMTYPE_DEFAULT = "item";
-
-    public static final String ITEMTYPE_SPECIAL = "cfitem";
 
     private static Logger log = LogManager.getLogger(XOAI.class);
 
@@ -243,38 +243,45 @@ public class XOAI {
     	switch (idxType) {
         case ITEMTYPE_DEFAULT:
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.item");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
-        		discoverQuery = "discoverable:true AND search.resourcetype:2";
+        	if (StringUtils.isBlank(discoverQuery)) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:" + Constants.ITEM;
         	}
 	        break;
         case "rp":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisrp");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.RP_TYPE_ID;
         	}
 	        break;
         case "project":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisproject");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID;
         	}
 	        break;
         case "ou":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisou");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true AND search.resourcetype:" + CrisConstants.OU_TYPE_ID;
         	}
 	        break;
         case "other":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.crisother");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0) {
-        		discoverQuery = "discoverable:true AND search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO *}";
+        	if (StringUtils.isBlank(discoverQuery)) {
+        		discoverQuery = "discoverable:true AND search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO 9999}";
         	}
 	        break;
         case "all":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.all");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0)
-        		discoverQuery = "discoverable:true";
+        	if (StringUtils.isBlank(discoverQuery)) {
+        		StringBuffer sbDiscoverQuery = new StringBuffer("discoverable:true AND ");
+        		sbDiscoverQuery.append("(search.resourcetype:" + Constants.ITEM);
+        		sbDiscoverQuery.append(" OR search.resourcetype:" + CrisConstants.RP_TYPE_ID);
+        		sbDiscoverQuery.append(" OR search.resourcetype:" + CrisConstants.PROJECT_TYPE_ID);
+        		sbDiscoverQuery.append(" OR search.resourcetype:" + CrisConstants.OU_TYPE_ID);
+        		sbDiscoverQuery.append(" OR search.resourcetype:{" + CrisConstants.CRIS_DYNAMIC_TYPE_ID_START + " TO 9999})");
+        		discoverQuery = sbDiscoverQuery.toString();
+        	}
         	break;
     	default:
     		throw new DSpaceSolrIndexerException("Index is not supported for type " + idxType);
@@ -316,7 +323,6 @@ public class XOAI {
 	    		query.setQuery(solrQuery);
 	    		query.setMaxResults(pageSize);
 	    		query.setStart(offset);
-	    		query.addSearchField("item.cerifentitytype");
 			 	results = SearchUtils.getSearchService().search(context, query, true);
 			 	read = 0;
 			 	if (!results.getDspaceObjects().isEmpty())
@@ -360,26 +366,15 @@ public class XOAI {
             for (DSpaceObject o : result.getDspaceObjects()) {
                 try {
                 	SolrInputDocument solrDoc = null;
-                	boolean doublingSolrDocument = false;
                 	if (o instanceof Item) {
                 	    Item item = (Item)o;
-                	    String type = (String)item.getExtraInfo().get("item.cerifentitytype");
                 	    solrDoc = this.indexResults(item, false);
-                	    if(StringUtils.isNotBlank(type)) {
-                	        doublingSolrDocument = true;
-                	    }
                 	}
                 	else if (o instanceof ACrisObject) {
                 		solrDoc = this.indexResults((ACrisObject)o);
                 	}
                 	server.add(solrDoc);
                 	
-                	if(doublingSolrDocument) {
-                	    Item item = (Item)o;
-                	    solrDoc = this.indexResults(item, true);
-                	    server.add(solrDoc);
-                	}
-                    context.clearCache();
                 } catch (SQLException ex) {
                     log.error(ex.getMessage(), ex);
                 } catch (MetadataBindException e) {
@@ -392,9 +387,45 @@ public class XOAI {
                     log.error(e.getMessage(), e);
                 }
                 i++;
-                if ((i+subtotal) % 100 == 0) System.out.println((i+subtotal) + " items imported so far...");
+                if ((i+subtotal) % 100 == 0) {
+                    System.out.println((i+subtotal) + " items imported so far...");
+                    context.clearCache();
+                }
             }
             System.out.println("Partial Total: " + (i+subtotal) + " items");
+            server.commit();
+            return i;
+        } catch (SolrServerException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        } catch (IOException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        }
+    }
+    
+    public int index(List<Integer> idList)
+            throws DSpaceSolrIndexerException {
+        try {
+            int i = 0;
+            SolrServer server = solrServerResolver.getServer();
+            for (Integer id : idList) {
+                try {
+                    server.add(this.indexResults(find(context, id), false));
+                    context.clearCache();
+	            } catch (SQLException ex) {
+	                log.error(ex.getMessage(), ex);
+	            } catch (MetadataBindException e) {
+	                log.error(e.getMessage(), e);
+	            } catch (ParseException e) {
+	                log.error(e.getMessage(), e);
+	            } catch (XMLStreamException e) {
+	                log.error(e.getMessage(), e);
+	            } catch (WritingXmlException e) {
+	                log.error(e.getMessage(), e);
+	            }
+                i++;
+                if (i % 100 == 0) System.out.println(i + " items imported so far...");
+            }
+            System.out.println("Total: " + i + " items");
             server.commit();
             return i;
         } catch (SolrServerException ex) {
@@ -425,16 +456,9 @@ public class XOAI {
             println("Prepare handle " + handle);
         }
         
-        String type = (String)item.getExtraInfo().get("item.cerifentitytype");
-        if(StringUtils.isNotBlank(type) && specialIdentifier) {
-            doc.addField("item.identifier", type +"/"+ handle);
-            doc.addField("item.type", ITEMTYPE_SPECIAL);
-        }
-        else {
-            doc.addField("item.identifier", handle);
-            doc.addField("item.type", ITEMTYPE_DEFAULT);
-        }
-        
+        doc.addField("item.identifier", handle);
+        doc.addField("item.type", ITEMTYPE_DEFAULT);
+      
         doc.addField("item.handle", handle);
         doc.addField("item.lastmodified", item.getLastModified());
         if (item.getSubmitter() != null) {
@@ -468,12 +492,16 @@ public class XOAI {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
-        if(StringUtils.isNotBlank(type) && specialIdentifier) {
-            retrieveMetadata(context, item, true).write(xmlContext);
+        Metadata metadata = retrieveMetadata(context, item);
+
+        //Do any additional content on "item.compile" field, depends on the plugins
+        List<XOAIItemCompilePlugin> xOAIItemCompilePlugins = new DSpace().getServiceManager().getServicesByType(XOAIItemCompilePlugin.class);
+        for (XOAIItemCompilePlugin xOAIItemCompilePlugin : xOAIItemCompilePlugins)
+        {
+            metadata = xOAIItemCompilePlugin.additionalMetadata(context, metadata, item);
         }
-        else {
-            retrieveMetadata(context, item, false).write(xmlContext);
-        }
+
+        metadata.write(xmlContext);
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
         doc.addField("item.compile", out.toString());
@@ -509,16 +537,10 @@ public class XOAI {
             println("Prepare handle " + handle);
         }
         
-        String type = ConfigurationManager.getProperty("oai", "identifier.cerifentitytype." + item.getPublicPath());
-        if(StringUtils.isNotBlank(type)) {
-            doc.addField("item.identifier", type + "/" + handle);    
-        }
-        else {
-            doc.addField("item.identifier", handle);
-        }
-        
-        doc.addField("item.handle", handle);
         doc.addField("item.type", item.getPublicPath());
+        doc.addField("item.identifier", handle);
+        doc.addField("item.handle", handle);
+        
         doc.addField("item.lastmodified", item.getLastModified());
         doc.addField("item.deleted", "false");
 
@@ -635,6 +657,21 @@ public class XOAI {
             	throw new DSpaceSolrIndexerException("Index is not supported for type " + idxType);
             }
             solrServerResolver.getServer().deleteByQuery(eraseQuery);
+            solrServerResolver.getServer().commit();
+            System.out.println("Index cleared");
+        } catch (SolrServerException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        } catch (IOException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        }
+    }
+    
+    public void clearIndex(List<Integer> ids) throws DSpaceSolrIndexerException {
+        try {
+            System.out.println("Clearing " + ids.size() + " entries from index");
+            for (Integer id : ids) {
+            	solrServerResolver.getServer().deleteByQuery("item.id:" + id);
+			}
             solrServerResolver.getServer().commit();
             System.out.println("Index cleared");
         } catch (SolrServerException ex) {

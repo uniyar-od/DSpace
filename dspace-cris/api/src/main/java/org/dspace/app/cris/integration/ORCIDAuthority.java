@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,11 +22,14 @@ import org.dspace.authority.orcid.OrcidService;
 import org.dspace.content.authority.Choice;
 import org.dspace.content.authority.Choices;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
 
 public class ORCIDAuthority extends RPAuthority {
 
-	private static final int DEFAULT_MAX_ROWS = 10;
+	public static final String ORCID_REGEX = "(\\d{4}-){3,}\\d{3}[\\dX]";
+
+    private static final int DEFAULT_MAX_ROWS = 50;
 
 	private static Logger log = Logger.getLogger(ORCIDAuthority.class);
 
@@ -34,26 +38,31 @@ public class ORCIDAuthority extends RPAuthority {
 	private List<OrcidAuthorityExtraMetadataGenerator> generators = new DSpace().getServiceManager().getServicesByType(OrcidAuthorityExtraMetadataGenerator.class);
 	
 	@Override
-	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale) {
-		Choices choices = super.getMatches(field, query, collection, start, limit, locale);		
+	public Choices getMatches(Context context, String field, String query, int collection, int start, int limit, String locale) {
+		Choices choices = super.getMatches(context, field, query, collection, start, limit, locale);		
 		return new Choices(addExternalResults(field, query, choices, start, limit<=0?DEFAULT_MAX_ROWS:limit), choices.start, choices.total, choices.confidence, choices.more);
 	}
 	
 	@Override
-	public Choices getMatches(String field, String query, int collection, int start, int limit, String locale, boolean extra) {
+	public Choices getMatches(Context context, String field, String query, int collection, int start, int limit, String locale, boolean extra) {
 		if(extra)
 		{
-			return getMatches(field, query, collection, start, limit, locale);
+			return getMatches(context, field, query, collection, start, limit, locale);
 		} else {
-			return super.getMatches(field, query, collection, start, limit, locale);
+			return super.getMatches(context, field, query, collection, start, limit, locale);
 		}
 	} 
 	
-	protected Choice[] addExternalResults(String field, String text, Choices choices, int start, int max) {
+	protected Choice[] addExternalResults(final String field, String text, Choices choices, int start, int max) {
 		if (source != null) {
 			try {
 				List<Choice> results = new ArrayList<Choice>();
-				List<AuthorityValue> values = source.queryOrcidBioByFamilyNameAndGivenName(text, start, max);
+				List<AuthorityValue> values = null;
+				if(Pattern.matches(ORCID_REGEX, text)) {
+					values = source.queryOrcidByOrcidId(text);
+				} else {
+					values = source.queryOrcidBioByFamilyNameAndGivenName(text, start, max);
+				}
 				
 				int maxThreads = ConfigurationManager.getIntProperty("orcid.addexternalresults.thread.max", 5);
 	        	
@@ -104,7 +113,7 @@ public class ORCIDAuthority extends RPAuthority {
 			                            sb.append(" (").append(inst).append(")");
 			                        }
 			                        sb.append(" - ").append(serviceId);
-									extras.putAll(buildExtra(serviceId));
+									extras.putAll(buildExtra(serviceId, field));
 									threadResultsMap.get(num).add(new Choice(value.generateString(), sb.toString(), value.getValue(), extras));
 									Thread.yield();
 							}
@@ -150,14 +159,22 @@ public class ORCIDAuthority extends RPAuthority {
 		return choices.values;
 	}
 
-	private Map<String, String> buildExtra(String value)
+	private Map<String, String> buildExtra(String value, String field)
     {
         Map<String, String> extras = new HashMap<String,String>();
         
         if(generators!=null) {
             for(OrcidAuthorityExtraMetadataGenerator gg : generators) {
-                Map<String, String> extrasTmp = gg.build(source, value);
-                extras.putAll(extrasTmp);
+                if(StringUtils.isNotBlank(gg.getParentInputFormMetadata())) {
+                    if(gg.getParentInputFormMetadata().equals(field)) {
+                        Map<String, String> extrasTmp = gg.build(source, value);
+                        extras.putAll(extrasTmp);
+                    }
+                }
+                else {
+                    Map<String, String> extrasTmp = gg.build(source, value);
+                    extras.putAll(extrasTmp);
+                }
             }
         }
         return extras;

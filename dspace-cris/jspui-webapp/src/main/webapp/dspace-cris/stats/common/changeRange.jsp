@@ -48,10 +48,10 @@
 <script type="text/javascript">
 var j = jQuery;
 j(document).ready(function() {    
-        j('#stats_from_date').datepicker({
+        j('#stats_from_date').datetimepicker({
         	format: "YYYY-MM-DD"       	
         });
-        j('#stats_to_date').datepicker({
+        j('#stats_to_date').datetimepicker({
         	format: "YYYY-MM-DD",
             useCurrent: false //Important! See issue #1075
         });
@@ -62,7 +62,7 @@ j(document).ready(function() {
             j('#stats_from_date').data("DateTimePicker").maxDate(e.date);
         });
         
-    	j("#formChangeRange").submit(function(){
+    	j("#formChangeRange").on("submit", function(){
     		var sdate= j("#stats_from_date").val();
     		var edate= j("#stats_to_date").val();
     		if(sdate.length ==0){

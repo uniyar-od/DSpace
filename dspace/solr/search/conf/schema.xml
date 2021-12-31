@@ -481,7 +481,6 @@
           </analyzer>
       </fieldType>
       
-      <fieldType name="crismetrics_t" class="org.dspace.solr.schema.CrisMetricsFieldType" coreName="${solr.core.name}" />
  </types>
 
 
@@ -658,7 +657,11 @@
 
    <dynamicField name="random_*" type="random" />
    
-   <dynamicField name="crismetrics_*" type="crismetrics_t" indexed="true" stored="true"/>
+   <dynamicField name="*_time_crismetrics" type="tdate" indexed="true" stored="true"/>
+   <dynamicField name="*_starttime_crismetrics" type="tdate" indexed="true" stored="true"/>
+   <dynamicField name="*_endtime_crismetrics" type="tdate" indexed="true" stored="true"/>
+   <dynamicField name="*_remark_crismetrics" type="string" indexed="true" stored="true"/>
+   <dynamicField name="crismetrics_*" type="tdouble" indexed="true" stored="true"/>
  </fields>
 
  <!-- Field to use to determine and enforce document uniqueness.

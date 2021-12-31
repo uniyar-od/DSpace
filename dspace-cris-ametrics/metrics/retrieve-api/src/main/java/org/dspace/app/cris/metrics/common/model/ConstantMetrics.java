@@ -10,6 +10,8 @@ package org.dspace.app.cris.metrics.common.model;
 public class ConstantMetrics
 {
     public static String PREFIX_FIELD= "crismetrics_";
+    public static String PLACEHOLDER_FIELD= "crismetrics";
+    public static String SEPARATOR_FIELD= "_";
     
     public static final String SUFFIX_STATS_INDICATOR_TYPE_AVERAGE = "_average";
     public static final String SUFFIX_STATS_INDICATOR_TYPE_MEDIAN = "_median";

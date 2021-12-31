@@ -8,7 +8,6 @@
 package org.dspace.app.webui.servlet;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -18,9 +17,9 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.pdfbox.exceptions.COSVisitorException;
 import org.dspace.app.util.IViewer;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
@@ -54,8 +53,9 @@ import org.dspace.utils.DSpace;
  * @author Robert Tansley
  * @version $Revision$
  */
-public class BitstreamServlet extends DSpaceServlet
+public class BitstreamServlet extends RangeHeaderSupportServlet
 {
+    
     /** log4j category */
     private static Logger log = Logger.getLogger(BitstreamServlet.class);
 
@@ -86,6 +86,7 @@ public class BitstreamServlet extends DSpaceServlet
         boolean isPreservation = false;    	
         // Get the ID from the URL
         String idString = request.getPathInfo();
+        
         String handle = "";
         String sequenceText = "";
         String filename = null;
@@ -203,16 +204,7 @@ public class BitstreamServlet extends DSpaceServlet
 				&& !AuthorizeManager.isAdmin(context, bitstream)) {
 			throw new AuthorizeException("Download not allowed by viewer policy");
 		}
-        //new UsageEvent().fire(request, context, AbstractUsageEvent.VIEW,
-		//		Constants.BITSTREAM, bitstream.getID());
 
-        new DSpace().getEventService().fireEvent(
-        		new UsageEvent(
-        				UsageEvent.Action.VIEW, 
-        				request, 
-        				context, 
-        				bitstream));
-        
         // Modification date
         // Only use last-modified if this is an anonymous access
         // - caching content that may be generated under authorisation
@@ -241,6 +233,12 @@ public class BitstreamServlet extends DSpaceServlet
                 // Item has not been modified since requested date,
                 // hence bitstream has not; return 304
                 response.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
+                new DSpace().getEventService().fireEvent(
+                        new UsageEvent(
+                                UsageEvent.Action.VIEW,
+                                request,
+                                context,
+                                bitstream));
                 return;
             }
         }
@@ -248,6 +246,13 @@ public class BitstreamServlet extends DSpaceServlet
         preProcessBitstreamHome(context, request, response, bitstream);
         
     	InputStream is = null;
+    	
+    	boolean isRangeHeader = false;
+    	long contentResourceLength = -1;
+    	String value = request.getHeader(RANGE);
+    	if(StringUtils.isNotBlank(value)) {
+    	    isRangeHeader = true;    
+    	}
     	
     	CoverPageService coverService = new DSpace().getSingletonService(CoverPageService.class);
     	Collection owningColl = item.getOwningCollection();
@@ -260,16 +265,21 @@ public class BitstreamServlet extends DSpaceServlet
                 && coverService.canCreateCover(bitstream) )
         {
             // Pipe the bits
-
+            File scratchFile = null;
             try
             {
                 CitationDocument citationDocument = new CitationDocument(
                         configFile);
-                File citedDoc = citationDocument.makeCitedDocument(context,
+                is = citationDocument.makeCitedDocument(context,
                         bitstream, configFile);
-                is = new FileInputStream(citedDoc);
-                response.setHeader("Content-Length",
-                        String.valueOf(citedDoc.length()));
+
+                // copy inputstream to temp file to retrieve length
+                scratchFile = File.createTempFile(String.valueOf(bitstream.getID()), "temp");
+                FileUtils.copyInputStreamToFile(is, scratchFile);
+                // reopen closed stream to read it twice
+                is = FileUtils.openInputStream(scratchFile);
+                contentResourceLength = Long.valueOf(scratchFile.length());
+                scratchFile.delete();
             }
             catch (AuthorizeException e)
             {
@@ -280,30 +290,52 @@ public class BitstreamServlet extends DSpaceServlet
             {
                 log.error(e.getMessage(), e);
             }
+            finally
+            {
+                if(scratchFile != null && scratchFile.exists()) {
+                    scratchFile.delete();
+                }
+            }
 
         }
         
         if(is == null) {
         	 is = bitstream.retrieve();
-             response.setHeader("Content-Length", String
-                     .valueOf(bitstream.getSize()));
+             contentResourceLength = bitstream.getSize();
         }
         
-		// Set the response MIME type
+        // Set the response Content-Length
+        response.setHeader("Content-Length", String.valueOf(contentResourceLength));
+        // Set the response MIME type
         response.setContentType(bitstream.getFormat().getMIMEType());
 
 
-		if(threshold != -1 && bitstream.getSize() >= threshold)
-		{
-			UIUtil.setBitstreamDisposition(bitstream.getName(), request, response);
-		}
+        if(threshold != -1 && bitstream.getSize() >= threshold)
+        {
+            UIUtil.setBitstreamDisposition(bitstream.getName(), request, response);
+        }
+
+        if(!isRangeHeader) {
+            new DSpace().getEventService().fireEvent(
+                    new UsageEvent(
+                            UsageEvent.Action.VIEW,
+                            request,
+                            context,
+                            bitstream));
+        }
 
         //DO NOT REMOVE IT - WE NEED TO FREE DB CONNECTION TO AVOID CONNECTION POOL EXHAUSTION FOR BIG FILES AND SLOW DOWNLOADS
         context.complete();
 
-        Utils.bufferedCopy(is, response.getOutputStream());
-        is.close();
-        response.getOutputStream().flush();
+        if(isRangeHeader) {
+            writePartialContent(request, response, is, contentResourceLength, bitstream.getFormat().getMIMEType());
+        }
+        else {
+            response.setHeader(ACCEPT_RANGES, "bytes");
+            Utils.bufferedCopy(is, response.getOutputStream());
+            is.close();
+            response.getOutputStream().flush();
+        }
     }
     
     private void preProcessBitstreamHome(Context context, HttpServletRequest request,
@@ -324,4 +356,7 @@ public class BitstreamServlet extends DSpaceServlet
             throw new ServletException(e);
         }
     }
+    
+
+
 }

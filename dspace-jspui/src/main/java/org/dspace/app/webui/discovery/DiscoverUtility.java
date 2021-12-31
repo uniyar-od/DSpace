@@ -23,6 +23,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.LogManager;
+import org.dspace.core.Utils;
 import org.dspace.discovery.DiscoverFacetField;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverQuery.SORT_ORDER;
@@ -67,7 +68,7 @@ public class DiscoverUtility
     {
         // Get the location parameter, if any
         String location = request.getParameter("location");
-        if (location == null)
+        if (StringUtils.isBlank(location))
         {
             if (UIUtil.getCollectionLocation(request) != null)
             {
@@ -691,7 +692,7 @@ public class DiscoverUtility
                             // limited to
                             // the 10 years in our span due to our
                             // filterquery
-                            queryArgs.addFacetField(new DiscoverFacetField(
+                        	queryArgs.addFacetField(new DiscoverFacetField(
                                     facet.getIndexFieldName(), facet.getType(),
                                     10, facet.getSortOrder(),false));
                         }

@@ -77,8 +77,11 @@
     // so no icon appears yet.
     int unknownConfidence = Choices.CF_UNSET - 100;
     
-		
-
+    Context context;
+    MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
+    ChoiceAuthorityManager cam;
+    
+    
     // This method is resposible for showing a link next to an input box
     // that pops up a window that to display a controlled vocabulary.
     // It should be called from the doOneBox and doTwoBox methods.
@@ -125,7 +128,6 @@
     // is this field going to be rendered as Choice-driven <select>?
     boolean isSelectable(String fieldKey)
     {
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
         return (cam.isChoicesConfigured(fieldKey) &&
             "select".equals(cam.getPresentation(fieldKey)));
     }
@@ -133,8 +135,6 @@
     // Get the presentation type of the authority if any, null otherwise
     String getAuthorityType(PageContext pageContext, String fieldName, int collectionID)
     {
-        MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
         StringBuffer sb = new StringBuffer();
 
         if (cam.isChoicesConfigured(fieldName))
@@ -199,8 +199,7 @@
             int confidenceValue, boolean isName, boolean repeatable,
             Metadatum[] dcvs, StringBuffer inputBlock, int collectionID)
     {
-        MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+
         StringBuffer sb = new StringBuffer();
 
         if (cam.isChoicesConfigured(fieldName))
@@ -612,8 +611,8 @@
         else
            dateIssued = new org.dspace.content.DCDate("");
    
-        sb.append("<div class=\"row col-md-12\"><div class=\"input-group col-md-10\"><div class=\"row\">")
-			.append("<span class=\"input-group col-md-6\"><span class=\"input-group-addon\">")
+         sb.append("<div class=\"row col-md-12\"><div class=\"col-md-10\"><div class=\"row\">")
+            .append("<div class=\"col-md-6\"><span class=\"input-group\"><span class=\"input-group-addon\">")
         	.append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.month"))
            .append("</span><select class=\"form-control\" name=\"")
            .append(fieldName)
@@ -648,8 +647,8 @@
              .append("</option>");
         }
    
-        sb.append("</select></span>")
-	            .append("<span class=\"input-group col-md-2\"><span class=\"input-group-addon\">")
+         sb.append("</select></span></div>")
+               .append("<div class=\"col-md-2\"><span class=\"input-group\"><span class=\"input-group-addon\">")
                .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.day"))
                .append("</span><input class=\"form-control\" type=\"text\" name=\"")
            .append(fieldName)
@@ -663,7 +662,7 @@
         sb.append("\" size=\"2\" maxlength=\"2\" value=\"")
            .append((dateIssued.getDay() > 0 ?
                     String.valueOf(dateIssued.getDay()) : "" ))
-               .append("\"/></span><span class=\"input-group col-md-4\"><span class=\"input-group-addon\">")
+               .append("\"/></span></div><div class=\"col-md-4\"><span class=\"input-group\"><span class=\"input-group-addon\">")
                .append(LocaleSupport.getLocalizedMessage(pageContext, "jsp.submit.edit-metadata.year"))
                .append("</span><input class=\"form-control\" type=\"text\" name=\"")
            .append(fieldName)
@@ -677,7 +676,7 @@
         sb.append("\" size=\"4\" maxlength=\"4\" value=\"")
            .append((dateIssued.getYear() > 0 ?
                 String.valueOf(dateIssued.getYear()) : "" ))
-           .append("\"/></span></div></div>\n");
+           .append("\"/></span></div></div></div>\n");
    
         if (!hasParent && repeatable && !readonly && count < defaults.length)
         {
@@ -1290,24 +1289,17 @@
       boolean readonly, int fieldCountIncr, List qualMap, String label, PageContext pageContext, int collectionID, List<DCInput> children,boolean hasParent)
       throws java.io.IOException
     {
-    	Metadatum[] unfiltered = item.getMetadata(schema, element, Item.ANY, Item.ANY);
-    	// filter out both unqualified and qualified values occurring elsewhere in inputs
-    	List<Metadatum> filtered = new ArrayList<Metadatum>();
-    	for (int i = 0; i < unfiltered.length; i++)
+    	// retrieve metadata using qualMap values
+    	List<Metadatum> supportedQualifiers = new ArrayList<Metadatum>();
+    	for (int i = 0; i < qualMap.size(); i+=2)
     	{
-    		String unfilteredFieldName = unfiltered[i].element;
-    		String qualifierToCheck = "";
-    		if(unfiltered[i].qualifier != null && unfiltered[i].qualifier.length()>0) {
-    			unfilteredFieldName += "." + unfiltered[i].qualifier;
-    			qualifierToCheck = unfiltered[i].qualifier;
-    		}
-    		int foundPos = qualMap.indexOf(qualifierToCheck);
-    		if ( foundPos != -1 && foundPos % 2 == 1 )
+    		Metadatum[] metadata = item.getMetadata(schema, element, (String)qualMap.get(i+1), item.ANY);
+    		for (int j = 0; j < metadata.length; j++)
     		{
-    			filtered.add( unfiltered[i] );
-   			}
+    			supportedQualifiers.add(metadata[j]);
+    		}
       	}
-      	Metadatum[] defaults = filtered.toArray(new Metadatum[0]);
+      	Metadatum[] defaults = supportedQualifiers.toArray(new Metadatum[0]);
 
       	int fieldCount = defaults.length + fieldCountIncr;
       	StringBuffer sb = new StringBuffer();
@@ -1352,11 +1344,11 @@
         	      .append("<span class=\"input-group row col-md-10\">");
           	}
          	else {
-         		sb.append("<div class=\"row col-md-12\"><span class=\"input-group col-md-10\">");
+         		sb.append("<div class=\"row col-md-12\">");
           	}
           	
           	// do the dropdown box
-          	sb.append("<span class=\"input-group-addon\"><select name=\"")
+          	sb.append("<div class=\"col-md-10\"><span class=\"input-group\"><span class=\"input-group-addon\"><select name=\"")
               .append(fieldName)
               .append("_qualifier");
           	if (repeatable && j!= fieldCount-1)
@@ -1390,7 +1382,7 @@
             }
             sb.append("\" size=\"34\" value=\"")
               .append(currentVal.replaceAll("\"", "&quot;"))
-              .append("\"/></span>\n");
+              .append("\"/></span></span></div>\n");
             
             if (authorityType != null)
             {
@@ -1612,9 +1604,6 @@
 %>
 
 <%
-    // Obtain DSpace context
-    Context context = UIUtil.obtainContext(request);
-
     SubmissionInfo si = SubmissionController.getSubmissionInfo(context, request);
 
     Item item = si.getSubmissionItem().getItem();
@@ -1677,7 +1666,8 @@
 		String messageInfo = I18nUtil.getMessage(infoKey, lcl, false);
 		String anchorKey = "jsp.submit.edit-metadata.describe"+pageNum+"." + keyCollectionName;
 		String anchorHelp = I18nUtil.getMessage("jsp.submit.edit-metadata.describe"+pageNum+"."+keyCollectionName, lcl, false);
-		
+		context = UIUtil.obtainContext(request);
+	    cam = ChoiceAuthorityManager.getManager(context);
 %>
 
   <form action="<%= request.getContextPath() %>/submit#<%= si.getJumpToField()%>" method="post" name="edit_metadata" id="edit_metadata">

@@ -134,7 +134,7 @@
         <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/bootstrap.min.css" type="text/css" />
         <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/bootstrap-theme.min.css" type="text/css" />
         <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/bootstrap/dspace-theme.css" type="text/css" />
-        <script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.4.1.min.js"></script>
+        <script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.6.0.min.js"></script>
         <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.12.1.min.js'></script>
         <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/bootstrap/bootstrap.min.js'></script>
         <script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
@@ -203,7 +203,7 @@ function clearEPeople()
 			<li><a href="<%= jumpLink %><%= jumpFiveForward %>"><fmt:message key="jsp.tools.eperson-list.jump.five-forward"/></a></li>
 			<li><a href="<%= jumpLink %><%= jumpEnd %>"><fmt:message key="jsp.tools.eperson-list.jump.last"/></a></li>
 	</ul>
-</div
+</div>
 <br/>
 
 	<form method="get" action=""> <%-- Will never actually be posted, it's just so buttons will appear --%>
@@ -216,7 +216,8 @@ function clearEPeople()
             <th><fmt:message key="jsp.tools.eperson-list.th.id" /></th>
             <th><fmt:message key="jsp.tools.eperson-list.th.email" /></th>
             <th><fmt:message key="jsp.tools.eperson-list.th.lastname" /></th>
-            <th><fmt:message key="jsp.tools.eperson-list.th.lastname" /></th>
+            <th><fmt:message key="jsp.tools.eperson-list.th.firstname" /></th>
+            <th><fmt:message key="jsp.tools.eperson-list.th.language" /></th>
         </tr>
 <% }
    else 

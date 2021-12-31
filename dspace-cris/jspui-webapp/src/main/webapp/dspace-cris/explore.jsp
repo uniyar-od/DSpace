@@ -21,6 +21,7 @@
 
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/functions" prefix="fn" %>
 
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
@@ -59,12 +60,23 @@ function newRow(){
 	newRow.insertBefore(jQuery('#lastRow'));
 	
 	newRow.find('select.index option').filter(function() {
-	    return $(this).text() == jQuery('#lastRow').find('select.index').val(); 
-	}).prop('selected', true);
+	    return $(this).val() == jQuery('#lastRow').find('select.index').val(); 
+	}).attr('selected', true);
 	
 	newRow.find('input.query').val(jQuery('#lastRow').find('input.query').val());
 	jQuery('#lastRow').find('select.index option:first').prop('selected', true);
 	jQuery('#lastRow').find('input.query').val('');
+	
+	newRow.find('select.conjuction option').filter(function() {
+	    return $(this).val() == jQuery('#lastRow').find('select.conjuction').val(); 
+	}).attr('selected', true);
+	
+	if (jQuery('#lastRow').find('select.conjuction').length == 0)
+	{
+		jQuery('select.conjuction').first().remove();
+		var newConjuction = jQuery('select.conjuction').first().clone();
+		jQuery('#lastRow').children().first().append(newConjuction);
+	}
 }
 
 function resetForm() {
@@ -95,9 +107,9 @@ function submitForm() {
 </script>
 </c:set>
 <c:set var="fmtkey">
- jsp.layout.navbar-default.cris.${location}
+ jsp.layout.navbar-default.cris.${fn:escapeXml(location)}
 </c:set>
-<dspace:layout locbar="link" parenttitlekey="${fmtkey}" parentlink="/cris/explore/${location}" titlekey="${fmtkey}">
+<dspace:layout locbar="link" parenttitlekey="${fmtkey}" parentlink="/cris/explore/${fn:escapeXml(location)}" titlekey="${fmtkey}">
 <div class="row">
 	<div class="col-sm-4 col-md-3">
 		<h2><fmt:message key="jsp.general.browse" /></h2>
@@ -108,9 +120,9 @@ function submitForm() {
 		</ul>
 	</div>
 	<div class="col-sm-8 col-md-9">
-		<h2><fmt:message key="jsp.explore.${location}.search" /></h2>
+		<h2><fmt:message key="jsp.explore.${fn:escapeXml(location)}.search" /></h2>
 		<form id="searchform" class="form-group" action="<%= request.getContextPath() %>/simple-search">
-			<input type="hidden" id="location" name="location" value="${location}" />
+			<input type="hidden" id="location" name="location" value="${fn:escapeXml(location)}" />
 			<input type="hidden" id="query" name="query" value="" />
 		<div class="row datainput">
 		<div class="col-xs-4 col-sm-3">
@@ -148,9 +160,9 @@ function submitForm() {
 		</div>
 		<div class="col-xs-2">
 		<select class="conjuction form-control">
-			<option>AND</option>
-			<option>OR</option>
-			<option>NOT</option>
+			<option value="AND">AND</option>
+			<option value="OR">OR</option>
+			<option value="NOT">NOT</option>
 		</select>
 		</div>
 		</div>
@@ -187,9 +199,9 @@ function submitForm() {
 		</div>
 		<div class="col-xs-2">
 		<select class="conjuction form-control">
-			<option>AND</option>
-			<option>OR</option>
-			<option>NOT</option>
+				<option value="AND">AND</option>
+				<option value="OR">OR</option>
+				<option value="NOT">NOT</option>
 		</select>
 		</div>
 		</div>
@@ -245,7 +257,7 @@ function submitForm() {
 	</div>
 
 	<div class="row">
-	<c:set var="discovery.searchScope" value="${location}" scope="request"/>
+	<c:set var="discovery.searchScope" value="${fn:escapeXml(location)}" scope="request"/>
 	<%@ include file="/discovery/static-sidebar-facet.jsp" %>
 	</div>
 </dspace:layout>

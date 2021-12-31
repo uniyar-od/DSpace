@@ -299,7 +299,7 @@ j(document).ready(function() {
                     <input type="hidden" name="step" value="<%= MyDSpaceServlet.REQUEST_MIGRATE_ARCHIVE %>" />
                     <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.mydspace.request.export.migrateitem"/>" />
                 </form>
-                <form method="post" action="<%= request.getContextPath() %>/dspace-admin/metadataexport">
+                <form method="post" action="<%= request.getContextPath() %>/tools/metadataexport">
                     <input type="hidden" name="handle" value="<%= item.getHandle() %>" />
                     <input class="btn btn-default col-md-12" type="submit" name="submit" value="<fmt:message key="jsp.general.metadataexport.button"/>" />
                 </form>
@@ -463,7 +463,7 @@ if (dedupEnabled && admin_button) { %>
 	</div>
 	<div id="dedupResult" class="media-body text-center">
 		<h4 class="media-heading"><fmt:message key="jsp.display-item.dedup.heading"/></h4>
-	    <span class="metric-counter"><a id="dedupCounter" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.dedup.tooltip"/>" href=""><fmt:message key="jsp.display-item.dedup.check"/></a></span>
+	    <span class="metric-counter"><a id="dedupCounter" data-toggle="tooltip" target="_blank" title="<fmt:message key="jsp.display-item.dedup.tooltip"/>" href="#"><fmt:message key="jsp.display-item.dedup.check"/></a></span>
 	</div>
 </div>	
 </div>

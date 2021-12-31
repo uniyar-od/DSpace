@@ -23,7 +23,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -37,11 +36,8 @@ import org.dspace.content.NonUniqueMetadataException;
 import org.dspace.core.Context;
 import org.dspace.core.LogManager;
 import org.dspace.core.ConfigurationManager;
-import org.dspace.authenticate.AuthenticationManager;
-import org.dspace.authenticate.AuthenticationMethod;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
-import org.dspace.storage.rdbms.DatabaseManager;
 
 /**
  * Shibboleth authentication for DSpace
@@ -82,6 +78,12 @@ public class ShibAuthentication implements AuthenticationMethod
 	/** Maximum length for eperson additional metadata fields **/
 	private static final int METADATA_MAX_SIZE = 1024;
 
+	// Header names & values
+	private static final String netidHeader = ConfigurationManager.getProperty("authentication-shibboleth","netid-header");
+	private static final String emailHeader = ConfigurationManager.getProperty("authentication-shibboleth","email-header");
+	private static final String fnameHeader = ConfigurationManager.getProperty("authentication-shibboleth","firstname-header");
+	private static final String lnameHeader = ConfigurationManager.getProperty("authentication-shibboleth","lastname-header");
+	private static final boolean allowEmptyNetID = !ConfigurationManager.getBooleanProperty("authentication-shibboleth","netid.forbid_empty", false);
 
 	/**
 	 * Authenticate the given or implicit credentials. This is the heart of the
@@ -258,11 +260,13 @@ public class ShibAuthentication implements AuthenticationMethod
 			// Step 1: Identify User
 			EPerson eperson = findEPerson(context, request);
 
+			boolean isNetIDPresent = allowEmptyNetID || StringUtils.isNotBlank(findSingleAttribute(request,netidHeader));
+			
 			// Step 2: Register New User, if necessary
-			if (eperson == null && autoRegister)
+			if (eperson == null && autoRegister && isNetIDPresent)
 				eperson = registerNewEPerson(context, request);
 
-			if (eperson == null) 
+			if (eperson == null || !isNetIDPresent)
 				return AuthenticationMethod.NO_SUCH_USER;
 
 			// Step 3: Update User's Metadata
@@ -626,8 +630,6 @@ public class ShibAuthentication implements AuthenticationMethod
 	private EPerson findEPerson(Context context, HttpServletRequest request) throws SQLException, AuthorizeException {
 
 		boolean isUsingTomcatUser = ConfigurationManager.getBooleanProperty("authentication-shibboleth","email-use-tomcat-remote-user");
-		String netidHeader = ConfigurationManager.getProperty("authentication-shibboleth","netid-header");
-		String emailHeader = ConfigurationManager.getProperty("authentication-shibboleth","email-header");
 
 		EPerson eperson = null;
 		boolean foundNetID = false;
@@ -722,12 +724,6 @@ public class ShibAuthentication implements AuthenticationMethod
 	 * @return A new eperson object or null if unable to create a new eperson.
 	 */
 	private EPerson registerNewEPerson(Context context, HttpServletRequest request) throws SQLException, AuthorizeException {
-
-		// Header names
-		String netidHeader = ConfigurationManager.getProperty("authentication-shibboleth","netid-header");
-		String emailHeader = ConfigurationManager.getProperty("authentication-shibboleth","email-header");
-		String fnameHeader = ConfigurationManager.getProperty("authentication-shibboleth","firstname-header");
-		String lnameHeader = ConfigurationManager.getProperty("authentication-shibboleth","lastname-header");
 
 		// Header values
 		String netid = findSingleAttribute(request,netidHeader);
@@ -829,12 +825,6 @@ public class ShibAuthentication implements AuthenticationMethod
 	 * @param eperson The eperson object to update.
 	 */
 	private void updateEPerson(Context context, HttpServletRequest request, EPerson eperson) throws SQLException, AuthorizeException {
-
-		// Header names & values
-		String netidHeader = ConfigurationManager.getProperty("authentication-shibboleth","netid-header");
-		String emailHeader = ConfigurationManager.getProperty("authentication-shibboleth","email-header");
-		String fnameHeader = ConfigurationManager.getProperty("authentication-shibboleth","firstname-header");
-		String lnameHeader = ConfigurationManager.getProperty("authentication-shibboleth","lastname-header");
 
 		String netid = findSingleAttribute(request,netidHeader);
 		String email = findSingleAttribute(request,emailHeader);
