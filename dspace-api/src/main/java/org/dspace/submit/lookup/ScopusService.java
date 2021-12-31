@@ -83,7 +83,10 @@ public class ScopusService
         String endpoint = ConfigurationManager.getProperty("submission.lookup.scopus.endpoint");
         String apiKey = ConfigurationManager.getProperty("submission.lookup.scopus.apikey");
         String token = ConfigurationManager.getProperty("submission.lookup.scopus.insttoken");
-        String modeview = ConfigurationManager.getProperty("submission.lookup.scopus.modeview","COMPLETE");
+        String modeview = ConfigurationManager.getProperty("submission.lookup.scopus.modeview");
+        if(StringUtils.isBlank(modeview)) {
+        	modeview = "COMPLETE";
+        }
         
         List<Record> results = new ArrayList<>();
         if (!ConfigurationManager.getBooleanProperty(SubmissionLookupService.CFG_MODULE, "remoteservice.demo"))
