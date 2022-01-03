@@ -9,26 +9,29 @@ package org.dspace.statistics;
 
 import org.dspace.eperson.EPerson;
 
-public class LoginStatistics {
+/**
+ * Model a single LOGIN statistic entry related to a specific user.
+ *
+ * @author Luca Giamminonni (luca.giamminonni at 4science.it)
+ *
+ */
+public final class LoginStatistics {
 
-    private EPerson user;
+    private final EPerson user;
 
-    private int count;
+    private final long count;
+
+    public LoginStatistics(EPerson user, long count) {
+        this.user = user;
+        this.count = count;
+    }
 
     public EPerson getUser() {
         return user;
     }
 
-    public void setUser(EPerson user) {
-        this.user = user;
-    }
-
-    public int getCount() {
+    public long getCount() {
         return count;
-    }
-
-    public void setCount(int count) {
-        this.count = count;
     }
 
 }
