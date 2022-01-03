@@ -1,9 +1,6 @@
 package org.dspace.ldn;
 
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
 import org.apache.log4j.Logger;
 import org.dspace.core.Context;
 

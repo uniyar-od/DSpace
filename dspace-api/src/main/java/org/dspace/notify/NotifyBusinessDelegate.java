@@ -31,9 +31,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 public class NotifyBusinessDelegate {
 
 	private CloseableHttpClient client = null;
-	private int maxNumberOfAttempts = ConfigurationManager.getIntProperty("ldn-coar-notify","coar.notify.max.attempts.request-review");
-	private long sleepBetweenTimeouts = ConfigurationManager.getLongProperty("ldn-coar-notify","coar.notify.sleep-between-attempts.request-review");
-	private int timeout=ConfigurationManager.getIntProperty("ldn-coar-notify","coar.notify.timeout.request-review");
+	private int maxNumberOfAttempts = ConfigurationManager.getIntProperty("ldn-coar-notify",
+			"coar.notify.max.attempts.request-review");
+	private long sleepBetweenTimeouts = ConfigurationManager.getLongProperty("ldn-coar-notify",
+			"coar.notify.sleep-between-attempts.request-review");
+	private int timeout = ConfigurationManager.getIntProperty("ldn-coar-notify", "coar.notify.timeout.request-review");
 	private static final Logger log = Logger.getLogger(NotifyBusinessDelegate.class);
 	private static final ObjectMapper objectMapper;
 	private Context context;
@@ -176,8 +178,12 @@ public class NotifyBusinessDelegate {
 		String jsonLd = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(ldnRequestDTO);
 
 		log.info("JSON-LD Request body to ask a review to a service");
+		jsonLd = jsonLd.replace("\"@context\" : {\n" + "    \"@vocab\" : \"http://schema.org/\"\n  }",
+				"\"@context\": [\n    \"https://www.w3.org/ns/activitystreams\",\n"
+						+ "    \"https://purl.org/coar/notify\"\n  ]");
+
 		log.info(jsonLd);
-		
+
 		return jsonLd;
 	}
 
