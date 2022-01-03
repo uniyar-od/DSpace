@@ -269,9 +269,9 @@ public class ScriptRetrieveCitation
                 if (citation != null)
                 {
                     SolrQuery query = new SolrQuery();
-                    query.setQuery("search.unique:" + Constants.ITEM + "-" + citation.getId());
+                    query.setQuery("search.uniqueid:\"" + Constants.ITEM + "-" + citation.getResourceId() +"\"");
                     query.setRows(1);
-                    query.setFields("handle");
+                    query.addField("handle");
                     query.addFilterQuery("search.resourcetype:" + Constants.ITEM);
                     QueryResponse qresp = searcher.search(query);
                     for (SolrDocument doc : qresp.getResults())
