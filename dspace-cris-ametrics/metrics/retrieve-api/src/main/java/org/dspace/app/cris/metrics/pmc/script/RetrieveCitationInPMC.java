@@ -300,9 +300,9 @@ public class RetrieveCitationInPMC
             crisMetrics.setResourceTypeId(Constants.ITEM);
             crisMetrics.setContext(context);
             query = new SolrQuery();
-            query.setQuery("search.unique:" + Constants.ITEM + "-" + itemID);
+            query.setQuery("search.uniqueid:\"" + Constants.ITEM + "-" + itemID +"\"");
             query.setRows(1);
-            query.setFields("handle");
+            query.addField("handle");
             query.addFilterQuery("search.resourcetype:" + Constants.ITEM);
             qresp = searcher.search(query);
             for (SolrDocument doc : qresp.getResults())
