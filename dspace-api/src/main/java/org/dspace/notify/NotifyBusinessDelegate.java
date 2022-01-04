@@ -42,6 +42,7 @@ public class NotifyBusinessDelegate {
 
 	public NotifyBusinessDelegate(Context context) {
 		HttpClientBuilder custom = HttpClients.custom();
+		timeout = timeout == 0 ? 2_000 : timeout;
 		client = custom.disableAutomaticRetries().setMaxConnTotal(5)
 				.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(timeout).build()).build();
 		this.context = context;
@@ -69,8 +70,8 @@ public class NotifyBusinessDelegate {
 			int statusCode = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 			int numberOfTries = 0;
 
-			while (numberOfTries++ < maxNumberOfAttempts && (statusCode < 200 || statusCode > 300)) {
-
+			while (numberOfTries < maxNumberOfAttempts && (statusCode < 200 || statusCode > 300)) {
+				numberOfTries++
 				try {
 					Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
 
