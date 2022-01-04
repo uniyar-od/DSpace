@@ -11,7 +11,7 @@
     <parameters>
       <parameter>
         <name>csv_path</name>
-        <default_value></default_value>
+        <default_value/>
         <description/>
       </parameter>
       <parameter>
@@ -543,13 +543,18 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Join rows (cartesian product)</from>
-      <to>Select values 2</to>
+      <from>Select values 2</from>
+      <to>write csv</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Select values 2</from>
-      <to>write csv</to>
+      <from>Join rows (cartesian product)</from>
+      <to>Add type</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Add type</from>
+      <to>Select values 2</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -1234,33 +1239,43 @@ AND metadata_value.text_value = entity.crisid;</sql>
     <fields>
       <field>
         <name>continent</name>
+        <rename/>
       </field>
       <field>
         <name>submitter</name>
+        <rename/>
       </field>
       <field>
         <name>isBot</name>
+        <rename/>
       </field>
       <field>
         <name>statistics_type</name>
+        <rename/>
       </field>
       <field>
         <name>previousWorkflowStep</name>
+        <rename/>
       </field>
       <field>
         <name>city</name>
+        <rename/>
       </field>
       <field>
         <name>latitude</name>
+        <rename/>
       </field>
       <field>
-        <name>type</name>
+        <name>new_type</name>
+        <rename>type</rename>
       </field>
       <field>
         <name>owningItem</name>
+        <rename/>
       </field>
       <field>
         <name>countryCode</name>
+        <rename/>
       </field>
       <field>
         <name>item_uuid</name>
@@ -1268,45 +1283,59 @@ AND metadata_value.text_value = entity.crisid;</sql>
       </field>
       <field>
         <name>owningComm</name>
+        <rename/>
       </field>
       <field>
         <name>longitude</name>
+        <rename/>
       </field>
       <field>
         <name>workflowItemId</name>
+        <rename/>
       </field>
       <field>
         <name>ip</name>
+        <rename/>
       </field>
       <field>
         <name>workflowStep</name>
+        <rename/>
       </field>
       <field>
         <name>dns</name>
+        <rename/>
       </field>
       <field>
         <name>userAgent</name>
+        <rename/>
       </field>
       <field>
         <name>actor</name>
+        <rename/>
       </field>
       <field>
         <name>referrer</name>
+        <rename/>
       </field>
       <field>
         <name>bundleName</name>
+        <rename/>
       </field>
       <field>
         <name>time</name>
+        <rename/>
       </field>
       <field>
         <name>epersonid</name>
+        <rename/>
       </field>
       <field>
         <name>owningColl</name>
+        <rename/>
       </field>
       <field>
         <name>uid</name>
+        <rename/>
       </field>
       <field>
         <name>uniqueid</name>
@@ -1323,7 +1352,7 @@ AND metadata_value.text_value = entity.crisid;</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>720</xloc>
+      <xloc>864</xloc>
       <yloc>288</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1680,7 +1709,46 @@ AND metadata_value.text_value = entity.crisid;</sql>
       </output>
     </remotesteps>
     <GUI>
-      <xloc>896</xloc>
+      <xloc>1040</xloc>
+      <yloc>288</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Add type</name>
+    <type>Constant</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>new_type</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif>2</nullif>
+        <length>-1</length>
+        <precision>-1</precision>
+        <set_empty_string>N</set_empty_string>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>672</xloc>
       <yloc>288</yloc>
       <draw>Y</draw>
     </GUI>
