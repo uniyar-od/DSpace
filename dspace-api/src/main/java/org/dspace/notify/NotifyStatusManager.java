@@ -3,6 +3,7 @@ package org.dspace.notify;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -44,8 +45,8 @@ public class NotifyStatusManager {
 		}
 	}
 
-	public static HashMap<NotifyStatus, List<Item>> getItemsForEachNotifyStatus() {
-		HashMap<NotifyStatus, List<Item>> itemForEachStatus = new HashMap<>();
+	public static LinkedHashMap<NotifyStatus, List<Item>> getItemsForEachNotifyStatus() {
+		LinkedHashMap<NotifyStatus, List<Item>> itemForEachStatus = new LinkedHashMap<>();
 
 		for (NotifyStatus status : NotifyStatus.getOrderedValues()) {
 			try {
