@@ -143,7 +143,7 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
 
         String entityType = itemService.getEntityType(item);
         try {
-            return crisLayoutBoxService.findEntityBoxes(context, entityType, 1000, 0);
+            return crisLayoutBoxService.findByEntityType(context, entityType, 1000, 0);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
@@ -193,7 +193,7 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         if (Objects.nonNull(currentUser)) {
 
             for (CrisLayoutBox box : notPublicBoxes) {
-                if (hasAccess(context, item, currentUser, box)) {
+                if (crisLayoutBoxAccessService.hasAccess(context, currentUser, box, item)) {
                     return true;
                 }
             }
@@ -226,14 +226,6 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
             .flatMap(box -> getAllMetadataFields(box).stream())
             .map(metadataField -> metadataField.toString('.'))
             .collect(Collectors.toList());
-    }
-
-    private boolean hasAccess(Context context, Item item, EPerson currentUser, CrisLayoutBox box) {
-        try {
-            return crisLayoutBoxAccessService.hasAccess(context, currentUser, box, item);
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        }
     }
 
     private List<CrisLayoutBox> getNotPublicBoxes(MetadataField metadataField, List<CrisLayoutBox> boxes) {

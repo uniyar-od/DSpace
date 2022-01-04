@@ -143,8 +143,6 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                 .createBitstream(context, itemNotVisitedWithBitstreams, toInputStream("test", UTF_8))
                 .withName("BitstreamVisitedName").build();
 
-        loggedInToken = getAuthToken(eperson.getEmail(), password);
-        adminToken = getAuthToken(admin.getEmail(), password);
         EntityTypeBuilder.createEntityTypeBuilder(context, "OrgUnit").build();
         EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build();
         EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
@@ -180,6 +178,10 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                                                            toInputStream("test", UTF_8))
                                           .withName("bitstream2")
                 .build();
+
+        loggedInToken = getAuthToken(eperson.getEmail(), password);
+        adminToken = getAuthToken(admin.getEmail(), password);
+
         context.restoreAuthSystemState();
     }
 

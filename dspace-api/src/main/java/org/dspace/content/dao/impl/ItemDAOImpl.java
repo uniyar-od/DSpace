@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import javax.persistence.Query;
 import javax.persistence.TemporalType;
@@ -441,4 +442,28 @@ public class ItemDAOImpl extends AbstractHibernateDSODAO<Item> implements ItemDA
         return count(query);
 
     }
+
+    @Override
+    public Iterator<Item> findByLikeAuthorityValue(Context context,
+            String likeAuthority, Boolean inArchive) throws SQLException {
+        String allItems = Objects.isNull(inArchive) ? "" : " item.inArchive=:in_archive AND ";
+        Query query = createQuery(context,
+                "SELECT DISTINCT item FROM Item as item join item.metadata metadatavalue "
+                        + "WHERE" + allItems
+                        + " metadatavalue.authority like :authority ORDER BY item.id");
+        if (Objects.nonNull(inArchive)) {
+            query.setParameter("in_archive", inArchive);
+        }
+        query.setParameter("authority", likeAuthority);
+        return iterate(query);
+    }
+
+    @Override
+    public Iterator<Item> findByIds(Context context, List<UUID> ids) throws SQLException {
+        Query query = createQuery(context,
+                "SELECT item " + "FROM Item as item WHERE item.id IN (:ids)");
+        query.setParameter("ids", ids);
+        return iterate(query);
+    }
+
 }

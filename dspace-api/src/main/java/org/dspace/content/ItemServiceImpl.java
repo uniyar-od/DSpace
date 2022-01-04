@@ -1358,6 +1358,12 @@ prevent the generation of resource policy entry values with null dspace_object a
     }
 
     @Override
+    public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
+            Boolean inArchive) throws SQLException {
+        return itemDAO.findByLikeAuthorityValue(context, likeAuthority, inArchive);
+    }
+
+    @Override
     public Iterator<Item> findByMetadataFieldAuthority(Context context, String mdString, String authority)
             throws SQLException, AuthorizeException {
         String[] elements = getElementsFilled(mdString);
@@ -1393,6 +1399,12 @@ prevent the generation of resource policy entry values with null dspace_object a
             log.error(e.getMessage());
             return false;
         }
+    }
+
+    @Override
+    public Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException {
+        return itemDAO.findByIds(context,
+                ids.stream().map(uuid -> UUID.fromString(uuid)).collect(Collectors.toList()));
     }
 
     @Override

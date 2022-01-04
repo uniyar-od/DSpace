@@ -94,7 +94,7 @@ public class MetadataValidator implements SubmissionStepValidator {
                         if (isAuthorityControlled) {
                             String authKey = md.getAuthority();
                             if (metadataAuthorityService.isAuthorityRequired(fieldKey) &&
-                                StringUtils.isNotBlank(authKey)) {
+                                StringUtils.isBlank(authKey)) {
                                 addError(errors, ERROR_VALIDATION_AUTHORITY_REQUIRED,
                                     "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() +
                                     "/" + input.getFieldName() + "/" + md.getPlace());

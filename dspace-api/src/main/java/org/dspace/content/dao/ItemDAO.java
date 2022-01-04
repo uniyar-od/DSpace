@@ -76,6 +76,20 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
     public Iterator<Item> findByAuthorityValue(Context context, MetadataField metadataField, String authority,
                                                boolean inArchive) throws SQLException;
 
+    /**
+     * Find all the items in the archive or not with a given authority key value in LIKE format.
+     * 
+     * @param context         DSpace context object
+     * @param likeAuthority   value that will be used with operator LIKE on field
+     *                        authority, it's possible to enter '%' to improve
+     *                        searching
+     * @param inArchive       true for archived items, null for all items (archived and not)
+     * @return
+     * @throws SQLException   if database error
+     */
+    public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
+            Boolean inArchive) throws SQLException;
+
     public Iterator<Item> findArchivedByCollection(Context context, Collection collection, Integer limit,
                                                    Integer offset) throws SQLException;
 
@@ -183,5 +197,15 @@ public interface ItemDAO extends DSpaceObjectLegacySupportDAO<Item> {
      */
     public int countItems(Context context, EPerson submitter, boolean includeArchived, boolean includeWithdrawn)
         throws SQLException;
+
+    /**
+     * Get all Items matching the given ids.
+     * @param context          context
+     * @param ids              the list of ids
+     * @return result list of items
+     * @throws SQLException
+     */
+    Iterator<Item> findByIds(Context context, List<UUID> ids) throws SQLException;
+
 
 }
