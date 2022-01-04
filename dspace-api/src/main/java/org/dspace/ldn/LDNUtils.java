@@ -195,8 +195,7 @@ public class LDNUtils {
 	public static HashMap<String, String> getServicesAndNames() {
 		HashMap<String, String> map = new HashMap<String, String>();
 		for (String serviceID : getServicesForReviewEndorsement()) {
-			map.put(serviceID,
-					ConfigurationManager.getProperty("ldn-coar-notify", "service." + serviceID + ".name"));
+			map.put(serviceID, ConfigurationManager.getProperty("ldn-coar-notify", "service." + serviceID + ".name"));
 		}
 
 		return map;
@@ -308,11 +307,15 @@ public class LDNUtils {
 		return mimeType;
 	}
 
-	public static String[] getNotifyMetadataValueFromStatus(Item item, NotifyStatus notifyStatus) {
-		Metadatum[] metadatum = item.getMetadata(SCHEMA, ELEMENT, notifyStatus.getQualifierForNotifyStatus(), getDefaultLanguageQualifier());
-		if(metadatum.length>0) {
-			return metadatum[0].value.split(Pattern.quote(METADATA_DELIMITER));
+	public static String[][] getNotifyMetadataValueFromStatus(Item item, NotifyStatus notifyStatus) {
+		Metadatum[] metadatum = item.getMetadata(SCHEMA, ELEMENT, notifyStatus.getQualifierForNotifyStatus(),
+				getDefaultLanguageQualifier());
+		String[][] metadataMatrix = new String[metadatum.length][];
+		String[] splitted;
+		for (int i = 0; i < metadataMatrix.length; i++) {
+			splitted = metadatum[i].value.split(Pattern.quote(METADATA_DELIMITER));
+			metadataMatrix[i] = splitted;
 		}
-		return null;
+		return metadataMatrix;
 	}
 }

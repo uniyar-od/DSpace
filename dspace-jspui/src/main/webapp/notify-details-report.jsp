@@ -8,17 +8,6 @@
 
 --%>
 
-<%--
-  - Display hierarchical list of communities and collections
-  -
-  - Attributes to be passed in:
-  -    communities         - array of communities
-  -    collections.map  - Map where a keys is a community IDs (Integers) and 
-  -                      the value is the array of collections in that community
-  -    subcommunities.map  - Map where a keys is a community IDs (Integers) and 
-  -                      the value is the array of subcommunities in that community
-  -    admin_button - Boolean, show admin 'Create Top-Level Community' button
-  --%>
 
 <%@page import="java.util.Date"%>
 <%@page import="org.dspace.content.DCDate"%>
@@ -98,32 +87,37 @@
 						String[] metadataValueSplitted;
 						for (int i = offset; i < (offset + pageSize) && i < items.length; i++) {
 							Item item = items[i];
-							metadataValueSplitted = LDNUtils.getNotifyMetadataValueFromStatus(item, status);
-
-							requestDate = format.parse(metadataValueSplitted[0]);
+							String[][] matrix = LDNUtils.getNotifyMetadataValueFromStatus(item, status);
 							itemHandleCanonicalForm = HandleManager.getCanonicalForm(item.getHandle());
 				%>
 
 				<li class="media well">
 					<div class="media-body">
-						<span class="h5 pull-left">
+						<div class="h5">
 							<p>
 								<a class="h3" href="<%=itemHandleCanonicalForm%>"><%=item.getName()%></a>
 							</p>
 							<p class="h4">
-								Handle:	<%=item.getHandle()%>
+								<fmt:message key="jsp.coar-notify.handle" />:	<%=item.getHandle()%>
 							</p>
-						</span> 
-						<span class="pull-right">
-							<p class="text-right"><b>Request Date</b></p>
-							<p class="h4">
-								<dspace:date date="<%=new DCDate(requestDate)%>" />
-							</p>
-						</span>
-					</div>
-					<div class="media">
-						<span class="h4 pull-left">Service: <b><%=ConfigurationManager.getProperty("ldn-coar-notify", "service."+metadataValueSplitted[1]+".name")%></b> </span> 
-						
+						</div> 
+					<%
+ 						String borderClass = matrix.length > 1 ? "well" : "";
+ 								for (int row = 0; row < matrix.length; row++) {
+ 									metadataValueSplitted = matrix[row];
+ 									requestDate = format.parse(metadataValueSplitted[0]);
+ 					%>
+						<div class="media <%=borderClass%>">
+							<span class="pull-right">
+								<p class="text-right"><b><fmt:message key="jsp.coar-notify.date" /></b></p>
+								<p class="h4">
+									<dspace:date date="<%=new DCDate(requestDate)%>" />
+								</p>
+							</span>
+							<span class="h4 pull-left"><fmt:message key="jsp.coar-notify.service" />: <b><%=ConfigurationManager.getProperty("ldn-coar-notify", "service."+metadataValueSplitted[1]+".name")%></b> </span> 
+							
+						</div>
+						<% } %>
 					</div>
 				</li>
 				<%

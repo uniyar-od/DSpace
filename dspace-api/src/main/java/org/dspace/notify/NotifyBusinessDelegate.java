@@ -71,7 +71,7 @@ public class NotifyBusinessDelegate {
 			int numberOfTries = 0;
 
 			while (numberOfTries < maxNumberOfAttempts && (statusCode < 200 || statusCode > 300)) {
-				numberOfTries++
+				numberOfTries++;
 				try {
 					Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
 
