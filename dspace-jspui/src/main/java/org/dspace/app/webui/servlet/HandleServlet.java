@@ -28,6 +28,8 @@ import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
@@ -528,6 +530,7 @@ public class HandleServlet extends DSpaceServlet
         request.setAttribute("suggest.enable", suggestEnable);
         request.setAttribute("display.all", displayAll);
         request.setAttribute("item", item);
+        request.setAttribute("is.admin",  AuthorizeServiceFactory.getInstance().getAuthorizeService().isAdmin(context));
         request.setAttribute("collections", collections);
         request.setAttribute("dspace.layout.head", headMetadata);
         request.setAttribute("doi", doi);

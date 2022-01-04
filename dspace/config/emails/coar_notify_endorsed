@@ -1,0 +1,27 @@
+# Notification email sent when an item has been endorsed by a service
+#
+# Parameters: {0} Service Name
+#             {1} Item Name
+#             {2} Service URL
+#             {3} Item URL
+#             {4} Submitter's Name
+#			  {5} Date of the received LDN notification
+# 
+#
+Subject: DSpace: The Service {0} has endorsed the Item "{1}" 
+
+An endorsement announce notification has been received by the service: {0}
+for the Item: {1}
+
+Here is a more detailed report:
+Item: {1}
+Item URL: {3}
+Submitted by: {4}
+
+Has a new status: ENDORSED
+
+By Service: {0}
+Service URL: {2}
+Date: {5}
+
+DSpace

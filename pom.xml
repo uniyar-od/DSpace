@@ -1435,6 +1435,12 @@
                 <artifactId>jackson-annotations</artifactId>
                 <version>${jackson.version}</version>
             </dependency>
+            <!-- Used for mapping java object to Json-ld -->
+			<dependency>
+			    <groupId>de.escalon.hypermedia</groupId>
+			    <artifactId>hydra-jsonld</artifactId>
+			    <version>0.4.2</version>
+			</dependency>
         </dependencies>
     </dependencyManagement>
 

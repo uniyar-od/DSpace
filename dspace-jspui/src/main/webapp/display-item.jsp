@@ -69,7 +69,7 @@
     boolean submitter_button = (submitter_b == null ? false : submitter_b.booleanValue());
     // get the workspace id if one has been passed
     Integer workspace_id = (Integer) request.getAttribute("workspace_id");
-
+	Boolean admin = (Boolean) request.getAttribute("is.admin");
     // get the handle if the item has one yet
     String handle = item.getHandle();
     Context context = UIUtil.obtainContext(request);
@@ -220,7 +220,14 @@
 
     String displayStyle = (displayAll ? "full" : "");
 %>
-    <dspace:item-preview item="<%= item %>" />
+	<%
+		if (admin) {
+	%>
+	<dspace:notify-status handle="<%=handle%>" />
+	<%
+		}
+	%>
+	<dspace:item-preview item="<%= item %>" />
     <dspace:item item="<%= item %>" collections="<%= collections %>" style="<%= displayStyle %>" />
 <div class="container row">
 <%

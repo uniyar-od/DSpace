@@ -587,6 +587,26 @@
       <rtexprvalue>true</rtexprvalue>
     </attribute>
     
-  </tag>  
+  </tag>
+	<tag>
+		<name>notify-status</name>
+		<tagclass>org.dspace.app.webui.jsptag.NotifyStatusTag</tagclass>
+		<bodycontent>empty</bodycontent>
+		<info>
+			Displays a box with the associated Notify status for the specified handle
+		</info>
+
+		<attribute>
+			<name>handle</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>componentTitle</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+
+	</tag> 
 
 </taglib>

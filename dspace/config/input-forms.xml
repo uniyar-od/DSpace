@@ -199,6 +199,17 @@ it, please enter the types and the actual numbers or codes.</hint>
          <hint>Enter any other description or comments in this box. </hint>
          <required></required>
        </field>
+       
+       <field>
+         <dc-schema>coar</dc-schema>
+         <dc-element>notify</dc-element>
+         <dc-qualifier>initialize</dc-qualifier>
+         <repeatable>true</repeatable>
+         <label>Service</label>
+         <input-type value-pairs-name="service_type">list</input-type>
+         <hint>Select the services you want to ask for a review</hint>
+         <required></required>
+       </field>
      </page>
    </form>
 
@@ -401,6 +412,17 @@ it, please enter the types and the actual numbers or codes.</hint>
      </pair>
    </value-pairs>
 
+	<value-pairs value-pairs-name="service_type" dc-term="type">
+		<pair>
+			<displayed-value> Example Review Endorsement - WITH ENDORSEMENT</displayed-value>
+			<stored-value>example.com</stored-value>
+		</pair>
+		<pair>
+			<displayed-value>ldninbox.antleaf.com - NO ENDORSEMENT</displayed-value>
+			<stored-value>ldninbox.antleaf.com/inbox</stored-value>
+		</pair>
+	</value-pairs>
+   
  </form-value-pairs>
 
 </input-forms>
