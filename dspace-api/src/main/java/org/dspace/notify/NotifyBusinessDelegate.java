@@ -104,6 +104,12 @@ public class NotifyBusinessDelegate {
 					} else {
 						log.error(serviceId + " check if service id is properly configured!");
 					}
+					
+					if(statusCode==HttpStatus.SC_BAD_REQUEST) {
+						log.error(serviceId + " Service cannot handle the request");
+						break;
+					}
+					
 					log.info(serviceEndpoint + " has returned " + statusCode);
 					log.info("Response message: " + response.getStatusLine().getReasonPhrase());
 				} catch (Exception e) {
