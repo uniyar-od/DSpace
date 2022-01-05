@@ -28,7 +28,7 @@
  <!-- Each form set contains an ordered set of pages; each page defines    -->
  <!-- one submission metadata entry screen. Each page has an ordered list  -->
  <!-- of field definitions, Each field definition corresponds to one       -->
- <!-- metatdata entry (a so-called row), which has a DC element name, a    -->
+ <!-- metadata entry (a so-called row), which has a DC element name, a    -->
  <!-- displayed label, a text string prompt which is called a hint, and    -->
  <!-- an input-type. Each field also may hold optional elements: DC        -->
  <!-- qualifier name, a repeatable flag, and a text string whose presence  -->
@@ -420,6 +420,14 @@ it, please enter the types and the actual numbers or codes.</hint>
 		<pair>
 			<displayed-value>ldninbox.antleaf.com - NO ENDORSEMENT</displayed-value>
 			<stored-value>ldninbox.antleaf.com/inbox</stored-value>
+		</pair>
+		<pair>
+			<displayed-value>ldn.cottagelabs.com - NO ENDORSEMENT</displayed-value>
+			<stored-value>ldn.cottagelabs.com/inbox</stored-value>
+		</pair>
+		<pair>
+			<displayed-value>compstat.peercommunityin.org - WITH ENDORSEMENT</displayed-value>
+			<stored-value>compstat.peercommunityin.org/coar_notify/inbox</stored-value>
 		</pair>
 	</value-pairs>
    
