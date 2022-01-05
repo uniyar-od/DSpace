@@ -67,7 +67,7 @@ public class LDNInBoxServlet extends DSpaceServlet {
 
 		} catch (Exception e) {
 			logger.error("Error\n" + payloadRequest, e);
-			sendErrorCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response);
+			sendErrorCode(HttpServletResponse.SC_ACCEPTED, response);
 			return;
 		}
 
