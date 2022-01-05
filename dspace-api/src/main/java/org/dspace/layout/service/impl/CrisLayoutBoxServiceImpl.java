@@ -20,7 +20,9 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -55,6 +57,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
 
     @Autowired
     private CrisItemMetricsService crisMetricService;
+
+    @Autowired
+    private ItemService itemService;
 
     public CrisLayoutBoxServiceImpl() {
     }
@@ -151,6 +156,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
                 return hasOrcidSyncBoxContent(context, box, values);
             case "ORCID_AUTHORIZATIONS":
                 return hasOrcidAuthorizationsBoxContent(context, box, values);
+            case "IIIFVIEWER":
+                return itemService.getMetadataFirstValue(item, new MetadataFieldName("dspace.iiif.enabled"),
+                    Item.ANY).equals("true");
             case "METADATA":
             default:
                 return hasMetadataBoxContent(box, values);
