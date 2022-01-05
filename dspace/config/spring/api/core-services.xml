@@ -169,5 +169,7 @@
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolValidatorImpl"/>
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolParserImpl"/>
     
+    <bean class="org.dspace.statistics.WorkflowStatisticsServiceImpl" />
+    
 </beans>
 

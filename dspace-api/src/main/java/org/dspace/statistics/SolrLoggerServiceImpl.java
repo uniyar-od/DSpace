@@ -42,6 +42,7 @@ import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +65,7 @@ import org.apache.solr.client.solrj.request.LukeRequest;
 import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.LukeResponse;
+import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
@@ -921,6 +923,23 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
+    public PivotObjectCount[] queryFacetPivotFields(String query, String filterQuery, List<String> pivotFields, int max,
+        boolean showTotal, List<String> facetQueries, int facetMinCount) throws SolrServerException, IOException {
+
+        QueryResponse queryResponse = query(query, filterQuery, null,
+            0, max, null, null, null, facetQueries, null, false, facetMinCount, true, pivotFields);
+
+        if (queryResponse == null) {
+            return new PivotObjectCount[0];
+        }
+
+        NamedList<List<PivotField>> facetPivotList = queryResponse.getFacetPivot();
+        // TODO parse facetPivotList
+        return new PivotObjectCount[0];
+
+    }
+
+    @Override
     public ObjectCount[] queryFacetDate(String query,
                                         String filterQuery, int max, String dateType, String dateStart,
                                         String dateEnd, boolean showTotal, Context context, int facetMinCount)
@@ -1038,6 +1057,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                                String dateStart, String dateEnd, List<String> facetQueries, String sort,
                                boolean ascending, int facetMinCount, boolean defaultFilterQueries)
             throws SolrServerException, IOException {
+        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
+            ascending, facetMinCount, defaultFilterQueries, List.of());
+    }
+
+    @Override
+    public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
+        String dateStart, String dateEnd, List<String> facetQueries, String sort,
+        boolean ascending, int facetMinCount, boolean defaultFilterQueries, List<String> pivots)
+        throws SolrServerException, IOException {
 
         if (solr == null) {
             return null;
@@ -1074,6 +1102,10 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         if (facetField != null) {
             solrQuery.addFacetField(facetField);
+        }
+
+        if (CollectionUtils.isNotEmpty(pivots)) {
+            solrQuery.addFacetPivotField(pivots.toArray(String[]::new));
         }
 
         // Set the top x of if present
@@ -1677,4 +1709,5 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         throw new UnknownHostException("unknown ip format");
     }
+
 }

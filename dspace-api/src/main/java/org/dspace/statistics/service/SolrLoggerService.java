@@ -21,6 +21,7 @@ import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.statistics.ObjectCount;
+import org.dspace.statistics.PivotObjectCount;
 import org.dspace.usage.UsageWorkflowEvent;
 
 /**
@@ -160,6 +161,30 @@ public interface SolrLoggerService {
         throws SolrServerException, IOException;
 
     /**
+     * Query used to get values grouped by the given facet pivot fields.
+     *
+     * @param  query               the query to be used
+     * @param  filterQuery         filter query
+     * @param  pivotFields         the facet pivot fields on which to group our
+     *                             values
+     * @param  max                 the max number of values given back (in case of
+     *                             10 the top 10 will be given)
+     * @param  showTotal           a boolean determining whether the total amount
+     *                             should be given back as the last element of the
+     *                             array
+     * @param  facetQueries        list of facet queries
+     * @param  facetMinCount       Minimum count of results facet must have to
+     *                             return a result
+     * @return                     an array containing our results
+     * @throws SolrServerException Exception from the Solr server to the solrj Java
+     *                             client.
+     * @throws                     java.io.IOException passed through.
+     */
+    public PivotObjectCount[] queryFacetPivotFields(String query, String filterQuery, List<String> pivotFields,
+        int max, boolean showTotal, List<String> facetQueries, int facetMinCount)
+        throws SolrServerException, IOException;
+
+    /**
      * Query used to get values grouped by the date.
      *
      * @param query       the query to be used
@@ -244,6 +269,34 @@ public interface SolrLoggerService {
                                String dateEnd, List<String> facetQueries, String sort, boolean ascending,
                                int facetMinCount, boolean defaultFilterQueries)
             throws SolrServerException, IOException;
+
+    /**
+     * Perform a solr query.
+     *
+     * @param  query                the query to be used
+     * @param  filterQuery          filter query
+     * @param  facetField           field to facet the results by
+     * @param  rows                 the max number of results to return
+     * @param  max                  the max number of facets to return
+     * @param  dateType             the type to be used (example: DAY, MONTH, YEAR)
+     * @param  dateStart            the start date Format:(-3, -2, ..) the date is
+     *                              calculated relatively on today
+     * @param  dateEnd              the end date stop Format (-2, +1, ..) the date
+     *                              is calculated relatively on today
+     * @param  facetQueries         list of facet queries
+     * @param  sort                 the sort field
+     * @param  ascending            the sort direction (true: ascending)
+     * @param  facetMinCount        Minimum count of results facet must have to
+     *                              return a result
+     * @param  defaultFilterQueries use the default filter queries
+     * @param  pivots               the pivots to apply
+     * @throws SolrServerException  Exception from the Solr server to the solrj Java
+     *                              client.
+     * @throws                      java.io.IOException passed through.
+     */
+    public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
+        String dateStart, String dateEnd, List<String> facetQueries, String sort, boolean ascending, int facetMinCount,
+        boolean defaultFilterQueries, List<String> pivots) throws SolrServerException, IOException;
 
     /**
      * Returns in a filterQuery string all the ip addresses that should be ignored
