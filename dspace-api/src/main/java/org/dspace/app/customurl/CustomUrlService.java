@@ -38,6 +38,14 @@ public interface CustomUrlService {
     List<String> getOldCustomUrls(Item item);
 
     /**
+     * Returns all the custom url (current or old) related to the given item.
+     *
+     * @param  item the item
+     * @return      the custom urls list
+     */
+    List<String> getAllCustomUrls(Item item);
+
+    /**
      * Replace the custom url of the given item with the provided newUrl. If the
      * given item has no custom url, the new url is simply set on it.
      * 
@@ -83,5 +91,17 @@ public interface CustomUrlService {
      *                                  the cardinality of the old custom urls
      */
     void deleteOldCustomUrlByIndex(Context context, Item item, int index);
+
+    /**
+     * Find a single item with the given customUrl, if any.
+     *
+     * @param  context               the DSpace context.
+     * @param  customUrl             the custom url to search for
+     * @return                       the item related to the provided custom url, if
+     *                               any
+     * @throws IllegalStateException if multiple items with the given customUrl are
+     *                               found
+     */
+    Optional<Item> findItemByCustomUrl(Context context, String customUrl);
 
 }

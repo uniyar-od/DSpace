@@ -14,6 +14,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.app.customurl.CustomUrlService;
@@ -22,6 +23,13 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.indexobject.IndexableItem;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -32,8 +40,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class CustomUrlServiceImpl implements CustomUrlService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomUrlServiceImpl.class);
+
     @Autowired
     private ItemService itemService;
+
+    @Autowired
+    private SearchService searchService;
 
     @Override
     public Optional<String> getCustomUrl(Item item) {
@@ -44,6 +57,12 @@ public class CustomUrlServiceImpl implements CustomUrlService {
     public List<String> getOldCustomUrls(Item item) {
         return itemService.getMetadataByMetadataString(item, "cris.customurl.old").stream()
             .map(MetadataValue::getValue)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getAllCustomUrls(Item item) {
+        return Stream.concat(getCustomUrl(item).stream(), getOldCustomUrls(item).stream())
             .collect(Collectors.toList());
     }
 
@@ -98,6 +117,39 @@ public class CustomUrlServiceImpl implements CustomUrlService {
         deleteMetadataValues(context, item, List.of(redirectedUrls.get(index)));
     }
 
+    @Override
+    @SuppressWarnings("rawtypes")
+    public Optional<Item> findItemByCustomUrl(Context context, String customUrl) {
+
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addFilterQueries("customurl:" + customUrl);
+
+        List<IndexableObject> indexableObjects = findIndexableObjects(context, discoverQuery);
+
+        if (CollectionUtils.isEmpty(indexableObjects)) {
+            return Optional.empty();
+        }
+
+        if (indexableObjects.size() > 1) {
+            LOGGER.error("Found many item with the same custom url {} - Ids: {}", customUrl, getIds(indexableObjects));
+            throw new IllegalStateException("Found many item with the same custom url: " + customUrl);
+        }
+
+        return Optional.of(indexableObjects.get(0))
+            .map(indexableObject -> (Item) indexableObject.getIndexedObject());
+
+    }
+
+    @SuppressWarnings("rawtypes")
+    private List<IndexableObject> findIndexableObjects(Context context, DiscoverQuery discoverQuery) {
+        try {
+            return searchService.search(context, discoverQuery).getIndexableObjects();
+        } catch (SearchServiceException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void deleteMetadataValues(Context context, Item item, List<MetadataValue> metadataValues) {
         try {
             itemService.removeMetadataValues(context, item, metadataValues);
@@ -109,6 +161,13 @@ public class CustomUrlServiceImpl implements CustomUrlService {
     private List<MetadataValue> getRedirectedUrlMetadataValuesWithValue(Item item, String value) {
         return itemService.getMetadataByMetadataString(item, "cris.customurl.old").stream()
             .filter(metadataValue -> value.equals(metadataValue.getValue()))
+            .collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("rawtypes")
+    private List<Object> getIds(List<IndexableObject> indexableObjects) {
+        return indexableObjects.stream()
+            .map(IndexableObject::getID)
             .collect(Collectors.toList());
     }
 
