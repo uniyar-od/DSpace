@@ -35,8 +35,11 @@ public class LDNServiceCheckAuthorization {
 		// Authorized IP Addresses
 		tmpList.addAll(Arrays.asList(authorisedIpString));
 		// Authorized Hostnames
+		String ipAddr;
 		for(String tmp:authorisedHostnameString) {
-			tmpList.add(parseHostnameToString(tmp));
+			ipAddr=parseHostnameToString(tmp);
+			tmpList.add(ipAddr);
+			logger.info("Authorized parsed to ip by hostname "+ipAddr);
 		}
 
 		authorizedIpList = tmpList;
@@ -46,7 +49,9 @@ public class LDNServiceCheckAuthorization {
 	}
 
 	public static boolean isHostAuthorized(HttpServletRequest request) {
-		String ipFromRequest = request.getRemoteAddr();
+		String ipFromRequest = getClientIpAddr(request);
+		logger.info("IP ADDRESS OF THE REQUEST " + ipFromRequest);
+		logger.info("LOCALHOST TRUSTED " + isLocalhostTrustedByDefault);
 		if (isLocalhostTrustedByDefault) {
 			try {
 				InetAddress ip = InetAddress.getByName(ipFromRequest);
@@ -69,7 +74,34 @@ public class LDNServiceCheckAuthorization {
 	}
 
 	public static boolean isServiceIdAuthorized(NotifyLDNDTO notifyLDNDTO) {
+		logger.info("Service requesting auhtorizaytion: " + notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
 		return authorizedServiceList.contains(notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
+	}
+
+	public static String getClientIpAddr(HttpServletRequest request) {
+		String ip = request.getHeader("X-Forwarded-For");
+		logger.info("IP X-Forwarded-For " + ip);
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("Proxy-Client-IP");
+			logger.info("IP Proxy-Client-IP " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+			logger.info("IP WL-Proxy-Client-IP " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("HTTP_CLIENT_IP");
+			logger.info("IP HTTP_CLIENT_IP " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+			logger.info("IP HTTP_X_FORWARDED_FOR " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+			logger.info("IP " + ip);
+		}
+		return ip;
 	}
 
 }

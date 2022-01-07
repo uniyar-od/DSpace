@@ -141,7 +141,7 @@ public class NotifyBusinessDelegate {
 		Actor actor = new Actor();
 		actor.setId(DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.url"));
 		actor.setName(DSpaceServicesFactory.getInstance().getConfigurationService().getProperty("dspace.name"));
-		actor.setType("Service");
+		actor.setType(new String[]{"Service"});
 		ldnRequestDTO.setActor(actor);
 
 		NotifyLDNDTO.Object object = new Object();
@@ -160,13 +160,13 @@ public class NotifyBusinessDelegate {
 		Origin origin = new Origin();
 		origin.setId(localLDNInBoxEndpoint);
 		origin.setInbox(localLDNInBoxEndpoint);
-		origin.setType("Service");
+		origin.setType(new String[]{"Service"});
 		ldnRequestDTO.setOrigin(origin);
 
 		Target target = new Target();
 		target.setId(serviceId);
 		target.setInbox(endpoint);
-		target.setType("Service");
+		target.setType(new String[]{"Service"});
 		ldnRequestDTO.setTarget(target);
 
 		ldnRequestDTO.setType(new String[] { "Offer", "coar-notify:ReviewAction" });
