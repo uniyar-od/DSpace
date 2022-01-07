@@ -42,7 +42,7 @@ import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -571,6 +571,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             }
 
             solr.add(solrDoc);
+
+            // commits are executed automatically using the solr autocommit
+            boolean useAutoCommit = configurationService.getBooleanProperty("solr-statistics.autoCommit", true);
+            if (!useAutoCommit) {
+                solr.commit(false, false);
+            }
+
         } catch (Exception e) {
             //Log the exception, no need to send it through, the workflow shouldn't crash because of this !
             log.error("Error saving WORKFLOW event to Solr", e);
@@ -923,20 +930,31 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public PivotObjectCount[] queryFacetPivotFields(String query, String filterQuery, List<String> pivotFields, int max,
+    public PivotObjectCount[] queryFacetPivotField(String query, String filterQuery, String pivotField, int max,
         boolean showTotal, List<String> facetQueries, int facetMinCount) throws SolrServerException, IOException {
 
         QueryResponse queryResponse = query(query, filterQuery, null,
-            0, max, null, null, null, facetQueries, null, false, facetMinCount, true, pivotFields);
+            0, max, null, null, null, facetQueries, null, false, facetMinCount, true, pivotField);
 
         if (queryResponse == null) {
             return new PivotObjectCount[0];
         }
 
-        NamedList<List<PivotField>> facetPivotList = queryResponse.getFacetPivot();
-        // TODO parse facetPivotList
-        return new PivotObjectCount[0];
+        return parsePivotFields(queryResponse.getFacetPivot().get(pivotField));
 
+    }
+
+    private PivotObjectCount[] parsePivotFields(List<PivotField> pivotField) {
+        return ListUtils.emptyIfNull(pivotField).stream()
+            .map(this::parsePivotField)
+            .toArray(PivotObjectCount[]::new);
+    }
+
+    private PivotObjectCount parsePivotField(PivotField pivotField) {
+        int count = pivotField.getCount();
+        String value = String.valueOf(pivotField.getValue());
+        PivotObjectCount[] pivot = parsePivotFields(pivotField.getPivot());
+        return new PivotObjectCount(count, value, pivot);
     }
 
     @Override
@@ -1058,13 +1076,13 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                                boolean ascending, int facetMinCount, boolean defaultFilterQueries)
             throws SolrServerException, IOException {
         return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
-            ascending, facetMinCount, defaultFilterQueries, List.of());
+            ascending, facetMinCount, defaultFilterQueries, null);
     }
 
     @Override
     public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
         String dateStart, String dateEnd, List<String> facetQueries, String sort,
-        boolean ascending, int facetMinCount, boolean defaultFilterQueries, List<String> pivots)
+        boolean ascending, int facetMinCount, boolean defaultFilterQueries, String pivotField)
         throws SolrServerException, IOException {
 
         if (solr == null) {
@@ -1104,13 +1122,17 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             solrQuery.addFacetField(facetField);
         }
 
-        if (CollectionUtils.isNotEmpty(pivots)) {
-            solrQuery.addFacetPivotField(pivots.toArray(String[]::new));
+        if (pivotField != null) {
+            solrQuery.addFacetPivotField(pivotField);
         }
 
         // Set the top x of if present
         if (max != -1) {
-            solrQuery.setFacetLimit(max);
+            if (pivotField == null) {
+                solrQuery.setFacetLimit(max);
+            } else {
+                solrQuery.set("f." + pivotField.split(",")[0].trim() + ".facet.limit", max);
+            }
         }
 
         // A filter is used instead of a regular query to improve

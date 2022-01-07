@@ -9,60 +9,156 @@ package org.dspace.app.rest;
 
 import static org.apache.commons.lang3.time.DateUtils.addDays;
 import static org.dspace.app.rest.matcher.WorkflowOwnerStatisticsMatcher.match;
+import static org.dspace.app.rest.matcher.WorkflowOwnerStatisticsMatcher.matchActionCount;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import org.dspace.app.rest.repository.WorkflowOwnerStatisticsRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
+import org.dspace.authorize.AuthorizeException;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.EntityTypeBuilder;
+import org.dspace.builder.RelationshipTypeBuilder;
+import org.dspace.builder.WorkflowItemBuilder;
+import org.dspace.content.Collection;
+import org.dspace.content.EntityType;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
+import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
+import org.dspace.xmlworkflow.storedcomponents.PoolTask;
+import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
+import org.dspace.xmlworkflow.storedcomponents.service.ClaimedTaskService;
+import org.dspace.xmlworkflow.storedcomponents.service.PoolTaskService;
+import org.dspace.xmlworkflow.storedcomponents.service.XmlWorkflowItemService;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.rest.webmvc.RestMediaTypes;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 
 public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ConfigurationService configurationService;
 
+    @Autowired
+    private ClaimedTaskService claimedTaskService;
+
+    @Autowired
+    private PoolTaskService poolTaskService;
+
+    @Autowired
+    private XmlWorkflowItemService workflowItemService;
+
+    private Collection collection;
+
+    private EPerson firstUser;
+
+    private EPerson secondUser;
+
+    private EPerson thirdUser;
+
     @Before
-    public void setup() {
+    public void setup() throws Exception {
+
         configurationService.setProperty("solr-statistics.autoCommit", false);
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        firstUser = createEPerson("user1@email.com", "First", "User");
+        secondUser = createEPerson("user2@email.com", "Second", "User");
+        thirdUser = createEPerson("user3@email.com", "Third", "User");
+
+        collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withWorkflow("defaultWorkflow")
+            .withName("Publications")
+            .withEntityType("Publication")
+            .withWorkflowGroup("reviewer", firstUser, secondUser)
+            .withWorkflowGroup("editor", firstUser, thirdUser)
+            .build();
+
+        EntityType publicationType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+
+        context.setCurrentUser(eperson);
+
+        context.restoreAuthSystemState();
+
+    }
+
+    @After
+    public void after() throws SQLException, IOException, AuthorizeException {
+        context.turnOffAuthorisationSystem();
+        workflowItemService.deleteByCollection(context, collection);
+        context.restoreAuthSystemState();
     }
 
     @Test
     public void testSearchByDateRangeWithoutParameters() throws Exception {
 
         context.turnOffAuthorisationSystem();
-        EPerson firstUser = createEPerson("user1@email.com", "First", "User");
-        EPerson secondUser = createEPerson("user2@email.com", "Second", "User");
-        EPerson thirdUser = createEPerson("user3@email.com", "Third", "User");
-        EPerson fourthUser = createEPerson("user4@email.com", "Fourth", "User");
-        context.restoreAuthSystemState();
 
-        loginManyTimes(firstUser, 3);
-        loginManyTimes(secondUser, 5);
-        loginManyTimes(thirdUser, 2);
-        loginManyTimes(fourthUser, 0);
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+
+        claimTaskAndApprove(secondWorkflowItem, secondUser);
+        claimTaskAndReject(secondWorkflowItem, thirdUser, "bad item");
+
+        claimTask(thirdWorkflowItem, secondUser);
+
+        claimTaskAndApprove(fourthWorkflowItem, firstUser);
+        claimTaskAndApprove(fourthWorkflowItem, thirdUser);
+
+        context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(4)))
+            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(3)))
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(
-                match("Second User", 5),
-                match("First User", 3),
-                match("Third User", 2),
-                match("first (admin) last (admin)", 1))));
+                match(firstUser.getID().toString(), "First User", 6),
+                match(thirdUser.getID().toString(), "Third User", 4),
+                match(secondUser.getID().toString(), "Second User", 3))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
+                matchActionCount("defaultWorkflow.editstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.editstep.editaction", 2))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[2]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))));
 
     }
 
@@ -70,16 +166,24 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
     public void testSearchByDateRangeWithLimit() throws Exception {
 
         context.turnOffAuthorisationSystem();
-        EPerson firstUser = createEPerson("user1@email.com", "First", "User");
-        EPerson secondUser = createEPerson("user2@email.com", "Second", "User");
-        EPerson thirdUser = createEPerson("user3@email.com", "Third", "User");
-        EPerson fourthUser = createEPerson("user4@email.com", "Fourth", "User");
-        context.restoreAuthSystemState();
 
-        loginManyTimes(firstUser, 3);
-        loginManyTimes(secondUser, 5);
-        loginManyTimes(thirdUser, 2);
-        loginManyTimes(fourthUser, 0);
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+
+        claimTaskAndApprove(secondWorkflowItem, secondUser);
+        claimTaskAndReject(secondWorkflowItem, thirdUser, "bad item");
+
+        claimTask(thirdWorkflowItem, secondUser);
+
+        claimTaskAndApprove(fourthWorkflowItem, firstUser);
+        claimTaskAndApprove(fourthWorkflowItem, thirdUser);
+
+        context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -88,13 +192,30 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(
-                match("Second User", 5),
-                match("First User", 3))));
+                match(firstUser.getID().toString(), "First User", 6),
+                match(thirdUser.getID().toString(), "Third User", 4))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
+                matchActionCount("defaultWorkflow.editstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.editstep.editaction", 2))));
 
     }
 
     @Test
     public void testSearchByDateRange() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+
+        context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
@@ -102,20 +223,35 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .param("startDate", formatDate(addDays(new Date(), -1)))
             .param("endDate", formatDate(addDays(new Date(), 1))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
-                match("first (admin) last (admin)", 1))));
+            .andExpect(jsonPath("$._embedded.workflowOwners",
+                contains(match(firstUser.getID().toString(), "First User", 4))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("endDate", formatDate(addDays(new Date(), 1))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
-                match("first (admin) last (admin)", 1))));
+            .andExpect(jsonPath("$._embedded.workflowOwners",
+                contains(match(firstUser.getID().toString(), "First User", 4))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("startDate", formatDate(addDays(new Date(), -1))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
-                match("first (admin) last (admin)", 1))));
+            .andExpect(jsonPath("$._embedded.workflowOwners",
+                contains(match(firstUser.getID().toString(), "First User", 4))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("startDate", formatDate(addDays(new Date(), 1)))
@@ -138,6 +274,121 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .param("endDate", formatDate(addDays(new Date(), -1))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowOwners").doesNotExist());
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithCollectionScope() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection anotherCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withWorkflow("defaultWorkflow")
+            .withName("Publications 2")
+            .withEntityType("Publication")
+            .withWorkflowGroup("reviewer", firstUser, secondUser)
+            .withWorkflowGroup("editor", firstUser, thirdUser)
+            .build();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(anotherCollection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(anotherCollection);
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+
+        claimTaskAndApprove(secondWorkflowItem, secondUser);
+        claimTaskAndReject(secondWorkflowItem, thirdUser, "bad item");
+
+        claimTask(thirdWorkflowItem, secondUser);
+
+        claimTaskAndApprove(fourthWorkflowItem, firstUser);
+        claimTaskAndApprove(fourthWorkflowItem, thirdUser);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
+                match(firstUser.getID().toString(), "First User", 6),
+                match(thirdUser.getID().toString(), "Third User", 4),
+                match(secondUser.getID().toString(), "Second User", 3))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
+                matchActionCount("defaultWorkflow.editstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.editstep.editaction", 2))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[2]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
+            .param("collection", collection.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
+                match(firstUser.getID().toString(), "First User", 6),
+                match(thirdUser.getID().toString(), "Third User", 2))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
+            .param("collection", anotherCollection.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
+                match(secondUser.getID().toString(), "Second User", 3),
+                match(thirdUser.getID().toString(), "Third User", 2))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
+                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
+                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
+            .param("collection", anotherCollection.getID().toString())
+            .param("size", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(1)))
+            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
+                match(secondUser.getID().toString(), "Second User", 3))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
+                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))));
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithNotFoundCollectionScope() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
+            .param("collection", UUID.randomUUID().toString()))
+            .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithInvalidCollectionScope() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
+            .param("collection", "invalid"))
+            .andExpect(status().isBadRequest());
 
     }
 
@@ -170,28 +421,37 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
     public void testFindOne() throws Exception {
 
         context.turnOffAuthorisationSystem();
-        EPerson user = createEPerson("user1@email.com", "First", "User");
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+
+        claimTaskAndApprove(secondWorkflowItem, firstUser);
+        claimTaskAndApprove(secondWorkflowItem, thirdUser);
+
         context.restoreAuthSystemState();
 
-        loginManyTimes(user, 3);
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        getClient(adminToken).perform(get("/api/statistics/workflowOwners/" + user.getID()))
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/" + firstUser.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", match("First User", 3)));
+            .andExpect(jsonPath("$", match(firstUser.getID().toString(), "First User", 6)))
+            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.reviewstep.claimaction", 2)))
+            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2)))
+            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.editstep.claimaction", 1)))
+            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.editstep.editaction", 1)));
+
     }
 
     @Test
     public void testFindOneWithoutWorkflowOwner() throws Exception {
 
-        context.turnOffAuthorisationSystem();
-        EPerson user = createEPerson("user1@email.com", "First", "User");
-        context.restoreAuthSystemState();
-
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        getClient(adminToken).perform(get("/api/statistics/workflowOwners/" + user.getID().toString()))
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/" + firstUser.getID().toString()))
             .andExpect(status().isNotFound());
     }
 
@@ -217,10 +477,67 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
         return WorkflowOwnerStatisticsRestRepository.DATE_FORMATTER.format(date);
     }
 
-    private void loginManyTimes(EPerson user, int times) throws Exception {
-        for (int i = 0; i < times; i++) {
-            getAuthToken(user.getEmail(), password);
-        }
+    private void claimTaskAndApprove(XmlWorkflowItem workflowItem, EPerson user) throws Exception {
+        ClaimedTask claimedTask = claimTask(workflowItem, user);
+        approveClaimedTaskViaRest(user, claimedTask);
+    }
+
+    private void claimTaskAndReject(XmlWorkflowItem workflowItem, EPerson user, String reason) throws Exception {
+        ClaimedTask claimedTask = claimTask(workflowItem, user);
+        rejectClaimedTaskViaRest(user, claimedTask, reason);
+    }
+
+    private ClaimedTask claimTask(XmlWorkflowItem workflowItem, EPerson user)
+        throws SQLException, Exception {
+        List<PoolTask> poolTasks = poolTaskService.find(context, workflowItem);
+        assertThat(poolTasks, hasSize(1));
+
+        PoolTask poolTask = poolTasks.get(0);
+        performActionOnPoolTaskViaRest(user, poolTask);
+
+        ClaimedTask claimedTask = claimedTaskService.findByWorkflowIdAndEPerson(context, workflowItem, user);
+        assertThat(claimedTask, notNullValue());
+
+        return claimedTask;
+    }
+
+    private void rejectClaimedTaskViaRest(EPerson user, ClaimedTask task, String reason) throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+        params.add("submit_reject", "submit_reject");
+        params.add("reason", reason);
+        performActionOnClaimedTaskViaRest(user, task, params);
+    }
+
+    private void approveClaimedTaskViaRest(EPerson user, ClaimedTask task) throws Exception {
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+        params.add("submit_approve", "submit_approve");
+        performActionOnClaimedTaskViaRest(user, task, params);
+    }
+
+    private void performActionOnClaimedTaskViaRest(EPerson user, ClaimedTask task, MultiValueMap<String, String> params)
+        throws Exception {
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(post(BASE_REST_SERVER_URL + "/api/workflow/claimedtasks/{id}", task.getID()).params(params)
+                .contentType("application/x-www-form-urlencoded"))
+            .andExpect(status().isNoContent());
+
+    }
+
+    private void performActionOnPoolTaskViaRest(EPerson user, PoolTask task) throws Exception {
+        getClient(getAuthToken(user.getEmail(), password)).perform(post("/api/workflow/claimedtasks")
+            .contentType(RestMediaTypes.TEXT_URI_LIST)
+            .content("/api/workflow/pooltasks/" + task.getID()))
+            .andExpect(status().isCreated());
+    }
+
+    private XmlWorkflowItem createWorkflowItem(Collection collection) throws IOException {
+        return WorkflowItemBuilder.createWorkflowItem(context, collection)
+            .withTitle("My Publication")
+            .withIssueDate("2017-10-17")
+            .withAuthor("Mario Rossi")
+            .grantLicense()
+            .build();
     }
 
     private EPerson createEPerson(String email, String firstName, String lastName) throws SQLException {

@@ -165,7 +165,7 @@ public interface SolrLoggerService {
      *
      * @param  query               the query to be used
      * @param  filterQuery         filter query
-     * @param  pivotFields         the facet pivot fields on which to group our
+     * @param  pivotField          the facet pivot field on which to group our
      *                             values
      * @param  max                 the max number of values given back (in case of
      *                             10 the top 10 will be given)
@@ -180,7 +180,7 @@ public interface SolrLoggerService {
      *                             client.
      * @throws                     java.io.IOException passed through.
      */
-    public PivotObjectCount[] queryFacetPivotFields(String query, String filterQuery, List<String> pivotFields,
+    public PivotObjectCount[] queryFacetPivotField(String query, String filterQuery, String pivotField,
         int max, boolean showTotal, List<String> facetQueries, int facetMinCount)
         throws SolrServerException, IOException;
 
@@ -289,14 +289,14 @@ public interface SolrLoggerService {
      * @param  facetMinCount        Minimum count of results facet must have to
      *                              return a result
      * @param  defaultFilterQueries use the default filter queries
-     * @param  pivots               the pivots to apply
+     * @param  pivotField           the pivot field to apply
      * @throws SolrServerException  Exception from the Solr server to the solrj Java
      *                              client.
      * @throws                      java.io.IOException passed through.
      */
     public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
         String dateStart, String dateEnd, List<String> facetQueries, String sort, boolean ascending, int facetMinCount,
-        boolean defaultFilterQueries, List<String> pivots) throws SolrServerException, IOException;
+        boolean defaultFilterQueries, String pivotField) throws SolrServerException, IOException;
 
     /**
      * Returns in a filterQuery string all the ip addresses that should be ignored

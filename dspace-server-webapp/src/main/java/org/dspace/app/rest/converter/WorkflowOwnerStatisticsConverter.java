@@ -27,8 +27,10 @@ public class WorkflowOwnerStatisticsConverter
     public WorkflowOwnerStatisticsRest convert(WorkflowOwnerStatistics modelObject, Projection projection) {
         WorkflowOwnerStatisticsRest rest = new WorkflowOwnerStatisticsRest();
         rest.setProjection(projection);
+        rest.setId(modelObject.getOwner().getID().toString());
         rest.setName(modelObject.getOwnerName());
         rest.setCount(modelObject.getCount());
+        rest.setActionCounts(modelObject.getActionCounts());
         return rest;
     }
 

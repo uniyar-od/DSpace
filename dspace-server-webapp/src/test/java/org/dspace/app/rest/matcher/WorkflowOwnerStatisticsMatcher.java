@@ -22,8 +22,13 @@ public final class WorkflowOwnerStatisticsMatcher {
 
     }
 
-    public static Matcher<? super Object> match(String name, int count) {
-        return allOf(hasJsonPath("$.name", is(name)),
+    public static Matcher<? super Object> match(String id, String name, int count) {
+        return allOf(hasJsonPath("$.id", is(id)),
+            hasJsonPath("$.name", is(name)),
             hasJsonPath("$.count", is(count)));
+    }
+
+    public static Matcher<? super Object> matchActionCount(String action, int count) {
+        return hasJsonPath("$.actionCounts['" + action + "']", is(count));
     }
 }

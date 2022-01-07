@@ -10,6 +10,7 @@ package org.dspace.app.rest.repository;
 import static java.lang.Math.toIntExact;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,9 +25,12 @@ import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.StatisticsSupportRest;
 import org.dspace.app.rest.model.WorkflowOwnerStatisticsRest;
 import org.dspace.content.Collection;
+import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.statistics.WorkflowOwnerStatistics;
 import org.dspace.statistics.service.WorkflowStatisticsService;
+import org.dspace.util.UUIDUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -47,12 +51,14 @@ public class WorkflowOwnerStatisticsRestRepository extends DSpaceRestRepository<
     @Autowired
     private WorkflowStatisticsService workflowOwnerStatisticsService;
 
+    @Autowired
+    private CollectionService collectionService;
+
     @Override
     @PreAuthorize("hasAuthority('ADMIN')")
     public WorkflowOwnerStatisticsRest findOne(Context context, UUID id) {
         return workflowOwnerStatisticsService.findOwnerStatistics(context, id)
-            .map(workflowOwnerStatistics -> (WorkflowOwnerStatisticsRest) converter.toRest(workflowOwnerStatistics,
-                utils.obtainProjection()))
+            .map(this::convertToRest)
             .orElse(null);
     }
 
@@ -66,6 +72,9 @@ public class WorkflowOwnerStatisticsRestRepository extends DSpaceRestRepository<
         Context context = obtainContext();
 
         Collection collection = findCollection(collectionId);
+        if (isNotBlank(collectionId) && collection == null) {
+            throw new IllegalArgumentException("No collection found by id equals to " + collectionId);
+        }
 
         List<WorkflowOwnerStatistics> statistics = workflowOwnerStatisticsService.findOwnersByDateRange(context,
             parseDate(startDate), parseDate(endDate), collection, toIntExact(pageable.getPageSize()));
@@ -79,8 +88,11 @@ public class WorkflowOwnerStatisticsRestRepository extends DSpaceRestRepository<
     }
 
     private Collection findCollection(String collectionId) {
-        // TODO Auto-generated method stub
-        return null;
+        try {
+            return collectionService.find(obtainContext(), UUIDUtils.fromString(collectionId));
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     private Date parseDate(String date) {
@@ -89,6 +101,10 @@ public class WorkflowOwnerStatisticsRestRepository extends DSpaceRestRepository<
         } catch (ParseException e) {
             throw new UnprocessableEntityException("The provided date has not a valid format. Expected: yyyy-MM-dd", e);
         }
+    }
+
+    private WorkflowOwnerStatisticsRest convertToRest(WorkflowOwnerStatistics workflowOwnerStatistics) {
+        return converter.toRest(workflowOwnerStatistics, utils.obtainProjection());
     }
 
     @Override

@@ -531,8 +531,12 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             } finally {
                 if ((nextStep != null && currentStep != null && nextActionConfig != null)
                         || (wfi.getItem().isArchived() && currentStep != null)) {
+
+                    EPerson actor = currentActionConfig.requiresUI() ? user : null;
+
                     logWorkflowEvent(c, currentStep.getWorkflow().getID(), currentStep.getId(),
-                                     currentActionConfig.getId(), wfi, user, nextStep, nextActionConfig);
+                        currentActionConfig.getId(), wfi, actor, nextStep, nextActionConfig);
+
                 }
             }
 

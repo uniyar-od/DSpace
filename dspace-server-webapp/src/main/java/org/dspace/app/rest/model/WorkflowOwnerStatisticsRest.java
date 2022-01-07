@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.model;
 
+import java.util.Map;
+
 import org.dspace.app.rest.RestResourceController;
 
 /**
@@ -24,6 +26,8 @@ public class WorkflowOwnerStatisticsRest extends BaseObjectRest<String> {
     private String name;
 
     private long count;
+
+    private Map<String, Long> actionCounts;
 
     public String getName() {
         return name;
@@ -54,6 +58,20 @@ public class WorkflowOwnerStatisticsRest extends BaseObjectRest<String> {
     @Override
     public Class getController() {
         return RestResourceController.class;
+    }
+
+    /**
+     * @return the actionCounts
+     */
+    public Map<String, Long> getActionCounts() {
+        return actionCounts;
+    }
+
+    /**
+     * @param actionCounts the actionCounts to set
+     */
+    public void setActionCounts(Map<String, Long> actionCounts) {
+        this.actionCounts = actionCounts;
     }
 
 }
