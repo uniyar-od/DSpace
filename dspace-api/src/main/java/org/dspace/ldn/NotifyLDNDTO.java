@@ -116,7 +116,7 @@ public class NotifyLDNDTO {
 		private String ietfCiteAs;
 
 		@JsonProperty("type")
-		private String type;
+		private String[] type;
 
 		@JsonProperty("url")
 		private Url url;
@@ -137,11 +137,11 @@ public class NotifyLDNDTO {
 			this.ietfCiteAs = ietfCiteAs;
 		}
 
-		public String getType() {
+		public String[] getType() {
 			return type;
 		}
 
-		public void setType(String type) {
+		public void setType(String[] type) {
 			this.type = type;
 		}
 
@@ -203,7 +203,7 @@ public class NotifyLDNDTO {
 		private String name;
 
 		@JsonProperty("type")
-		private String type;
+		private String[] type;
 
 		public String getId() {
 			return id;
@@ -221,11 +221,11 @@ public class NotifyLDNDTO {
 			this.name = name;
 		}
 
-		public String getType() {
+		public String[] getType() {
 			return type;
 		}
 
-		public void setType(String type) {
+		public void setType(String[] type) {
 			this.type = type;
 		}
 
@@ -327,7 +327,7 @@ public class NotifyLDNDTO {
 		private String inbox;
 
 		@JsonProperty("type")
-		private String type;
+		private String[] type;
 
 		public String getId() {
 			return id;
@@ -349,11 +349,11 @@ public class NotifyLDNDTO {
 			this.inbox = inbox;
 		}
 
-		public String getType() {
+		public String[] getType() {
 			return type;
 		}
 
-		public void setType(String type) {
+		public void setType(String[] type) {
 			this.type = type;
 		}
 
@@ -369,7 +369,7 @@ public class NotifyLDNDTO {
 		private String inbox;
 
 		@JsonProperty("type")
-		private String type;
+		private String[] type;
 
 		public String getId() {
 			return id;
@@ -387,11 +387,11 @@ public class NotifyLDNDTO {
 			this.inbox = inbox;
 		}
 
-		public String getType() {
+		public String[] getType() {
 			return type;
 		}
 
-		public void setType(String type) {
+		public void setType(String[] type) {
 			this.type = type;
 		}
 	}
