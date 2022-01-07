@@ -38,6 +38,7 @@ public class LDNServiceCheckAuthorization {
 				String[] ipArray = authorisedIpString.split(",");
 				for (String tmpIp : ipArray) {
 					tmpList.add(tmpIp);
+					logger.info("Authorized ip "+tmpIp);
 				}
 			} else {
 				tmpList.add(authorisedIpString);
@@ -48,8 +49,11 @@ public class LDNServiceCheckAuthorization {
 		if (StringUtils.isNotEmpty(authorisedHostnameString)) {
 			if (authorisedHostnameString.contains(",")) {
 				String[] hostnameArray = authorisedHostnameString.split(",");
+				String ipAddr;
 				for (String hostname : hostnameArray) {
-					tmpList.add(parseHostnameToString(hostname));
+					ipAddr=parseHostnameToString(hostname);
+					tmpList.add(ipAddr);
+					logger.info("Authorized parsed to ip by hostname "+ipAddr);
 				}
 			} else {
 				tmpList.add(parseHostnameToString(authorisedHostnameString));
@@ -64,6 +68,8 @@ public class LDNServiceCheckAuthorization {
 
 	public static boolean isHostAuthorized(HttpServletRequest request) {
 		String ipFromRequest = request.getRemoteAddr();
+		logger.info("IP ADDRESS OF THE REQUEST "+ipFromRequest);
+		logger.info("LOCALHOST TRUSTED "+isLocalhostTrustedByDefault);
 		if (isLocalhostTrustedByDefault) {
 			try {
 				InetAddress ip = InetAddress.getByName(ipFromRequest);
@@ -86,6 +92,7 @@ public class LDNServiceCheckAuthorization {
 	}
 
 	public static boolean isServiceIdAuthorized(NotifyLDNDTO notifyLDNDTO) {
+		logger.info("Service requesting auhtorizaytion: "+notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
 		return authorizedServiceList.contains(notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
 	}
 

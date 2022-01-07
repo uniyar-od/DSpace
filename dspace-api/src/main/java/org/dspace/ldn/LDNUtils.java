@@ -188,6 +188,7 @@ public class LDNUtils {
 		services = serviceEndpoint.split(",");
 		for (int i = 0; i < services.length; i++) {
 			services[i] = services[i].trim();
+			logger.info("Authorized service: "+services[i]);
 		}
 		return services;
 	}
