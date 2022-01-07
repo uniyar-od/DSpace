@@ -9,7 +9,6 @@ package org.dspace.app.customurl.consumer;
 
 import static org.apache.commons.lang3.ArrayUtils.contains;
 import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.normalizeSpace;
 import static org.apache.commons.lang3.StringUtils.stripAccents;
 
@@ -86,7 +85,7 @@ public class CustomUrlConsumer implements Consumer {
     }
 
     private boolean hasAlreadyCustomUrl(Item item) {
-        return isNotBlank(customUrlService.getCustomUrl(item));
+        return customUrlService.getCustomUrl(item).isPresent();
     }
 
     private Optional<String> generateCustomUrl(Item item) {

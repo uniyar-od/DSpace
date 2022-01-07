@@ -7,44 +7,30 @@
  */
 package org.dspace.app.rest.submit.factory.impl;
 
-import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
 import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.rest.model.step.CustomUrl;
 import org.dspace.content.InProgressSubmission;
-import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * Operation to replace custom defined URL.
+ * Operation to add redirected URL.
  *
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  *
  */
-public class CustomUrlReplaceOperation extends ReplacePatchOperation<CustomUrl> {
+public class RedirectedUrlAddOperation extends AddPatchOperation<CustomUrl> {
 
     @Autowired
     private CustomUrlService customUrlService;
 
     @Override
     @SuppressWarnings("rawtypes")
-    void replace(Context context, HttpServletRequest currentRequest, InProgressSubmission source, String path,
+    void add(Context context, HttpServletRequest currentRequest, InProgressSubmission source, String path,
         Object value) throws Exception {
-
-        Item item = source.getItem();
-
-        String newUrl = (String) value;
-        Optional<String> currentUrl = customUrlService.getCustomUrl(item);
-
-        if (currentUrl.isPresent() && currentUrl.get().equals(newUrl)) {
-            return;
-        }
-
-        customUrlService.deleteAnyOldCustomUrlEqualsTo(context, item, newUrl);
-        customUrlService.replaceCustomUrl(context, item, newUrl);
-
+        customUrlService.addOldCustomUrl(context, source.getItem(), (String) value);
     }
 
     @Override

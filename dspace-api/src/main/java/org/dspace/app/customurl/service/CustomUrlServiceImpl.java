@@ -7,10 +7,12 @@
  */
 package org.dspace.app.customurl.service;
 
+import static java.util.Optional.ofNullable;
 import static org.dspace.content.Item.ANY;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -34,8 +36,8 @@ public class CustomUrlServiceImpl implements CustomUrlService {
     private ItemService itemService;
 
     @Override
-    public String getCustomUrl(Item item) {
-        return itemService.getMetadataFirstValue(item, "cris", "customurl", null, Item.ANY);
+    public Optional<String> getCustomUrl(Item item) {
+        return ofNullable(itemService.getMetadataFirstValue(item, "cris", "customurl", null, Item.ANY));
     }
 
     @Override
@@ -106,7 +108,7 @@ public class CustomUrlServiceImpl implements CustomUrlService {
 
     private List<MetadataValue> getRedirectedUrlMetadataValuesWithValue(Item item, String value) {
         return itemService.getMetadataByMetadataString(item, "cris.customurl.old").stream()
-            .filter(metadataValue -> metadataValue.getValue().equals(value))
+            .filter(metadataValue -> value.equals(metadataValue.getValue()))
             .collect(Collectors.toList());
     }
 

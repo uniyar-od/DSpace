@@ -11,6 +11,7 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -21,6 +22,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import javax.ws.rs.core.MediaType;
 
+import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.RemoveOperation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
@@ -95,7 +97,7 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.errors").doesNotExist())
             .andExpect(jsonPath("$.sections.custom-url.url", is("my-custom-url-updated")))
-            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("my-custom-url")));
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotHaveJsonPath());
 
         replaceOperation = new ReplaceOperation("/sections/custom-url/url", "new.url");
 
@@ -106,8 +108,7 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.errors").doesNotExist())
             .andExpect(jsonPath("$.sections.custom-url.url", is("new.url")))
-            .andExpect(jsonPath("$.sections.custom-url.redirected-urls",
-                contains("my-custom-url", "my-custom-url-updated")));
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotHaveJsonPath());
 
     }
 
@@ -191,8 +192,8 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.errors[?(@.message=='error.validation.custom-url.empty')]",
                 contains(hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/custom-url/url")))))))
-            .andExpect(jsonPath("$.sections.custom-url.url", is("")))
-            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("my-url")));
+            .andExpect(jsonPath("$.sections.custom-url.url", emptyString()))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotExist());
 
     }
 
@@ -313,7 +314,7 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.sections.custom-url.url", is("my-custom-url-updated")))
-            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("my-custom-url")));
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotHaveJsonPath());
 
         replaceOperation = new ReplaceOperation("/sections/custom-url/url", "new.url");
 
@@ -323,8 +324,7 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.sections.custom-url.url", is("new.url")))
-            .andExpect(jsonPath("$.sections.custom-url.redirected-urls",
-                contains("my-custom-url", "my-custom-url-updated")));
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotHaveJsonPath());
 
     }
 
@@ -498,6 +498,106 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$.errors").doesNotExist())
             .andExpect(jsonPath("$.sections.custom-url.url", is("new-url")))
             .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotExist());
+
+    }
+
+    @Test
+    public void testRedirectedUrlAdditionOnWorkspaceItem() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+            .withTitle("Test WorkspaceItem")
+            .withIssueDate("2020")
+            .withCustomUrl("my-custom-url")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        Operation addOperation = new AddOperation("/sections/custom-url/redirected-urls", "url-1");
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .content(getPatchContent(List.of(addOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", is("my-custom-url")))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("url-1")));
+
+        addOperation = new AddOperation("/sections/custom-url/redirected-urls", "url-2");
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .content(getPatchContent(List.of(addOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", is("my-custom-url")))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("url-1", "url-2")));
+
+        Operation replaceOperation = new ReplaceOperation("/sections/custom-url/url", "new-my-custom-url");
+        addOperation = new AddOperation("/sections/custom-url/redirected-urls", "url-3");
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .content(getPatchContent(List.of(replaceOperation, addOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", is("new-my-custom-url")))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("url-1", "url-2", "url-3")));
+
+    }
+
+    @Test
+    public void testRedirectedUrlAdditionOnEditItem() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Test Item")
+            .withIssueDate("2020")
+            .withCustomUrl("my-custom-url")
+            .build();
+
+        EditItem editItem = new EditItem(context, item);
+
+        context.restoreAuthSystemState();
+
+        Operation addOperation = new AddOperation("/sections/custom-url/redirected-urls", "url-1");
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(patch("/api/core/edititems/" + editItem.getID() + ":MODE-CUSTOM-URL")
+                .content(getPatchContent(List.of(addOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", is("my-custom-url")))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("url-1")));
+
+        addOperation = new AddOperation("/sections/custom-url/redirected-urls", "url-2");
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(patch("/api/core/edititems/" + editItem.getID() + ":MODE-CUSTOM-URL")
+                .content(getPatchContent(List.of(addOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", is("my-custom-url")))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("url-1", "url-2")));
+
+        Operation replaceOperation = new ReplaceOperation("/sections/custom-url/url", "new-my-custom-url");
+        addOperation = new AddOperation("/sections/custom-url/redirected-urls", "url-3");
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(patch("/api/core/edititems/" + editItem.getID() + ":MODE-CUSTOM-URL")
+                .content(getPatchContent(List.of(replaceOperation, addOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", is("new-my-custom-url")))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls", contains("url-1", "url-2", "url-3")));
 
     }
 

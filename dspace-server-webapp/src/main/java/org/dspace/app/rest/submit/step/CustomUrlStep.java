@@ -46,7 +46,7 @@ public class CustomUrlStep extends AbstractProcessingStep {
         Item item = obj.getItem();
 
         CustomUrl customUrl = new CustomUrl();
-        customUrl.setUrl(customUrlService.getCustomUrl(item));
+        customUrlService.getCustomUrl(item).ifPresent(customUrl::setUrl);
         customUrl.setRedirectedUrls(customUrlService.getOldCustomUrls(item));
 
         return customUrl;

@@ -8,6 +8,7 @@
 package org.dspace.app.customurl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.dspace.content.Item;
 import org.dspace.core.Context;
@@ -26,7 +27,7 @@ public interface CustomUrlService {
      * @param  item the item
      * @return      the custom url
      */
-    String getCustomUrl(Item item);
+    Optional<String> getCustomUrl(Item item);
 
     /**
      * Returns all the old custom url related to the given item.

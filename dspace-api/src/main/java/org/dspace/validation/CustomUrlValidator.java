@@ -13,12 +13,15 @@ import static java.util.stream.StreamSupport.stream;
 import static org.dspace.validation.service.ValidationService.OPERATION_PATH_SECTIONS;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import org.apache.commons.collections4.iterators.IteratorChain;
+import org.dspace.app.customurl.CustomUrlService;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.InProgressSubmission;
@@ -48,23 +51,27 @@ public class CustomUrlValidator implements SubmissionStepValidator {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private CustomUrlService customUrlService;
+
     private String name;
 
     @Override
     public List<ValidationError> validate(Context context, InProgressSubmission<?> obj, SubmissionStepConfig config) {
         Item item = obj.getItem();
-        String customUrl = getCustomUrl(item);
-        return validate(context, item, customUrl, config);
-    }
 
-    public boolean isValid(Context context, Item item, String customUrl) {
-        return customUrl != null && validate(context, item, customUrl, null).isEmpty();
-    }
-
-    private List<ValidationError> validate(Context context, Item item, String customUrl, SubmissionStepConfig config) {
-        if (customUrl == null) {
-            return List.of();
+        List<ValidationError> errors = new ArrayList<>();
+        Optional<String> customUrl = customUrlService.getCustomUrl(item);
+        if (customUrl.isPresent()) {
+            errors.addAll(validateUrl(context, item, customUrl.get(), config));
         }
+
+        return errors;
+
+    }
+
+    private List<ValidationError> validateUrl(Context context, Item item, String customUrl,
+        SubmissionStepConfig config) {
 
         if (customUrl.isBlank()) {
             return urlValidationError(ERROR_VALIDATION_EMPTY, config);
@@ -79,10 +86,6 @@ public class CustomUrlValidator implements SubmissionStepValidator {
         }
 
         return List.of();
-    }
-
-    private String getCustomUrl(Item item) {
-        return itemService.getMetadataFirstValue(item, "cris", "customurl", null, Item.ANY);
     }
 
     private boolean hasInvalidCharacters(String customUrl) {
