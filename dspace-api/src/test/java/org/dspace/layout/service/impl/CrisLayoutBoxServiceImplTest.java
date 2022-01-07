@@ -14,9 +14,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +31,7 @@ import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
 import org.dspace.eperson.EPerson;
@@ -37,7 +40,6 @@ import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.CrisLayoutMetric2Box;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
-import org.dspace.metrics.CrisItemMetricsAuthorizationService;
 import org.dspace.metrics.CrisItemMetricsService;
 import org.dspace.metrics.embeddable.model.EmbeddableCrisMetrics;
 import org.junit.Test;
@@ -60,14 +62,16 @@ public class CrisLayoutBoxServiceImplTest {
 
     @Mock
     private Context context;
+
     @Mock
     private CrisLayoutBoxDAO dao;
+
     @Mock
     private AuthorizeService authorizeService;
-    @Mock
-    private CrisItemMetricsAuthorizationService crisItemMetricsAuthorizationService;
+
     @Mock
     private CrisItemMetricsService crisItemMetricsService;
+
     @Mock
     private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
 
@@ -141,9 +145,9 @@ public class CrisLayoutBoxServiceImplTest {
     }
 
     @Test
-    public void testHasMetricsBoxContent() {
+    public void testHasMetricsBoxContent() throws SQLException {
 
-        when(crisItemMetricsAuthorizationService.isAuthorized(any(), any(UUID.class))).thenReturn(true);
+        when(authorizeService.authorizeActionBoolean(eq(context), any(), eq(Constants.READ))).thenReturn(true);
 
         // should return false when the box has no metrics associated
         CrisLayoutBox boxWithoutMetrics = crisLayoutMetricBox();
@@ -173,10 +177,10 @@ public class CrisLayoutBoxServiceImplTest {
     }
 
     @Test
-    public void testHasMetricsBoxContentNotAuthorized() {
+    public void testHasMetricsBoxContentNotAuthorized() throws SQLException {
 
         // should return false if there is content but context has not an authenticated user
-        when(crisItemMetricsAuthorizationService.isAuthorized(any(), any(UUID.class))).thenReturn(false);
+        when(authorizeService.authorizeActionBoolean(eq(context), any(), eq(Constants.READ))).thenReturn(false);
         CrisLayoutBox boxMetric1 = crisLayoutMetricBox("metric1");
         storedCrisMetrics();
         embeddableCrisMetrics("metric1");

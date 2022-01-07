@@ -789,4 +789,15 @@ public interface ItemService
     public Iterator<Item> findByLikeAuthorityValue(Context context, String likeAuthority,
             Boolean inArchive) throws SQLException;
 
+    /**
+     * Find all the items matching the given list of ids.
+     *
+     * @param context         DSpace context object
+     * @param ids             ids list that will be used with operator IN on field uuid
+     *
+     * @return
+     * @throws SQLException   if database error
+     */
+    Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException;
+
 }
