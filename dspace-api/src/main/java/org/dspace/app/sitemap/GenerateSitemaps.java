@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
@@ -249,10 +250,10 @@ public class GenerateSitemaps {
         while (allItems.hasNext()) {
             Item i = allItems.next();
 
-            String customUrl = customUrlService.getCustomUrl(i);
-            if (StringUtils.isNotBlank(customUrl)) {
+            Optional<String> customUrl = customUrlService.getCustomUrl(i);
+            if (customUrl.isPresent()) {
 
-                String url = uiURLStem + "/c/" + customUrl;
+                String url = uiURLStem + "/entities/" + itemService.getEntityType(i) + "/" + customUrl.get();
 
                 if (makeHTMLMap) {
                     html.addURL(url, null);
