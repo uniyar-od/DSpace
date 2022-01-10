@@ -113,7 +113,7 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
 
             String value = StringUtils.EMPTY;
             String authority = metadataValue.getAuthority();
-            if (StringUtils.isNotBlank(valueListInput.getVocabulary())) {
+            if (StringUtils.isNotBlank(valueListInput.getVocabulary()) && StringUtils.isNotBlank(authority)) {
                 value = getControlledVocabularyValue(metadataValue, language);
             } else {
                 value = getDisplayValue(valueListInput, metadataValue);
