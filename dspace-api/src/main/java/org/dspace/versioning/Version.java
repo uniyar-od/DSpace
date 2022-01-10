@@ -29,5 +29,6 @@ public interface Version
     public int getVersionHistoryID();
     public int getVersionId();
     public Item getItem();
+    public void setItemID(int itemID);
 }
 

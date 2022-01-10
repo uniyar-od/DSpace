@@ -16,6 +16,7 @@ import org.springframework.beans.factory.annotation.Required;
 
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -34,6 +35,12 @@ public class VersioningServiceImpl implements VersioningService{
     /** Service Methods */
     public Version createNewVersion(Context c, int itemId){
         return createNewVersion(c, itemId, null);
+    }
+    
+    public Item createItemCopy(Context context, Item toCopy) {
+    	Item itemTmp = new DefaultItemVersionProvider().createNewItemAndAddItInWorkspace(context, toCopy);
+        new DefaultItemVersionProvider().updateItemState(context, itemTmp, toCopy);
+        return itemTmp;
     }
 
     public Version createNewVersion(Context c, int itemId, String summary) {
@@ -54,14 +61,31 @@ public class VersioningServiceImpl implements VersioningService{
                 }
                 createVersion(c, vh, item, "", versionDate);
             }
-            // Create new Item
             Item itemNew = provider.createNewItemAndAddItInWorkspace(c, item);
 
-            // create new version
-            Version version = createVersion(c, vh, itemNew, summary, new Date());
+			List<Version> versions = vh.getVersions();
 
-            // Complete any update of the Item and new Identifier generation that needs to happen
-            provider.updateItemState(c, itemNew, item);
+			Version latestVersion = versions.get(versions.size() - 1);
+
+			// create new version
+			Version version = createVersion(c, vh, itemNew, summary, new Date());
+
+			// the latest version is supposed to have associated the original item being
+			// updated during the time
+
+			// Complete any update of the Item and new Identifier generation that needs to
+			// happen
+			provider.updateItemState(c, itemNew, item);
+
+			// so the new version will keep on being associated with the same item id
+			// for keeping stats up to date
+			version.setItemID(latestVersion.getItemID());
+
+			// the newly created item is considered as a current snapshot of the item
+			latestVersion.setItemID(itemNew.getID());
+
+			versionDAO.update((VersionImpl) version);
+			versionDAO.update((VersionImpl) latestVersion);
 
             return version;
         }catch (Exception e) {

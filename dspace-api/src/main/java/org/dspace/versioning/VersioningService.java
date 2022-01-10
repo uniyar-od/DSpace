@@ -38,4 +38,6 @@ public interface VersioningService {
     Version updateVersion(Context c, int itemId, String summary);
 
     Version getVersion(Context c, Item item);
+    
+    Item createItemCopy(Context context, Item toCopy);
 }

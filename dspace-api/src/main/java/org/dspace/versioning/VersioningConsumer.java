@@ -7,7 +7,9 @@
  */
 package org.dspace.versioning;
 
+import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.Metadatum;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
@@ -42,6 +44,34 @@ public class VersioningConsumer implements Consumer {
 
         if(st == Constants.ITEM && et == Event.INSTALL){
             Item item = (Item) event.getSubject(ctx);
+            
+
+			Metadatum[] metadatum = item.getMetadata("local", "fakeitem", "versioning", Item.ANY);
+			if (metadatum.length > 0) {
+				int itemToEditID = Integer.parseInt(metadatum[0].value);
+				Item originalItem = Item.find(ctx, itemToEditID);
+				new DefaultItemVersionProvider().copyMetadata(originalItem, item);
+				
+				
+				//Remove the tmp metadata copied from the tmp object
+				originalItem.clearMetadata("local", "fakeitem", "versioning", Item.ANY);
+				originalItem.update();
+				
+				
+				//Remove the tmp item from any collection
+				Collection[] collections = item.getCollections();
+	            for (int i = 0; i < collections.length; i++){
+	                collections[i].removeItem(item);
+	            }
+                item.update();
+	            ctx.commit();
+				
+	            
+	            //the new reference of item is the original item
+	            //so keep doing logic on item
+				item = originalItem;
+			}
+
             if (item != null && item.isArchived()) {
                 VersionHistory history = retrieveVersionHistory(ctx, item);
                 if (history != null) {

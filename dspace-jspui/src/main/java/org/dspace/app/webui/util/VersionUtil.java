@@ -21,6 +21,7 @@ import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
+import org.dspace.versioning.DefaultItemVersionProvider;
 import org.dspace.versioning.Version;
 import org.dspace.versioning.VersionHistory;
 import org.dspace.versioning.VersioningService;
@@ -66,12 +67,16 @@ public class VersionUtil
                         .getSingletonService(VersioningService.class);
                 Version version = versioningService.createNewVersion(context,
                         itemID, summary);
-                WorkspaceItem wsi = WorkspaceItem.findByItem(context,
-                        version.getItem());
-
+                
+                Item itemTmp = versioningService.createItemCopy(context, item);
+                
+                
+                WorkspaceItem wsiTmpItem = WorkspaceItem.findByItem(context, itemTmp);
+                itemTmp.addMetadata("local", "fakeitem", "versioning", Item.ANY, String.valueOf(item.getID()));
+                
                 context.commit();
 
-                return wsi.getID();
+                return wsiTmpItem.getID();
 
             }
         }
