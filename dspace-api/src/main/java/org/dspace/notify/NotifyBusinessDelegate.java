@@ -71,7 +71,7 @@ public class NotifyBusinessDelegate {
 			int numberOfTries = 0;
 
 			while (numberOfTries < maxNumberOfAttempts && (statusCode < 200 || statusCode > 300)) {
-				numberOfTries++
+				numberOfTries++;
 				try {
 					Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
 
@@ -97,6 +97,12 @@ public class NotifyBusinessDelegate {
 					} else {
 						log.error(serviceId + " check if service id is properly configured!");
 					}
+					
+					if(statusCode==HttpStatus.SC_BAD_REQUEST) {
+						log.error(serviceId + " Service cannot handle the request");
+						break;
+					}
+					
 					log.info(serviceEndpoint + " has returned " + statusCode);
 					log.info("Response message: " + response.getStatusLine().getReasonPhrase());
 				} catch (Exception e) {
@@ -127,7 +133,7 @@ public class NotifyBusinessDelegate {
 		Actor actor = new Actor();
 		actor.setId(ConfigurationManager.getProperty("dspace.url"));
 		actor.setName(ConfigurationManager.getProperty("dspace.name"));
-		actor.setType("Service");
+		actor.setType(new String[]{"Service"});
 		ldnRequestDTO.setActor(actor);
 
 		NotifyLDNDTO.Object object = new Object();
@@ -146,13 +152,13 @@ public class NotifyBusinessDelegate {
 		Origin origin = new Origin();
 		origin.setId(localLDNInBoxEndpoint);
 		origin.setInbox(localLDNInBoxEndpoint);
-		origin.setType("Service");
+		origin.setType(new String[]{"Service"});
 		ldnRequestDTO.setOrigin(origin);
 
 		Target target = new Target();
 		target.setId(serviceId);
 		target.setInbox(endpoint);
-		target.setType("Service");
+		target.setType(new String[]{"Service"});
 		ldnRequestDTO.setTarget(target);
 
 		ldnRequestDTO.setType(new String[] { "Offer", "coar-notify:ReviewAction" });

@@ -19,7 +19,7 @@ public class LDNServiceCheckAuthorization {
 	private static Logger logger = Logger.getLogger(LDNServiceCheckAuthorization.class);
 
 	private static List<String> authorizedIpList;
-	
+
 	private static List<String> authorizedServiceList;
 
 	private static boolean isLocalhostTrustedByDefault;
@@ -28,7 +28,8 @@ public class LDNServiceCheckAuthorization {
 		isLocalhostTrustedByDefault = ConfigurationManager.getBooleanProperty("ldn-coar-notify",
 				"ldn-trusted.localhost.default");
 		String authorisedIpString = ConfigurationManager.getProperty("ldn-coar-notify", "ldn-trusted.from.ip");
-		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-coar-notify","ldn-trusted.from.hostname");
+		String authorisedHostnameString = ConfigurationManager.getProperty("ldn-coar-notify",
+				"ldn-trusted.from.hostname");
 
 		List<String> tmpList = new LinkedList<>();
 
@@ -38,6 +39,7 @@ public class LDNServiceCheckAuthorization {
 				String[] ipArray = authorisedIpString.split(",");
 				for (String tmpIp : ipArray) {
 					tmpList.add(tmpIp);
+					logger.info("Authorized ip " + tmpIp);
 				}
 			} else {
 				tmpList.add(authorisedIpString);
@@ -48,8 +50,11 @@ public class LDNServiceCheckAuthorization {
 		if (StringUtils.isNotEmpty(authorisedHostnameString)) {
 			if (authorisedHostnameString.contains(",")) {
 				String[] hostnameArray = authorisedHostnameString.split(",");
+				String ipAddr;
 				for (String hostname : hostnameArray) {
-					tmpList.add(parseHostnameToString(hostname));
+					ipAddr = parseHostnameToString(hostname);
+					tmpList.add(ipAddr);
+					logger.info("Authorized parsed to ip by hostname " + ipAddr);
 				}
 			} else {
 				tmpList.add(parseHostnameToString(authorisedHostnameString));
@@ -57,13 +62,15 @@ public class LDNServiceCheckAuthorization {
 		}
 
 		authorizedIpList = tmpList;
-		
-		authorizedServiceList=new LinkedList<>();
+
+		authorizedServiceList = new LinkedList<>();
 		authorizedServiceList.addAll(Arrays.asList(LDNUtils.getServicesForReviewEndorsement()));
 	}
 
 	public static boolean isHostAuthorized(HttpServletRequest request) {
-		String ipFromRequest = request.getRemoteAddr();
+		String ipFromRequest = getClientIpAddr(request);
+		logger.info("IP ADDRESS OF THE REQUEST " + ipFromRequest);
+		logger.info("LOCALHOST TRUSTED " + isLocalhostTrustedByDefault);
 		if (isLocalhostTrustedByDefault) {
 			try {
 				InetAddress ip = InetAddress.getByName(ipFromRequest);
@@ -86,7 +93,34 @@ public class LDNServiceCheckAuthorization {
 	}
 
 	public static boolean isServiceIdAuthorized(NotifyLDNDTO notifyLDNDTO) {
+		logger.info("Service requesting auhtorizaytion: " + notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
 		return authorizedServiceList.contains(notifyLDNDTO.getOrigin().parseIdWithRemovedProtocol());
+	}
+
+	public static String getClientIpAddr(HttpServletRequest request) {
+		String ip = request.getHeader("X-Forwarded-For");
+		logger.info("IP X-Forwarded-For " + ip);
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("Proxy-Client-IP");
+			logger.info("IP Proxy-Client-IP " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("WL-Proxy-Client-IP");
+			logger.info("IP WL-Proxy-Client-IP " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("HTTP_CLIENT_IP");
+			logger.info("IP HTTP_CLIENT_IP " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getHeader("HTTP_X_FORWARDED_FOR");
+			logger.info("IP HTTP_X_FORWARDED_FOR " + ip);
+		}
+		if (ip == null || ip.length() == 0 || "unknown".equalsIgnoreCase(ip)) {
+			ip = request.getRemoteAddr();
+			logger.info("IP " + ip);
+		}
+		return ip;
 	}
 
 }

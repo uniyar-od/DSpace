@@ -8,18 +8,6 @@
 
 --%>
 
-<%--
-  - Display hierarchical list of communities and collections
-  -
-  - Attributes to be passed in:
-  -    communities         - array of communities
-  -    collections.map  - Map where a keys is a community IDs (Integers) and 
-  -                      the value is the array of collections in that community
-  -    subcommunities.map  - Map where a keys is a community IDs (Integers) and 
-  -                      the value is the array of subcommunities in that community
-  -    admin_button - Boolean, show admin 'Create Top-Level Community' button
-  --%>
-
 <%@page import="org.dspace.content.Bitstream"%>
 <%@page import="org.apache.commons.lang.StringUtils"%>
 <%@ page contentType="text/html;charset=UTF-8"%>

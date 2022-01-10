@@ -50,11 +50,17 @@ public class LDNInBoxServlet extends DSpaceServlet {
 		String payloadRequest = getPayload(request);
 		NotifyLDNDTO ldnRequestDTO = payloadToDTO(payloadRequest);
 
-		if (!LDNServiceCheckAuthorization.isHostAuthorized(request)
-				|| !LDNServiceCheckAuthorization.isServiceIdAuthorized(ldnRequestDTO)) {
-			// No authorization found for the requesting ip
-			sendErrorCode(HttpServletResponse.SC_UNAUTHORIZED, response);
-			logger.error("Unauthorized\n" + payloadRequest);
+		try {
+			if (!LDNServiceCheckAuthorization.isHostAuthorized(request)
+					|| !LDNServiceCheckAuthorization.isServiceIdAuthorized(ldnRequestDTO)) {
+				// No authorization found for the requesting ip
+				sendErrorCode(HttpServletResponse.SC_UNAUTHORIZED, response);
+				logger.error("Unauthorized\n" + payloadRequest);
+				return;
+			}
+		} catch (Exception e) {
+			logger.error("Error\n" + payloadRequest, e);
+			sendErrorCode(HttpServletResponse.SC_ACCEPTED, response);
 			return;
 		}
 
@@ -67,7 +73,7 @@ public class LDNInBoxServlet extends DSpaceServlet {
 
 		} catch (Exception e) {
 			logger.error("Error\n" + payloadRequest, e);
-			sendErrorCode(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, response);
+			sendErrorCode(HttpServletResponse.SC_ACCEPTED, response);
 			return;
 		}
 
