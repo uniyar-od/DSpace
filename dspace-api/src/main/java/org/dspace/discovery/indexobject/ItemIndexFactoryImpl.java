@@ -18,6 +18,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -579,7 +580,11 @@ public class ItemIndexFactoryImpl extends DSpaceObjectIndexFactoryImpl<Indexable
                                 }
                                 String facetValue = value;
                                 if (graphFacet.isDate()) {
-                                    facetValue = DateFormatUtils.formatUTC(MultiFormatDateParser.parse(value), "yyyy");
+                                    Date parsedValue = MultiFormatDateParser.parse(value);
+                                    if (Objects.nonNull(parsedValue)) {
+                                        facetValue = DateFormatUtils.
+                                                     formatUTC(MultiFormatDateParser.parse(value), "yyyy");
+                                    }
                                 } else if (StringUtils.isNotBlank(graphFacet.getSplitter())) {
                                     String[] split = value.split(graphFacet.getSplitter());
                                     facetValue = split[0];
