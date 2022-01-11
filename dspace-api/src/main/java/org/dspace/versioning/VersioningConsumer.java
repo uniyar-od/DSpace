@@ -9,7 +9,10 @@ package org.dspace.versioning;
 
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataSchema;
 import org.dspace.content.Metadatum;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
@@ -29,12 +32,14 @@ import java.util.Set;
 public class VersioningConsumer implements Consumer {
 
     private static Set<Item> itemsToProcess;
-
+    
     public void initialize() throws Exception {}
 
     public void finish(Context ctx) throws Exception {}
 
     public void consume(Context ctx, Event event) throws Exception {
+		AbstractVersionProvider versionProvider = new DSpace().getServiceManager()
+				.getServiceByName("defaultItemVersionProvider", DefaultItemVersionProvider.class);
         if(itemsToProcess == null){
             itemsToProcess = new HashSet<Item>();
         }
@@ -45,30 +50,48 @@ public class VersioningConsumer implements Consumer {
         if(st == Constants.ITEM && et == Event.INSTALL){
             Item item = (Item) event.getSubject(ctx);
             
+            Set<String> ignoredMetadataFields = versionProvider.getIgnoredMetadataFields();
 
 			Metadatum[] metadatum = item.getMetadata("local", "fakeitem", "versioning", Item.ANY);
+			//if local.fakeitem.versioning is set a capy of all metadata fields is required
 			if (metadatum.length > 0) {
 				int itemToEditID = Integer.parseInt(metadatum[0].value);
 				Item originalItem = Item.find(ctx, itemToEditID);
-				new DefaultItemVersionProvider().copyMetadata(originalItem, item);
-				
-				
-				//Remove the tmp metadata copied from the tmp object
+
+				Metadatum[] metadataFields = originalItem.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+				String fullMetadata;
+
+				for (Metadatum field : metadataFields) {
+					fullMetadata = String.join(".", field.schema, field.element, field.qualifier);
+					
+					//delete matadata if it is not contained in the ignore list
+					if (!ignoredMetadataFields.contains(fullMetadata)) {
+						originalItem.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
+					}
+				}
+
+				versionProvider.copyMetadata(originalItem, item);
+
+				// Remove the tmp metadata copied from the tmp object
 				originalItem.clearMetadata("local", "fakeitem", "versioning", Item.ANY);
 				originalItem.update();
-				
-				
-				//Remove the tmp item from any collection
+
+				// Remove the tmp item from any collection
 				Collection[] collections = item.getCollections();
-	            for (int i = 0; i < collections.length; i++){
-	                collections[i].removeItem(item);
-	            }
-                item.update();
-	            ctx.commit();
+				for (int i = 0; i < collections.length; i++) {
+					collections[i].removeItem(item);
+				}
+				item.update();
 				
-	            
-	            //the new reference of item is the original item
-	            //so keep doing logic on item
+				WorkspaceItem workspaceItem = WorkspaceItem.findByItem(ctx, item);
+				workspaceItem.deleteAll();
+				workspaceItem.update();
+				
+				
+				ctx.commit();
+
+				// the new reference of item is the original item
+				// so keep doing logic on item
 				item = originalItem;
 			}
 

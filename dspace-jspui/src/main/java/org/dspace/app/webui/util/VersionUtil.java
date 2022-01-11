@@ -73,6 +73,7 @@ public class VersionUtil
                 
                 WorkspaceItem wsiTmpItem = WorkspaceItem.findByItem(context, itemTmp);
                 itemTmp.addMetadata("local", "fakeitem", "versioning", Item.ANY, String.valueOf(item.getID()));
+                itemTmp.update();
                 
                 context.commit();
 

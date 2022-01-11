@@ -12,6 +12,7 @@ import org.dspace.content.DCDate;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.sql.SQLException;
@@ -38,9 +39,11 @@ public class VersioningServiceImpl implements VersioningService{
     }
     
     public Item createItemCopy(Context context, Item toCopy) {
-    	Item itemTmp = new DefaultItemVersionProvider().createNewItemAndAddItInWorkspace(context, toCopy);
-        new DefaultItemVersionProvider().updateItemState(context, itemTmp, toCopy);
-        return itemTmp;
+		ItemVersionProvider versionProvider = new DSpace().getServiceManager()
+				.getServiceByName("defaultItemVersionProvider", DefaultItemVersionProvider.class);
+		Item itemTmp = versionProvider.createNewItemAndAddItInWorkspace(context, toCopy);
+		versionProvider.updateItemState(context, itemTmp, toCopy);
+		return itemTmp;
     }
 
     public Version createNewVersion(Context c, int itemId, String summary) {
