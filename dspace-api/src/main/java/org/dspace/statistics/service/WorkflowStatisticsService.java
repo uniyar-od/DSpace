@@ -34,7 +34,7 @@ public interface WorkflowStatisticsService {
      * @param  stepName the step name
      * @return          the found statistics
      */
-    Optional<WorkflowOwnerStatistics> findStepStatistics(Context context, String stepName);
+    Optional<WorkflowStepStatistics> findStepStatistics(Context context, String stepName);
 
     /**
      * Find the workflow step statistics related to the owner with the given id. If
@@ -51,9 +51,10 @@ public interface WorkflowStatisticsService {
      * Returns the current count of all the workflow steps.
      *
      * @param  context the DSpace Context
+     * @param  limit   the number of workflow step statistics to return
      * @return         the found statistics
      */
-    List<WorkflowStepStatistics> findCurrentWorkflows(Context context);
+    List<WorkflowStepStatistics> findCurrentWorkflows(Context context, int limit);
 
     /**
      * Find all the WORKFLOW statistics in the given range.

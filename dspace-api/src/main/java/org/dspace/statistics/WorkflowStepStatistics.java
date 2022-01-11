@@ -7,6 +7,9 @@
  */
 package org.dspace.statistics;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
  * Model a single WORKFLOW statistic entry related to a specific step.
  *
@@ -19,9 +22,12 @@ public final class WorkflowStepStatistics {
 
     private final long count;
 
-    public WorkflowStepStatistics(String stepName, long count) {
+    private final Map<String, Long> actionCounts;
+
+    public WorkflowStepStatistics(String stepName, long count, Map<String, Long> actionCounts) {
         this.stepName = stepName;
         this.count = count;
+        this.actionCounts = Collections.unmodifiableMap(actionCounts);
     }
 
     public String getStepName() {
@@ -30,6 +36,10 @@ public final class WorkflowStepStatistics {
 
     public long getCount() {
         return count;
+    }
+
+    public Map<String, Long> getActionCounts() {
+        return actionCounts;
     }
 
 }

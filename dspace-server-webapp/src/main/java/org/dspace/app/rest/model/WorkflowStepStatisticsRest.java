@@ -12,15 +12,15 @@ import java.util.Map;
 import org.dspace.app.rest.RestResourceController;
 
 /**
- * Model a Workflow statistics for a single owner (user or group).
+ * Model a Workflow statistics for a single step.
  *
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  *
  */
 @SuppressWarnings({ "serial", "rawtypes" })
-public class WorkflowOwnerStatisticsRest extends BaseObjectRest<String> {
+public class WorkflowStepStatisticsRest extends BaseObjectRest<String> {
 
-    public static final String NAME = "workflowOwner";
+    public static final String NAME = "workflowStep";
     public static final String CATEGORY = RestModel.STATISTICS;
 
     private String name;

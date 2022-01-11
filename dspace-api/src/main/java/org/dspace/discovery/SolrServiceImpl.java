@@ -8,6 +8,7 @@
 package org.dspace.discovery;
 
 import static java.util.stream.Collectors.joining;
+import static org.dspace.discovery.DiscoverResult.FacetPivotResult.fromPivotFields;
 import static org.dspace.discovery.configuration.DiscoveryConfigurationParameters.TYPE_STANDARD;
 import static org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet.TYPE_PREFIX;
 
@@ -44,6 +45,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
+import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
@@ -872,6 +874,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         }
 
+        if (CollectionUtils.isNotEmpty(discoveryQuery.getFacetPivots())) {
+            solrQuery.addFacetPivotField(discoveryQuery.getFacetPivots().toArray(String[]::new));
+        }
+
         //Add any configured search plugins !
         List<SolrServiceSearchPlugin> solrServiceSearchPlugins = DSpaceServicesFactory.getInstance()
                 .getServiceManager().getServicesByType(SolrServiceSearchPlugin.class);
@@ -1116,6 +1122,14 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     }
                 }
             }
+
+            if (solrQueryResponse.getFacetPivot() != null && !zombieFound) {
+                NamedList<List<PivotField>> facetPivotList = solrQueryResponse.getFacetPivot();
+                for (String facetPivot : query.getFacetPivots()) {
+                    result.addFacetPivotResult(facetPivot, fromPivotFields(facetPivotList.get(facetPivot)));
+                }
+            }
+
             // If any stale entries are found in the current page of results,
             // we remove those stale entries and rerun the same query again.
             // Otherwise, the query is valid and the results are returned.

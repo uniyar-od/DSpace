@@ -7,6 +7,8 @@
  */
 package org.dspace.statistics;
 
+import static org.dspace.discovery.DiscoverResult.FacetPivotResult.fromPivotFields;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
@@ -42,7 +44,6 @@ import com.maxmind.geoip2.exception.GeoIp2Exception;
 import com.maxmind.geoip2.model.CityResponse;
 import com.opencsv.CSVReader;
 import com.opencsv.CSVWriter;
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +66,6 @@ import org.apache.solr.client.solrj.request.LukeRequest;
 import org.apache.solr.client.solrj.response.CoreAdminResponse;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.LukeResponse;
-import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.RangeFacet;
 import org.apache.solr.client.solrj.response.SolrPingResponse;
@@ -93,6 +93,7 @@ import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.DSpaceObjectLegacySupportService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverResult.FacetPivotResult;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.service.ClientInfoService;
@@ -930,33 +931,19 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public PivotObjectCount[] queryFacetPivotField(String query, String filterQuery, String pivotField, int max,
+    public FacetPivotResult[] queryFacetPivotField(String query, String filterQuery, String pivotField, int max,
         boolean showTotal, List<String> facetQueries, int facetMinCount) throws SolrServerException, IOException {
 
         QueryResponse queryResponse = query(query, filterQuery, null,
             0, max, null, null, null, facetQueries, null, false, facetMinCount, true, pivotField);
 
         if (queryResponse == null) {
-            return new PivotObjectCount[0];
+            return new FacetPivotResult[0];
         }
 
-        return parsePivotFields(queryResponse.getFacetPivot().get(pivotField));
+        return fromPivotFields(queryResponse.getFacetPivot().get(pivotField));
 
     }
-
-    private PivotObjectCount[] parsePivotFields(List<PivotField> pivotField) {
-        return ListUtils.emptyIfNull(pivotField).stream()
-            .map(this::parsePivotField)
-            .toArray(PivotObjectCount[]::new);
-    }
-
-    private PivotObjectCount parsePivotField(PivotField pivotField) {
-        int count = pivotField.getCount();
-        String value = String.valueOf(pivotField.getValue());
-        PivotObjectCount[] pivot = parsePivotFields(pivotField.getPivot());
-        return new PivotObjectCount(count, value, pivot);
-    }
-
     @Override
     public ObjectCount[] queryFacetDate(String query,
                                         String filterQuery, int max, String dateType, String dateStart,
@@ -1131,7 +1118,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             if (pivotField == null) {
                 solrQuery.setFacetLimit(max);
             } else {
-                solrQuery.set("f." + pivotField.split(",")[0].trim() + ".facet.limit", max);
+                solrQuery.set("f." + pivotField.split(",")[0].trim() + "." + FacetParams.FACET_LIMIT, max);
             }
         }
 

@@ -7,7 +7,9 @@
  */
 package org.dspace.statistics;
 
+import static java.lang.String.valueOf;
 import static java.util.Optional.ofNullable;
+import static org.apache.solr.common.params.FacetParams.FACET_LIMIT;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -21,9 +23,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.solr.client.solrj.SolrServerException;
+import org.apache.solr.common.params.FacetParams;
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.DiscoverResult.FacetPivotResult;
+import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.indexobject.IndexableClaimedTask;
+import org.dspace.discovery.indexobject.IndexablePoolTask;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.statistics.SolrLoggerServiceImpl.StatisticsType;
@@ -43,14 +53,19 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
     private static final String OWNER_STATISTICS_FACET_PIVOT = "actor,previousWorkflowStep";
 
+    private static final String CURRENT_STEPS_STATISTICS_FACET_PIVOT = "step_keyword,action_keyword";
+
     @Autowired
     private SolrLoggerService solrLoggerService;
+
+    @Autowired
+    private SearchService searchService;
 
     @Autowired
     private EPersonService ePersonService;
 
     @Override
-    public Optional<WorkflowOwnerStatistics> findStepStatistics(Context context, String stepName) {
+    public Optional<WorkflowStepStatistics> findStepStatistics(Context context, String stepName) {
         // TODO Auto-generated method stub
         return null;
     }
@@ -59,7 +74,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     public Optional<WorkflowOwnerStatistics> findOwnerStatistics(Context context, UUID ownerId) {
 
         String queryFilter = "actor:" + ownerId;
-        PivotObjectCount[] queryFacetPivotFields = performQuery(queryFilter, 1, OWNER_STATISTICS_FACET_PIVOT);
+        FacetPivotResult[] queryFacetPivotFields = performQuery(queryFilter, 1, OWNER_STATISTICS_FACET_PIVOT);
         if (queryFacetPivotFields.length == 0) {
             return Optional.empty();
         }
@@ -69,9 +84,10 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     }
 
     @Override
-    public List<WorkflowStepStatistics> findCurrentWorkflows(Context context) {
-        // TODO Auto-generated method stub
-        return null;
+    public List<WorkflowStepStatistics> findCurrentWorkflows(Context context, int size) {
+        return searchClaimedAndPoolTasks(context, size).stream()
+            .map(this::convertToStepStatistics)
+            .collect(Collectors.toList());
     }
 
     @Override
@@ -87,11 +103,28 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
         String queryFilter = composeQueryFilter(startDate, endDate, collection);
 
-        PivotObjectCount[] queryFacetPivotFields = performQuery(queryFilter, limit, OWNER_STATISTICS_FACET_PIVOT);
+        FacetPivotResult[] queryFacetPivotFields = performQuery(queryFilter, limit, OWNER_STATISTICS_FACET_PIVOT);
 
         return Arrays.stream(queryFacetPivotFields)
             .flatMap(pivotObjectCount -> convertToOwnerStatistics(context, pivotObjectCount).stream())
             .collect(Collectors.toList());
+    }
+
+    private List<FacetPivotResult> searchClaimedAndPoolTasks(Context context, int size) {
+
+        DiscoverQuery query = new DiscoverQuery();
+        query.addDSpaceObjectFilter(IndexableClaimedTask.TYPE);
+        query.addDSpaceObjectFilter(IndexablePoolTask.TYPE);
+        query.addFacetPivot(CURRENT_STEPS_STATISTICS_FACET_PIVOT);
+        query.addProperty("f." + CURRENT_STEPS_STATISTICS_FACET_PIVOT.split(",")[0] + "." + FACET_LIMIT, valueOf(size));
+
+        try {
+            DiscoverResult discoverResult = searchService.search(context, query);
+            return discoverResult.getFacetPivotResult(CURRENT_STEPS_STATISTICS_FACET_PIVOT);
+        } catch (SearchServiceException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     private String composeQueryFilter(Date startDate, Date endDate, Collection collection) {
@@ -116,7 +149,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         return Optional.of(dateFilter.toQuery());
     }
 
-    private PivotObjectCount[] performQuery(String filter, int limit, String pivotField) {
+    private FacetPivotResult[] performQuery(String filter, int limit, String pivotField) {
         try {
             return solrLoggerService.queryFacetPivotField("*:*", filter, pivotField, limit, false, null, 0);
         } catch (SolrServerException | IOException e) {
@@ -124,7 +157,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         }
     }
 
-    private Optional<WorkflowOwnerStatistics> convertToOwnerStatistics(Context context, PivotObjectCount pivot) {
+    private Optional<WorkflowOwnerStatistics> convertToOwnerStatistics(Context context, FacetPivotResult pivot) {
 
         String owner = pivot.getValue();
         long count = pivot.getCount();
@@ -134,9 +167,13 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
     }
 
-    private Map<String, Long> createActionCountMap(PivotObjectCount pivotObjectCount) {
-        return Arrays.stream(pivotObjectCount.getPivot())
-            .collect(Collectors.toMap(PivotObjectCount::getValue, PivotObjectCount::getCount));
+    private WorkflowStepStatistics convertToStepStatistics(FacetPivotResult pivot) {
+        return new WorkflowStepStatistics(pivot.getValue(), pivot.getCount(), createActionCountMap(pivot));
+    }
+
+    private Map<String, Long> createActionCountMap(FacetPivotResult facetPivotResult) {
+        return Arrays.stream(facetPivotResult.getPivot())
+            .collect(Collectors.toMap(FacetPivotResult::getValue, FacetPivotResult::getCount));
     }
 
     private Optional<String> getLoginTypeFilter() {

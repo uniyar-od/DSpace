@@ -19,9 +19,9 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverResult.FacetPivotResult;
 import org.dspace.eperson.EPerson;
 import org.dspace.statistics.ObjectCount;
-import org.dspace.statistics.PivotObjectCount;
 import org.dspace.usage.UsageWorkflowEvent;
 
 /**
@@ -180,7 +180,7 @@ public interface SolrLoggerService {
      *                             client.
      * @throws                     java.io.IOException passed through.
      */
-    public PivotObjectCount[] queryFacetPivotField(String query, String filterQuery, String pivotField,
+    public FacetPivotResult[] queryFacetPivotField(String query, String filterQuery, String pivotField,
         int max, boolean showTotal, List<String> facetQueries, int facetMinCount)
         throws SolrServerException, IOException;
 
