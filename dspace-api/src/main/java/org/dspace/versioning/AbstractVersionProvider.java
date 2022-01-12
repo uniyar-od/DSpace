@@ -13,6 +13,7 @@ import org.dspace.core.Context;
 import org.dspace.storage.bitstore.BitstreamStorageManager;
 
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import org.dspace.authorize.AuthorizeManager;

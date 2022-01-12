@@ -7,6 +7,8 @@
  */
 package org.dspace.versioning;
 
+import java.util.Date;
+
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 
@@ -40,4 +42,10 @@ public interface VersioningService {
     Version getVersion(Context c, Item item);
     
     Item createItemCopy(Context context, Item toCopy);
+    
+    VersionImpl createVersion(Context c, VersionHistory vh, Item item, String summary, Date date);
+    
+    VersionDAO getVersionDAO();
+    
+    ItemVersionProvider getItemVersionProvider();
 }

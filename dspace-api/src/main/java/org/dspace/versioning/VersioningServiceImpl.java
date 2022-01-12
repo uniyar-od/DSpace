@@ -31,7 +31,7 @@ public class VersioningServiceImpl implements VersioningService{
 
     private VersionHistoryDAO versionHistoryDAO;
     private VersionDAO versionDAO;
-    private DefaultItemVersionProvider provider;
+    private ItemVersionProvider provider;
 
 
     /** Service Methods */
@@ -40,10 +40,8 @@ public class VersioningServiceImpl implements VersioningService{
     }
     
     public Item createItemCopy(Context context, Item toCopy) {
-		ItemVersionProvider versionProvider = new DSpace().getServiceManager()
-				.getServiceByName("defaultItemVersionProvider", DefaultItemVersionProvider.class);
-		Item itemTmp = versionProvider.createNewItemAndAddItInWorkspace(context, toCopy);
-		versionProvider.updateItemState(context, itemTmp, toCopy);
+		Item itemTmp = provider.createNewItemAndAddItInWorkspace(context, toCopy);
+		provider.updateItemState(context, itemTmp, toCopy);
 		return itemTmp;
     }
 
@@ -65,35 +63,7 @@ public class VersioningServiceImpl implements VersioningService{
                 }
                 createVersion(c, vh, item, "", versionDate);
             }
-            Item itemNew = provider.createNewItemAndAddItInWorkspace(c, item);
-
-			List<Version> versions = vh.getVersions();
-
-			Version latestVersion = versions.get(versions.size() - 1);
-
-			// create new version
-			Version version = createVersion(c, vh, itemNew, summary, new Date());
-
-			// the latest version is supposed to have associated the original item being
-			// updated during the time
-
-			// Complete any update of the Item and new Identifier generation that needs to
-			// happen
-			provider.updateItemState(c, itemNew, item);
-
-			// so the new version will keep on being associated with the same item id
-			// for keeping stats up to date
-			version.setItemID(latestVersion.getItemID());
-
-			// the newly created item is considered as a current snapshot of the item
-			latestVersion.setItemID(itemNew.getID());
-
-			versionDAO.update((VersionImpl) version);
-			versionDAO.update((VersionImpl) latestVersion);
-			
-			WorkspaceItem workspaceItem = WorkspaceItem.findByItem(c, itemNew);
-			workspaceItem.deleteAll();
-			workspaceItem.update();
+            Version version = provider.createNewVersion(c, this, vh, summary, item);
 
             return version;
         }catch (Exception e) {
@@ -169,9 +139,7 @@ public class VersioningServiceImpl implements VersioningService{
         return versionDAO.findByItemId(c, item.getID());    
     }
 
-// **** PROTECTED METHODS!!
-
-    protected VersionImpl createVersion(Context c, VersionHistory vh, Item item, String summary, Date date) {
+    public VersionImpl createVersion(Context c, VersionHistory vh, Item item, String summary, Date date) {
         try {
             VersionImpl version = versionDAO.create(c);
 
@@ -195,8 +163,6 @@ public class VersioningServiceImpl implements VersioningService{
         return latest.getVersionNumber()+1;
     }
 
-
-
     public VersionHistoryDAO getVersionHistoryDAO() {
         return versionHistoryDAO;
     }
@@ -214,7 +180,14 @@ public class VersioningServiceImpl implements VersioningService{
     }
 
     @Required
-    public void setProvider(DefaultItemVersionProvider provider) {
+    public void setProvider(ItemVersionProvider provider) {
         this.provider = provider;
     }
+
+	@Override
+	public ItemVersionProvider getItemVersionProvider() {
+		return provider;
+	}
+    
+    
 }
