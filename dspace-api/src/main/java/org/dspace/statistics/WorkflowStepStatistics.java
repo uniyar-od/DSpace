@@ -24,6 +24,12 @@ public final class WorkflowStepStatistics {
 
     private final Map<String, Long> actionCounts;
 
+    public WorkflowStepStatistics(String stepName, long count) {
+        this.stepName = stepName;
+        this.count = count;
+        this.actionCounts = Map.of();
+    }
+
     public WorkflowStepStatistics(String stepName, long count, Map<String, Long> actionCounts) {
         this.stepName = stepName;
         this.count = count;

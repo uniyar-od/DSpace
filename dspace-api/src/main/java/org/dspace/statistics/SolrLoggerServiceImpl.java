@@ -571,6 +571,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                 solrDoc.addField("actor", usageWorkflowEvent.getActor().getID().toString());
             }
 
+            solrDoc.addField("previousActionRequiresUI", usageWorkflowEvent.isPreviousActionRequiresUI());
+            solrDoc.addField("rejected", usageWorkflowEvent.isRejected());
+
             solr.add(solrDoc);
 
             // commits are executed automatically using the solr autocommit
@@ -890,15 +893,21 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public void query(String query, int max, int facetMinCount)
             throws SolrServerException, IOException {
-        query(query, null, null, 0, max, null, null, null, null, null, false, facetMinCount);
+        query(query, null, null, false, 0, max, null, null, null, null, null, false, facetMinCount);
     }
 
     @Override
-    public ObjectCount[] queryFacetField(String query,
-                                         String filterQuery, String facetField, int max, boolean showTotal,
-                                         List<String> facetQueries, int facetMinCount)
-            throws SolrServerException, IOException {
-        QueryResponse queryResponse = query(query, filterQuery, facetField,
+    public ObjectCount[] queryFacetField(String query, String filterQuery, String facetField,
+        int max, boolean showTotal, List<String> facetQueries, int facetMinCount)
+        throws SolrServerException, IOException {
+        return queryFacetField(query, filterQuery, facetField, false, max, showTotal, facetQueries, facetMinCount);
+    }
+
+    @Override
+    public ObjectCount[] queryFacetField(String query, String filterQuery, String facetField, boolean facetMissing,
+        int max, boolean showTotal, List<String> facetQueries, int facetMinCount)
+        throws SolrServerException, IOException {
+        QueryResponse queryResponse = query(query, filterQuery, facetField, facetMissing,
                                             0, max, null, null, null, facetQueries, null, false, facetMinCount);
         if (queryResponse == null) {
             return new ObjectCount[0];
@@ -934,7 +943,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public FacetPivotResult[] queryFacetPivotField(String query, String filterQuery, String pivotField, int max,
         boolean showTotal, List<String> facetQueries, int facetMinCount) throws SolrServerException, IOException {
 
-        QueryResponse queryResponse = query(query, filterQuery, null,
+        QueryResponse queryResponse = query(query, filterQuery, null, false,
             0, max, null, null, null, facetQueries, null, false, facetMinCount, true, pivotField);
 
         if (queryResponse == null) {
@@ -949,7 +958,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                                         String filterQuery, int max, String dateType, String dateStart,
                                         String dateEnd, boolean showTotal, Context context, int facetMinCount)
             throws SolrServerException, IOException {
-        QueryResponse queryResponse = query(query, filterQuery, null, 0, max,
+        QueryResponse queryResponse = query(query, filterQuery, null, false, 0, max,
                                             dateType, dateStart, dateEnd, null, null, false, facetMinCount);
         if (queryResponse == null) {
             return new ObjectCount[0];
@@ -986,7 +995,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public Map<String, Integer> queryFacetQuery(String query, String filterQuery, List<String> facetQueries,
                                                 int facetMinCount)
         throws SolrServerException, IOException {
-        QueryResponse response = query(query, filterQuery, null, 0, 1, null, null,
+        QueryResponse response = query(query, filterQuery, null, false, 0, 1, null, null,
                                        null, facetQueries, null, false, facetMinCount);
         return response.getFacetQuery();
     }
@@ -994,7 +1003,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public ObjectCount queryTotal(String query, String filterQuery, int facetMinCount)
         throws SolrServerException, IOException {
-        QueryResponse queryResponse = query(query, filterQuery, null, 0, -1, null,
+        QueryResponse queryResponse = query(query, filterQuery, null, false, 0, -1, null,
                                             null, null, null, null, false, facetMinCount);
         ObjectCount objCount = new ObjectCount();
         objCount.setCount(queryResponse.getResults().getNumFound());
@@ -1048,27 +1057,42 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
-    public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
-                               String dateStart, String dateEnd, List<String> facetQueries, String sort,
-                               boolean ascending, int facetMinCount)
-            throws SolrServerException, IOException {
+    public QueryResponse query(String query, String filterQuery, String facetField, boolean facetMissing, int rows,
+        int max, String dateType, String dateStart, String dateEnd, List<String> facetQueries, String sort,
+        boolean ascending, int facetMinCount) throws SolrServerException, IOException {
 
-        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
-                ascending, facetMinCount, true);
+        return query(query, filterQuery, facetField, facetMissing, rows, max, dateType, dateStart, dateEnd,
+            facetQueries, sort, ascending, facetMinCount, true);
     }
 
     @Override
-    public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
-                               String dateStart, String dateEnd, List<String> facetQueries, String sort,
-                               boolean ascending, int facetMinCount, boolean defaultFilterQueries)
-            throws SolrServerException, IOException {
-        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
+    public QueryResponse query(String query, String filterQuery, String facetField, boolean facetMissing, int rows,
+        int max, String dateType, String dateStart, String dateEnd, List<String> facetQueries, String sort,
+        boolean ascending, int facetMinCount, boolean defaultFilterQueries) throws SolrServerException, IOException {
+        return query(query, filterQuery, facetField, facetMissing, rows, max, dateType, dateStart, dateEnd,
+            facetQueries, sort,
             ascending, facetMinCount, defaultFilterQueries, null);
     }
 
     @Override
     public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
-        String dateStart, String dateEnd, List<String> facetQueries, String sort,
+        String dateStart, String dateEnd, List<String> facetQueries, String sort, boolean ascending, int facetMinCount)
+        throws SolrServerException, IOException {
+        return query(query, filterQuery, facetField, false, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
+            ascending, facetMinCount, false, null);
+    }
+
+    @Override
+    public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
+        String dateStart, String dateEnd, List<String> facetQueries, String sort, boolean ascending, int facetMinCount,
+        boolean defaultFilterQueries) throws SolrServerException, IOException {
+        return query(query, filterQuery, facetField, false, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
+            ascending, facetMinCount, defaultFilterQueries, null);
+    }
+
+    @Override
+    public QueryResponse query(String query, String filterQuery, String facetField, boolean facetMissing, int rows,
+        int max, String dateType, String dateStart, String dateEnd, List<String> facetQueries, String sort,
         boolean ascending, int facetMinCount, boolean defaultFilterQueries, String pivotField)
         throws SolrServerException, IOException {
 
@@ -1107,6 +1131,10 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         if (facetField != null) {
             solrQuery.addFacetField(facetField);
+        }
+
+        if (facetMissing && facetField != null) {
+            solrQuery.setParam("f." + facetField + "." + FacetParams.FACET_MISSING, true);
         }
 
         if (pivotField != null) {

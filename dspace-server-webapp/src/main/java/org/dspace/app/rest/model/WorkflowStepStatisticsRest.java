@@ -9,6 +9,8 @@ package org.dspace.app.rest.model;
 
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import org.dspace.app.rest.RestResourceController;
 
 /**
@@ -27,6 +29,7 @@ public class WorkflowStepStatisticsRest extends BaseObjectRest<String> {
 
     private long count;
 
+    @JsonInclude(value = Include.NON_EMPTY)
     private Map<String, Long> actionCounts;
 
     public String getName() {

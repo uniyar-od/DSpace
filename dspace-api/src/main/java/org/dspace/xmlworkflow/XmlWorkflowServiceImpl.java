@@ -367,7 +367,8 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         recordStart(context, wfi.getItem(), firstActionConfig.getProcessingAction());
 
         //Fire an event !
-        logWorkflowEvent(context, firstStep.getWorkflow().getID(), null, null, wfi, null, firstStep, firstActionConfig);
+        logWorkflowEvent(context, firstStep.getWorkflow().getID(), null, null, true,
+            wfi, null, firstStep, firstActionConfig, false);
 
         //If we don't have a UI then execute the action.
         if (!firstActionConfig.requiresUI()) {
@@ -532,10 +533,9 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                 if ((nextStep != null && currentStep != null && nextActionConfig != null)
                         || (wfi.getItem().isArchived() && currentStep != null)) {
 
-                    EPerson actor = currentActionConfig.requiresUI() ? user : null;
-
                     logWorkflowEvent(c, currentStep.getWorkflow().getID(), currentStep.getId(),
-                        currentActionConfig.getId(), wfi, actor, nextStep, nextActionConfig);
+                        currentActionConfig.getId(), currentActionConfig.requiresUI(), wfi, user, nextStep,
+                        nextActionConfig, false);
 
                 }
             }
@@ -547,8 +547,9 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
     }
 
     protected void logWorkflowEvent(Context c, String workflowId, String previousStepId, String previousActionConfigId,
-                                    XmlWorkflowItem wfi, EPerson actor, Step newStep,
-                                    WorkflowActionConfig newActionConfig) throws SQLException {
+        boolean previousActionRequiresUI, XmlWorkflowItem wfi, EPerson actor, Step newStep,
+        WorkflowActionConfig newActionConfig, boolean rejected) throws SQLException {
+
         try {
             //Fire an event so we can log our action !
             Item item = wfi.getItem();
@@ -582,8 +583,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
             //Fire our usage event !
             UsageWorkflowEvent usageWorkflowEvent = new UsageWorkflowEvent(c, item, wfi, workflowStepString,
-                                                                           previousWorkflowStepString, myCollection,
-                                                                           actor);
+                previousWorkflowStepString, myCollection, actor, previousActionRequiresUI, rejected);
 
             usageWorkflowEvent.setEpersonOwners(currentEpersonOwners.toArray(new EPerson[currentEpersonOwners.size()]));
             usageWorkflowEvent.setGroupOwners(currentGroupOwners.toArray(new Group[currentGroupOwners.size()]));
@@ -1078,7 +1078,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             + "collection_id=" + wi.getCollection().getID() + "eperson_id="
             + e.getID()));
 
-        logWorkflowEvent(context, workflowID, currentStepId, currentActionConfigId, wi, e, null, null);
+        logWorkflowEvent(context, workflowID, currentStepId, currentActionConfigId, true, wi, e, null, null, true);
 
         context.restoreAuthSystemState();
         return wsi;

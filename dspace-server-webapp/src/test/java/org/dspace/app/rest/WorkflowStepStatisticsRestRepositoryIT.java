@@ -7,6 +7,7 @@
  */
 package org.dspace.app.rest;
 
+import static org.apache.commons.lang3.time.DateUtils.addDays;
 import static org.dspace.app.rest.matcher.WorkflowStepStatisticsMatcher.match;
 import static org.dspace.app.rest.matcher.WorkflowStepStatisticsMatcher.matchActionCount;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.app.rest.repository.WorkflowStepStatisticsRestRepository;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -38,6 +40,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.EntityType;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
+import org.dspace.statistics.MockSolrStatisticsCore;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
@@ -65,6 +68,9 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
 
     @Autowired
     private XmlWorkflowItemService workflowItemService;
+
+    @Autowired
+    private MockSolrStatisticsCore mockSolrStatisticsCore;
 
     private Collection collection;
 
@@ -97,6 +103,8 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
 
         context.setCurrentUser(eperson);
+
+        mockSolrStatisticsCore.getSolr().commit();
 
         context.restoreAuthSystemState();
 
@@ -149,7 +157,7 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("claimaction", 2)))
             .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("claimaction", 1)));
 
-        claimTaskAndReject(secondWorkflowItem, user, "Bad item");
+        claimTaskAndReject(secondWorkflowItem, user);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/current"))
             .andExpect(status().isOk())
@@ -225,6 +233,419 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
 
     }
 
+    @Test
+    public void testSearchByDateRangeWithoutParameters() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3))));
+
+        ClaimedTask claimedTask = claimTask(firstWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1))));
+
+        approveClaimedTaskViaRest(user, claimedTask);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1))));
+
+        claimTaskAndApprove(firstWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
+                match("archived", "archived", 1))));
+
+        claimTaskAndReject(secondWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
+                match("archived", "archived", 1))));
+
+        claimTaskAndApprove(thirdWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
+                match("archived", "archived", 1))));
+
+        claimTaskAndApprove(thirdWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
+                match("archived", "archived", 2))));
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(collection);
+
+        context.restoreAuthSystemState();
+
+        claimTaskAndApprove(fourthWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 4),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 3),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
+                match("archived", "archived", 2))));
+
+        claimTaskAndReject(fourthWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 4),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 3),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 3),
+                match("archived", "archived", 2))));
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithSize() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+        createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, user);
+        claimTask(secondWorkflowItem, user);
+        claimTaskAndApprove(thirdWorkflowItem, user);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("size", "2"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3))));
+
+    }
+
+    @Test
+    public void testSearchByDateRange() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+        createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, user);
+        claimTask(secondWorkflowItem, user);
+        claimTaskAndApprove(thirdWorkflowItem, user);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", formatDate(addDays(new Date(), -1)))
+            .param("endDate", formatDate(addDays(new Date(), 1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("endDate", formatDate(addDays(new Date(), 1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", formatDate(addDays(new Date(), -1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", formatDate(addDays(new Date(), 1)))
+            .param("endDate", formatDate(addDays(new Date(), 2))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps").doesNotExist());
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", formatDate(addDays(new Date(), -2)))
+            .param("endDate", formatDate(addDays(new Date(), -1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps").doesNotExist());
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", formatDate(addDays(new Date(), 1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps").doesNotExist());
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("endDate", formatDate(addDays(new Date(), -1))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps").doesNotExist());
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithCollectionScope() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection anotherCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withWorkflow("defaultWorkflow")
+            .withName("Publications 2")
+            .withEntityType("Publication")
+            .withWorkflowGroup("reviewer", user)
+            .withWorkflowGroup("editor", user)
+            .build();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(anotherCollection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(anotherCollection);
+
+        context.restoreAuthSystemState();
+
+        claimTaskAndApprove(firstWorkflowItem, user);
+        claimTaskAndApprove(firstWorkflowItem, user);
+        claimTaskAndApprove(secondWorkflowItem, user);
+        claimTask(secondWorkflowItem, user);
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
+                match("archived", "archived", 1))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("collection", collection.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
+                match("archived", "archived", 1))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("collection", anotherCollection.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1))));
+
+        claimTaskAndReject(thirdWorkflowItem, user);
+        claimTaskAndApprove(fourthWorkflowItem, user);
+        claimTaskAndApprove(fourthWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 4),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 3),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 3),
+                match("archived", "archived", 2))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("collection", collection.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
+                match("archived", "archived", 1))));
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("collection", anotherCollection.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
+                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
+                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
+                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
+                match("archived", "archived", 1))));
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithInvalidCollectionScope() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("collection", "invalid"))
+            .andExpect(status().isBadRequest());
+
+    }
+
+    @Test
+    public void testSearchByDateRangeWithInvalidDates() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", "invalid date")
+            .param("endDate", formatDate(addDays(new Date(), 1))))
+            .andExpect(status().isUnprocessableEntity());
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
+            .param("startDate", formatDate(addDays(new Date(), -1)))
+            .param("endDate", "18/12/2021"))
+            .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void testSearchByDateRangeWithNotAdminUser() throws Exception {
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testFindOne() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, user);
+        claimTaskAndApprove(firstWorkflowItem, user);
+
+        claimTaskAndApprove(secondWorkflowItem, user);
+        claimTaskAndReject(secondWorkflowItem, user);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        String stepName = "defaultWorkflow.reviewstep.claimaction";
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", match(stepName, stepName, 2)));
+
+        stepName = "archived";
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", match(stepName, stepName, 1)));
+
+    }
+
+    @Test
+    public void testFindOneWithoutWorkflowStepStatistics() throws Exception {
+
+        String stepName = "defaultWorkflow.reviewstep.claimaction";
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
+            .andExpect(status().isNotFound());
+
+        stepName = "archived";
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testFindOneWithUnknownStep() throws Exception {
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + UUID.randomUUID().toString()))
+            .andExpect(status().isNotFound());
+    }
+
+    @Test
+    public void testFindOneWithNotAdminUser() throws Exception {
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/statistics/workflowSteps/archived"))
+            .andExpect(status().isForbidden());
+    }
+
     private String formatDate(Date date) {
         return WorkflowStepStatisticsRestRepository.DATE_FORMATTER.format(date);
     }
@@ -234,9 +655,9 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
         approveClaimedTaskViaRest(user, claimedTask);
     }
 
-    private void claimTaskAndReject(XmlWorkflowItem workflowItem, EPerson user, String reason) throws Exception {
+    private void claimTaskAndReject(XmlWorkflowItem workflowItem, EPerson user) throws Exception {
         ClaimedTask claimedTask = claimTask(workflowItem, user);
-        rejectClaimedTaskViaRest(user, claimedTask, reason);
+        rejectClaimedTaskViaRest(user, claimedTask, "Bad Item");
     }
 
     private ClaimedTask claimTask(XmlWorkflowItem workflowItem, EPerson user)
