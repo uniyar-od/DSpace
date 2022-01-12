@@ -30,7 +30,7 @@
           <bean class="org.dspace.versioning.VersionHistoryDAO"/>
        </property>
        <property name="provider">
-           <ref bean=""/>
+           <ref bean="defaultItemVersionProvider"/>
        </property>
  
     </bean>

@@ -10,6 +10,7 @@ package org.dspace.versioning;
 import org.dspace.content.Collection;
 import org.dspace.content.DCDate;
 import org.dspace.content.Metadatum;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.utils.DSpace;
@@ -89,6 +90,10 @@ public class VersioningServiceImpl implements VersioningService{
 
 			versionDAO.update((VersionImpl) version);
 			versionDAO.update((VersionImpl) latestVersion);
+			
+			WorkspaceItem workspaceItem = WorkspaceItem.findByItem(c, itemNew);
+			workspaceItem.deleteAll();
+			workspaceItem.update();
 
             return version;
         }catch (Exception e) {
