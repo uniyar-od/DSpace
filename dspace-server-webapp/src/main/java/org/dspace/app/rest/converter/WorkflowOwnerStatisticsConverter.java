@@ -29,6 +29,7 @@ public class WorkflowOwnerStatisticsConverter
         rest.setProjection(projection);
         rest.setId(modelObject.getOwner().getID().toString());
         rest.setName(modelObject.getOwnerName());
+        rest.setEmail(modelObject.getOwner().getEmail());
         rest.setCount(modelObject.getCount());
         rest.setActionCounts(modelObject.getActionCounts());
         return rest;

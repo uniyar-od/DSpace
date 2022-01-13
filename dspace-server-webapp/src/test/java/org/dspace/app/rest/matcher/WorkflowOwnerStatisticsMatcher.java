@@ -11,6 +11,7 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.is;
 
+import org.dspace.eperson.EPerson;
 import org.hamcrest.Matcher;
 
 /**
@@ -22,9 +23,10 @@ public final class WorkflowOwnerStatisticsMatcher {
 
     }
 
-    public static Matcher<? super Object> match(String id, String name, int count) {
-        return allOf(hasJsonPath("$.id", is(id)),
-            hasJsonPath("$.name", is(name)),
+    public static Matcher<? super Object> match(EPerson ePerson, int count) {
+        return allOf(hasJsonPath("$.id", is(ePerson.getID().toString())),
+            hasJsonPath("$.name", is(ePerson.getFullName())),
+            hasJsonPath("$.email", is(ePerson.getEmail())),
             hasJsonPath("$.count", is(count)));
     }
 

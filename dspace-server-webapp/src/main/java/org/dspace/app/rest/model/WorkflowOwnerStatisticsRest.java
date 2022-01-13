@@ -25,9 +25,19 @@ public class WorkflowOwnerStatisticsRest extends BaseObjectRest<String> {
 
     private String name;
 
+    private String email;
+
     private long count;
 
     private Map<String, Long> actionCounts;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
     public String getName() {
         return name;
