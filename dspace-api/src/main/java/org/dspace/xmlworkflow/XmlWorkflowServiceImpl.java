@@ -575,7 +575,10 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
                 for (ClaimedTask claimedTask : claimedTasks) {
                     currentEpersonOwners.add(claimedTask.getOwner());
                 }
+            } else {
+                workflowStepString = rejected ? REJECTED_STEP : ARCHIVED_STEP;
             }
+
             String previousWorkflowStepString = null;
             if (previousStepId != null && previousActionConfigId != null) {
                 previousWorkflowStepString = workflowId + "." + previousStepId + "." + previousActionConfigId;
@@ -583,7 +586,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
             //Fire our usage event !
             UsageWorkflowEvent usageWorkflowEvent = new UsageWorkflowEvent(c, item, wfi, workflowStepString,
-                previousWorkflowStepString, myCollection, actor, previousActionRequiresUI, rejected);
+                previousWorkflowStepString, myCollection, actor, previousActionRequiresUI);
 
             usageWorkflowEvent.setEpersonOwners(currentEpersonOwners.toArray(new EPerson[currentEpersonOwners.size()]));
             usageWorkflowEvent.setGroupOwners(currentGroupOwners.toArray(new Group[currentGroupOwners.size()]));

@@ -124,7 +124,6 @@
     <field name="workflowItemId" type="integer" indexed="true" stored="true" required="false" />
     
     <field name="previousActionRequiresUI" type="boolean" indexed="true" stored="true" required="false" />
-    <field name="rejected" type="boolean" indexed="true" stored="true" required="false" />
     
  </fields>
 

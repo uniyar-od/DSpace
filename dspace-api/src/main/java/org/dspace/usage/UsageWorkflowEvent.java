@@ -31,10 +31,9 @@ public class UsageWorkflowEvent extends UsageEvent {
     private EPerson actor;
     private InProgressSubmission workflowItem;
     private boolean previousActionRequiresUI;
-    private boolean rejected;
 
     public UsageWorkflowEvent(Context context, Item item, InProgressSubmission workflowItem, String workflowStep,
-        String oldState, Collection scope, EPerson actor, boolean previousActionRequiresUI, boolean rejected) {
+        String oldState, Collection scope, EPerson actor, boolean previousActionRequiresUI) {
         super(Action.WORKFLOW, null, context, item);
         this.workflowItem = workflowItem;
         this.workflowStep = workflowStep;
@@ -42,7 +41,6 @@ public class UsageWorkflowEvent extends UsageEvent {
         this.scope = scope;
         this.actor = actor;
         this.previousActionRequiresUI = previousActionRequiresUI;
-        this.rejected = rejected;
     }
 
     public String getWorkflowStep() {
@@ -88,14 +86,6 @@ public class UsageWorkflowEvent extends UsageEvent {
 
     public void setPreviousActionRequiresUI(boolean previousActionRequiresUI) {
         this.previousActionRequiresUI = previousActionRequiresUI;
-    }
-
-    public boolean isRejected() {
-        return rejected;
-    }
-
-    public void setRejected(boolean rejected) {
-        this.rejected = rejected;
     }
 
 }

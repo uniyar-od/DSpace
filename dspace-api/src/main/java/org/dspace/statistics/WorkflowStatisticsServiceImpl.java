@@ -23,7 +23,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
@@ -52,10 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService {
 
-    private static final String ARCHIVED_STEP = "archived";
-
-    private static final String WORKFLOW_STEP_FILTER = "previousActionRequiresUI: true AND rejected: false";
-
     private static final String OWNER_STATISTICS_FACET_PIVOT = "actor,previousWorkflowStep";
 
     private static final String CURRENT_STEPS_STATISTICS_FACET_PIVOT = "step_keyword,action_keyword";
@@ -72,10 +67,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     @Override
     public Optional<WorkflowStepStatistics> findStepStatistics(Context context, String stepName) {
 
-        boolean isArchivedStep = ARCHIVED_STEP.equalsIgnoreCase(stepName);
-
-        String stepNameFilter = isArchivedStep ? "-workflowStep: [ * TO * ]" : "workflowStep: " + stepName;
-        String queryFilter = getWorkflowTypeFilter() + " AND " + stepNameFilter + " AND " + WORKFLOW_STEP_FILTER;
+        String queryFilter = composeQueryFilter() + " AND workflowStep: " + stepName;
 
         long count = queryTotal(queryFilter);
         if (count == 0L) {
@@ -88,7 +80,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     @Override
     public Optional<WorkflowOwnerStatistics> findOwnerStatistics(Context context, UUID ownerId) {
 
-        String queryFilter = getWorkflowTypeFilter() + " AND actor:" + ownerId + " AND previousActionRequiresUI: true";
+        String queryFilter = composeQueryFilter() + " AND actor:" + ownerId;
         FacetPivotResult[] facetPivotResults = queryWithPivotField(queryFilter, 1, OWNER_STATISTICS_FACET_PIVOT);
         if (facetPivotResults.length == 0) {
             return Optional.empty();
@@ -110,9 +102,8 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         Collection collection, int limit) {
 
         String queryFilter = composeQueryFilter(startDate, endDate, collection);
-        queryFilter = queryFilter + " AND " + WORKFLOW_STEP_FILTER;
 
-        return Arrays.stream(queryWithFacetField(queryFilter, limit, "workflowStep", true))
+        return Arrays.stream(queryWithFacetField(queryFilter, limit, "workflowStep"))
             .map(this::convertToStepStatistics)
             .filter(stepStatistics -> stepStatistics.getCount() > 0L)
             .collect(Collectors.toList());
@@ -122,12 +113,11 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     public List<WorkflowOwnerStatistics> findOwnersByDateRange(Context context, Date startDate, Date endDate,
         Collection collection, int limit) {
 
-        String filter = composeQueryFilter(startDate, endDate, collection);
-        filter = filter + " AND previousActionRequiresUI: true";
+        String queryFilter = composeQueryFilter(startDate, endDate, collection);
 
-        FacetPivotResult[] queryFacetPivotFields = queryWithPivotField(filter, limit, OWNER_STATISTICS_FACET_PIVOT);
+        FacetPivotResult[] facetPivotFields = queryWithPivotField(queryFilter, limit, OWNER_STATISTICS_FACET_PIVOT);
 
-        return Arrays.stream(queryFacetPivotFields)
+        return Arrays.stream(facetPivotFields)
             .flatMap(pivotObjectCount -> convertToOwnerStatistics(context, pivotObjectCount).stream())
             .collect(Collectors.toList());
     }
@@ -150,10 +140,14 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     }
 
     private String composeQueryFilter(Date startDate, Date endDate, Collection collection) {
-        return Stream
-            .of(of(getWorkflowTypeFilter()), getDateFilter(startDate, endDate), getCollectionFilter(collection))
+        return Stream.of(of(composeQueryFilter()), getDateFilter(startDate, endDate), getCollectionFilter(collection))
             .flatMap(Optional::stream)
             .collect(Collectors.joining(" AND "));
+    }
+
+
+    private String composeQueryFilter() {
+        return getWorkflowTypeFilter() + " AND previousActionRequiresUI: true";
     }
 
     private Optional<String> getCollectionFilter(Collection collection) {
@@ -180,9 +174,9 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         }
     }
 
-    private ObjectCount[] queryWithFacetField(String filter, int limit, String facetField, boolean facetMissing) {
+    private ObjectCount[] queryWithFacetField(String filter, int limit, String facetField) {
         try {
-            return solrLoggerService.queryFacetField("*:*", filter, facetField, facetMissing, limit, false, null, 0);
+            return solrLoggerService.queryFacetField("*:*", filter, facetField, limit, false, null, 0);
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -207,8 +201,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     }
 
     private WorkflowStepStatistics convertToStepStatistics(ObjectCount objectCount) {
-        String value = StringUtils.isNotBlank(objectCount.getValue()) ? objectCount.getValue() : ARCHIVED_STEP;
-        return new WorkflowStepStatistics(value, objectCount.getCount());
+        return new WorkflowStepStatistics(objectCount.getValue(), objectCount.getCount());
     }
 
     private WorkflowStepStatistics convertToStepStatistics(FacetPivotResult pivot) {
