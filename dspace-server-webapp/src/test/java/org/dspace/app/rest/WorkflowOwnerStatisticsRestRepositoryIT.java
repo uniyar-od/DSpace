@@ -147,16 +147,16 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(
                 match(firstUser, 6), match(thirdUser, 4), match(secondUser, 3))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 2),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))))
             .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
-                matchActionCount("defaultWorkflow.editstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.editstep.editaction", 2))))
+                matchActionCount("editstep.claimaction", 2),
+                matchActionCount("editstep.editaction", 2))))
             .andExpect(jsonPath("$._embedded.workflowOwners[2]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))));
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 1))));
 
     }
 
@@ -191,13 +191,13 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(firstUser, 6), match(thirdUser, 4))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 2),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))))
             .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
-                matchActionCount("defaultWorkflow.editstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.editstep.editaction", 2))));
+                matchActionCount("editstep.claimaction", 2),
+                matchActionCount("editstep.editaction", 2))));
 
     }
 
@@ -221,30 +221,30 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(firstUser, 4))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+                matchActionCount("reviewstep.claimaction", 1),
+                matchActionCount("reviewstep.reviewaction", 1),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("endDate", formatDate(addDays(new Date(), 1))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(firstUser, 4))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+                matchActionCount("reviewstep.claimaction", 1),
+                matchActionCount("reviewstep.reviewaction", 1),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("startDate", formatDate(addDays(new Date(), -1))))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(firstUser, 4))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+                matchActionCount("reviewstep.claimaction", 1),
+                matchActionCount("reviewstep.reviewaction", 1),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("startDate", formatDate(addDays(new Date(), 1)))
@@ -309,16 +309,16 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(
                 match(firstUser, 6), match(thirdUser, 4), match(secondUser, 3))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 2),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))))
             .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
-                matchActionCount("defaultWorkflow.editstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.editstep.editaction", 2))))
+                matchActionCount("editstep.claimaction", 2),
+                matchActionCount("editstep.editaction", 2))))
             .andExpect(jsonPath("$._embedded.workflowOwners[2]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))));
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("collection", collection.getID().toString()))
@@ -326,13 +326,13 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(firstUser, 6), match(thirdUser, 2))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2),
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))))
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 2),
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))))
             .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("collection", anotherCollection.getID().toString()))
@@ -340,11 +340,11 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(secondUser, 3), match(thirdUser, 2))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))))
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 1))))
             .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
-                matchActionCount("defaultWorkflow.editstep.claimaction", 1),
-                matchActionCount("defaultWorkflow.editstep.editaction", 1))));
+                matchActionCount("editstep.claimaction", 1),
+                matchActionCount("editstep.editaction", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange")
             .param("collection", anotherCollection.getID().toString())
@@ -353,8 +353,8 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
             .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(1)))
             .andExpect(jsonPath("$._embedded.workflowOwners", contains(match(secondUser, 3))))
             .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
-                matchActionCount("defaultWorkflow.reviewstep.claimaction", 2),
-                matchActionCount("defaultWorkflow.reviewstep.reviewaction", 1))));
+                matchActionCount("reviewstep.claimaction", 2),
+                matchActionCount("reviewstep.reviewaction", 1))));
 
     }
 
@@ -425,10 +425,10 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
         getClient(adminToken).perform(get("/api/statistics/workflowOwners/" + firstUser.getID()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", match(firstUser, 6)))
-            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.reviewstep.claimaction", 2)))
-            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.reviewstep.reviewaction", 2)))
-            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.editstep.claimaction", 1)))
-            .andExpect(jsonPath("$", matchActionCount("defaultWorkflow.editstep.editaction", 1)));
+            .andExpect(jsonPath("$", matchActionCount("reviewstep.claimaction", 2)))
+            .andExpect(jsonPath("$", matchActionCount("reviewstep.reviewaction", 2)))
+            .andExpect(jsonPath("$", matchActionCount("editstep.claimaction", 1)))
+            .andExpect(jsonPath("$", matchActionCount("editstep.editaction", 1)));
 
     }
 

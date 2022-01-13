@@ -95,7 +95,6 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.DiscoverResult.FacetPivotResult;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.Group;
 import org.dspace.service.ClientInfoService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.service.SolrLoggerService;
@@ -541,24 +540,31 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             solrDoc.addField("owningColl", usageWorkflowEvent.getScope().getID().toString());
             storeParents(solrDoc, usageWorkflowEvent.getScope());
 
-            if (usageWorkflowEvent.getWorkflowStep() != null) {
-                solrDoc.addField("workflowStep", usageWorkflowEvent.getWorkflowStep());
+            if (usageWorkflowEvent.getWorkflow() != null) {
+                solrDoc.addField("workflow", usageWorkflowEvent.getWorkflow());
             }
-            if (usageWorkflowEvent.getOldState() != null) {
-                solrDoc.addField("previousWorkflowStep", usageWorkflowEvent.getOldState());
+
+            if (usageWorkflowEvent.getCurrentWorkflowStep() != null) {
+                solrDoc.addField("workflowStep", usageWorkflowEvent.getCurrentWorkflowStep());
             }
-            if (usageWorkflowEvent.getGroupOwners() != null) {
-                for (int i = 0; i < usageWorkflowEvent.getGroupOwners().length; i++) {
-                    Group group = usageWorkflowEvent.getGroupOwners()[i];
-                    solrDoc.addField("owner", "g" + group.getID().toString());
-                }
+
+            if (usageWorkflowEvent.getPreviousWorkflowStep() != null) {
+                solrDoc.addField("previousWorkflowStep", usageWorkflowEvent.getPreviousWorkflowStep());
             }
-            if (usageWorkflowEvent.getEpersonOwners() != null) {
-                for (int i = 0; i < usageWorkflowEvent.getEpersonOwners().length; i++) {
-                    EPerson ePerson = usageWorkflowEvent.getEpersonOwners()[i];
-                    solrDoc.addField("owner", "e" + ePerson.getID().toString());
-                }
+
+            if (usageWorkflowEvent.getCurrentWorkflowAction() != null) {
+                solrDoc.addField("workflowAction", usageWorkflowEvent.getCurrentWorkflowAction());
             }
+
+            if (usageWorkflowEvent.getPreviousWorkflowAction() != null) {
+                solrDoc.addField("previousWorkflowAction", usageWorkflowEvent.getPreviousWorkflowAction());
+            }
+
+            usageWorkflowEvent.getGroupOwners()
+                .forEach(group -> solrDoc.addField("owner", "g" + group.getID().toString()));
+
+            usageWorkflowEvent.getEPersonOwners()
+                .forEach(ePerson -> solrDoc.addField("owner", "e" + ePerson.getID().toString()));
 
             solrDoc.addField("workflowItemId", usageWorkflowEvent.getWorkflowItem().getID().toString());
 
@@ -566,7 +572,9 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             if (submitter != null) {
                 solrDoc.addField("submitter", submitter.getID().toString());
             }
+
             solrDoc.addField("statistics_type", StatisticsType.WORKFLOW.text());
+
             if (usageWorkflowEvent.getActor() != null) {
                 solrDoc.addField("actor", usageWorkflowEvent.getActor().getID().toString());
             }

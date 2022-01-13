@@ -41,9 +41,9 @@ import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
  */
 public interface XmlWorkflowService extends WorkflowService<XmlWorkflowItem> {
 
-    String ARCHIVED_STEP = "archived";
+    String ITEM_STEP = "item";
 
-    String REJECTED_STEP = "rejected";
+    String WORKSPACE_STEP = "workspace";
 
     /**
      * Send an email to some addresses, concerning a WorkflowItem, using a given

@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -51,7 +52,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService {
 
-    private static final String OWNER_STATISTICS_FACET_PIVOT = "actor,previousWorkflowStep";
+    private static final String STEP_STATISTICS_FACET_PIVOT = "previousWorkflowStep,previousWorkflowAction";
+
+    private static final String OWNER_STATISTICS_FACET_PIVOT = "actor,previousWorkflowStep,previousWorkflowAction";
 
     private static final String CURRENT_STEPS_STATISTICS_FACET_PIVOT = "step_keyword,action_keyword";
 
@@ -67,7 +70,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     @Override
     public Optional<WorkflowStepStatistics> findStepStatistics(Context context, String stepName) {
 
-        String queryFilter = composeQueryFilter() + " AND workflowStep: " + stepName;
+        String queryFilter = composeQueryFilter() + " AND previousWorkflowStep: " + stepName;
 
         long count = queryTotal(queryFilter);
         if (count == 0L) {
@@ -103,7 +106,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
         String queryFilter = composeQueryFilter(startDate, endDate, collection);
 
-        return Arrays.stream(queryWithFacetField(queryFilter, limit, "workflowStep"))
+        return Arrays.stream(queryWithPivotField(queryFilter, limit, STEP_STATISTICS_FACET_PIVOT))
             .map(this::convertToStepStatistics)
             .filter(stepStatistics -> stepStatistics.getCount() > 0L)
             .collect(Collectors.toList());
@@ -174,14 +177,6 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         }
     }
 
-    private ObjectCount[] queryWithFacetField(String filter, int limit, String facetField) {
-        try {
-            return solrLoggerService.queryFacetField("*:*", filter, facetField, limit, false, null, 0);
-        } catch (SolrServerException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private long queryTotal(String queryFilter) {
         try {
             return solrLoggerService.queryTotal("*:*", queryFilter, 0).getCount();
@@ -196,21 +191,28 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         long count = pivot.getCount();
 
         return findUserById(context, UUIDUtils.fromString(owner))
-            .map(user -> new WorkflowOwnerStatistics(user, count, createActionCountMap(pivot)));
+            .map(user -> new WorkflowOwnerStatistics(user, count, createActionCountMapFromActorPivot(pivot)));
 
-    }
-
-    private WorkflowStepStatistics convertToStepStatistics(ObjectCount objectCount) {
-        return new WorkflowStepStatistics(objectCount.getValue(), objectCount.getCount());
     }
 
     private WorkflowStepStatistics convertToStepStatistics(FacetPivotResult pivot) {
-        return new WorkflowStepStatistics(pivot.getValue(), pivot.getCount(), createActionCountMap(pivot));
+        return new WorkflowStepStatistics(pivot.getValue(), pivot.getCount(), createActionCountMapFromStepPivot(pivot));
     }
 
-    private Map<String, Long> createActionCountMap(FacetPivotResult facetPivotResult) {
+    private Map<String, Long> createActionCountMapFromStepPivot(FacetPivotResult facetPivotResult) {
         return Arrays.stream(facetPivotResult.getPivot())
             .collect(Collectors.toMap(FacetPivotResult::getValue, FacetPivotResult::getCount));
+    }
+
+    private Map<String, Long> createActionCountMapFromActorPivot(FacetPivotResult pivotResult) {
+        Map<String, Long> actionCounts = new HashMap<String, Long>();
+        for (FacetPivotResult stepFacetPivot : pivotResult.getPivot()) {
+            for (FacetPivotResult actionFacetPivot : stepFacetPivot.getPivot()) {
+                String actionName = stepFacetPivot.getValue() + "." + actionFacetPivot.getValue();
+                actionCounts.put(actionName, actionFacetPivot.getCount());
+            }
+        }
+        return actionCounts;
     }
 
     private String getWorkflowTypeFilter() {
