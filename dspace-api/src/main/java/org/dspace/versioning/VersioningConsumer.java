@@ -51,7 +51,8 @@ public class VersioningConsumer implements Consumer {
         if(st == Constants.ITEM && et == Event.INSTALL){
             Item item = (Item) event.getSubject(ctx);
 
-			copySubmissionItemToOriginalItem(ctx, item);
+            VersioningService versioningService = new DSpace().getSingletonService(VersioningService.class);
+            item = versioningService.getItemVersionProvider().finalizeAfterSubmission(ctx, item);
 
             if (item != null && item.isArchived()) {
                 VersionHistory history = retrieveVersionHistory(ctx, item);
@@ -75,56 +76,6 @@ public class VersioningConsumer implements Consumer {
             }
         }
     }
-
-    private void copySubmissionItemToOriginalItem(Context context, Item item) throws Exception {
-		AbstractVersionProvider versionProvider = new DSpace().getServiceManager()
-				.getServiceByName("sameItemVersionProvider", SameItemVersionProvider.class);
-        Set<String> ignoredMetadataFields = versionProvider.getIgnoredMetadataFields();
-    	
-    	Metadatum[] metadatum = item.getMetadata("local", "fakeitem", "versioning", Item.ANY);
-		//if local.fakeitem.versioning is set a capy of all metadata fields is required
-		if (metadatum.length > 0) {
-			int itemToEditID = Integer.parseInt(metadatum[0].value);
-			Item originalItem = Item.find(context, itemToEditID);
-
-			Metadatum[] metadataFields = originalItem.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-			String fullMetadata;
-
-			for (Metadatum field : metadataFields) {
-				fullMetadata = String.join(".", field.schema, field.element, field.qualifier);
-				
-				//delete matadata if it is not contained in the ignore list
-				if (!ignoredMetadataFields.contains(fullMetadata)) {
-					originalItem.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
-				}
-			}
-
-			versionProvider.copyMetadata(originalItem, item);
-
-			// Remove the tmp metadata copied from the tmp object
-			originalItem.clearMetadata("local", "fakeitem", "versioning", Item.ANY);
-			originalItem.update();
-
-			// Remove the tmp item from any collection
-			Collection[] collections = item.getCollections();
-			for (int i = 0; i < collections.length; i++) {
-				collections[i].removeItem(item);
-			}
-			item.update();
-			
-			WorkspaceItem workspaceItem = WorkspaceItem.findByItem(context, item);
-			workspaceItem.deleteAll();
-			workspaceItem.update();
-			
-			
-			context.commit();
-
-			// the new reference of item is the original item
-			// so keep doing logic on item
-			item = originalItem;
-		}
-		
-	}
 
 	public void end(Context ctx) throws Exception {
         if(itemsToProcess != null){

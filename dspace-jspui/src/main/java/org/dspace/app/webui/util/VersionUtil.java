@@ -59,26 +59,10 @@ public class VersionUtil
 
             Item item = Item.find(context, itemID);
 
-            if (AuthorizeManager.authorizeActionBoolean(context, item,
-                    Constants.WRITE) || item.canEdit())
-            {
-                VersioningService versioningService = new DSpace()
-                        .getSingletonService(VersioningService.class);
-                Version version = versioningService.createNewVersion(context,
-                        itemID, summary);
-                
-                Item itemTmp = versioningService.createItemCopy(context, item);
-                
-                
-                WorkspaceItem wsiTmpItem = WorkspaceItem.findByItem(context, itemTmp);
-                itemTmp.addMetadata("local", "fakeitem", "versioning", Item.ANY, String.valueOf(item.getID()));
-                itemTmp.update();
-                
-                context.commit();
-
-                return wsiTmpItem.getID();
-
-            }
+			if (AuthorizeManager.authorizeActionBoolean(context, item, Constants.WRITE) || item.canEdit()) {
+				VersioningService versioningService = new DSpace().getSingletonService(VersioningService.class);
+				return versioningService.getItemVersionProvider().processCreateNewVersion(context, itemID, summary);
+			}
         }
         catch (Exception ex)
         {

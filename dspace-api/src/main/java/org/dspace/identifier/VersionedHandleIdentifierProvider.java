@@ -492,38 +492,41 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
 
     protected String makeIdentifierBasedOnHistory(Context context, DSpaceObject dso, String handleId, VersionHistory history) throws AuthorizeException, SQLException
     {
-        Item item = (Item)dso;
+		Item item = (Item) dso;
 
-        // FIRST time a VERSION is created 2 identifiers will be minted  and the canonical will be updated to point to the newer URL:
-        //  - id.1-->old URL
-        //  - id.2-->new URL
-        Version version = history.getVersion(item);
-        Version previous = history.getPrevious(version);
-        String canonical = getCanonical(previous.getItem());
-        if (history.isFirstVersion(previous))
-        {
-            // add a new Identifier for previous item: 12345/100.1
-            String identifierPreviousItem=canonical + DOT + 1;
-            //Make sure that this hasn't happened already
-            if(findHandleInternal(context, identifierPreviousItem) == null)
-            {
-                TableRow handle = DatabaseManager.create(context, "Handle");
-                modifyHandleRecord(context, previous.getItem(), handle, identifierPreviousItem);
-            }
-        }
+		// FIRST time a VERSION is created 2 identifiers will be minted and the
+		// canonical will be updated to point to the newer URL:
+		// - id.1-->old URL
+		// - id.2-->new URL
+		Version version = history.getVersion(item);
+		Version next = history.getNext(version);
+		String canonical = getCanonical(next.getItem());
 
+		// add a new Identifier for previous item: 12345/100.1
+		String identifierPreviousItem = canonical + DOT + version.getVersionNumber();
+		// Make sure that this hasn't happened already
+		if (findHandleInternal(context, identifierPreviousItem) == null) {
+			TableRow handle = DatabaseManager.create(context, "Handle");
+			// we update the identifier of the current item because this one is
+			// the item that will be saved as a snapshot after flow is completed
 
-        // add a new Identifier for this item: 12345/100.x
-        String idNew = canonical + DOT + version.getVersionNumber();
-        //Make sure we don't have an old handle hanging around (if our previous version was deleted in the workspace)
-        TableRow handleRow = findHandleInternal(context, idNew);
-        if(handleRow == null)
-        {
-            handleRow = DatabaseManager.create(context, "Handle");
-        }
-        modifyHandleRecord(context, dso, handleRow, idNew);
+			// version.getItem() is the current item that will became the old one
+			modifyHandleRecord(context, version.getItem(), handle, identifierPreviousItem);
+		}
 
-        return handleId;
+//		// add a new Identifier for this item: 12345/100.x
+//		// this item is the one that will be considered as a new version
+//		// always the same item ID but each time on a different version
+//		String idNew = canonical + DOT + next.getVersionNumber();
+//		// Make sure we don't have an old handle hanging around (if our previous version
+//		// was deleted in the workspace)
+		TableRow handleRow = findHandleInternal(context, canonical);
+		if (handleRow == null) {
+			handleRow = DatabaseManager.create(context, "Handle");
+		}
+		modifyHandleRecord(context, next.getItem(), handleRow, canonical);
+
+		return handleId;
     }
 
 

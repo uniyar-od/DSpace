@@ -13,7 +13,7 @@
 		Provider, defines behavior for replicating Item, Metadata, Bundles and Bitstreams. 
 		Autowired at this time. -->
 	<bean id="org.dspace.versioning.VersioningService"
-		class="org.dspace.versioning.VersioningServiceImpl" autowire="byType"
+		class="org.dspace.versioning.VersioningServiceSameItemImpl" autowire="byType"
 		scope="singleton">
 		<property name="versionDAO">
 			<bean class="org.dspace.versioning.VersionDAO" />

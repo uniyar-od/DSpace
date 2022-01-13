@@ -24,11 +24,11 @@ import java.util.List;
 public class VersionHistoryImpl implements VersionHistory
 {
 
-    private int versionHistoryId;
-    private List<Version>versions;
+	protected int versionHistoryId;
+	protected List<Version>versions;
 
-    private Context myContext;
-    private TableRow myRow;
+	protected Context myContext;
+	protected TableRow myRow;
 
 
     protected VersionHistoryImpl(VersionHistoryDAO vhDAO){

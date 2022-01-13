@@ -31,5 +31,7 @@ public interface ItemVersionProvider {
 	public Version createNewVersion(Context c, VersioningService versioningService, VersionHistory versionHistory,
 			String summary, Item current) throws SQLException, AuthorizeException, IOException;
 
-	public void finalizeAfterSubmission(Context ctx, Item item) throws Exception ;
+	public Item finalizeAfterSubmission(Context ctx, Item item) throws Exception ;
+	
+	public int processCreateNewVersion(Context context, int itemID, String summary) throws Exception;
 }

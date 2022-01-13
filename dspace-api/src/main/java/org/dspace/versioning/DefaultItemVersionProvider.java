@@ -119,9 +119,24 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
 		updateItemState(c, itemNew, current);
 		return version;
 	}
+	
+	
 
 	@Override
-	public void finalizeAfterSubmission(Context ctx, Item item) throws Exception {
+	public Item finalizeAfterSubmission(Context ctx, Item item) throws Exception {
 		//nothing else left to do
+		return item;
+	}
+
+	@Override
+	public int processCreateNewVersion(Context context, int itemID, String summary) throws Exception {
+        VersioningService versioningService = new DSpace()
+                .getSingletonService(VersioningService.class);
+		Version version = versioningService.createNewVersion(context,
+                itemID, summary);
+        WorkspaceItem wsi = WorkspaceItem.findByItem(context,
+                version.getItem());
+        context.commit();
+        return wsi.getID();
 	}
 }

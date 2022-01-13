@@ -32,7 +32,7 @@ public class VersionHistoryDAO
     {
         try {
             TableRow row = DatabaseManager.create(context, TABLE_NAME);
-            VersionHistoryImpl vh = new VersionHistoryImpl(context, row);
+            VersionHistoryImpl vh = new VersionHistorySameItemImpl(context, row);
 
             //TODO Do I have to manage the event?
             //context.addEvent(new Event(Event.CREATE, Constants.EPERSON, e.getID(), null));
@@ -65,7 +65,7 @@ public class VersionHistoryDAO
 
             TableRow row = DatabaseManager.find(context, TABLE_NAME, version.getVersionHistoryID());
 
-            VersionHistoryImpl vh = new VersionHistoryImpl(context, row);
+            VersionHistoryImpl vh = new VersionHistorySameItemImpl(context, row);
             List<Version> versions= versionDAO.findByVersionHistory(context, vh.getVersionHistoryId());
             vh.setVersions(versions);
             return vh;
@@ -90,7 +90,7 @@ public class VersionHistoryDAO
                 return fromCache;
             }
 
-            VersionHistoryImpl versionHistoryImpl = new VersionHistoryImpl(context, row);
+            VersionHistoryImpl versionHistoryImpl = new VersionHistorySameItemImpl(context, row);
 
             List<Version> versions= versionDAO.findByVersionHistory(context, versionHistoryImpl.getVersionHistoryId());
             versionHistoryImpl.setVersions(versions);
