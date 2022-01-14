@@ -163,6 +163,8 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 				}
 			}
 			versionProvider.copyMetadata(item, originalItem);
+
+            item.setArchived(false);
 			item.update();
 			// end restoring metadata fields on archived item
 
