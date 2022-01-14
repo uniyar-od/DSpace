@@ -155,12 +155,6 @@ public class VersionDAO
             //TODO Do I have to manage the event?
             DatabaseManager.update(version.getMyContext(), version.getMyRow());
 
-
-//        if (modified)
-//        {
-//            myContext.addEvent(new Event(Event.MODIFY, Constants.EPERSON, getID(), null));
-//            modified = false;
-//        }
         } catch (SQLException e) {
             throw new RuntimeException(e.getMessage(), e);
         }

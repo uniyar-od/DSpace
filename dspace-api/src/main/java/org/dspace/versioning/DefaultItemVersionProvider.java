@@ -139,4 +139,9 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
         context.commit();
         return wsi.getID();
 	}
+
+	@Override
+	public void clearMetadataOnItem(Item latest) {
+		
+	}
 }

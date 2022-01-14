@@ -48,7 +48,7 @@ public class VersionHistoryServlet extends DSpaceServlet
         Item item = Item.find(context, itemID);
 
         if (item == null) {
-        	throw new IllegalArgumentException("Item is null");
+            response.sendRedirect(request.getContextPath()+ "/mydspace");
         }
         
         if(!AuthorizeManager.isAdmin(context,

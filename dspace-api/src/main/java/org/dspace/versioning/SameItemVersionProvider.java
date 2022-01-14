@@ -142,26 +142,16 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 		// It is used during the submission flow to exploit the automatically
 		// created workspace item
 
+		Metadatum[] metadataFields = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+		String fullMetadata;
+		
 		Metadatum[] metadatum = item.getMetadata("local", "fakeitem", "versioning", Item.ANY);
 		// if local.fakeitem.versioning is set a copy of all metadata fields is required
 		if (metadatum.length > 0) {
 			int itemToEditID = Integer.parseInt(metadatum[0].value);
 			Item originalItem = Item.find(context, itemToEditID);
 
-			// list all metadata retrieved from the submission flow
-			// saved on item
-			Metadatum[] metadataFields = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-			String fullMetadata;
-
-			// restore the item with the original metadata
-			for (Metadatum field : metadataFields) {
-				fullMetadata = String.join(".", field.schema, field.element, field.qualifier);
-
-				// delete matadata if it is not contained in the ignore list
-				if (!ignoredMetadataFields.contains(fullMetadata)) {
-					item.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
-				}
-			}
+			clearMetadataOnItem(item);
 			versionProvider.copyMetadata(item, originalItem);
 
             item.setArchived(false);
@@ -192,6 +182,31 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 			return originalItem;
 		}
 		return item;
+	}
+
+	public void clearMetadataOnItem(Item item) {// list all metadata retrieved from the submission flow
+		AbstractVersionProvider versionProvider = new DSpace().getServiceManager()
+				.getServiceByName("sameItemVersionProvider", SameItemVersionProvider.class);
+		Set<String> ignoredMetadataFields = versionProvider.getIgnoredMetadataFields();
+		
+		// saved on item
+		Metadatum[] metadataFields = item.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+		String fullMetadata;
+
+		// restore the item with the original metadata
+		for (Metadatum field : metadataFields) {
+			fullMetadata = String.join(".", field.schema, field.element, field.qualifier);
+
+			// delete matadata if it is not contained in the ignore list
+			if (!ignoredMetadataFields.contains(fullMetadata)) {
+				item.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
+			}
+		}
+		try {
+			item.update();
+		} catch (Exception e) {
+			throw new RuntimeException("Cannot clear item metadata!");
+		}
 	}
 
 	@Override

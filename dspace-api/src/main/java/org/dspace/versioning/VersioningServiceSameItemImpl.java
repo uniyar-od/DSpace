@@ -9,6 +9,9 @@ import org.dspace.content.DCDate;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.Context;
+import org.dspace.storage.rdbms.DatabaseManager;
+import org.dspace.storage.rdbms.TableRow;
+import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Required;
 
 public class VersioningServiceSameItemImpl implements VersioningService {
@@ -70,6 +73,40 @@ public class VersioningServiceSameItemImpl implements VersioningService {
 	protected void removeVersion(Context c, Version version) {
 		try {
 			VersionHistory history = versionHistoryDAO.findById(c, version.getVersionHistoryID(), versionDAO);
+
+			Version previous=history.getPrevious(version);
+			if(history.isLastVersion(version) && previous!=null) {
+				AbstractVersionProvider versionProvider = new DSpace().getServiceManager()
+						.getServiceByName("sameItemVersionProvider", SameItemVersionProvider.class);
+				
+				Item itemPrev = previous.getItem();
+				Item latest = version.getItem();
+				
+				//To keep the same item we need to copy the previous item metadata on the latest
+				//switch the references of the item and then delete the latest version
+
+				// restore the item with the original metadata
+				versionProvider.clearMetadataOnItem(latest);
+				try {
+					versionProvider.copyMetadata(latest, itemPrev);
+					latest.update();
+				}catch(Exception e) {
+					throw new RuntimeException("Cannot clear item metadata!");
+				}
+				
+				previous.setItemID(latest.getID());
+				TableRow tableRow = ((VersionImpl)previous).getMyRow();
+				tableRow.setTable("versionitem");
+	            DatabaseManager.update(((VersionImpl)previous).getMyContext(), tableRow);
+
+				
+				version.setItemID(itemPrev.getID());
+				tableRow = ((VersionImpl)version).getMyRow();
+				tableRow.setTable("versionitem");
+	            DatabaseManager.update(((VersionImpl)version).getMyContext(), tableRow);
+				
+			}
+			
 			provider.deleteVersionedItem(c, version, history);
 			versionDAO.delete(c, version.getVersionId());
 

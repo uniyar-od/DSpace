@@ -103,4 +103,6 @@ public abstract class AbstractVersionProvider {
     public Set getIgnoredMetadataFields() {
         return ignoredMetadataFields;
     }
+
+	public abstract void clearMetadataOnItem(Item latest);
 }
