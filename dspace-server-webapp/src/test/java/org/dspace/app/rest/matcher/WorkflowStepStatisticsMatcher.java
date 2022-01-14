@@ -31,4 +31,9 @@ public final class WorkflowStepStatisticsMatcher {
     public static Matcher<? super Object> matchActionCount(String action, int count) {
         return hasJsonPath("$.actionCounts['" + action + "']", is(count));
     }
+
+    public static Matcher<? super Object> matchActionCounts(String firstAction, int firstCount,
+        String secondAction, int secondCount) {
+        return allOf(matchActionCount(firstAction, firstCount), matchActionCount(secondAction, secondCount));
+    }
 }

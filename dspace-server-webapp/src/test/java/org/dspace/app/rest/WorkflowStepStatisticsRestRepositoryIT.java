@@ -10,8 +10,8 @@ package org.dspace.app.rest;
 import static org.apache.commons.lang3.time.DateUtils.addDays;
 import static org.dspace.app.rest.matcher.WorkflowStepStatisticsMatcher.match;
 import static org.dspace.app.rest.matcher.WorkflowStepStatisticsMatcher.matchActionCount;
+import static org.dspace.app.rest.matcher.WorkflowStepStatisticsMatcher.matchActionCounts;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
@@ -142,9 +142,8 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(match("reviewstep", "reviewstep", 3))))
-            .andExpect(jsonPath("$._embedded.workflowSteps[0]", allOf(
-                matchActionCount("claimaction", 2),
-                matchActionCount("reviewaction", 1))));
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]",
+                matchActionCounts("claimaction", 2, "reviewaction", 1)));
 
         approveClaimedTaskViaRest(user, claimedTask);
 
@@ -182,9 +181,8 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(match("editstep", "editstep", 2))))
-            .andExpect(jsonPath("$._embedded.workflowSteps[0]", allOf(
-                matchActionCount("claimaction", 1),
-                matchActionCount("editaction", 1))));
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]",
+                matchActionCounts("claimaction", 1, "editaction", 1)));
 
         rejectClaimedTaskViaRest(user, claimedTask, "Bad item");
 
@@ -227,9 +225,8 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(match("editstep", "editstep", 2))))
-            .andExpect(jsonPath("$._embedded.workflowSteps[0]", allOf(
-                matchActionCount("claimaction", 1),
-                matchActionCount("editaction", 1))));
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]",
+                matchActionCounts("claimaction", 1, "editaction", 1)));
 
     }
 
@@ -250,7 +247,8 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3))));
+                match("submit", "submit", 3))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("submit", 3)));
 
         ClaimedTask claimedTask = claimTask(firstWorkflowItem, user);
 
@@ -258,69 +256,92 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1))));
+                match("submit", "submit", 3),
+                match("reviewstep", "reviewstep", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("submit", 3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("claimaction", 1)));
 
         approveClaimedTaskViaRest(user, claimedTask);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
-            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1))));
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("submit", "submit", 3),
+                match("reviewstep", "reviewstep", 2))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("submit", 3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]",
+                matchActionCounts("claimaction", 1, "reviewaction", 1)));
 
         claimTaskAndApprove(firstWorkflowItem, user);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
-                match("archived", "archived", 1))));
+                match("submit", "submit", 3),
+                match("reviewstep", "reviewstep", 2),
+                match("editstep", "editstep", 2),
+                match("item", "item", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 3),
+                matchActionCounts("claimaction", 1, "reviewaction", 1),
+                matchActionCounts("claimaction", 1, "editaction", 1),
+                matchActionCount("approve", 1))));
 
         claimTaskAndReject(secondWorkflowItem, user);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
-                match("archived", "archived", 1),
-                match("rejected", "rejected", 1))));
+                match("reviewstep", "reviewstep", 4),
+                match("submit", "submit", 3),
+                match("editstep", "editstep", 2),
+                match("item", "item", 1),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCounts("claimaction", 2, "reviewaction", 2),
+                matchActionCount("submit", 3),
+                matchActionCounts("claimaction", 1, "editaction", 1),
+                matchActionCount("approve", 1),
+                matchActionCount("reject", 1))));
 
         claimTaskAndApprove(thirdWorkflowItem, user);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
-                match("archived", "archived", 1),
-                match("rejected", "rejected", 1))));
+                match("reviewstep", "reviewstep", 6),
+                match("submit", "submit", 3),
+                match("editstep", "editstep", 2),
+                match("item", "item", 1),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCounts("claimaction", 3, "reviewaction", 3),
+                matchActionCount("submit", 3),
+                matchActionCounts("claimaction", 1, "editaction", 1),
+                matchActionCount("approve", 1),
+                matchActionCount("reject", 1))));
 
         claimTaskAndApprove(thirdWorkflowItem, user);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 3),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
-                match("archived", "archived", 2),
-                match("rejected", "rejected", 1))));
+                match("reviewstep", "reviewstep", 6),
+                match("submit", "submit", 3),
+                match("editstep", "editstep", 4),
+                match("item", "item", 2),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCounts("claimaction", 3, "reviewaction", 3),
+                matchActionCount("submit", 3),
+                matchActionCounts("claimaction", 2, "editaction", 2),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 1))));
 
         context.turnOffAuthorisationSystem();
 
@@ -332,28 +353,192 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 4),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 3),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
-                match("archived", "archived", 2),
-                match("rejected", "rejected", 1))));
+                match("reviewstep", "reviewstep", 8),
+                match("submit", "submit", 4),
+                match("editstep", "editstep", 4),
+                match("item", "item", 2),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCounts("claimaction", 4, "reviewaction", 4),
+                matchActionCount("submit", 4),
+                matchActionCounts("claimaction", 2, "editaction", 2),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 1))));
 
         claimTaskAndReject(fourthWorkflowItem, user);
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 4),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 3),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 3),
-                match("archived", "archived", 2),
-                match("rejected", "rejected", 2))));
+                match("reviewstep", "reviewstep", 8),
+                match("submit", "submit", 4),
+                match("editstep", "editstep", 6),
+                match("item", "item", 2),
+                match("workspace", "workspace", 2))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCounts("claimaction", 4, "reviewaction", 4),
+                matchActionCount("submit", 4),
+                matchActionCounts("claimaction", 3, "editaction", 3),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 2))));
+    }
 
+    @Test
+    public void testSearchByDateRangeExcludingClaimActions() throws Exception {
+
+        configurationService.setProperty("statistics.workflow.actions-to-filter", "claimaction");
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("submit", "submit", 3))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("submit", 3)));
+
+        ClaimedTask claimedTask = claimTask(firstWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(1)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("submit", "submit", 3))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("submit", 3)));
+
+        approveClaimedTaskViaRest(user, claimedTask);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", contains(
+                match("submit", "submit", 3),
+                match("reviewstep", "reviewstep", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCount("submit", 3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("reviewaction", 1)));
+
+        claimTaskAndApprove(firstWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("submit", "submit", 3),
+                match("reviewstep", "reviewstep", 1),
+                match("editstep", "editstep", 1),
+                match("item", "item", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 3),
+                matchActionCount("reviewaction", 1),
+                matchActionCount("editaction", 1),
+                matchActionCount("approve", 1))));
+
+        claimTaskAndReject(secondWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("reviewstep", "reviewstep", 2),
+                match("submit", "submit", 3),
+                match("editstep", "editstep", 1),
+                match("item", "item", 1),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("reviewaction", 2),
+                matchActionCount("submit", 3),
+                matchActionCount("editaction", 1),
+                matchActionCount("approve", 1),
+                matchActionCount("reject", 1))));
+
+        claimTaskAndApprove(thirdWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("reviewstep", "reviewstep", 3),
+                match("submit", "submit", 3),
+                match("editstep", "editstep", 1),
+                match("item", "item", 1),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("reviewaction", 3),
+                matchActionCount("submit", 3),
+                matchActionCount("editaction", 1),
+                matchActionCount("approve", 1),
+                matchActionCount("reject", 1))));
+
+        claimTaskAndApprove(thirdWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("reviewstep", "reviewstep", 3),
+                match("submit", "submit", 3),
+                match("editstep", "editstep", 2),
+                match("item", "item", 2),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("reviewaction", 3),
+                matchActionCount("submit", 3),
+                matchActionCount("editaction", 2),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 1))));
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(collection);
+
+        context.restoreAuthSystemState();
+
+        claimTaskAndApprove(fourthWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("reviewstep", "reviewstep", 4),
+                match("submit", "submit", 4),
+                match("editstep", "editstep", 2),
+                match("item", "item", 2),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("reviewaction", 4),
+                matchActionCount("submit", 4),
+                matchActionCount("editaction", 2),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 1))));
+
+        claimTaskAndReject(fourthWorkflowItem, user);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                match("reviewstep", "reviewstep", 4),
+                match("submit", "submit", 4),
+                match("editstep", "editstep", 3),
+                match("item", "item", 2),
+                match("workspace", "workspace", 2))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("reviewaction", 4),
+                matchActionCount("submit", 4),
+                matchActionCount("editaction", 3),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 2))));
     }
 
     @Test
@@ -380,8 +565,10 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3))));
+                match("reviewstep", "reviewstep", 5),
+                match("submit", "submit", 4))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCounts("claimaction", 3, "reviewaction", 2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("submit", 4)));
 
     }
 
@@ -407,29 +594,32 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
             .param("startDate", formatDate(addDays(new Date(), -1)))
             .param("endDate", formatDate(addDays(new Date(), 1))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2))));
+                match("reviewstep", "reviewstep", 5),
+                match("submit", "submit", 4))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCounts("claimaction", 3, "reviewaction", 2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("submit", 4)));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("endDate", formatDate(addDays(new Date(), 1))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2))));
+                match("reviewstep", "reviewstep", 5),
+                match("submit", "submit", 4))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCounts("claimaction", 3, "reviewaction", 2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("submit", 4)));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("startDate", formatDate(addDays(new Date(), -1))))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(2)))
             .andExpect(jsonPath("$._embedded.workflowSteps", contains(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 3),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2))));
+                match("reviewstep", "reviewstep", 5),
+                match("submit", "submit", 4))))
+            .andExpect(jsonPath("$._embedded.workflowSteps[0]", matchActionCounts("claimaction", 3, "reviewaction", 2)))
+            .andExpect(jsonPath("$._embedded.workflowSteps[1]", matchActionCount("submit", 4)));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("startDate", formatDate(addDays(new Date(), 1)))
@@ -484,34 +674,45 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
-                match("archived", "archived", 1))));
+                match("reviewstep", "reviewstep", 4),
+                match("submit", "submit", 4),
+                match("editstep", "editstep", 3),
+                match("item", "item", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 4),
+                matchActionCounts("claimaction", 2, "reviewaction", 2),
+                matchActionCounts("claimaction", 2, "editaction", 1),
+                matchActionCount("approve", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("collection", collection.getID().toString()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
-                match("archived", "archived", 1))));
+                match("reviewstep", "reviewstep", 2),
+                match("submit", "submit", 2),
+                match("editstep", "editstep", 2),
+                match("item", "item", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 2),
+                matchActionCounts("claimaction", 1, "reviewaction", 1),
+                matchActionCounts("claimaction", 1, "editaction", 1),
+                matchActionCount("approve", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("collection", anotherCollection.getID().toString()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(3)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 1),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1))));
+                match("reviewstep", "reviewstep", 2),
+                match("submit", "submit", 2),
+                match("editstep", "editstep", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 2),
+                matchActionCounts("claimaction", 1, "reviewaction", 1),
+                matchActionCount("claimaction", 1))));
 
         claimTaskAndReject(thirdWorkflowItem, user);
         claimTaskAndApprove(fourthWorkflowItem, user);
@@ -519,37 +720,51 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 4),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 4),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 3),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 3),
-                match("archived", "archived", 2),
-                match("rejected", "rejected", 1))));
+                match("reviewstep", "reviewstep", 8),
+                match("submit", "submit", 4),
+                match("editstep", "editstep", 5),
+                match("item", "item", 2),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 4),
+                matchActionCounts("claimaction", 4, "reviewaction", 4),
+                matchActionCounts("claimaction", 3, "editaction", 2),
+                matchActionCount("approve", 2),
+                matchActionCount("reject", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("collection", collection.getID().toString()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(6)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 1),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 1),
-                match("archived", "archived", 1),
-                match("rejected", "rejected", 1))));
+                match("reviewstep", "reviewstep", 4),
+                match("submit", "submit", 2),
+                match("editstep", "editstep", 2),
+                match("item", "item", 1),
+                match("workspace", "workspace", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 2),
+                matchActionCounts("claimaction", 2, "reviewaction", 2),
+                matchActionCounts("claimaction", 1, "editaction", 1),
+                matchActionCount("approve", 1),
+                matchActionCount("reject", 1))));
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/search/byDateRange")
             .param("collection", anotherCollection.getID().toString()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(5)))
+            .andExpect(jsonPath("$._embedded.workflowSteps", hasSize(4)))
             .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
-                match("defaultWorkflow.reviewstep.claimaction", "defaultWorkflow.reviewstep.claimaction", 2),
-                match("defaultWorkflow.reviewstep.reviewaction", "defaultWorkflow.reviewstep.reviewaction", 2),
-                match("defaultWorkflow.editstep.claimaction", "defaultWorkflow.editstep.claimaction", 2),
-                match("defaultWorkflow.editstep.editaction", "defaultWorkflow.editstep.editaction", 2),
-                match("archived", "archived", 1))));
+                match("reviewstep", "reviewstep", 4),
+                match("submit", "submit", 2),
+                match("editstep", "editstep", 3),
+                match("item", "item", 1))))
+            .andExpect(jsonPath("$._embedded.workflowSteps", containsInAnyOrder(
+                matchActionCount("submit", 2),
+                matchActionCounts("claimaction", 2, "reviewaction", 2),
+                matchActionCounts("claimaction", 2, "editaction", 1),
+                matchActionCount("approve", 1))));
 
     }
 
@@ -595,6 +810,7 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
 
         XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
         XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
 
         claimTaskAndApprove(firstWorkflowItem, user);
         claimTaskAndApprove(firstWorkflowItem, user);
@@ -602,21 +818,39 @@ public class WorkflowStepStatisticsRestRepositoryIT extends AbstractControllerIn
         claimTaskAndApprove(secondWorkflowItem, user);
         claimTaskAndReject(secondWorkflowItem, user);
 
+        claimTaskAndReject(thirdWorkflowItem, user);
+
         context.restoreAuthSystemState();
 
         String adminToken = getAuthToken(admin.getEmail(), password);
 
-        String stepName = "defaultWorkflow.reviewstep.claimaction";
+        String stepName = "reviewstep";
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", match(stepName, stepName, 2)));
+            .andExpect(jsonPath("$", match(stepName, stepName, 6)))
+            .andExpect(jsonPath("$", matchActionCounts("claimaction", 3, "reviewaction", 3)));
 
-        stepName = "archived";
+        configurationService.setProperty("statistics.workflow.actions-to-filter", "claimaction");
 
         getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", match(stepName, stepName, 1)));
+            .andExpect(jsonPath("$", match(stepName, stepName, 3)))
+            .andExpect(jsonPath("$", matchActionCount("reviewaction", 3)));
+
+        stepName = "item";
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", match(stepName, stepName, 1)))
+            .andExpect(jsonPath("$", matchActionCount("approve", 1)));
+
+        stepName = "workspace";
+
+        getClient(adminToken).perform(get("/api/statistics/workflowSteps/" + stepName))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", match(stepName, stepName, 2)))
+            .andExpect(jsonPath("$", matchActionCount("reject", 2)));
 
     }
 

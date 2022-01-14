@@ -549,9 +549,13 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         throw new WorkflowException("Invalid step outcome");
     }
 
-    protected void logWorkflowEvent(Context c, String workflowId, String previousStepId, String previousActionConfigId,
+    protected void logWorkflowEvent(Context c, String workflowId, String previousStepId, String previousActionId,
         boolean previousActionRequiresUI, XmlWorkflowItem wfi, EPerson actor, Step newStep,
         WorkflowActionConfig newActionConfig, boolean rejected) {
+
+        if (newActionConfig == null) {
+            newStep = null;
+        }
 
         String currentStep = null;
         if (newStep != null) {
@@ -560,15 +564,22 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             currentStep = rejected ? WORKSPACE_STEP : ITEM_STEP;
         }
 
+        String currentAction = null;
+        if (newActionConfig != null) {
+            currentAction = newActionConfig.getId();
+        } else {
+            currentAction = rejected ? REJECT_ACTION : APPROVE_ACTION;
+        }
+
         UsageWorkflowEvent workflowEvent = new UsageWorkflowEvent(c, wfi);
         workflowEvent.setActor(actor);
         workflowEvent.setWorkflow(workflowId);
-        workflowEvent.setCurrentWorkflowAction(newActionConfig != null ? newActionConfig.getId() : null);
+        workflowEvent.setCurrentWorkflowAction(currentAction);
         workflowEvent.setCurrentWorkflowStep(currentStep);
         workflowEvent.setOwners(getCurrentTaskOwners(c, wfi, newStep));
-        workflowEvent.setPreviousWorkflowAction(previousActionConfigId);
+        workflowEvent.setPreviousWorkflowStep(previousStepId != null ? previousStepId : SUBMIT_STEP);
+        workflowEvent.setPreviousWorkflowAction(previousActionId != null ? previousActionId : SUBMIT_ACTION);
         workflowEvent.setPreviousActionRequiresUI(previousActionRequiresUI);
-        workflowEvent.setPreviousWorkflowStep(previousStepId != null ? previousStepId : WORKSPACE_STEP);
 
         eventService.fireEvent(workflowEvent);
     }

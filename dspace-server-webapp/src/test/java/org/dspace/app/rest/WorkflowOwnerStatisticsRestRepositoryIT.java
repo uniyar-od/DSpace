@@ -161,6 +161,48 @@ public class WorkflowOwnerStatisticsRestRepositoryIT extends AbstractControllerI
     }
 
     @Test
+    public void testSearchByDateRangeExcludingClaimActions() throws Exception {
+
+        configurationService.setProperty("statistics.workflow.actions-to-filter", "claimaction");
+
+        context.turnOffAuthorisationSystem();
+
+        XmlWorkflowItem firstWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem secondWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem thirdWorkflowItem = createWorkflowItem(collection);
+        XmlWorkflowItem fourthWorkflowItem = createWorkflowItem(collection);
+
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+        claimTaskAndApprove(firstWorkflowItem, firstUser);
+
+        claimTaskAndApprove(secondWorkflowItem, secondUser);
+        claimTaskAndReject(secondWorkflowItem, thirdUser, "bad item");
+
+        claimTask(thirdWorkflowItem, secondUser);
+
+        claimTaskAndApprove(fourthWorkflowItem, firstUser);
+        claimTaskAndApprove(fourthWorkflowItem, thirdUser);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(get("/api/statistics/workflowOwners/search/byDateRange"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.workflowOwners", hasSize(3)))
+            .andExpect(jsonPath("$._embedded.workflowOwners", contains(
+                match(firstUser, 3), match(thirdUser, 2), match(secondUser, 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[0]", allOf(
+                matchActionCount("reviewstep.reviewaction", 2),
+                matchActionCount("editstep.editaction", 1))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[1]", allOf(
+                matchActionCount("editstep.editaction", 2))))
+            .andExpect(jsonPath("$._embedded.workflowOwners[2]", allOf(
+                matchActionCount("reviewstep.reviewaction", 1))));
+
+    }
+
+    @Test
     public void testSearchByDateRangeWithLimit() throws Exception {
 
         context.turnOffAuthorisationSystem();

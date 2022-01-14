@@ -11,10 +11,13 @@ import static java.lang.String.valueOf;
 import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.apache.solr.common.params.FacetParams.FACET_LIMIT;
+import static org.dspace.xmlworkflow.service.XmlWorkflowService.ITEM_STEP;
+import static org.dspace.xmlworkflow.service.XmlWorkflowService.WORKSPACE_STEP;
 
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.content.Collection;
 import org.dspace.core.Context;
@@ -37,6 +41,7 @@ import org.dspace.discovery.indexobject.IndexableClaimedTask;
 import org.dspace.discovery.indexobject.IndexablePoolTask;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.SolrLoggerServiceImpl.StatisticsType;
 import org.dspace.statistics.content.filter.StatisticsSolrDateFilter;
 import org.dspace.statistics.service.SolrLoggerService;
@@ -51,6 +56,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  *
  */
 public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService {
+
+    private static final String ITEM_OR_WORKSPACE_STATISTICS_FACET_PIVOT = "workflowStep,workflowAction";
 
     private static final String STEP_STATISTICS_FACET_PIVOT = "previousWorkflowStep,previousWorkflowAction";
 
@@ -67,17 +74,31 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     @Autowired
     private EPersonService ePersonService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     @Override
     public Optional<WorkflowStepStatistics> findStepStatistics(Context context, String stepName) {
 
-        String queryFilter = composeQueryFilter() + " AND previousWorkflowStep: " + stepName;
+        boolean isItemOrWorkspaceStep = ITEM_STEP.equals(stepName) || WORKSPACE_STEP.equals(stepName);
 
-        long count = queryTotal(queryFilter);
-        if (count == 0L) {
+        String queryFilter = null;
+        String facetPivot = null;
+
+        if (isItemOrWorkspaceStep) {
+            queryFilter = composeQueryFilter() + " AND workflowStep: " + stepName;
+            facetPivot = ITEM_OR_WORKSPACE_STATISTICS_FACET_PIVOT;
+        } else {
+            queryFilter = composeQueryFilter() + " AND previousWorkflowStep: " + stepName;
+            facetPivot = STEP_STATISTICS_FACET_PIVOT;
+        }
+
+        FacetPivotResult[] facetPivotResults = queryWithPivotField(queryFilter, 1, facetPivot);
+        if (facetPivotResults.length == 0) {
             return Optional.empty();
         }
 
-        return Optional.of(new WorkflowStepStatistics(stepName, count));
+        return Optional.of(convertToStepStatistics(facetPivotResults[0]));
     }
 
     @Override
@@ -106,9 +127,18 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
         String queryFilter = composeQueryFilter(startDate, endDate, collection);
 
-        return Arrays.stream(queryWithPivotField(queryFilter, limit, STEP_STATISTICS_FACET_PIVOT))
+        FacetPivotResult[] stepPivots = queryWithPivotField(queryFilter, limit, STEP_STATISTICS_FACET_PIVOT);
+
+        String itemOrWorkspaceFilter = queryFilter + " AND workflowStep: (" + ITEM_STEP + " OR " + WORKSPACE_STEP + ")";
+
+        FacetPivotResult[] itemOrWorkspaceStepPivots = queryWithPivotField(itemOrWorkspaceFilter, limit,
+            ITEM_OR_WORKSPACE_STATISTICS_FACET_PIVOT);
+
+        return Stream.concat(Stream.of(stepPivots), Stream.of(itemOrWorkspaceStepPivots))
             .map(this::convertToStepStatistics)
             .filter(stepStatistics -> stepStatistics.getCount() > 0L)
+            .sorted(Comparator.comparing(WorkflowStepStatistics::getCount).reversed())
+            .limit(limit)
             .collect(Collectors.toList());
     }
 
@@ -150,7 +180,10 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
 
     private String composeQueryFilter() {
-        return getWorkflowTypeFilter() + " AND previousActionRequiresUI: true";
+        String baseFilter = getWorkflowTypeFilter() + " AND previousActionRequiresUI: true";
+        return getActionFilter()
+            .map(actionFilter -> baseFilter + " AND " + actionFilter)
+            .orElse(baseFilter);
     }
 
     private Optional<String> getCollectionFilter(Collection collection) {
@@ -172,14 +205,6 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
     private FacetPivotResult[] queryWithPivotField(String filter, int limit, String pivotField) {
         try {
             return solrLoggerService.queryFacetPivotField("*:*", filter, pivotField, limit, false, null, 0);
-        } catch (SolrServerException | IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private long queryTotal(String queryFilter) {
-        try {
-            return solrLoggerService.queryTotal("*:*", queryFilter, 0).getCount();
         } catch (SolrServerException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -217,6 +242,14 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
 
     private String getWorkflowTypeFilter() {
         return "statistics_type:" + StatisticsType.WORKFLOW.text();
+    }
+
+    private Optional<String> getActionFilter() {
+        String[] actionsToFilter = configurationService.getArrayProperty("statistics.workflow.actions-to-filter");
+        if (ArrayUtils.isEmpty(actionsToFilter)) {
+            return Optional.empty();
+        }
+        return Optional.of("-previousWorkflowAction: ( " + String.join(" OR ", actionsToFilter) + " )");
     }
 
     private Optional<EPerson> findUserById(Context context, UUID uuid) {
