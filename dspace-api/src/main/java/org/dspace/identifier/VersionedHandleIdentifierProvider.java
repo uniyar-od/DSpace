@@ -86,28 +86,7 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
             {
                 Item item = (Item)dso;
                 VersionHistory history = retrieveVersionHistory(context, (Item)dso);
-                if(history!=null)
-                {
-                    String canonical = getCanonical(item);
-                    // Modify Canonical: 12345/100 will point to the new item
-                    TableRow canonicalRecord = findHandleInternal(context, canonical);
-                    modifyHandleRecord(context, dso, canonicalRecord, canonical);
-
-                    // in case of first version we have to modify the previous metadata to be xxxx.1
-                    Version version = history.getVersion(item);
-                    Version previous = history.getPrevious(version);
-                    if (history.isFirstVersion(previous))
-                    {
-                        modifyHandleMetadata(previous.getItem(), (canonical + DOT + 1));
-                    }
-                    // Check if our previous item hasn't got a handle anymore.
-                    // This only occurs when a switch has been made from the standard handle identifier provider
-                    // to the versioned one, in this case no "versioned handle" is reserved so we need to create one
-                    if(previous != null && getHandleInternal(context, Constants.ITEM, previous.getItemID()) == null){
-                        makeIdentifierBasedOnHistory(context, previous.getItem(), canonical, history);
-
-                    }
-                }
+                
                 populateHandleMetadata(item);
             }
 
@@ -494,10 +473,6 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
     {
 		Item item = (Item) dso;
 
-		// FIRST time a VERSION is created 2 identifiers will be minted and the
-		// canonical will be updated to point to the newer URL:
-		// - id.1-->old URL
-		// - id.2-->new URL
 		Version version = history.getVersion(item);
 		Version next = history.getNext(version);
 		String canonical = getCanonical(next.getItem());
@@ -514,12 +489,6 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
 			modifyHandleRecord(context, version.getItem(), handle, identifierPreviousItem);
 		}
 
-//		// add a new Identifier for this item: 12345/100.x
-//		// this item is the one that will be considered as a new version
-//		// always the same item ID but each time on a different version
-//		String idNew = canonical + DOT + next.getVersionNumber();
-//		// Make sure we don't have an old handle hanging around (if our previous version
-//		// was deleted in the workspace)
 		TableRow handleRow = findHandleInternal(context, canonical);
 		if (handleRow == null) {
 			handleRow = DatabaseManager.create(context, "Handle");

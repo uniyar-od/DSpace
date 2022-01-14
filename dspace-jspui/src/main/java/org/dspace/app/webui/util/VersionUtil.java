@@ -247,29 +247,15 @@ public class VersionUtil
      * @return the latest version of the item
      * @throws SQLException
      */
-    public static Version checkLatestVersion(Context context, Item item)
-            throws SQLException
-    {
+	public static Version checkLatestVersion(Context context, Item item) throws SQLException {
 
-        VersionHistory history = retrieveVersionHistory(context, item);
+		VersionHistory history = retrieveVersionHistory(context, item);
+		if (history != null) {
+			return history.getLatestVersion();
+		}
+		return null;
 
-        if (history != null)
-        {
-            List<Version> allVersions = history.getVersions();
-            for (Version version : allVersions)
-            {
-                if (version.getItem().isArchived()
-                        || AuthorizeManager.isAdmin(context,
-                                item.getOwningCollection()))
-                {
-                    // We have a newer version
-                    return version;
-                }
-            }
-        }
-
-        return null;
-    }
+	}
 
     /**
      * Retrieve the version history of the item

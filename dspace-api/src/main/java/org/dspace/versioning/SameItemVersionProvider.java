@@ -117,8 +117,9 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 
 		// the latest version is supposed to have associated the original item being
 		// updated during the time
-		
-		//this method has to be called when the item id has already been added to the version history
+
+		// this method has to be called when the item id has already been added to the
+		// version history
 		updateItemState(c, itemNew, current);
 
 		itemNew.addMetadata("local", "fakeitem", "versioning", Item.ANY, String.valueOf(current.getID()));
@@ -154,7 +155,12 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 
 			// restore the item with the original metadata
 			for (Metadatum field : metadataFields) {
-				item.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
+				fullMetadata = String.join(".", field.schema, field.element, field.qualifier);
+
+				// delete matadata if it is not contained in the ignore list
+				if (!ignoredMetadataFields.contains(fullMetadata)) {
+					item.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
+				}
 			}
 			versionProvider.copyMetadata(item, originalItem);
 			item.update();
@@ -167,8 +173,8 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 
 				// delete matadata if it is not contained in the ignore list
 				if (!ignoredMetadataFields.contains(fullMetadata)) {
-					originalItem.clearMetadata(field.schema, field.element, field.qualifier, Item.ANY);
-					originalItem.addMetadata(field.schema, field.element, field.qualifier, Item.ANY, field.value);
+					originalItem.clearMetadata(field.schema, field.element, field.qualifier, field.language);
+					originalItem.addMetadata(field.schema, field.element, field.qualifier, field.language, field.value);
 				}
 			}
 			// end saving metadata on original item
@@ -193,17 +199,19 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 
 		VersionHistory history = versioningService.findVersionHistory(context, itemID);
 		List<Version> versions = history.getVersions();
-		
-		//There will always be at least 2 versions, one is the current
-		//the other one is the snapshot
+
+		// There will always be at least 2 versions, one is the current
+		// the other one is the snapshot
 		Item archived = versions.get(versions.size() - 2).getItem();
 		WorkspaceItem wsi = WorkspaceItem.findByItem(context, archived);
-		
-		//the snapshot item is associeted to a workspaceItem that will we used during the submission
-		//the snapshot status will be correctly restored when the VersioningConsumer is called
+
+		// the snapshot item is associeted to a workspaceItem that will we used during
+		// the submission
+		// the snapshot status will be correctly restored when the VersioningConsumer is
+		// called
 		archived.addMetadata("local", "fakeitem", "versioning", Item.ANY, String.valueOf(archived.getID()));
 		archived.update();
-				
+
 		context.commit();
 		return wsi.getID();
 	}
