@@ -17,7 +17,11 @@
                 <c:set var="drillDownInfo" >drillDown-${pieType}-${objectName}</c:set>
 
                 <c:set var="marker">${markerasnumber}e)</c:set>
+				<% if(StringUtils.isNotBlank(mapsApiKey)) { %>
                 <%@include file="../modules/map/map.jsp" %> 
+				<% } else { %>
+					<%@include file="../modules/geochart/map.jsp" %>
+				<% } %>                
 
 <div id="statstabs">
 <div id="statstab-menu">
