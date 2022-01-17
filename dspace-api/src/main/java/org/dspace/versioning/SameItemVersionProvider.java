@@ -71,7 +71,7 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 	 */
 	public Item updateItemState(Context c, Item itemNew, Item previousItem) {
 		try {
-			copyMetadata(itemNew, previousItem);
+			copyMetadata(c, itemNew, previousItem);
 			createBundlesAndAddBitstreams(c, itemNew, previousItem);
 			IdentifierService identifierService = new DSpace().getSingletonService(IdentifierService.class);
 			try {
@@ -152,7 +152,7 @@ public class SameItemVersionProvider extends AbstractVersionProvider implements 
 			Item originalItem = Item.find(context, itemToEditID);
 
 			clearMetadataOnItem(item);
-			versionProvider.copyMetadata(item, originalItem);
+			versionProvider.copyMetadata(context, item, originalItem);
 
             item.setArchived(false);
 			item.update();

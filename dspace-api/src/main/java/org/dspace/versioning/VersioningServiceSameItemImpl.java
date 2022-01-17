@@ -75,36 +75,32 @@ public class VersioningServiceSameItemImpl implements VersioningService {
 			VersionHistory history = versionHistoryDAO.findById(c, version.getVersionHistoryID(), versionDAO);
 
 			Version previous=history.getPrevious(version);
-			if(history.isLastVersion(version) && previous!=null) {
+			if (history.isLastVersion(version) && previous != null) {
 				AbstractVersionProvider versionProvider = new DSpace().getServiceManager()
 						.getServiceByName("sameItemVersionProvider", SameItemVersionProvider.class);
-				
+
 				Item itemPrev = previous.getItem();
 				Item latest = version.getItem();
-				
-				//To keep the same item we need to copy the previous item metadata on the latest
-				//switch the references of the item and then delete the latest version
+
+				// To keep the same item we need to copy the previous item metadata on the
+				// latest
+				// switch the references of the item and then delete the latest version
 
 				// restore the item with the original metadata
 				versionProvider.clearMetadataOnItem(latest);
-				try {
-					versionProvider.copyMetadata(latest, itemPrev);
-					latest.update();
-				}catch(Exception e) {
-					throw new RuntimeException("Cannot clear item metadata!");
-				}
-				
-				previous.setItemID(latest.getID());
-				TableRow tableRow = ((VersionImpl)previous).getMyRow();
-				tableRow.setTable("versionitem");
-	            DatabaseManager.update(((VersionImpl)previous).getMyContext(), tableRow);
+				versionProvider.copyMetadata(c, latest, itemPrev);
+				latest.update();
 
-				
-				version.setItemID(itemPrev.getID());
-				tableRow = ((VersionImpl)version).getMyRow();
+				previous.setItemID(latest.getID());
+				TableRow tableRow = ((VersionImpl) previous).getMyRow();
 				tableRow.setTable("versionitem");
-	            DatabaseManager.update(((VersionImpl)version).getMyContext(), tableRow);
-				
+				DatabaseManager.update(((VersionImpl) previous).getMyContext(), tableRow);
+
+				version.setItemID(itemPrev.getID());
+				tableRow = ((VersionImpl) version).getMyRow();
+				tableRow.setTable("versionitem");
+				DatabaseManager.update(((VersionImpl) version).getMyContext(), tableRow);
+
 			}
 			
 			provider.deleteVersionedItem(c, version, history);
@@ -153,7 +149,18 @@ public class VersioningServiceSameItemImpl implements VersioningService {
 	}
 
 	public Version getVersion(Context c, Item item) {
-		return versionDAO.findByItemId(c, item.getID());
+		try {
+			VersionHistory vh = versionHistoryDAO.find(c, item.getID(), versionDAO);
+			List<Version> versions = vh.getVersions();
+			for (Version version : versions) {
+				if (version.getItem() == item) {
+					return version;
+				}
+			}
+		} catch (Exception e) {
+			return null;
+		}
+		return null;
 	}
 
 	public VersionImpl createVersion(Context c, VersionHistory vh, Item itemNew, String summary, Date date) {

@@ -30,8 +30,10 @@ public abstract class AbstractVersionProvider {
 
     private Set<String> ignoredMetadataFields;
 
-    protected void copyMetadata(Item itemNew, Item nativeItem){
+    protected void copyMetadata(Context context, Item itemNew, Item nativeItem){
+    	context.turnOffItemWrapper();
         Metadatum[] md = nativeItem.getMetadata(Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        context.restoreItemWrapperState();
         for (Metadatum aMd : md) {
             String unqualifiedMetadataField = aMd.schema + "." + aMd.element;
             String qualifiedMetadataField = unqualifiedMetadataField + (aMd.qualifier == null ? "" : "." + aMd.qualifier);
@@ -43,6 +45,14 @@ public abstract class AbstractVersionProvider {
             }
 
             itemNew.addMetadata(aMd.schema, aMd.element, aMd.qualifier, aMd.language, aMd.value, aMd.authority, aMd.confidence);
+            try {
+            	itemNew.update();
+            }catch (Exception e) {
+            	//metadata cannot be copied
+            	//so restore the previous status
+            	itemNew.clearMetadata(aMd.schema, aMd.element, aMd.qualifier, aMd.language);
+			}
+
         }
     }
 

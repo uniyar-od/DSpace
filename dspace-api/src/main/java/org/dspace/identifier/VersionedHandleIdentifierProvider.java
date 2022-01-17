@@ -480,14 +480,18 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
 		// add a new Identifier for previous item: 12345/100.1
 		String identifierPreviousItem = canonical + DOT + version.getVersionNumber();
 		// Make sure that this hasn't happened already
-		if (findHandleInternal(context, identifierPreviousItem) == null) {
-			TableRow handle = DatabaseManager.create(context, "Handle");
-			// we update the identifier of the current item because this one is
-			// the item that will be saved as a snapshot after flow is completed
-
-			// version.getItem() is the current item that will became the old one
-			modifyHandleRecord(context, version.getItem(), handle, identifierPreviousItem);
+		TableRow handle = findHandleInternal(context, identifierPreviousItem);
+		if (handle != null) {
+			//delete the previously created handle
+			//we reassign it later
+			DatabaseManager.delete(context, handle);
 		}
+		handle = DatabaseManager.create(context, "Handle");
+		// we update the identifier of the current item because this one is
+		// the item that will be saved as a snapshot after flow is completed
+
+		// version.getItem() is the current item that will became the old one
+		modifyHandleRecord(context, version.getItem(), handle, identifierPreviousItem);
 
 		TableRow handleRow = findHandleInternal(context, canonical);
 		if (handleRow == null) {

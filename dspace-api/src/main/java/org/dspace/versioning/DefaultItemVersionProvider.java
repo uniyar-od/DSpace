@@ -79,7 +79,7 @@ public class DefaultItemVersionProvider extends AbstractVersionProvider implemen
     {
         try
         {
-            copyMetadata(itemNew, previousItem);
+            copyMetadata(c, itemNew, previousItem);
             createBundlesAndAddBitstreams(c, itemNew, previousItem);
             IdentifierService identifierService = new DSpace().getSingletonService(IdentifierService.class);
             try
