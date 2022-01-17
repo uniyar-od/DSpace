@@ -9,9 +9,11 @@ package org.dspace.app.rest;
 
 import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.dspace.app.rest.matcher.UsageReportMatcher.matchUsageReport;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CONTINENTS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
@@ -50,6 +52,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.matcher.PageMatcher;
 import org.dspace.app.rest.matcher.UsageReportMatcher;
 import org.dspace.app.rest.model.UsageReportPointCityRest;
+import org.dspace.app.rest.model.UsageReportPointContinentRest;
 import org.dspace.app.rest.model.UsageReportPointCountryRest;
 import org.dspace.app.rest.model.UsageReportPointDateRest;
 import org.dspace.app.rest.model.UsageReportPointDsoTotalVisitsRest;
@@ -980,7 +983,6 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                 .contentType(contentType))
                 .andExpect(status().isCreated());
 
-        List<UsageReportPointRest> points = new ArrayList<>();
         UsageReportPointDsoTotalVisitsRest expectedPoint1 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint1.addValue("views", 1);
         expectedPoint1.setType("item");
@@ -989,20 +991,35 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         expectedPoint2.addValue("views", 2);
         expectedPoint2.setType("item");
         expectedPoint2.setId(itemVisited2.getID().toString());
-        points.add(expectedPoint1);
-        points.add(expectedPoint2);
+
+        List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2);
+
+        UsageReportPointCityRest pointCity = new UsageReportPointCityRest();
+        pointCity.addValue("views", 3);
+        pointCity.setId("New York");
+
+        UsageReportPointContinentRest pointContinent = new UsageReportPointContinentRest();
+        pointContinent.addValue("views", 3);
+        pointContinent.setId("North America");
+
+        UsageReportPointCountryRest pointCountry = new UsageReportPointCountryRest();
+        pointCountry.addValue("views", 3);
+        pointCountry.setId("US");
+        pointCountry.setLabel("United States");
 
         // And request the sites global usage report (show top most popular items)
         getClient(adminToken)
-                .perform(get("/api/statistics/usagereports/search/object?uri=http://localhost:8080/server/api/core" +
-                        "/sites/" + site.getID()))
-                // ** THEN **
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.usagereports", not(empty())))
-                .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
-                        UsageReportMatcher
-                                .matchUsageReport(site.getID() + "_" +
-                                                      TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, points))));
+            .perform(get("/api/statistics/usagereports/search/object")
+                .param("uri", "http://localhost:8080/server/api/core/sites/" + site.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.usagereports", not(empty())))
+            .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
+                matchUsageReport(site.getID() + "_" + TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, points),
+                matchUsageReport(site.getID() + "_" + TOP_CITIES_REPORT_ID, TOP_CITIES_REPORT_ID, List.of(pointCity)),
+                matchUsageReport(site.getID() + "_" + TOP_CONTINENTS_REPORT_ID, TOP_CONTINENTS_REPORT_ID,
+                    List.of(pointContinent)),
+                matchUsageReport(site.getID() + "_" + TOP_COUNTRIES_REPORT_ID, TOP_COUNTRIES_REPORT_ID,
+                    List.of(pointCountry)))));
     }
 
     @Test
@@ -1389,7 +1406,13 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                 .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
                         UsageReportMatcher
                                 .matchUsageReport(site.getID() + "_" +
-                                                      TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, points))));
+                                                      TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, points),
+                                matchUsageReport(site.getID() + "_" +
+                                                      TOP_CITIES_REPORT_ID, TOP_CITIES_REPORT_ID, List.of()),
+                                matchUsageReport(site.getID() + "_" +
+                                                      TOP_CONTINENTS_REPORT_ID, TOP_CONTINENTS_REPORT_ID, List.of()),
+                                matchUsageReport(site.getID() + "_" +
+                                                      TOP_COUNTRIES_REPORT_ID, TOP_COUNTRIES_REPORT_ID, List.of()))));
     }
 
     // This test search for statistics one day after the moment in which community is visited

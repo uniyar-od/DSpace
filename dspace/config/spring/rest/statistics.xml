@@ -13,6 +13,18 @@
         <property name="viewMode" value="table"/>
         <property name="maxResults" value="10"/>
     </bean>
+    
+    <bean id="topSiteCitiesGenerator" class="org.dspace.app.rest.statistics.TopCitiesGenerator">
+        <property name="viewMode" value="table" />
+        <property name="maxResults" value="10" />
+        <property name="dsoType" value="2" />
+    </bean>
+    
+    <bean id="topSiteContinentsGenerator" class="org.dspace.app.rest.statistics.TopContinentsGenerator">
+        <property name="viewMode" value="table" />
+        <property name="maxResults" value="10" />
+        <property name="dsoType" value="2" />
+    </bean>
 
     <!--new generator supporting relation between person and researchoutputs-->
     <bean id="topCitiesGeneratorRelationPersonResearchoutputs" class="org.dspace.app.rest.statistics.TopCitiesGenerator">
@@ -60,6 +72,12 @@
     <bean id="topCountriesGenerator" class="org.dspace.app.rest.statistics.TopCountriesGenerator">
         <property name="viewMode" value="map" />
         <property name="maxResults" value="10" />
+    </bean>
+
+    <bean id="topSiteCountriesGenerator" class="org.dspace.app.rest.statistics.TopCountriesGenerator">
+        <property name="viewMode" value="map" />
+        <property name="maxResults" value="10" />
+        <property name="dsoType" value="2" />
     </bean>
 
     <!--generator  supporting relation between person and research outputs-->
@@ -501,6 +519,9 @@
         <property name="reports">
             <map>
                 <entry key="TotalVisits" value-ref="topItemsGenerator"/>
+                <entry key="TopCountries" value-ref="topSiteCountriesGenerator"/>
+                <entry key="TopCities" value-ref="topSiteCitiesGenerator"/>
+                <entry key="TopContinents" value-ref="topSiteContinentsGenerator"/>
             </map>
         </property>
     </bean>

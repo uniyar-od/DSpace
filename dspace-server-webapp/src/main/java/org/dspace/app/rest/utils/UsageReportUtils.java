@@ -66,6 +66,7 @@ public class UsageReportUtils {
     public static final String TOP_COUNTRIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS
         = "TopCountriesOrgUnitRppublications";
     public static final String TOP_CITIES_REPORT_ID = "TopCities";
+    public static final String TOP_CONTINENTS_REPORT_ID = "TopContinents";
     public static final String TOP_CITIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS
         = "TopCitiesPersonResearchoutputs";
     public static final String TOP_CITIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS
