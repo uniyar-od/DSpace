@@ -18,6 +18,7 @@ import org.dspace.content.Item;
 import org.dspace.content.ItemWrapperIntegration;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
+import org.dspace.discovery.SearchUtils;
 
 public class CrisItemWrapper implements ItemWrapperIntegration {
 
@@ -31,11 +32,10 @@ public class CrisItemWrapper implements ItemWrapperIntegration {
 				for (IMetadataValue dcval : MetadataValues) {
 					String value = dcval.getValue();
 					if (StringUtils.isNotBlank(value)) {
-						String valueWithoutWhitespace = StringUtils.deleteWhitespace(value);
-						String isDefinedAsSystemEntity = ConfigurationManager
-								.getProperty("facet.type." + valueWithoutWhitespace.toLowerCase());
+						value = value.toLowerCase();
+						String isDefinedAsSystemEntity = SearchUtils.getAsDefinedSystemEntity(value);
 						if (StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
-							return value.toLowerCase();
+							return value;
 						}
 					}
 				}
