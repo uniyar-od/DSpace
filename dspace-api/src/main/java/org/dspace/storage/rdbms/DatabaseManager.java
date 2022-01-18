@@ -9,7 +9,6 @@ package org.dspace.storage.rdbms;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -1082,17 +1081,6 @@ public class DatabaseManager
 
                 case Types.DOUBLE:
                     row.setColumn(name, results.getDouble(i));
-                    break;
-
-                case Types.BLOB:
-                    if (isOracle) {
-                        Blob blob = results.getBlob(i);
-                        if (blob != null) {
-                            row.setColumn(name, blob.getBytes(1, (int)blob.length()));
-                        }
-                    } else {
-                        throw new IllegalArgumentException("Unsupported JDBC type: " + jdbctype);
-                    }
                     break;
 
                 case Types.CLOB:
