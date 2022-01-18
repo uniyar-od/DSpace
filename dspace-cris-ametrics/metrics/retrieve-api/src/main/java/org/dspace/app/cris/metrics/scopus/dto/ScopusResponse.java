@@ -40,7 +40,8 @@ public class ScopusResponse {
 			
 			
 			Element errElement = XMLUtils.getSingleElement(dataRoot, "error");
-			if (dataRoot == null && errElement == null) {
+
+			if (dataRoot != null && errElement == null) {
 				String eid = XMLUtils.getElementValue(dataRoot, "eid");
 				String doi = XMLUtils.getElementValue(dataRoot, "prism:doi");
 				String pmid = XMLUtils.getElementValue(dataRoot, "pubmed-id");

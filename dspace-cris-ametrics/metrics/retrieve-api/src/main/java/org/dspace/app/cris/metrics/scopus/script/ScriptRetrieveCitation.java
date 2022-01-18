@@ -208,12 +208,11 @@ public class ScriptRetrieveCitation {
 				}
 				context.commit();
 
+				if (!scopusList.isEmpty()) {
+					itemForceWorked = workItems(context, scopusList, itemForceWorked);
+					context.commit();
+				}
 			}
-			if (!scopusList.isEmpty()) {
-				itemForceWorked = workItems(context, scopusList, itemForceWorked);
-				context.commit();
-			}
-			context.complete();
 			Date endDate = new Date();
 			long processTime = (endDate.getTime() - startDate.getTime()) / 1000;
 			log.info(LogManager.getHeader(null, "retrieve_citation",
@@ -222,10 +221,13 @@ public class ScriptRetrieveCitation {
 		} catch (Exception ex) {
 			log.error(ex.getMessage(), ex);
 		} finally {
+
 			if (context != null && context.isValid()) {
 				context.abort();
 			}
+
 		}
+
 	}
 	
 	private static int workItems(Context context, List<ScopusIdentifiersToRequest> scopusList, int itemForceWorked) throws SQLException, AuthorizeException {
@@ -245,19 +247,19 @@ public class ScriptRetrieveCitation {
 		return itemForceWorked;
 	}
 
-	private static boolean buildCiting(DSpaceObject dSpaceObject, ScopusResponse response) throws SQLException, AuthorizeException {
+	private static boolean buildCiting(DSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
         CrisMetrics citation = response.getCitation();
         if (!response.isError())
         {
             if (citation != null)
             {
-                citation.setResourceId(dSpaceObject.getID());
-                citation.setResourceTypeId(dSpaceObject.getType());
-                citation.setUuid(dSpaceObject.getHandle());
+                citation.setResourceId(dso.getID());
+                citation.setResourceTypeId(dso.getType());
+                citation.setUuid(dso.getHandle());
                 pService.saveOrUpdate(CrisMetrics.class, citation);
                 if (enrichMetadataItem)
                 {
-                    Item item = (Item) dSpaceObject;
+                    Item item = (Item) dso;
                     Context context = null;
                     try {
                     	context = new Context();
@@ -316,12 +318,32 @@ public class ScriptRetrieveCitation {
 		}
 	}
 	
-
 	public static class ScopusIdentifiersToResponse
 	{
+		private List<String> pmids;
+		private List<String> dois;
+		private List<String> eids;
 		private DSpaceObject dso;
 		private ScopusResponse response;
 
+		public List<String> getPmids() {
+			return pmids;
+		}
+		public void setPmids(List<String> pmids) {
+			this.pmids = pmids;
+		}
+		public List<String> getDois() {
+			return dois;
+		}
+		public void setDois(List<String> dois) {
+			this.dois = dois;
+		}
+		public List<String> getEids() {
+			return eids;
+		}
+		public void setEids(List<String> eids) {
+			this.eids = eids;
+		}
 		public DSpaceObject getDso() {
 			return dso;
 		}
@@ -335,39 +357,38 @@ public class ScriptRetrieveCitation {
 			this.response = response;
 		}
 	}
+	 public static class ScopusIdentifiersToRequest
+	    {
+	        private List<String> pmids;
+	        private List<String> dois;
+	        private List<String> eids;
+	        private UUID identifier;
 
-    public static class ScopusIdentifiersToRequest
-    {
-        private List<String> pmids;
-        private List<String> dois;
-        private List<String> eids;
-        private UUID identifier;
-
-        public List<String> getPmids() {
-            return pmids;
-        }
-        public void setPmids(List<String> pmids) {
-            this.pmids = pmids;
-        }
-        public List<String> getDois() {
-            return dois;
-        }
-        public void setDois(List<String> dois) {
-            this.dois = dois;
-        }
-        public List<String> getEids() {
-            return eids;
-        }
-        public void setEids(List<String> eids) {
-            this.eids = eids;
-        }
-        public UUID getIdentifier()
-        {
-            return identifier;
-        }
-        public void setIdentifier(UUID identifier)
-        {
-            this.identifier = identifier;
-        }
-    }	
+	        public List<String> getPmids() {
+	            return pmids;
+	        }
+	        public void setPmids(List<String> pmids) {
+	            this.pmids = pmids;
+	        }
+	        public List<String> getDois() {
+	            return dois;
+	        }
+	        public void setDois(List<String> dois) {
+	            this.dois = dois;
+	        }
+	        public List<String> getEids() {
+	            return eids;
+	        }
+	        public void setEids(List<String> eids) {
+	            this.eids = eids;
+	        }
+	        public UUID getIdentifier()
+	        {
+	            return identifier;
+	        }
+	        public void setIdentifier(UUID identifier)
+	        {
+	            this.identifier = identifier;
+	        }
+	    }	
 }

@@ -324,6 +324,8 @@ jspui.google.analytics.key	=
 #For Scopus service (note that by default the service is disabled see bte.xml) you need to obtain an API Key from Scopus. Once you get it, add it to the following configuration value
 submission.lookup.scopus.endpoint = https://api.elsevier.com/content/search/scopus
 submission.lookup.scopus.apikey =
+#The scopus service Institutional Token
+submission.lookup.scopus.insttoken =
 #use SciVal or Scopus service
 submission.lookup.scivalcontent.apikey =
 #For WOS (note that by default the service is disabled see bte.xml) require access to http://search.webofknowledge.com/esti/wokmws/ws/WokSearch
