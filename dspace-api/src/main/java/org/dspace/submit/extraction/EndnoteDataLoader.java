@@ -8,12 +8,17 @@
 package org.dspace.submit.extraction;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.commons.io.input.BOMInputStream;
+import org.apache.log4j.Logger;
 
 import gr.ekt.bte.core.DataLoadingSpec;
 import gr.ekt.bte.core.RecordSet;
@@ -24,12 +29,12 @@ import gr.ekt.bte.exceptions.EmptySourceException;
 import gr.ekt.bte.exceptions.MalformedSourceException;
 import gr.ekt.bte.record.MapRecord;
 
-import org.apache.log4j.Logger;
-
 /**
- * Based on {@link gr.ekt.bteio.loaders.RISDataLoader} implementation
+ * Based on {@link gr.ekt.bteio.loaders.RISDataLoader} implementation.
+ * It follows the Endnote file format specification as described on
+ * https://en.wikipedia.org/wiki/EndNote
  * 
- * @author Luigi Andrea Pascarelli (luigiandrea.pascarelli at 4science.it)
+ * It deals with the eventual presence of the BOM marker that some tools insert
  */
 public class EndnoteDataLoader extends FileDataLoader {
 
@@ -147,7 +152,9 @@ public class EndnoteDataLoader extends FileDataLoader {
 
     private void openReader() throws EmptySourceException {
         try {
-            reader_ = new BufferedReader(new FileReader(filename));
+            BOMInputStream is = new BOMInputStream(new FileInputStream(filename));
+            Reader reader = new InputStreamReader(is);
+            reader_ = new BufferedReader(reader);
         } catch (FileNotFoundException e) {
             throw new EmptySourceException("File " + filename + " not found");
         }

@@ -21,7 +21,6 @@ import org.dspace.app.cris.metrics.pmc.services.PMCEntrezServices;
 import org.dspace.core.Context;
 import org.hibernate.Session;
 
-import it.cilea.osd.common.dao.IApplicationDao;
 import it.cilea.osd.common.model.Identifiable;
 import it.cilea.osd.common.service.PersistenceService;
 
@@ -95,6 +94,11 @@ public class MetricsPersistenceService extends PersistenceService
         return metricsDao.findLastMetricByResourceIdAndResourceTypeIdAndMetricsTypes(resourceID, resourceTypeId, metricsTypes);
     }
 
+    public List<CrisMetrics> findAllLastMetricByResourceIDAndResourceType(Integer resourceID, Integer resourceTypeId)
+    {
+        return metricsDao.findAllLastMetricByResourceIDAndResourceType(resourceID, resourceTypeId);
+    }
+    
     @Override
     public <T extends Identifiable> void saveOrUpdate(Class<T> modelClass, T transientObject) {
     	if (modelClass.isAssignableFrom(CrisMetrics.class)) {
@@ -113,5 +117,10 @@ public class MetricsPersistenceService extends PersistenceService
 			throw new RuntimeException(e.getMessage(), e);
 		}
 		
+	}
+	
+	public void deleteAllMetricsByResourceIdAndResourceTypeAndMetricsType(Integer resourceID, Integer resourceType, String metricsType1, String metricsType2)
+	{
+		metricsDao.deleteAllMetricsByResourceIdAndResourceTypeAndMetricsType(resourceID, resourceType, metricsType1, metricsType2);
 	}
 }

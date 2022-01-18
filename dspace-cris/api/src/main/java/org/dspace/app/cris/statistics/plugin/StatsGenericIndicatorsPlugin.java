@@ -186,7 +186,7 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
             }
             if (rp == null)
             {
-                buildIndicator(applicationService, pService,
+                buildIndicator(context, applicationService, pService,
                         mapNumberOfValueComputed, mapValueComputed,
                         mapAdditionalValueComputed, mapElementsValueComputed,
                         resourceType, resourceId, uuid);
@@ -194,14 +194,14 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
         }
         if (rp != null)
         {
-            buildIndicator(applicationService, pService,
+            buildIndicator(context, applicationService, pService,
                     mapNumberOfValueComputed, mapValueComputed,
                     mapAdditionalValueComputed, mapElementsValueComputed,
-                    rp.getType(), rp.getId(), rp.getUuid());
+                    rp.getType(), rp.getID(), rp.getUuid());
         }
     }
 
-    private void buildIndicator(ApplicationService applicationService,
+    private void buildIndicator(Context context, ApplicationService applicationService,
             MetricsPersistenceService pService,
             Map<String, Integer> mapNumberOfValueComputed,
             Map<String, Double> mapValueComputed,
@@ -214,28 +214,28 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
 
             if (mapAdditionalValueComputed.containsKey(indicator.getName()))
             {
-                buildIndicator(pService, applicationService, uuid, resourceType,
+                buildIndicator(context, pService, applicationService, uuid,
+                        resourceType,
                         resourceId,
-                        mapAdditionalValueComputed.get(indicator.getName()),
-                        indicator.getOutput(), null, null, null);
+                        mapAdditionalValueComputed.get(indicator.getName()), indicator.getOutput(), null, null, null);
             }
             else
             {
                 if (mapValueComputed.containsKey(indicator.getName()))
                 {
-                    buildIndicator(pService, applicationService, uuid,
-                            resourceType, resourceId,
-                            mapValueComputed.get(indicator.getName()),
-                            indicator.getOutput(), null, null, null);
+                    buildIndicator(context, pService, applicationService,
+                            uuid, resourceType,
+                            resourceId,
+                            mapValueComputed.get(indicator.getName()), indicator.getOutput(), null, null, null);
                 }
                 if (mapNumberOfValueComputed.containsKey(indicator.getName()))
                 {
-                    buildIndicator(pService, applicationService, uuid,
-                            resourceType, resourceId,
+                    buildIndicator(context, pService, applicationService,
+                            uuid, resourceType,
+                            resourceId,
                             mapNumberOfValueComputed.get(indicator.getName()),
                             indicator.getOutput()
-                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT,
-                            null, null, null);
+                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_COUNT, null, null, null);
                 }
                 if (mapElementsValueComputed.containsKey(indicator.getName()))
                 {
@@ -253,26 +253,26 @@ public class StatsGenericIndicatorsPlugin<ACO extends ACrisObject>
                     Arrays.sort(elementsArray);
                     median = IndicatorsUtils.median(elementsArray);
 
-                    buildIndicator(pService, applicationService, uuid,
-                            resourceType, resourceId, average,
+                    buildIndicator(context, pService, applicationService,
+                            uuid, resourceType, resourceId,
+                            average,
                             indicator.getOutput()
-                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE,
-                            null, null, null);
-                    buildIndicator(pService, applicationService, uuid,
-                            resourceType, resourceId, max,
+                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_AVERAGE, null, null, null);
+                    buildIndicator(context, pService, applicationService,
+                            uuid, resourceType, resourceId,
+                            max,
                             indicator.getOutput()
-                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX,
-                            null, null, null);
-                    buildIndicator(pService, applicationService, uuid,
-                            resourceType, resourceId, min,
+                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MAX, null, null, null);
+                    buildIndicator(context, pService, applicationService,
+                            uuid, resourceType, resourceId,
+                            min,
                             indicator.getOutput()
-                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN,
-                            null, null, null);
-                    buildIndicator(pService, applicationService, uuid,
-                            resourceType, resourceId, median,
+                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MIN, null, null, null);
+                    buildIndicator(context, pService, applicationService,
+                            uuid, resourceType, resourceId,
+                            median,
                             indicator.getOutput()
-                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN,
-                            null, null, null);
+                                    + ConstantMetrics.SUFFIX_STATS_INDICATOR_TYPE_MEDIAN, null, null, null);
                 }
             }
         }

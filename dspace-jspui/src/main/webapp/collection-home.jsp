@@ -237,12 +237,12 @@ function sortBy(idx, ord)
         
         if (bi.hasNextPage())
         {
-            next = next + "?offset=" + bi.getNextOffset();
+            next = next + "?offset=" + bi.getNextOffset() + "&sort_by=" + sortBy + "&order=" + direction;
         }
         
         if (bi.hasPrevPage())
         {
-            prev = prev + "?offset=" + bi.getPrevOffset();
+            prev = prev + "?offset=" + bi.getPrevOffset() + "&sort_by=" + sortBy + "&order=" + direction;
         }
         
         String bi_name_key = "browse.menu." + bi.getSortOption().getName();
@@ -338,7 +338,7 @@ function sortBy(idx, ord)
 %>
                 <input type="hidden" id="ssort_by" name="sort_by" value="" />
                 <input type="hidden" id="sorder" name="order" value="<%= direction %>" />
-                <input type="hidden" id="offset" name="offset" value="<%= request.getParameter("offset")==null?0:request.getParameter("offset") %>" />
+                <input type="hidden" id="offset" name="offset" value="<%= request.getParameter("offset")==null?0:Utils.addEntities(request.getParameter("offset")) %>" />
 		</form>
 <%
    } // end of if (show_title)
@@ -382,7 +382,7 @@ function sortBy(idx, ord)
                  <input type="hidden" name="step" value="<%= MyDSpaceServlet.REQUEST_MIGRATE_ARCHIVE %>" />
                  <input class="btn btn-default col-md-12" type="submit" value="<fmt:message key="jsp.mydspace.request.export.migratecollection"/>" />
                </form>
-               <form method="post" action="<%=request.getContextPath()%>/dspace-admin/metadataexport">
+               <form method="post" action="<%=request.getContextPath()%>/tools/metadataexport">
                  <input type="hidden" name="handle" value="<%= collection.getHandle() %>" />
                  <input class="btn btn-default col-md-12" type="submit" value="<fmt:message key="jsp.general.metadataexport.button"/>" />
                </form>

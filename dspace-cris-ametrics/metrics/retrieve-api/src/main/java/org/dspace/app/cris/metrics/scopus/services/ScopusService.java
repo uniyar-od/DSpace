@@ -102,12 +102,13 @@ public class ScopusService {
 	
 			String endpoint = ConfigurationManager.getProperty("cris", "ametrics.elsevier.scopus.endpoint");
 			String apiKey = ConfigurationManager.getProperty("cris", "ametrics.elsevier.scopus.apikey");
-	
+			String token = ConfigurationManager.getProperty("cris", "ametrics.elsevier.scopus.insttoken");
+			
 			HttpGet method = null;
 			int numberOfTries = 0;
 	
 			boolean done = false;
-			while (numberOfTries < maxNumberOfTries && done) {
+			while (numberOfTries < maxNumberOfTries && !done) {
 				numberOfTries++;
 				try {
 					Thread.sleep(sleepBetweenTimeouts * (numberOfTries - 1));
@@ -152,9 +153,12 @@ public class ScopusService {
 					log.debug(query);
 					
 					method = new HttpGet(uriBuilder.build());
-	
+
 					method.addHeader("Accept", "application/xml");
 					method.addHeader("X-ELS-APIKey", apiKey);
+					if(StringUtils.isNotBlank(token)) {
+						method.addHeader("X-ELS-Insttoken",token);
+					}
 	
 					// Execute the method.
 					HttpResponse response = client.execute(method);

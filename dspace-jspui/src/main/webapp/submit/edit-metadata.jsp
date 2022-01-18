@@ -77,8 +77,11 @@
     // so no icon appears yet.
     int unknownConfidence = Choices.CF_UNSET - 100;
     
-		
-
+    Context context;
+    MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
+    ChoiceAuthorityManager cam;
+    
+    
     // This method is resposible for showing a link next to an input box
     // that pops up a window that to display a controlled vocabulary.
     // It should be called from the doOneBox and doTwoBox methods.
@@ -125,7 +128,6 @@
     // is this field going to be rendered as Choice-driven <select>?
     boolean isSelectable(String fieldKey)
     {
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
         return (cam.isChoicesConfigured(fieldKey) &&
             "select".equals(cam.getPresentation(fieldKey)));
     }
@@ -133,8 +135,6 @@
     // Get the presentation type of the authority if any, null otherwise
     String getAuthorityType(PageContext pageContext, String fieldName, int collectionID)
     {
-        MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
         StringBuffer sb = new StringBuffer();
 
         if (cam.isChoicesConfigured(fieldName))
@@ -199,8 +199,7 @@
             int confidenceValue, boolean isName, boolean repeatable,
             Metadatum[] dcvs, StringBuffer inputBlock, int collectionID)
     {
-        MetadataAuthorityManager mam = MetadataAuthorityManager.getManager();
-        ChoiceAuthorityManager cam = ChoiceAuthorityManager.getManager();
+
         StringBuffer sb = new StringBuffer();
 
         if (cam.isChoicesConfigured(fieldName))
@@ -1290,24 +1289,17 @@
       boolean readonly, int fieldCountIncr, List qualMap, String label, PageContext pageContext, int collectionID, List<DCInput> children,boolean hasParent)
       throws java.io.IOException
     {
-    	Metadatum[] unfiltered = item.getMetadata(schema, element, Item.ANY, Item.ANY);
-    	// filter out both unqualified and qualified values occurring elsewhere in inputs
-    	List<Metadatum> filtered = new ArrayList<Metadatum>();
-    	for (int i = 0; i < unfiltered.length; i++)
+    	// retrieve metadata using qualMap values
+    	List<Metadatum> supportedQualifiers = new ArrayList<Metadatum>();
+    	for (int i = 0; i < qualMap.size(); i+=2)
     	{
-    		String unfilteredFieldName = unfiltered[i].element;
-    		String qualifierToCheck = "";
-    		if(unfiltered[i].qualifier != null && unfiltered[i].qualifier.length()>0) {
-    			unfilteredFieldName += "." + unfiltered[i].qualifier;
-    			qualifierToCheck = unfiltered[i].qualifier;
-    		}
-    		int foundPos = qualMap.indexOf(qualifierToCheck);
-    		if ( foundPos != -1 && foundPos % 2 == 1 )
+    		Metadatum[] metadata = item.getMetadata(schema, element, (String)qualMap.get(i+1), item.ANY);
+    		for (int j = 0; j < metadata.length; j++)
     		{
-    			filtered.add( unfiltered[i] );
-   			}
+    			supportedQualifiers.add(metadata[j]);
+    		}
       	}
-      	Metadatum[] defaults = filtered.toArray(new Metadatum[0]);
+      	Metadatum[] defaults = supportedQualifiers.toArray(new Metadatum[0]);
 
       	int fieldCount = defaults.length + fieldCountIncr;
       	StringBuffer sb = new StringBuffer();
@@ -1612,9 +1604,6 @@
 %>
 
 <%
-    // Obtain DSpace context
-    Context context = UIUtil.obtainContext(request);
-
     SubmissionInfo si = SubmissionController.getSubmissionInfo(context, request);
 
     Item item = si.getSubmissionItem().getItem();
@@ -1677,7 +1666,8 @@
 		String messageInfo = I18nUtil.getMessage(infoKey, lcl, false);
 		String anchorKey = "jsp.submit.edit-metadata.describe"+pageNum+"." + keyCollectionName;
 		String anchorHelp = I18nUtil.getMessage("jsp.submit.edit-metadata.describe"+pageNum+"."+keyCollectionName, lcl, false);
-		
+		context = UIUtil.obtainContext(request);
+	    cam = ChoiceAuthorityManager.getManager(context);
 %>
 
   <form action="<%= request.getContextPath() %>/submit#<%= si.getJumpToField()%>" method="post" name="edit_metadata" id="edit_metadata">

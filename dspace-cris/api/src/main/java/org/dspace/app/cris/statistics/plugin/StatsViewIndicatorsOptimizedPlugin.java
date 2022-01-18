@@ -134,7 +134,7 @@ public class StatsViewIndicatorsOptimizedPlugin extends AStatsIndicatorsPlugin
                         Map<String, String> remark = new HashMap<String, String>();
                         remark.put("link", statDaily.getStatURL());
                         Date acquisitionDate = new Date();
-                        buildIndicator(pService, applicationService,
+                        buildIndicator(context, pService, applicationService,
                                 uuid, resourceType, resourceId,
                                 data.getTotalSelectedView(),
                                 ConstantMetrics.STATS_INDICATOR_TYPE_VIEW,
@@ -148,7 +148,7 @@ public class StatsViewIndicatorsOptimizedPlugin extends AStatsIndicatorsPlugin
                                         .getPeriodAndTotalTopDownload().get(topKey);
                                 remark = new HashMap<String, String>();
                                 remark.put("link", statDaily.getStatURL()+"&amp;type=bitstream");
-                                buildIndicator(pService, applicationService,
+                                buildIndicator(context, pService, applicationService,
                                         uuid, resourceType, resourceId,
                                         tmpList.get(1),
                                         ConstantMetrics.STATS_INDICATOR_TYPE_DOWNLOAD,
@@ -159,7 +159,7 @@ public class StatsViewIndicatorsOptimizedPlugin extends AStatsIndicatorsPlugin
                             if(data.getTotalSelectedDownload()!=null && data.getTotalSelectedDownload()>0) {
                                 remark = new HashMap<String, String>();
                                 remark.put("link", statDaily.getStatURL()+"&amp;type=bitstream");
-                                buildIndicator(pService, applicationService,
+                                buildIndicator(context, pService, applicationService,
                                         uuid, resourceType, resourceId,
                                         data.getTotalSelectedDownload(),
                                         ConstantMetrics.STATS_INDICATOR_TYPE_DOWNLOAD,

@@ -195,7 +195,7 @@ public class RetrieveCitationInPMC
 									// 0)
 									// {
 									citationRetrieved += citingPMCIDs.size();
-									updatePMCCiting(itemID, ipmid, citingPMCIDs);
+									updatePMCCiting(context, itemID, ipmid, citingPMCIDs);
 									// }
 								} catch (NumberFormatException nfe) {
 									log.error(LogManager.getHeader(null, "retrieve_citation",
@@ -228,7 +228,7 @@ public class RetrieveCitationInPMC
 
 	}
 
-	private static void updatePMCCiting(Integer itemID, Integer pmid,
+	private static void updatePMCCiting(Context context, Integer itemID, Integer pmid,
             Set<Integer> pmcIDs) throws SearchServiceException
     {
         Integer[] arrPMCIDs = new Integer[pmcIDs.size()];
@@ -294,10 +294,11 @@ public class RetrieveCitationInPMC
             crisMetrics.setEndDate(new Date());
             crisMetrics.setResourceId(itemID);
             crisMetrics.setResourceTypeId(Constants.ITEM);
+            crisMetrics.setContext(context);
             query = new SolrQuery();
-            query.setQuery("search.unique:" + Constants.ITEM + "-" + itemID);
+            query.setQuery("search.uniqueid:\"" + Constants.ITEM + "-" + itemID + "\"");
             query.setRows(1);
-            query.setFields("handle");
+            query.addField("handle");
             query.addFilterQuery("search.resourcetype:" + Constants.ITEM);
             qresp = searcher.search(query);
             for (SolrDocument doc : qresp.getResults())

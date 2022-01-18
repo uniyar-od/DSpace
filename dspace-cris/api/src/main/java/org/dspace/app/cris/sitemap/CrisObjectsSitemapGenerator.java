@@ -14,6 +14,7 @@ import java.util.List;
 
 import org.apache.commons.lang3.BooleanUtils;
 import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.OrganizationUnit;
 import org.dspace.app.cris.model.Project;
 import org.dspace.app.cris.model.ResearchObject;
@@ -47,7 +48,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
         if (includes.contains("crispj"))
         {
 
-            List<Project> crispjs = applicationService.getList(Project.class);
+            List<Project> crispjs = applicationService.getCrisObjectPaginate(Project.class,
+                    CrisConstants.PROJECT_TYPE_ID);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, crispjs);
@@ -56,8 +58,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
 
         if (includes.contains("crisou"))
         {
-            List<OrganizationUnit> orgUnits = applicationService
-                    .getList(OrganizationUnit.class);
+            List<OrganizationUnit> orgUnits = applicationService.getCrisObjectPaginate(OrganizationUnit.class,
+                    CrisConstants.OU_TYPE_ID);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, orgUnits);
@@ -67,8 +69,8 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
         if (includes.contains("crisrp"))
         {
 
-            List<ResearcherPage> crisrps = applicationService
-                    .getList(ResearcherPage.class);
+            List<ResearcherPage> crisrps = applicationService.getCrisObjectPaginate(ResearcherPage.class,
+                    CrisConstants.RP_TYPE_ID);
 
             addUrlsInternal(makeHTMLMap, makeSitemapOrg, html, sitemapsOrg,
                     crisURLStem, crisrps);
@@ -108,18 +110,18 @@ public class CrisObjectsSitemapGenerator implements ISitemapGeneratorPlugin
     {
         for (ACrisObject crisObj : crisObjects)
         {
-            String url = crisURLStem + crisObj.getAuthorityPrefix() + "/"
+            String url = crisURLStem + crisObj.getPublicPath() + "/"
                     + crisObj.getCrisID();
             if (BooleanUtils.isNotTrue(crisObj.getStatus())) {
                 continue;
             }
             if (makeHTMLMap)
             {
-                html.addURL(url, null);
+                html.addURL(url, crisObj.getLastModified());
             }
             if (makeSitemapOrg)
             {
-                sitemapsOrg.addURL(url, null);
+                sitemapsOrg.addURL(url, crisObj.getLastModified());
             }
             applicationService.clearCache();
         }

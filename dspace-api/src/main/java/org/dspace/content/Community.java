@@ -1241,6 +1241,11 @@ public class Community extends DSpaceObject implements IGlobalSearchResult
         log.info(LogManager.getHeader(ourContext, "delete_community",
                 "community_id=" + getID()));
 
+        // remove subscriptions - hmm, should this be in Subscription.java?
+        DatabaseManager.updateQuery(ourContext,
+                "DELETE FROM subscription WHERE community_id= ? ",
+                getID());
+        
         // Capture ID & Handle of object we are removing, so we can trigger events later
         int deletedId = getID();
         String deletedHandle = getHandle();

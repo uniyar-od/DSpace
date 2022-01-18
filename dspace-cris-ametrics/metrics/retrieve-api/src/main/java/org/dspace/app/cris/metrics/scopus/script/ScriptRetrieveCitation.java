@@ -230,7 +230,7 @@ public class ScriptRetrieveCitation {
 			
 			boolean itWorks = false;
 			if (scopusIDs2Response.getResponse() != null) {
-				itWorks = buildCiting(scopusIDs2Response.getDso(), scopusIDs2Response.getResponse());
+				itWorks = buildCiting(context, scopusIDs2Response.getDso(), scopusIDs2Response.getResponse());
 			}
 			if(itWorks) {
 			    itemForceWorked++;
@@ -240,7 +240,7 @@ public class ScriptRetrieveCitation {
 		return itemForceWorked;
 	}
 
-	private static boolean buildCiting(DSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
+	private static boolean buildCiting(Context context, DSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
         CrisMetrics citation = response.getCitation();
         if (!response.isError())
         {
@@ -249,6 +249,7 @@ public class ScriptRetrieveCitation {
                 citation.setResourceId(dso.getID());
                 citation.setResourceTypeId(dso.getType());
                 citation.setUuid(dso.getHandle());
+                citation.setContext(context);
                 pService.saveOrUpdate(CrisMetrics.class, citation);
                 if (enrichMetadataItem)
                 {
