@@ -8,16 +8,16 @@
 package org.dspace.app.rest.model;
 
 /**
- * This class serves as a REST representation of a Continent data Point of a
- * {@link UsageReportRest} from the DSpace statistics.
+ * This class serves as a REST representation of a Category data Point of a
+ * {@link UsageReportRest} from the DSpace statistics
  *
  * @author Luca Giamminonni (luca.giamminonni at 4Science)
  */
-public class UsageReportPointContinentRest extends UsageReportPointRest {
+public class UsageReportPointCategoryRest extends UsageReportPointRest {
 
-    private static final long serialVersionUID = 4089578368989722374L;
+    private static final long serialVersionUID = 4973944632981356291L;
 
-    public static final String NAME = "continent";
+    public static final String NAME = "category";
 
     @Override
     public String getType() {

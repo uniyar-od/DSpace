@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
 import static org.dspace.app.rest.matcher.UsageReportMatcher.matchUsageReport;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CATEGORIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
@@ -51,6 +52,7 @@ import java.util.UUID;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.dspace.app.rest.matcher.PageMatcher;
 import org.dspace.app.rest.matcher.UsageReportMatcher;
+import org.dspace.app.rest.model.UsageReportPointCategoryRest;
 import org.dspace.app.rest.model.UsageReportPointCityRest;
 import org.dspace.app.rest.model.UsageReportPointContinentRest;
 import org.dspace.app.rest.model.UsageReportPointCountryRest;
@@ -951,16 +953,30 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     public void usageReportsSearch_Site() throws Exception {
         context.turnOffAuthorisationSystem();
         Site site = SiteBuilder.createSite(context).build();
-        Item itemVisited2 = ItemBuilder.createItem(context, collectionNotVisited).build();
+        Item item = ItemBuilder.createItem(context, collectionNotVisited)
+            .withTitle("My item")
+            .withType("Controlled Vocabulary for Resource Type Genres::image")
+            .build();
+        Item item2 = ItemBuilder.createItem(context, collectionNotVisited)
+            .withTitle("My item 2")
+            .withType("Controlled Vocabulary for Resource Type Genres::thesis")
+            .build();
+        Item item3 = ItemBuilder.createItem(context, collectionNotVisited)
+            .withTitle("My item 3")
+            .withType("Controlled Vocabulary for Resource Type Genres::thesis::bachelor thesis")
+            .build();
+        Item item4 = ItemBuilder.createItem(context, collectionNotVisited)
+            .withTitle("My item 4")
+            .withType("Controlled Vocabulary for Resource Type Genres::text::periodical::"
+                + "journal::contribution to journal::journal article")
+            .build();
         context.restoreAuthSystemState();
 
-        // ** WHEN **
-        // We visit an item and another twice
+        ObjectMapper mapper = new ObjectMapper();
+
         ViewEventRest viewEventRest = new ViewEventRest();
         viewEventRest.setTargetType("item");
-        viewEventRest.setTargetId(itemVisited.getID());
-
-        ObjectMapper mapper = new ObjectMapper();
+        viewEventRest.setTargetId(item.getID());
 
         getClient().perform(post("/api/statistics/viewevents")
                 .content(mapper.writeValueAsBytes(viewEventRest))
@@ -969,43 +985,97 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
 
         ViewEventRest viewEventRest2 = new ViewEventRest();
         viewEventRest2.setTargetType("item");
-        viewEventRest2.setTargetId(itemVisited2.getID());
-
-        ObjectMapper mapper2 = new ObjectMapper();
+        viewEventRest2.setTargetId(item2.getID());
 
         getClient().perform(post("/api/statistics/viewevents")
-                .content(mapper2.writeValueAsBytes(viewEventRest2))
+                .content(mapper.writeValueAsBytes(viewEventRest2))
                 .contentType(contentType))
                 .andExpect(status().isCreated());
 
         getClient().perform(post("/api/statistics/viewevents")
-                .content(mapper2.writeValueAsBytes(viewEventRest2))
+                .content(mapper.writeValueAsBytes(viewEventRest2))
                 .contentType(contentType))
                 .andExpect(status().isCreated());
+
+        ViewEventRest viewEventRest3 = new ViewEventRest();
+        viewEventRest3.setTargetType("item");
+        viewEventRest3.setTargetId(item3.getID());
+
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(viewEventRest3))
+            .contentType(contentType))
+            .andExpect(status().isCreated());
+
+        ViewEventRest viewEventRest4 = new ViewEventRest();
+        viewEventRest4.setTargetType("item");
+        viewEventRest4.setTargetId(item4.getID());
+
+        getClient().perform(post("/api/statistics/viewevents")
+            .content(mapper.writeValueAsBytes(viewEventRest4))
+            .contentType(contentType))
+            .andExpect(status().isCreated());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint1 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint1.addValue("views", 1);
         expectedPoint1.setType("item");
-        expectedPoint1.setId(itemVisited.getID().toString());
+        expectedPoint1.setId(item.getID().toString());
+
         UsageReportPointDsoTotalVisitsRest expectedPoint2 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint2.addValue("views", 2);
         expectedPoint2.setType("item");
-        expectedPoint2.setId(itemVisited2.getID().toString());
+        expectedPoint2.setId(item2.getID().toString());
 
-        List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2);
+        UsageReportPointDsoTotalVisitsRest expectedPoint3 = new UsageReportPointDsoTotalVisitsRest();
+        expectedPoint3.addValue("views", 1);
+        expectedPoint3.setType("item");
+        expectedPoint3.setId(item3.getID().toString());
+
+        UsageReportPointDsoTotalVisitsRest expectedPoint4 = new UsageReportPointDsoTotalVisitsRest();
+        expectedPoint4.addValue("views", 1);
+        expectedPoint4.setType("item");
+        expectedPoint4.setId(item4.getID().toString());
+
+        List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2, expectedPoint3, expectedPoint4);
 
         UsageReportPointCityRest pointCity = new UsageReportPointCityRest();
-        pointCity.addValue("views", 3);
+        pointCity.addValue("views", 5);
         pointCity.setId("New York");
 
         UsageReportPointContinentRest pointContinent = new UsageReportPointContinentRest();
-        pointContinent.addValue("views", 3);
+        pointContinent.addValue("views", 5);
         pointContinent.setId("North America");
 
         UsageReportPointCountryRest pointCountry = new UsageReportPointCountryRest();
-        pointCountry.addValue("views", 3);
+        pointCountry.addValue("views", 5);
         pointCountry.setId("US");
         pointCountry.setLabel("United States");
+
+        UsageReportPointCategoryRest articleCategory = new UsageReportPointCategoryRest();
+        articleCategory.addValue("views", 1);
+        articleCategory.setId("article");
+
+        UsageReportPointCategoryRest thesisCategory = new UsageReportPointCategoryRest();
+        thesisCategory.addValue("views", 3);
+        thesisCategory.setId("thesis");
+
+        UsageReportPointCategoryRest otherCategory = new UsageReportPointCategoryRest();
+        otherCategory.addValue("views", 1);
+        otherCategory.setId("other");
+
+        UsageReportPointCategoryRest bookCategory = new UsageReportPointCategoryRest();
+        bookCategory.addValue("views", 0);
+        bookCategory.setId("book");
+
+        UsageReportPointCategoryRest bookChapterCategory = new UsageReportPointCategoryRest();
+        bookChapterCategory.addValue("views", 0);
+        bookChapterCategory.setId("bookChapter");
+
+        UsageReportPointCategoryRest datasetCategory = new UsageReportPointCategoryRest();
+        datasetCategory.addValue("views", 0);
+        datasetCategory.setId("dataset");
+
+        List<UsageReportPointRest> categories = List.of(articleCategory, thesisCategory, otherCategory, bookCategory,
+            bookChapterCategory, datasetCategory);
 
         // And request the sites global usage report (show top most popular items)
         getClient(adminToken)
@@ -1016,8 +1086,11 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
             .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
                 matchUsageReport(site.getID() + "_" + TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, points),
                 matchUsageReport(site.getID() + "_" + TOP_CITIES_REPORT_ID, TOP_CITIES_REPORT_ID, List.of(pointCity)),
+                matchUsageReport(site.getID() + "_" + TOTAL_VISITS_PER_MONTH_REPORT_ID,
+                    TOTAL_VISITS_PER_MONTH_REPORT_ID, getListOfVisitsPerMonthsPoints(5, 12)),
                 matchUsageReport(site.getID() + "_" + TOP_CONTINENTS_REPORT_ID, TOP_CONTINENTS_REPORT_ID,
                     List.of(pointContinent)),
+                matchUsageReport(site.getID() + "_" + TOP_CATEGORIES_REPORT_ID, TOP_CATEGORIES_REPORT_ID, categories),
                 matchUsageReport(site.getID() + "_" + TOP_COUNTRIES_REPORT_ID, TOP_COUNTRIES_REPORT_ID,
                     List.of(pointCountry)))));
     }
@@ -1353,8 +1426,11 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
 
     // Create expected points from -6 months to now, with given number of views in current month
     private List<UsageReportPointRest> getListOfVisitsPerMonthsPoints(int viewsLastMonth) {
+        return getListOfVisitsPerMonthsPoints(viewsLastMonth, 6);
+    }
+
+    private List<UsageReportPointRest> getListOfVisitsPerMonthsPoints(int viewsLastMonth, int nrOfMonthsBack) {
         List<UsageReportPointRest> expectedPoints = new ArrayList<>();
-        int nrOfMonthsBack = 6;
         Calendar cal = Calendar.getInstance();
         for (int i = 0; i <= nrOfMonthsBack; i++) {
             UsageReportPointDateRest expectedPoint = new UsageReportPointDateRest();

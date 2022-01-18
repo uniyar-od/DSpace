@@ -322,6 +322,29 @@
         <property name="maxResults" value="10"/>
         <property name="relation" value="RELATION.OrgUnit.projects" />
     </bean>
+    
+    <bean id="totalSiteVisitPerPeriod" class="org.dspace.app.rest.statistics.TotalVisitPerPeriodGenerator">
+        <property name="viewMode" value="chart.line"/>
+        <property name="maxResults" value="12"/>
+        <property name="periodType" value="month"/>
+        <property name="increment" value="1"/>
+        <property name="dsoType" value="2" />
+    </bean>
+    
+    <bean id="topSiteCategoriesGenerator" class="org.dspace.app.rest.statistics.TopCategoriesGenerator" >
+        <property name="viewMode" value="chart.pie"/>
+        <property name="maxResults" value="10"/>
+        <property name="categoryQueries">
+            <map>
+                <entry key="article" value="itemtype_keyword: ( 'research article' OR 'journal article' )"/>
+                <entry key="book" value="itemtype_keyword: 'book'"/>
+                <entry key="bookChapter" value="itemtype_keyword: 'book part'"/>
+                <entry key="dataset" value="itemtype_keyword: ( 'dataset' OR 'interview' ) "/>
+                <entry key="thesis" value="itemtype_keyword: ( 'thesis' OR 'bachelor thesis' OR 'doctoral thesis' OR 'master thesis' )"/>
+                <entry key="other" value="OTHER"/>
+            </map>
+        </property>
+    </bean>
 
     <bean id="person-mainReports" class="org.dspace.app.rest.model.UsageReportCategoryRest">
         <property name="categoryType" value="mainReports"/>
@@ -518,10 +541,12 @@
         <property name="categoryType" value="mainReports"/>
         <property name="reports">
             <map>
-                <entry key="TotalVisits" value-ref="topItemsGenerator"/>
+                <entry key="TopContinents" value-ref="topSiteContinentsGenerator"/>
                 <entry key="TopCountries" value-ref="topSiteCountriesGenerator"/>
                 <entry key="TopCities" value-ref="topSiteCitiesGenerator"/>
-                <entry key="TopContinents" value-ref="topSiteContinentsGenerator"/>
+                <entry key="TotalVisits" value-ref="topItemsGenerator"/>
+                <entry key="TopCategories" value-ref="topSiteCategoriesGenerator"/>
+                <entry key="TotalVisitsPerMonth" value-ref="totalSiteVisitPerPeriod"/>
             </map>
         </property>
     </bean>
