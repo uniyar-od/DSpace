@@ -1,3 +1,19 @@
+# Request Item Author notification email
+#
+# Parameters: {0} 	Name of the user who made the request
+#             {1} 	Email address
+#             {2} 	File name
+#             {3} 	Handle
+#             {4} 	Title
+#             {5} 	Comment
+#             {6} 	Approval link
+#             {7}	Author Name
+#             {8}	Author Email
+#             {9} 	DSpace Name
+#             {10} 	DSpace Helpdesk email
+#
+# See org.dspace.core.Email for information on the format of this file.
+#
 Subject: Request copy of document
 
 Dear {7},

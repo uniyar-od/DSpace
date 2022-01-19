@@ -1,11 +1,13 @@
 # Workflow curation task notification email message
 #
-# {0}  Title of submission
-# {1}  Name of collection
-# {2}  Submitter's name
-# {3}  Name of task operating
-# {4}  Task result
-# {5}  Workflow action taken
+# Parameters: 	{0}  Title of submission
+# 				{1}  Name of collection
+# 				{2}  Submitter's name
+# 				{3}  Name of task operating
+# 				{4}  Task result
+# 				{5}  Workflow action taken
+
+# See org.dspace.core.Email for information on the format of this file.
 #
 Subject: DSpace: Curation Task Report
 
