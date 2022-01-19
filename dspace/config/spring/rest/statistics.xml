@@ -25,6 +25,18 @@
         <property name="maxResults" value="10" />
         <property name="dsoType" value="2" />
     </bean>
+    
+    <bean id="topSiteDownloadCitiesGenerator" class="org.dspace.app.rest.statistics.TopCitiesGenerator">
+        <property name="viewMode" value="table" />
+        <property name="maxResults" value="10" />
+        <property name="dsoType" value="0" />
+    </bean>
+    
+    <bean id="topSiteDownloadContinentsGenerator" class="org.dspace.app.rest.statistics.TopContinentsGenerator">
+        <property name="viewMode" value="table" />
+        <property name="maxResults" value="10" />
+        <property name="dsoType" value="0" />
+    </bean>
 
     <!--new generator supporting relation between person and researchoutputs-->
     <bean id="topCitiesGeneratorRelationPersonResearchoutputs" class="org.dspace.app.rest.statistics.TopCitiesGenerator">
@@ -80,6 +92,12 @@
         <property name="dsoType" value="2" />
     </bean>
 
+    <bean id="topSiteDownloadCountriesGenerator" class="org.dspace.app.rest.statistics.TopCountriesGenerator">
+        <property name="viewMode" value="map" />
+        <property name="maxResults" value="10" />
+        <property name="dsoType" value="0" />
+    </bean>
+
     <!--generator  supporting relation between person and research outputs-->
     <bean id="topCountriesGeneratorRelationPersonResearchoutputs" class="org.dspace.app.rest.statistics.TopCountriesGenerator">
         <property name="viewMode" value="table"/>
@@ -125,6 +143,12 @@
     <bean id="topItemsGenerator" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
         <property name="maxResults" value="50"/>
+    </bean>
+
+    <bean id="topItemsDownloadGenerator" class="org.dspace.app.rest.statistics.TopItemsGenerator">
+        <property name="viewMode" value="table"/>
+        <property name="maxResults" value="50"/>
+        <property name="dsoType" value="0"/>
     </bean>
 
     <!--generator supporting relation between orgunit and rppublications-->
@@ -329,6 +353,14 @@
         <property name="periodType" value="month"/>
         <property name="increment" value="1"/>
         <property name="dsoType" value="2" />
+    </bean>
+    
+    <bean id="totalSiteDownloadPerPeriod" class="org.dspace.app.rest.statistics.TotalVisitPerPeriodGenerator">
+        <property name="viewMode" value="chart.line"/>
+        <property name="maxResults" value="12"/>
+        <property name="periodType" value="month"/>
+        <property name="increment" value="1"/>
+        <property name="dsoType" value="0" />
     </bean>
     
     <bean id="topSiteCategoriesGenerator" class="org.dspace.app.rest.statistics.TopCategoriesGenerator" >
@@ -551,12 +583,26 @@
         </property>
     </bean>
 
+    <bean id="site-downloadReports" class="org.dspace.app.rest.model.UsageReportCategoryRest">
+        <property name="categoryType" value="downloadReports"/>
+        <property name="reports">
+            <map>
+                <entry key="TopDownloadsContinents" value-ref="topSiteDownloadContinentsGenerator"/>
+                <entry key="TopDownloadsCountries" value-ref="topSiteDownloadCountriesGenerator"/>
+                <entry key="TopDownloadsCities" value-ref="topSiteDownloadCitiesGenerator"/>
+                <entry key="TotalDownloads" value-ref="topItemsDownloadGenerator"/>
+                <entry key="TotalDownloadsPerMonth" value-ref="totalSiteDownloadPerPeriod"/>
+            </map>
+        </property>
+    </bean>
+
     <bean class="org.dspace.app.rest.statistics.StatisticsReportsConfiguration">
         <property name="mapping">
             <map>
                 <entry key="site">
                     <list>
                         <ref bean="site-mainReports"/>
+                        <ref bean="site-downloadReports"/>
                     </list>
                 </entry>
                 <entry key="community">

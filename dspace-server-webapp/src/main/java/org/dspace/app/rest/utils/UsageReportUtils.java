@@ -78,6 +78,11 @@ public class UsageReportUtils {
     public static final String TOTAL_VISITS_TOTAL_DOWNLOADS_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS
         = "TotalViewsDownloadsOrgUnitRppublications";
 
+    public static final String TOP_DOWNLOAD_CONTINENTS_REPORT_ID = "TopDownloadsContinents";
+    public static final String TOP_DOWNLOAD_COUNTRIES_REPORT_ID = "TopDownloadsCountries";
+    public static final String TOP_DOWNLOAD_CITIES_REPORT_ID = "TopDownloadsCities";
+    public static final String TOTAL_DOWNLOAD_PER_MONTH_REPORT_ID = "TotalDownloadsPerMonth";
+
     /**
      * Get list of usage reports that are applicable to the DSO (of given UUID)
      *
