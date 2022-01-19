@@ -282,7 +282,7 @@ public abstract class AFacetedQueryConfigurerComponent<T extends DSpaceObject>
         this.facets = facets;
     }
 
-    public boolean forceDisplay(HttpServletRequest request, DSpaceObject object)
+    public boolean forceDisplay(HttpServletRequest request, ACrisObject object)
     {
         try {
             if (request != null) {

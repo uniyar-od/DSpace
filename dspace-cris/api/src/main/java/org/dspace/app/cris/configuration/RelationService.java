@@ -10,6 +10,7 @@ package org.dspace.app.cris.configuration;
 import java.sql.SQLException;
 import java.util.List;
 
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
@@ -37,7 +38,7 @@ public class RelationService {
     /** list of implementations to check if the current user is authorized to perform the defined action */
     private List<SecurityCheck> security;
 
-    public boolean isAuthorized(Context context, DSpaceObject dso) {
+    public boolean isAuthorized(Context context, ACrisObject dso) {
         for (SecurityCheck securityCheck : security) {
             if (securityCheck.isAuthorized(context, dso)) {
                 return true;

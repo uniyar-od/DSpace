@@ -36,7 +36,7 @@ import org.dspace.app.cris.statistics.util.StatsConfig;
 import org.dspace.app.cris.util.ICrisHomeProcessor;
 import org.dspace.app.cris.util.ResearcherPageUtils;
 import org.dspace.app.webui.cris.metrics.ItemMetricsDTO;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.Authenticate;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;

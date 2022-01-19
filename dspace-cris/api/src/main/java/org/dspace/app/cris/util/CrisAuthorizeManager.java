@@ -1,4 +1,4 @@
-package org.dspace.app.webui.cris.util;
+package org.dspace.app.cris.util;
 
 import java.sql.SQLException;
 import java.util.List;

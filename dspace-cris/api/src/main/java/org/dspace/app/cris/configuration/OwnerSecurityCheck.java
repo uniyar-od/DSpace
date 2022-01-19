@@ -14,8 +14,8 @@ import org.dspace.eperson.EPerson;
 
 public class OwnerSecurityCheck implements SecurityCheck {
 
-    public boolean isAuthorized(Context context, DSpaceObject dso) {
-        if (context != null && dso instanceof ACrisObject) {
+    public boolean isAuthorized(Context context, ACrisObject dso) {
+        if (context != null) {
             EPerson currentUser = context.getCurrentUser();
             ACrisObject cris = (ACrisObject)dso;
             return cris.isOwner(currentUser);
