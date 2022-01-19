@@ -187,7 +187,11 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                                 value = inputs.get(m.getPlace());
                             }
                             catch (Exception ex) {
-                                value = inputs.get(idx);
+                            	if (inputs.size() > idx) {
+                            		value = inputs.get(idx);
+                            	} else {
+                            		continue;
+                            	}
                             }
                             Object dcvalue = buildGenericValue(context, item,
                                     value, details);
@@ -202,7 +206,7 @@ public class ItemMetadataImportFiller implements ImportAuthorityFiller
                                         details.getVisibility());
                             }
                         }
-                        catch (ArrayIndexOutOfBoundsException ex)
+                        catch (IndexOutOfBoundsException ex)
                         {
                             log.error(LogManager.getHeader(context,
                                     "fillRecord",

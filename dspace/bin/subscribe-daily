@@ -1,6 +1,8 @@
 #!/bin/sh
 
 # Get the DSPACE/bin directory
-./dspace dsrun org.dspace.app.cris.batch.ScriptCrisSubscribe
-./dspace dsrun org.dspace.eperson.Subscribe
-./dspace dsrun org.dspace.app.cris.batch.ScriptStatSubscribe -m 1
+BINDIR=`dirname $0`
+
+$BINDIR/dspace dsrun org.dspace.app.cris.batch.ScriptCrisSubscribe
+$BINDIR/dspace dsrun org.dspace.eperson.SubscribeCLITool
+$BINDIR/dspace dsrun org.dspace.app.cris.batch.ScriptStatSubscribe -m 1

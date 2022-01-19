@@ -195,15 +195,16 @@ public class ScriptRetrieveCitation {
 
 							ScopusResponse response = sService.getCitations(sleep, pmids, dois, eids);
 
-							boolean itWorks = buildCiting(dso, response);
+							boolean itWorks = buildCiting(context, dso, response);
 							if(itWorks) {
 							    itemForceWorked++;
 							}
 						}
 					}
+					context.uncacheEntity((Item) dso);
 				}
 
-				context.commit();
+				
 			}
 			Date endDate = new Date();
 			long processTime = (endDate.getTime() - startDate.getTime()) / 1000;
@@ -221,7 +222,7 @@ public class ScriptRetrieveCitation {
 
 	}
 
-	private static boolean buildCiting(BrowsableDSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
+	private static boolean buildCiting(Context context, BrowsableDSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
         CrisMetrics citation = response.getCitation();
         if (!response.isError())
         {
@@ -230,13 +231,11 @@ public class ScriptRetrieveCitation {
                 citation.setResourceId(dso.getID());
                 citation.setResourceTypeId(dso.getType());
                 citation.setUuid(dso.getHandle());
+                citation.setContext(context);
                 pService.saveOrUpdate(CrisMetrics.class, citation);
                 if (enrichMetadataItem)
                 {
                     Item item = (Item) dso;
-                    Context context = null;
-                    try {
-                    	context = new Context();
                     if (StringUtils.isNotBlank(citation.getIdentifier()))
                     {
                         List<IMetadataValue> MetadataValueEid = item.getMetadataValueInDCFormat(fieldScopusID);
@@ -256,12 +255,6 @@ public class ScriptRetrieveCitation {
                     }
 
                     ContentServiceFactory.getInstance().getItemService().update(context, item);
-                    }
-                    finally {
-                    	if(context != null && context.isValid()) {
-                    		context.abort();
-                    	}
-                    }
                 }
                 return true;
             }

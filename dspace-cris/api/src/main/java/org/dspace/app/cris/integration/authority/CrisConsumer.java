@@ -454,7 +454,16 @@ public class CrisConsumer implements Consumer
 	            for (IMetadataValue IMetadataValue : toBuild.get(orcid))
 	            {
 	            	IMetadataValue.setAuthority(toBuildAuthority.get(orcid));
-	            	IMetadataValue.setConfidence(Choices.CF_ACCEPTED);
+	            	int confidence = IMetadataValue.getConfidence();
+	            	boolean bindvalue = false;
+                    if(confidence != Choices.CF_UNSET) {
+                    	if(confidence==Choices.CF_AMBIGUOUS || confidence==Choices.CF_UNCERTAIN || confidence==Choices.CF_NOTFOUND || confidence==Choices.CF_REJECTED) {
+                    		bindvalue = true;
+                    	}
+                    }
+                    if(!bindvalue) {
+                    	IMetadataValue.setConfidence(Choices.CF_ACCEPTED);
+                    }
 	            	metadataValueService.update(ctx, (MetadataValue) IMetadataValue); 
 	            }
 	        }

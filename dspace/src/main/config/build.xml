@@ -219,7 +219,9 @@ Common usage:
         <!--
         Remove the work directory
         -->
-        <delete dir="config-temp" />
+		<delete dir="config-temp" />
+
+		<replace file="${dspace.dir}/config/crosswalks/wos-header.template" replacefilterfile="${dspace.dir}/config/local.cfg"/>
 
         <echo>
 ====================================================================

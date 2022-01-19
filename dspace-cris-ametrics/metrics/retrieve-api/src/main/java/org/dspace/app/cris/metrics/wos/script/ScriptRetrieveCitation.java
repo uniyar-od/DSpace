@@ -207,20 +207,15 @@ public class ScriptRetrieveCitation
 
                 for (BrowsableDSpaceObject dso : qresp.getDspaceObjects())
                 {
+                    if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 1)
+                        break all;
 
-                    List<SearchDocument> list = qresp.getSearchDocument(dso);
-                    for (SearchDocument doc : list)
+                    UUID itemID = dso.getID();
+
+                    if (isCheckRequired(itemID))
                     {
-                        if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 1)
-                            break all;
-
-                        UUID itemID = dso.getID();
-
-                        if (isCheckRequired(itemID))
-                        {
-                            itemWorked++;
-                            toWosService.add(dso);
-                        }
+                        itemWorked++;
+                        toWosService.add(dso);
                     }
                 }
                 if (!toWosService.isEmpty())
@@ -231,7 +226,6 @@ public class ScriptRetrieveCitation
                     if(itWorks) {
                         itemForceWorked++;
                     }
-                    context.commit();
                 }
             }
             Date endDate = new Date();
@@ -270,9 +264,9 @@ public class ScriptRetrieveCitation
                 if (citation != null)
                 {
                     SolrQuery query = new SolrQuery();
-                    query.setQuery("search.unique:" + Constants.ITEM + "-" + citation.getId());
+                    query.setQuery("search.uniqueid:\"" + Constants.ITEM + "-" + citation.getResourceId() +"\"");
                     query.setRows(1);
-                    query.setFields("handle");
+                    query.addField("handle");
                     query.addFilterQuery("search.resourcetype:" + Constants.ITEM);
                     QueryResponse qresp = searcher.search(query);
                     for (SolrDocument doc : qresp.getResults())
@@ -280,7 +274,8 @@ public class ScriptRetrieveCitation
                         citation.setUuid((String)doc.getFirstValue("handle"));
                         break;
                     }
-
+                    
+                    citation.setContext(context);
                     pService.saveOrUpdate(CrisMetrics.class, citation);
                     check = true;
                     if (enrichMetadataItem)

@@ -90,5 +90,34 @@ public interface BitStoreService
      */
 	public void remove(Bitstream bitstream) throws IOException;
 
+    /**
+     * Retrieve the fullpath for bitstream.
+     *
+     * @param bitstream
+     *            The bitstream object
+     * @exception java.io.IOException
+     *            If a problem occurs while retrieving the path
+     */
 	public String path(Bitstream bitstream) throws IOException;
+
+    /**
+     * Retrieve the virtual path for bitstream.
+     * The virtual path is used by filesystem dependent external APIs.
+     *
+     * @param bitstream
+     *            The bitstream object
+     * @exception java.io.IOException
+     *            If a problem occurs while retrieving the virtual path
+     */
+    public String virtualPath(Bitstream bitstream) throws IOException;
+
+    /**
+     * Retrieve the intermediate path derived from the internal_id of conventional bitstream.
+     * This method splits the id into groups which become subdirectories.
+     *
+     * @param internalId
+     *            The internal_id
+     * @return The path based on the id without leading or trailing separators
+     */
+    public String intermediatePath(String sInternalId);
 }

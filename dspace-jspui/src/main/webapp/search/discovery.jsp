@@ -65,11 +65,25 @@
 <%@page import="org.dspace.discovery.DiscoverResult.FacetResult"%>
 <%@page import="org.dspace.discovery.DiscoverResult"%>
 <%@page import="org.dspace.content.DSpaceObject"%>
-<%@page import="org.dspace.app.cris.model.ACrisObject" %>
+<%@page import="org.dspace.app.cris.model.ACrisObject"%>
+<%@page import="org.dspace.app.cris.util.ResearcherPageUtils"%>
 <%@page import="java.util.List"%>
 <%@page import="org.dspace.handle.factory.HandleServiceFactory"%>
 
 <%
+	String searchName = (String) request.getAttribute("searchName");
+	if (StringUtils.isBlank(searchName)) {
+		searchName = request.getContextPath() + "/simple-search";
+	}
+	String crisID = request.getParameter("crisID") != null ? (String) request.getParameter("crisID") : "";
+	String relationName = request.getParameter("relationName") != null ? (String) request.getParameter("relationName") : "";
+	if(StringUtils.isNotBlank(relationName)) {
+		relationName = Utils.addEntities(relationName);
+	}
+	ACrisObject cris = (ACrisObject) request.getAttribute("crisObject");
+	boolean addRelation = request.getAttribute("addRelation") != null ? ((Boolean)request.getAttribute("addRelation")).booleanValue() : false;
+	boolean removeRelation = request.getAttribute("removeRelation") != null ? ((Boolean)request.getAttribute("removeRelation")).booleanValue() : false;
+
 	String hdlPrefix = ConfigurationManager.getProperty("handle.prefix");
     // Get the attributes
     DSpaceObject scope = (DSpaceObject) request.getAttribute("scope" );
@@ -120,9 +134,9 @@
                     idx++;
                     continue;
                 }
-	        httpFilters += "&amp;filter_field_"+idx+"="+URLEncoder.encode(filter[0],"UTF-8");
-	        httpFilters += "&amp;filter_type_"+idx+"="+URLEncoder.encode(filter[1],"UTF-8");
-	        httpFilters += "&amp;filter_value_"+idx+"="+URLEncoder.encode(filter[2],"UTF-8");
+	        httpFilters += "&amp;filter_field_"+idx+"="+((filter[0]!=null)?URLEncoder.encode(filter[0],"UTF-8"):"");
+	        httpFilters += "&amp;filter_type_"+idx+"="+((filter[1]!=null)?URLEncoder.encode(filter[1],"UTF-8"):"");
+	        httpFilters += "&amp;filter_value_"+idx+"="+((filter[2]!=null)?URLEncoder.encode(filter[2],"UTF-8"):"");
 	        idx++;
 	    }
 	}
@@ -216,7 +230,7 @@
 				submitButt.attr("disabled", !checkboxes.is(":checked"));	
 			}		
 		});
-		jQ( "#spellCheckQuery").on("click",function(){
+		jQ( "#spellCheckQuery").on("click", function(){
 			jQ("#query").val(jQ(this).attr('data-spell'));
 			jQ("#main-query-submit").click();
 		});
@@ -294,15 +308,43 @@ if(StringUtils.contains(searchScope, hdlPrefix) ){
 
     <%-- <h1>Search Results</h1> --%>
 
-
-<h2><fmt:message key="${searchinKey}"/> <%= dsoName %></h2>
+<% if (StringUtils.isBlank(crisID)) { %>
+	<h2><fmt:message key="${searchinKey}"/> <%= dsoName %></h2>
+<% } else if (addRelation && removeRelation) { %>
+	<h2>
+		<fmt:message key="jsp.layout.cris.relations.search.title">
+			<fmt:param>
+				<%= request.getContextPath() + "/cris/" + cris.getPublicPath() + "/" + ResearcherPageUtils.getPersistentIdentifier(cris) %>
+			</fmt:param>
+			<fmt:param>
+				<%= cris.getName() %>
+			</fmt:param>
+		</fmt:message>
+	</h2>
+<% } else { %>
+	<h2>
+		<fmt:message key="jsp.layout.cris.addrelations.search.title">
+			<fmt:param>
+				<fmt:message key="${searchinKey}"/> <%= dsoName %>
+			</fmt:param>
+			<fmt:param>
+				<%= request.getContextPath() + "/cris/" + cris.getPublicPath() + "/" + ResearcherPageUtils.getPersistentIdentifier(cris) %>
+			</fmt:param>
+			<fmt:param>
+				<%= cris.getName() %>
+			</fmt:param>
+		</fmt:message>
+	</h2>
+<% } %>
 
 <div class="discovery-search-form">
     <%-- Controls for a repeat search --%>
 	<div class="discovery-query">
-     <form id="update-form" action="simple-search" method="get">
+     <form id="update-form" action="<%= searchName %>" method="get">
      							<input name="location" type="hidden" value="<%=Utils.addEntities(searchScope) %>" />
                                 <label for="query"><fmt:message key="jsp.search.results.searchfor"/></label>
+                                <input name="crisID" type="hidden" value="<%= crisID %>" />
+                                <input name="relationName" type="hidden" value="<%= relationName %>" />
                                 <input type="text" size="50" id="query" name="query" value="<%= (query==null ? "" : Utils.addEntities(query)) %>"/>
                                 <input type="submit" id="main-query-submit" class="btn btn-primary" value="<fmt:message key="jsp.general.go"/>" />
                                 <a class="btn btn-default" href="<%= request.getContextPath()+"/global-search" %>"><fmt:message key="jsp.search.general.new-search" /></a>
@@ -405,9 +447,11 @@ if(StringUtils.contains(searchScope, hdlPrefix) ){
 		</div>
 		<div class="panel-body">
 		<p class="discovery-search-filters-hint"><fmt:message key="jsp.search.filter.hint" /></p>
-		<form action="simple-search" method="get">
+		<form action="<%= searchName %>" method="get">
 		<input type="hidden" value="<%= Utils.addEntities(searchScope) %>" name="location" />
 		<input type="hidden" value="<%= Utils.addEntities(query) %>" name="query" />
+		<input name="crisID" type="hidden" value="<%= crisID %>" />
+		<input name="relationName" type="hidden" value="<%= relationName %>" />
 		<% if (appliedFilterQueries.size() > 0 ) { 
 				int idx = 1;
 				for (String[] filter : appliedFilters)
@@ -474,11 +518,13 @@ else if( qResults != null)
     long pageFirst   = ((Long)request.getAttribute("pagefirst"  )).longValue();
     
     // create the URLs accessing the previous and next search result pages
-    String baseURL =  request.getContextPath()
-                    + "/simple-search?query="
+    String baseURL =  searchName
+                    + "?query="
                     + URLEncoder.encode(query,"UTF-8")
                     + "&amp;location="+ Utils.addEntities(searchScope)
                     + httpFilters
+                    + "&amp;crisID=" + crisID
+                    + "&amp;relationName=" + relationName
                     + "&amp;sort_by=" + sortedBy
                     + "&amp;order=" + order
                     + "&amp;rpp=" + rpp
@@ -515,9 +561,11 @@ else if( qResults != null)
     </fmt:message>
     
             <%-- Include a component for modifying sort by, order, results per page, and et-al limit --%>
-   <form action="simple-search" method="get" class="inline">
+   <form action="<%= searchName %>" method="get" class="inline">
    <input type="hidden" value="<%= Utils.addEntities(searchScope) %>" name="location" />
    <input type="hidden" value="<%= Utils.addEntities(query) %>" name="query" />
+   <input name="crisID" type="hidden" value="<%= crisID %>" />
+   <input name="relationName" type="hidden" value="<%= relationName %>" />
 	<% if (appliedFilterQueries.size() > 0 ) { 
 				int idx = 1;
 				for (String[] filter : appliedFilters)
@@ -643,7 +691,7 @@ else if( qResults != null)
                <c:set var="typeName"><%= ((ACrisObject) mapOthers.get(otype).get(0)).getPublicPath() %></c:set>
                <div class="panel panel-info">
                <div class="panel-heading"><h6><fmt:message key="jsp.search.results.cris.${typeName}"/></h6></div>
-               <dspace:browselist config="cris${typeName}" items="<%= mapOthers.get(otype) %>"  order="<%= order %>" sortBy="<%= sortIdx %>" />
+               <dspace:browselist config="cris${typeName}" items="<%= mapOthers.get(otype) %>"  order="<%= order %>" sortBy="<%= sortIdx %>" relationButton="<%= StringUtils.isNotBlank(crisID) %>" />
                </div>
            <%
            }
@@ -694,10 +742,10 @@ else if( qResults != null)
 		</label>
 			<input id="export-submit-button" class="btn btn-default" type="submit" name="submit_export" value="<fmt:message key="exportcitation.option.submitexport" />" disabled/>
 		</div>	
-		<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" radioButton="false" inputName="item_id" order="<%= order %>" sortOption="<%= sortOption %>" itemStart="<%= qResults.getStart()+1%>"/>
+		<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" radioButton="false" inputName="item_id" order="<%= order %>" sortOption="<%= sortOption %>" itemStart="<%= qResults.getStart()+1%>" relationButton="<%= StringUtils.isNotBlank(crisID) %>"/>
 		</form>
 <% } else { %>
-	<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" order="<%= order %>" sortOption="<%= sortOption %>" itemStart="<%= qResults.getStart()+1%>"/>
+	<dspace:itemlist items="<%= items %>" authorLimit="<%= etAl %>" order="<%= order %>" sortOption="<%= sortOption %>" itemStart="<%= qResults.getStart()+1%>" relationButton="<%= StringUtils.isNotBlank(crisID) %>"/>
 <% } %>
    
     </div>
@@ -778,17 +826,31 @@ else
 <% } %>
 <dspace:sidebar>
 
+<%
+		DiscoverySearchFilterFacet facetGlobalConf = (DiscoverySearchFilterFacet) request.getAttribute("facetGlobalConfig");
+		String fGlobal = null; 
+		List<FacetResult> facetGlobal = null;
+		boolean showGlobalFacet = false;
+		if(facetGlobalConf!=null) {			
+			fGlobal = facetGlobalConf.getIndexFieldName();
+			if(qResults!=null) {
+				facetGlobal = qResults.getFacetResult(fGlobal);
+				if (facetGlobal != null && facetGlobal.size() > 0) {
+					showGlobalFacet = true;
+				}
+			}
+		}
+%>
 
+<%
+if((showGlobalFacet) || (brefine)) {
+%>
 <h3 class="facets"><fmt:message key="jsp.search.facet.refine" /></h3>
 
 <%
-		DiscoverySearchFilterFacet facetGlobalConf = (DiscoverySearchFilterFacet) request.getAttribute("facetGlobalConfig");
-		if(facetGlobalConf!=null) {
-		    String fGlobal = facetGlobalConf.getIndexFieldName();
-			if(qResults!=null) {
-		    List<FacetResult> facetGlobal = qResults.getFacetResult(fGlobal);
+}
+		if(showGlobalFacet) {
 		    String fkeyGlobal = "jsp.search.facet.refine."+fGlobal;
-		    if (facetGlobal != null && facetGlobal.size() > 0) {
 		    %>
 		    <div id="globalFacet" class="facetsBox">
 		    <div id="facet_<%= fkeyGlobal %>" class="panel panel-primary">
@@ -802,17 +864,17 @@ else
 		    	} else {
 		    		activeGlobalFacet = false;
 		    	}
-		        %><li class="list-group-item<%= activeGlobalFacet?" active":""%>"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
-	                + "/simple-search?query="
+		        %><li class="list-group-item<%= activeGlobalFacet?" active":""%>"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= searchName
+	                + "?query="
 	                + URLEncoder.encode(query,"UTF-8")                                
-	                + "&amp;location="+URLEncoder.encode(fvalue.getAuthorityKey(),"UTF-8") %>"
+	                + "&amp;location="+URLEncoder.encode(fvalue.getAuthorityKey(),"UTF-8")
+	                + "&amp;crisID=" + crisID
+	                + "&amp;relationName=" + relationName %>"
 	                title="<fmt:message key="jsp.search.facet.narrow"><fmt:param><%=fvalue.getDisplayedValue() %></fmt:param></fmt:message>">
 	                <%= StringUtils.abbreviate(fvalue.getDisplayedValue(),36) %></a></li><%
 		    }
 		    %></ul></div>
 		    </div><%
-			} 
-			}
 		}
 %>
 
@@ -837,7 +899,7 @@ else
 	    int limit = facetConf.getFacetLimit()+1;
 	    
 	    String fkey = "jsp.search.facet.refine."+f;
-	    %><div id="facet_<%= f %>" class="panel panel-success">
+	    %><a name="facet_<%= f %>"></a><div id="facet_<%= f %>" class="panel panel-success">
 	    <div class="panel-heading"><h6><fmt:message key="<%= fkey %>" /></h6></div>
 	    <ul class="list-group"><%
 	    int idx = 1;
@@ -850,14 +912,16 @@ else
 	    { 
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
 	        {
-	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= request.getContextPath()
-                + "/simple-search?query="
+	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= searchName
+                + "?query="
                 + URLEncoder.encode(query,"UTF-8")
 				+ "&amp;location=" + Utils.addEntities(searchScope)
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
                 + httpFilters
+                + "&amp;crisID=" + crisID
+                + "&amp;relationName=" + relationName
                 + "&amp;etal=" + etAl
                 + "&amp;filtername="+URLEncoder.encode(f,"UTF-8")
                 + "&amp;filterquery="+URLEncoder.encode(fvalue.getAsFilterQuery(),"UTF-8")
@@ -871,32 +935,36 @@ else
 	            break;
 	        }
 	    }
-	    if (currFp > 0 || idx == limit)
+	    if (currFp > 0 || ((idx == limit)&&(facet.size()>=limit)))
 	    {
 	        %><li class="list-group-item"><span style="visibility: hidden;">.</span>
 	        <% if (currFp > 0) { %>
-	        <a class="pull-left" href="<%= request.getContextPath()
-                + "/simple-search?query="
+	        <a class="pull-left" href="<%= searchName
+                + "?query="
                 + URLEncoder.encode(query,"UTF-8")
 				+ "&amp;location=" + Utils.addEntities(searchScope)
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
                 + httpFilters
+                + "&amp;crisID=" + crisID
+                + "&amp;relationName=" + relationName
                 + "&amp;etal=" + etAl  
-                + "&amp;"+f+"_page="+(currFp-1) %>"><fmt:message key="jsp.search.facet.refine.previous" /></a>
+                + "&amp;"+f+"_page="+(currFp-1)+"#facet_"+f %>"><fmt:message key="jsp.search.facet.refine.previous" /></a>
             <% } %>
-            <% if (idx == limit) { %>
-            <a href="<%= request.getContextPath()
-                + "/simple-search?query="
+            <% if ((idx == limit)&&(facet.size()>=limit)) { %>
+            <a href="<%= searchName
+                + "?query="
                 + URLEncoder.encode(query,"UTF-8")
 				+ "&amp;location=" + Utils.addEntities(searchScope)
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
                 + httpFilters
+                + "&amp;crisID=" + crisID
+                + "&amp;relationName=" + relationName
                 + "&amp;etal=" + etAl  
-                + "&amp;"+f+"_page="+(currFp+1) %>"><span class="pull-right"><fmt:message key="jsp.search.facet.refine.next" /></span></a>
+                + "&amp;"+f+"_page="+(currFp+1)+"#facet_"+f %>"><span class="pull-right"><fmt:message key="jsp.search.facet.refine.next" /></span></a>
             <%
             }
             %></li><%

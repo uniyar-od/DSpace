@@ -16,6 +16,7 @@
         String type   = result.getType();
         boolean isSuccess = result.isSuccess();
         String resultClass = (isSuccess ? "success" : "danger");
+        String resultResult = result.getResult();
 %>
     <div class="alert alert-<%= resultClass %>">
       <b>
@@ -33,7 +34,7 @@
       <div class="task-message">
         <fmt:message key="jsp.tools.curate.perform.message.success">
           <fmt:param value="<%= result.getStatus() %>"/>
-          <fmt:param value="<%= result.getResult() %>"/>
+          <fmt:param value="<%= resultResult %>"/>
         </fmt:message>
       </div>
 <%
@@ -44,7 +45,7 @@
       <p class="task-result"><fmt:message key="jsp.tools.curate.perform.failure"/></p>
       <div class="task-message">
         <fmt:message key="jsp.tools.curate.perform.message.success">
-          <fmt:param value="<%= result.getResult() %>"/>
+          <fmt:param value="<%= resultResult %>"/>
         </fmt:message>
       </div>
 <%
@@ -73,6 +74,10 @@
           <fmt:param value="<%= result.getHandle() %>"/>
           <fmt:param value="<%= TASK_QUEUE_NAME %>"/>
         </fmt:message>
+	<%	if(resultResult != null) { %>
+	       <br>
+	       <%= resultResult %>
+    <%	} %>
       </div>
 <%
             }

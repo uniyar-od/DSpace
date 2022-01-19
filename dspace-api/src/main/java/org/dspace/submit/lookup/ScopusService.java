@@ -32,6 +32,8 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.XMLUtils;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -45,11 +47,10 @@ import org.xml.sax.SAXException;
 public class ScopusService
 {
 
-    private static final String ENDPOINT_SEARCH_SCOPUS = "https://api.elsevier.com/content/search/scopus";
-    //private static final String ENDPOINT_SEARCH_SCOPUS = "https://localhost:9999/content/search/scopus";
-
     private static final Logger log = Logger.getLogger(ScopusService.class);
 
+    private ConfigurationService configurationService;
+    
     private int timeout = 1000;
 
     private int itemPerPage = 25;
@@ -82,9 +83,12 @@ public class ScopusService
     public List<Record> search(String query) throws IOException, HttpException
     {
 
-        String proxyHost = ConfigurationManager.getProperty("http.proxy.host");
-        String proxyPort = ConfigurationManager.getProperty("http.proxy.port");
-        String apiKey = ConfigurationManager.getProperty("submission.lookup.scopus.apikey");
+        String proxyHost = getConfigurationService().getProperty("http.proxy.host");
+        String proxyPort = getConfigurationService().getProperty("http.proxy.port");
+        String endpoint = getConfigurationService().getProperty("submission.lookup.scopus.endpoint");
+        String apiKey = getConfigurationService().getProperty("submission.lookup.scopus.apikey");
+        String token = getConfigurationService().getProperty("submission.lookup.scopus.insttoken");
+        String modeview = getConfigurationService().getProperty("submission.lookup.scopus.viewmode","COMPLETE");
         
         List<Record> results = new ArrayList<>();
         if (!ConfigurationManager.getBooleanProperty(SubmissionLookupService.CFG_MODULE, "remoteservice.demo"))
@@ -106,9 +110,13 @@ public class ScopusService
                 boolean lastPageReached= false;
                 while(!lastPageReached){
                         // open session
-		                method = new GetMethod(ENDPOINT_SEARCH_SCOPUS + "?httpAccept=application/xml&apiKey="+ apiKey +"&view=COMPLETE&start="+start+"&query="+URLEncoder.encode(query));
-		
+                		String call = endpoint + "?httpAccept=application/xml&apiKey="+ apiKey;
+                		if(StringUtils.isNotBlank(token)) {
+                			 call+="&insttoken="+token;
+                		}
+                		call+= "&view="+modeview+"&start="+start+"&query="+URLEncoder.encode(query);
 		                // Execute the method.
+                		method = new GetMethod(call);
 		                int statusCode = client.executeMethod(method);
 		                
 		                if (statusCode != HttpStatus.SC_OK)
@@ -278,4 +286,11 @@ public class ScopusService
     {
         this.timeout = timeout;
     }
+    
+    public ConfigurationService getConfigurationService() {
+    	if(configurationService == null) {
+    		configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+    	}
+		return configurationService;
+	}
 }

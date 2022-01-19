@@ -40,20 +40,20 @@
 <div id="statstab-content">
 	<div id="statstab-content-continent" class="statstab-content-item statstab-show blank-page">
 				<c:set var="pieType" >continent</c:set>
-				<stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/>
+				<stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/>
 	</div>
 	<div id="statstab-content-countryCode" class="statstab-content-item blank-page">
 				<c:set var="pieType" >countryCode</c:set>
-				<stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/>
+				<stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}" useFmt="true"/>
 	</div>
 	<div id="statstab-content-city" class="statstab-content-item blank-page">
 				<c:set var="pieType" >city</c:set>
-				<stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}"/>
+				<stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}"/>
 	</div>
 	<c:if test="${mode == 'download'}">	
 	<div id="statstab-content-id" class="statstab-content-item blank-page">	 
 		<c:set var="pieType" >sectionid</c:set>
-		<stats:piewithtable data="${data}" statType="${statType}" objectName="${objectName}" pieType="${pieType}" useLocalMap="true"/>
+		<stats:piewithtable data="${data}" statType="${fn:escapeXml(statType)}" objectName="${objectName}" pieType="${pieType}" useLocalMap="true"/>
 	</div>
 	</c:if>
 	<div id="statstab-content-time" class="statstab-content-item blank-page">
@@ -77,7 +77,7 @@
 				j("li.ui-tabs-active").toggleClass("ui-tabs-active ui-state-active active");
 			},
 			"beforeActivate": function( event, ui ) {
-   			 j("li.active").toggleClass("active");
+   			 j("#statstab-menu").find("li.active").toggleClass("active");
 			},
 	   		"create": function( event, ui ) {
 	               j("div.ui-tabs").toggleClass("ui-tabs ui-widget ui-widget-content ui-corner-all tabbable");
@@ -95,7 +95,7 @@
 </div>
 </c:when>
 <c:otherwise> 
-	<span class="titlestats"><fmt:message key="view.${data.jspKey}.${statType}.data.empty" /></span>
+	<span class="titlestats"><fmt:message key="view.${data.jspKey}.${fn:escapeXml(statType)}.data.empty" /></span>
 </c:otherwise>
 </c:choose>
 				 

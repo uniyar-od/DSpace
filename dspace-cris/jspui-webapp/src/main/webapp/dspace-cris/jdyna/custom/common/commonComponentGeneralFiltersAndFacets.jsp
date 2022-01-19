@@ -47,6 +47,7 @@
 	List<String[]> subLinks = (List<String[]>) request.getAttribute("activeTypes"+info.getRelationName());
 %>
 
+<% if (info!=null && info.getItems()!=null && info.getItems().size() > 0) { %>
 <div class="btn-group" style="margin-top: -5px;">
 	<%  if(subLinks.size()>1) {%>
 	<span onmouseover="hover(this);" onmouseout="out(this);">
@@ -81,3 +82,4 @@
 	<fmt:message key="jsp.components.button.seealso.open.facet" />
 	&nbsp;<i class="fa fa-angle-double-down"></i>
 </button>
+<% } %>

@@ -43,7 +43,7 @@ public interface SubmissionLookupDataLoader extends DataLoader
 
     public final static String SCOPUSEID = "scopuseid";
     
-    public final static String ORCID = "orcid";    
+    public final static String ORCID = "orcid";
 
     public final static String WOSID = "isiid";
     

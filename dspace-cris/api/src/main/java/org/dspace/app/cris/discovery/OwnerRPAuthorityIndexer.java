@@ -18,7 +18,7 @@ import it.cilea.osd.jdyna.model.Property;
 
 public class OwnerRPAuthorityIndexer implements CrisServiceIndexPlugin {
 
-	public static final String OWNER_S = "owner_s";
+	public static final String OWNER_I = "owner_id";
 
 	@Override
 	public <P extends Property<TP>, TP extends PropertiesDefinition, NP extends ANestedProperty<NTP>, NTP extends ANestedPropertiesDefinition, ACNO extends ACrisNestedObject<NP, NTP, P, TP>, ATNO extends ATypeNestedObject<NTP>> void additionalIndex(
@@ -28,7 +28,7 @@ public class OwnerRPAuthorityIndexer implements CrisServiceIndexPlugin {
 		if(crisObject instanceof ResearcherPage) {
 			UUID owner = ((ResearcherPage) crisObject).getEpersonID();
 			if(owner!=null) {
-				solrDoc.addField(OWNER_S, owner);
+				solrDoc.addField(OWNER_I, owner);
 			}
 		}
 		

@@ -266,6 +266,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         }
         record.addField("authors", authNames);
         record.addField("orcid", authOrcid);
+
         if(orcidWork.getPutCode()!=null) {
             record.addValue("putcode", new StringValue(orcidWork.getPutCode().toString()));
         }

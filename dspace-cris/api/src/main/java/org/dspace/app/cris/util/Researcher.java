@@ -30,6 +30,7 @@ import org.dspace.app.cris.service.RelationPreferenceService;
 import org.dspace.app.cris.statistics.service.StatSubscribeService;
 import org.dspace.content.EPersonCRISIntegration;
 import org.dspace.content.MetadataField;
+import org.dspace.content.authority.ChoiceAuthority;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -42,6 +43,9 @@ import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
 
 public class Researcher implements EPersonCRISIntegration
 {
+    
+    public static final String FILTER_MYDSPACE_MATCHES = "mydspace_possible_matches";
+
     DSpace dspace = new DSpace();
     
     private static Logger log = Logger.getLogger(Researcher.class);
@@ -252,17 +256,15 @@ public class Researcher implements EPersonCRISIntegration
             fields = BindItemToRP.metadataFieldWithAuthorityRP(context);
 
             String query = eperson.getFullName();
-
             for (MetadataField field : fields)
             {
                 String ff = Utils.standardize(field.getMetadataSchema().getName(),field.getElement(), field.getQualifier(), "_");
-                result = cam.getMatches(ff, query, null, 0, 10, null);
+                result = cam.getMatches(ff, query, null, 0, 10, null, false);
 
-                if (result.values == null || (result.values != null
-                        && result.values.length == 0))
+                if (result.values == null || result.values.length == 0)
                 {
                     query = eperson.getLastName();
-                    result = cam.getMatches(ff, query, null, 0, 10, null);
+                    result = cam.getMatches(ff, query, null, 0, 10, null, false);
                 }
                 
                 if (result.values != null && result.values.length > 0) 

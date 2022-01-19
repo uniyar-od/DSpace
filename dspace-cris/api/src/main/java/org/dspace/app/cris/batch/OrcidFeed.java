@@ -21,11 +21,11 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
-import org.apache.commons.cli.OptionBuilder;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.apache.log4j.Logger;
@@ -53,6 +53,8 @@ import org.dspace.submit.lookup.SubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.dspace.utils.DSpace;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 
 import com.ctc.wstx.util.StringUtil;
 
@@ -63,8 +65,7 @@ import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
 import gr.ekt.bte.exceptions.MalformedSourceException;
 
-public class OrcidFeed
-{
+public class OrcidFeed {
 
     private static final String IMP_SOURCE_REF = "imp_sourceref";
 
@@ -88,7 +89,8 @@ public class OrcidFeed
             .getServiceManager().getServiceByName("orcidOnlineDataLoader",
                     OrcidOnlineDataLoader.class);
 
-    private static EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private static EPersonService ePersonService = EPersonServiceFactory.getInstance()
+			.getEPersonService();
 
     // default 1 day
     private static long retentionQueryTime = 24 * 60 * 60000;
@@ -109,40 +111,43 @@ public class OrcidFeed
         Options options = new Options();
         CommandLine line = null;
 
-        options.addOption(OptionBuilder.withArgName("orcid").hasArg(true)
-                .withDescription("Identifier of the Orcid registry")
-                .create("i"));
+        options.addOption(Option.builder("i").argName("orcid").hasArg(true)
+				.desc("Identifier of the Orcid registry")
+				.build());
 
-        options.addOption(OptionBuilder.withArgName("all").hasArg(false)
-                .withDescription("Process all ORCID known in the system")
-                .create("a"));
-        options.addOption(OptionBuilder.isRequired(true)
-                .withArgName("collectionID").hasArg(true)
-                .withDescription("Collection for item submission").create("c"));
-        options.addOption(OptionBuilder.isRequired(false)
-                .withArgName("limit").hasArg(true)
-                .withDescription("max number of profiles to process (50 default)").create("l"));
-        options.addOption(OptionBuilder.isRequired(false).withArgName("eperson")
-                .hasArg(true).withDescription("Force such submitter for all the records")
-                .create("p"));
+        options.addOption(Option.builder("a").argName("all").hasArg(false)
+				.desc("Process all ORCID known in the system")
+				.build());
+        
+        options.addOption(Option.builder("c").required(true)
+				.argName("collectionID").hasArg(true)
+				.desc("Collection for item submission")
+				.build());
+        
+        options.addOption(Option.builder("l").required(true)
+				.argName("limit").hasArg(true)
+				.desc("max number of profiles to process (50 default)")
+				.build());
+        
+        options.addOption(Option.builder("p").required(true).argName("Eperson")
+				.hasArg(true).desc("Submitter of the records")
+				.build());
 
-        options.addOption(OptionBuilder.isRequired(false).withArgName("default")
-                .hasArg(true).withDescription("Use such submitter for orcid not associated with an eperson. If not specified such orcid will be not processed")
-                .create("d"));
-        options.addOption(OptionBuilder.withArgName("forceCollectionID")
-                .hasArg(false).withDescription("force use the collectionID")
-                .create("f"));
+        options.addOption(Option.builder("d").required(false).argName("default")
+				.hasArg(true).desc("Use such submitter for orcid not associated with an eperson. If not specified such orcid will be not processed")
+				.build());
+        
+        options.addOption(Option.builder("f").argName("forceCollectionID")
+				.hasArg(false).desc("force use the collectionID")
+				.build());
 
-        options.addOption(OptionBuilder.withArgName("status").hasArg(true)
-                .withDescription(
-                        "Status of new item p = workspace, w = workflow step 1, y = workflow step 2, x = workflow step 3, z = inarchive")
-                .create("o"));
-        try
-        {
-            line = new PosixParser().parse(options, args);
+		options.addOption(Option.builder("o").argName("status").hasArg(true)
+				.desc("Status of new item p = workspace, w = workflow step 1, y = workflow step 2, x = workflow step 3, z = inarchive")
+				.build());
+		try {
+			line = new DefaultParser().parse(options, args);
         }
-        catch (ParseException e)
-        {
+		catch (ParseException e) {
             formatter.printHelp(usage, e.getMessage(), options, "");
             System.exit(1);
         }

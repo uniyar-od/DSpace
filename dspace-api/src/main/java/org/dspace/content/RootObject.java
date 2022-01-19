@@ -12,6 +12,7 @@ import java.util.UUID;
 public interface RootObject {
 	
 	int getType();
+	String getTypeText();
 	String getName();
 	UUID getID();
 	String getHandle();

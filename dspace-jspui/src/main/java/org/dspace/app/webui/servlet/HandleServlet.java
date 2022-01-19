@@ -532,6 +532,7 @@ public class HandleServlet extends DSpaceServlet
         request.setAttribute("dspace.layout.head", headMetadata);
         request.setAttribute("doi", doi);
         request.setAttribute("preferred_identifier", preferredIdentifier);
+        request.setAttribute("crisID", context.getCrisID());
         JSPManager.showJSP(request, response, "/display-item.jsp");
     }
     

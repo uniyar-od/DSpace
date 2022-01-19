@@ -187,6 +187,7 @@
 							j('#viewnested_'+id+' .nested_edit_button').parent().parent().mouseout(function(){
 								j(this).toggleClass('ui-state-hover');
 							});
+							j('#viewnested_'+id+'_original').html(j('#viewnested_'+id).html());
 							j('#viewnested_'+id+' .nested_edit_button').click(function(){
 								var ajaxurleditnested = 
 									"<%= request.getContextPath() %>/cris/tools/${specificPartPath}/editNested.htm";
@@ -204,9 +205,16 @@
 											j('#nested_edit_dialog input:submit').button();
 											var options = { 
 											        target: '#viewnested_'+id,   // target element(s) to be updated with server response 
-											        success: function(){ // post-submit callback
-											        	j('#nested_edit_dialog').dialog("close");        
-											        	postfunction();
+											        success: function(data){ // post-submit callback
+											            j('#nested_edit_dialog > #nested_edit_form').html('');
+											            if (j('#nestederror').length == 0) {
+											                j('#nested_edit_dialog').dialog('close');
+											            }
+											            else {
+											                j('#nested_edit_dialog > #nested_edit_form').html(j(data).children());
+											                j('#viewnested_'+id).html(j('#viewnested_'+id+'_original').html());
+											            }
+											            postfunction();
 										        	}
 											};
 											j('#nested_edit_form').ajaxForm(options); 
@@ -294,9 +302,16 @@
 											j('#nested_edit_dialog input:submit').button();
 											var options = { 
 											        target: '#viewnested_'+id,   // target element(s) to be updated with server response 
-											        success: function(){ // post-submit callback
-											        	j('#nested_edit_dialog').dialog("close");        
-											        	postfunction();
+											        success: function(data){ // post-submit callback
+											            j('#nested_edit_dialog > #nested_edit_form').html('');
+											            if (j('#nestederror').length == 0) {
+											                j('#nested_edit_dialog').dialog('close');
+											            }
+											            else {
+											                j('#nested_edit_dialog > #nested_edit_form').html(j(data).children());
+											                j('#viewnested_'+id).html(j('#viewnested_'+id+'_original').html());
+											            }
+											            postfunction();
 										        	}
 											};
 											j('#nested_edit_form').ajaxForm(options); 
@@ -306,6 +321,110 @@
 										error : function(data) {
 										}
 									});	
+							});
+							j('#nested_'+id+'_showreorderbutton').click(function(){
+								// show list of nesteds to reorder
+								var ajaxurlviewreordernested =
+									"<%= request.getContextPath() %>/cris/${specificPartPath}/viewNested.htm";
+								j.ajax( {
+									url : ajaxurlviewreordernested,
+									data : {
+										"parentID" : ${anagraficadto.objectId},
+										"typeNestedID" : id,
+										"pageCurrent": 0,
+										"limit": 9999,
+										"editmode": true,
+										"totalHit": j('#nested_'+id+"_totalHit").html(),
+										"admin": ${admin}
+									},
+									success : function(data) {
+										j('#nested_'+id+'_reorderbody').html(data);
+										// add move up button and move down button to each row
+										j('#nested_'+id+'_reorderbody tbody tr').append("<button id=\"button-up\" type=\"button\" class=\"btn btn-default\"><span class=\"glyphicon glyphicon-arrow-up\"></span></button>");
+										j('#nested_'+id+'_reorderbody tbody tr').append("<button id=\"button-down\" type=\"button\" class=\"btn btn-default\"><span class=\"glyphicon glyphicon-arrow-down\"></span></button>");
+										// add id on each row
+										j('#nested_'+id+'_reorderbody tbody tr').each(function() {
+											var nestedValue = j(this).find('.nested_edit_button');
+											nestedValueID = j(nestedValue).attr('id').substring(j(nestedValue).attr('id').lastIndexOf('_')+1);
+	                                        j(this).attr("id", 'nested_'+id+'_reorderbody_'+nestedValueID);
+	                                        j(this).addClass('nested_'+id+'_reorderbody');
+										});
+										// disable move up button on the first row
+										j('.nested_'+id+'_reorderbody button').first().addClass("disabled");
+										// disable move down button on the last row
+										j('.nested_'+id+'_reorderbody button').last().addClass("disabled");
+										// remove unused buttons
+										j('#nested_'+id+'_reorderbody .nested_preferred_button').parent().addClass('hidden');
+										j('#nested_'+id+'_reorderbody #nested_'+id+'_addbutton').addClass('hidden');
+										j('#nested_'+id+'_reorderbody #nested_'+id+'_showreorderbutton').addClass('hidden');
+										postfunction();
+									},
+									error : function(data) {
+									}
+								});
+							});
+							j('#nested_'+id+'_reorderbody #button-up').click(function(){
+								// move row up
+								var target = j(this).parent();
+								var content = j(this).parent().prev();
+								switchRows(id, target, content);
+							});
+							j('#nested_'+id+'_reorderbody #button-down').click(function(){
+								// move row down
+								var target = j(this).parent().next();
+								var content = j(this).parent();
+								switchRows(id, target, content);
+							});
+							function switchRows(id, target, content) {
+								// remove disabled class on buttons -> safety check when moving rows
+								j(target).find('button').removeClass("disabled");
+								j(content).find('button').removeClass("disabled");
+								// move the content row after the target row
+								j(target).after(j(content));
+								// disable first move up button and last move down button
+								j('.nested_'+id+'_reorderbody button').first().addClass("disabled");
+								j('.nested_'+id+'_reorderbody button').last().addClass("disabled");
+								// update order of nesteds
+								var ajaxurlreordernested =
+									"<%= request.getContextPath() %>/cris/tools/${specificPartPath}/reorderNested.htm";
+								j.ajax( {
+									url : ajaxurlreordernested,
+									data : {
+										"targetID": j(target).attr('id'),
+										"contentID": j(content).attr('id'),
+										"parentID" : ${anagraficadto.objectId},
+										"typeNestedID" : id,
+										"editmode" : true,
+										"admin": ${admin}
+									},
+									success : function(data) {
+									},
+									error : function(data) {
+									}
+								});
+							}
+							j('#nested_'+id+'_reorderbutton').click(function(){
+								// update list of nesteds
+								var ajaxurlviewreordernested =
+									"<%= request.getContextPath() %>/cris/${specificPartPath}/viewNested.htm";
+								j.ajax( {
+									url : ajaxurlviewreordernested,
+									data : {
+										"parentID" : ${anagraficadto.objectId},
+										"typeNestedID" : id,
+										"pageCurrent": j('#nested_'+id+"_pageCurrent").html(),
+										"limit": j('#nested_'+id+"_limit").html(),
+										"editmode": true,
+										"totalHit": j('#nested_'+id+"_totalHit").html(),
+										"admin": ${admin}
+									},
+									success : function(data) {
+										j('#viewnested_'+id).html(data);
+										postfunction();
+									},
+									error : function(data) {
+									}
+								});
 							});
 							j('#nested_'+id+'_next').click(
 									function() {
@@ -362,7 +481,7 @@
 		            	
 		            	var valueCurrentEperson = j("#epersonID").val();
 		            	
-		            	if(ui.item.owneredRP!=0 && (ui.item.owneredRP!=${researcher.id} && ui.item.owneredRP!=valueCurrentEperson) ) {
+		            	if(ui.item.owneredRP!=0 && (ui.item.owneredRP!=${researcher!=null?researcher.id:"-1"} && ui.item.owneredRP!=valueCurrentEperson) ) {
 		            		j("#alert_eperson_dialog").dialog("open");
 		            		j("#alert_eperson_dialog").html(" ");
 		            		j("#alert_eperson_dialog").append("${messagealerteperson}");
@@ -450,13 +569,18 @@
 				var div = j('<div id="pointer_'+id+'_selected_'+count+'" class="jdyna-pointer-value">');
             	var img = j('<img class="jdyna-icon jdyna-action-icon jdyna-delete-button" src="<%= request.getContextPath() %>/image/jdyna/delete_icon.gif">');
 				var path = j('#pointer_'+id+'_path').html();
+				var visibility = j("<input id='_"+path+"["+count+"].visibility' name='_"+path+"["+count+"].visibility' type='hidden'>"
+						+ "<input id='"+path+"["+count+"].visibility' name='"+path+"["+count+"].visibility' type='hidden' value='true'>"
+						+ "<input id='check"+path+"["+count+"].visibility' type='checkbox' value='true' checked='checked' onchange=\"cambiaBoolean('"+path+"["+count+"].visibility');;\" onclick=''>");
 				var input = j( "<input type='hidden' id='"+path+"["+count+"]"+"' name='"+path+"["+count+"]"+"'>" ).val(identifiervalue);
             	var display = j("<span>").text(displayvalue);
             	var selectedDiv = j("#pointer_"+id+"_selected");
             	selectedDiv.append(div);
             	div.append(input);
             	div.append(display);
-            	div.append("&nbsp;")
+            	div.append("&nbsp;");
+            	div.append(visibility);
+            	div.append("&nbsp;");
             	div.append(img);
             	div.effect('highlight');
             	j('#pointer_'+id+'_tot').html(count+1);
@@ -953,7 +1077,24 @@
 						  <div>
 						<c:forEach
 							items="${propertiesDefinitionsInHolder[holder.shortName]}"
-							var="tipologiaDaVisualizzare">
+							var="tipologiaDaVisualizzareNoI18n" varStatus="status">
+							<c:set var="tipologiaDaVisualizzare" value="${researcher:getPropertyDefinitionI18N(tipologiaDaVisualizzareNoI18n,currLocale)}" />
+							
+							<c:set var="statuscount" value="${status.count}" scope="request" />
+							<%!public URL fileFieldURL;%>
+
+							<c:set var="urljspcustomfield"
+								value="/dspace-cris/jdyna/custom/field/edit${tipologiaDaVisualizzare.shortName}.jsp" scope="request" />
+
+							<%
+							String fileFieldPath = (String)pageContext.getRequest().getAttribute("urljspcustomfield");
+							fileFieldURL = pageContext.getServletContext().getResource(fileFieldPath);
+							%>
+
+							<%
+							if (fileFieldURL == null) {
+							%>
+							
 							<c:set var="hideLabel">${fn:length(propertiesDefinitionsInHolder[holder.shortName]) le 1}</c:set>
 							<c:set var="disabled" value=" readonly='readonly'"/>
 														
@@ -997,6 +1138,7 @@
 								<span id="nested_${tipologiaDaVisualizzare.real.id}_pageCurrent" class="spandatabind">0</span>
 								<span id="nested_${tipologiaDaVisualizzare.real.id}_editmode" class="spandatabind">false</span>
 								</div>
+								<div id="viewnested_${tipologiaDaVisualizzare.real.id}_original" class="viewnested_original" style="display:none"></div>
 							</c:if>
 
 							
@@ -1019,7 +1161,10 @@
 									validationParams="${parameters}" visibility="${visibility}" lock="true"/>								
 									
 							</c:if>
-
+							<% } else { %>
+									<c:set var="tipologiaDaVisualizzare" value="${tipologiaDaVisualizzare}" scope="request" />
+									<c:import url="${urljspcustomfield}" />
+							<% } %>
 						</c:forEach>
 		</div>	
 </div>	

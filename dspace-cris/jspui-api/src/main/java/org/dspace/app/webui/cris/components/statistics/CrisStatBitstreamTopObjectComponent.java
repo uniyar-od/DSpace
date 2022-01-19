@@ -15,7 +15,7 @@ public class CrisStatBitstreamTopObjectComponent extends StatBitstreamTopObjectC
     @Override
     protected String getObjectId(String id)
     {      
-        return ResearcherPageUtils.getPersistentIdentifier(Integer.parseInt(id), getTargetObjectClass());
+        return ResearcherPageUtils.getCRISIdBysUUID(id, getTargetObjectClass());
     }
     
  

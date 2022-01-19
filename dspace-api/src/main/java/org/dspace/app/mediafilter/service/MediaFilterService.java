@@ -45,7 +45,7 @@ public interface MediaFilterService {
 
 
     /**
-     * Iterate through the item's bitstreams in the ORIGINAL bundle, applying
+     * Iterate through the item's bitstreams in the bundles specified inside filter.bundles, applying
      * filters if possible.
      *
      * @param context context
@@ -130,4 +130,17 @@ public interface MediaFilterService {
     public void setSkipList(List<String> skipList);
 
     public void setFilterFormats(Map<String, List<String>> filterFormats);
+    
+    public List<FormatFilter> getFilterClasses();
+    
+    public Map<String, List<String>> getFilterFormats();
+    
+    /**
+     * Retrieve the specified media filter plugin (a list can be found in dspace.cfg under filter.plugins)
+     * 
+     * @param plugin	The plugin's name
+     * @return	If the plugin was found
+     */
+    public boolean retrievePlugin(String plugin);
+    
 }

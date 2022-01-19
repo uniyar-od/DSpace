@@ -219,11 +219,15 @@ public class ShibAuthentication implements AuthenticationMethod
 			// Step 1: Identify User
 			EPerson eperson = findEPerson(context, request);
 
+			boolean isNetIDPresent = !configurationService.getBooleanProperty("authentication-shibboleth.netid.forbid_empty", false)
+					|| StringUtils.isNotBlank(findSingleAttribute(request, 
+							configurationService.getProperty("authentication-shibboleth.netid-header")));
+			
 			// Step 2: Register New User, if necessary
-			if (eperson == null && autoRegister)
+			if (eperson == null && autoRegister && isNetIDPresent)
 				eperson = registerNewEPerson(context, request);
 
-			if (eperson == null) 
+			if (eperson == null || !isNetIDPresent)
 				return AuthenticationMethod.NO_SUCH_USER;
 
 			// Step 3: Update User's Metadata

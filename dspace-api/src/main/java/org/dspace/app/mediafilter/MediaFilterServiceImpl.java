@@ -9,11 +9,13 @@ package org.dspace.app.mediafilter;
 
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang.ArrayUtils;
 import org.dspace.app.mediafilter.service.MediaFilterService;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Bitstream;
@@ -32,6 +34,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.SelfNamedPlugin;
+import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
@@ -67,6 +70,12 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     protected ItemService itemService;
     @Autowired(required = true)
     protected ConfigurationService configurationService;
+    
+    //prefix (in dspace.cfg) for all filter properties
+    private static final String FILTER_PREFIX = "filter";
+
+    //suffix (in dspace.cfg) for input formats supported by each filter
+    private static final String INPUT_FORMATS_SUFFIX = "inputFormats";
 
     protected int max2Process = Integer.MAX_VALUE;  // maximum number items to process
     
@@ -183,8 +192,12 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     @Override
     public boolean filterItem(Context context, Item myItem) throws Exception
     {
-        // get 'original' bundles
-        List<Bundle> myBundles = itemService.getBundles(myItem, "ORIGINAL");
+        // get the bundles
+        List<Bundle> myBundles = new ArrayList<Bundle>();
+        String[] bundles = configurationService.getArrayProperty(FILTER_PREFIX + ".bundles", new String[]{"ORIGINAL"});
+        for (String bundle : bundles) {
+        	myBundles.addAll(itemService.getBundles(myItem, bundle));
+		}
         boolean done = false;
         for (Bundle myBundle : myBundles) {
             // now look at all of the bitstreams
@@ -466,6 +479,63 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
             return false;
         }
     }
+    
+    @Override
+    public boolean retrievePlugin(String plugin) 
+    {
+        //get filter of this name & add to list of filters
+        FormatFilter filter = (FormatFilter) CoreServiceFactory.getInstance().getPluginService().getNamedPlugin(FormatFilter.class, plugin);
+        if(filter==null)
+        {
+        	return true;
+        }
+        else
+        {
+        	if (filterClasses == null) {
+				filterClasses = new ArrayList<FormatFilter>();
+			}
+            filterClasses.add(filter);
+
+            String filterClassName = filter.getClass().getName();
+            String pluginName = null;
+
+            //If this filter is a SelfNamedPlugin,
+            //then the input formats it accepts may differ for
+            //each "named" plugin that it defines.
+            //So, we have to look for every key that fits the
+            //following format: filter.<class-name>.<plugin-name>.inputFormats
+            if( SelfNamedPlugin.class.isAssignableFrom(filter.getClass()) )
+            {
+                pluginName = ((SelfNamedPlugin) filter).getPluginInstanceName();
+            }
+
+
+            //Retrieve our list of supported formats from dspace.cfg
+            //For SelfNamedPlugins, format of key is:
+            //  filter.<class-name>.<plugin-name>.inputFormats
+            //For other MediaFilters, format of key is:
+            //  filter.<class-name>.inputFormats
+            String[] formats = 
+                    configurationService.getArrayProperty(
+                    FILTER_PREFIX + "." + filterClassName +
+                    (pluginName!=null ? "." + pluginName : "") +
+                    "." + INPUT_FORMATS_SUFFIX);
+
+            //add to internal map of filters to supported formats
+            if (ArrayUtils.isNotEmpty(formats))
+            {
+                //For SelfNamedPlugins, map key is:
+                //  <class-name><separator><plugin-name>
+                //For other MediaFilters, map key is just:
+                //  <class-name>
+                filterFormats.put(filterClassName +
+                                (pluginName!=null ? FILTER_PLUGIN_SEPARATOR + pluginName : ""),
+                        Arrays.asList(formats));
+            }
+        }
+    	
+    	return false;
+    }
 
     @Override
     public void setVerbose(boolean isVerbose) {
@@ -501,4 +571,14 @@ public class MediaFilterServiceImpl implements MediaFilterService, InitializingB
     public void setFilterFormats(Map<String, List<String>> filterFormats) {
         this.filterFormats = filterFormats;
     }
+
+    @Override
+	public List<FormatFilter> getFilterClasses() {
+		return filterClasses;
+	}
+
+    @Override
+	public Map<String, List<String>> getFilterFormats() {
+		return filterFormats;
+	}
 }

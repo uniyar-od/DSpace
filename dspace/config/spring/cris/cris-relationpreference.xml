@@ -53,7 +53,7 @@
 	</bean>
 
 	<bean id="relationOUVSPJviaInvestigatorConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
-		<property name="relationName" value="crisou.projects" />		
+		<property name="relationName" value="crisou.iprojects" />		
 		<property name="relationClass" value="org.dspace.app.cris.model.Project" />		
 		<property name="query">
 			<value>projectinvestigators.dept_authority:{0}</value>
@@ -61,7 +61,7 @@
 	</bean>
 	
 	<bean id="relationOUVSOUConfiguration" class="org.dspace.app.cris.configuration.RelationConfiguration">    										
-		<property name="relationName" value="crisou.projects" />		
+		<property name="relationName" value="crisou.organisations" />		
 		<property name="relationClass" value="org.dspace.app.cris.model.OrganizationUnit" />		
 		<property name="query">
 			<value>crisou.parentorgunit_authority:{0}</value>
@@ -93,6 +93,103 @@
 	</bean>
 
 						
+	<!-- <bean id="relationPJVSItemPoliciesSecurityConfiguration" class="org.dspace.app.cris.configuration.PoliciesSecurityCheck">
+		<property name="epersonFields">
+			<list>
+				<value>epersonmetadata1</value>
+				<value>epersonmetadata2</value>
+			</list>
+		</property>
+		<property name="groupFields">
+			<list>
+				<value>groupmetadata1</value>
+				<value>groupmetadata2</value>
+			</list>
+		</property>
+	</bean> -->
+
+	<bean id="ownerSecurityConfiguration" class="org.dspace.app.cris.configuration.OwnerSecurityCheck" />
+
+	<bean id="adminSecurityConfiguration" class="org.dspace.app.cris.configuration.AdminSecurityCheck" />
+
+	<bean
+		class="org.dspace.app.cris.configuration.RelationServiceConfiguration">
+		<property name="list">
+			<list>
+				<!-- <bean
+					class="org.dspace.app.cris.configuration.RelationService">
+					<property name="relationConfiguration" ref="relationPJVSItemConfiguration"/>
+					<property name="discoveryConfigurationKey" value="publications"/>
+					<property name="addAction">
+						<bean class="org.dspace.app.cris.configuration.AddRelationMetadataAction">
+							<property name="metadataAction" value="dc.relation" />
+						</bean>
+					</property>
+					<property name="removeAction">
+						<bean class="org.dspace.app.cris.configuration.RemoveRelationMetadataAction">
+							<property name="metadataAction" value="dc.relation" />
+						</bean>
+					</property>
+					<property name="security">
+						<list>
+							<ref bean="ownerSecurityConfiguration" />
+							<ref bean="adminSecurityConfiguration" />
+						</list>
+					</property>
+				</bean> -->
+
+<!-- 				<bean
+					class="org.dspace.app.cris.configuration.RelationService">
+					<property name="relationConfiguration" ref="relationRPVSItemConfiguration"/>
+					<property name="discoveryConfigurationKey" value="publications"/>
+					<property name="addAction">
+						<bean class="org.dspace.app.cris.configuration.AddRelationMetadataAction">
+							<property name="metadataAction" value="dc.contributor.author" />
+						</bean>
+					</property>
+					<property name="security">
+						<list>
+							<ref bean="ownerSecurityConfiguration" />
+							<ref bean="adminSecurityConfiguration" />
+						</list>
+					</property>
+				</bean> -->
+
+				<!-- <bean
+					class="org.dspace.app.cris.configuration.RelationService">
+					<property name="relationConfiguration" ref="relationRPVSPJConfiguration"/>
+					<property name="discoveryConfigurationKey" value="fundings"/>
+					<property name="addAction">
+						<bean class="org.dspace.app.cris.configuration.AddRelationMetadataAction">
+							<property name="metadataAction" value="coinvestigators" />
+						</bean>
+					</property>
+					<property name="security">
+						<list>
+							<ref bean="adminSecurityConfiguration" />
+						</list>
+					</property>
+				</bean> -->
+
+				<!-- <bean
+					class="org.dspace.app.cris.configuration.RelationService">
+					<property name="relationConfiguration" ref="relationJOURNALVSItemConfiguration"/>
+					<property name="discoveryConfigurationKey" value="publications"/>
+					<property name="addAction">
+						<bean class="org.dspace.app.cris.configuration.AddRelationMetadataAction">
+							<property name="metadataAction" value="dc.relation.ispartof" />
+						</bean>
+					</property>
+					<property name="security">
+						<list>
+							<ref bean="adminSecurityConfiguration" />
+						</list>
+					</property>
+				</bean> -->
+			</list>
+		</property>
+	</bean>
+
 	<bean
 		class="org.dspace.app.cris.configuration.RelationPreferenceServiceConfiguration">
 		<property name="list">

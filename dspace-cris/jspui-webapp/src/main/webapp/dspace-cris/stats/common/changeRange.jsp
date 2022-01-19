@@ -18,15 +18,15 @@
       <div class="row">
 					<div class='col-md-6'>
 						<div class="form-group">
-								<fmt:message key="view.statistics.range.from" /> <input class="form-control" type="text" id="stats_from_date" name="stats_from_date" value="${data.stats_from_date}" /> 
+								<fmt:message key="view.statistics.range.from" /> <input class="form-control" type="text" id="stats_from_date" name="stats_from_date" value="${fn:escapeXml(data.stats_from_date)}" /> 
 						</div>
 					</div>
 					<div class='col-md-6'>
 						<div class="form-group">
-								<fmt:message key="view.statistics.range.to" /> <input class="form-control" type="text" id="stats_to_date" name="stats_to_date" value="${data.stats_to_date}" /> 
+								<fmt:message key="view.statistics.range.to" /> <input class="form-control" type="text" id="stats_to_date" name="stats_to_date" value="${fn:escapeXml(data.stats_to_date)}" /> 
 						</div>
 					</div>
-			<input type="hidden" name="type" value="${data.type}"/>
+			<input type="hidden" name="type" value="${fn:escapeXml(data.type)}"/>
 			<c:choose>
 			<c:when test="${data.object.type < 9}">
 				<input type="hidden" name="handle" value="${data.object.handle}" />

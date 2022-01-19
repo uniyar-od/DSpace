@@ -135,7 +135,6 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
 
                 }
             }
-            context.commit();
         }
         catch (Exception e)
         {
@@ -205,7 +204,6 @@ public class ItemExtraAction implements RelationPreferenceExtraAction
 			// cam.notifyAccept(item.getID(), schema, element,
 			// qualifier, rpKey);
 
-            context.commit();
         }
         catch (Exception e)
         {
