@@ -69,7 +69,7 @@ public class LDNInBoxServlet extends DSpaceServlet {
 
 		try {
 
-			ldnActionsMapping.get(actionIdentifier).processRequest(ldnRequestDTO);
+			ldnActionsMapping.get(actionIdentifier).processRequest(context, ldnRequestDTO);
 
 		} catch (Exception e) {
 			logger.error("Error\n" + payloadRequest, e);

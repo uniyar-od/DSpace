@@ -23,15 +23,13 @@ public abstract class LDNPayloadProcessor {
 	protected abstract void processLDNPayload(NotifyLDNDTO ldnRequestDTO, Context context)
 			throws IllegalStateException, SQLException, AuthorizeException;
 
-	public final void processRequest(NotifyLDNDTO ldnRequestDTO) {
+	public final void processRequest(Context context, NotifyLDNDTO ldnRequestDTO) {
 
-		Context context = null;
 		try {
 			context = new Context();
 			context.turnOffAuthorisationSystem();
 			processLDNPayload(ldnRequestDTO, context);
-			context.commit();
-			
+
 			ActionStatus operation;
 			if (ldnActions != null) {
 				for (LDNAction action : ldnActions) {
@@ -45,11 +43,6 @@ public abstract class LDNPayloadProcessor {
 		} catch (Exception e) {
 			logger.error(ldnRequestDTO.toString(), e);
 		} finally {
-			// Abort the context if it's still valid
-			if ((context != null) && context.isValid()) {
-				context.restoreAuthSystemState();
-				context.abort();
-			}
 		}
 	}
 
