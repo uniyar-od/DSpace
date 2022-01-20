@@ -59,6 +59,7 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
+import org.dspace.eperson.service.EPersonService;
 import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
@@ -125,6 +126,8 @@ public class PMCEuropeFeed
             .getServiceManager()
             .getServiceByName("pubmedFeedPhase1TransformationEngine",
                     TransformationEngine.class);
+
+    private static EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
 
     public static void main(String[] args)
             throws SQLException, BadTransformationSpec, MalformedSourceException, AuthorizeException
@@ -213,12 +216,10 @@ public class PMCEuropeFeed
 
         String person = line.getOptionValue("p");
     	EPerson eperson = null;
-        if(StringUtils.isNumeric(person)){
-        	eperson = EPersonServiceFactory.getInstance().getEPersonService().find(context,
-                    UUID.fromString(person));
-        	
-        }else {
-        	eperson = EPersonServiceFactory.getInstance().getEPersonService().findByEmail(context, person);
+    	if (StringUtils.indexOf(person, '@') == -1) {
+            eperson = ePersonService.find(context, UUID.fromString(person));
+        } else {
+            eperson = ePersonService.findByEmail(context, person);
         }
         
         

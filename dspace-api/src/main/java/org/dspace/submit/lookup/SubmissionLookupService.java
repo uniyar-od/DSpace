@@ -7,6 +7,11 @@
  */
 package org.dspace.submit.lookup;
 
+import gr.ekt.bte.core.DataLoader;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.TransformationEngine;
+import gr.ekt.bte.dataloader.FileDataLoader;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,11 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.log4j.Logger;
 import org.dspace.submit.util.SubmissionLookupDTO;
-
-import gr.ekt.bte.core.DataLoader;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.TransformationEngine;
-import gr.ekt.bte.dataloader.FileDataLoader;
 
 /**
  * @author Andrea Bollini
@@ -44,19 +44,19 @@ public class SubmissionLookupService
 
     public static final String SEPARATOR_VALUE_REGEX = SEPARATOR_VALUE;
 
-    protected List<DataLoader> providers;
+    private List<String> providers;
 
-    protected Map<String, List<String>> idents2provs;
+    private Map<String, List<String>> idents2provs;
 
-    protected List<String> searchProviders;
+    private List<String> searchProviders;
 
-    protected List<String> fileProviders;
+    private List<String> fileProviders;
 
-    protected TransformationEngine phase1TransformationEngine;
+    private TransformationEngine phase1TransformationEngine;
 
-    protected TransformationEngine phase2TransformationEngine;
+    private TransformationEngine phase2TransformationEngine;
     
-    protected List<String> detailFields = null;
+    private List<String> detailFields = null;
 
     public void setPhase2TransformationEngine(
             TransformationEngine phase2TransformationEngine)
@@ -78,13 +78,13 @@ public class SubmissionLookupService
 
         if (providers == null)
         {
-            this.providers = new ArrayList<DataLoader>();
+            this.providers = new ArrayList<String>();
 
             for (String providerName : dataLoader.getProvidersMap().keySet())
             {
                 DataLoader p = dataLoader.getProvidersMap().get(providerName);
 
-                this.providers.add(p);
+                this.providers.add(providerName);
 
                 // Do not do that for file providers
                 if (p instanceof FileDataLoader)
@@ -193,7 +193,7 @@ public class SubmissionLookupService
         return searchProviders;
     }
 
-    public List<DataLoader> getProviders()
+    public List<String> getProviders()
     {
         return providers;
     }

@@ -7,6 +7,7 @@
  */
 package org.dspace.submit.lookup;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,8 +35,11 @@ import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataSchemaService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
+import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
+import org.dspace.submit.util.SubmissionLookupPublication;
+import org.dspace.util.ItemUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import gr.ekt.bte.core.DataOutputSpec;
@@ -56,28 +60,30 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
     private static Logger log = Logger
             .getLogger(DSpaceWorkspaceItemOutputGenerator.class);
 
-    protected Context context;
+    private Context context;
 
-    protected String formName;
+    private String formName;
 
-    protected List<WorkspaceItem> witems;
+    private List<WorkspaceItem> witems;
 
-    protected ItemSubmissionLookupDTO dto;
+    private ItemSubmissionLookupDTO dto;
 
-    protected Collection collection;
+    private Collection collection;
 
     Map<String, String> outputMap;
 
-    protected List<String> extraMetadataToKeep;
+    private List<String> extraMetadataToKeep;
 
     @Autowired(required = true)
-    protected ItemService itemService;
+    private ItemService itemService;
     @Autowired(required = true)
-    protected MetadataFieldService metadataFieldService;
+    private MetadataFieldService metadataFieldService;
     @Autowired(required = true)
-    protected MetadataSchemaService metadataSchemaService;
+    private MetadataSchemaService metadataSchemaService;
     @Autowired(required = true)
-    protected WorkspaceItemService workspaceItemService;
+    private WorkspaceItemService workspaceItemService;
+    @Autowired(required = true)
+    private ConfigurationService configurationService;
 
     @Override
     public List<String> generateOutput(RecordSet recordSet)
@@ -101,10 +107,16 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         {
             try
             {
+                boolean templateItem = configurationService.getBooleanProperty("bte.applytemplateitem",false);
+                if(rec instanceof SubmissionLookupPublication) {
+                    SubmissionLookupPublication dto = (SubmissionLookupPublication)rec;
+                    if(SubmissionLookupService.MANUAL_USER_INPUT.equals(dto.getProviderName())) {
+                        templateItem = true;
+                    }
+                }
                 WorkspaceItem wi = workspaceItemService.create(context, collection,
-                        true);
-                String collectionHandle = wi.getCollection().getHandle();
-                merge(formName, collectionHandle,wi.getItem(), rec);
+                        templateItem);
+                merge(formName, wi.getItem(), rec);
 
                 witems.add(wi);
 
@@ -117,7 +129,6 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
             {
                 log.error(e.getMessage(), e);
             }
-
         }
 
         return new ArrayList<String>();
@@ -170,55 +181,36 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
     }
 
     // Methods
-    public void merge(String formName, String collectionHandle,Item item, Record record)
+    public void merge(String formName, Item item, Record record) throws SQLException, AuthorizeException
     {
-        try
-        {
-            Record itemLookup = record;
 
-            Set<String> addedMetadata = new HashSet<String>();
-            for (String field : itemLookup.getFields())
+        Record itemLookup = record;
+        
+
+        Set<String> addedMetadata = new HashSet<String>();
+        for (String field : itemLookup.getFields())
+        {
+            String metadata = getMetadata(formName, itemLookup, field);
+            if (StringUtils.isBlank(metadata))
             {
-                String metadata = getMetadata(formName, itemLookup, field);
-                if (StringUtils.isBlank(metadata))
-                {
-                    continue;
-                }
-                if (itemService.getMetadataByMetadataString(item, metadata).size() == 0
-                        || addedMetadata.contains(metadata))
-                {
-                    addedMetadata.add(metadata);
-                    String[] md = splitMetadata(metadata);
-                    if (isValidMetadata(collectionHandle, md))
-                    { // if in extra metadata or in the spefific form
-                        List<Value> values = itemLookup.getValues(field);
-                        if (values != null && values.size() > 0)
-                        {
-                            if (isRepeatableMetadata(collectionHandle, md))
-                            { // if metadata is repeatable in form
-                                for (Value value : values)
-                                {
-                                    String[] splitValue = splitValue(value
-                                            .getAsString());
-                                    if (splitValue[3] != null)
-                                    {
-                                        itemService.addMetadata(context, item, md[0], md[1], md[2],
-                                                md[3], splitValue[0],
-                                                splitValue[1],
-                                                Integer.parseInt(splitValue[2]));
-                                    }
-                                    else
-                                    {
-                                        itemService.addMetadata(context, item, md[0], md[1], md[2],
-                                                md[3], value.getAsString());
-                                    }
-                                }
-                            }
-                            else
+                continue;
+            }
+            if (itemService.getMetadataByMetadataString(item, metadata).isEmpty()
+                    || addedMetadata.contains(metadata))
+            {
+                addedMetadata.add(metadata);
+                String[] md = splitMetadata(metadata);
+                if (isValidMetadata(collection.getHandle(), md) )
+                { // if in extra metadata or in the spefic form
+                    List<Value> values = itemLookup.getValues(field);
+                    if (values != null && values.size() > 0)
+                    {
+                        if (isRepeatableMetadata(collection.getHandle(), md))
+                        { // if metadata is repeatable in form
+                            for (Value value : values)
                             {
-                                String value = values.iterator().next()
-                                        .getAsString();
-                                String[] splitValue = splitValue(value);
+                                String[] splitValue = splitValue(value
+                                        .getAsString());
                                 if (splitValue[3] != null)
                                 {
                                     itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
@@ -228,15 +220,32 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
                                 else
                                 {
                                     itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
-                                            value);
+                                            value.getAsString());
                                 }
+                            }
+                        }
+                        else
+                        {
+                            String value = values.iterator().next()
+                                    .getAsString();
+                            String[] splitValue = splitValue(value);
+                            if (splitValue[3] != null)
+                            {
+                            	itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
+                                        splitValue[0], splitValue[1],
+                                        Integer.parseInt(splitValue[2]));
+                            }
+                            else
+                            {
+                                itemService.addMetadata(context, item, md[0], md[1], md[2], md[3],
+                                        value);
                             }
                         }
                     }
                 }
             }
-            itemService.update(context, item);
-            
+        }
+
             String providerName = "";
             List<Value> providerNames = itemLookup.getValues("provider_name_field");
             if(providerNames!=null && providerNames.size()>0) {
@@ -249,19 +258,9 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
             }
             
             itemService.update(context, item);
-        }
-        catch (SQLException | NullPointerException e)
-        {
-            log.error(e.getMessage(), e);
-        }
-        catch (AuthorizeException e)
-        {
-            log.error(e.getMessage(), e);
-        }
-
     }
 
-    protected String getMetadata(String formName, Record itemLookup, String name)
+    private String getMetadata(String formName, Record itemLookup, String name)
     {
         String type = SubmissionLookupService.getType(itemLookup);
 
@@ -292,7 +291,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return md;
     }
 
-    protected String[] splitMetadata(String metadata)
+    private String[] splitMetadata(String metadata)
     {
         String[] mdSplit = new String[3];
         if (StringUtils.isNotBlank(metadata))
@@ -326,17 +325,26 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return mdSplit;
     }
 
-    protected boolean isValidMetadata(String handle, String[] md)
+    private boolean isValidMetadata(String collHandle, String[] md)
     {
         try
         {
-            if (extraMetadataToKeep != null
-                    && extraMetadataToKeep.contains(StringUtils.join(
-                            Arrays.copyOfRange(md, 0, 3), ".")))
-            {
-                return true;
-            }
-            return getDCInput(handle, md[0], md[1], md[2]) != null;
+        	MetadataSchema schema = metadataSchemaService.find(context,md[0]);
+        	if (schema != null)
+        	{
+	        	MetadataField foundField = metadataFieldService.findByElement(context, schema, md[1], md[2]);
+	            if(foundField != null) {
+	           
+     		            int range = StringUtils.isNotBlank(md[2])? 3:2; 
+		            if (extraMetadataToKeep != null
+		                    && extraMetadataToKeep.contains(StringUtils.join(
+		                            Arrays.copyOfRange(md, 0, range), ".")))
+		            {
+		                return true;
+		            }
+		            return getDCInput(collHandle, md[0], md[1], md[2]) != null;
+	            }
+        	}
         }
         catch (Exception e)
         {
@@ -345,42 +353,18 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return false;
     }
 
-    protected DCInput getDCInput(String handle, String schema, String element,
+    private DCInput getDCInput(String collHandle, String schema, String element,
             String qualifier) throws DCInputsReaderException
     {
-        DCInputSet dcinputset = new DCInputsReader().getInputs(handle);
-        for (int idx = 0; idx < dcinputset.getNumberPages(); idx++)
-        {
-            for (DCInput dcinput : dcinputset.getPageRows(idx, true, true))
-            {
-                if (dcinput.getSchema().equals(schema)
-                        && dcinput.getElement().equals(element)
-                        && ((dcinput.getQualifier() != null && dcinput
-                                .getQualifier().equals(qualifier))
-                        || (dcinput.getQualifier() == null && qualifier == null)))
-                {
-                    return dcinput;
-                }
-                else if(dcinput.getSchema().equals(schema)
-                        && dcinput.getElement().equals(element)
-                        && StringUtils.equals("qualdrop_value", dcinput.getInputType())) {
-                	List<String> pairs = (List<String>) dcinput.getPairs();
-                	for(String pair: pairs) {
-                		if(StringUtils.equals(pair, qualifier)) {
-                			return dcinput;
-                		}
-                	}
-                }
-            }
-        }
-        return null;
+        DCInputSet dcinputset = new DCInputsReader().getInputs(collHandle);
+        return ItemUtils.getDCInput(schema, element, qualifier, dcinputset);
     }
 
-    protected boolean isRepeatableMetadata(String handle, String[] md)
+    private boolean isRepeatableMetadata(String collHandle, String[] md)
     {
         try
         {
-            DCInput dcinput = getDCInput(handle, md[0], md[1], md[2]);
+            DCInput dcinput = getDCInput(collHandle, md[0], md[1], md[2]);
             if (dcinput != null)
             {
                 return dcinput.isRepeatable();
@@ -394,7 +378,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return false;
     }
 
-    protected String[] splitValue(String value)
+    private String[] splitValue(String value)
     {
         String[] splitted = value
                 .split(SubmissionLookupService.SEPARATOR_VALUE_REGEX);
@@ -427,7 +411,7 @@ public class DSpaceWorkspaceItemOutputGenerator implements OutputGenerator
         return result;
     }
 
-    protected void makeSureMetadataExist(Context context, String schema,
+    private void makeSureMetadataExist(Context context, String schema,
             String element, String qualifier)
     {
         try

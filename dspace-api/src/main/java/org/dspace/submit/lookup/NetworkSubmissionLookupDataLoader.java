@@ -7,6 +7,12 @@
  */
 package org.dspace.submit.lookup;
 
+import gr.ekt.bte.core.DataLoadingSpec;
+import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.RecordSet;
+import gr.ekt.bte.core.Value;
+import gr.ekt.bte.exceptions.MalformedSourceException;
+
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -17,12 +23,6 @@ import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
 import org.dspace.core.Context;
-
-import gr.ekt.bte.core.DataLoadingSpec;
-import gr.ekt.bte.core.Record;
-import gr.ekt.bte.core.RecordSet;
-import gr.ekt.bte.core.Value;
-import gr.ekt.bte.exceptions.MalformedSourceException;
 
 /**
  * @author Andrea Bollini
@@ -43,6 +43,10 @@ public abstract class NetworkSubmissionLookupDataLoader implements
 
     String providerName;
 
+    RecordSet recordSetCache; // hack, to fix the result set externally
+                              // it is useful in combination with the
+                              // multiple online data provider
+
     @Override
     public List<Record> getByDOIs(Context context, Set<String> doiToSearch)
             throws HttpException, IOException
@@ -59,7 +63,14 @@ public abstract class NetworkSubmissionLookupDataLoader implements
     public RecordSet getRecords() throws MalformedSourceException
     {
 
-        RecordSet recordSet = new RecordSet();
+        RecordSet recordSet = null;
+        if (recordSetCache != null) {
+            recordSet = recordSetCache;
+            recordSetCache = null; // cache can be used only one time
+            return recordSet;
+        }
+
+        recordSet = new RecordSet();
 
         List<Record> results = null;
 
@@ -175,5 +186,10 @@ public abstract class NetworkSubmissionLookupDataLoader implements
         }
 
         return publication;
+    }
+
+    public void setRecordSetCache(RecordSet recordSetCache)
+    {
+        this.recordSetCache = recordSetCache;
     }
 }

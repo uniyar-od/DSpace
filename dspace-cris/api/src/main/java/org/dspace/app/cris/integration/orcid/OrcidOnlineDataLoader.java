@@ -26,6 +26,7 @@ import org.dspace.authority.orcid.jaxb.common.OrcidId;
 import org.dspace.authority.orcid.jaxb.common.SourceType;
 import org.dspace.authority.orcid.jaxb.common.Url;
 import org.dspace.authority.orcid.jaxb.personaldetails.NameCtype;
+import org.dspace.authority.orcid.jaxb.personaldetails.NameCtype.GivenNames;
 import org.dspace.authority.orcid.jaxb.personaldetails.PersonalDetails;
 import org.dspace.authority.orcid.jaxb.work.Citation;
 import org.dspace.authority.orcid.jaxb.work.CitationType;
@@ -101,6 +102,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                         workgroup: for (WorkGroup orcidGroup : orcidWorks.getGroup())
                         {
                             int higher = orcidService.higherDisplayIndex(orcidGroup);
+                            // take the Work with highest display index value (the preferred item)
                             worksummary : for (WorkSummary orcidSummary : orcidGroup
                                     .getWorkSummary())
                             {
@@ -114,7 +116,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                                 }
                                 SourceType source = orcidSummary.getSource();
                                 String sourceNameWork = "";
-                                if (source != null)
+                                if (source != null && source.getSourceName() != null)
                                 {
                                     sourceNameWork = source.getSourceName()
                                             .getContent();
@@ -132,6 +134,9 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                                                         orcidSummary
                                                                 .getPutCode()
                                                                 .toString())));
+                                        // in the case of more equal display index value take the first
+                                        // (for example import from API setup display index to 0, see https://members.orcid.org/api/tutorial/reading-xml#display-index)
+                                        break;
                                     }
                                     catch (Exception e)
                                     {
@@ -187,7 +192,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         String journalTitle = orcidWork.getJournalTitle();
         if (StringUtils.isNotBlank(journalTitle))
         {
-            record.addValue("sourceTitle", new StringValue(journalTitle));
+            record.addValue("journal", new StringValue(journalTitle));
         }
 
         String abs = orcidWork.getShortDescription();
@@ -239,18 +244,23 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
             NameCtype name = personalDetails.getName();
             if (name != null)
             {
+            	String value = "Undefined";
                 CreditName cname = name.getCreditName();
                 if (cname != null)
                 {
-                    authNames.add(new StringValue(cname.getValue()));
+                    value = cname.getValue();
                 }
                 else
                 {
-                    if(name.getFamilyName()!=null && name.getGivenNames()!=null) {
-                        authNames.add(new StringValue(name.getFamilyName().getValue() + ", "
-                            + name.getGivenNames().getValue()));
-                    }
+                    try {
+						GivenNames givenNames = name.getGivenNames();
+						value = name.getFamilyName().getValue()
+								+ (givenNames != null ? ", " + givenNames.getValue() : "");
+					} catch (NullPointerException e) {
+						// the family name is missing! left it as Undefined
+					}
                 }
+                authNames.add(new StringValue(value));
             }
             authOrcid.add(new StringValue(orcid));
         }
@@ -260,7 +270,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         if(orcidWork.getPutCode()!=null) {
             record.addValue("putcode", new StringValue(orcidWork.getPutCode().toString()));
         }
-
+        
         Citation citation = orcidWork.getCitation();
         if (citation != null)
         {
