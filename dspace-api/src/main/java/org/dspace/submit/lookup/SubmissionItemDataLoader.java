@@ -8,16 +8,16 @@
 
 package org.dspace.submit.lookup;
 
+import java.util.List;
+
+import org.apache.log4j.Logger;
+import org.dspace.submit.util.ItemSubmissionLookupDTO;
+
 import gr.ekt.bte.core.DataLoader;
 import gr.ekt.bte.core.DataLoadingSpec;
 import gr.ekt.bte.core.Record;
 import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.exceptions.MalformedSourceException;
-
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.dspace.submit.util.ItemSubmissionLookupDTO;
 
 /**
  * @author Andrea Bollini
@@ -29,7 +29,7 @@ public class SubmissionItemDataLoader implements DataLoader
 {
     private List<ItemSubmissionLookupDTO> dtoList;
 
-    List<DataLoader> providers;
+    List<String> providersPriority;
 
     private static Logger log = Logger
             .getLogger(SubmissionItemDataLoader.class);
@@ -37,7 +37,7 @@ public class SubmissionItemDataLoader implements DataLoader
     public SubmissionItemDataLoader()
     {
         dtoList = null;
-        providers = null;
+        providersPriority = null;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class SubmissionItemDataLoader implements DataLoader
 
         for (ItemSubmissionLookupDTO dto : dtoList)
         {
-            Record rec = dto.getTotalPublication(providers);
+            Record rec = dto.getTotalPublication(providersPriority);
             ret.addRecord(rec);
         }
 
@@ -100,19 +100,19 @@ public class SubmissionItemDataLoader implements DataLoader
     }
 
     /**
-     * @return the providers
+     * @return the priority among the providers
      */
-    public List<DataLoader> getProviders()
+    public List<String> getProvidersPriority()
     {
-        return providers;
+        return providersPriority;
     }
 
     /**
      * @param providers
-     *            the providers to set
+     *            the priority among the providers
      */
-    public void setProviders(List<DataLoader> providers)
+    public void setProvidersPriority(List<String> providers)
     {
-        this.providers = providers;
+        this.providersPriority = providers;
     }
 }
