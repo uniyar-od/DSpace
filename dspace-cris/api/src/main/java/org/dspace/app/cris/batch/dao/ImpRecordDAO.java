@@ -103,8 +103,9 @@ public abstract class ImpRecordDAO
                 + " , " + impRecord.getImp_eperson_id() + " , "
                 + impRecord.getImp_collection_id() + " , "
                 + impRecord.getStatus() + " , " + impRecord.getOperation()
-                + " , " + impRecord.getLast_modified() + " , "
-                + impRecord.getHandle() + " )");
+                + ", null , " + impRecord.getLast_modified() + " , "
+                + impRecord.getHandle() + " , "
+                + impRecord.getImp_sourceRef() + " )");
         DatabaseManager.updateQuery(context,
                 "INSERT INTO imp_record(imp_id, imp_record_id, imp_eperson_id, imp_collection_id, status, operation, integra, last_modified, handle, imp_sourceref)"
                         + " VALUES (?, ?, ?, ?, ?, ?, null, null, null, ?)",

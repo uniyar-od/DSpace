@@ -23,7 +23,11 @@
 			<c:when test="${data.resultBean.dataBeans[statType]['time']['total'].dataTable[0][0] > 0}">
 
 				<c:set var="objectName">geo</c:set>	
+				<% if(StringUtils.isNotBlank(mapsApiKey)) { %>
 				<%@include file="../modules/map/map.jsp" %>
+				<% } else { %>
+					<%@include file="../modules/geochart/map.jsp" %>
+				<% } %>
 
 <div id="statstabs">
 <div id="statstab-menu">

@@ -149,6 +149,24 @@ public class WOSUtils {
 			record.addField("keywordsPlus", keyPlusVals);
 		}
 
+		//.../static_data/fullrecord_metadata/addresses/address_name/address_spec/organizations
+		Element addresses = XMLUtils.getSingleElement(recordMetadata, "addresses");
+		List<Element> addressList = XMLUtils.getElementList(addresses, "address_name");
+		if (addressList != null && addressList.size() > 0) {
+			List<Value> orgValue = new LinkedList<Value>();
+			for (Element address : addressList) {
+				Element address_spec = XMLUtils.getSingleElement(address, "address_spec");
+				Element organizations = XMLUtils.getSingleElement(address_spec, "organizations");
+				List<String> organizationList = XMLUtils.getElementValueList(organizations, "organization");
+				if (organizationList != null) {
+					for(String org: organizationList) {
+						orgValue.add(new StringValue(org));
+					}
+				}
+			}
+			record.addField("affiliations", orgValue);
+		}
+
 		Element languages = XMLUtils.getSingleElement(recordMetadata, "languages");
 		List<Element> languageList = XMLUtils.getElementList(languages, "language");
 		for (Element current : languageList) {

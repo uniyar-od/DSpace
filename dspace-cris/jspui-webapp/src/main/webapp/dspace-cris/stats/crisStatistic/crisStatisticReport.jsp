@@ -17,25 +17,27 @@
 <%@ taglib uri="http://displaytag.sf.net" prefix="display"%>
 <%@ taglib uri="researchertags" prefix="researcher"%>
 <%@ page import="org.dspace.core.ConfigurationManager"%>
-
+<%@ page import="org.apache.commons.lang3.StringUtils"%>
+<%
+   String mapsApiKey = ConfigurationManager.getProperty("key.googleapi.maps");
+%>
 <c:set var="contextPath" scope="application">${pageContext.request.contextPath}</c:set>
 <c:set var="dspace.layout.head" scope="request">    
 	<script type="text/javascript" src="${contextPath}/js/rgbcolor.js"></script>
 	<script type="text/javascript" src="${contextPath}/js/canvg.js"></script>
 	<script type="text/javascript" src="${contextPath}/js/stats.js"></script>
-	<script src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">      
-    	google.charts.load('current', {packages: ['corechart','controls']});
+      google.load('visualization', '1.1', {packages: ['corechart', 'controls']});
     </script>
         	
 	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
-	<link href="${contextPath}/css/stats.css" type="text/css" rel="stylesheet" />
 	<style type="text/css">
 	  #map_canvas { height: 100% }
 	</style>
-	
-    <script src="//maps.googleapis.com/maps/api/js?key=<%= ConfigurationManager.getProperty("key.googleapi.maps") %>&v=3" type="text/javascript"></script>
-	
+	<% if(StringUtils.isNotBlank(mapsApiKey)) { %>    	
+		<script src="//maps.googleapis.com/maps/api/js?key=<%= mapsApiKey %>&sensor=true&v=3" type="text/javascript"></script>
+	<% } %>
 	<script type="text/javascript">
 		function setMessage(message,div){
 			document.getElementById(div).innerHTML=message;

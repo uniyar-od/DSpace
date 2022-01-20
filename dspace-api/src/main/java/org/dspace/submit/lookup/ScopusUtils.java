@@ -10,10 +10,10 @@
  */
 package org.dspace.submit.lookup;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import gr.ekt.bte.core.MutableRecord;
 import gr.ekt.bte.core.Record;
@@ -22,6 +22,7 @@ import gr.ekt.bte.core.Value;
 
 import org.apache.commons.lang.StringUtils;
 import org.dspace.app.util.XMLUtils;
+import org.dspace.content.MetadataValue;
 import org.dspace.submit.util.SubmissionLookupPublication;
 import org.w3c.dom.Element;
 
@@ -34,9 +35,7 @@ import org.w3c.dom.Element;
 public class ScopusUtils
 {
 
-	public final static String PLACEHOLER_NO_DATA="#NODATA#";
-	
-    public static Record convertScopusDomToRecord(Element article)
+	public static MutableRecord convertScopusDomToRecord(Element article)
     {
         MutableRecord record = new SubmissionLookupPublication("");
         
@@ -49,6 +48,10 @@ public class ScopusUtils
                 "eid");
         if (eid != null){
             record.addValue("eid", new StringValue(eid));
+        }
+        else {
+            // a scopus record must have the eid
+            return null;
         }
         String title = XMLUtils.getElementValue(article,
                 "dc:title");
@@ -141,6 +144,14 @@ public class ScopusUtils
             record.addValue("scopusKeywords", new StringValue(keywords));
         }
         
+        HashMap<String,String> affiliationMap = new HashMap<String,String>();
+        List<Element> affiliations = XMLUtils.getElementList(article, "affiliation");
+        for(Element affiliation: affiliations) {
+            String affil = XMLUtils.getElementValue(affiliation, "affilname");
+            String affID = XMLUtils.getElementValue(affiliation, "afid");
+            affiliationMap.put(affID, affil);
+        }
+
         List<Element> authors = XMLUtils.getElementList(article,
                     "author");
         LinkedList<Value> authNames = new LinkedList<Value>();
@@ -148,7 +159,9 @@ public class ScopusUtils
         LinkedList<Value> authScopusID = new LinkedList<Value>();
         LinkedList<Value> authOrcid = new LinkedList<Value>();
         List<String> sequenceAuthors = new LinkedList<String>(); 
-        //TODO: Manage Author Affiliation
+        LinkedList<Value> authWithAffiliations = new LinkedList<Value>();
+        LinkedList<Value> allAffiliations = new LinkedList<Value>();
+
         authors : for(Element author: authors){
             
             //check sequence number
@@ -169,18 +182,19 @@ public class ScopusUtils
                     "surname");
             String authname = XMLUtils.getElementValue(author,
                     "authname");
+            String authorName = "";
             if (givenname != null && surname != null) {
-                authNames.add(new StringValue(surname+", "+givenname));
+                authorName = surname+", "+givenname;
             } else if (authname != null){
-                authNames.add(new StringValue(authname));
+                authorName = authname;
             }
-
+            authNames.add(new StringValue(authorName));
             String auUrl = XMLUtils.getElementValue(author,
                     "author-url");
             if (auUrl != null){
                 authUrl.add(new StringValue(auUrl));
             }else{
-            	authUrl.add(new StringValue(PLACEHOLER_NO_DATA));
+                authUrl.add(new StringValue(MetadataValue.PARENT_PLACEHOLDER_VALUE));
             }
 
             String scopusID = XMLUtils.getElementValue(author,
@@ -188,7 +202,7 @@ public class ScopusUtils
             if (scopusID != null){
                 authScopusID.add(new StringValue(scopusID));
             }else{
-            	authScopusID.add(new StringValue(PLACEHOLER_NO_DATA));
+                authScopusID.add(new StringValue(MetadataValue.PARENT_PLACEHOLDER_VALUE));
             }
             
             String orcid = XMLUtils.getElementValue(author,
@@ -196,14 +210,29 @@ public class ScopusUtils
             if (orcid != null){
                 authOrcid.add(new StringValue(orcid));
             }else{
-            	authOrcid.add(new StringValue(PLACEHOLER_NO_DATA));
+                authOrcid.add(new StringValue(MetadataValue.PARENT_PLACEHOLDER_VALUE));
+            }
+
+            String affiliationId = XMLUtils.getElementValue(author, "afid");
+            // we must use a consistent syntax here, see PubmedUtils
+            if(StringUtils.isNotBlank(affiliationId)) {
+                String aff = affiliationMap.get(affiliationId);
+                String authorWithAff = authname + "##" + (StringUtils.isNotBlank(aff) ? aff : "");
+                authWithAffiliations.add(new StringValue(authorWithAff));
+                allAffiliations.add(new StringValue(StringUtils.isNotBlank(aff) ? aff : MetadataValue.PARENT_PLACEHOLDER_VALUE));
+            }
+            else {
+                String authorWithAff = authname + "##";
+                authWithAffiliations.add(new StringValue(authorWithAff));
+                allAffiliations.add(new StringValue(MetadataValue.PARENT_PLACEHOLDER_VALUE));
             }
         }
         record.addField("authors", authNames);
         record.addField("authorUrl", authUrl);
         record.addField("authorScopusid", authScopusID);
         record.addField("orcid", authOrcid);
-
+        record.addField("authorsWithAffiliation", authWithAffiliations);
+        record.addField("affiliations", allAffiliations);
         return record;
     }
 }

@@ -131,7 +131,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
                                     putCodes.add(orcidSummary.getPutCode().toString());
                                     SourceType source = orcidSummary.getSource();
                                     String sourceNameWork = "";
-                                    if (source != null)
+                                    if (source != null && source.getSourceName() != null)
                                     {
                                         sourceNameWork = source.getSourceName()
                                                 .getContent();
@@ -291,7 +291,7 @@ public class OrcidOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         String journalTitle = orcidWork.getJournalTitle();
         if (StringUtils.isNotBlank(journalTitle))
         {
-            record.addValue("sourceTitle", new StringValue(journalTitle));
+            record.addValue("journal", new StringValue(journalTitle));
         }
 
         String abs = orcidWork.getShortDescription();
