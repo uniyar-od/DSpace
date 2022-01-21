@@ -98,6 +98,8 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
                         .getFirstValue("search.resourcetype");
                 Integer resourceId = (Integer) doc
                         .getFirstValue("search.resourceid");
+                String handle = (String) doc
+                        .getFirstValue("handle");                
                 try
                 {
 
@@ -105,7 +107,7 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
                     String url = "";
                     Map<String, String> remark = new HashMap<String, String>();
                     if(resourceType == Constants.ITEM) {
-	                    QueryResponse qr = statsService.query("search.uniqueid:"+ resourceTypeId+"-"+resourceId,  Integer.MAX_VALUE);
+	                    QueryResponse qr = statsService.query("search.uniqueid:"+ resourceTypeId+"-"+resourceId + " OR handle:\"" + handle +"\"",  Integer.MAX_VALUE);
 	                    url =  baseItemURL+ uuid;
 	                    remark.put("link", url);
 	                    buildIndicator(context, pService, applicationService,
@@ -114,7 +116,7 @@ public class StatsViewIndicatorsPlugin extends AStatsIndicatorsPlugin
 	                            ConstantMetrics.STATS_INDICATOR_TYPE_VIEW,
 	                            null, acquisitionDate, remark);
 	
-	                    qr = statsService.query(joinQuery+ "search.resourceid:"+resourceId+" AND -withdrawn:true",  Integer.MAX_VALUE);
+	                    qr = statsService.query(joinQuery+ "(search.resourceid:"+resourceId+" OR handle:\""+ handle +"\") AND -withdrawn:true",  Integer.MAX_VALUE);
 	                    remark.clear();
 	                    remark.put("link", url +"&amp;type=bitstream" );
 	                    buildIndicator(context, pService, applicationService,

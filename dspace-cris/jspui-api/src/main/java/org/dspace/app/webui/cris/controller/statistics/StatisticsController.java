@@ -111,7 +111,7 @@ public class StatisticsController extends AStatisticsController
             }
             
             if (statcomponent != null) {
-	            dataBeans.putAll(statcomponent.query(id, solrServer, startDate, endDate));                
+	            dataBeans.putAll(statcomponent.query(id, solrServer, startDate, endDate, dso.getHandle()));                
 	            label.putAll(statcomponent.getLabels(UIUtil.obtainContext(request),type));
             }
             

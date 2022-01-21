@@ -57,7 +57,7 @@ public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComp
 
 	@Override
 	public TreeKeyMap query(String id, HttpSolrServer solrServer,
-			Date startDate, Date endDate) throws Exception {
+			Date startDate, Date endDate, String handle) throws Exception {
 
 		statisticDatasBeans = new TreeKeyMap();
 		if (id != null && !id.equals("")
@@ -103,7 +103,7 @@ public class StatUploadObjectComponent<T extends DSpaceObject> extends StatsComp
 				solrQuery.addFilterQuery(filter);
 			}
 			
-			String query= MessageFormat.format(getBean().getQuery(), id);		
+			String query= MessageFormat.format(getBean().getQuery(), id, handle);		
 			
 			solrQuery.setQuery(query);
 			if (getBean() instanceof BeanFacetComponent) {

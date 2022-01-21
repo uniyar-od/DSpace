@@ -159,7 +159,7 @@
 	<bean id="commonItemBean"
 		class="org.dspace.app.webui.cris.components.BeanComponent">
 		<property name="componentIdentifier" value="item" />
-		<property name="query"><value>search.resourceid:{0}</value></property>					
+		<property name="query"><value>search.resourceid:{0} OR handle:{1}</value></property>					
 	</bean>
 
 	

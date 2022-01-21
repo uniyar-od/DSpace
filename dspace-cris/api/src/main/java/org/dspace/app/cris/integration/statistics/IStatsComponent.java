@@ -25,7 +25,7 @@ public interface IStatsComponent<T extends DSpaceObject> extends IStatsGenericCo
 
     TwoKeyMap getLabels(Context context, String type) throws Exception;
     
-    TreeKeyMap query(String id, HttpSolrServer solrServer,Date startDate, Date endDate)  throws Exception;
+    TreeKeyMap query(String id, HttpSolrServer solrServer, Date startDate, Date endDate, String handle)  throws Exception;
        
     Map<String, ObjectCount[]> queryFacetDate(SolrLogger statsLogger,
             T object, String dateType, String dateStart,

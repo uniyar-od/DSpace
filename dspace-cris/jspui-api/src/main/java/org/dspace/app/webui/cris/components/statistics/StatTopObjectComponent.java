@@ -40,7 +40,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
     private String fromField;
 
     @Override
-    public TreeKeyMap query(String id, HttpSolrServer solrServer,Date startDate, Date endDate) throws Exception
+    public TreeKeyMap query(String id, HttpSolrServer solrServer,Date startDate, Date endDate, String handle) throws Exception
     {
         statisticDatasBeans = new TreeKeyMap();
         if (id != null && !id.equals("") && StatComponentsService.getYearsQuery() != null)
@@ -73,7 +73,7 @@ public class StatTopObjectComponent<T extends DSpaceObject> extends
             	query = MessageFormat.format(QUERY_GLOBAL, getFromField(), getSearchCore());
             }
             String sID = getObjectId(id);
-            query = MessageFormat.format(query, sID);
+            query = MessageFormat.format(query, sID, handle);
             solrQuery.setQuery(query);
             if (getBean() instanceof BeanFacetComponent)
             {
