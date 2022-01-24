@@ -43,6 +43,7 @@ public class NotifyStatusManager {
 		case ENDORSED:
 			return getItemsInEndorsed(context);
 		default:
+			context.abort();
 			return Collections.emptyList();
 		}
 	}
@@ -141,6 +142,8 @@ public class NotifyStatusManager {
 			}
 		} catch (SearchServiceException e) {
 			log.error(e);
+		} finally {
+			context.abort();
 		}
 		return itemsInStatus;
 	}
