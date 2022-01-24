@@ -91,7 +91,7 @@ public class NotifyBusinessDelegate {
 					HttpResponse response = client.execute(method);
 					statusCode = response.getStatusLine().getStatusCode();
 
-					if (statusCode > 200 && statusCode < 300) {
+					if (statusCode >= 200 && statusCode <= 300) {
 						LDNUtils.saveMetadataRequestForItem(item, serviceId, repositoryMessageID,
 								isEndorsementSupported);
 					} else {
