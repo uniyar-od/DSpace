@@ -26,7 +26,6 @@ public abstract class LDNPayloadProcessor {
 	public final void processRequest(Context context, NotifyLDNDTO ldnRequestDTO) {
 
 		try {
-			context = new Context();
 			context.turnOffAuthorisationSystem();
 			processLDNPayload(ldnRequestDTO, context);
 
@@ -43,6 +42,7 @@ public abstract class LDNPayloadProcessor {
 		} catch (Exception e) {
 			logger.error(ldnRequestDTO.toString(), e);
 		} finally {
+			context.restoreAuthSystemState();
 		}
 	}
 
