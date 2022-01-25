@@ -153,7 +153,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         VIEW("view"),
         SEARCH("search"),
         SEARCH_RESULT("search_result"),
-        WORKFLOW("workflow");
+        WORKFLOW("workflow"),
+        LOGIN("login");
 
         private final String text;
 
@@ -287,6 +288,40 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             log.error("Error saving VIEW event to Solr for DSpaceObject {} by EPerson {}",
                       dspaceObject.getID(), currentUser.getEmail(), e);
         }
+    }
+
+    @Override
+    public void postLogin(DSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) {
+
+        if (solr == null || locationService == null) {
+            return;
+        }
+
+        try {
+
+            SolrInputDocument document = getCommonSolrDoc(dspaceObject, request, currentUser);
+
+            if (document == null) {
+                return;
+            }
+
+            document.addField("statistics_type", StatisticsType.LOGIN.text());
+
+            solr.add(document);
+
+            // commits are executed automatically using the solr autocommit
+            boolean useAutoCommit = configurationService.getBooleanProperty("solr-statistics.autoCommit", true);
+            if (!useAutoCommit) {
+                solr.commit(false, false);
+            }
+
+        } catch (RuntimeException re) {
+            throw re;
+        } catch (Exception e) {
+            log.error("Error saving LOGIN event to Solr for DSpaceObject {} by EPerson {}",
+                dspaceObject.getID(), currentUser.getEmail(), e);
+        }
+
     }
 
     /**
