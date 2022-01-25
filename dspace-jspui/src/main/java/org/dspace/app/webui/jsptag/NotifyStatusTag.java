@@ -61,7 +61,7 @@ public class NotifyStatusTag extends TagSupport {
 			
 			Item item = (Item) HandleManager.resolveToObject(context, handle);
 			JspWriter out = pageContext.getOut();
-			List<NotifyStatus> notifyStatuses = NotifyStatusManager.getNotifyStatusForItem(item);
+			List<NotifyStatus> notifyStatuses = NotifyStatusManager.getNotifyStatusForItem(context, item);
 			if (notifyStatuses.size() == 0) {
 				// do not show the component
 				return SKIP_BODY;
@@ -108,6 +108,10 @@ public class NotifyStatusTag extends TagSupport {
 			out.println("</tbody></table></div>");
 		} catch (Exception ie) {
 			throw new JspException(ie);
+		} finally {
+			if (context != null && context.isValid()) {
+				context.abort();
+			}
 		}
 
 		return SKIP_BODY;

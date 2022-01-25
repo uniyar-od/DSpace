@@ -36,7 +36,7 @@ public class NotifyDetailsReportServlet extends DSpaceServlet {
 
 		String selectedStatus = request.getParameter("selected_status");
 		
-		List<Item> itemsList = NotifyStatusManager.getItemListForStatus(NotifyStatus.getEnumFromString(selectedStatus));
+		List<Item> itemsList = NotifyStatusManager.getItemListForStatus(context, NotifyStatus.getEnumFromString(selectedStatus));
 		Item[] items = new Item[itemsList.size()];
 		items = itemsList.toArray(items);
 		Integer offset = null;
