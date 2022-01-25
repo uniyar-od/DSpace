@@ -25,7 +25,7 @@ public class NotifyMetadataReportServlet extends DSpaceServlet {
 	protected void doDSGet(Context context, HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, AuthorizeException {
 
-		HashMap<NotifyStatus, List<Item>> notifyItemsReport = NotifyStatusManager.getItemsForEachNotifyStatus();
+		HashMap<NotifyStatus, List<Item>> notifyItemsReport = NotifyStatusManager.getItemsForEachNotifyStatus(context);
 		request.setAttribute("coar-notify-items-report", notifyItemsReport);
 
 		// is the user a member of the Administrator (1) group

@@ -29,31 +29,37 @@ public class NotifyStatusManager {
 	/** log4j category */
 	private static Logger log = Logger.getLogger(NotifyStatusManager.class);
 
-	public static List<Item> getItemListForStatus(NotifyStatus status) throws SQLException {
-		Context context = new Context();
+	public static List<Item> getItemListForStatus(Context context, NotifyStatus status) throws SQLException {
+		List<Item> itemInStatus;
 		switch (status) {
 		case PENDING_REVIEW:
-			return getItemsInPendingReview(context);
+			itemInStatus = getItemsInPendingReview(context);
+			break;
 		case ONGOING:
-			return getItemsInOngoing(context);
+			itemInStatus = getItemsInOngoing(context);
+			break;
 		case REVIEWED:
-			return getItemsInReviewed(context);
+			itemInStatus = getItemsInReviewed(context);
+			break;
 		case PENDING_ENDORSEMENT:
-			return getItemsInPendingEndorsement(context);
+			itemInStatus = getItemsInPendingEndorsement(context);
+			break;
 		case ENDORSED:
-			return getItemsInEndorsed(context);
+			itemInStatus = getItemsInEndorsed(context);
+			break;
 		default:
-			context.abort();
-			return Collections.emptyList();
+			itemInStatus = Collections.emptyList();
+			break;
 		}
+		return itemInStatus;
 	}
 
-	public static LinkedHashMap<NotifyStatus, List<Item>> getItemsForEachNotifyStatus() {
+	public static LinkedHashMap<NotifyStatus, List<Item>> getItemsForEachNotifyStatus(Context context) {
 		LinkedHashMap<NotifyStatus, List<Item>> itemForEachStatus = new LinkedHashMap<>();
 
 		for (NotifyStatus status : NotifyStatus.getOrderedValues()) {
 			try {
-				itemForEachStatus.put(status, getItemListForStatus(status));
+				itemForEachStatus.put(status, getItemListForStatus(context, status));
 			} catch (SQLException e) {
 				log.error("Error while retrieving items for status", e);
 			}
@@ -62,9 +68,9 @@ public class NotifyStatusManager {
 		return itemForEachStatus;
 	}
 
-	public static List<NotifyStatus> getNotifyStatusForItem(Item filteringItem) {
+	public static List<NotifyStatus> getNotifyStatusForItem(Context context, Item filteringItem) {
 		HashMap<NotifyStatus, List<Item>> itemForEachStatus = new HashMap<>();
-		itemForEachStatus = getItemsForEachNotifyStatus();
+		itemForEachStatus = getItemsForEachNotifyStatus(context);
 
 		List<NotifyStatus> statuses = new LinkedList<>();
 		for (Entry<NotifyStatus, List<Item>> entry : itemForEachStatus.entrySet()) {
@@ -129,7 +135,6 @@ public class NotifyStatusManager {
 			query.setSortField("SolrIndexer.lastIndexed", SORT_ORDER.desc);
 
 			query.setMaxResults(Integer.MAX_VALUE);
-			
 
 			DiscoverResult discoveryResult;
 			discoveryResult = searchService.search(context, query);
@@ -140,10 +145,8 @@ public class NotifyStatusManager {
 					itemsInStatus.add((Item) dso);
 				}
 			}
-		} catch (SearchServiceException e) {
+		} catch (Exception e) {
 			log.error(e);
-		} finally {
-			context.abort();
 		}
 		return itemsInStatus;
 	}
