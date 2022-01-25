@@ -108,8 +108,6 @@ public class NotifyStatusTag extends TagSupport {
 			out.println("</tbody></table></div>");
 		} catch (Exception ie) {
 			throw new JspException(ie);
-		} finally {
-			context.abort();
 		}
 
 		return SKIP_BODY;

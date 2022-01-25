@@ -41,10 +41,8 @@ public class NotifyStatusManager {
 		case ENDORSED:
 			return getItemsInEndorsed(context);
 		default:
-			context.abort();
 			return Collections.emptyList();
 		}
-		
 	}
 
 	public static LinkedHashMap<NotifyStatus, List<Item>> getItemsForEachNotifyStatus() {
@@ -137,8 +135,6 @@ public class NotifyStatusManager {
 			}
 		} catch (SearchServiceException e) {
 			log.error(e);
-		} finally {
-			context.abort();
 		}
 		return itemsInStatus;
 	}
