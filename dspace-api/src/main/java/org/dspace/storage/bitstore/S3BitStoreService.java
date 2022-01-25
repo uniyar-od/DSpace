@@ -57,6 +57,9 @@ public class S3BitStoreService extends ABitStoreService
     /** Checksum algorithm */
     private static final String CSA = "MD5";
 
+    public static final String TEMP_PREFIX = "s3-virtual-path";
+    public static final String TEMP_SUFFIX = "temp";
+
     private String awsAccessKey;
     private String awsSecretKey;
     private String awsRegionName;
@@ -459,7 +462,7 @@ public class S3BitStoreService extends ABitStoreService
 
     @Override
     public String path(TableRow bitstream) throws IOException {
-        final File tempFile = File.createTempFile("s3-virtual-path", "temp");
+        final File tempFile = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
         tempFile.deleteOnExit();
         try (FileOutputStream out = new FileOutputStream(tempFile)) {
             IOUtils.copy(get(bitstream), out);
