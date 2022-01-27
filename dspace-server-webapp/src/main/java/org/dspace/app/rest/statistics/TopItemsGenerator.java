@@ -150,7 +150,7 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
                 return null;
             }
 
-            return Pair.of(bitstream.getID().toString(), bitstream.getName());
+            return Pair.of(bitstream.getID().toString(), bitstream.getName() != null ? bitstream.getName() : "N/A");
         }
 
         throw new IllegalStateException("Not supported dspace object type: " + getDsoType());
