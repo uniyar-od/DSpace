@@ -305,3 +305,6 @@ assetstore.s3.awsSecretKey =
 
 # to force the use of a specific region
 assetstore.s3.awsRegionName =
+
+#GeoIP dbfile configuration for usage statistics
+usage-statistics.dbfile=/var/lib/GeoIP/GeoLite2-City.mmdb
