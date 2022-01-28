@@ -17,22 +17,39 @@ an HTML tree. Its basically a preety-printer.
 	<xsl:output method="xml" version="1.0" omit-xml-declaration="yes" indent="yes" encoding="utf-8"/>
 	<!-- ************************************ -->
 	<xsl:param name="allowMultipleSelection"/>
+	<xsl:param name="rootNodeDisable"/>
 	<xsl:param name="contextPath"/>
 	
 <!--<xsl:variable name="allowMultipleSelection">no</xsl:variable> -->
 	<!-- ************************************ -->
 	<xsl:template match="/">
-		<ul class="controlledvocabulary">
-			<xsl:apply-templates/>
-			<li/>
-		</ul>
+		<xsl:choose>
+			<xsl:when test="$rootNodeDisable='yes'">
+				<xsl:for-each select="/node">
+					<xsl:call-template name="nodeDisabled" />
+				</xsl:for-each>
+			</xsl:when>
+			<xsl:otherwise>
+				<ul class="controlledvocabulary">
+					<xsl:apply-templates>
+						<xsl:with-param name="isRoot">
+							true
+						</xsl:with-param>
+					</xsl:apply-templates>
+				</ul>
+			</xsl:otherwise>
+		</xsl:choose>
 	</xsl:template>
+	
+			
+	
 	<!-- ************************************ -->
 	<xsl:template match="isComposedBy">
 		<xsl:apply-templates select="node"/>
 	</xsl:template>
 	<!-- ************************************ -->
 	<xsl:template match="node">
+		<xsl:param name="isRoot"/>
 		<li>
 			<!--** place icon ** -->
 			<xsl:choose>
@@ -62,15 +79,26 @@ an HTML tree. Its basically a preety-printer.
 					<xsl:value-of select="@label"/>
 				</xsl:when>
 				<xsl:otherwise>
-					<a class="value" onclick="javascript: i(this);" href="javascript:void(null);">
-						<xsl:value-of select="@label"/>
-					</a>
+					<xsl:choose>
+						<xsl:when test="$rootNodeDisable='yes' and $isRoot='true'">
+							<a class="value">
+								<xsl:value-of select="@label"/>
+							</a>
+						</xsl:when>
+						<xsl:otherwise>
+							<a class="value" onclick="javascript: i(this);" href="javascript:void(null);">
+								<xsl:value-of select="@label"/>
+							</a>
+						</xsl:otherwise>
+					</xsl:choose>
 				</xsl:otherwise>
 			</xsl:choose>
 			<!--** render children ** -->
 			<xsl:if test="./isComposedBy/node">
 				<ul class="controlledvocabulary">
-					<xsl:apply-templates select="isComposedBy"/>
+					<xsl:apply-templates select="isComposedBy">
+						<xsl:with-param name="isRoot">false</xsl:with-param>
+					</xsl:apply-templates>
 				</ul>
 			</xsl:if>
 		</li>
@@ -84,4 +112,21 @@ an HTML tree. Its basically a preety-printer.
 		<xsl:for-each select="ancestor::node"><xsl:value-of select="@label"/>::</xsl:for-each><xsl:value-of select="@label"/>
 	</xsl:template>
 	<!-- ************************************ -->
+		<xsl:template name="nodeDisabled">
+		
+			<a class="value">
+				<xsl:value-of select="@label"/>
+			</a>
+	<!--** render children ** -->
+		<ul class="controlledvocabulary">
+			<li>
+			<xsl:if test="./isComposedBy/node">
+				<ul class="controlledvocabulary">
+					<xsl:apply-templates select="isComposedBy"/>
+				</ul>
+			</xsl:if>
+			</li>
+		</ul>
+	</xsl:template>
+	
 </xsl:stylesheet>
