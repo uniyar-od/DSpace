@@ -206,7 +206,7 @@ public class RelationServlet extends DSpaceServlet {
         }
         request.setAttribute("sortOptions", sortOptions);
 
-        DiscoverQuery queryArgs = DiscoverUtility.getDiscoverQuery(context, request, scope, discoveryConfiguration, true);
+        DiscoverQuery queryArgs = DiscoverUtility.getDiscoverQuery(context, request, scope, discoveryConfigurationKey, true);
 
         queryArgs.setSpellCheck(discoveryConfiguration.isSpellCheckEnabled());
 

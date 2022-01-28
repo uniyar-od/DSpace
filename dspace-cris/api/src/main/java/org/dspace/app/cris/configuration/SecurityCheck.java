@@ -7,11 +7,12 @@
  */
 package org.dspace.app.cris.configuration;
 
+import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
 
 public interface SecurityCheck {
 
-    boolean isAuthorized(Context context, DSpaceObject dso);
+    boolean isAuthorized(Context context, ACrisObject dso);
 
 }

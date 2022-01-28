@@ -31,7 +31,7 @@ import org.dspace.app.cris.model.jdyna.RPProperty;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;

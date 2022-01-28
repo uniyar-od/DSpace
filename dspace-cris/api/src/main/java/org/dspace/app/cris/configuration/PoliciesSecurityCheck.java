@@ -25,8 +25,8 @@ public class PoliciesSecurityCheck implements SecurityCheck {
     private List<String> epersonFields;
     private List<String> groupFields;
 
-    public boolean isAuthorized(Context context, DSpaceObject dso) {
-        if (context != null && dso instanceof ACrisObject) {
+    public boolean isAuthorized(Context context, ACrisObject dso) {
+        if (context != null) {
             EPerson currentUser = context.getCurrentUser();
             ACrisObject cris = (ACrisObject)dso;
 

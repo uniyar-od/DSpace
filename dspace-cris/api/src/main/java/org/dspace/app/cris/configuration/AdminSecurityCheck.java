@@ -10,6 +10,8 @@ package org.dspace.app.cris.configuration;
 import java.sql.SQLException;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.model.ACrisObject;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.content.DSpaceObject;
 import org.dspace.core.Context;
@@ -19,7 +21,7 @@ public class AdminSecurityCheck implements SecurityCheck {
 
     private static Logger log = Logger.getLogger(AdminSecurityCheck.class);
 
-    public boolean isAuthorized(Context context, DSpaceObject dso) {
+    public boolean isAuthorized(Context context, ACrisObject dso) {
         if (context != null) {
             EPerson currentUser = context.getCurrentUser();
             if(currentUser == null) {
@@ -27,7 +29,7 @@ public class AdminSecurityCheck implements SecurityCheck {
             }
 
             try {
-                if (AuthorizeManager.isAdmin(context)) {
+                if (CrisAuthorizeManager.isAdmin(context, dso)) {
                     return true;
                 }
             } catch (SQLException e) {

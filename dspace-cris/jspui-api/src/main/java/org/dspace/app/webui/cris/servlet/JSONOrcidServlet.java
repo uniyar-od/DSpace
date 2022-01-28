@@ -17,7 +17,7 @@ import org.dspace.app.cris.model.ResearcherPage;
 import org.dspace.app.cris.model.jdyna.EditTabResearcherPage;
 import org.dspace.app.cris.model.orcid.OrcidPreferencesUtils;
 import org.dspace.app.cris.service.ApplicationService;
-import org.dspace.app.webui.cris.util.CrisAuthorizeManager;
+import org.dspace.app.cris.util.CrisAuthorizeManager;
 import org.dspace.app.webui.json.JSONRequest;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
