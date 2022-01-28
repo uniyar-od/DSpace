@@ -8,6 +8,7 @@
 package org.dspace.app.cris.metrics.scopus.script;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,10 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.SolrQuery;
+import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
 import org.dspace.app.cris.metrics.common.model.CrisMetrics;
 import org.dspace.app.cris.metrics.common.services.MetricsPersistenceService;
@@ -27,6 +32,7 @@ import org.dspace.app.cris.metrics.scopus.dto.ScopusResponse;
 import org.dspace.app.cris.metrics.scopus.services.ScopusService;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.browse.BrowsableDSpaceObject;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.IMetadataValue;
@@ -40,6 +46,7 @@ import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.DiscoverResult.SearchDocument;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
+import org.dspace.discovery.SolrServiceImpl;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.utils.DSpace;
 
@@ -48,6 +55,7 @@ public class ScriptRetrieveCitation {
 	private static final String fieldPubmedID = ConfigurationManager.getProperty("cris", "ametrics.identifier.pmid");
 	private static final String fieldScopusID = ConfigurationManager.getProperty("cris", "ametrics.identifier.eid");
 	private static final String fieldDoiID = ConfigurationManager.getProperty("cris", "ametrics.identifier.doi");
+	private static final Integer maxItemsInOneCall = ConfigurationManager.getIntProperty("cris", "ametrics.elsevier.scopus.call.max_items", 10);
 
 	/** log4j logger */
 	private static Logger log = Logger.getLogger(ScriptRetrieveCitation.class);
@@ -146,70 +154,70 @@ public class ScriptRetrieveCitation {
 		try {
 			context = new Context();
 			context.turnOffAuthorisationSystem();
+			List<ScopusIdentifiersToRequest> scopusList = new ArrayList<ScopusIdentifiersToRequest>();
 			all: for (int page = 0;; page++) {
 				int start = page * MAX_QUERY_RESULTS;
 				if (resultsTot != -1 && start >= resultsTot) {
 					break all;
 				}
-				if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
+				if (maxItemToWork != 0 && itemWorked >= maxItemToWork && itemForceWorked > 50)
 					break all;
 
 				// get all items that contains PMID or DOI or EID
-				DiscoverQuery query = new DiscoverQuery();
-				query.setStart(start);
-				query.setMaxResults(MAX_QUERY_RESULTS);
-				query.setQuery(queryDefault);
-				query.setDSpaceObjectFilter(Constants.ITEM);
+				SolrQuery solrQuery = new SolrQuery(queryDefault);
+				solrQuery.setStart(start);
+				solrQuery.setRows(MAX_QUERY_RESULTS);
+				solrQuery.addFilterQuery(SolrServiceImpl.RESOURCE_TYPE_FIELD + ":" + Constants.ITEM);
+				solrQuery.addField(fieldPubmedID);
+				solrQuery.addField(fieldDoiID);
+				solrQuery.addField(fieldScopusID);
+				solrQuery.addField(SolrServiceImpl.HANDLE_FIELD);
+				solrQuery.addField(SolrServiceImpl.RESOURCE_TYPE_FIELD);
+				solrQuery.addField(SolrServiceImpl.RESOURCE_ID_FIELD);
 
-				query.addSearchField(fieldPubmedID);
-				query.addSearchField(fieldDoiID);
-				query.addSearchField(fieldScopusID);
+				QueryResponse qresp = searcher.search(solrQuery);
+				SolrDocumentList results = qresp.getResults();
+				resultsTot = results.getNumFound();
 
-                query.addSearchField("search.resourceid");
-                query.addSearchField("search.resourcetype");
-                query.addSearchField("handle");
-				DiscoverResult qresp = searcher.search(context, query);
-				resultsTot = qresp.getTotalSearchResults();
+				log.info(LogManager.getHeader(null, "retrieve_citation_scopus", "Processing " + resultsTot + " items"));
 				log.info(LogManager.getHeader(null, "retrieve_citation_scopus",
-						"Processing " + qresp.getTotalSearchResults() + " items"));
-                log.info(LogManager.getHeader(null, "retrieve_citation_scopus",
-                        "Processing informations itemWorked:\""+itemWorked+"\" maxItemToWork: \"" + maxItemToWork + "\" - start:\"" + start + "\" - page:\"" + page + "\""));
+						"Processing informations itemWorked:\"" + itemWorked + "\" maxItemToWork: \"" + maxItemToWork
+								+ "\" - start:\"" + start + "\" - page:\"" + page + "\""));
 				// for each item check
-				for (BrowsableDSpaceObject dso : qresp.getDspaceObjects()) {
+				for (SolrDocument solrDoc : results) {
 
-					List<SearchDocument> list = qresp.getSearchDocument(dso);
-					for (SearchDocument doc : list) {
-						if (maxItemToWork != 0 && itemWorked >= maxItemToWork  && itemForceWorked > 50)
-							break all;
+					if (maxItemToWork != 0 && itemWorked >= maxItemToWork && itemForceWorked > 50)
+						break all;
 
-						UUID itemID = dso.getID();
+					UUID itemID = (UUID) solrDoc.getFieldValue("search.resourceid");
 
-						if (isCheckRequired(itemID)) {
-							itemWorked++;
-							List<String> pmids = doc.getSearchFieldValues(fieldPubmedID);
-							List<String> dois = doc.getSearchFieldValues(fieldDoiID);
-							List<String> eids = doc.getSearchFieldValues(fieldScopusID);
+					if (isCheckRequired(itemID)) {
+						itemWorked++;
+						ScopusIdentifiersToRequest sc2R = new ScopusIdentifiersToRequest();
+						sc2R.setPmids((List) solrDoc.getFieldValues(fieldPubmedID));
+						sc2R.setDois((List) solrDoc.getFieldValues(fieldDoiID));
+						sc2R.setEids((List) solrDoc.getFieldValues(fieldScopusID));
+						sc2R.setIdentifier(itemID);
+						scopusList.add(sc2R);
 
-							log.debug(LogManager.getHeader(null, "retrieve_citation_scopus",
-									"lookup pmid:" + pmids + "lookup doi:" + dois + "lookup eid:" + eids));
-
-							ScopusResponse response = sService.getCitations(sleep, pmids, dois, eids);
-
-							boolean itWorks = buildCiting(context, dso, response);
-							if(itWorks) {
-							    itemForceWorked++;
-							}
+						if (scopusList.size() >= maxItemsInOneCall) {
+							itemForceWorked = workItems(context, scopusList, itemForceWorked);
 						}
 					}
-					context.uncacheEntity((Item) dso);
-				}
 
-				
+				}
+				context.commit();
+
+				if (!scopusList.isEmpty()) {
+					itemForceWorked = workItems(context, scopusList, itemForceWorked);
+					context.commit();
+				}
 			}
 			Date endDate = new Date();
 			long processTime = (endDate.getTime() - startDate.getTime()) / 1000;
-			log.info(LogManager.getHeader(null, "retrieve_citation", "Processing time " + processTime
-					+ " sec. - Retrieved " + citationRetrieved + " Scopus citation for " + itemWorked + " items(" + itemForceWorked + " forced items)"));
+			log.info(LogManager.getHeader(null, "retrieve_citation",
+					"Processing time " + processTime + " sec. - Retrieved " + citationRetrieved
+							+ " Scopus citation for " + itemWorked + " items(" + itemForceWorked + " forced items)"));
 		} catch (Exception ex) {
 			log.error(ex.getMessage(), ex);
 		} finally {
@@ -221,8 +229,25 @@ public class ScriptRetrieveCitation {
 		}
 
 	}
+	
+	private static int workItems(Context context, List<ScopusIdentifiersToRequest> scopusList, int itemForceWorked) throws SQLException, AuthorizeException {
+	    List<ScopusIdentifiersToResponse> responseObjects = sService.getCitations(context, sleep, scopusList);
 
-	private static boolean buildCiting(Context context, BrowsableDSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
+		for (ScopusIdentifiersToResponse scopusIDs2Response : responseObjects) {
+
+			boolean itWorks = false;
+			if (scopusIDs2Response.getResponse() != null) {
+				itWorks = buildCiting(scopusIDs2Response.getDso(), scopusIDs2Response.getResponse());
+			}
+			if(itWorks) {
+			    itemForceWorked++;
+			}
+		}
+		scopusList.clear();
+		return itemForceWorked;
+	}
+
+	private static boolean buildCiting(DSpaceObject dso, ScopusResponse response) throws SQLException, AuthorizeException {
         CrisMetrics citation = response.getCitation();
         if (!response.isError())
         {
@@ -231,11 +256,13 @@ public class ScriptRetrieveCitation {
                 citation.setResourceId(dso.getID());
                 citation.setResourceTypeId(dso.getType());
                 citation.setUuid(dso.getHandle());
-                citation.setContext(context);
                 pService.saveOrUpdate(CrisMetrics.class, citation);
                 if (enrichMetadataItem)
                 {
                     Item item = (Item) dso;
+                    Context context = null;
+                    try {
+                    	context = new Context();
                     if (StringUtils.isNotBlank(citation.getIdentifier()))
                     {
                         List<IMetadataValue> MetadataValueEid = item.getMetadataValueInDCFormat(fieldScopusID);
@@ -255,6 +282,12 @@ public class ScriptRetrieveCitation {
                     }
 
                     ContentServiceFactory.getInstance().getItemService().update(context, item);
+                    }
+                    finally {
+                    	if(context != null && context.isValid()) {
+                    		context.abort();
+                    	}
+                    }
                 }
                 return true;
             }
@@ -284,4 +317,78 @@ public class ScriptRetrieveCitation {
 			return true;
 		}
 	}
+	
+	public static class ScopusIdentifiersToResponse
+	{
+		private List<String> pmids;
+		private List<String> dois;
+		private List<String> eids;
+		private DSpaceObject dso;
+		private ScopusResponse response;
+
+		public List<String> getPmids() {
+			return pmids;
+		}
+		public void setPmids(List<String> pmids) {
+			this.pmids = pmids;
+		}
+		public List<String> getDois() {
+			return dois;
+		}
+		public void setDois(List<String> dois) {
+			this.dois = dois;
+		}
+		public List<String> getEids() {
+			return eids;
+		}
+		public void setEids(List<String> eids) {
+			this.eids = eids;
+		}
+		public DSpaceObject getDso() {
+			return dso;
+		}
+		public void setDso(DSpaceObject dso) {
+			this.dso = dso;
+		}
+		public ScopusResponse getResponse() {
+			return response;
+		}
+		public void setResponse(ScopusResponse response) {
+			this.response = response;
+		}
+	}
+	 public static class ScopusIdentifiersToRequest
+	    {
+	        private List<String> pmids;
+	        private List<String> dois;
+	        private List<String> eids;
+	        private UUID identifier;
+
+	        public List<String> getPmids() {
+	            return pmids;
+	        }
+	        public void setPmids(List<String> pmids) {
+	            this.pmids = pmids;
+	        }
+	        public List<String> getDois() {
+	            return dois;
+	        }
+	        public void setDois(List<String> dois) {
+	            this.dois = dois;
+	        }
+	        public List<String> getEids() {
+	            return eids;
+	        }
+	        public void setEids(List<String> eids) {
+	            this.eids = eids;
+	        }
+	        public UUID getIdentifier()
+	        {
+	            return identifier;
+	        }
+	        public void setIdentifier(UUID identifier)
+	        {
+	            this.identifier = identifier;
+	        }
+	    }	
 }
