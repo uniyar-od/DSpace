@@ -1,5 +1,8 @@
 # Email sent to DSpace users when they have pending possible matches
 #
+# Parameters: {0} the URL of the item found
+#             {1} the URL to the researcher page
+#  
 # See org.dspace.core.Email for information on the format of this file.
 #
 Subject: You have possible matches
