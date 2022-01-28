@@ -47,6 +47,11 @@ public class ControlledVocabularyTag extends TagSupport
     // a tag attribute that specifies the vocabulary to be displayed
     private String vocabulary;
 
+    private boolean rootNodeDisable;
+
+    // an hashtable containing all the loaded vocabularies
+    public Map<String, Document> controlledVocabularies;
+
     /**
      * Process tag
      */
@@ -68,9 +73,7 @@ public class ControlledVocabularyTag extends TagSupport
                 + "vocabulary2html.xsl";
 
         // Load vocabularies on startup
-        Map<String, Document> controlledVocabularies
-                = (Map<String, Document>) pageContext.getServletContext()
-                        .getAttribute("controlledvocabulary.controlledVocabularies");
+        controlledVocabularies = (Map<String, Document>) pageContext.getServletContext().getAttribute("controlledvocabulary.controlledVocabularies");
         if (controlledVocabularies == null)
         {
             controlledVocabularies = loadControlledVocabularies(vocabulariesPath);
@@ -88,13 +91,13 @@ public class ControlledVocabularyTag extends TagSupport
             {
                 html = renderVocabularyAsHTML(prunnedVocabularies.get(vocabulary + ".xml"),
                         controlledVocabulary2HtmlXSLT,
-                        isAllowMultipleSelection(), request.getContextPath());
+                        isAllowMultipleSelection(), isRootNodeDisable(), request.getContextPath());
             }
             else
             {
                 html = renderVocabulariesAsHTML(prunnedVocabularies,
                         controlledVocabulary2HtmlXSLT,
-                        isAllowMultipleSelection(), request.getContextPath());
+                        isAllowMultipleSelection(), isRootNodeDisable(), request.getContextPath());
             }
             request.getSession().setAttribute(
                     "controlledvocabulary.vocabularyHTML", html);
@@ -144,7 +147,7 @@ public class ControlledVocabularyTag extends TagSupport
      * @return the HTML that represents the vocabularies
      */
     private String renderVocabulariesAsHTML(Map<String, Document> vocabularies,
-            String xslt, boolean allowMultipleSelection, String contextPath)
+            String xslt, boolean allowMultipleSelection, boolean rootNodeDisable, String contextPath)
     {
         StringBuilder result = new StringBuilder();
         Iterator<Document> iter = vocabularies.values().iterator();
@@ -152,7 +155,7 @@ public class ControlledVocabularyTag extends TagSupport
         {
             Document controlledVocabularyXML = iter.next();
             result.append(renderVocabularyAsHTML(controlledVocabularyXML, xslt,
-                    allowMultipleSelection, contextPath));
+                    allowMultipleSelection, rootNodeDisable, contextPath));
         }
         return result.toString();
     }
@@ -194,7 +197,7 @@ public class ControlledVocabularyTag extends TagSupport
      */
     public String renderVocabularyAsHTML(Document vocabulary,
             String controlledVocabulary2HtmlXSLT,
-            boolean allowMultipleSelection, String contextPath)
+            boolean allowMultipleSelection, boolean rootNodeDisable, String contextPath)
     {
         if (vocabulary == null)
         {
@@ -208,6 +211,7 @@ public class ControlledVocabularyTag extends TagSupport
             Map<String, String> parameters = new HashMap<>();
             parameters.put("allowMultipleSelection", allowMultipleSelection ? "yes" : "no");
             parameters.put("contextPath", contextPath);
+            parameters.put("rootNodeDisable", rootNodeDisable ? "yes" : "no");
             result = XMLUtil.transformDocumentAsString(vocabulary, parameters, controlledVocabulary2HtmlXSLT);
         }
         catch (Exception e)
@@ -362,6 +366,14 @@ public class ControlledVocabularyTag extends TagSupport
     public void setVocabulary(String vocabulary)
     {
         this.vocabulary = vocabulary;
+    }
+
+    public boolean isRootNodeDisable() {
+        return rootNodeDisable;
+    }
+
+    public void setRootNodeDisable(boolean rootNodeDisable) {
+        this.rootNodeDisable = rootNodeDisable;
     }
 
 }
