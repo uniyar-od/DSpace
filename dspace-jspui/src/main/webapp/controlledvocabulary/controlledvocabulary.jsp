@@ -15,9 +15,11 @@
   --%>
 
   
+<%@page import="org.apache.commons.lang3.BooleanUtils"%>
+<%@page import="org.apache.commons.lang3.StringUtils"%>
 <%@ page language="java" contentType="text/html;charset=UTF-8" %>
 <%@ page  import="javax.servlet.jsp.jstl.fmt.LocaleSupport" %>
-
+<%@ page import="org.dspace.core.ConfigurationManager" %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
 <%@ taglib uri="http://www.dspace.org/dspace-tags.tld" prefix="dspace" %>
 
@@ -34,6 +36,7 @@
 
 <style type="text/css">
 	body {background-color: #ffffff}
+	ul.controlledvocabulary li {font-size:20px;}
 </style>
 
 
@@ -94,6 +97,13 @@
 		session.setAttribute("controlledvocabulary.vocabulary", request.getParameter("vocabulary"));
 	}
 	String vocabulary = (String)session.getAttribute("controlledvocabulary.vocabulary");
+
+	boolean rootDisable = false;
+	String sRootDisable = ConfigurationManager.getProperty("webui.controlledvocabulary." + vocabulary + ".rootNodeDisable");
+	if (StringUtils.isBlank(sRootDisable)) {
+		sRootDisable = ConfigurationManager.getProperty("webui.controlledvocabulary.rootNodeDisable");
+	}
+	rootDisable = BooleanUtils.toBoolean(sRootDisable);
 %>
 
 <br/>
@@ -140,7 +150,7 @@
 
 <h1><fmt:message key="jsp.controlledvocabulary.controlledvocabulary.title"/></h1>
 
-<dspace:controlledvocabulary filter="<%= filter %>" vocabulary="<%= vocabulary %>"/> 
+<dspace:controlledvocabulary filter="<%= filter %>" vocabulary="<%= vocabulary %>" rootNodeDisable="<%= rootDisable %>" />
 
 <br/>
 <center>
