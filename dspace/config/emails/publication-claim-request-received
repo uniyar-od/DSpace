@@ -1,5 +1,17 @@
 # Email sent to DSpace users when there is an uncertain authority claim
 #
+#	Parameters: {0} metadata field
+#				{1} metadata value
+#				{2} authority
+#				{3} confidence
+#				{4} the researcher page
+#				{5} the handle of the item
+#				{6} cris id
+#				{7} note
+#				{8} item title
+#				{9} user full name
+#				{10} user email
+#
 # See org.dspace.core.Email for information on the format of this file.
 #
 Subject: Requested Authority Claim
