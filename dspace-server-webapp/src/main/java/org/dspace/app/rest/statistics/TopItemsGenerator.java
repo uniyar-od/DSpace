@@ -12,7 +12,6 @@ import static org.dspace.core.Constants.BITSTREAM;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.UUID;
 
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.rest.model.UsageReportPointDsoTotalVisitsRest;
@@ -112,7 +111,7 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
             for (ObjectCount count : topCounts) {
                 String legacyNote = "";
                 String dsoId;
-                dsoId = UUID.fromString(count.getValue()).toString();
+                dsoId = count.getValue();
                 if (dsoId == null && root != null && !(root instanceof Site) && count.getValue() == null) {
                     dsoId = root.getID().toString();
                 }
