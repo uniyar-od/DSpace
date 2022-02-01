@@ -142,40 +142,40 @@
 
     <bean id="topItemsGenerator" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
-        <property name="maxResults" value="50"/>
+        <property name="maxResults" value="20"/>
     </bean>
 
     <bean id="topItemsDownloadGenerator" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
-        <property name="maxResults" value="50"/>
+        <property name="maxResults" value="20"/>
         <property name="dsoType" value="0"/>
     </bean>
 
     <!--generator supporting relation between orgunit and rppublications-->
     <bean id="topItemsGeneratorRelationOrgUnitRppublications" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
-        <property name="maxResults" value="50"/>
+        <property name="maxResults" value="20"/>
         <property name="relation" value="RELATION.OrgUnit.rppublications" />
     </bean>
 
     <!--generator supporting relation between orgunit and rpprojects-->
     <bean id="topItemsGeneratorRelationOrgUnitRpprojects" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
-        <property name="maxResults" value="50"/>
+        <property name="maxResults" value="20"/>
         <property name="relation" value="RELATION.OrgUnit.rpprojects" />
     </bean>
 
     <!--generator supporting relation between orgunit and publications-->
     <bean id="topItemsGeneratorRelationOrgUnitPublications" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
-        <property name="maxResults" value="50"/>
+        <property name="maxResults" value="20"/>
         <property name="relation" value="RELATION.OrgUnit.publications" />
     </bean>
 
     <!--generator supporting relation between orgunit and projects-->
     <bean id="topItemsGeneratorRelationOrgUnitProjects" class="org.dspace.app.rest.statistics.TopItemsGenerator">
         <property name="viewMode" value="table"/>
-        <property name="maxResults" value="50"/>
+        <property name="maxResults" value="20"/>
         <property name="relation" value="RELATION.OrgUnit.projects" />
     </bean>
 
