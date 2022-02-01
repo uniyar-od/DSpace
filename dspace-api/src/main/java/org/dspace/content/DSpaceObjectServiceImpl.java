@@ -264,6 +264,16 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
             .orElse(false);
         boolean authorityControlled = storeAuthoritySetForMetadata
             || metadataAuthorityService.isAuthorityControlled(metadataField);
+
+        if(!authorityControlled) {
+            if(authorities != null && authorities.size() > 0 && authorities.get(0) != null) {
+                throw new IllegalArgumentException("The metadata field \"" +
+                        metadataField.toString()
+                        + "\"" + " is not authority controlled but authorities were provided. Values:\""
+                        + authorities + "\"");
+            }
+        }
+
         boolean authorityRequired = metadataAuthorityService.isAuthorityRequired(metadataField);
         List<MetadataValue> newMetadata = new ArrayList<>(values.size());
         // We will not verify that they are valid entries in the registry
