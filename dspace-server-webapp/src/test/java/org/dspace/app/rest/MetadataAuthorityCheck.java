@@ -1,3 +1,11 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
+
 package org.dspace.app.rest;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
@@ -7,43 +15,27 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
-import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThrows;
 
 public class MetadataAuthorityCheck extends AbstractControllerIntegrationTest {
+
     @Autowired
     private ItemService itemService;
 
-    @Test
-    public void addAuthorityControllerMetadata() throws Exception {
+    private Item item;
+
+    @Before
+    public void setup() {
         context.turnOffAuthorisationSystem();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community")
-                                          .build();
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
-                                           .withEntityType("Publication")
-                                           .withName("Collection 1")
-                                           .build();
-
-        Item itemA = ItemBuilder.createItem(context, col1)
-                                .withTitle("Public item A")
-                                .withIssueDate("2022-02-01")
-                                .build();
-
-        itemService.addMetadata(context, itemA, "dc", "contributor", "author", null, "Smith, Maria");
-
-        String metadataValue = itemService.getMetadataFirstValue(itemA, "dc", "contributor", "author", null);
-
-        Assert.assertEquals("Smith, Maria", metadataValue);
-    }
-
-    @Test
-    public void addNonAuthorityControlledMetadata() throws Exception {
-        context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
@@ -53,41 +45,43 @@ public class MetadataAuthorityCheck extends AbstractControllerIntegrationTest {
                 .withName("Collection 1")
                 .build();
 
-        Item itemA = ItemBuilder.createItem(context, col1)
-                .withAuthor("Smith, Maria")
+        item = ItemBuilder.createItem(context, col1)
                 .withIssueDate("2022-02-01")
                 .build();
 
-        itemService.addMetadata(context, itemA, "dc", "title", null, null, "Public Item A");
-
-        String metadataValue = itemService.getMetadataFirstValue(itemA, "dc", "title", null, null);
-
-        Assert.assertEquals("Public Item A", metadataValue);
+        context.restoreAuthSystemState();
     }
 
     @Test
-    public void addNonAuthorityControlledMetadataWithAuthority() throws Exception {
-        context.turnOffAuthorisationSystem();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
+    public void addAuthorityControlledMetadataWithAuthorities() throws Exception {
+        itemService.addMetadata(context, item, "dc", "contributor", "author", null, "Smith, Maria");
+        String metadataValue = itemService.getMetadataFirstValue(item, "dc", "contributor", "author", null);
+        assertThat(metadataValue, is("Smith, Maria"));
+    }
 
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
-                .withEntityType("Publication")
-                .withName("Collection 1")
-                .build();
+    @Test
+    public void addAuthorityControlledMetadataWithoutAuthorities() throws Exception {
+        itemService.addMetadata(context, item, "dc", "contributor","author", null,
+                List.of("Smith, Maria"), null, null);
+        String metadataValue = itemService.getMetadataFirstValue(item, "dc", "contributor", "author", null);
+        assertThat(metadataValue, is("Smith, Maria"));
+    }
 
-        Item itemA = ItemBuilder.createItem(context, col1)
-                .withAuthor("Smith, Maria")
-                .withIssueDate("2022-02-01")
-                .build();
+    @Test
+    public void addNonAuthorityControlledMetadataWithAuthorities() throws Exception {
+        Throwable throwable = assertThrows(IllegalArgumentException.class,
+                () -> itemService.addMetadata(context, item, "dc", "title",null, null,
+                        List.of("Public Item A"), List.of("test_authority"), null));
 
-        Throwable throwable = Assert.assertThrows(IllegalArgumentException.class,
-                            () -> itemService
-                                    .addMetadata(context, itemA, "dc", "title",null, null,
-                                            Arrays.asList("Public Item A"), Arrays.asList("test_authority"), null));
+        assertThat(throwable.getMessage(),
+                is("The metadata field \"dc_title\" is not authority controlled but authorities were provided. Values:\"[test_authority]\""));
+    }
 
-        Assert.assertEquals("The metadata field \"dc_title\" is not authority controlled but authorities were provided. Values:\"[test_authority]\"", throwable.getMessage());
+    @Test
+    public void addNonAuthorityControlledMetadataWithoutAuthorities() throws Exception {
+        itemService.addMetadata(context, item, "dc", "title", null, null, "Public Item A");
+        String metadataValue = itemService.getMetadataFirstValue(item, "dc", "title", null, null);
+        assertThat(metadataValue, is("Public Item A"));
     }
 
 }

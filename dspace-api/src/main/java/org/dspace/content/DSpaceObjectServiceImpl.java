@@ -265,13 +265,12 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         boolean authorityControlled = storeAuthoritySetForMetadata
             || metadataAuthorityService.isAuthorityControlled(metadataField);
 
-        if(!authorityControlled) {
-            if(authorities != null && authorities.size() > 0 && authorities.get(0) != null) {
-                throw new IllegalArgumentException("The metadata field \"" +
-                        metadataField.toString()
-                        + "\"" + " is not authority controlled but authorities were provided. Values:\""
-                        + authorities + "\"");
-            }
+        boolean nonValidAuthority = isNonValidAuthority(authorityControlled, authorities);
+        if(nonValidAuthority) {
+            throw new IllegalArgumentException("The metadata field \"" +
+                    metadataField.toString()
+                    + "\"" + " is not authority controlled but authorities were provided. Values:\""
+                    + authorities + "\"");
         }
 
         boolean authorityRequired = metadataAuthorityService.isAuthorityRequired(metadataField);
@@ -1067,6 +1066,10 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 
         throw new NotImplementedException();
 
+    }
+
+    private boolean isNonValidAuthority(boolean authorityControlled, List<String> authorities) {
+            return !authorityControlled && authorities != null && authorities.size() > 0 && authorities.get(0) != null;
     }
 
 }
