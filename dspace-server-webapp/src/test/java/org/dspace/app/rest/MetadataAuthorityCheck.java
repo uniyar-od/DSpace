@@ -25,6 +25,9 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThrows;
 
+/*
+ * @author Jurgen Mamani
+ */
 public class MetadataAuthorityCheck extends AbstractControllerIntegrationTest {
 
     @Autowired
