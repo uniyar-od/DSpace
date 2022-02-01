@@ -1152,26 +1152,21 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         context.restoreAuthSystemState();
 
         UsageReportPointDsoTotalVisitsRest expectedPoint1 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPoint1.addValue("views", 2);
-        expectedPoint1.setType("bitstream");
-        expectedPoint1.setId(bitstream1.getID().toString());
+        expectedPoint1.addValue("views", 3);
+        expectedPoint1.setType("item");
+        expectedPoint1.setId(item1.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint2 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPoint2.addValue("views", 1);
-        expectedPoint2.setType("bitstream");
-        expectedPoint2.setId(bitstream2.getID().toString());
+        expectedPoint2.addValue("views", 3);
+        expectedPoint2.setType("item");
+        expectedPoint2.setId(item2.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint3 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPoint3.addValue("views", 3);
-        expectedPoint3.setType("bitstream");
-        expectedPoint3.setId(bitstream3.getID().toString());
+        expectedPoint3.addValue("views", 2);
+        expectedPoint3.setType("item");
+        expectedPoint3.setId(item3.getID().toString());
 
-        UsageReportPointDsoTotalVisitsRest expectedPoint4 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPoint4.addValue("views", 2);
-        expectedPoint4.setType("bitstream");
-        expectedPoint4.setId(bitstream4.getID().toString());
-
-        List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2, expectedPoint3, expectedPoint4);
+        List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2, expectedPoint3);
 
         UsageReportPointCityRest pointCity = new UsageReportPointCityRest();
         pointCity.addValue("views", 8);

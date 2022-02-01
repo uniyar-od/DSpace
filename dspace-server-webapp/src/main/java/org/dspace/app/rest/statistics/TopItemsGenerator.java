@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.statistics;
 
+import static org.dspace.core.Constants.BITSTREAM;
+
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
@@ -44,6 +46,7 @@ import org.springframework.data.util.Pair;
  * @author Andrea Bollini (andrea.bollini at 4science.it)
  */
 public class TopItemsGenerator extends AbstractUsageReportGenerator {
+    private static final String OWNING_ITEM_FIELD = "owningItem";
     @Autowired
     private DiscoveryConfigurationService discoveryConfigurationService;
     protected final SolrLoggerService solrLoggerService = StatisticsServiceFactory.getInstance().getSolrLoggerService();
@@ -93,16 +96,17 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
                     }
                 }
             }
-            String filter_query = statisticsDatasetDisplay
-                                      .composeFilterQuery(startDate, endDate, hasValidRelation, dsoType);
-            ObjectCount[] topCounts = solrLoggerService.queryFacetField(query, filter_query, "id",
+            String filter_query = statisticsDatasetDisplay.composeFilterQuery(startDate, endDate, hasValidRelation,
+                dsoType);
+            String facetField = calculateFacetField(root);
+            ObjectCount[] topCounts = solrLoggerService.queryFacetField(query, filter_query, facetField,
                     getMaxResults(), false, null, 1);
             UsageReportRest usageReportRest = new UsageReportRest();
             // if no data
             if (topCounts.length == 0) {
                 UsageReportPointDsoTotalVisitsRest totalVisitPoint = new UsageReportPointDsoTotalVisitsRest();
                 totalVisitPoint.addValue("views", 0);
-                totalVisitPoint.setType(getType());
+                totalVisitPoint.setType(getType(facetField));
                 usageReportRest.addPoint(totalVisitPoint);
             }
             for (ObjectCount count : topCounts) {
@@ -113,13 +117,13 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
                     dsoId = root.getID().toString();
                 }
 
-                Pair<String, String> idAndName = getIdAndName(context, dsoId);
+                Pair<String, String> idAndName = getIdAndName(context, dsoId, facetField);
                 if (idAndName == null) {
                     continue;
                 }
 
                 UsageReportPointDsoTotalVisitsRest totalVisitPoint = new UsageReportPointDsoTotalVisitsRest();
-                totalVisitPoint.setType(getType());
+                totalVisitPoint.setType(getType(facetField));
                 totalVisitPoint.setId(idAndName.getFirst());
                 totalVisitPoint.setLabel(idAndName.getSecond() + legacyNote);
                 totalVisitPoint.addValue("views", (int) count.getCount());
@@ -132,8 +136,12 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
         }
     }
 
-    private Pair<String, String> getIdAndName(Context context, String dsoId) throws SQLException {
-        if (getDsoType() == Constants.ITEM) {
+    private String calculateFacetField(DSpaceObject root) {
+        return getDsoType() == BITSTREAM && root.getType() != Constants.ITEM ? OWNING_ITEM_FIELD : "id";
+    }
+
+    private Pair<String, String> getIdAndName(Context context, String dsoId, String facetField) throws SQLException {
+        if (getDsoType() == Constants.ITEM || facetField.equals(OWNING_ITEM_FIELD)) {
             Item item = itemService.findByIdOrLegacyId(context, dsoId);
             if (item == null) {
                 return null;
@@ -164,8 +172,8 @@ public class TopItemsGenerator extends AbstractUsageReportGenerator {
         this.dsoType = dsoType;
     }
 
-    private String getType() {
-        return getDsoType() == Constants.ITEM ? "item" : "bitstream";
+    private String getType(String facetField) {
+        return getDsoType() == Constants.ITEM || OWNING_ITEM_FIELD.equals(facetField) ? "item" : "bitstream";
     }
 
     @Override
