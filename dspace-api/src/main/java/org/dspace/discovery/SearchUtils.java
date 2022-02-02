@@ -123,8 +123,7 @@ public class SearchUtils {
         addConfigurationIfExists(result, "dspacebasic");
 
         String typeText = item.getTypeText();
-        String isDefinedAsSystemEntity = ConfigurationManager.getProperty(
-                "cris", "facet.type." + typeText);
+        String isDefinedAsSystemEntity = getAsDefinedSystemEntity(typeText);
         String extra = null;
         if (StringUtils.isNotBlank(isDefinedAsSystemEntity)) {
             extra = isDefinedAsSystemEntity.split("###")[1];
@@ -137,6 +136,13 @@ public class SearchUtils {
         addConfigurationIfExists(result, DiscoveryConfiguration.GLOBAL_CONFIGURATIONNAME);
         return Arrays.asList(result.values().toArray(new DiscoveryConfiguration[result.size()]));
     }
+
+	public static String getAsDefinedSystemEntity(String typeText) {
+		String valueWithoutWhitespace = StringUtils.deleteWhitespace(typeText);
+		String isDefinedAsSystemEntity = ConfigurationManager
+				.getProperty("cris.facet.type." + valueWithoutWhitespace.toLowerCase());
+		return isDefinedAsSystemEntity;
+	}
 
     private static void addConfigurationIfExists(Map<String, DiscoveryConfiguration> result, String confName) {
         DiscoveryConfiguration configurationExtra = getDiscoveryConfigurationByName(confName);

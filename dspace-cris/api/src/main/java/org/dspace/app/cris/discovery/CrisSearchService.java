@@ -114,7 +114,12 @@ public class CrisSearchService extends SolrServiceImpl
         }
         else
         {
-			if (dso.getType() == Constants.ITEM) {
+        	if (dso.getType() == Constants.ITEM) {
+        		boolean wrapperStatus = ((Item) dso).isWrapperEnabled();
+        		((Item) dso).setWrapperEnabled(true);
+        		super.indexContent(context, ((Item) dso), force);
+				((Item) dso).setWrapperEnabled(wrapperStatus);
+			} else {
 				super.indexContent(context, dso, force);
 			}
         }
