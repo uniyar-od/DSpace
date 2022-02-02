@@ -648,11 +648,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Merge join 2 2</from>
-      <to>Add constants</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Sort rows 3 2 2 2</from>
       <to>Merge join 2 2</to>
       <enabled>Y</enabled>
@@ -667,7 +662,129 @@
       <to>Merge join 2 2</to>
       <enabled>Y</enabled>
     </hop>
+    <hop>
+      <from>Merge join 2 2</from>
+      <to>Sort rows 3 2 3 2</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Sort rows 3 2 3 2</from>
+      <to>Merge join 3</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Merge join 3</from>
+      <to>Add constants</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Sort rows 3 2 2</from>
+      <to>Merge join 3</to>
+      <enabled>Y</enabled>
+    </hop>
   </order>
+  <step>
+    <name>Add constants</name>
+    <type>Constant</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>workflow</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <set_empty_string>N</set_empty_string>
+      </field>
+      <field>
+        <name>previousWorkflowAction</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <set_empty_string>N</set_empty_string>
+      </field>
+      <field>
+        <name>workflowAction</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <set_empty_string>N</set_empty_string>
+      </field>
+      <field>
+        <name>previousActionRequiresUI</name>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <nullif/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <set_empty_string>N</set_empty_string>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>880</xloc>
+      <yloc>880</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Append streams</name>
+    <type>Append</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <head_name>Select values 2 2 2</head_name>
+    <tail_name>Select values 2 2 2 2</tail_name>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>704</xloc>
+      <yloc>976</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
   <step>
     <name>CSV file input</name>
     <type>CsvInput</type>
@@ -938,7 +1055,7 @@
       </field>
       <field>
         <name>epersonid</name>
-        <type>String</type>
+        <type>Integer</type>
         <format/>
         <currency>€</currency>
         <decimal>,</decimal>
@@ -1052,6 +1169,278 @@ if (cris_type > 1000) {
     </GUI>
   </step>
   <step>
+    <name>Calculate workflow attributes</name>
+    <type>ScriptValueMod</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <compatible>N</compatible>
+    <optimizationLevel>9</optimizationLevel>
+    <jsScripts>
+      <jsScript>
+        <jsScript_type>0</jsScript_type>
+        <jsScript_name>Script 1</jsScript_name>
+        <jsScript_script>var workflow = 'defaultWorkflow';
+var previousActionRequiresUI = 'true';
+var workflowStepNew = 'reviewstep';
+var previousWorkflowStepNew = 'reviewstep';
+var previousWorkflowAction = 'claimaction';
+var workflowAction = 'reviewaction';
+
+var actorNew = eperson_uuid;
+
+if(workflowStep == 'SUBMIT'){
+	workflowStepNew = 'reviewstep';
+	workflowAction = 'claimaction';
+	previousWorkflowStepNew = 'submit';
+	previousWorkflowAction = 'submit';
+    actorNew = null;
+} else if(workflowStep == 'STEP1POOL'){
+	workflowStepNew = 'reviewstep';
+	workflowAction = 'reviewaction';
+	previousWorkflowStepNew = 'reviewstep';
+	previousWorkflowAction = 'claimaction';
+} else if(workflowStep == 'STEP1'){
+	workflowStepNew = 'editstep';
+	workflowAction = 'claimaction';
+	previousWorkflowStepNew = 'reviewstep';
+	previousWorkflowAction = 'reviewaction';
+} else if(workflowStep == 'STEP2POOL'){
+	workflowStepNew = 'editstep';
+	workflowAction = 'editaction';
+	previousWorkflowStepNew = 'editstep';
+	previousWorkflowAction = 'claimaction';
+} else if(workflowStep == 'STEP2'){
+	workflowStepNew = 'finaleditstep';
+	workflowAction = 'claimaction';
+	previousWorkflowStepNew = 'editstep';
+	previousWorkflowAction = 'editaction';
+} else if(workflowStep == 'STEP3POOL'){
+	workflowStepNew = 'finaleditstep';
+	workflowAction = 'finaleditaction';
+	previousWorkflowStepNew = 'finaleditstep';
+	previousWorkflowAction = 'claimaction';
+} else if(workflowStep == 'STEP3'){
+	workflowStepNew = 'item';
+	workflowAction = 'approve';
+	previousWorkflowStepNew = 'finaleditstep';
+	previousWorkflowAction = 'finaleditaction';
+}</jsScript_script>
+      </jsScript>
+    </jsScripts>
+    <fields>
+      <field>
+        <name>workflow</name>
+        <rename>workflow</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>previousActionRequiresUI</name>
+        <rename>previousActionRequiresUI</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>workflowStepNew</name>
+        <rename>workflowStepNew</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>previousWorkflowStepNew</name>
+        <rename>previousWorkflowStepNew</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>previousWorkflowAction</name>
+        <rename>previousWorkflowAction</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>workflowAction</name>
+        <rename>workflowAction</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+      <field>
+        <name>actorNew</name>
+        <rename>actorNew</rename>
+        <type>String</type>
+        <length>-1</length>
+        <precision>-1</precision>
+        <replace>N</replace>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>976</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Filter rows</name>
+    <type>FilterRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <send_true_to>Calculate cris id</send_true_to>
+    <send_false_to/>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <conditions>
+          <condition>
+            <negated>N</negated>
+            <leftvalue>id</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+          <condition>
+            <negated>N</negated>
+            <operator>AND</operator>
+            <leftvalue>type</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+        </conditions>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>400</xloc>
+      <yloc>64</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Filter rows 2</name>
+    <type>FilterRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <send_true_to>Select values 2</send_true_to>
+    <send_false_to/>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <leftvalue>entity_type</leftvalue>
+        <function>=</function>
+        <rightvalue/>
+        <value>
+          <name>constant</name>
+          <type>String</type>
+          <text>7</text>
+          <length>-1</length>
+          <precision>-1</precision>
+          <isnull>N</isnull>
+          <mask/>
+        </value>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>160</xloc>
+      <yloc>320</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Filter rows 2 2</name>
+    <type>FilterRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <send_true_to>Select values 2 2</send_true_to>
+    <send_false_to/>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <leftvalue>entity_type</leftvalue>
+        <function>=</function>
+        <rightvalue/>
+        <value>
+          <name>constant</name>
+          <type>String</type>
+          <text>2</text>
+          <length>-1</length>
+          <precision>-1</precision>
+          <isnull>N</isnull>
+          <mask/>
+        </value>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>416</xloc>
+      <yloc>320</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
     <name>Find all dspace object's uuids</name>
     <type>TableInput</type>
     <description/>
@@ -1158,7 +1547,7 @@ where eperson_id is not null
         <storagetype>normal</storagetype>
         <name>dso_uuid</name>
         <length>-1</length>
-        <precision>0</precision>
+        <precision>-1</precision>
         <origin>Find all dspace object's uuids</origin>
         <comments>dso_uuid</comments>
         <conversion_Mask/>
@@ -1188,6 +1577,115 @@ where eperson_id is not null
     <GUI>
       <xloc>112</xloc>
       <yloc>176</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Is view or login</name>
+    <type>FilterRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <send_true_to>Sort rows 3 2 3</send_true_to>
+    <send_false_to>Is workflow</send_false_to>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <conditions>
+          <condition>
+            <negated>N</negated>
+            <leftvalue>statistics_type</leftvalue>
+            <function>=</function>
+            <rightvalue/>
+            <value>
+              <name>constant</name>
+              <type>String</type>
+              <text>view</text>
+              <length>-1</length>
+              <precision>-1</precision>
+              <isnull>N</isnull>
+              <mask/>
+            </value>
+          </condition>
+          <condition>
+            <negated>N</negated>
+            <operator>OR</operator>
+            <leftvalue>statistics_type</leftvalue>
+            <function>=</function>
+            <rightvalue/>
+            <value>
+              <name>constant</name>
+              <type>String</type>
+              <text>login</text>
+              <length>-1</length>
+              <precision>-1</precision>
+              <isnull>N</isnull>
+              <mask/>
+            </value>
+          </condition>
+        </conditions>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>880</xloc>
+      <yloc>320</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Is workflow</name>
+    <type>FilterRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <send_true_to>Sort rows 3 2</send_true_to>
+    <send_false_to/>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <leftvalue>statistics_type</leftvalue>
+        <function>=</function>
+        <rightvalue/>
+        <value>
+          <name>constant</name>
+          <type>String</type>
+          <text>workflow</text>
+          <length>-1</length>
+          <precision>-1</precision>
+          <isnull>N</isnull>
+          <mask/>
+        </value>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>688</xloc>
+      <yloc>320</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1224,6 +1722,74 @@ where eperson_id is not null
     <GUI>
       <xloc>672</xloc>
       <yloc>176</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Merge join 2</name>
+    <type>MergeJoin</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <join_type>RIGHT OUTER</join_type>
+    <step1>Sort rows 3 2 2</step1>
+    <step2>Sort rows 3 2</step2>
+    <keys_1>
+      <key>eperson_id</key>
+    </keys_1>
+    <keys_2>
+      <key>actor</key>
+    </keys_2>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>848</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Merge join 2 2</name>
+    <type>MergeJoin</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <join_type>LEFT OUTER</join_type>
+    <step1>Sort rows 3 2 3</step1>
+    <step2>Sort rows 3 2 2 2</step2>
+    <keys_1>
+      <key>owningItem</key>
+    </keys_1>
+    <keys_2>
+      <key>item_id</key>
+    </keys_2>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>880</xloc>
+      <yloc>608</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1294,6 +1860,376 @@ if (cris_type==7) {
     <fields>
       <field>
         <name>continent</name>
+      </field>
+      <field>
+        <name>submitter</name>
+      </field>
+      <field>
+        <name>isBot</name>
+      </field>
+      <field>
+        <name>statistics_type</name>
+      </field>
+      <field>
+        <name>previousWorkflowStep</name>
+      </field>
+      <field>
+        <name>city</name>
+      </field>
+      <field>
+        <name>latitude</name>
+      </field>
+      <field>
+        <name>type</name>
+      </field>
+      <field>
+        <name>owningItem</name>
+      </field>
+      <field>
+        <name>countryCode</name>
+      </field>
+      <field>
+        <name>id</name>
+      </field>
+      <field>
+        <name>owningComm</name>
+      </field>
+      <field>
+        <name>longitude</name>
+      </field>
+      <field>
+        <name>workflowItemId</name>
+      </field>
+      <field>
+        <name>ip</name>
+      </field>
+      <field>
+        <name>workflowStep</name>
+      </field>
+      <field>
+        <name>dns</name>
+      </field>
+      <field>
+        <name>userAgent</name>
+      </field>
+      <field>
+        <name>actor</name>
+      </field>
+      <field>
+        <name>referrer</name>
+      </field>
+      <field>
+        <name>bundleName</name>
+      </field>
+      <field>
+        <name>time</name>
+      </field>
+      <field>
+        <name>epersonid</name>
+      </field>
+      <field>
+        <name>owningColl</name>
+      </field>
+      <field>
+        <name>uid</name>
+      </field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>224</xloc>
+      <yloc>64</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Select values 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>dso_id</name>
+        <rename>eperson_id</rename>
+      </field>
+      <field>
+        <name>dso_uuid</name>
+        <rename>eperson_uuid</rename>
+      </field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>160</xloc>
+      <yloc>448</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Select values 2 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>dso_id</name>
+        <rename>item_id</rename>
+      </field>
+      <field>
+        <name>dso_uuid</name>
+        <rename>item_uuid</rename>
+      </field>
+      <select_unspecified>N</select_unspecified>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>416</xloc>
+      <yloc>448</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Select values 2 2 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>continent</name>
+        <rename/>
+      </field>
+      <field>
+        <name>submitter</name>
+        <rename/>
+      </field>
+      <field>
+        <name>isBot</name>
+        <rename/>
+      </field>
+      <field>
+        <name>statistics_type</name>
+        <rename/>
+      </field>
+      <field>
+        <name>previousWorkflowStepNew</name>
+        <rename>previousWorkflowStep</rename>
+      </field>
+      <field>
+        <name>city</name>
+        <rename/>
+      </field>
+      <field>
+        <name>latitude</name>
+        <rename/>
+      </field>
+      <field>
+        <name>new_type</name>
+        <rename>type</rename>
+      </field>
+      <field>
+        <name>owningItem</name>
+        <rename/>
+      </field>
+      <field>
+        <name>countryCode</name>
+        <rename/>
+      </field>
+      <field>
+        <name>dso_uuid</name>
+        <rename>id</rename>
+      </field>
+      <field>
+        <name>owningComm</name>
+        <rename/>
+      </field>
+      <field>
+        <name>longitude</name>
+        <rename/>
+      </field>
+      <field>
+        <name>workflowItemId</name>
+        <rename/>
+      </field>
+      <field>
+        <name>ip</name>
+        <rename/>
+      </field>
+      <field>
+        <name>workflowStepNew</name>
+        <rename>workflowStep</rename>
+      </field>
+      <field>
+        <name>dns</name>
+        <rename/>
+      </field>
+      <field>
+        <name>userAgent</name>
+        <rename/>
+      </field>
+      <field>
+        <name>referrer</name>
+        <rename/>
+      </field>
+      <field>
+        <name>bundleName</name>
+        <rename/>
+      </field>
+      <field>
+        <name>time</name>
+        <rename/>
+      </field>
+      <field>
+        <name>epersonid</name>
+        <rename/>
+      </field>
+      <field>
+        <name>owningColl</name>
+        <rename/>
+      </field>
+      <field>
+        <name>uid</name>
+        <rename/>
+      </field>
+      <field>
+        <name>previousActionRequiresUI</name>
+        <rename/>
+      </field>
+      <field>
+        <name>workflow</name>
+        <rename/>
+      </field>
+      <field>
+        <name>previousWorkflowAction</name>
+        <rename/>
+      </field>
+      <field>
+        <name>workflowAction</name>
+        <rename/>
+      </field>
+      <field>
+        <name>actorNew</name>
+        <rename>actor</rename>
+      </field>
+      <select_unspecified>N</select_unspecified>
+      <meta>
+        <name>previousWorkflowStep</name>
+        <rename>previousWorkflowStep</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
+      <meta>
+        <name>owningItem</name>
+        <rename>owningItem</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
+      <meta>
+        <name>epersonid</name>
+        <rename>epersonid</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>528</xloc>
+      <yloc>976</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Select values 2 2 2 2</name>
+    <type>SelectValues</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>continent</name>
         <rename/>
       </field>
       <field>
@@ -1321,20 +2257,20 @@ if (cris_type==7) {
         <rename/>
       </field>
       <field>
-        <name>type</name>
-        <rename/>
+        <name>new_type</name>
+        <rename>type</rename>
       </field>
       <field>
-        <name>owningItem</name>
-        <rename/>
+        <name>item_uuid</name>
+        <rename>owningItem</rename>
       </field>
       <field>
         <name>countryCode</name>
         <rename/>
       </field>
       <field>
-        <name>id</name>
-        <rename/>
+        <name>dso_uuid</name>
+        <rename>id</rename>
       </field>
       <field>
         <name>owningComm</name>
@@ -1365,10 +2301,6 @@ if (cris_type==7) {
         <rename/>
       </field>
       <field>
-        <name>actor</name>
-        <rename/>
-      </field>
-      <field>
         <name>referrer</name>
         <rename/>
       </field>
@@ -1381,8 +2313,8 @@ if (cris_type==7) {
         <rename/>
       </field>
       <field>
-        <name>epersonid</name>
-        <rename/>
+        <name>eperson_uuid</name>
+        <rename>epersonid</rename>
       </field>
       <field>
         <name>owningColl</name>
@@ -1392,7 +2324,95 @@ if (cris_type==7) {
         <name>uid</name>
         <rename/>
       </field>
+      <field>
+        <name>previousActionRequiresUI</name>
+        <rename/>
+      </field>
+      <field>
+        <name>workflow</name>
+        <rename/>
+      </field>
+      <field>
+        <name>previousWorkflowAction</name>
+        <rename/>
+      </field>
+      <field>
+        <name>workflowAction</name>
+        <rename/>
+      </field>
+      <field>
+        <name>actor</name>
+        <rename/>
+      </field>
       <select_unspecified>N</select_unspecified>
+      <meta>
+        <name>previousWorkflowStep</name>
+        <rename>previousWorkflowStep</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
+      <meta>
+        <name>actor</name>
+        <rename>actor</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
+      <meta>
+        <name>owningItem</name>
+        <rename>owningItem</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
+      <meta>
+        <name>epersonid</name>
+        <rename>epersonid</rename>
+        <type>String</type>
+        <length>-2</length>
+        <precision>-2</precision>
+        <conversion_mask/>
+        <date_format_lenient>false</date_format_lenient>
+        <date_format_locale/>
+        <date_format_timezone/>
+        <lenient_string_to_number>false</lenient_string_to_number>
+        <encoding/>
+        <decimal_symbol/>
+        <grouping_symbol/>
+        <currency_symbol/>
+        <storage_type/>
+      </meta>
     </fields>
     <attributes/>
     <cluster_schema/>
@@ -1403,8 +2423,8 @@ if (cris_type==7) {
       </output>
     </remotesteps>
     <GUI>
-      <xloc>224</xloc>
-      <yloc>64</yloc>
+      <xloc>704</xloc>
+      <yloc>880</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1505,6 +2525,174 @@ if (cris_type==7) {
     <GUI>
       <xloc>672</xloc>
       <yloc>64</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Sort rows 3 2</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>actor</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>688</xloc>
+      <yloc>480</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Sort rows 3 2 2</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>eperson_id</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>160</xloc>
+      <yloc>608</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Sort rows 3 2 2 2</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>item_id</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>416</xloc>
+      <yloc>608</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Sort rows 3 2 3</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>owningItem</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>880</xloc>
+      <yloc>480</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1908,14 +3096,14 @@ if (cris_type==7) {
       </output>
     </remotesteps>
     <GUI>
-      <xloc>1120</xloc>
-      <yloc>928</yloc>
+      <xloc>1136</xloc>
+      <yloc>976</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
   <step>
-    <name>Filter rows</name>
-    <type>FilterRows</type>
+    <name>Sort rows 3 2 3 2</name>
+    <type>SortRows</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -1924,166 +3112,21 @@ if (cris_type==7) {
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <send_true_to>Calculate cris id</send_true_to>
-    <send_false_to/>
-    <compare>
-      <condition>
-        <negated>N</negated>
-        <conditions>
-          <condition>
-            <negated>N</negated>
-            <leftvalue>id</leftvalue>
-            <function>IS NOT NULL</function>
-            <rightvalue/>
-          </condition>
-          <condition>
-            <negated>N</negated>
-            <operator>AND</operator>
-            <leftvalue>type</leftvalue>
-            <function>IS NOT NULL</function>
-            <rightvalue/>
-          </condition>
-        </conditions>
-      </condition>
-    </compare>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>400</xloc>
-      <yloc>64</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Is view or login</name>
-    <type>FilterRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <send_true_to>Sort rows 3 2 3</send_true_to>
-    <send_false_to>Is workflow</send_false_to>
-    <compare>
-      <condition>
-        <negated>N</negated>
-        <conditions>
-          <condition>
-            <negated>N</negated>
-            <leftvalue>statistics_type</leftvalue>
-            <function>=</function>
-            <rightvalue/>
-            <value>
-              <name>constant</name>
-              <type>String</type>
-              <text>view</text>
-              <length>-1</length>
-              <precision>-1</precision>
-              <isnull>N</isnull>
-              <mask/>
-            </value>
-          </condition>
-          <condition>
-            <negated>N</negated>
-            <operator>OR</operator>
-            <leftvalue>statistics_type</leftvalue>
-            <function>=</function>
-            <rightvalue/>
-            <value>
-              <name>constant</name>
-              <type>String</type>
-              <text>login</text>
-              <length>-1</length>
-              <precision>-1</precision>
-              <isnull>N</isnull>
-              <mask/>
-            </value>
-          </condition>
-        </conditions>
-      </condition>
-    </compare>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>880</xloc>
-      <yloc>320</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Add constants</name>
-    <type>Constant</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
     <fields>
       <field>
-        <name>workflow</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <set_empty_string>N</set_empty_string>
-      </field>
-      <field>
-        <name>previousWorkflowAction</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <set_empty_string>N</set_empty_string>
-      </field>
-      <field>
-        <name>workflowAction</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <set_empty_string>N</set_empty_string>
-      </field>
-      <field>
-        <name>previousActionRequiresUI</name>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <nullif/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <set_empty_string>N</set_empty_string>
+        <name>epersonid</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
       </field>
     </fields>
     <attributes/>
@@ -2096,637 +3139,12 @@ if (cris_type==7) {
     </remotesteps>
     <GUI>
       <xloc>880</xloc>
-      <yloc>720</yloc>
+      <yloc>704</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
   <step>
-    <name>Calculate workflow attributes</name>
-    <type>ScriptValueMod</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <compatible>N</compatible>
-    <optimizationLevel>9</optimizationLevel>
-    <jsScripts>
-      <jsScript>
-        <jsScript_type>0</jsScript_type>
-        <jsScript_name>Script 1</jsScript_name>
-        <jsScript_script>var workflow = 'defaultWorkflow';
-var previousActionRequiresUI = 'true';
-var workflowStepNew = 'reviewstep';
-var previousWorkflowStepNew = 'reviewstep';
-var previousWorkflowAction = 'claimaction';
-var workflowAction = 'reviewaction';
-
-var actorNew = eperson_uuid;
-
-if(workflowStep == 'SUBMIT'){
-	workflowStepNew = 'reviewstep';
-	workflowAction = 'claimaction';
-	previousWorkflowStepNew = 'submit';
-	previousWorkflowAction = 'submit';
-    actorNew = null;
-} else if(workflowStep == 'STEP1POOL'){
-	workflowStepNew = 'reviewstep';
-	workflowAction = 'reviewaction';
-	previousWorkflowStepNew = 'reviewstep';
-	previousWorkflowAction = 'claimaction';
-} else if(workflowStep == 'STEP1'){
-	workflowStepNew = 'editstep';
-	workflowAction = 'claimaction';
-	previousWorkflowStepNew = 'reviewstep';
-	previousWorkflowAction = 'reviewaction';
-} else if(workflowStep == 'STEP2POOL'){
-	workflowStepNew = 'editstep';
-	workflowAction = 'editaction';
-	previousWorkflowStepNew = 'editstep';
-	previousWorkflowAction = 'claimaction';
-} else if(workflowStep == 'STEP2'){
-	workflowStepNew = 'finaleditstep';
-	workflowAction = 'claimaction';
-	previousWorkflowStepNew = 'editstep';
-	previousWorkflowAction = 'editaction';
-} else if(workflowStep == 'STEP3POOL'){
-	workflowStepNew = 'finaleditstep';
-	workflowAction = 'finaleditaction';
-	previousWorkflowStepNew = 'finaleditstep';
-	previousWorkflowAction = 'claimaction';
-} else if(workflowStep == 'STEP3'){
-	workflowStepNew = 'item';
-	workflowAction = 'approve';
-	previousWorkflowStepNew = 'finaleditstep';
-	previousWorkflowAction = 'finaleditaction';
-}</jsScript_script>
-      </jsScript>
-    </jsScripts>
-    <fields>
-      <field>
-        <name>workflow</name>
-        <rename>workflow</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-      <field>
-        <name>previousActionRequiresUI</name>
-        <rename>previousActionRequiresUI</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-      <field>
-        <name>workflowStepNew</name>
-        <rename>workflowStepNew</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-      <field>
-        <name>previousWorkflowStepNew</name>
-        <rename>previousWorkflowStepNew</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-      <field>
-        <name>previousWorkflowAction</name>
-        <rename>previousWorkflowAction</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-      <field>
-        <name>workflowAction</name>
-        <rename>workflowAction</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-      <field>
-        <name>actorNew</name>
-        <rename>actorNew</rename>
-        <type>String</type>
-        <length>-1</length>
-        <precision>-1</precision>
-        <replace>N</replace>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>304</xloc>
-      <yloc>928</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Is workflow</name>
-    <type>FilterRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <send_true_to>Sort rows 3 2</send_true_to>
-    <send_false_to/>
-    <compare>
-      <condition>
-        <negated>N</negated>
-        <leftvalue>statistics_type</leftvalue>
-        <function>=</function>
-        <rightvalue/>
-        <value>
-          <name>constant</name>
-          <type>String</type>
-          <text>workflow</text>
-          <length>-1</length>
-          <precision>-1</precision>
-          <isnull>N</isnull>
-          <mask/>
-        </value>
-      </condition>
-    </compare>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>608</xloc>
-      <yloc>320</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Select values 2 2 2</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>continent</name>
-        <rename/>
-      </field>
-      <field>
-        <name>submitter</name>
-        <rename/>
-      </field>
-      <field>
-        <name>isBot</name>
-        <rename/>
-      </field>
-      <field>
-        <name>statistics_type</name>
-        <rename/>
-      </field>
-      <field>
-        <name>previousWorkflowStepNew</name>
-        <rename>previousWorkflowStep</rename>
-      </field>
-      <field>
-        <name>city</name>
-        <rename/>
-      </field>
-      <field>
-        <name>latitude</name>
-        <rename/>
-      </field>
-      <field>
-        <name>new_type</name>
-        <rename>type</rename>
-      </field>
-      <field>
-        <name>owningItem</name>
-        <rename/>
-      </field>
-      <field>
-        <name>countryCode</name>
-        <rename/>
-      </field>
-      <field>
-        <name>dso_uuid</name>
-        <rename>id</rename>
-      </field>
-      <field>
-        <name>owningComm</name>
-        <rename/>
-      </field>
-      <field>
-        <name>longitude</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflowItemId</name>
-        <rename/>
-      </field>
-      <field>
-        <name>ip</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflowStepNew</name>
-        <rename>workflowStep</rename>
-      </field>
-      <field>
-        <name>dns</name>
-        <rename/>
-      </field>
-      <field>
-        <name>userAgent</name>
-        <rename/>
-      </field>
-      <field>
-        <name>referrer</name>
-        <rename/>
-      </field>
-      <field>
-        <name>bundleName</name>
-        <rename/>
-      </field>
-      <field>
-        <name>time</name>
-        <rename/>
-      </field>
-      <field>
-        <name>epersonid</name>
-        <rename/>
-      </field>
-      <field>
-        <name>owningColl</name>
-        <rename/>
-      </field>
-      <field>
-        <name>uid</name>
-        <rename/>
-      </field>
-      <field>
-        <name>previousActionRequiresUI</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflow</name>
-        <rename/>
-      </field>
-      <field>
-        <name>previousWorkflowAction</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflowAction</name>
-        <rename/>
-      </field>
-      <field>
-        <name>actorNew</name>
-        <rename>actor</rename>
-      </field>
-      <select_unspecified>N</select_unspecified>
-      <meta>
-        <name>previousWorkflowStep</name>
-        <rename>previousWorkflowStep</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>
-      <meta>
-        <name>owningItem</name>
-        <rename>owningItem</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>496</xloc>
-      <yloc>928</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Select values 2 2 2 2</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>continent</name>
-        <rename/>
-      </field>
-      <field>
-        <name>submitter</name>
-        <rename/>
-      </field>
-      <field>
-        <name>isBot</name>
-        <rename/>
-      </field>
-      <field>
-        <name>statistics_type</name>
-        <rename/>
-      </field>
-      <field>
-        <name>previousWorkflowStep</name>
-        <rename/>
-      </field>
-      <field>
-        <name>city</name>
-        <rename/>
-      </field>
-      <field>
-        <name>latitude</name>
-        <rename/>
-      </field>
-      <field>
-        <name>new_type</name>
-        <rename>type</rename>
-      </field>
-      <field>
-        <name>item_uuid</name>
-        <rename>owningItem</rename>
-      </field>
-      <field>
-        <name>countryCode</name>
-        <rename/>
-      </field>
-      <field>
-        <name>dso_uuid</name>
-        <rename>id</rename>
-      </field>
-      <field>
-        <name>owningComm</name>
-        <rename/>
-      </field>
-      <field>
-        <name>longitude</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflowItemId</name>
-        <rename/>
-      </field>
-      <field>
-        <name>ip</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflowStep</name>
-        <rename/>
-      </field>
-      <field>
-        <name>dns</name>
-        <rename/>
-      </field>
-      <field>
-        <name>userAgent</name>
-        <rename/>
-      </field>
-      <field>
-        <name>referrer</name>
-        <rename/>
-      </field>
-      <field>
-        <name>bundleName</name>
-        <rename/>
-      </field>
-      <field>
-        <name>time</name>
-        <rename/>
-      </field>
-      <field>
-        <name>epersonid</name>
-        <rename/>
-      </field>
-      <field>
-        <name>owningColl</name>
-        <rename/>
-      </field>
-      <field>
-        <name>uid</name>
-        <rename/>
-      </field>
-      <field>
-        <name>previousActionRequiresUI</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflow</name>
-        <rename/>
-      </field>
-      <field>
-        <name>previousWorkflowAction</name>
-        <rename/>
-      </field>
-      <field>
-        <name>workflowAction</name>
-        <rename/>
-      </field>
-      <field>
-        <name>actor</name>
-        <rename/>
-      </field>
-      <select_unspecified>N</select_unspecified>
-      <meta>
-        <name>previousWorkflowStep</name>
-        <rename>previousWorkflowStep</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>
-      <meta>
-        <name>actor</name>
-        <rename>actor</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>
-      <meta>
-        <name>owningItem</name>
-        <rename>owningItem</rename>
-        <type>String</type>
-        <length>-2</length>
-        <precision>-2</precision>
-        <conversion_mask/>
-        <date_format_lenient>false</date_format_lenient>
-        <date_format_locale/>
-        <date_format_timezone/>
-        <lenient_string_to_number>false</lenient_string_to_number>
-        <encoding/>
-        <decimal_symbol/>
-        <grouping_symbol/>
-        <currency_symbol/>
-        <storage_type/>
-      </meta>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>672</xloc>
-      <yloc>720</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Append streams</name>
-    <type>Append</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <head_name>Select values 2 2 2</head_name>
-    <tail_name>Select values 2 2 2 2</tail_name>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>672</xloc>
-      <yloc>928</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Filter rows 2</name>
-    <type>FilterRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <send_true_to>Select values 2</send_true_to>
-    <send_false_to/>
-    <compare>
-      <condition>
-        <negated>N</negated>
-        <leftvalue>entity_type</leftvalue>
-        <function>=</function>
-        <rightvalue/>
-        <value>
-          <name>constant</name>
-          <type>String</type>
-          <text>7</text>
-          <length>-1</length>
-          <precision>-1</precision>
-          <isnull>N</isnull>
-          <mask/>
-        </value>
-      </condition>
-    </compare>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>112</xloc>
-      <yloc>480</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Merge join 2</name>
+    <name>Merge join 3</name>
     <type>MergeJoin</type>
     <description/>
     <distribute>Y</distribute>
@@ -2738,288 +3156,12 @@ if(workflowStep == 'SUBMIT'){
     </partitioning>
     <join_type>RIGHT OUTER</join_type>
     <step1>Sort rows 3 2 2</step1>
-    <step2>Sort rows 3 2</step2>
+    <step2>Sort rows 3 2 3 2</step2>
     <keys_1>
       <key>eperson_id</key>
     </keys_1>
     <keys_2>
-      <key>actor</key>
-    </keys_2>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>304</xloc>
-      <yloc>800</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Sort rows 3 2</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <directory>%%java.io.tmpdir%%</directory>
-    <prefix>out</prefix>
-    <sort_size>1000000</sort_size>
-    <free_memory/>
-    <compress>N</compress>
-    <compress_variable/>
-    <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>actor</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>608</xloc>
-      <yloc>432</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Select values 2</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>dso_id</name>
-        <rename>eperson_id</rename>
-      </field>
-      <field>
-        <name>dso_uuid</name>
-        <rename>eperson_uuid</rename>
-      </field>
-      <select_unspecified>N</select_unspecified>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>112</xloc>
-      <yloc>672</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Sort rows 3 2 2</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <directory>%%java.io.tmpdir%%</directory>
-    <prefix>out</prefix>
-    <sort_size>1000000</sort_size>
-    <free_memory/>
-    <compress>N</compress>
-    <compress_variable/>
-    <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>eperson_id</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>112</xloc>
-      <yloc>800</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Filter rows 2 2</name>
-    <type>FilterRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <send_true_to>Select values 2 2</send_true_to>
-    <send_false_to/>
-    <compare>
-      <condition>
-        <negated>N</negated>
-        <leftvalue>entity_type</leftvalue>
-        <function>=</function>
-        <rightvalue/>
-        <value>
-          <name>constant</name>
-          <type>String</type>
-          <text>2</text>
-          <length>-1</length>
-          <precision>-1</precision>
-          <isnull>N</isnull>
-          <mask/>
-        </value>
-      </condition>
-    </compare>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>256</xloc>
-      <yloc>320</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Select values 2 2</name>
-    <type>SelectValues</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>dso_id</name>
-        <rename>item_id</rename>
-      </field>
-      <field>
-        <name>dso_uuid</name>
-        <rename>item_uuid</rename>
-      </field>
-      <select_unspecified>N</select_unspecified>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>448</xloc>
-      <yloc>320</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Sort rows 3 2 2 2</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <directory>%%java.io.tmpdir%%</directory>
-    <prefix>out</prefix>
-    <sort_size>1000000</sort_size>
-    <free_memory/>
-    <compress>N</compress>
-    <compress_variable/>
-    <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>item_id</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>448</xloc>
-      <yloc>432</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Merge join 2 2</name>
-    <type>MergeJoin</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <join_type>LEFT OUTER</join_type>
-    <step1>Sort rows 3 2 3</step1>
-    <step2>Sort rows 3 2 2 2</step2>
-    <keys_1>
-      <key>owningItem</key>
-    </keys_1>
-    <keys_2>
-      <key>item_id</key>
+      <key>epersonid</key>
     </keys_2>
     <attributes/>
     <cluster_schema/>
@@ -3031,49 +3173,7 @@ if(workflowStep == 'SUBMIT'){
     </remotesteps>
     <GUI>
       <xloc>880</xloc>
-      <yloc>608</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Sort rows 3 2 3</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <directory>%%java.io.tmpdir%%</directory>
-    <prefix>out</prefix>
-    <sort_size>1000000</sort_size>
-    <free_memory/>
-    <compress>N</compress>
-    <compress_variable/>
-    <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>owningItem</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>880</xloc>
-      <yloc>480</yloc>
+      <yloc>800</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
