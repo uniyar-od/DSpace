@@ -528,11 +528,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Calculate cris id</from>
-      <to>Sort rows 2</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Sort rows</from>
       <to>Merge join</to>
       <enabled>Y</enabled>
@@ -550,16 +545,6 @@
     <hop>
       <from>CSV file input</from>
       <to>Select values</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Select values</from>
-      <to>Filter rows</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Filter rows</from>
-      <to>Calculate cris id</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -680,6 +665,21 @@
     <hop>
       <from>Sort rows 3 2 2</from>
       <to>Merge join 3</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Select values</from>
+      <to>Calculate cris id</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Calculate cris id</from>
+      <to>Filter rows 3</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Filter rows 3</from>
+      <to>Sort rows 2</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -1133,6 +1133,18 @@
 var cris_id = id;
 if (cris_type > 1000) {
   cris_type = '1000';
+}
+
+if(cris_type == null &amp;&amp; statistics_type == 'login'){
+	cris_type = '7';
+}
+
+if(cris_type == null &amp;&amp; statistics_type == 'workflow'){
+	cris_type = '2';
+}
+
+if(cris_id == null &amp;&amp; statistics_type == 'login'){
+	cris_id = epersonid;
 }</jsScript_script>
       </jsScript>
     </jsScripts>
@@ -1163,7 +1175,7 @@ if (cris_type > 1000) {
       </output>
     </remotesteps>
     <GUI>
-      <xloc>528</xloc>
+      <xloc>400</xloc>
       <yloc>64</yloc>
       <draw>Y</draw>
     </GUI>
@@ -1306,53 +1318,6 @@ if(workflowStep == 'SUBMIT'){
     </GUI>
   </step>
   <step>
-    <name>Filter rows</name>
-    <type>FilterRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <send_true_to>Calculate cris id</send_true_to>
-    <send_false_to/>
-    <compare>
-      <condition>
-        <negated>N</negated>
-        <conditions>
-          <condition>
-            <negated>N</negated>
-            <leftvalue>id</leftvalue>
-            <function>IS NOT NULL</function>
-            <rightvalue/>
-          </condition>
-          <condition>
-            <negated>N</negated>
-            <operator>AND</operator>
-            <leftvalue>type</leftvalue>
-            <function>IS NOT NULL</function>
-            <rightvalue/>
-          </condition>
-        </conditions>
-      </condition>
-    </compare>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>400</xloc>
-      <yloc>64</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
     <name>Filter rows 2</name>
     <type>FilterRows</type>
     <description/>
@@ -1437,6 +1402,53 @@ if(workflowStep == 'SUBMIT'){
     <GUI>
       <xloc>416</xloc>
       <yloc>320</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Filter rows 3</name>
+    <type>FilterRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <send_true_to>Sort rows 2</send_true_to>
+    <send_false_to/>
+    <compare>
+      <condition>
+        <negated>N</negated>
+        <conditions>
+          <condition>
+            <negated>N</negated>
+            <leftvalue>cris_id</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+          <condition>
+            <negated>N</negated>
+            <operator>AND</operator>
+            <leftvalue>cris_type</leftvalue>
+            <function>IS NOT NULL</function>
+            <rightvalue/>
+          </condition>
+        </conditions>
+      </condition>
+    </compare>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>528</xloc>
+      <yloc>64</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -1794,6 +1806,40 @@ where eperson_id is not null
     </GUI>
   </step>
   <step>
+    <name>Merge join 3</name>
+    <type>MergeJoin</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <join_type>RIGHT OUTER</join_type>
+    <step1>Sort rows 3 2 2</step1>
+    <step2>Sort rows 3 2 3 2</step2>
+    <keys_1>
+      <key>eperson_id</key>
+    </keys_1>
+    <keys_2>
+      <key>epersonid</key>
+    </keys_2>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>880</xloc>
+      <yloc>800</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
     <name>Modified JavaScript value</name>
     <type>ScriptValueMod</type>
     <description/>
@@ -2035,19 +2081,15 @@ if (cris_type==7) {
     <fields>
       <field>
         <name>continent</name>
-        <rename/>
       </field>
       <field>
         <name>submitter</name>
-        <rename/>
       </field>
       <field>
         <name>isBot</name>
-        <rename/>
       </field>
       <field>
         <name>statistics_type</name>
-        <rename/>
       </field>
       <field>
         <name>previousWorkflowStepNew</name>
@@ -2055,11 +2097,9 @@ if (cris_type==7) {
       </field>
       <field>
         <name>city</name>
-        <rename/>
       </field>
       <field>
         <name>latitude</name>
-        <rename/>
       </field>
       <field>
         <name>new_type</name>
@@ -2067,11 +2107,9 @@ if (cris_type==7) {
       </field>
       <field>
         <name>owningItem</name>
-        <rename/>
       </field>
       <field>
         <name>countryCode</name>
-        <rename/>
       </field>
       <field>
         <name>dso_uuid</name>
@@ -2079,19 +2117,15 @@ if (cris_type==7) {
       </field>
       <field>
         <name>owningComm</name>
-        <rename/>
       </field>
       <field>
         <name>longitude</name>
-        <rename/>
       </field>
       <field>
         <name>workflowItemId</name>
-        <rename/>
       </field>
       <field>
         <name>ip</name>
-        <rename/>
       </field>
       <field>
         <name>workflowStepNew</name>
@@ -2099,51 +2133,39 @@ if (cris_type==7) {
       </field>
       <field>
         <name>dns</name>
-        <rename/>
       </field>
       <field>
         <name>userAgent</name>
-        <rename/>
       </field>
       <field>
         <name>referrer</name>
-        <rename/>
       </field>
       <field>
         <name>bundleName</name>
-        <rename/>
       </field>
       <field>
         <name>time</name>
-        <rename/>
       </field>
       <field>
         <name>epersonid</name>
-        <rename/>
       </field>
       <field>
         <name>owningColl</name>
-        <rename/>
       </field>
       <field>
         <name>uid</name>
-        <rename/>
       </field>
       <field>
         <name>previousActionRequiresUI</name>
-        <rename/>
       </field>
       <field>
         <name>workflow</name>
-        <rename/>
       </field>
       <field>
         <name>previousWorkflowAction</name>
-        <rename/>
       </field>
       <field>
         <name>workflowAction</name>
-        <rename/>
       </field>
       <field>
         <name>actorNew</name>
@@ -2230,31 +2252,24 @@ if (cris_type==7) {
     <fields>
       <field>
         <name>continent</name>
-        <rename/>
       </field>
       <field>
         <name>submitter</name>
-        <rename/>
       </field>
       <field>
         <name>isBot</name>
-        <rename/>
       </field>
       <field>
         <name>statistics_type</name>
-        <rename/>
       </field>
       <field>
         <name>previousWorkflowStep</name>
-        <rename/>
       </field>
       <field>
         <name>city</name>
-        <rename/>
       </field>
       <field>
         <name>latitude</name>
-        <rename/>
       </field>
       <field>
         <name>new_type</name>
@@ -2266,7 +2281,6 @@ if (cris_type==7) {
       </field>
       <field>
         <name>countryCode</name>
-        <rename/>
       </field>
       <field>
         <name>dso_uuid</name>
@@ -2274,43 +2288,33 @@ if (cris_type==7) {
       </field>
       <field>
         <name>owningComm</name>
-        <rename/>
       </field>
       <field>
         <name>longitude</name>
-        <rename/>
       </field>
       <field>
         <name>workflowItemId</name>
-        <rename/>
       </field>
       <field>
         <name>ip</name>
-        <rename/>
       </field>
       <field>
         <name>workflowStep</name>
-        <rename/>
       </field>
       <field>
         <name>dns</name>
-        <rename/>
       </field>
       <field>
         <name>userAgent</name>
-        <rename/>
       </field>
       <field>
         <name>referrer</name>
-        <rename/>
       </field>
       <field>
         <name>bundleName</name>
-        <rename/>
       </field>
       <field>
         <name>time</name>
-        <rename/>
       </field>
       <field>
         <name>eperson_uuid</name>
@@ -2318,31 +2322,24 @@ if (cris_type==7) {
       </field>
       <field>
         <name>owningColl</name>
-        <rename/>
       </field>
       <field>
         <name>uid</name>
-        <rename/>
       </field>
       <field>
         <name>previousActionRequiresUI</name>
-        <rename/>
       </field>
       <field>
         <name>workflow</name>
-        <rename/>
       </field>
       <field>
         <name>previousWorkflowAction</name>
-        <rename/>
       </field>
       <field>
         <name>workflowAction</name>
-        <rename/>
       </field>
       <field>
         <name>actor</name>
-        <rename/>
       </field>
       <select_unspecified>N</select_unspecified>
       <meta>
@@ -2608,7 +2605,7 @@ if (cris_type==7) {
     </remotesteps>
     <GUI>
       <xloc>160</xloc>
-      <yloc>608</yloc>
+      <yloc>672</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -2693,6 +2690,48 @@ if (cris_type==7) {
     <GUI>
       <xloc>880</xloc>
       <yloc>480</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
+    <name>Sort rows 3 2 3 2</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>epersonid</name>
+        <ascending>Y</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>880</xloc>
+      <yloc>704</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -3098,82 +3137,6 @@ if (cris_type==7) {
     <GUI>
       <xloc>1136</xloc>
       <yloc>976</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Sort rows 3 2 3 2</name>
-    <type>SortRows</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <directory>%%java.io.tmpdir%%</directory>
-    <prefix>out</prefix>
-    <sort_size>1000000</sort_size>
-    <free_memory/>
-    <compress>N</compress>
-    <compress_variable/>
-    <unique_rows>N</unique_rows>
-    <fields>
-      <field>
-        <name>epersonid</name>
-        <ascending>Y</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>880</xloc>
-      <yloc>704</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Merge join 3</name>
-    <type>MergeJoin</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <join_type>RIGHT OUTER</join_type>
-    <step1>Sort rows 3 2 2</step1>
-    <step2>Sort rows 3 2 3 2</step2>
-    <keys_1>
-      <key>eperson_id</key>
-    </keys_1>
-    <keys_2>
-      <key>epersonid</key>
-    </keys_2>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>880</xloc>
-      <yloc>800</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
