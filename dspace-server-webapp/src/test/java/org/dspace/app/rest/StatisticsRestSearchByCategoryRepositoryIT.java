@@ -9,7 +9,10 @@ package org.dspace.app.rest;
 
 import static org.apache.commons.codec.CharEncoding.UTF_8;
 import static org.apache.commons.io.IOUtils.toInputStream;
+import static org.dspace.app.rest.matcher.UsageReportMatcher.matchUsageReport;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CATEGORIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CONTINENTS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_DOWNLOADS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_PER_MONTH_REPORT_ID;
@@ -34,7 +37,9 @@ import javax.servlet.http.HttpServletRequest;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.dspace.app.rest.matcher.PageMatcher;
 import org.dspace.app.rest.matcher.UsageReportMatcher;
+import org.dspace.app.rest.model.UsageReportPointCategoryRest;
 import org.dspace.app.rest.model.UsageReportPointCityRest;
+import org.dspace.app.rest.model.UsageReportPointContinentRest;
 import org.dspace.app.rest.model.UsageReportPointCountryRest;
 import org.dspace.app.rest.model.UsageReportPointDateRest;
 import org.dspace.app.rest.model.UsageReportPointDsoTotalVisitsRest;
@@ -332,9 +337,13 @@ public class StatisticsRestSearchByCategoryRepositoryIT extends AbstractControll
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.usagereports", not(empty())))
             .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
-                UsageReportMatcher
-                    .matchUsageReport(site.getID() + "_" + TOTAL_VISITS_REPORT_ID,
-                            TOTAL_VISITS_REPORT_ID, sitePoints))));
+                matchUsageReport(site.getID() + "_" + TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, sitePoints),
+                matchUsageReport(site.getID() + "_" + TOP_CITIES_REPORT_ID, TOP_CITIES_REPORT_ID),
+                matchUsageReport(site.getID() + "_" + TOTAL_VISITS_PER_MONTH_REPORT_ID,
+                    TOTAL_VISITS_PER_MONTH_REPORT_ID),
+                matchUsageReport(site.getID() + "_" + TOP_CONTINENTS_REPORT_ID, TOP_CONTINENTS_REPORT_ID),
+                matchUsageReport(site.getID() + "_" + TOP_CATEGORIES_REPORT_ID, TOP_CATEGORIES_REPORT_ID),
+                matchUsageReport(site.getID() + "_" + TOP_COUNTRIES_REPORT_ID, TOP_COUNTRIES_REPORT_ID))));
     }
 
     @Test
