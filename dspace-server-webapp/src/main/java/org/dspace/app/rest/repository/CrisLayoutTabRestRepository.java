@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.collections.CollectionUtils;
 import org.dspace.app.metrics.CrisMetrics;
-import org.dspace.app.metrics.service.CrisMetricsService;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.converter.CrisLayoutTabConverter;
@@ -30,12 +29,11 @@ import org.dspace.app.rest.model.CrisLayoutTabRest;
 import org.dspace.app.rest.model.patch.Patch;
 import org.dspace.app.rest.repository.patch.ResourcePatch;
 import org.dspace.authorize.AuthorizeException;
-import org.dspace.content.Item;
-import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.service.CrisLayoutTabService;
+import org.dspace.metrics.CrisItemMetricsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -64,10 +62,7 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
     private ResourcePatch<CrisLayoutTab> resourcePatch;
 
     @Autowired
-    private ItemService itemService;
-
-    @Autowired
-    private CrisMetricsService metricsService;
+    private CrisItemMetricsService metricsService;
 
     @Override
     @PreAuthorize("permitAll")
@@ -202,10 +197,11 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
         }
     }
 
-    private Page<CrisLayoutTabRest> filterTabWithoutRows(Pageable pageable, Page<CrisLayoutTabRest> restTabs, String itemUuid) {
+    private Page<CrisLayoutTabRest> filterTabWithoutRows(Pageable pageable, Page<CrisLayoutTabRest> restTabs,
+                                                         String itemUuid) {
         List<CrisLayoutTabRest> listOfTabs = restTabs.filter(tab -> CollectionUtils.isNotEmpty(tab.getRows())).toList();
 
-        // Get CrisLayoutBoxRest with boxType: METRICS
+        // Get CrisLayoutBoxRest with boxType=METRICS
         List<CrisLayoutBoxRest> boxes = listOfTabs
                                         .stream()
                                         .flatMap(t -> t.getRows()
@@ -214,7 +210,8 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
                                         .stream()
                                         .flatMap(c -> c.getBoxes()
                                                     .stream()
-                                                    .filter(b -> b.getBoxType().equals(CrisLayoutBoxTypes.METRICS.name())))))
+                                                    .filter(b -> b.getBoxType()
+                                                                  .equals(CrisLayoutBoxTypes.METRICS.name())))))
                                         .collect(Collectors.toList());
 
         boxes.forEach(b -> alterBoxWithMetricsType(b, itemUuid));
@@ -223,22 +220,23 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
     }
 
     private void alterBoxWithMetricsType(CrisLayoutBoxRest box, String itemUuid) {
-        try {
-            CrisLayoutMetricsConfigurationRest boxConfiguration = ((CrisLayoutMetricsConfigurationRest) box.getConfiguration());
-            Item item = itemService.find(obtainContext(), UUID.fromString(itemUuid));
+        CrisLayoutMetricsConfigurationRest boxConfiguration =
+            ((CrisLayoutMetricsConfigurationRest) box.getConfiguration());
 
-            List<String> boxMetrics = boxConfiguration.getMetrics();
-            List<String> itemMetrics = metricsService.findAllByDSO(obtainContext(), item).stream().map(CrisMetrics::getMetricType).collect(Collectors.toList());
+        List<String> boxMetrics = boxConfiguration.getMetrics();
 
-            // Inner join metrics of box and item
-            boxConfiguration.setMetrics(boxMetrics
-                    .stream()
-                    .filter(b -> itemMetrics
-                            .stream()
-                            .anyMatch(i -> i.equals(b)))
-                            .collect(Collectors.toList()));
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
+        List<String> itemMetrics = metricsService.getMetrics(obtainContext(), UUID.fromString(itemUuid))
+                                       .stream()
+                                       .map(CrisMetrics::getMetricType)
+                                       .collect(Collectors.toList());
+
+        // Inner join metrics of box and item
+        boxConfiguration.setMetrics(boxMetrics
+                                        .stream()
+                                        .filter(b -> itemMetrics
+                                            .stream()
+                                            .anyMatch(i -> i.equals(b)))
+                                        .collect(Collectors.toList()));
     }
+
 }

@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.core.MediaType;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.dspace.app.metrics.CrisMetrics;
 import org.dspace.app.rest.matcher.CrisLayoutTabMatcher;
 import org.dspace.app.rest.model.CrisLayoutTabRest;
 import org.dspace.app.rest.model.patch.Operation;
@@ -613,8 +612,11 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
 
     /**
      * Test for the altering which happens at endpoint /api/layout/tabs/search/findByItem?uuid=<ITEM-UUID>
-     * Filter boxType=METRICS is applied to CrisLayoutBoxRest and then the configuration is altered
-     * by inner joining the CrisLayoutBoxRest metrics with the item metric.
+     * The configuration of CrisLayoutBoxRest: boxType=METRICS, is altered by inner joining the CrisLayoutBoxRest
+     * metrics with the item's metric.
+     *
+     * No altering is done here since box and item share the same metrics.
+     *
      * @throws Exception
      */
     @Test
@@ -640,36 +642,29 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         EntityType eTypePer = EntityTypeBuilder.createEntityTypeBuilder(context, "Person")
                 .build();
 
-        MetadataSchema schema = mdss.find(context, "person");
-        MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
-
         // Create new person item
         Item item = ItemBuilder.createItem(context, collection)
-                .withPersonIdentifierFirstName("Danilo")
-                .withPersonIdentifierLastName("Di Nuzzo")
-                .withEntityType(eTypePer.getLabel())
-                .build();
+                               .withPersonIdentifierFirstName("Danilo")
+                               .withPersonIdentifierLastName("Di Nuzzo")
+                               .withEntityType(eTypePer.getLabel())
+                               .build();
 
-        // Create boxes
+        // Create box
         CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypePer,
                         CrisLayoutBoxTypes.METRICS.name(), true, true)
                 .withShortname("box-shortname-two")
                 .withSecurity(LayoutSecurity.PUBLIC)
                 .build();
 
-        // Add metrics
-        CrisLayoutMetric2BoxBuilder.create(context, box, "metric1", 0).build();
+        // Add metrics to box
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-view", 0).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-download", 1).build();
 
-        CrisMetrics metric = CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("metric1").build();
-        CrisLayoutMetric2BoxBuilder.create(context, box, metric.getMetricType(), 0).build();
-
-
-
-//        CrisLayoutFieldBuilder.createMetadataField(context, lastName, 0, 1)
-//                .withLabel("LAST NAME")
-//                .withRendering("TEXT")
-//                .withBox(box)
-//                .build();
+        // Add metrics to item
+        CrisMetricsBuilder.createCrisMetrics(context, item)
+                                               .withMetricType("embedded-view").build();
+        CrisMetricsBuilder.createCrisMetrics(context, item)
+                                                .withMetricType("embedded-download").build();
 
         CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypePer, 0)
                 .withShortName("TabOne For Person - priority 0")
@@ -680,14 +675,286 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
 
         context.restoreAuthSystemState();
 
-        // TODO
         // Test
         getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(contentType))
                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
                 .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))))
-                .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", contains(matchBox(box))));
+                .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", contains(matchBox(box))))
+                .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics", hasSize(2)))
+                .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[0]",
+                                                        Matchers.is("embedded-view")))
+                .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[1]",
+                                                        Matchers.is("embedded-download")));
+    }
+
+    /**
+     * Test for the altering which happens at endpoint /api/layout/tabs/search/findByItem?uuid=<ITEM-UUID>
+     * The configuration of CrisLayoutBoxRest: boxType=METRICS, is altered by inner joining the CrisLayoutBoxRest
+     * metrics with the item's metric.
+     *
+     * Box is altered by removing non-matching metrics between box and item.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void findByItemWithMetricBoxAltered() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create new community
+        Community community = CommunityBuilder.createCommunity(context)
+                                              .withName("Test Community")
+                                              .withTitle("Title test community")
+                                              .build();
+
+        // Create new collection
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                                                 .withName("Test Collection")
+                                                 .build();
+
+        // Create entity type Publication
+        EntityTypeBuilder.createEntityTypeBuilder(context, "Publication")
+                         .build();
+
+        // Create entity Type
+        EntityType eTypePer = EntityTypeBuilder.createEntityTypeBuilder(context, "Person")
+                                               .build();
+
+        // Create new person item
+        Item item = ItemBuilder.createItem(context, collection)
+                               .withPersonIdentifierFirstName("Danilo")
+                               .withPersonIdentifierLastName("Di Nuzzo")
+                               .withEntityType(eTypePer.getLabel())
+                               .build();
+
+        // Create box
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypePer,
+                                                               CrisLayoutBoxTypes.METRICS.name(), true, true)
+                                                .withShortname("box-shortname-two")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+
+        // Add metrics to box
+        CrisLayoutMetric2BoxBuilder.create(context, box, "altmetric", 0).build(); // will be filtered
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-view", 1).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-download", 2).build();
+
+        // Add metrics to item
+        CrisMetricsBuilder.createCrisMetrics(context, item)
+                                               .withMetricType("embedded-view").build();
+        CrisMetricsBuilder.createCrisMetrics(context, item)
+                                               .withMetricType("embedded-download").build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypePer,0)
+                                                .withShortName("TabOne For Person - priority 0")
+                                                .withHeader("New Tab header")
+                                                .addBoxIntoNewRow(box)
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+
+        context.restoreAuthSystemState();
+
+        // Test
+        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", contains(matchBox(box))))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics", hasSize(2)))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[0]",
+                                Matchers.is("embedded-view")))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[1]",
+                                Matchers.is("embedded-download")));
+    }
+
+    /**
+     * Test for the altering which happens at endpoint /api/layout/tabs/search/findByItem?uuid=<ITEM-UUID>
+     * The configuration of CrisLayoutBoxRest: boxType=METRICS, is altered by inner joining the CrisLayoutBoxRest
+     * metrics with the item's metric.
+     *
+     * Box is removed because there are no matching metrics between box and item.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void findByItemWithNoMetricsForItem() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create new community
+        Community community = CommunityBuilder.createCommunity(context)
+                                              .withName("Test Community")
+                                              .withTitle("Title test community")
+                                              .build();
+
+        // Create new collection
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                                                 .withName("Test Collection")
+                                                 .build();
+
+        // Create entity type Publication
+        EntityTypeBuilder.createEntityTypeBuilder(context, "Publication")
+                         .build();
+
+        // Create entity Type
+        EntityType eTypePer = EntityTypeBuilder.createEntityTypeBuilder(context, "Person")
+                                               .build();
+
+        MetadataSchema schema = mdss.find(context, "person");
+        MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
+
+        // Create new person item
+        Item item = ItemBuilder.createItem(context, collection)
+                               .withPersonIdentifierFirstName("Danilo")
+                               .withPersonIdentifierLastName("Di Nuzzo")
+                               .withEntityType(eTypePer.getLabel())
+                               .build();
+
+        // Create box
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypePer,
+                                                               CrisLayoutBoxTypes.METRICS.name(), true, true)
+                                                .withShortname("box-shortname-two")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
+                                                 .withHeader("Second New Box Header")
+                                                 .withSecurity(LayoutSecurity.PUBLIC)
+                                                 .withShortname("Shortname for new second box")
+                                                 .withStyle("STYLE")
+                                                 .withType(CrisLayoutBoxTypes.METADATA.name())
+                                                 .build();
+
+        // Add field for METADATA
+        CrisLayoutFieldBuilder.createMetadataField(context, lastName, 0, 1)
+                              .withLabel("LAST NAME")
+                              .withRendering("TEXT")
+                              .withBox(box1)
+                              .build();
+
+        // Add metrics to box
+        CrisLayoutMetric2BoxBuilder.create(context, box, "altmetric", 0).build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypePer,0)
+                                                .withShortName("TabOne For Person - priority 0")
+                                                .withHeader("New Tab header")
+                                                .addBoxIntoNewRow(box)
+                                                .addBoxIntoNewRow(box1)
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+
+        context.restoreAuthSystemState();
+
+        // Test
+        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
+                                 .andExpect(status().isOk())
+                                 .andExpect(content().contentType(contentType))
+                                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+                                 .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))))
+                                 .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", hasSize(1)))
+                                 .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes",
+                                                     contains(matchBox(box1))));
+    }
+
+    /**
+     * Test for the altering which happens at endpoint /api/layout/tabs/search/findByItem?uuid=<ITEM-UUID>
+     * The configuration of CrisLayoutBoxRest: boxType=METRICS, is altered by inner joining the CrisLayoutBoxRest
+     * metrics with the item's metric.
+     *
+     * Only the box with boxType=METRICS is altered.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void findByItemWithDifferentBoxTypes() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create new community
+        Community community = CommunityBuilder.createCommunity(context)
+                                              .withName("Test Community")
+                                              .withTitle("Title test community")
+                                              .build();
+
+        // Create new collection
+        Collection collection = CollectionBuilder.createCollection(context, community)
+                                                 .withName("Test Collection")
+                                                 .build();
+
+        // Create entity Type
+        EntityType eTypePer = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication")
+                                               .build();
+
+        MetadataSchema schema = mdss.find(context, "person");
+        MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
+
+        // Create new person item
+        Item item = ItemBuilder.createItem(context, collection)
+                               .withPersonIdentifierFirstName("Danilo")
+                               .withPersonIdentifierLastName("Di Nuzzo")
+                               .withEntityType(eTypePer.getLabel())
+                               .build();
+
+        // Create box
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypePer,
+                                                               CrisLayoutBoxTypes.METRICS.name(), true, true)
+                                                .withShortname("box-shortname-one")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+        CrisLayoutBox box1 = CrisLayoutBoxBuilder.createBuilder(context, eTypePer, false, false)
+                                                   .withHeader("Second New Box Header")
+                                                   .withSecurity(LayoutSecurity.PUBLIC)
+                                                   .withShortname("Shortname for new second box")
+                                                   .withStyle("STYLE")
+                                                   .withType(CrisLayoutBoxTypes.METADATA.name())
+                                                   .build();
+
+        // Add field for METADATA
+        CrisLayoutFieldBuilder.createMetadataField(context, lastName, 0, 1)
+                              .withLabel("LAST NAME")
+                              .withRendering("TEXT")
+                              .withBox(box1)
+                              .build();
+
+        // Add metrics to boxes
+        CrisLayoutMetric2BoxBuilder.create(context, box, "altmetric", 0).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-download", 1).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-view", 2).build();
+
+        CrisLayoutMetric2BoxBuilder.create(context, box1, "altmetric", 0).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box1, "embedded-download", 1).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box1, "embedded-view", 2).build();
+
+        // Add metrics to item
+        CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("embedded-download").build();
+        CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("embedded-view").build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypePer,0)
+                                                .withShortName("TabOne For Person - priority 0")
+                                                .withHeader("New Tab header")
+                                                .addBoxIntoNewRow(box)
+                                                .addBoxIntoNewRow(box1)
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .build();
+
+        context.restoreAuthSystemState();
+
+        // Test
+        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
+                   .andExpect(status().isOk())
+                   .andExpect(content().contentType(contentType))
+                   .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+                   .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", hasSize(1)))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", contains(matchBox(box))))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[1].cells[0].boxes", hasSize(1)))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[1].cells[0].boxes", contains(matchBox(box1))))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics",
+                                       hasSize(2)))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[0]",
+                                       Matchers.is("embedded-download")))
+                   .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[1]",
+                                       Matchers.is("embedded-view")));
     }
 
     /**
