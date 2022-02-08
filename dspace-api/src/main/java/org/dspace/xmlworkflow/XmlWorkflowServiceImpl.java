@@ -371,7 +371,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
         //Fire an event !
         logWorkflowEvent(context, firstStep.getWorkflow().getID(), null, null, true,
-            wfi, null, firstStep, firstActionConfig, false);
+            wfi, wfi.getItem().getSubmitter(), firstStep, firstActionConfig, false);
 
         //If we don't have a UI then execute the action.
         if (!firstActionConfig.requiresUI()) {

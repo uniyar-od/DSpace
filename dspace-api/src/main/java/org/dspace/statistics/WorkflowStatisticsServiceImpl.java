@@ -12,6 +12,7 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.apache.solr.common.params.FacetParams.FACET_LIMIT;
 import static org.dspace.xmlworkflow.service.XmlWorkflowService.ITEM_STEP;
+import static org.dspace.xmlworkflow.service.XmlWorkflowService.SUBMIT_STEP;
 import static org.dspace.xmlworkflow.service.XmlWorkflowService.WORKSPACE_STEP;
 
 import java.io.IOException;
@@ -147,6 +148,7 @@ public class WorkflowStatisticsServiceImpl implements WorkflowStatisticsService 
         Collection collection, int limit) {
 
         String queryFilter = composeQueryFilter(startDate, endDate, collection);
+        queryFilter = queryFilter + " AND -previousWorkflowStep:" + SUBMIT_STEP;
 
         FacetPivotResult[] facetPivotFields = queryWithPivotField(queryFilter, limit, OWNER_STATISTICS_FACET_PIVOT);
 
