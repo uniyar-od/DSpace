@@ -171,8 +171,6 @@
     <bean class="org.dspace.content.security.CrisSecurityServiceImpl"/>
     <bean class="org.dspace.app.metrics.service.CrisMetricsServiceImpl"/>
     
-    <bean class="org.dspace.authenticate.OidcAuthenticationBean" id="oidcAuthentication"/>
-    <bean class="org.dspace.authenticate.oidc.impl.OidcClientImpl" />
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolValidatorImpl"/>
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolParserImpl"/>
     
