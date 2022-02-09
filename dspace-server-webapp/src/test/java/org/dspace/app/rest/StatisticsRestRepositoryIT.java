@@ -750,7 +750,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                    .andExpect(jsonPath("$", Matchers.is(
                        UsageReportMatcher
                            .matchUsageReport(
-                               itemNotVisitedWithBitstreams.getID() + "_" + TOTAL_VISITS_PER_MONTH_REPORT_ID,
+                               collectionVisited.getID() + "_" + TOTAL_VISITS_PER_MONTH_REPORT_ID,
                                TOTAL_VISITS_PER_MONTH_REPORT_ID, expectedPoints))));
     }
 
@@ -865,7 +865,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
     public void TotalDownloadsReport_NotSupportedDSO_Collection() throws Exception {
         getClient(adminToken)
             .perform(get("/api/statistics/usagereports/" + collectionVisited.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID))
-            .andExpect(status().is(HttpStatus.BAD_REQUEST.value()));
+            .andExpect(status().isNotFound());
     }
 
     /**
@@ -1505,7 +1505,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         expectedPointTotalVisits.setType("collection");
         expectedPointTotalVisits.setId(collectionNotVisited.getID().toString());
         // And request the collection's usage reports
-        getClient()
+        getClient(adminToken)
                 .perform(get("/api/statistics/usagereports/search/object?uri=http://localhost:8080/server/api/core" +
                         "/collections/" + collectionNotVisited.getID()))
                 // ** THEN **
@@ -1586,6 +1586,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                     TOP_CITIES_REPORT_ID, Arrays.asList(expectedPointCity)),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOP_COUNTRIES_REPORT_ID,
                     TOP_COUNTRIES_REPORT_ID, Arrays.asList(expectedPointCountry)),
+                UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_VISITS_TOTAL_DOWNLOADS,
+                    TOTAL_VISITS_TOTAL_DOWNLOADS, totalDownloadsPoints),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID,
                     TOTAL_DOWNLOADS_REPORT_ID, new ArrayList<>()))));
     }
@@ -1699,6 +1701,8 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                     TOP_CITIES_REPORT_ID, Arrays.asList(expectedPointCity)),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOP_COUNTRIES_REPORT_ID,
                     TOP_COUNTRIES_REPORT_ID, Arrays.asList(expectedPointCountry)),
+                UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_VISITS_TOTAL_DOWNLOADS,
+                    TOTAL_VISITS_TOTAL_DOWNLOADS, usageReportPointRestsVisitsAndDownloads),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID,
                     TOTAL_DOWNLOADS_REPORT_ID, totalDownloadsPoints))));
     }
@@ -1886,7 +1890,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         cal.add(Calendar.DATE, 1);
         String endDate = dateFormat.format(cal.getTime());
         // And request the community usage reports
-        getClient()
+        getClient(adminToken)
                 .perform(get("/api/statistics/usagereports/search/object?uri=http://localhost:8080/server/api/core" +
                         "/communities/" + communityVisited.getID() + "&startDate=2019-06-01&endDate=" + endDate))
                 // ** THEN **
@@ -1953,7 +1957,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         totalDownloadsPoints.add(expectedPointTotalVisitsBit1);
         totalDownloadsPoints.add(expectedPointTotalVisitsBit2);
         //  And request the community usage reports
-        getClient()
+        getClient(adminToken)
                 .perform(get("/api/statistics/usagereports/search/object?uri=http://localhost:8080/server/api/core" +
                         "/items/" + bitstreamVisited.getID() + "&startDate=2019-05-01"))
                 // ** THEN **
