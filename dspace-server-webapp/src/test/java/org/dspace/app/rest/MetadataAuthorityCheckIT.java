@@ -8,6 +8,8 @@
 
 package org.dspace.app.rest;
 
+import java.util.List;
+
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
@@ -15,20 +17,17 @@ import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThrows;
-
 /*
  * @author Jurgen Mamani
  */
-public class MetadataAuthorityCheck extends AbstractControllerIntegrationTest {
+public class MetadataAuthorityCheckIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private ItemService itemService;
@@ -59,7 +58,7 @@ public class MetadataAuthorityCheck extends AbstractControllerIntegrationTest {
     public void addAuthorityControlledMetadataWithAuthorities() throws Exception {
         itemService.addMetadata(context, item, "dc", "contributor", "author", null, "Smith, Maria");
         String metadataValue = itemService.getMetadataFirstValue(item, "dc", "contributor", "author", null);
-        assertThat(metadataValue, is("Smith, Maria"));
+        MatcherAssert.assertThat(metadataValue, Matchers.is("Smith, Maria"));
     }
 
     @Test
@@ -67,24 +66,25 @@ public class MetadataAuthorityCheck extends AbstractControllerIntegrationTest {
         itemService.addMetadata(context, item, "dc", "contributor","author", null,
                 List.of("Smith, Maria"), null, null);
         String metadataValue = itemService.getMetadataFirstValue(item, "dc", "contributor", "author", null);
-        assertThat(metadataValue, is("Smith, Maria"));
+        MatcherAssert.assertThat(metadataValue, Matchers.is("Smith, Maria"));
     }
 
     @Test
-    public void addNonAuthorityControlledMetadataWithAuthorities() throws Exception {
-        Throwable throwable = assertThrows(IllegalArgumentException.class,
+    public void addNonAuthorityControlledMetadataWithAuthorities() {
+        Throwable throwable = Assert.assertThrows(IllegalArgumentException.class,
                 () -> itemService.addMetadata(context, item, "dc", "title",null, null,
                         List.of("Public Item A"), List.of("test_authority"), null));
 
-        assertThat(throwable.getMessage(),
-                is("The metadata field \"dc_title\" is not authority controlled but authorities were provided. Values:\"[test_authority]\""));
+        MatcherAssert.assertThat(throwable.getMessage(),
+                Matchers.is("The metadata field \"dc_title\" is not authority controlled " +
+                       "but authorities were provided. Values:\"[test_authority]\""));
     }
 
     @Test
     public void addNonAuthorityControlledMetadataWithoutAuthorities() throws Exception {
         itemService.addMetadata(context, item, "dc", "title", null, null, "Public Item A");
         String metadataValue = itemService.getMetadataFirstValue(item, "dc", "title", null, null);
-        assertThat(metadataValue, is("Public Item A"));
+        MatcherAssert.assertThat(metadataValue, Matchers.is("Public Item A"));
     }
 
 }
