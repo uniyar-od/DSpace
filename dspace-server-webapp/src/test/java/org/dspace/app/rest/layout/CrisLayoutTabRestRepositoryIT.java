@@ -41,7 +41,15 @@ import org.dspace.app.rest.model.CrisLayoutTabRest;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
-import org.dspace.builder.*;
+import org.dspace.builder.CollectionBuilder;
+import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.CrisLayoutBoxBuilder;
+import org.dspace.builder.CrisLayoutFieldBuilder;
+import org.dspace.builder.CrisLayoutMetric2BoxBuilder;
+import org.dspace.builder.CrisLayoutTabBuilder;
+import org.dspace.builder.CrisMetricsBuilder;
+import org.dspace.builder.EntityTypeBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.EntityType;
@@ -100,11 +108,11 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         MetadataField givenName = mfss.findByElement(context, schema, "givenName", null);
 
         CrisLayoutBox boxOne = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
-                .withHeader("First New Box Header")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withShortname("Shortname for new first box")
-                .withStyle("STYLE")
-                .build();
+                                                   .withHeader("First New Box Header")
+                                                   .withSecurity(LayoutSecurity.PUBLIC)
+                                                   .withShortname("Shortname for new first box")
+                                                   .withStyle("STYLE")
+                                                   .build();
 
         CrisLayoutBox boxTwo = CrisLayoutBoxBuilder.createBuilder(context, eType, false, false)
                 .withHeader("Second New Box Header")
@@ -115,10 +123,10 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
                 .build();
 
         CrisLayoutFieldBuilder.createMetadataField(context, lastName, 0, 1)
-            .withLabel("LAST NAME")
-            .withRendering("TEXT")
-            .withBox(boxTwo)
-            .build();
+                              .withLabel("LAST NAME")
+                              .withRendering("TEXT")
+                              .withBox(boxTwo)
+                              .build();
 
         CrisLayoutFieldBuilder.createMetadataField(context, givenName, 0, 1)
             .withLabel("GIVEN NAME")
@@ -162,17 +170,17 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
                 .build();
 
         CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
-                .withShortName("Another New Tab shortname")
-                .withSecurity(LayoutSecurity.PUBLIC)
-                .withHeader("New Tab header")
-                .withLeading(true)
-                .addBoxIntoNewRow(boxOne)
-                .addBoxIntoNewRow(boxTwo, "rowTwoStyle", "cellOfRowTwoStyle")
-                .addBoxIntoLastRow(boxThree, "style")
-                .addBoxIntoLastCell(boxFour)
-                .addBoxIntoNewRow(boxFive)
-                .addBoxIntoLastCell(boxSix)
-                .build();
+                                                .withShortName("Another New Tab shortname")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .withHeader("New Tab header")
+                                                .withLeading(true)
+                                                .addBoxIntoNewRow(boxOne)
+                                                .addBoxIntoNewRow(boxTwo, "rowTwoStyle", "cellOfRowTwoStyle")
+                                                .addBoxIntoLastRow(boxThree, "style")
+                                                .addBoxIntoLastCell(boxFour)
+                                                .addBoxIntoNewRow(boxFive)
+                                                .addBoxIntoLastCell(boxSix)
+                                                .build();
 
         context.restoreAuthSystemState();
 
@@ -497,13 +505,13 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
         context.turnOffAuthorisationSystem();
         // Create new community
         Community community = CommunityBuilder.createCommunity(context)
-            .withName("Test Community")
-            .withTitle("Title test community")
-            .build();
+                                              .withName("Test Community")
+                                              .withTitle("Title test community")
+                                              .build();
         // Create new collection
         Collection collection = CollectionBuilder.createCollection(context, community)
-            .withName("Test Collection")
-            .build();
+                                                 .withName("Test Collection")
+                                                 .build();
         // Create entity Type
         EntityTypeBuilder.createEntityTypeBuilder(context, "Publication")
             .build();
@@ -511,10 +519,10 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .build();
         // Create new person item
         Item item = ItemBuilder.createItem(context, collection)
-            .withPersonIdentifierFirstName("Danilo")
-            .withPersonIdentifierLastName("Di Nuzzo")
-            .withEntityType(eTypePer.getLabel())
-            .build();
+                               .withPersonIdentifierFirstName("Danilo")
+                               .withPersonIdentifierLastName("Di Nuzzo")
+                               .withEntityType(eTypePer.getLabel())
+                               .build();
         MetadataSchema schema = mdss.find(context, "person");
         MetadataField firstName = mfss.findByElement(context, schema, "givenName", null);
         MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
@@ -662,7 +670,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
 
         // Add metrics to item
         CrisMetricsBuilder.createCrisMetrics(context, item)
-                                               .withMetricType("embedded-view").build();
+                          .withMetricType("embedded-view").build();
         CrisMetricsBuilder.createCrisMetrics(context, item)
                                                 .withMetricType("embedded-download").build();
 
