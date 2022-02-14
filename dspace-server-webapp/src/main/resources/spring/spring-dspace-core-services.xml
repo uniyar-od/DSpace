@@ -66,6 +66,7 @@
                         </entry>
                         <entry key="redirected-urls">
                             <bean class="org.dspace.app.rest.submit.factory.impl.RedirectedUrlAddOperation"/>
+                        </entry>    
                         <entry key="accessConditions">
                             <bean class="org.dspace.app.rest.submit.factory.impl.AccessConditionAddPatchOperation"/>
                         </entry>
@@ -102,6 +103,7 @@
                         </entry>
                         <entry key="redirected-urls">
                             <bean class="org.dspace.app.rest.submit.factory.impl.RedirectedUrlRemoveOperation"/>
+                        </entry>
                         <entry key="accessConditions">
                             <bean class="org.dspace.app.rest.submit.factory.impl.AccessConditionRemovePatchOperation"/>
                         </entry>
@@ -134,6 +136,7 @@
                         </entry>
                         <entry key="url">
                             <bean class="org.dspace.app.rest.submit.factory.impl.CustomUrlReplaceOperation"/>
+                        </entry>
                         <entry key="discoverable">
                             <bean class="org.dspace.app.rest.submit.factory.impl.AccessConditionDiscoverableReplacePatchOperation"/>
                         </entry>
