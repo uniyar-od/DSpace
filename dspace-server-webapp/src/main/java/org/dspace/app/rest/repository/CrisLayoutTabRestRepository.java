@@ -90,7 +90,8 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
         List<CrisLayoutTab> tabList = service.findByItem(obtainContext(), itemUuid);
         getRequestService().getCurrentRequest().setAttribute(SCOPE_ITEM_ATTRIBUTE, itemUuid);
         Page<CrisLayoutTabRest> restTabs = converter.toRestPage(tabList, pageable, utils.obtainProjection());
-        return filterTabWithoutRows(pageable, restTabs, itemUuid);
+        restTabs = filterTabWithoutRows(pageable, restTabs);
+        return filterBoxesWithMetricsType(restTabs, itemUuid);
     }
 
     @SearchRestMethod(name = "findByEntityType")
@@ -197,46 +198,48 @@ public class CrisLayoutTabRestRepository extends DSpaceRestRepository<CrisLayout
         }
     }
 
-    private Page<CrisLayoutTabRest> filterTabWithoutRows(Pageable pageable, Page<CrisLayoutTabRest> restTabs,
-                                                         String itemUuid) {
+    private Page<CrisLayoutTabRest> filterTabWithoutRows(Pageable pageable, Page<CrisLayoutTabRest> restTabs) {
         List<CrisLayoutTabRest> listOfTabs = restTabs.filter(tab -> CollectionUtils.isNotEmpty(tab.getRows())).toList();
-
-        // Get CrisLayoutBoxRest with boxType=METRICS
-        List<CrisLayoutBoxRest> boxes = listOfTabs
-                                        .stream()
-                                        .flatMap(t -> t.getRows()
-                                        .stream()
-                                        .flatMap(r -> r.getCells()
-                                        .stream()
-                                        .flatMap(c -> c.getBoxes()
-                                                    .stream()
-                                                    .filter(b -> b.getBoxType()
-                                                                  .equals(CrisLayoutBoxTypes.METRICS.name())))))
-                                        .collect(Collectors.toList());
-
-        boxes.forEach(b -> alterBoxWithMetricsType(b, itemUuid));
-
         return utils.getPage(listOfTabs, pageable);
     }
 
-    private void alterBoxWithMetricsType(CrisLayoutBoxRest box, String itemUuid) {
-        CrisLayoutMetricsConfigurationRest boxConfiguration =
-            ((CrisLayoutMetricsConfigurationRest) box.getConfiguration());
+    private Page<CrisLayoutTabRest> filterBoxesWithMetricsType(Page<CrisLayoutTabRest> restTabs, String itemUuid) {
+        List<CrisLayoutTabRest> listOfTabs = restTabs.toList();
 
-        List<String> boxMetrics = boxConfiguration.getMetrics();
+        // Get CrisLayoutBoxRest with boxType=METRICS
+        List<CrisLayoutBoxRest> boxes = listOfTabs
+            .stream()
+            .flatMap(t -> t.getRows()
+                .stream()
+                .flatMap(r -> r.getCells()
+                    .stream()
+                    .flatMap(c -> c.getBoxes()
+                        .stream()
+                        .filter(b -> b.getBoxType()
+                            .equals(CrisLayoutBoxTypes.METRICS.name())))))
+            .collect(Collectors.toList());
 
-        List<String> itemMetrics = metricsService.getMetrics(obtainContext(), UUID.fromString(itemUuid))
-                                       .stream()
-                                       .map(CrisMetrics::getMetricType)
-                                       .collect(Collectors.toList());
+        // Set new metrics for each box
+        boxes.forEach(box -> {
+            CrisLayoutMetricsConfigurationRest boxConfiguration =
+                ((CrisLayoutMetricsConfigurationRest) box.getConfiguration());
 
-        // Inner join metrics of box and item
-        boxConfiguration.setMetrics(boxMetrics
-                                        .stream()
-                                        .filter(b -> itemMetrics
+            List<String> boxMetrics = boxConfiguration.getMetrics();
+            List<String> itemMetrics = metricsService.getMetrics(obtainContext(), UUID.fromString(itemUuid))
+                .stream()
+                .map(CrisMetrics::getMetricType)
+                .collect(Collectors.toList());
+
+            // Inner join metrics of box and item and distinct the results
+            boxConfiguration.setMetrics(boxMetrics
                                             .stream()
-                                            .anyMatch(i -> i.equals(b)))
-                                        .collect(Collectors.toList()));
-    }
+                                            .filter(b -> itemMetrics
+                                                .stream()
+                                                .anyMatch(i -> i.equals(b)))
+                                            .distinct()
+                                            .collect(Collectors.toList()));
+        });
 
+        return utils.getPage(listOfTabs, restTabs.getPageable());
+    }
 }

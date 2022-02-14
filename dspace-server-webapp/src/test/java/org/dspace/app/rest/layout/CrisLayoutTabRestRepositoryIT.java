@@ -966,6 +966,87 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
     }
 
     /**
+     * Test for the altering which happens at endpoint /api/layout/tabs/search/findByItem?uuid=<ITEM-UUID>
+     * The configuration of CrisLayoutBoxRest: boxType=METRICS, is altered by inner joining the CrisLayoutBoxRest
+     * metrics with the item's metric.
+     *
+     * Test the removal of duplicate metrics.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void findByItemWithDistinctMetrics() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        // Create new community
+        Community community = CommunityBuilder.createCommunity(context)
+            .withName("Test Community")
+            .withTitle("Title test community")
+            .build();
+
+        // Create new collection
+        Collection collection = CollectionBuilder.createCollection(context, community)
+            .withName("Test Collection")
+            .build();
+
+        // Create entity Type
+        EntityType eTypePer = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication")
+            .build();
+
+        MetadataSchema schema = mdss.find(context, "person");
+        MetadataField lastName = mfss.findByElement(context, schema, "familyName", null);
+
+        // Create new person item
+        Item item = ItemBuilder.createItem(context, collection)
+            .withPersonIdentifierFirstName("Danilo")
+            .withPersonIdentifierLastName("Di Nuzzo")
+            .withEntityType(eTypePer.getLabel())
+            .build();
+
+        // Create box
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, eTypePer,
+                                                               CrisLayoutBoxTypes.METRICS.name(), true, true)
+            .withShortname("box-shortname-one")
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .build();
+
+        // Add metrics to boxes
+        CrisLayoutMetric2BoxBuilder.create(context, box, "altmetric", 0).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-download", 1).build();
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-view", 2).build();
+        // Add duplicate metric to test the distinct function
+        CrisLayoutMetric2BoxBuilder.create(context, box, "embedded-view", 3).build();
+
+        // Add metrics to item
+        CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("embedded-download").build();
+        CrisMetricsBuilder.createCrisMetrics(context, item).withMetricType("embedded-view").build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eTypePer,0)
+            .withShortName("TabOne For Person - priority 0")
+            .withHeader("New Tab header")
+            .addBoxIntoNewRow(box)
+            .withSecurity(LayoutSecurity.PUBLIC)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        // Test
+        getClient().perform(get("/api/layout/tabs/search/findByItem").param("uuid", item.getID().toString()))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$.page.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$._embedded.tabs", contains(matchTab(tab))))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", hasSize(1)))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes", contains(matchBox(box))))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics",
+                                hasSize(2))) // Only shared and distinct metrics are returned
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[0]",
+                                Matchers.is("embedded-download")))
+            .andExpect(jsonPath("$._embedded.tabs[0].rows[0].cells[0].boxes[0].configuration.metrics[1]",
+                                Matchers.is("embedded-view")));
+    }
+
+    /**
      * Test for endpoint /api/layout/tabs/search/findByEntityType?type=<:string>. It returns all the tabs
      * that are available for the items of the specified type. This endpoint is reserved to system administrators
      * @throws Exception
