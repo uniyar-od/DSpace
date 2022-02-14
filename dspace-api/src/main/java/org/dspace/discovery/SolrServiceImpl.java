@@ -8,6 +8,7 @@
 package org.dspace.discovery;
 
 import static java.util.stream.Collectors.joining;
+import static org.dspace.discovery.DiscoverResult.FacetPivotResult.fromPivotFields;
 import static org.dspace.discovery.configuration.DiscoveryConfigurationParameters.TYPE_STANDARD;
 import static org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet.TYPE_PREFIX;
 
@@ -44,6 +45,7 @@ import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FieldStatsInfo;
+import org.apache.solr.client.solrj.response.PivotField;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.apache.solr.common.SolrDocument;
@@ -348,16 +350,30 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     }
 
     /**
+     * Removes all documents from the Lucene index
+     */
+    public void deleteIndex() {
+        try {
+            final List<IndexFactory> indexableObjectServices = indexObjectServiceFactory.
+                    getIndexFactories();
+            for (IndexFactory indexableObjectService : indexableObjectServices) {
+                indexableObjectService.deleteAll();
+            }
+        } catch (IOException | SolrServerException e) {
+            log.error("Error cleaning discovery index: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Iterates over all documents in the Lucene index and verifies they are in
      * database, if not, they are removed.
      *
-     * @param force whether or not to force a clean index
      * @throws IOException            IO exception
      * @throws SQLException           sql exception
      * @throws SearchServiceException occurs when something went wrong with querying the solr server
      */
     @Override
-    public void cleanIndex(boolean force) throws IOException, SQLException, SearchServiceException {
+    public void cleanIndex() throws IOException, SQLException, SearchServiceException {
         Context context = new Context();
         context.turnOffAuthorisationSystem();
 
@@ -365,57 +381,50 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             if (solrSearchCore.getSolr() == null) {
                 return;
             }
-            if (force) {
-                final List<IndexFactory> indexableObjectServices = indexObjectServiceFactory.
-                        getIndexFactories();
-                for (IndexFactory indexableObjectService : indexableObjectServices) {
-                    indexableObjectService.deleteAll();
-                }
-            } else {
-                // First, we'll just get a count of the total results
-                SolrQuery countQuery = new SolrQuery("*:*");
-                countQuery.setRows(0);  // don't actually request any data
-                // Get the total amount of results
-                QueryResponse totalResponse = solrSearchCore.getSolr().query(countQuery,
-                        solrSearchCore.REQUEST_METHOD);
-                long total = totalResponse.getResults().getNumFound();
 
-                int start = 0;
-                int batch = 100;
+            // First, we'll just get a count of the total results
+            SolrQuery countQuery = new SolrQuery("*:*");
+            countQuery.setRows(0); // don't actually request any data
+            // Get the total amount of results
+            QueryResponse totalResponse = solrSearchCore.getSolr().query(countQuery,
+                solrSearchCore.REQUEST_METHOD);
+            long total = totalResponse.getResults().getNumFound();
 
-                // Now get actual Solr Documents in batches
-                SolrQuery query = new SolrQuery();
-                query.setFields(SearchUtils.RESOURCE_UNIQUE_ID, SearchUtils.RESOURCE_ID_FIELD,
-                        SearchUtils.RESOURCE_TYPE_FIELD);
-                query.addSort(SearchUtils.RESOURCE_UNIQUE_ID, SolrQuery.ORDER.asc);
-                query.setQuery("*:*");
-                query.setRows(batch);
-                // Keep looping until we hit the total number of Solr docs
-                while (start < total) {
-                    query.setStart(start);
-                    QueryResponse rsp = solrSearchCore.getSolr().query(query, solrSearchCore.REQUEST_METHOD);
-                    SolrDocumentList docs = rsp.getResults();
+            int start = 0;
+            int batch = 100;
 
-                    for (SolrDocument doc : docs) {
-                        String uniqueID = (String) doc.getFieldValue(SearchUtils.RESOURCE_UNIQUE_ID);
+            // Now get actual Solr Documents in batches
+            SolrQuery query = new SolrQuery();
+            query.setFields(SearchUtils.RESOURCE_UNIQUE_ID, SearchUtils.RESOURCE_ID_FIELD,
+                SearchUtils.RESOURCE_TYPE_FIELD);
+            query.addSort(SearchUtils.RESOURCE_UNIQUE_ID, SolrQuery.ORDER.asc);
+            query.setQuery("*:*");
+            query.setRows(batch);
+            // Keep looping until we hit the total number of Solr docs
+            while (start < total) {
+                query.setStart(start);
+                QueryResponse rsp = solrSearchCore.getSolr().query(query, solrSearchCore.REQUEST_METHOD);
+                SolrDocumentList docs = rsp.getResults();
 
-                        IndexableObject o = findIndexableObject(context, doc);
-                        context.uncacheEntity(o.getIndexedObject());
-                        if (o == null) {
-                            log.info("Deleting: " + uniqueID);
-                            /*
-                             * Use IndexWriter to delete, its easier to manage
-                             * write.lock
-                             */
-                            unIndexContent(context, uniqueID);
-                        } else {
-                            log.debug("Keeping: " + o.getUniqueIndexID());
-                        }
+                for (SolrDocument doc : docs) {
+                    String uniqueID = (String) doc.getFieldValue(SearchUtils.RESOURCE_UNIQUE_ID);
+
+                    IndexableObject o = findIndexableObject(context, doc);
+                    context.uncacheEntity(o.getIndexedObject());
+                    if (o == null) {
+                        log.info("Deleting: " + uniqueID);
+                        /*
+                         * Use IndexWriter to delete, its easier to manage write.lock
+                         */
+                        unIndexContent(context, uniqueID);
+                    } else {
+                        log.debug("Keeping: " + o.getUniqueIndexID());
                     }
-
-                    start += batch;
                 }
             }
+
+            start += batch;
+
         } catch (IOException | SQLException | SolrServerException e) {
             log.error("Error cleaning discovery index: " + e.getMessage(), e);
         } finally {
@@ -872,6 +881,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         }
 
+        if (CollectionUtils.isNotEmpty(discoveryQuery.getFacetPivots())) {
+            solrQuery.addFacetPivotField(discoveryQuery.getFacetPivots().toArray(String[]::new));
+        }
+
         //Add any configured search plugins !
         List<SolrServiceSearchPlugin> solrServiceSearchPlugins = DSpaceServicesFactory.getInstance()
                 .getServiceManager().getServicesByType(SolrServiceSearchPlugin.class);
@@ -1116,6 +1129,14 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                     }
                 }
             }
+
+            if (solrQueryResponse.getFacetPivot() != null && !zombieFound) {
+                NamedList<List<PivotField>> facetPivotList = solrQueryResponse.getFacetPivot();
+                for (String facetPivot : query.getFacetPivots()) {
+                    result.addFacetPivotResult(facetPivot, fromPivotFields(facetPivotList.get(facetPivot)));
+                }
+            }
+
             // If any stale entries are found in the current page of results,
             // we remove those stale entries and rerun the same query again.
             // Otherwise, the query is valid and the results are returned.
