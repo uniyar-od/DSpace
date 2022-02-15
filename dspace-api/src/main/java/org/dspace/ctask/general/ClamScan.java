@@ -19,6 +19,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -99,27 +100,10 @@ public class ClamScan extends AbstractCurationTask {
             }
 
             try {
-                Bundle bundle = itemService.getBundles(item, "ORIGINAL").get(0);
+                List<Bundle> bundles = itemService.getBundles(item, "ORIGINAL");
                 results = new ArrayList<String>();
-                for (Bitstream bitstream : bundle.getBitstreams()) {
-                    InputStream inputstream = bitstreamService.retrieve(Curator.curationContext(), bitstream);
-                    logDebugMessage("Scanning " + bitstream.getName() + " . . . ");
-                    int bstatus = scan(bitstream, inputstream, getItemHandle(item));
-                    inputstream.close();
-                    if (bstatus == Curator.CURATE_ERROR) {
-                        // no point going further - set result and error out
-                        setResult(SCAN_FAIL_MESSAGE);
-                        status = bstatus;
-                        break;
-                    }
-                    if (failfast && bstatus == Curator.CURATE_FAIL) {
-                        status = bstatus;
-                        break;
-                    } else if (bstatus == Curator.CURATE_FAIL &&
-                        status == Curator.CURATE_SUCCESS) {
-                        status = bstatus;
-                    }
-
+                if (CollectionUtils.isNotEmpty(bundles)) {
+                    scanningBitstreams(item, bundles.get(0));
                 }
             } catch (AuthorizeException authE) {
                 throw new IOException(authE.getMessage(), authE);
@@ -134,6 +118,27 @@ public class ClamScan extends AbstractCurationTask {
             }
         }
         return status;
+    }
+
+    private void scanningBitstreams(Item item, Bundle bundle) throws IOException, SQLException, AuthorizeException {
+        for (Bitstream bitstream : bundle.getBitstreams()) {
+            InputStream inputstream = bitstreamService.retrieve(Curator.curationContext(), bitstream);
+            logDebugMessage("Scanning " + bitstream.getName() + " . . . ");
+            int bstatus = scan(bitstream, inputstream, getItemHandle(item));
+            inputstream.close();
+            if (bstatus == Curator.CURATE_ERROR) {
+                // no point going further - set result and error out
+                setResult(SCAN_FAIL_MESSAGE);
+                status = bstatus;
+                break;
+            }
+            if (failfast && bstatus == Curator.CURATE_FAIL) {
+                status = bstatus;
+                break;
+            } else if (bstatus == Curator.CURATE_FAIL && status == Curator.CURATE_SUCCESS) {
+                status = bstatus;
+            }
+        }
     }
 
 
