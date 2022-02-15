@@ -586,9 +586,8 @@ public class ItemTest extends AbstractDSpaceObjectTest {
         String qualifier = "issued";
         String lang = Item.ANY;
         List<String> values = Arrays.asList("value0", "value1");
-        List<String> authorities = Arrays.asList("auth0", "auth2");
         List<Integer> confidences = Arrays.asList(0, 0);
-        itemService.addMetadata(context, it, schema, element, qualifier, lang, values, authorities, confidences);
+        itemService.addMetadata(context, it, schema, element, qualifier, lang, values, null, confidences);
 
         List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_7args_1 0", dc, notNullValue());
@@ -682,9 +681,8 @@ public class ItemTest extends AbstractDSpaceObjectTest {
         String qualifier = "issued";
         String lang = Item.ANY;
         String values = "value0";
-        String authorities = "auth0";
         int confidences = 0;
-        itemService.addMetadata(context, it, schema, element, qualifier, lang, values, authorities, confidences);
+        itemService.addMetadata(context, it, schema, element, qualifier, lang, values, null, confidences);
 
         List<MetadataValue> dc = itemService.getMetadata(it, schema, element, qualifier, lang);
         assertThat("testAddMetadata_7args_2 0", dc, notNullValue());
