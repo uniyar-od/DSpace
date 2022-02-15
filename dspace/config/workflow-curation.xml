@@ -9,7 +9,7 @@
  <!-- taskset name 'none' indicates that there is no taskset to perform.     -->
 
  <taskset-map>
-   <mapping collection-handle="default" taskset="none" />
+   <mapping collection-handle="default" taskset="cautious" />
  </taskset-map>
 
  <!-- Tasksets specify curation tasks to be automatically performed at       -->
@@ -64,13 +64,21 @@
  <tasksets>
      
    <taskset name="cautious">
-     <flowstep name="step1">
+     <flowstep name="reviewstep">
+           <task name="none"> 
+           </task>
+     </flowstep>
+     <flowstep name="editstep">
        <task name="vscan">
          <workflow>reject</workflow>
          <notify on="fail">$flowgroup</notify>
          <notify on="fail">$colladmin</notify>
          <notify on="error">$siteadmin</notify>
        </task>
+     </flowstep>
+     <flowstep name="finaleditstep">
+         <task name="none">
+         </task>
      </flowstep>
    </taskset>
 

@@ -329,6 +329,7 @@ public class Curator {
     public void clear() {
         trMap.clear();
         perfList.clear();
+        curationCtx.set(null);
     }
 
     /**

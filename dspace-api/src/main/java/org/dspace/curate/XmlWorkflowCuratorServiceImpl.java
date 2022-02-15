@@ -19,7 +19,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.service.CollectionService;
 import org.dspace.core.Context;
-import org.dspace.core.LogHelper;
 import org.dspace.curate.service.XmlWorkflowCuratorService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
@@ -96,24 +95,23 @@ public class XmlWorkflowCuratorServiceImpl
     public boolean doCuration(Context c, XmlWorkflowItem wfi)
             throws AuthorizeException, IOException, SQLException {
         Curator curator = new Curator();
+        Curator.curationCtx.set(c);
         curator.setReporter(reporter);
         return curate(curator, c, wfi);
     }
 
-    @Override
-    public boolean curate(Curator curator, Context c, String wfId)
-            throws AuthorizeException, IOException, SQLException {
-        XmlWorkflowItem wfi = workflowItemService.find(c, Integer.parseInt(wfId));
-        if (wfi != null) {
-            return curate(curator, c, wfi);
-        } else {
-            LOG.warn(LogHelper.getHeader(c, "No workflow item found for id: {}", null), wfId);
-        }
-        return false;
-    }
-
-    @Override
-    public boolean curate(Curator curator, Context c, XmlWorkflowItem wfi)
+    /**
+     * Determines and executes curation of a Workflow item.
+     *
+     * @param curator               The curation context
+     * @param c                     The user context
+     * @param wfi                   The workflow item
+     * @return true                 If curation failed.
+     * @throws AuthorizeException   If authorization error
+     * @throws IOException          If IO error
+     * @throws SQLException         If database error
+     */
+    private boolean curate(Curator curator, Context c, XmlWorkflowItem wfi)
             throws AuthorizeException, IOException, SQLException {
         FlowStep step = getFlowStep(c, wfi);
 

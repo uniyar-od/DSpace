@@ -12,7 +12,6 @@ import java.sql.SQLException;
 
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
-import org.dspace.curate.Curator;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 
 /**
@@ -52,31 +51,4 @@ public interface XmlWorkflowCuratorService {
     public boolean doCuration(Context c, XmlWorkflowItem wfi)
             throws AuthorizeException, IOException, SQLException;
 
-    /**
-     * Determines and executes curation of a Workflow item by ID.
-     *
-     * @param curator the curation context
-     * @param c the user context
-     * @param wfId the workflow item's ID
-     * @return true if curation failed.
-     * @throws AuthorizeException if authorization error
-     * @throws IOException if IO error
-     * @throws SQLException if database error
-     */
-    public boolean curate(Curator curator, Context c, String wfId)
-            throws AuthorizeException, IOException, SQLException;
-
-    /**
-     * Determines and executes curation of a Workflow item.
-     *
-     * @param curator the curation context
-     * @param c the user context
-     * @param wfi the workflow item
-     * @return true if curation failed.
-     * @throws AuthorizeException if authorization error
-     * @throws IOException if IO error
-     * @throws SQLException if database error
-     */
-    public boolean curate(Curator curator, Context c, XmlWorkflowItem wfi)
-            throws AuthorizeException, IOException, SQLException;
 }
