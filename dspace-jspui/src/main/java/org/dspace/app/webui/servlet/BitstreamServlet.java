@@ -246,96 +246,104 @@ public class BitstreamServlet extends RangeHeaderSupportServlet
         preProcessBitstreamHome(context, request, response, bitstream);
         
     	InputStream is = null;
+        File scratchFile = null;
+    	try {
     	
-    	boolean isRangeHeader = false;
-    	long contentResourceLength = -1;
-    	String value = request.getHeader(RANGE);
-    	if(StringUtils.isNotBlank(value)) {
-    	    isRangeHeader = true;    
-    	}
-    	
-    	CoverPageService coverService = new DSpace().getSingletonService(CoverPageService.class);
-    	Collection owningColl = item.getOwningCollection();
-    	String collHandle="";
-    	if(owningColl != null) {
-    		collHandle= owningColl.getHandle();
-    	}
-    	String configFile =coverService.getConfigFile(collHandle);
-        if (StringUtils.isNotBlank(configFile)
-                && coverService.canCreateCover(bitstream) )
-        {
-            // Pipe the bits
-            File scratchFile = null;
-            try
-            {
-                CitationDocument citationDocument = new CitationDocument(
-                        configFile);
-                is = citationDocument.makeCitedDocument(context,
-                        bitstream, configFile);
-
-                // copy inputstream to temp file to retrieve length
-                scratchFile = File.createTempFile(String.valueOf(bitstream.getID()), "temp");
-                FileUtils.copyInputStreamToFile(is, scratchFile);
-                // reopen closed stream to read it twice
-                is = FileUtils.openInputStream(scratchFile);
-                contentResourceLength = Long.valueOf(scratchFile.length());
-                scratchFile.delete();
-            }
-            catch (AuthorizeException e)
-            {
-                log.error(e.getMessage(), e);
-                throw e;
-            }
-            catch (Exception e)
-            {
-                log.error(e.getMessage(), e);
-            }
-            finally
-            {
-                if(scratchFile != null && scratchFile.exists()) {
-                    scratchFile.delete();
-                }
-            }
-
-        }
-        
-        if(is == null) {
-        	 is = bitstream.retrieve();
-             contentResourceLength = bitstream.getSize();
-        }
-        
-        // Set the response Content-Length
-        response.setHeader("Content-Length", String.valueOf(contentResourceLength));
-        // Set the response MIME type
-        response.setContentType(bitstream.getFormat().getMIMEType());
-
-
-        if(threshold != -1 && bitstream.getSize() >= threshold)
-        {
-            UIUtil.setBitstreamDisposition(bitstream.getName(), request, response);
-        }
-
-        if(!isRangeHeader) {
-            new DSpace().getEventService().fireEvent(
-                    new UsageEvent(
-                            UsageEvent.Action.VIEW,
-                            request,
-                            context,
-                            bitstream));
-        }
-
-        //DO NOT REMOVE IT - WE NEED TO FREE DB CONNECTION TO AVOID CONNECTION POOL EXHAUSTION FOR BIG FILES AND SLOW DOWNLOADS
-        context.complete();
-
-        if(isRangeHeader) {
-            writePartialContent(request, response, is, contentResourceLength, bitstream.getFormat().getMIMEType());
-        }
-        else {
-            response.setHeader(ACCEPT_RANGES, "bytes");
-            Utils.bufferedCopy(is, response.getOutputStream());
+	    	boolean isRangeHeader = false;
+	    	long contentResourceLength = -1;
+	    	String value = request.getHeader(RANGE);
+	    	if(StringUtils.isNotBlank(value)) {
+	    	    isRangeHeader = true;    
+	    	}
+	    	
+	    	CoverPageService coverService = new DSpace().getSingletonService(CoverPageService.class);
+	    	Collection owningColl = item.getOwningCollection();
+	    	String collHandle="";
+	    	if(owningColl != null) {
+	    		collHandle= owningColl.getHandle();
+	    	}
+	    	String configFile =coverService.getConfigFile(collHandle);
+	        if (StringUtils.isNotBlank(configFile)
+	                && coverService.canCreateCover(bitstream) )
+	        {
+	            // Pipe the bits
+	            try
+	            {
+	                CitationDocument citationDocument = new CitationDocument(
+	                        configFile);
+	                is = citationDocument.makeCitedDocument(context,
+	                        bitstream, configFile);
+	                if (is == null){
+	                    throw new NullPointerException("CitedDocument was null");
+	                }
+	                // copy inputstream to temp file to retrieve length
+	                scratchFile = File.createTempFile(String.valueOf(bitstream.getID()), "temp");
+	                FileUtils.copyInputStreamToFile(is, scratchFile);
+	                
+	                //close the old InputStream before opening a new one
+	                is.close();
+	                // reopen closed stream to read it twice
+	                // the newly opened InputStream references to the tmp file
+	                is = FileUtils.openInputStream(scratchFile);
+	                contentResourceLength = Long.valueOf(scratchFile.length());
+	            }
+	            catch (AuthorizeException e)
+	            {
+	                log.error(e.getMessage(), e);
+	                throw e;
+	            }
+	            catch (Exception e)
+	            {
+	                log.error(e.getMessage(), e);
+	            }
+	        }
+	        
+	        if(is == null) {
+	        	 is = bitstream.retrieve();
+	             contentResourceLength = bitstream.getSize();
+	        }
+	        
+	        // Set the response Content-Length
+	        response.setHeader("Content-Length", String.valueOf(contentResourceLength));
+	        // Set the response MIME type
+	        response.setContentType(bitstream.getFormat().getMIMEType());
+	
+	
+	        if(threshold != -1 && bitstream.getSize() >= threshold)
+	        {
+	            UIUtil.setBitstreamDisposition(bitstream.getName(), request, response);
+	        }
+	
+	        if(!isRangeHeader) {
+	            new DSpace().getEventService().fireEvent(
+	                    new UsageEvent(
+	                            UsageEvent.Action.VIEW,
+	                            request,
+	                            context,
+	                            bitstream));
+	        }
+	
+	        //DO NOT REMOVE IT - WE NEED TO FREE DB CONNECTION TO AVOID CONNECTION POOL EXHAUSTION FOR BIG FILES AND SLOW DOWNLOADS
+	        context.complete();
+	
+	        if(isRangeHeader) {
+	            writePartialContent(request, response, is, contentResourceLength, bitstream.getFormat().getMIMEType());
+	        }
+	        else {
+	            response.setHeader(ACCEPT_RANGES, "bytes");
+	            Utils.bufferedCopy(is, response.getOutputStream());
+	            response.getOutputStream().flush();
+	        }
+    	}finally {
+    		//close InputStream only once all operetions are completed
             is.close();
-            response.getOutputStream().flush();
-        }
+            //Delete the tmp file only once the InputStream is no longer used
+    		if(scratchFile != null && scratchFile.exists()) {
+            	String tmpFileName = scratchFile.getAbsolutePath();
+                boolean isDeleted=scratchFile.delete();
+                log.info("TMP file "+tmpFileName+" deletion successful: "+isDeleted);
+            }
+    	}
     }
     
     private void preProcessBitstreamHome(Context context, HttpServletRequest request,
