@@ -1135,12 +1135,14 @@ public class MetadataImport extends DSpaceRunnable<MetadataImportScriptConfigura
         dcv.setQualifier(qualifier);
         dcv.setLanguage(language);
 
-        String md = String.format("%s_%s", schema, element);
+        final StringBuilder builder = new StringBuilder();
+        builder.append(schema).append("_").append(element);
+
         if (StringUtils.isNotEmpty(qualifier)) {
-            md += "_" + qualifier;
+            builder.append("_").append(qualifier);
         }
 
-        boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(md);
+        boolean isAuthorityControlled = metadataAuthorityService.isAuthorityControlled(builder.toString());
 
         if (fromAuthority != null && isAuthorityControlled) {
             if (value.indexOf(':') > 0) {
