@@ -371,7 +371,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
 
         //Fire an event !
         logWorkflowEvent(context, firstStep.getWorkflow().getID(), null, null, true,
-            wfi, null, firstStep, firstActionConfig, false);
+            wfi, wfi.getItem().getSubmitter(), firstStep, firstActionConfig, false);
 
         //If we don't have a UI then execute the action.
         if (!firstActionConfig.requiresUI()) {
@@ -735,7 +735,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             }
         } catch (MessagingException e) {
             log.warn(LogHelper.getHeader(context, "notifyOfArchive",
-                    "cannot email user" + " item_id=" + item.getID()));
+                    "cannot email user" + " item_id=" + item.getID()), e);
         }
     }
 
@@ -769,7 +769,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
         } catch (MessagingException e) {
             log.warn(LogHelper.getHeader(c, "notifyOfCuration",
                     "cannot email users of workflow_item_id " + wi.getID()
-                            + ":  " + e.getMessage()));
+                            + ":  " + e.getMessage()), e);
         }
     }
 
@@ -1255,7 +1255,7 @@ public class XmlWorkflowServiceImpl implements XmlWorkflowService {
             log.warn(LogHelper.getHeader(c, "notify_of_reject",
                     "cannot email user" + " eperson_id" + e.getID()
                     + " eperson_email" + e.getEmail()
-                    + " workflow_item_id" + wi.getID()));
+                    + " workflow_item_id" + wi.getID()), ex);
         }
     }
 
