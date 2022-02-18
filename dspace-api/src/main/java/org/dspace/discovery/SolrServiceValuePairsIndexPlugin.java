@@ -8,6 +8,7 @@
 package org.dspace.discovery;
 
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
 import static org.dspace.discovery.SearchUtils.AUTHORITY_SEPARATOR;
 import static org.dspace.discovery.SearchUtils.FILTER_SEPARATOR;
 
@@ -111,13 +112,8 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
 
         for (MetadataValue metadataValue : metadataValues) {
 
-            String value = StringUtils.EMPTY;
             String authority = metadataValue.getAuthority();
-            if (StringUtils.isNotBlank(valueListInput.getVocabulary())) {
-                value = getControlledVocabularyValue(metadataValue, language);
-            } else {
-                value = getDisplayValue(valueListInput, metadataValue);
-            }
+            String value = getMetadataValue(metadataValue, valueListInput, language);
 
             for (DiscoverySearchFilter searchFilter : searchFilters) {
                 addDiscoveryFieldFields(language, document, value, authority, searchFilter);
@@ -127,14 +123,35 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
 
     }
 
-    private String getControlledVocabularyValue(MetadataValue metadataValue, String language) {
-        String [] authorityValue = metadataValue.getAuthority().split(":");
-        if (authorityValue.length == 2) {
-            ChoiceAuthority authority = cas.getChoiceAuthorityByAuthorityName(authorityValue[0]);
-            Choice choice = authority.getChoice(authorityValue[1], language);
-            return choice.label;
+    private String getMetadataValue(MetadataValue metadataValue, DCInput valueListInput, String language) {
+        if (valueListInput.isControlledVocabulary() && isNotBlank(metadataValue.getAuthority())) {
+            return getControlledVocabularyValue(metadataValue, language);
+        } else {
+            return getDisplayValue(valueListInput, metadataValue);
         }
-        return StringUtils.EMPTY;
+    }
+
+    private String getControlledVocabularyValue(MetadataValue metadataValue, String language) {
+        String value = metadataValue.getValue();
+        String authority = metadataValue.getAuthority();
+
+        if (StringUtils.isBlank(authority)) {
+            return value;
+        }
+
+        String [] authorityValue = metadataValue.getAuthority().split(":");
+        if (authorityValue.length != 2) {
+            return value;
+        }
+
+        try {
+            ChoiceAuthority choiceAuthority = cas.getChoiceAuthorityByAuthorityName(authorityValue[0]);
+            Choice choice = choiceAuthority.getChoice(authorityValue[1], language);
+            return choice != null ? choice.label : value;
+        } catch (IllegalArgumentException ex) {
+            LOGGER.warn("An error occurs getting controlled vocabulary value: " + getRootCauseMessage(ex));
+            return value;
+        }
     }
 
     private void addDiscoveryFieldFields(String language, SolrInputDocument document, String value, String authority,
@@ -154,7 +171,6 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
         if (document.containsKey(searchFilter.getIndexFieldName() + "_authority")) {
             document.addField(fieldNameWithLanguage + "_authority", authority);
         }
-
     }
 
     private String appendAuthorityIfNotBlank(String fieldValue, String authority) {
