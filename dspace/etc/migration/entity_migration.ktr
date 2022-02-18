@@ -1893,10 +1893,14 @@ WHERE property_def.id = properties.typo_id
   AND values.id = properties.value_id
   AND properties.parent_id = entity.id  
   AND entity.crisid = ?
-  AND property_def.shortname = 'title';</sql>
+  AND (property_def.shortname = 'title' OR property_def.shortname = CONCAT(REGEXP_REPLACE(? ,'[[:digit:]]','','g'),'name'));</sql>
     <outer_join>N</outer_join>
     <replace_vars>Y</replace_vars>
     <parameter>
+      <field>
+        <name>pointer_crisid</name>
+        <type>String</type>
+      </field>
       <field>
         <name>pointer_crisid</name>
         <type>String</type>
