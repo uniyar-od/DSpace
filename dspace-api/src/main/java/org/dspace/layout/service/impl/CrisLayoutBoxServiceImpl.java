@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
@@ -157,8 +158,8 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             case "ORCID_AUTHORIZATIONS":
                 return hasOrcidAuthorizationsBoxContent(context, box, values);
             case "IIIFVIEWER":
-                return itemService.getMetadataFirstValue(item, new MetadataFieldName("dspace.iiif.enabled"),
-                    Item.ANY).equals("true");
+                return BooleanUtils.toBoolean(itemService.getMetadataFirstValue(item,
+                        new MetadataFieldName("dspace.iiif.enabled"), Item.ANY));
             case "METADATA":
             default:
                 return hasMetadataBoxContent(box, values);

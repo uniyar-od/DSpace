@@ -29,8 +29,10 @@ import org.dspace.app.metrics.CrisMetrics;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
@@ -74,6 +76,9 @@ public class CrisLayoutBoxServiceImplTest {
 
     @Mock
     private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
+
+    @Mock
+    private ItemService itemService;
 
     @Test
     public void testHasContentWithMetadataBox() {
@@ -352,13 +357,44 @@ public class CrisLayoutBoxServiceImplTest {
 
         when(context.getCurrentUser()).thenReturn(null);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("cris", "owner", "");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_QUEUE");
 
         assertFalse(crisLayoutBoxService.hasContent(context, box, item));
 
+    }
+
+    @Test
+    public void testIiifBoxHasContentWithMetadataTrue() {
+        Item item = item();
+
+        when(itemService.getMetadataFirstValue(item, new MetadataFieldName("dspace", "iiif", "enabled"),
+        Item.ANY)).thenReturn("true");
+
+        CrisLayoutBox box = crisLayoutBox("Box", "IIIFVIEWER");
+
+        assertTrue(crisLayoutBoxService.hasContent(context, box, item));
+    }
+
+    @Test public void testIiifBoxHasNoContentWithMetadataFalse() {
+        Item item = item();
+
+        when(itemService.getMetadataFirstValue(item, new MetadataFieldName("dspace", "iiif", "enabled"),
+        Item.ANY)).thenReturn("false");
+
+        CrisLayoutBox box = crisLayoutBox("Box", "IIIFVIEWER");
+
+        assertFalse(crisLayoutBoxService.hasContent(context, box, item));
+    }
+
+    @Test public void testIiifBoxHasNoContentWithMetadataUndefined() {
+        Item item = item();
+
+        CrisLayoutBox box = crisLayoutBox("Box", "IIIFVIEWER");
+
+        assertFalse(crisLayoutBoxService.hasContent(context, box, item));
     }
 
     private CrisLayoutBox crisLayoutMetadataBox(String shortname, MetadataField... metadataFields) {
