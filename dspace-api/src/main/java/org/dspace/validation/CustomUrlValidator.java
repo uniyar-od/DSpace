@@ -64,6 +64,8 @@ public class CustomUrlValidator implements SubmissionStepValidator {
         Optional<String> customUrl = customUrlService.getCustomUrl(item);
         if (customUrl.isPresent()) {
             errors.addAll(validateUrl(context, item, customUrl.get(), config));
+        } else if (config.isMandatory()) {
+            errors.addAll(urlValidationError(ERROR_VALIDATION_EMPTY, config));
         }
 
         return errors;

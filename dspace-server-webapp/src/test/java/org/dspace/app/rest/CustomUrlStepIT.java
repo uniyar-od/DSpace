@@ -11,9 +11,9 @@ import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -190,9 +190,8 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
                 .content(getPatchContent(List.of(replaceOperation)))
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.custom-url.empty')]",
-                contains(hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/custom-url/url")))))))
-            .andExpect(jsonPath("$.sections.custom-url.url", emptyString()))
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", nullValue()))
             .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotExist());
 
     }

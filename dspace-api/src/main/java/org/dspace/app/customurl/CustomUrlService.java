@@ -74,6 +74,14 @@ public interface CustomUrlService {
     void addOldCustomUrl(Context context, Item item, String url);
 
     /**
+     * Remove the custom url from the given item.
+     *
+     * @param context the DSpace context.
+     * @param item    the item
+     */
+    void deleteCustomUrl(Context context, Item item);
+
+    /**
      * Remove all the old custom urls from the given item.
      *
      * @param context the DSpace context.

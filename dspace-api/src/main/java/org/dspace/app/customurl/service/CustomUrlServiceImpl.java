@@ -96,6 +96,15 @@ public class CustomUrlServiceImpl implements CustomUrlService {
     }
 
     @Override
+    public void deleteCustomUrl(Context context, Item item) {
+        try {
+            itemService.clearMetadata(context, item, "cris", "customurl", null, ANY);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    @Override
     public void deleteAllOldCustomUrls(Context context, Item item) {
         try {
             itemService.clearMetadata(context, item, "cris", "customurl", "old", ANY);

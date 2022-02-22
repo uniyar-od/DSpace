@@ -7,6 +7,8 @@
  */
 package org.dspace.app.rest.submit.factory.impl;
 
+import static org.apache.commons.lang3.StringUtils.isBlank;
+
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 
@@ -42,9 +44,19 @@ public class CustomUrlReplaceOperation extends ReplacePatchOperation<CustomUrl> 
             return;
         }
 
+        if (currentUrl.isPresent() && isBlank(newUrl) && isNotYetDeposited(item)) {
+            customUrlService.deleteCustomUrl(context, item);
+            customUrlService.deleteAllOldCustomUrls(context, item);
+            return;
+        }
+
         customUrlService.deleteAnyOldCustomUrlEqualsTo(context, item, newUrl);
         customUrlService.replaceCustomUrl(context, item, newUrl);
 
+    }
+
+    private boolean isNotYetDeposited(Item item) {
+        return !item.isArchived() && !item.isWithdrawn();
     }
 
     @Override
