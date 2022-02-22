@@ -59,6 +59,8 @@ public class EmbeddableAltmetricsProviderTest {
         provider.pmidField = "pmidField";
         provider.popover = "popover";
         provider.badgeType = "badgeType";
+        provider.listBadgeType = "listBadgeType";
+        provider.listPopOver = "listPopOver";
 
         fieldValueList = new ArrayList<MetadataValue>();
         MetadataValue value = mock(MetadataValue.class);
@@ -79,9 +81,9 @@ public class EmbeddableAltmetricsProviderTest {
 
         String innerHtml = provider.innerHtml(context, item);
 
-        assertEquals(innerHtml, "{\"popover\":\"popover\",\"badgeType\":" +
-                "\"badgeType\",\"doiAttr\":\"calculatedDoi\",\"pmidAttr\":\"calculatedPmid\"}");
-
+        assertEquals("{\"popover\":\"popover\",\"badgeType\":" +
+                "\"badgeType\",\"doiAttr\":\"calculatedDoi\",\"pmidAttr\":\"calculatedPmid\"," +
+                         "\"list-badgeType\":\"listBadgeType\",\"list-popover\":\"listPopOver\"}", innerHtml);
     }
 
     @Test

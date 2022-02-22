@@ -25,9 +25,9 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
 
     protected String pmidDataAttr;
 
-    protected String badgeType = "medium-donut";
+    protected String badgeType;
 
-    protected String popover = "bottom";
+    protected String popover;
 
     private String details;
 
@@ -36,6 +36,10 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
     private Boolean hideNoMentions;
 
     private String linkTarget;
+
+    protected String listBadgeType;
+
+    protected String listPopOver;
 
     @Override
     public String innerHtml(Context context, Item item) {
@@ -46,6 +50,8 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
         jsonObject.addProperty("badgeType", this.badgeType);
         jsonObject.addProperty("doiAttr", doiAttr);
         jsonObject.addProperty("pmidAttr", pmidAtt);
+        jsonObject.addProperty("list-badgeType", this.listBadgeType);
+        jsonObject.addProperty("list-popover", this.listPopOver);
         return jsonObject.toString();
     }
 
@@ -144,5 +150,13 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
     public void setPmidDataAttr(String pmidDataAttr) {
         this.pmidDataAttr = pmidDataAttr;
     }
+
+    public String getListBadgeType() { return listBadgeType; }
+
+    public void setListBadgeType(String listBadgeType) { this.listBadgeType = listBadgeType; }
+
+    public String getListPopOver() { return listPopOver; }
+
+    public void setListPopOver(String listPopOver) { this.listPopOver = listPopOver; }
 
 }
