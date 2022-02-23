@@ -45,6 +45,15 @@ public class EmbeddablePlumXMetricProviderTest {
         when(provider.getEntityType(any())).thenCallRealMethod();
         when(provider.hasMetric(any(), any(), any())).thenCallRealMethod();
         when(provider.getItemService()).thenReturn(itemService);
+
+        provider.personPlumXScript = "//cdn.plu.mx/widget-person.js";
+        provider.publicationPlumXScript = "//cdn.plu.mx/widget-popup.js";
+        provider.publicationHref = "https://plu.mx/plum/a/";
+        provider.personHref = "https://plu.mx/plum/u/";
+        provider.dataLang = "en";
+        provider.dataNumArtifacts = 5;
+        provider.dataWidth = "350px";
+        provider.dataPopup = "left";
     }
 
     @Test
@@ -95,7 +104,15 @@ public class EmbeddablePlumXMetricProviderTest {
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Person");
         String template = provider.innerHtml(context, item);
         JsonObject verificationJson = new JsonObject();
-        assertEquals(template, "{\"type\":\"Person\",\"src\":\"//cdn.plu.mx/widget-person.js\",\"href\":\"https://plu.mx/plum/u/?orcid=" + provider.orcid + "\"}");
+
+        assertEquals("{\"type\":\"Person\",\"src\":\"//cdn.plu.mx/widget-person.js\",\"href\":\"https://plu" +
+                         ".mx/plum/u/?orcid=0000-0002-9029-1854\",\"data-lang\":\"en\",\"data-no-name\":false," +
+                         "\"data-num-artifacts\":5,\"data-width\":\"350px\",\"data-no-description\":false," +
+                         "\"data-no-stats\":false,\"data-no-thumbnail\":false,\"data-no-artifacts\":false," +
+                         "\"data-popup\":\"left\",\"data-hide-when-empty\":false,\"data-hide-usage\":false," +
+                         "\"data-hide-captures\":false,\"data-hide-mentions\":false,\"data-hide-socialmedia\":false," +
+                         "\"data-hide-citations\":false,\"data-pass-hidden-categories\":false," +
+                         "\"data-detail-same-page\":false}", template);
     }
 
     @Test
@@ -103,6 +120,14 @@ public class EmbeddablePlumXMetricProviderTest {
         provider.doiIdentifier = "10.1016/j.gene.2009.04.019";
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Publication");
         String template = provider.innerHtml(context, item);
-        assertEquals(template, "{\"type\":\"Publication\",\"src\":\"//cdn.plu.mx/widget-popup.js\",\"href\":\"https://plu.mx/plum/a/?doi=" + provider.doiIdentifier + "\"}");
+
+        assertEquals("{\"type\":\"Publication\",\"src\":\"//cdn.plu.mx/widget-popup.js\",\"href\":\"https://plu" +
+                         ".mx/plum/a/?doi=10.1016/j.gene.2009.04.019\",\"data-lang\":\"en\",\"data-no-name\":false," +
+                         "\"data-num-artifacts\":5,\"data-width\":\"350px\",\"data-no-description\":false," +
+                         "\"data-no-stats\":false,\"data-no-thumbnail\":false,\"data-no-artifacts\":false," +
+                         "\"data-popup\":\"left\",\"data-hide-when-empty\":false,\"data-hide-usage\":false," +
+                         "\"data-hide-captures\":false,\"data-hide-mentions\":false,\"data-hide-socialmedia\":false," +
+                         "\"data-hide-citations\":false,\"data-pass-hidden-categories\":false," +
+                         "\"data-detail-same-page\":false}", template);
     }
 }

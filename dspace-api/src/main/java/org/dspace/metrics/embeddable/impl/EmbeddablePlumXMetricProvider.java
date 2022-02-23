@@ -29,49 +29,49 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
     /**
      * Script to render widget for publication
      */
-    private String publicationPlumXScript;
+    protected String publicationPlumXScript;
     /**
      * Href link for publication researches
      */
-    private String publicationHref;
+    protected String publicationHref;
     /**
      * Href link for persons
      */
-    private String personHref;
+    protected String personHref;
 
-    private String dataLang;
+    protected String dataLang;
 
-    private boolean dataNoName;
+    protected boolean dataNoName;
 
-    private int dataNumArtifacts;
+    protected int dataNumArtifacts;
 
-    private String dataWidth;
+    protected String dataWidth;
 
-    private boolean dataNoDescription;
+    protected boolean dataNoDescription;
 
-    private boolean dataNoStats;
+    protected boolean dataNoStats;
 
-    private boolean dataNoThumbnail;
+    protected boolean dataNoThumbnail;
 
-    private boolean dataNoArtifacts;
+    protected boolean dataNoArtifacts;
 
-    private String dataPopup;
+    protected String dataPopup;
 
-    private boolean dataHideWhenEmpty;
+    protected boolean dataHideWhenEmpty;
 
-    private boolean dataHideUsage;
+    protected boolean dataHideUsage;
 
-    private boolean dataHideCaptures;
+    protected boolean dataHideCaptures;
 
-    private boolean dataHideMentions;
+    protected boolean dataHideMentions;
 
-    private boolean dataHideSocialMedia;
+    protected boolean dataHideSocialMedia;
 
-    private boolean dataHideCitations;
+    protected boolean dataHideCitations;
 
-    private boolean dataPassHiddenCategories;
+    protected boolean dataPassHiddenCategories;
 
-    private boolean dataDetailSamePage;
+    protected boolean dataDetailSamePage;
 
     @Autowired
     private ItemService itemService;
