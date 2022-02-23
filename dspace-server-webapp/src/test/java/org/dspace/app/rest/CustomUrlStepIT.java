@@ -600,4 +600,32 @@ public class CustomUrlStepIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Test
+    public void testSectionRemove() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+            .withTitle("Test WorkspaceItem")
+            .withIssueDate("2020")
+            .withCustomUrl("my-custom-url")
+            .withOldCustomUrl("old-url-1")
+            .withOldCustomUrl("old-url-2")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        Operation removeOperation = new RemoveOperation("/sections/custom-url");
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(patch("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .content(getPatchContent(List.of(removeOperation)))
+                .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.sections.custom-url.url", nullValue()))
+            .andExpect(jsonPath("$.sections.custom-url.redirected-urls").doesNotExist());
+
+    }
+
 }

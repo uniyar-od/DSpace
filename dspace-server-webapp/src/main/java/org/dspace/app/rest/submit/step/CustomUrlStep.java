@@ -8,6 +8,7 @@
 package org.dspace.app.rest.submit.step;
 
 import static java.util.Optional.of;
+import static org.dspace.app.rest.repository.patch.operation.PatchOperation.OPERATION_REMOVE;
 
 import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
@@ -59,14 +60,14 @@ public class CustomUrlStep extends AbstractProcessingStep {
         String path = op.getPath();
         String stepId = stepConf.getId();
 
-        PatchOperation<?> patchOperation = calculatePatchOperation(op)
+        PatchOperation<?> patchOperation = calculatePatchOperation(op, stepId)
             .orElseThrow(() -> new UnprocessableEntityException("Path " + path + " not supported by step " + stepId));
 
         patchOperation.perform(context, currentRequest, source, op);
 
     }
 
-    private Optional<PatchOperation<?>> calculatePatchOperation(Operation operation) {
+    private Optional<PatchOperation<?>> calculatePatchOperation(Operation operation, String stepId) {
 
         PatchOperationFactory patchOperationFactory = new PatchOperationFactory();
         String operationName = operation.getOp();
@@ -79,7 +80,20 @@ public class CustomUrlStep extends AbstractProcessingStep {
             return of(patchOperationFactory.instanceOf(CUSTOM_URL_STEP_REDIRECTED_URL_OPERATION_ENTRY, operationName));
         }
 
+        if (isRemoveOperation(operation) && isWholeSectionPath(operation, stepId)) {
+            return of(patchOperationFactory.instanceOf(CUSTOM_URL_STEP_URL_OPERATION_ENTRY, operationName));
+        }
+
         return Optional.empty();
+    }
+
+    private boolean isWholeSectionPath(Operation operation, String stepId) {
+        String operationPath = operation.getPath();
+        return operationPath.endsWith(stepId + "/") || operationPath.endsWith(stepId);
+    }
+
+    private boolean isRemoveOperation(Operation operation) {
+        return OPERATION_REMOVE.equalsIgnoreCase(operation.getOp());
     }
 
 
