@@ -13,7 +13,6 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import com.google.gson.JsonObject;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -54,6 +53,9 @@ public class EmbeddablePlumXMetricProviderTest {
         provider.dataNumArtifacts = 5;
         provider.dataWidth = "350px";
         provider.dataPopup = "left";
+        provider.listDataLang = "en";
+        provider.listDataWidth = "350px";
+        provider.listDataPopup = "left";
     }
 
     @Test
@@ -103,16 +105,24 @@ public class EmbeddablePlumXMetricProviderTest {
         provider.orcid = "0000-0002-9029-1854";
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Person");
         String template = provider.innerHtml(context, item);
-        JsonObject verificationJson = new JsonObject();
 
         assertEquals("{\"type\":\"Person\",\"src\":\"//cdn.plu.mx/widget-person.js\",\"href\":\"https://plu" +
-                         ".mx/plum/u/?orcid=0000-0002-9029-1854\",\"data-lang\":\"en\",\"data-no-name\":false," +
-                         "\"data-num-artifacts\":5,\"data-width\":\"350px\",\"data-no-description\":false," +
-                         "\"data-no-stats\":false,\"data-no-thumbnail\":false,\"data-no-artifacts\":false," +
-                         "\"data-popup\":\"left\",\"data-hide-when-empty\":false,\"data-hide-usage\":false," +
-                         "\"data-hide-captures\":false,\"data-hide-mentions\":false,\"data-hide-socialmedia\":false," +
-                         "\"data-hide-citations\":false,\"data-pass-hidden-categories\":false," +
-                         "\"data-detail-same-page\":false}", template);
+                         ".mx/plum/u/?orcid=0000-0002-9029-1854\",\"list-src\":\"//cdn.plu.mx/widget-person.js\"," +
+                         "\"list-href\":\"https://plu.mx/plum/u/?orcid=0000-0002-9029-1854\",\"data-lang\":\"en\"," +
+                         "\"data-no-name\":false,\"data-num-artifacts\":5,\"data-width\":\"350px\"," +
+                         "\"data-no-description\":false,\"data-no-stats\":false,\"data-no-thumbnail\":false," +
+                         "\"data-no-artifacts\":false,\"data-popup\":\"left\",\"data-hide-when-empty\":false," +
+                         "\"data-hide-usage\":false,\"data-hide-captures\":false,\"data-hide-mentions\":false," +
+                         "\"data-hide-socialmedia\":false,\"data-hide-citations\":false," +
+                         "\"data-pass-hidden-categories\":false,\"data-detail-same-page\":false," +
+                         "\"list-data-lang\":\"en\",\"list-data-no-name\":false,\"list-data-num-artifacts\":0," +
+                         "\"list-data-width\":\"350px\",\"list-data-no-description\":false," +
+                         "\"list-data-no-stats\":false,\"list-data-no-thumbnail\":false," +
+                         "\"list-data-no-artifacts\":false,\"list-data-popup\":\"left\"," +
+                         "\"list-data-hide-when-empty\":false,\"list-data-hide-usage\":false," +
+                         "\"list-data-hide-captures\":false,\"list-data-hide-mentions\":false," +
+                         "\"list-data-hide-socialmedia\":false,\"list-data-hide-citations\":false," +
+                         "\"list-data-pass-hidden-categories\":false,\"list-data-detail-same-page\":false}", template);
     }
 
     @Test
@@ -122,12 +132,21 @@ public class EmbeddablePlumXMetricProviderTest {
         String template = provider.innerHtml(context, item);
 
         assertEquals("{\"type\":\"Publication\",\"src\":\"//cdn.plu.mx/widget-popup.js\",\"href\":\"https://plu" +
-                         ".mx/plum/a/?doi=10.1016/j.gene.2009.04.019\",\"data-lang\":\"en\",\"data-no-name\":false," +
-                         "\"data-num-artifacts\":5,\"data-width\":\"350px\",\"data-no-description\":false," +
-                         "\"data-no-stats\":false,\"data-no-thumbnail\":false,\"data-no-artifacts\":false," +
-                         "\"data-popup\":\"left\",\"data-hide-when-empty\":false,\"data-hide-usage\":false," +
-                         "\"data-hide-captures\":false,\"data-hide-mentions\":false,\"data-hide-socialmedia\":false," +
-                         "\"data-hide-citations\":false,\"data-pass-hidden-categories\":false," +
-                         "\"data-detail-same-page\":false}", template);
+                         ".mx/plum/a/?doi=10.1016/j.gene.2009.04.019\",\"list-src\":\"//cdn.plu.mx/widget-popup.js\"," +
+                         "\"list-href\":\"https://plu.mx/plum/a/?doi=10.1016/j.gene.2009.04.019\"," +
+                         "\"data-lang\":\"en\",\"data-no-name\":false,\"data-num-artifacts\":5," +
+                         "\"data-width\":\"350px\",\"data-no-description\":false,\"data-no-stats\":false," +
+                         "\"data-no-thumbnail\":false,\"data-no-artifacts\":false,\"data-popup\":\"left\"," +
+                         "\"data-hide-when-empty\":false,\"data-hide-usage\":false,\"data-hide-captures\":false," +
+                         "\"data-hide-mentions\":false,\"data-hide-socialmedia\":false,\"data-hide-citations\":false," +
+                         "\"data-pass-hidden-categories\":false,\"data-detail-same-page\":false," +
+                         "\"list-data-lang\":\"en\",\"list-data-no-name\":false,\"list-data-num-artifacts\":0," +
+                         "\"list-data-width\":\"350px\",\"list-data-no-description\":false," +
+                         "\"list-data-no-stats\":false,\"list-data-no-thumbnail\":false," +
+                         "\"list-data-no-artifacts\":false,\"list-data-popup\":\"left\"," +
+                         "\"list-data-hide-when-empty\":false,\"list-data-hide-usage\":false," +
+                         "\"list-data-hide-captures\":false,\"list-data-hide-mentions\":false," +
+                         "\"list-data-hide-socialmedia\":false,\"list-data-hide-citations\":false," +
+                         "\"list-data-pass-hidden-categories\":false,\"list-data-detail-same-page\":false}", template);
     }
 }

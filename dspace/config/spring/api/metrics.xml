@@ -108,6 +108,24 @@
         <property name="dataHideCitations" value="${plumx.data-hide-citations:#{false}}" />
         <property name="dataPassHiddenCategories" value="${plumx.data-pass-hidden-categories:#{false}}" />
         <property name="dataDetailSamePage" value="${plumx.data-detail-same-page:#{false}}" />
+
+        <property name="listDataLang" value="${plumx.list-data-lang:#{'en'}}" />
+        <property name="listDataNoName" value="${plumx.list-data-no-name:#{false}}" />
+        <property name="listDataNumArtifacts" value="${plumx.list-data-num-artifacts:#{5}}" />
+        <property name="listDataWidth" value="${plumx.list-data-width:#{'350px'}}" />
+        <property name="listDataNoDescription" value="${plumx.list-data-no-description:#{false}}" />
+        <property name="listDataNoStats" value="${plumx.list-data-no-stats:#{false}}" />
+        <property name="listDataNoThumbnail" value="${plumx.list-data-no-thumbnail:#{false}}" />
+        <property name="listDataNoArtifacts" value="${plumx.list-data-no-artifacts:#{false}}" />
+        <property name="listDataPopup" value="${plumx.list-data-popup:#{'left'}}" />
+        <property name="listDataHideWhenEmpty" value="${plumx.list-data-hide-when-empty:#{true}}" />
+        <property name="listDataHideUsage" value="${plumx.list-data-hide-usage:#{false}}" />
+        <property name="listDataHideCaptures" value="${plumx.list-data-hide-captures:#{false}}" />
+        <property name="listDataHideMentions" value="${plumx.list-data-hide-mentions:#{false}}" />
+        <property name="listDataHideSocialMedia" value="${plumx.list-data-hide-socialmedia:#{false}}" />
+        <property name="listDataHideCitations" value="${plumx.list-data-hide-citations:#{false}}" />
+        <property name="listDataPassHiddenCategories" value="${plumx.list-data-pass-hidden-categories:#{false}}" />
+        <property name="listDataDetailSamePage" value="${plumx.list-data-detail-same-page:#{false}}" />
     </bean>
 
     <bean class="org.dspace.metrics.embeddable.impl.EmbeddableDimensionsMetricProvider">
@@ -118,6 +136,9 @@
         <property name="dataLegend" value="${dimensions.data-legend:#{'hover-right'}}" />
         <property name="dataStyle" value="${dimensions.data-style:#{'small_circle'}}" />
         <property name="badgeInstalled" value="${dimensions.data-dimensions-badge-installed:#{true}}" />
+        <property name="listDataLegend" value="${dimensions.list-data-legend:#{'hover-right'}}" />
+        <property name="listDataStyle" value="${dimensions.list-data-style:#{'small_circle'}}" />
+        <property name="listBadgeInstalled" value="${dimensions.list-data-dimensions-badge-installed:#{true}}" />
         <property name="doiField" value="${dimensions.doiField}" />
         <property name="pmidField" value="${dimensions.pmidField}" />
     </bean>

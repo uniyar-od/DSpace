@@ -45,6 +45,8 @@ public class EmbeddableDimensionsMetricProviderTest {
 
         provider.dataStyle = "small_circle";
         provider.dataLegend = "hover-right";
+        provider.listDataStyle = "list-small_circle";
+        provider.listDataLegend = "list-hover-right";
         provider.doiField = "dc.identifier.doi";
         provider.pmidField = "dc.identifier.pmid";
         provider.badgeInstalled = true;
@@ -56,7 +58,9 @@ public class EmbeddableDimensionsMetricProviderTest {
 
         assertEquals("{\"data-legend\":\"hover-right\",\"data-style\":\"small_circle\"," +
                          "\"data-dimensions-badge-installed\":true,\"data-doi\":\"doi-test\"," +
-                         "\"data-pmid\":\"pmid-test\"}", innerHtml);
+                         "\"data-pmid\":\"pmid-test\",\"list-data-legend\":\"list-hover-right\"," +
+                         "\"list-data-style\":\"list-small_circle\",\"list-data-dimensions-badge-installed\":false," +
+                         "\"list-data-doi\":\"doi-test\",\"list-data-pmid\":\"pmid-test\"}", innerHtml);
     }
 
 }

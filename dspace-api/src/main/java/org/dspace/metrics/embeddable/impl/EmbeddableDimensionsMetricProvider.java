@@ -30,17 +30,30 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
 
     protected String pmidField;
 
+    protected String listDataLegend;
+
+    protected String listDataStyle;
+
+    protected boolean listBadgeInstalled;
+
     @Override
     public String innerHtml(Context context, Item item) {
         String doiValue = getValueFromMetadataField(item, doiField);
         String pmidValue = getValueFromMetadataField(item, pmidField);
 
         JsonObject jsonObject = new JsonObject();
+
         jsonObject.addProperty("data-legend", this.dataLegend);
         jsonObject.addProperty("data-style", this.dataStyle);
         jsonObject.addProperty("data-dimensions-badge-installed", this.badgeInstalled);
         jsonObject.addProperty("data-doi", doiValue);
         jsonObject.addProperty("data-pmid", pmidValue);
+
+        jsonObject.addProperty("list-data-legend", this.listDataLegend);
+        jsonObject.addProperty("list-data-style", this.listDataStyle);
+        jsonObject.addProperty("list-data-dimensions-badge-installed", this.listBadgeInstalled);
+        jsonObject.addProperty("list-data-doi", doiValue);
+        jsonObject.addProperty("list-data-pmid", pmidValue);
 
         return jsonObject.toString();
     }
@@ -62,43 +75,36 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
         return "";
     }
 
-    public String getDataLegend() {
-        return dataLegend;
-    }
-
     public void setDataLegend(String dataLegend) {
         this.dataLegend = dataLegend;
-    }
-
-    public String getDataStyle() {
-        return dataStyle;
     }
 
     public void setDataStyle(String dataStyle) {
         this.dataStyle = dataStyle;
     }
 
-    public String getDoiField() {
-        return doiField;
-    }
-
     public void setDoiField(String doiField) {
         this.doiField = doiField;
-    }
-
-    public String getPmidField() {
-        return pmidField;
     }
 
     public void setPmidField(String pmidField) {
         this.pmidField = pmidField;
     }
 
-    public boolean getBadgeInstalled() {
-        return badgeInstalled;
-    }
-
     public void setBadgeInstalled(boolean badgeInstalled) {
         this.badgeInstalled = badgeInstalled;
     }
+
+    public void setListDataLegend(String listDataLegend) {
+        this.listDataLegend = listDataLegend;
+    }
+
+    public void setListDataStyle(String listDataStyle) {
+        this.listDataStyle = listDataStyle;
+    }
+
+    public void setListBadgeInstalled(boolean listBadgeInstalled) {
+        this.listBadgeInstalled = listBadgeInstalled;
+    }
+
 }
