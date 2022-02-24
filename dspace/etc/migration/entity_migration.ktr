@@ -543,11 +543,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>valid metadata field</from>
-      <to>add order</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Select values 2</from>
       <to>append metadata</to>
       <enabled>Y</enabled>
@@ -568,11 +563,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>add order</from>
-      <to>set null metadata authority</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>set null metadata authority</from>
       <to>Select values 2</to>
       <enabled>Y</enabled>
@@ -580,11 +570,6 @@
     <hop>
       <from>Get pointer cris id</from>
       <to>Get related entity title</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Get related entity title</from>
-      <to>add order 3</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -645,11 +630,6 @@
     <hop>
       <from>is date or text or boolean or link</from>
       <to>calculate metadata value</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>add order 3</from>
-      <to>Calculate will be referenced authority</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -853,11 +833,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Sort rows</from>
-      <to>is date or text or boolean or link</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>is Person</from>
       <to>Get eperson</to>
       <enabled>Y</enabled>
@@ -1025,6 +1000,26 @@
     <hop>
       <from>Sort position</from>
       <to>Join rows 4</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Sort rows</from>
+      <to>add order 4</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>add order 4</from>
+      <to>is date or text or boolean or link</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>valid metadata field</from>
+      <to>set null metadata authority</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get related entity title</from>
+      <to>Calculate will be referenced authority</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -1463,6 +1458,33 @@
     </GUI>
   </step>
   <step>
+    <name>Append Nested</name>
+    <type>Append</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <head_name>entities nested metadata</head_name>
+    <tail_name>Select values 6</tail_name>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>240</xloc>
+      <yloc>880</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
     <name>Append cris owner</name>
     <type>Append</type>
     <description/>
@@ -1594,33 +1616,6 @@
     <GUI>
       <xloc>608</xloc>
       <yloc>960</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>Append Nested</name>
-    <type>Append</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <head_name>entities nested metadata</head_name>
-    <tail_name>Select values 6</tail_name>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>240</xloc>
-      <yloc>880</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -3393,6 +3388,56 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
+    <name>Sort position</name>
+    <type>SortRows</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <directory>%%java.io.tmpdir%%</directory>
+    <prefix>out</prefix>
+    <sort_size>1000000</sort_size>
+    <free_memory/>
+    <compress>N</compress>
+    <compress_variable/>
+    <unique_rows>N</unique_rows>
+    <fields>
+      <field>
+        <name>positiondef</name>
+        <ascending>N</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+      <field>
+        <name>nested_object_id</name>
+        <ascending>N</ascending>
+        <case_sensitive>N</case_sensitive>
+        <collator_enabled>N</collator_enabled>
+        <collator_strength>0</collator_strength>
+        <presorted>N</presorted>
+      </field>
+    </fields>
+    <attributes/>
+    <cluster_schema/>
+    <remotesteps>
+      <input>
+      </input>
+      <output>
+      </output>
+    </remotesteps>
+    <GUI>
+      <xloc>288</xloc>
+      <yloc>800</yloc>
+      <draw>Y</draw>
+    </GUI>
+  </step>
+  <step>
     <name>Sort rows</name>
     <type>SortRows</type>
     <description/>
@@ -3822,48 +3867,6 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
-    <name>add order</name>
-    <type>FieldsChangeSequence</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <start>0</start>
-    <increment>1</increment>
-    <resultfieldName>metadata_order</resultfieldName>
-    <fields>
-      <field>
-        <name>schema</name>
-      </field>
-      <field>
-        <name>element</name>
-      </field>
-      <field>
-        <name>qualifier</name>
-      </field>
-      <field>
-        <name>parent_id</name>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>624</xloc>
-      <yloc>1200</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
     <name>add order 2</name>
     <type>FieldsChangeSequence</type>
     <description/>
@@ -3902,48 +3905,6 @@ WHERE property_def.id = properties.typo_id
     <GUI>
       <xloc>1744</xloc>
       <yloc>1248</yloc>
-      <draw>Y</draw>
-    </GUI>
-  </step>
-  <step>
-    <name>add order 3</name>
-    <type>FieldsChangeSequence</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <start>0</start>
-    <increment>1</increment>
-    <resultfieldName>metadata_order</resultfieldName>
-    <fields>
-      <field>
-        <name>schema</name>
-      </field>
-      <field>
-        <name>element</name>
-      </field>
-      <field>
-        <name>qualifier</name>
-      </field>
-      <field>
-        <name>parent_id</name>
-      </field>
-    </fields>
-    <attributes/>
-    <cluster_schema/>
-    <remotesteps>
-      <input>
-      </input>
-      <output>
-      </output>
-    </remotesteps>
-    <GUI>
-      <xloc>512</xloc>
-      <yloc>1744</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
@@ -7629,7 +7590,7 @@ ORDER BY parent_id ASC;
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <send_true_to>add order</send_true_to>
+    <send_true_to>set null metadata authority</send_true_to>
     <send_false_to/>
     <compare>
       <condition>
@@ -7728,8 +7689,8 @@ ORDER BY parent_id ASC;
     </GUI>
   </step>
   <step>
-    <name>Sort position</name>
-    <type>SortRows</type>
+    <name>add order 4</name>
+    <type>FieldsChangeSequence</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -7738,29 +7699,21 @@ ORDER BY parent_id ASC;
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <directory>%%java.io.tmpdir%%</directory>
-    <prefix>out</prefix>
-    <sort_size>1000000</sort_size>
-    <free_memory/>
-    <compress>N</compress>
-    <compress_variable/>
-    <unique_rows>N</unique_rows>
+    <start>0</start>
+    <increment>1</increment>
+    <resultfieldName>metadata_order</resultfieldName>
     <fields>
       <field>
-        <name>positiondef</name>
-        <ascending>N</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
+        <name>schema</name>
       </field>
       <field>
-        <name>nested_object_id</name>
-        <ascending>N</ascending>
-        <case_sensitive>N</case_sensitive>
-        <collator_enabled>N</collator_enabled>
-        <collator_strength>0</collator_strength>
-        <presorted>N</presorted>
+        <name>element</name>
+      </field>
+      <field>
+        <name>qualifier</name>
+      </field>
+      <field>
+        <name>parent_id</name>
       </field>
     </fields>
     <attributes/>
@@ -7772,8 +7725,8 @@ ORDER BY parent_id ASC;
       </output>
     </remotesteps>
     <GUI>
-      <xloc>288</xloc>
-      <yloc>800</yloc>
+      <xloc>432</xloc>
+      <yloc>1440</yloc>
       <draw>Y</draw>
     </GUI>
   </step>
