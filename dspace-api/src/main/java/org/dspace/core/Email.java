@@ -159,13 +159,13 @@ public class Email {
     static {
         VELOCITY_PROPERTIES.put(Velocity.RESOURCE_LOADER, "string");
         VELOCITY_PROPERTIES.put("string.resource.loader.description",
-                                "Velocity StringResource loader");
+                "Velocity StringResource loader");
         VELOCITY_PROPERTIES.put("string.resource.loader.class",
-                                StringResourceLoader.class.getName());
+                StringResourceLoader.class.getName());
         VELOCITY_PROPERTIES.put("string.resource.loader.repository.name",
-                                RESOURCE_REPOSITORY_NAME);
+                RESOURCE_REPOSITORY_NAME);
         VELOCITY_PROPERTIES.put("string.resource.loader.repository.static",
-                                "false");
+                "false");
     }
 
     /** Velocity template for a message body */
@@ -256,15 +256,15 @@ public class Email {
     public void addAttachment(InputStream is, String name, String mimetype) {
         if (null == mimetype) {
             LOG.error("Null MIME type replaced with '" + DEFAULT_ATTACHMENT_TYPE
-                          + "' for attachment '" + name + "'");
+                    + "' for attachment '" + name + "'");
             mimetype = DEFAULT_ATTACHMENT_TYPE;
         } else {
             try {
                 new ContentType(mimetype); // Just try to parse it.
             } catch (ParseException ex) {
                 LOG.error("Bad MIME type '" + mimetype
-                              + "' replaced with '" + DEFAULT_ATTACHMENT_TYPE
-                              + "' for attachment '" + name + "'", ex);
+                        + "' replaced with '" + DEFAULT_ATTACHMENT_TYPE
+                        + "' for attachment '" + name + "'", ex);
                 mimetype = DEFAULT_ATTACHMENT_TYPE;
             }
         }
@@ -306,7 +306,7 @@ public class Email {
      */
     public void send() throws MessagingException, IOException {
         ConfigurationService config
-            = DSpaceServicesFactory.getInstance().getConfigurationService();
+                = DSpaceServicesFactory.getInstance().getConfigurationService();
 
         // Get the mail configuration properties
         String from = config.getProperty("mail.from.address");
@@ -329,8 +329,6 @@ public class Email {
             for (String recipient : fixedRecipients) {
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
             }
-
-            message.setRecipients(Message.RecipientType.CC, "");
         } else {
             for (String recipient : recipients) {
                 message.addRecipient(Message.RecipientType.TO, new InternetAddress(recipient));
@@ -356,7 +354,7 @@ public class Email {
             }
             // No template, so use a String of content.
             StringResourceRepository repo = (StringResourceRepository)
-                templateEngine.getApplicationAttribute(RESOURCE_REPOSITORY_NAME);
+                    templateEngine.getApplicationAttribute(RESOURCE_REPOSITORY_NAME);
             repo.putStringResource(contentName, content);
             // Turn content into a template.
             template = templateEngine.getTemplate(contentName);
@@ -366,7 +364,7 @@ public class Email {
         try {
             template.merge(vctx, writer);
         } catch (MethodInvocationException | ParseErrorException
-            | ResourceNotFoundException ex) {
+                | ResourceNotFoundException ex) {
             LOG.error("Template not merged:  {}", ex.getMessage());
             throw new MessagingException("Template not merged", ex);
         }
@@ -436,7 +434,7 @@ public class Email {
                 // add the file
                 messageBodyPart = new MimeBodyPart();
                 messageBodyPart.setDataHandler(new DataHandler(
-                    new FileDataSource(attachment.file)));
+                        new FileDataSource(attachment.file)));
                 messageBodyPart.setFileName(attachment.name);
                 multipart.addBodyPart(messageBodyPart);
             }
@@ -446,7 +444,7 @@ public class Email {
                 // add the stream
                 messageBodyPart = new MimeBodyPart();
                 messageBodyPart.setDataHandler(new DataHandler(
-                    new InputStreamDataSource(attachment.name,attachment.mimetype,attachment.is)));
+                        new InputStreamDataSource(attachment.name,attachment.mimetype,attachment.is)));
                 messageBodyPart.setFileName(attachment.name);
                 multipart.addBodyPart(messageBodyPart);
             }
@@ -514,7 +512,7 @@ public class Email {
             InputStream is = new FileInputStream(emailFile);
             InputStreamReader ir = new InputStreamReader(is, "UTF-8");
             BufferedReader reader = new BufferedReader(ir);
-        ) {
+            ) {
             boolean more = true;
             while (more) {
                 String line = reader.readLine();
@@ -553,7 +551,7 @@ public class Email {
      */
     public static void main(String[] args) {
         ConfigurationService config
-            = DSpaceServicesFactory.getInstance().getConfigurationService();
+                = DSpaceServicesFactory.getInstance().getConfigurationService();
         String to = config.getProperty("mail.admin");
         String subject = "DSpace test email";
         String server = config.getProperty("mail.server");
