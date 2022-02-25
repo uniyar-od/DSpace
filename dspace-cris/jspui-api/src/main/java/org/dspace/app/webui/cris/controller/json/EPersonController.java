@@ -68,7 +68,7 @@ public class EPersonController extends MultiActionController
         for(EPerson eperson : findAll) {
             EPersonDTO dto = new EPersonDTO();
             dto.setFirstName(eperson.getFirstName());
-            dto.setId(eperson.getID());
+            dto.setId(eperson.getID().toString());
             dto.setLastName(eperson.getLastName());
             dto.setNetId(eperson.getNetid());
             dto.setEmail(eperson.getEmail());
@@ -125,7 +125,7 @@ public class EPersonController extends MultiActionController
 
     class EPersonDTO
     {
-        private UUID id;
+        private String id;
 
         private String lastName;
         
@@ -139,12 +139,12 @@ public class EPersonController extends MultiActionController
         
         private String fullNameRPOwnered;
         
-        public UUID getId()
+        public String getId()
         {
             return id;
         }
-
-        public void setId(UUID id)
+        
+        public void setId(String id)
         {
             this.id = id;
         }
