@@ -372,7 +372,11 @@ public class AuthorityClaimServlet extends DSpaceServlet
                 "submit_cancel");
 
         String handle = request.getParameter("handle");
-        String crisID = context.getCrisID();
+        String crisID = (String) request.getAttribute("requesterMapPublication");
+        
+        if (StringUtils.isBlank(crisID)) {
+        	crisID = context.getCrisID();
+        }
 
         String notifyGroupSelfClaim = getSelfClaimGroup();
 
