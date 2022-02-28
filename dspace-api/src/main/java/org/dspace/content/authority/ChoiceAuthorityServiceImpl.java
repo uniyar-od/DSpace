@@ -476,6 +476,9 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                 "No choices plugin was configured for authorityName \"" + authorityName
                     + "\".");
         }
+        if (ma instanceof DSpaceControlledVocabulary) {
+            ((DSpaceControlledVocabulary)ma).init();
+        }
         return ma;
     }
 
