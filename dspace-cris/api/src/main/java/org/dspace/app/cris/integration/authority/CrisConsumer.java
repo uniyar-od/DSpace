@@ -339,25 +339,33 @@ public class CrisConsumer implements Consumer
                                                 + toBuildMetadata
                                                         .get(authorityKey),
                                         "import.submission.enabled.entity");
-                        if (activateNewObject)
-                        {
-                            rp.setStatus(true);
-                        }
 
-                        try
-                        {
-                            applicationService.saveOrUpdate(crisTargetClass,
-                                    rp);
-                            log.info("Build new CRIS Object [" + crisTargetClass
-                                    + "] sourceId/sourceRef:" + authorityKey
-                                    + " / " + typeAuthority);
+                        boolean activateImportInSubmission = ConfigurationManager
+                                .getBooleanProperty("cris",
+                                        "import.submission." + toBuildMetadata
+                                        .get(authorityKey),
+                                        "import.submission");
+                        if(activateImportInSubmission) {
+	                        if (activateNewObject)
+	                        {
+	                            rp.setStatus(true);
+	                        }
+	
+	                        try
+	                        {
+	                            applicationService.saveOrUpdate(crisTargetClass,
+	                                    rp);
+	                            log.info("Build new CRIS Object [" + crisTargetClass
+	                                    + "] sourceId/sourceRef:" + authorityKey
+	                                    + " / " + typeAuthority);
+	                        }
+	                        catch (Exception ex)
+	                        {
+	                            log.error(ex.getMessage(), ex);
+	                        }
+	                        rpKey = rp.getCrisID();
+	                        createdObjects.put(authorityKey, rp);
                         }
-                        catch (Exception ex)
-                        {
-                            log.error(ex.getMessage(), ex);
-                        }
-                        rpKey = rp.getCrisID();
-                        createdObjects.put(authorityKey, rp);
                     }
                     else
                     {
