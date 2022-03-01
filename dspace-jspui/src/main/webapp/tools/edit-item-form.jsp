@@ -58,6 +58,7 @@
 
 <%
 	HashMap<String,String> bundleTableMap = new HashMap();
+	boolean collapsedByDefaultBundles = ConfigurationManager.getBooleanProperty("edit.admin.collapsed.bundle.default",false);
     Item item = (Item) request.getAttribute("item");
     String handle = (String) request.getAttribute("handle");
     Collection[] collections = (Collection[]) request.getAttribute("collections");
@@ -549,8 +550,9 @@
     <h3><%= bundles[i].getName() %> 
     	<a class="btn btn-warning" target="_blank" 
     		href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=1&resource_id=<%= bundles[i].getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>		
-    		
+    	<% if(collapsedByDefaultBundles){ %>
     	<a class="btn btn-info" onclick="toggleTable('<%= bundles[i].getID() %>')"><fmt:message key="jsp.tools.general.edit.bundle"/></a>
+    	<% } %>
     		<% if (bRemoveBits) { %>
             <button class="btn btn-danger" name="submit_delete_bundle_<%= bundles[i].getID() %>" value="<fmt:message key="jsp.tools.general.remove"/>">
             	<span class="glyphicon glyphicon-trash"></span>
@@ -562,7 +564,12 @@
     
     	<% 
     		String table = EditItemUtil.generateHiddenHTMLTable(request.getContextPath(), bundles, i, breOrderBitstreams, bRemoveBits);
-    		bundleTableMap.put(String.valueOf(bundles[i].getID()), table);
+
+			if(collapsedByDefaultBundles) {
+	    		bundleTableMap.put(String.valueOf(bundles[i].getID()), table);
+			}else{
+				out.println(table);
+			}
     	%>
     	
  	<!-- END Display table -->

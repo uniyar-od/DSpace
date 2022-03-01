@@ -1,3 +1,10 @@
+/**
+ * The contents of this file are subject to the license and copyright
+ * detailed in the LICENSE and NOTICE files at the root of the source
+ * tree and available online at
+ *
+ * http://www.dspace.org/license/
+ */
 package org.dspace.app.webui.util;
 
 import java.util.ArrayList;
@@ -6,27 +13,31 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
+import org.dspace.core.ConfigurationManager;
 import org.dspace.core.I18nUtil;
 import org.dspace.core.Utils;
 
 public class EditItemUtil {
+	private static boolean collapsedByDefaultBundles = ConfigurationManager.getBooleanProperty("edit.admin.collapsed.bundle.default",false);
 
 	
 	public static String generateHiddenHTMLTable(String contextPath, Bundle[] bundles, int index, boolean breOrderBitstreams, boolean bRemoveBits) {
 		String row="even";
 		
 		StringBuilder builder=new StringBuilder();
-		builder.append("<div id=\"hidden-div-"+bundles[index].getID()+"\" >");
+		if(collapsedByDefaultBundles) {
+			builder.append("<div id=\"hidden-div-"+bundles[index].getID()+"\" >");
+		}
 		builder.append("<table id=\"bitstream-edit-form-table-"+index+"\" class=\"table\" summary=\"Bitstream data table\">");
 		builder.append("<tr>");
 		builder.append("<th id=\"t10\" class=\"oddRowEvenCol\">&nbsp;</th>");
-		builder.append("<th id=\"t11\" class=\"oddRowOddCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem5")+"\"/></strong></th>");
-		builder.append("<th id=\"t12\" class=\"oddRowEvenCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem7")+"\"/></strong></th>");
-		builder.append("<th id=\"t13\" class=\"oddRowOddCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem8")+"\"/></strong></th>");
-		builder.append("<th id=\"t14\" class=\"oddRowEvenCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem9")+"\"/></strong></th>");
-		builder.append("<th id=\"t15\" class=\"oddRowOddCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem10")+"\"/></strong></th>");
-		builder.append("<th id=\"t16\" class=\"oddRowEvenCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem11")+"\"/></strong></th>");
-		builder.append("<th id=\"t17\" class=\"oddRowOddCol\"><strong><fmt:message key=\""+I18nUtil.getMessage("jsp.tools.edit-item-form.elem12")+"\"/></strong></th>");
+		builder.append("<th id=\"t11\" class=\"oddRowOddCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem5")+"</strong></th>");
+		builder.append("<th id=\"t12\" class=\"oddRowEvenCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem7")+"</strong></th>");
+		builder.append("<th id=\"t13\" class=\"oddRowOddCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem8")+"</strong></th>");
+		builder.append("<th id=\"t14\" class=\"oddRowEvenCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem9")+"</strong></th>");
+		builder.append("<th id=\"t15\" class=\"oddRowOddCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem10")+"</strong></th>");
+		builder.append("<th id=\"t16\" class=\"oddRowEvenCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem11")+"</strong></th>");
+		builder.append("<th id=\"t17\" class=\"oddRowOddCol\"><strong>"+I18nUtil.getMessage("jsp.tools.edit-item-form.elem12")+"</strong></th>");
 		builder.append("<th id=\"t18\" class=\"oddRowEvenCol\">&nbsp;</th>");
 		builder.append("</tr>");
 
@@ -136,7 +147,9 @@ public class EditItemUtil {
 		}
 		 
 		builder.append("</table>");
-		builder.append("</div>");
+		if(collapsedByDefaultBundles) {
+			builder.append("</div>");
+		}
 		return builder.toString();
 	}
 }
