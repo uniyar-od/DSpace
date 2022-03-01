@@ -77,6 +77,11 @@ public class CrisConstants {
         }
 	}
 
+    public static boolean dynamicEntityExists(String type) {
+        return getApplicationService()
+                .findTypoByShortName(DynamicObjectType.class, type) != null;
+    }
+
     public static ApplicationService getApplicationService()
     {
         return applicationService;
