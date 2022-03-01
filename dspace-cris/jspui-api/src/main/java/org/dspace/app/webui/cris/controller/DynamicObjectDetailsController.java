@@ -21,6 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.dspace.app.cris.model.CrisConstants;
 import org.dspace.app.cris.model.ResearchObject;
 import org.dspace.app.cris.model.jdyna.BoxDynamicObject;
 import org.dspace.app.cris.model.jdyna.DynamicPropertiesDefinition;
@@ -81,11 +82,24 @@ public class DynamicObjectDetailsController
             HttpServletResponse response) throws Exception
     {
         Map<String, Object> model = new HashMap<String, Object>();
-        
-        setSpecificPartPath(Utils.getSpecificPath(request, null));
 
         ResearchObject dyn = null;
         try {
+            String specificPath = Utils.getSpecificPath(request, null);
+            // check entity path
+            if (!CrisConstants.dynamicEntityExists(specificPath)) {
+                showInvalidIDError(request, response, "");
+                throw new RuntimeException(Utils.getOriginalURL(request));
+            }
+            setSpecificPartPath(specificPath);
+
+            // check entity cris id starts with entity path
+            String[] splitted = request.getPathInfo().substring(1).split("/");
+            if (!StringUtils.startsWith(splitted[1], splitted[0])) {
+                showInvalidIDError(request, response, "");
+                throw new RuntimeException(Utils.getOriginalURL(request));
+            }
+
             dyn = extractObject(request, response);
         }
         catch(Exception ex) {
