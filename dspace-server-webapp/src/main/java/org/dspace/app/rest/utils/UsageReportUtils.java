@@ -56,6 +56,8 @@ public class UsageReportUtils {
         = "TotalDownloadsOrgUnitRppublications";
     public static final String TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS
         = "TotalVisitPerPeriodPersonResearchoutputs";
+    public static final String TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_PERSON_PROJECTS
+        = "TotalVisitPerPeriodPersonProjects";
     public static final String TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS
         = "TotalVisitPerPeriodOrgUnitRppublications";
     public static final String TOTAL_VISITS_PER_MONTH_REPORT_ID = "TotalVisitsPerMonth";
@@ -63,11 +65,15 @@ public class UsageReportUtils {
     public static final String TOP_COUNTRIES_REPORT_ID = "TopCountries";
     public static final String TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS
         = "TopCountriesPersonResearchoutputs";
+    public static final String TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_PROJECTS
+        = "TopCountriesPersonProjects";
     public static final String TOP_COUNTRIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS
         = "TopCountriesOrgUnitRppublications";
     public static final String TOP_CITIES_REPORT_ID = "TopCities";
     public static final String TOP_CONTINENTS_REPORT_ID = "TopContinents";
     public static final String TOP_CATEGORIES_REPORT_ID = "TopCategories";
+    public static final String TOP_CITIES_REPORT_ID_RELATION_PERSON_PROJECTS =
+        "TopCitiesPersonProjects";
     public static final String TOP_CITIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS
         = "TopCitiesPersonResearchoutputs";
     public static final String TOP_CITIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS

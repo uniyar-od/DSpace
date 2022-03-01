@@ -14,10 +14,12 @@ import static org.dspace.app.rest.matcher.UsageReportMatcher.matchUsageReport;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CATEGORIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_PERSON_PROJECTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CONTINENTS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_PROJECTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_DOWNLOAD_CITIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_DOWNLOAD_CONTINENTS_REPORT_ID;
@@ -29,6 +31,7 @@ import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_DOWNLOAD_PER_MONT
 //import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_DOWNLOADS_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_PER_MONTH_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_ORGUNIT_RP_RESEARCHOUTPUTS;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_PERSON_PROJECTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_REPORT_ID;
 //import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_REPORT_ID_RELATION_ORGUNIT_PROJECTS;
@@ -50,6 +53,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -2104,12 +2108,20 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                                     TOTAL_VISITS_PER_MONTH_REPORT_ID,
                                     this.getListOfVisitsPerMonthsPoints(3)),
                         UsageReportMatcher.matchUsageReport(person.getID() + "_" +
+                                    TOTAL_VISITS_PER_MONTH_REPORT_ID_RELATION_PERSON_PROJECTS,
+                                    TOTAL_VISITS_PER_MONTH_REPORT_ID,
+                                    this.getListOfVisitsPerMonthsPoints(0)),
+                        UsageReportMatcher.matchUsageReport(person.getID() + "_" +
                                     TOP_CITIES_REPORT_ID, TOP_CITIES_REPORT_ID,
                                     Arrays.asList(expectedPointCity)),
                         UsageReportMatcher.matchUsageReport(person.getID() + "_" +
                                     TOP_CITIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS,
                                     TOP_CITIES_REPORT_ID,
                                     Arrays.asList(expectedPointCityWithRelation)),
+                        UsageReportMatcher.matchUsageReport(person.getID() + "_" +
+                                    TOP_CITIES_REPORT_ID_RELATION_PERSON_PROJECTS,
+                                    TOP_CITIES_REPORT_ID,
+                                    Collections.emptyList()),
                         UsageReportMatcher.matchUsageReport(person.getID() + "_" +
                                     TOP_COUNTRIES_REPORT_ID,
                                     TOP_COUNTRIES_REPORT_ID,
@@ -2118,6 +2130,10 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                                     TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS,
                                     TOP_COUNTRIES_REPORT_ID,
                                     Arrays.asList(expectedPointCountryWithRelation)),
+                        UsageReportMatcher.matchUsageReport(person.getID() + "_" +
+                                    TOP_COUNTRIES_REPORT_ID_RELATION_PERSON_PROJECTS,
+                                    TOP_COUNTRIES_REPORT_ID,
+                                    Collections.emptyList()),
                         UsageReportMatcher.matchUsageReport(person.getID() + "_" +
                                     TOTAL_VISITS_REPORT_ID_RELATION_PERSON_PROJECTS,
                                     TOTAL_VISITS_REPORT_ID,
