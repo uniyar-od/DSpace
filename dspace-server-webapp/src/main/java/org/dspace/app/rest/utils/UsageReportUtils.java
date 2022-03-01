@@ -41,6 +41,7 @@ public class UsageReportUtils {
     private StatisticsReportsConfiguration configuration;
 
     public static final String TOTAL_VISITS_REPORT_ID = "TotalVisits";
+    public static final String TOP_ITEMS_REPORT_ID = "TopItems";
     public static final String TOTAL_VISITS_REPORT_ID_RELATION_PERSON_RESEARCHOUTPUTS
         = "TotalVisitsPersonResearchoutputs";
     public static final String TOTAL_VISITS_REPORT_ID_RELATION_PERSON_PROJECTS
