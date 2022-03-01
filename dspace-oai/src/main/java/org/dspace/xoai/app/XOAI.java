@@ -396,7 +396,6 @@ public class XOAI {
                 		solrDoc = this.indexResults((ACrisObject)o);
                 	    list.add(solrDoc);
                 	}
-                	server.add(solrDoc);
 
                 } catch (SQLException | MetadataBindException | ParseException | XMLStreamException | WritingXmlException e) {
                     log.error(e.getMessage(), e);
