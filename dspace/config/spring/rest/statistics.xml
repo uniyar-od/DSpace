@@ -482,13 +482,7 @@
         <property name="categoryType" value="publicationsReports"/>
         <property name="reports">
             <map>
-                <entry key="TotalVisitsProjectPublication" value-ref="totalVisitGeneratorProjectPublications"/>
-                <entry key="TopCitiesProjectPublications" value-ref="topCitiesGeneratorProjectPublications"/>
-                <entry key="TopCountriesProjectPublications" value-ref="topCountriesGeneratorProjectPublications"/>
-                <entry key="TotalVisitPerPeriodProjectPublications" value-ref="totalVisitPerPeriodGeneratorProjectPublications"/>
-                <entry key="TopItemsProjectPublications" value-ref="topItemsGeneratorProjectPublications"/>
-                <entry key="TotalDownloadsProjectPublications" value-ref="totalDownloadsGeneratorProjectPublications"/>
-                <entry key="TotalViewsDownloadsProjectPublications" value-ref="totalDownloadsAndVisitsGeneratorProjectPublications"/>
+                <entry key="TotalVisits" value-ref="totalVisitGenerator"/>
             </map>
         </property>
     </bean>
