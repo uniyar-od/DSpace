@@ -2706,11 +2706,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         }
         
 		List<String> uuids = getHibernateSession(context).createSQLQuery("select CAST(uuid as varchar) as identifierobject from item where in_archive = ? or withdrawn = ? order by last_modified asc").setParameter(0, true).setParameter(1, true).list();
-    	prepareDiffAndReindex(context, type, "search.resourcetype:2", uuids);
+    	prepareDiffAndReindex(context, type, new String[]{"search.resourcetype:2", "in_archive=true OR withdrawn=true"}, uuids);
     	
 	}
 
-	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<String> uuids)
+	protected void prepareDiffAndReindex(Context context, Integer type, String[] fq, List<String> uuids)
 			throws SQLException, SearchServiceException, IOException {
 		System.out.println("Preparing diff...");
 
@@ -2720,8 +2720,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     	solrQuery.setQuery("*:*");
     	solrQuery.setStart(0);
     	solrQuery.setRows(Integer.MAX_VALUE);
-    	solrQuery.addFilterQuery("discoverable: true");
-    	solrQuery.addFilterQuery(fq);
+    	if (ArrayUtils.isNotEmpty(fq))
+    	{
+    		solrQuery.addFilterQuery(fq);
+    	}
     	solrQuery.setFields("search.resourceid");
     	solrQuery.setSort("lastModified", ORDER.asc);
 
