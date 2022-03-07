@@ -1554,7 +1554,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>person</dc-schema>
           <dc-element>knowsLanguage</dc-element>
           <label>Written Language(s)</label>
-          <input-type value-pairs-name="common_iso_languages">opendropdown</input-type>
+          <input-type value-pairs-name="common_iso_languages">dropdown</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
