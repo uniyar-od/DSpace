@@ -5,15 +5,9 @@
  *
  * http://www.dspace.org/license/
  */
-function toggleTable(bundleID){
-	console.log("show "+bundleID);
-	
+function toggleTable(bundleID){	
 	hiddenDiv=document.getElementById("hidden-div-"+bundleID);
-	tableContainer=document.getElementById("table-container-"+bundleID);
-	
-	console.log(tableContainer.innerHTML.trim()!=="");
-	console.log(tableContainer.innerHTML.trim());
-	
+	tableContainer=document.getElementById("table-container-"+bundleID);	
 	if(tableContainer.innerHTML.trim()===""){
 		tableContainer.innerHTML=hiddenDiv.innerHTML;
 	}else{
