@@ -1372,7 +1372,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-element>person</dc-element>
           <dc-qualifier>gender</dc-qualifier>
           <label>Gender</label>
-          <input-type value-pairs-name="gender">opendropdown</input-type>
+          <input-type value-pairs-name="gender">dropdown</input-type>
           <repeatable>false</repeatable>
           <required />
           <hint />
@@ -1556,7 +1556,7 @@ it, please enter the types and the actual numbers or codes.</hint>
           <dc-schema>person</dc-schema>
           <dc-element>knowsLanguage</dc-element>
           <label>Written Language(s)</label>
-          <input-type value-pairs-name="common_iso_languages">openlist</input-type>
+          <input-type value-pairs-name="common_iso_languages">list</input-type>
           <repeatable>true</repeatable>
           <required />
           <hint />
