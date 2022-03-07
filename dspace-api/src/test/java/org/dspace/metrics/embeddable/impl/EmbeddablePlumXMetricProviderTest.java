@@ -106,15 +106,15 @@ public class EmbeddablePlumXMetricProviderTest {
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Person");
         String template = provider.innerHtml(context, item);
 
-        assertEquals("{\"type\":\"Person\",\"list-type\":\"Person\",\"placeholder\":\"plumx\"," +
-                         "\"list-placeholder\":\"plumx\",\"src\":\"//cdn.plu.mx/widget-person.js\"," +
-                         "\"href\":\"https://plu.mx/plum/u/?orcid=0000-0002-9029-1854\",\"list-src\":\"//cdn.plu" +
-                         ".mx/widget-person.js\",\"list-href\":\"https://plu.mx/plum/u/?orcid=0000-0002-9029-1854\"," +
-                         "\"data-lang\":\"en\",\"data-no-name\":false,\"data-num-artifacts\":5," +
-                         "\"data-width\":\"350px\",\"data-no-description\":false,\"data-no-stats\":false," +
-                         "\"data-no-thumbnail\":false,\"data-no-artifacts\":false,\"data-popup\":\"left\"," +
-                         "\"data-hide-when-empty\":false,\"data-hide-usage\":false,\"data-hide-captures\":false," +
-                         "\"data-hide-mentions\":false,\"data-hide-socialmedia\":false,\"data-hide-citations\":false," +
+        assertEquals("{\"type\":\"Person\",\"list-type\":\"Person\",\"placeholder\":\"\",\"list-placeholder\":\"\"," +
+                         "\"src\":\"//cdn.plu.mx/widget-person.js\",\"href\":\"https://plu" +
+                         ".mx/plum/u/?orcid=0000-0002-9029-1854\",\"list-src\":\"//cdn.plu.mx/widget-person.js\"," +
+                         "\"list-href\":\"https://plu.mx/plum/u/?orcid=0000-0002-9029-1854\",\"data-lang\":\"en\"," +
+                         "\"data-no-name\":false,\"data-num-artifacts\":5,\"data-width\":\"350px\"," +
+                         "\"data-no-description\":false,\"data-no-stats\":false,\"data-no-thumbnail\":false," +
+                         "\"data-no-artifacts\":false,\"data-popup\":\"left\",\"data-hide-when-empty\":false," +
+                         "\"data-hide-usage\":false,\"data-hide-captures\":false,\"data-hide-mentions\":false," +
+                         "\"data-hide-socialmedia\":false,\"data-hide-citations\":false," +
                          "\"data-pass-hidden-categories\":false,\"data-detail-same-page\":false," +
                          "\"list-data-lang\":\"en\",\"list-data-no-name\":false,\"list-data-num-artifacts\":0," +
                          "\"list-data-width\":\"350px\",\"list-data-no-description\":false," +
@@ -132,8 +132,8 @@ public class EmbeddablePlumXMetricProviderTest {
         when(itemService.getMetadataFirstValue(item, "dspace", "entity", "type", Item.ANY)).thenReturn("Publication");
         String template = provider.innerHtml(context, item);
 
-        assertEquals("{\"type\":\"Publication\",\"list-type\":\"Publication\",\"placeholder\":\"plumx\"," +
-                         "\"list-placeholder\":\"plumx\",\"src\":\"//cdn.plu.mx/widget-popup.js\"," +
+        assertEquals("{\"type\":\"Publication\",\"list-type\":\"Publication\",\"placeholder\":\"\"," +
+                         "\"list-placeholder\":\"\",\"src\":\"//cdn.plu.mx/widget-popup.js\"," +
                          "\"href\":\"https://plu.mx/plum/a/?doi=10.1016/j.gene.2009.04.019\",\"list-src\":\"//cdn.plu" +
                          ".mx/widget-popup.js\",\"list-href\":\"https://plu.mx/plum/a/?doi=10.1016/j.gene.2009.04" +
                          ".019\",\"data-lang\":\"en\",\"data-no-name\":false,\"data-num-artifacts\":5," +

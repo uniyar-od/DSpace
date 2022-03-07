@@ -147,8 +147,8 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
 
         innerHtml.addProperty("type", entityType);
         innerHtml.addProperty("list-type", entityType);
-        innerHtml.addProperty("placeholder", "plumx");
-        innerHtml.addProperty("list-placeholder", "plumx");
+        innerHtml.addProperty("placeholder", "");
+        innerHtml.addProperty("list-placeholder", "");
 
         if (entityType.equals("Person")) {
             innerHtml.addProperty("src", personPlumXScript);
