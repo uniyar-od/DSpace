@@ -144,7 +144,12 @@ public class EmbeddablePlumXMetricProvider extends AbstractEmbeddableMetricProvi
     public String innerHtml(Context context, Item item) {
         JsonObject innerHtml = new JsonObject();
         String entityType = getEntityType(item);
+
         innerHtml.addProperty("type", entityType);
+        innerHtml.addProperty("list-type", entityType);
+        innerHtml.addProperty("placeholder", "plumx");
+        innerHtml.addProperty("list-placeholder", "plumx");
+
         if (entityType.equals("Person")) {
             innerHtml.addProperty("src", personPlumXScript);
             innerHtml.addProperty("href", personHref + "?orcid=" + orcid);

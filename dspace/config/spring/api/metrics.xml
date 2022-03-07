@@ -82,7 +82,7 @@
         <property name="noScore" value="${altmetric.noScore:#{null}}" />
         <property name="hideNoMentions" value="${altmetric.hideNoMentions:#{null}}" />
         <property name="linkTarget" value="${altmetric.linkTarget:#{null}}" />
-        <property name="listBadgeType" value="${altmetric.list-badgeType:#{'2'}}" />
+        <property name="listBadgeType" value="${altmetric.list-badgeType:#{'donut'}}" />
         <property name="listPopOver" value="${altmetric.list-popover}" />
     </bean>
 
@@ -110,13 +110,13 @@
         <property name="dataDetailSamePage" value="${plumx.data-detail-same-page:#{false}}" />
 
         <property name="listDataLang" value="${plumx.list-data-lang:#{'en'}}" />
-        <property name="listDataNoName" value="${plumx.list-data-no-name:#{false}}" />
+        <property name="listDataNoName" value="${plumx.list-data-no-name:#{true}}" />
         <property name="listDataNumArtifacts" value="${plumx.list-data-num-artifacts:#{5}}" />
-        <property name="listDataWidth" value="${plumx.list-data-width:#{'350px'}}" />
-        <property name="listDataNoDescription" value="${plumx.list-data-no-description:#{false}}" />
-        <property name="listDataNoStats" value="${plumx.list-data-no-stats:#{false}}" />
-        <property name="listDataNoThumbnail" value="${plumx.list-data-no-thumbnail:#{false}}" />
-        <property name="listDataNoArtifacts" value="${plumx.list-data-no-artifacts:#{false}}" />
+        <property name="listDataWidth" value="${plumx.list-data-width:#{'6em'}}" />
+        <property name="listDataNoDescription" value="${plumx.list-data-no-description:#{true}}" />
+        <property name="listDataNoStats" value="${plumx.list-data-no-stats:#{true}}" />
+        <property name="listDataNoThumbnail" value="${plumx.list-data-no-thumbnail:#{true}}" />
+        <property name="listDataNoArtifacts" value="${plumx.list-data-no-artifacts:#{true}}" />
         <property name="listDataPopup" value="${plumx.list-data-popup:#{'left'}}" />
         <property name="listDataHideWhenEmpty" value="${plumx.list-data-hide-when-empty:#{true}}" />
         <property name="listDataHideUsage" value="${plumx.list-data-hide-usage:#{false}}" />
@@ -137,7 +137,7 @@
         <property name="dataStyle" value="${dimensions.data-style:#{'small_circle'}}" />
         <property name="badgeInstalled" value="${dimensions.data-dimensions-badge-installed:#{true}}" />
         <property name="listDataLegend" value="${dimensions.list-data-legend:#{'hover-right'}}" />
-        <property name="listDataStyle" value="${dimensions.list-data-style:#{'small_rectangle'}}" />
+        <property name="listDataStyle" value="${dimensions.list-data-style:#{'small_circle'}}" />
         <property name="listBadgeInstalled" value="${dimensions.list-data-dimensions-badge-installed:#{true}}" />
         <property name="doiField" value="${dimensions.doiField}" />
         <property name="pmidField" value="${dimensions.pmidField}" />
