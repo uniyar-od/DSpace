@@ -39,6 +39,10 @@
         <property name="filter" ref="test_filter"/>
     </bean>
     
+    <bean name="customUrlValidation" class="org.dspace.validation.CustomUrlValidator">
+        <property name="name" value="custom-url"/>
+    </bean>
+    
     <bean id="test_filter" class="org.dspace.content.logic.DefaultFilter">
     	<property name="statement">
             <bean class="org.dspace.content.logic.operator.Or">

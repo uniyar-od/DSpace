@@ -237,6 +237,14 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
         return addMetadataValue("dc", "identifier", "patentno", patentNo);
     }
 
+    public WorkspaceItemBuilder withCustomUrl(String url) {
+        return setMetadataSingleValue("cris", "customurl", null, url);
+    }
+
+    public WorkspaceItemBuilder withOldCustomUrl(String url) {
+        return addMetadataValue("cris", "customurl", "old", url);
+    }
+
     public WorkspaceItemBuilder grantLicense() {
         Item item = workspaceItem.getItem();
         String license;

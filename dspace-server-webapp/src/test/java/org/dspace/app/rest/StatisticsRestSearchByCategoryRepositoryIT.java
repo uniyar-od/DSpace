@@ -14,6 +14,7 @@ import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CATEGORIES_REPORT_I
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CITIES_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_CONTINENTS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOP_COUNTRIES_REPORT_ID;
+import static org.dspace.app.rest.utils.UsageReportUtils.TOP_ITEMS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_DOWNLOADS_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_PER_MONTH_REPORT_ID;
 import static org.dspace.app.rest.utils.UsageReportUtils.TOTAL_VISITS_REPORT_ID;
@@ -332,7 +333,7 @@ public class StatisticsRestSearchByCategoryRepositoryIT extends AbstractControll
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.usagereports", not(empty())))
             .andExpect(jsonPath("$._embedded.usagereports", Matchers.containsInAnyOrder(
-                matchUsageReport(site.getID() + "_" + TOTAL_VISITS_REPORT_ID, TOTAL_VISITS_REPORT_ID, sitePoints),
+                matchUsageReport(site.getID() + "_" + TOTAL_VISITS_REPORT_ID, TOP_ITEMS_REPORT_ID, sitePoints),
                 matchUsageReport(site.getID() + "_" + TOP_CITIES_REPORT_ID, TOP_CITIES_REPORT_ID),
                 matchUsageReport(site.getID() + "_" + TOTAL_VISITS_PER_MONTH_REPORT_ID,
                     TOTAL_VISITS_PER_MONTH_REPORT_ID),

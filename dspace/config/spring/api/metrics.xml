@@ -46,7 +46,7 @@
         <property name="url" value="${metrics.scopus.person.url}" />
         <property name="apiKey" value="${metrics.scopus.person.apiKey}" />
         <property name="insttoken" value="${metrics.scopus.person.instToken}" />
-        <property name="enhanced" value="${metrics.scopus.person.enhanced}" />
+        <property name="viewMode" value="${metrics.scopus.person.viewMode}" />
     </bean>
 
 
