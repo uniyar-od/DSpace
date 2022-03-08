@@ -14,6 +14,8 @@ import javax.persistence.Transient;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
+import org.apache.solr.client.solrj.request.AbstractUpdateRequest;
+import org.apache.solr.client.solrj.request.UpdateRequest;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.app.cris.discovery.CrisSearchService;
 import org.dspace.app.cris.metrics.common.model.ConstantMetrics;
@@ -91,8 +93,12 @@ public class CrisMetricsListener implements NativePostUpdateEventListener {
                         Map<String,Object> fieldModifierAdditional = new HashMap<>(1);
                         fieldModifierAdditional.put("set", metric.getEndDate());
 	                    document.addField(metrictype+ConstantMetrics.STATS_INDICATOR_TYPE_ENDTIME + separator + placeholder, fieldModifierAdditional); // add the map as the field value
-	                }       
-	                getSearchService().getSolr().add(document);
+	                }
+	                
+	                UpdateRequest req = new UpdateRequest("/update/atomic");	                
+	                req.add(document);
+//	                req.setAction(AbstractUpdateRequest.ACTION.COMMIT, true, true);
+	                req.process(getSearchService().getSolr());
     			}
 		    }
 		} catch (Exception e) {
