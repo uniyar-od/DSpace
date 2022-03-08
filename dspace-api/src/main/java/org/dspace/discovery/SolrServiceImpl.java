@@ -2662,11 +2662,11 @@ public class SolrServiceImpl implements SearchService, IndexingService {
         
     	TableRowIterator tri = DatabaseManager.query(context, "select item_id as identifierobject from item where in_archive='1' or withdrawn='1' order by item_id asc");
     	List<TableRow> rows = tri.toList();
-    	prepareDiffAndReindex(context, type, "search.resourcetype:2", rows);
+    	prepareDiffAndReindex(context, type, new String[]{"search.resourcetype:2", "in_archive=true OR withdrawn=true"}, rows);
     	
 	}
 
-	protected void prepareDiffAndReindex(Context context, Integer type, String fq, List<TableRow> rows)
+	protected void prepareDiffAndReindex(Context context, Integer type, String[] fq, List<TableRow> rows)
 			throws SQLException, SearchServiceException, IOException {
 		System.out.println("Preparing diff...");
 		List<Integer> resultsDB = new ArrayList<Integer>();
@@ -2687,8 +2687,10 @@ public class SolrServiceImpl implements SearchService, IndexingService {
     	solrQuery.setQuery("*:*");
     	solrQuery.setStart(0);
     	solrQuery.setRows(Integer.MAX_VALUE);
-    	solrQuery.addFilterQuery("discoverable: true");
-    	solrQuery.addFilterQuery(fq);
+    	if (ArrayUtils.isNotEmpty(fq))
+    	{
+    		solrQuery.addFilterQuery(fq);
+		}
     	solrQuery.setFields("search.resourceid");
     	solrQuery.setSort("search.resourceid", ORDER.asc);
 
