@@ -211,9 +211,7 @@ public class SolrServiceValuePairsIndexPlugin implements SolrServiceIndexPlugin 
         return getInputs(context, language, item).stream()
             .flatMap(this::getAllDCInput)
             .filter(dcInput -> dcInput.isDropDown()
-                            || dcInput.isOpenDropDown()
                             || dcInput.isList()
-                            || dcInput.isOpenList()
                             || StringUtils.isNotBlank(dcInput.getVocabulary()))
             .collect(Collectors.toList());
     }
