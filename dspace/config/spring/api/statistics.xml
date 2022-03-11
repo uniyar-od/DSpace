@@ -386,7 +386,8 @@
 			<entry key="Thesis"><value>dc.type:"Thesis"</value></entry>
 			<entry key="Others"><value>-dc.type:"Article" -dc.type:"Dataset" -dc.type:"Book" -dc.type:"Thesis" -dc.type:"Presentation" -dc.type:"Book chapter"</value></entry>
 		</map>
-		</property>		
+		</property>
+		<property name="query"><value>*:*</value></property>		
 	</bean>
 		
 </beans>
