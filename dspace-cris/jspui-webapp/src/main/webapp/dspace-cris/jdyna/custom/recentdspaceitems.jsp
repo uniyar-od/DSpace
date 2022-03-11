@@ -37,7 +37,7 @@
             .getAttribute("activeTypes"+info.getRelationName());
     
 	DiscoveryViewConfiguration configuration = SearchUtils.getRecentSubmissionConfiguration("site").getMetadataFields();
-	if (info.getItems().length > 0) {
+	if (info.getItems().size() > 0) {
 %>
 <c:set var="info" value="<%= info %>" scope="request" />
 <div class="panel-group ${extraCSS}" id="${holder.shortName}">

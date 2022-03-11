@@ -233,7 +233,7 @@ if (info.getPagetotal() > 1)
 </form>
 			
 <c:set var="browseType"><c:out value="${info[holder.shortName].browseType}"/>.<c:out value="${info[holder.shortName].type}"/></c:set>
-<% if (info!=null && info.getItems()!=null && info.getItems().length > 0) { %>
+<% if (info!=null && info.getItems()!=null && info.getItems().size() > 0) { %>
 <div class="row">
 <div class="table-responsive">			
 <dspace:browselist items="<%= (List<BrowsableDSpaceObject>)info.getItems() %>" config="${browseType}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= infoOrder %>" type="<%= info.getType() %>"/>

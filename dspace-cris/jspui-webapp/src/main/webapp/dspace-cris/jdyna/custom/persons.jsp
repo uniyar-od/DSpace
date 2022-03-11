@@ -233,7 +233,7 @@ if (info.getPagetotal() > 1)
    		} %>
 	   <input type="hidden" name="open" value="<%= info.getType() %>" />
 </form>
-<% if (info!=null && info.getItems()!=null && info.getItems().length > 0) { %>
+<% if (info!=null && info.getItems()!=null && info.getItems().size() > 0) { %>
 <div class="row">
 <div class="table-responsive">
 <dspace:browselist items="<%= (List<BrowsableDSpaceObject>)info.getItems() %>" config="crisrp.${info[holder.shortName].type}" sortBy="<%= new Integer(info.getSo().getNumber()).toString() %>" order="<%= infoOrder %>" type="<%= info.getType() %>"/>
