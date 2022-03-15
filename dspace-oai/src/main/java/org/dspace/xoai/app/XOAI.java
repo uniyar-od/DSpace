@@ -70,6 +70,7 @@ import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResult;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.xoai.services.api.CollectionsService;
 import org.dspace.utils.DSpace;
 import org.dspace.xoai.services.api.solr.SolrServerResolver;
@@ -278,8 +279,9 @@ public class XOAI {
 	        break;
         case "all":
         	discoverQuery = ConfigurationManager.getProperty("oai", "oai.discover.query.all");
-        	if (discoverQuery == null || discoverQuery.trim().length() <= 0)
+        	if (StringUtils.isBlank(discoverQuery)) {
         		discoverQuery = "discoverable:true";
+        	}
         	break;
     	default:
     		throw new DSpaceSolrIndexerException("Index is not supported for type " + idxType);
@@ -377,47 +379,43 @@ public class XOAI {
     @SuppressWarnings("rawtypes")
     private int indexResults(DiscoverResult result, int subtotal)
             throws DSpaceSolrIndexerException {
+    	int batchSize = DSpaceServicesFactory.getInstance().getConfigurationService().getIntProperty("oai.import.batch.size", 1000);
         try {
             int i = 0;
             SolrServer server = solrServerResolver.getServer();
+            ArrayList<SolrInputDocument> list = new ArrayList<>();
             for (BrowsableDSpaceObject o : result.getDspaceObjects()) {
                 try {
                 	SolrInputDocument solrDoc = null;
-                	boolean doublingSolrDocument = false;
                 	if (o instanceof Item) {
                 	    Item item = (Item)o;
-                	    String type = (String)item.getExtraInfo().get("item.cerifentitytype");
-                	    solrDoc = this.indexResults(item, false);
-                	    if(StringUtils.isNotBlank(type)) {
-                	        doublingSolrDocument = true;
-                	    }
+                	    list.add(this.indexResults(item, false));
+                	    context.uncacheEntity(item);
                 	}
                 	else if (o instanceof ACrisObject) {
                 		solrDoc = this.indexResults((ACrisObject)o);
+                	    list.add(solrDoc);
                 	}
-                	server.add(solrDoc);
-                	
-                	if(doublingSolrDocument) {
-                	    Item item = (Item)o;
-                	    solrDoc = this.indexResults(item, true);
-                	    server.add(solrDoc);
-                	}
-                } catch (SQLException ex) {
-                    log.error(ex.getMessage(), ex);
-                } catch (MetadataBindException e) {
-                    log.error(e.getMessage(), e);
-                } catch (ParseException e) {
-                    log.error(e.getMessage(), e);
-                } catch (XMLStreamException e) {
-                    log.error(e.getMessage(), e);
-                } catch (WritingXmlException e) {
+
+                } catch (SQLException | MetadataBindException | ParseException | XMLStreamException | WritingXmlException e) {
                     log.error(e.getMessage(), e);
                 }
                 i++;
-                if ((i+subtotal) % 100 == 0) System.out.println((i+subtotal) + " items imported so far...");
+                // Index items on a single method call
+                if (i % batchSize == 0) {
+                    System.out.println(i + " items imported so far...");
+                    server.add(list);
+                    server.commit();
+                    list.clear();
+                }
+            }
+            // Index remaining items
+            if (i > 0) {
+                server.add(list);
+                server.commit(true, true);
+                list.clear();
             }
             System.out.println("Partial Total: " + (i+subtotal) + " items");
-            server.commit();
             return i;
         } catch (SolrServerException ex) {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
@@ -469,16 +467,9 @@ public class XOAI {
         if (verbose) {
             println("Prepare handle " + handle);
         }
-        
-        String type = (String)item.getExtraInfo().get("item.cerifentitytype");
-        if(StringUtils.isNotBlank(type) && specialIdentifier) {
-            doc.addField("item.identifier", type +"/"+ handle);
-            doc.addField("item.type", ITEMTYPE_SPECIAL);
-        }
-        else {
-            doc.addField("item.identifier", handle);
-            doc.addField("item.type", ITEMTYPE_DEFAULT);
-        }
+
+        doc.addField("item.identifier", handle);
+        doc.addField("item.type", ITEMTYPE_DEFAULT);
         
         doc.addField("item.handle", handle);
         if (item.getSubmitter() != null) {
@@ -540,12 +531,7 @@ public class XOAI {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         XmlOutputContext xmlContext = XmlOutputContext.emptyContext(out, Second);
         Metadata metadata = null;
-        if(StringUtils.isNotBlank(type) && specialIdentifier) {
-            metadata = retrieveMetadata(context, item, true);
-        }
-        else {
-            metadata = retrieveMetadata(context, item, false);
-        }
+        metadata = retrieveMetadata(context, item, specialIdentifier);
 
         //Do any additional content on "item.compile" field, depends on the plugins
         List<XOAIItemCompilePlugin> xOAIItemCompilePlugins = new DSpace().getServiceManager().getServicesByType(XOAIItemCompilePlugin.class);
@@ -588,14 +574,8 @@ public class XOAI {
         if (verbose) {
             println("Prepare handle " + handle);
         }
-        
-        String type = ConfigurationManager.getProperty("oai", "identifier.cerifentitytype." + item.getPublicPath());
-        if(StringUtils.isNotBlank(type)) {
-            doc.addField("item.identifier", type + "/" + handle);    
-        }
-        else {
-            doc.addField("item.identifier", handle);
-        }
+
+        doc.addField("item.identifier", handle);
         
         doc.addField("item.handle", handle);
         doc.addField("item.type", item.getPublicPath());
