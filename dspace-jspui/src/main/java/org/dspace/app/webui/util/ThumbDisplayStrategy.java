@@ -261,8 +261,6 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 	        }
 		} catch (Exception e) {
 			// the default file icon is used
-			System.out.println(e);
-			e.printStackTrace();
             String link = hrq.getContextPath() + "/handle/" + handle;
             defaultThumbnail="<a href=\"" + link + "\">"+defaultThumbnail+"</a>";
 		}
