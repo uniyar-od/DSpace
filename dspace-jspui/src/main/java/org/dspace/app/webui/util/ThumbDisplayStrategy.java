@@ -23,6 +23,8 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.content.Thumbnail;
+import org.dspace.content.dao.ItemDAO;
+import org.dspace.content.dao.ItemDAOFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
@@ -190,7 +192,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 
             if (thumbnail == null)
             {
-                return "";
+				return generateDefaultThumbnail(c, itemID, hrq, handle);
             }
             StringBuffer thumbFrag = new StringBuffer();
 
@@ -231,7 +233,43 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
         }
     }
     
-    
+	private String generateDefaultThumbnail(Context c, int itemID, HttpServletRequest hrq, String handle) {
+		String defaultThumbnail = "<i class=\"fa fa-file-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		ItemDAO dao = ItemDAOFactory.getInstance(c);
+		try {
+            Bitstream original = dao.getPrimaryBitstream(itemID, "ORIGINAL");
+			String primaryBitstreamMimetype = dao.getPrimaryBitstream(itemID, "ORIGINAL").getFormat().getMIMEType();
+			if (primaryBitstreamMimetype.startsWith("audio/")) {
+				defaultThumbnail = "<i class=\"fa fa-file-audio-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			} else if (primaryBitstreamMimetype.startsWith("video/")) {
+				defaultThumbnail = "<i class=\"fa fa-file-video-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			} else if (primaryBitstreamMimetype.startsWith("image/")) {
+				defaultThumbnail = "<i class=\"fa fa-file-image-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			} else if (primaryBitstreamMimetype.equals("application/pdf")) {
+				defaultThumbnail = "<i class=\"fa fa-file-pdf-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			}
+	        if (linkToBitstream)
+	        {
+	            String link = hrq.getContextPath() + "/bitstream/" + handle + "/" + original.getSequenceID() + "/" +
+	                            UIUtil.encodeBitstreamName(original.getName(), Constants.DEFAULT_ENCODING);
+	            defaultThumbnail="<a target=\"_blank\" href=\"" + link + "\" >"+defaultThumbnail+"</a>";
+	        }
+	        else
+	        {
+	            String link = hrq.getContextPath() + "/handle/" + handle;
+	            defaultThumbnail="<a href=\"" + link + "\">"+defaultThumbnail+"</a>";
+	        }
+		} catch (Exception e) {
+			// the default file icon is used
+			System.out.println(e);
+			e.printStackTrace();
+            String link = hrq.getContextPath() + "/handle/" + handle;
+            defaultThumbnail="<a href=\"" + link + "\">"+defaultThumbnail+"</a>";
+		}
+
+		return defaultThumbnail;
+	}
+
 	@Override
 	public String getMetadataDisplay(HttpServletRequest hrq, int limit, boolean viewFull, String browseType,
 			int colIdx, String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
