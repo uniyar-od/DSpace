@@ -1031,6 +1031,11 @@
        </lst>      
   </requestHandler>
 
+  <requestHandler name="/update/atomic" class="solr.UpdateRequestHandler">
+    <!-- WARNING not insert clones_except_private because search_text will be override -->
+    <!--  used by org.dspace.app.cris.model.listener.CrisMetricsListener -->
+  </requestHandler>
+  
   <!-- for back compat with clients using /update/json and /update/csv -->  
   <requestHandler name="/update/json" class="solr.JsonUpdateRequestHandler">
         <lst name="defaults">
@@ -1789,6 +1794,8 @@
          <lst name="exclude">
            <str name="fieldRegex">.*_private</str>
            <str name="fieldRegex">cris-.*</str>
+           <str name="fieldRegex">.*_crismetrics</str>
+           <str name="fieldRegex">crismetrics_.*</str>           
          </lst>
        </lst>
        <str name="dest">search_text</str>

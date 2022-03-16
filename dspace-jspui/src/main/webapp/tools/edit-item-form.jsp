@@ -17,6 +17,8 @@
   -    dc.types    - MetadataField[] - all metadata fields in the registry
   --%>
 
+<%@page import="java.util.Map.Entry"%>
+<%@page import="org.dspace.app.webui.util.EditItemUtil"%>
 <%@page import="org.dspace.app.webui.util.UIUtil"%>
 <%@ page contentType="text/html;charset=UTF-8" %>
 
@@ -55,6 +57,8 @@
 <%@ page import="org.dspace.core.Context" %>
 
 <%
+	HashMap<String,String> bundleTableMap = new HashMap();
+	boolean collapsedByDefaultBundles = ConfigurationManager.getBooleanProperty("edit.admin.collapsed.bundle.default",false);
     Item item = (Item) request.getAttribute("item");
     String handle = (String) request.getAttribute("handle");
     Collection[] collections = (Collection[]) request.getAttribute("collections");
@@ -545,148 +549,32 @@
     	%>
     <h3><%= bundles[i].getName() %> 
     	<a class="btn btn-warning" target="_blank" 
-    		href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=1&resource_id=<%= bundles[i].getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
-    		
+    		href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=1&resource_id=<%= bundles[i].getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>		
+    	<% if(collapsedByDefaultBundles){ %>
+    	<a class="btn btn-info" onclick="toggleTable('<%= bundles[i].getID() %>')"><fmt:message key="jsp.tools.general.edit.bundle"/></a>
+    	<% } %>
     		<% if (bRemoveBits) { %>
             <button class="btn btn-danger" name="submit_delete_bundle_<%= bundles[i].getID() %>" value="<fmt:message key="jsp.tools.general.remove"/>">
             	<span class="glyphicon glyphicon-trash"></span>
             </button>
             <% } %>		
  	</h3>	
-    <table id="bitstream-edit-form-table-<%= i %>" class="table" summary="Bitstream data table">
-            <tr>
-          <%-- <th class="oddRowEvenCol"><strong>Primary<br>Bitstream</strong></th>
-                <th class="oddRowOddCol"><strong>Name</strong></th>
-                <th class="oddRowEvenCol"><strong>Source</strong></th>
-                <th class="oddRowOddCol"><strong>Description</strong></th>
-                <th class="oddRowEvenCol"><strong>Format</strong></th>
-                <th class="oddRowOddCol"><strong>User&nbsp;Format&nbsp;Description</strong></th> --%>
-                <th id="t10" class="oddRowEvenCol">&nbsp;</th>
-                <th id="t11" class="oddRowOddCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem5"/></strong></th>        
-                <th id="t12" class="oddRowEvenCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem7"/></strong></th>
-                <th id="t13" class="oddRowOddCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem8"/></strong></th>
-                <th id="t14" class="oddRowEvenCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem9"/></strong></th>
-                <th id="t15" class="oddRowOddCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem10"/></strong></th>
-                <th id="t16" class="oddRowEvenCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem11"/></strong></th>
-                <th id="t17" class="oddRowOddCol"><strong><fmt:message key="jsp.tools.edit-item-form.elem12"/></strong></th>
-                <th id="t18" class="oddRowEvenCol">&nbsp;</th>
-            </tr>    	
+ 	<!-- Display table -->
+ 	<div id="table-container-<%=bundles[i].getID() %>"></div>
+    
+    	<% 
+    		String table = EditItemUtil.generateHiddenHTMLTable(request.getContextPath(), bundles, i, breOrderBitstreams, bRemoveBits);
+
+			if(collapsedByDefaultBundles) {
+	    		bundleTableMap.put(String.valueOf(bundles[i].getID()), table);
+			}else{
+				out.println(table);
+			}
+    	%>
     	
-    	
-    	
-<%    	
-        Bitstream[] bitstreams = bundles[i].getBitstreams();
-        for (int j = 0; j < bitstreams.length; j++)
-        {
-            ArrayList<Integer> bitstreamIdOrder = new ArrayList<Integer>();
-            for (Bitstream bitstream : bitstreams) {
-                bitstreamIdOrder.add(bitstream.getID());
-            }
-
-            // Parameter names will include the bundle and bitstream ID
-            // e.g. "bitstream_14_18_desc" is the description of bitstream 18 in bundle 14
-            String key = bundles[i].getID() + "_" + bitstreams[j].getID();
-            BitstreamFormat bf = bitstreams[j].getFormat();
-%>
-            <tr id="<%="row_" + bundles[i].getName() + "_" + bitstreams[j].getID()%>">
-            	<td headers="t10" class="<%= row %>RowEvenCol" align="center">
-                	<%-- <a target="_blank" href="<%= request.getContextPath() %>/retrieve/<%= bitstreams[j].getID() %>">View</a>&nbsp;<input type="submit" name="submit_delete_bitstream_<%= key %>" value="Remove"> --%>
-					<a class="btn btn-info" target="_blank" href="<%= request.getContextPath() %>/retrieve/<%= bitstreams[j].getID() %>"><fmt:message key="jsp.tools.general.view"/></a>&nbsp;
-					<a class="btn btn-warning" target="_blank" href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=0&resource_id=<%= bitstreams[j].getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
-				</td>
-                <% if (bundles[i].getName().equals("ORIGINAL"))
-                   { %>
-                     <td headers="t11" class="<%= row %>RowEvenCol" align="center">
-                       <span class="form-control">
-                       <input type="radio" name="<%= bundles[i].getID() %>_primary_bitstream_id" value="<%= bitstreams[j].getID() %>"
-                           <% if (bundles[i].getPrimaryBitstreamID() == bitstreams[j].getID()) { %>
-                                  checked="<%="checked" %>"
-                           <% } %> /></span>
-                   </td>
-                <% } else { %>
-                     <td headers="t11"> </td>
-                <% } %>
-                <td headers="t12" class="<%= row %>RowOddCol">
-                    <input class="form-control" type="text" name="bitstream_name_<%= key %>" value="<%= (bitstreams[j].getName() == null ? "" : Utils.addEntities(bitstreams[j].getName())) %>"/>
-                </td>
-                <td headers="t13" class="<%= row %>RowEvenCol">
-                    <input class="form-control" type="text" name="bitstream_source_<%= key %>" value="<%= (bitstreams[j].getSource() == null ? "" : bitstreams[j].getSource()) %>"/>
-                </td>
-                <td headers="t14" class="<%= row %>RowOddCol">
-                    <input class="form-control" type="text" name="bitstream_description_<%= key %>" value="<%= (bitstreams[j].getDescription() == null ? "" : Utils.addEntities(bitstreams[j].getDescription())) %>"/>
-                </td>
-                <td headers="t15" class="<%= row %>RowEvenCol">
-                    <input class="form-control" type="text" name="bitstream_format_id_<%= key %>" value="<%= bf.getID() %>" size="4"/> (<%= Utils.addEntities(bf.getShortDescription()) %>)
-                </td>
-                <td headers="t16" class="<%= row %>RowOddCol">
-                    <input class="form-control" type="text" name="bitstream_user_format_description_<%= key %>" value="<%= (bitstreams[j].getUserFormatDescription() == null ? "" : Utils.addEntities(bitstreams[j].getUserFormatDescription())) %>"/>
-                </td>
+ 	<!-- END Display table -->
+ 	
 <%
-                   if (bundles[i].getName().equals("ORIGINAL") && breOrderBitstreams)
-                   {
-                       //This strings are only used in case the user has javascript disabled
-                       String upButtonValue = null;
-                       String downButtonValue = null;
-                       if(0 != j){
-                           ArrayList<Integer> temp = (ArrayList<Integer>) bitstreamIdOrder.clone();
-                           //We don't have the first button, so create a value where the current bitstreamId moves one up
-                           Integer tempInt = temp.get(j);
-                           temp.set(j, temp.get(j - 1));
-                           temp.set(j - 1, tempInt);
-                           upButtonValue = StringUtils.join(temp.toArray(new Integer[temp.size()]), ",");
-                       }
-                       if(j < (bitstreams.length -1)){
-                           //We don't have the first button, so create a value where the current bitstreamId moves one up
-                           ArrayList<Integer> temp = (ArrayList<Integer>) bitstreamIdOrder.clone();
-                           Integer tempInt = temp.get(j);
-                           temp.set(j, temp.get(j + 1));
-                           temp.set(j + 1, tempInt);
-                           downButtonValue = StringUtils.join(temp.toArray(new Integer[temp.size()]), ",");
-                       }
-
-
-
-%>
-                <td headers="t17" class="<%= row %>RowEvenCol">
-                    <input type="hidden" value="<%=j+1%>" name="order_<%=bitstreams[j].getID()%>">
-                    <input type="hidden" value="<%=upButtonValue%>" name="<%=bundles[i].getID()%>_<%=bitstreams[j].getID()%>_up_value">
-                    <input type="hidden" value="<%=downButtonValue%>" name="<%=bundles[i].getID()%>_<%=bitstreams[j].getID()%>_down_value">
-                    <div>
-                        <button class="btn btn-default" name="submit_order_<%=key%>_up" value="<fmt:message key="jsp.tools.edit-item-form.move-up"/> " <%=j==0 ? "disabled=\"disabled\"" : ""%>>
-                        	<span class="glyphicon glyphicon-arrow-up"></span>
-                        </button>
-                    </div>
-                    <div>
-                        <button class="btn btn-default" name="submit_order_<%=key%>_down" value="<fmt:message key="jsp.tools.edit-item-form.move-down"/> " <%=j==(bitstreams.length-1) ? "disabled=\"disabled\"" : ""%>>
-                        	<span class="glyphicon glyphicon-arrow-down"></span>
-                        </button>
-                    </div>
-                </td>
-
-<%
-                   }else{
-%>
-                <td>
-                    <%=j+1%>
-                </td>
-<%
-                   }
-%>
-                <td headers="t18" class="<%= row %>RowEvenCol">
-
-                                        <% if (bRemoveBits) { %>
-                                        <button class="btn btn-danger" name="submit_delete_bitstream_<%= key %>" value="<fmt:message key="jsp.tools.general.remove"/>">
-                                        	<span class="glyphicon glyphicon-trash"></span>
-                                        </button>
-                                        <% } %>
-                </td>
-            </tr>
-<%
-            row = (row.equals("odd") ? "even" : "odd");
-        }
-        %>
-        </table>
-        <%
     }
 %>
 	</div>
@@ -730,4 +618,13 @@
 						<input class="btn btn-default pull-right col-md-3" type="submit" name="submit_cancel" value="<fmt:message key="jsp.tools.general.cancel"/>" />
 					</div>
     </form>
+    <div id="hidden-tables" style="display:none;">
+        <% 
+			for(String htmlTable: bundleTableMap.values()){
+				%>
+				<%= htmlTable %>
+				<%
+			}
+    	%>
+    </div>
 </dspace:layout>

@@ -104,6 +104,7 @@
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/buttons.html5.min.js"></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/dataTables.responsive.min.js"></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
+	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/edit-item-display-tables.js'></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jdyna/jdyna.js"></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"></script>    

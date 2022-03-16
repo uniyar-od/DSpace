@@ -1060,25 +1060,25 @@ public class CrisSearchService extends SolrServiceImpl
             if (type >= CrisConstants.CRIS_TYPE_ID_START)
             {
             	TableRowIterator tri = null;
-            	String fq = "";
+            	String[] fq = null;
                 if (type >= CrisConstants.CRIS_DYNAMIC_TYPE_ID_START) {
                 	tri = DatabaseManager.query(context, "select id as identifierobject from cris_do where status = '1' order by id asc");
-                	fq = "search.resourcetype:[1000 TO *]";
+                	fq = new String[]{"search.resourcetype:[1000 TO *]", "disabled:false"};
                 }                    
                 else if (CrisConstants.RP_TYPE_ID == type)
                 {
                 	tri = DatabaseManager.query(context, "select id as identifierobject from cris_rpage where status = '1' order by id asc");
-                	fq = "search.resourcetype:9";
+                	fq = new String[]{"search.resourcetype:9", "disabled:false"};
                 }
                 else if (CrisConstants.PROJECT_TYPE_ID == type)
                 {
                 	tri = DatabaseManager.query(context, "select id as identifierobject from cris_project where status = '1' order by id asc");
-                	fq = "search.resourcetype:10";
+                	fq = new String[]{"search.resourcetype:10", "disabled:false"};
                 }
                 else if (CrisConstants.OU_TYPE_ID == type)
                 {
                 	tri = DatabaseManager.query(context, "select id as identifierobject from cris_ou where status = '1' order by id asc");
-                	fq = "search.resourcetype:11";
+                	fq = new String[]{"search.resourcetype:11", "disabled:false"};
                 }
                 
                 List<TableRow> rows = tri.toList();
