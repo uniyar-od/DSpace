@@ -375,3 +375,7 @@ div.footerPanel {
 .uv .headerPanel .centerOptions .autocompleteText {
     color: #000;
 }
+.default-thumbnail-icon {
+	color: #337ab7;
+    margin-bottom: 0.5em;
+}

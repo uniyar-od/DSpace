@@ -234,20 +234,13 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
     }
     
 	private String generateDefaultThumbnail(Context c, int itemID, HttpServletRequest hrq, String handle) {
-		String defaultThumbnail = "<i class=\"fa fa-file-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		String defaultThumbnail="<i class=\"fa fa-file-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
 		ItemDAO dao = ItemDAOFactory.getInstance(c);
 		try {
-            Bitstream original = dao.getPrimaryBitstream(itemID, "ORIGINAL");
+			Bitstream original = dao.getPrimaryBitstream(itemID, "ORIGINAL");
 			String primaryBitstreamMimetype = dao.getPrimaryBitstream(itemID, "ORIGINAL").getFormat().getMIMEType();
-			if (primaryBitstreamMimetype.startsWith("audio/")) {
-				defaultThumbnail = "<i class=\"fa fa-file-audio-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
-			} else if (primaryBitstreamMimetype.startsWith("video/")) {
-				defaultThumbnail = "<i class=\"fa fa-file-video-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
-			} else if (primaryBitstreamMimetype.startsWith("image/")) {
-				defaultThumbnail = "<i class=\"fa fa-file-image-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
-			} else if (primaryBitstreamMimetype.equals("application/pdf")) {
-				defaultThumbnail = "<i class=\"fa fa-file-pdf-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
-			}
+			
+            defaultThumbnail=generateDefaultThumbnailIcon(primaryBitstreamMimetype);
 	        if (linkToBitstream)
 	        {
 	            String link = hrq.getContextPath() + "/bitstream/" + handle + "/" + original.getSequenceID() + "/" +
@@ -265,6 +258,20 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
             defaultThumbnail="<a href=\"" + link + "\">"+defaultThumbnail+"</a>";
 		}
 
+		return defaultThumbnail;
+	}
+
+	public static String generateDefaultThumbnailIcon(String primaryBitstreamMimetype) {
+		String defaultThumbnail = "<i class=\"fa fa-file-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		if (primaryBitstreamMimetype.startsWith("audio/")) {
+			defaultThumbnail = "<i class=\"fa fa-file-audio-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		} else if (primaryBitstreamMimetype.startsWith("video/")) {
+			defaultThumbnail = "<i class=\"fa fa-file-video-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		} else if (primaryBitstreamMimetype.startsWith("image/")) {
+			defaultThumbnail = "<i class=\"fa fa-file-image-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		} else if (primaryBitstreamMimetype.equals("application/pdf")) {
+			defaultThumbnail = "<i class=\"fa fa-file-pdf-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+		}
 		return defaultThumbnail;
 	}
 
