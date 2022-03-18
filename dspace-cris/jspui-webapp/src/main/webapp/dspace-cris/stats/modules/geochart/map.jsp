@@ -24,7 +24,7 @@
 </div>
 <script type='text/javascript' src='https://www.gstatic.com/charts/loader.js'></script>
 <script type="text/javascript">
-<!--
+
 	var ${jsDataObjectName} = new Array (${fn:length(data.resultBean.dataBeans[statType][objectName][pieType].dataTable)});
 
 function initialize_${jsDataObjectName}() {
@@ -40,11 +40,10 @@ function initialize_${jsDataObjectName}() {
     	data.addColumn('number', '<fmt:message key="view.${data.jspKey}.data.${statType}.${objectName}.${pieType}.longitude" />');
     	data.addColumn('number', '<fmt:message key="view.${data.jspKey}.data.${statType}.${objectName}.${pieType}.views" />');
     	data.addColumn('number', '<fmt:message key="view.${data.jspKey}.data.${statType}.${objectName}.${pieType}.percentage" />');
-    	data.addRows([
-    		<c:forEach items="${data.resultBean.dataBeans[statType][objectName][pieType].dataTable}" var="row" varStatus="status">	
-    			[<c:out value="${row.latitude}"/>,<c:out value="${row.longitude}"/>,<c:out value="${row.value}"/>,<c:out value="${row.percentage}"/>],
-    	</c:forEach>    	    
-    	]);
+       	
+    	var tmpData = '<c:forEach items="${data.resultBean.dataBeans[statType][objectName][pieType].dataTable}" var="row" varStatus="status">[<c:out value="${row.latitude}"/>,<c:out value="${row.longitude}"/>,<c:out value="${row.value}"/>,<c:out value="${row.percentage}"/>],</c:forEach> ';
+    	tmpData = tmpData.substring(0,tmpData.lastIndexOf(","));
+    	data.addRows(JSON.parse("[" + tmpData + "]"));
 
         var options = {colorAxis: {colors: ['green', 'blue']}};
 
@@ -57,6 +56,6 @@ function initialize_${jsDataObjectName}() {
   }
 
 initialize_${jsDataObjectName}();
--->
+
 </script>
 </c:if>
