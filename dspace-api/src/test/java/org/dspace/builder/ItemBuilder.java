@@ -117,6 +117,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "oairecerif", "author", "affiliation", affiliation);
     }
 
+    public ItemBuilder withAuthorAffiliationForLanguage(String affiliation, String language) {
+        return addMetadataValue(item, "oairecerif", "author", "affiliation", language, affiliation);
+    }
+
     public ItemBuilder withAuthorAffiliationPlaceholder() {
         return addMetadataValue(item, "oairecerif", "author", "affiliation",
                 CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE);

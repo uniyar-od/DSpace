@@ -871,8 +871,16 @@ public class DCInputsReader {
         throws DCInputsReaderException {
 
         return getAllInputsByCollection(collection)
-            .filter(dcInput -> getMetadataFieldsFromDcInput(dcInput).contains(metadata))
             .filter(dcInput -> group ? isGroupType(dcInput) : !isGroupType(dcInput))
+            .filter(dcInput -> {
+                try {
+                    return group
+                        ? getAllNestedMetadataByGroupName(collection, dcInput.getFieldName()).contains(metadata)
+                        : getMetadataFieldsFromDcInput(dcInput).contains(metadata);
+                } catch (DCInputsReaderException e) {
+                    throw new RuntimeException(e);
+                }
+            })
             .findFirst()
             .orElseThrow(() -> new DCInputsReaderException("No DCInput found for the metadata field " + metadata))
             .getAllLanguageValues();

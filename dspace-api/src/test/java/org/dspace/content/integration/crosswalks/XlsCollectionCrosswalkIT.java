@@ -343,6 +343,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             .withHandle("123456789/001")
             .withTitleForLanguage("Test Publication", "de")
             .withAuthorForLanguage("John Smith", "de")
+            .withAuthorAffiliationForLanguage("4Science", "de")
             .withDescriptionAbstract("Description Abstract")
             .withDoiIdentifierForLanguage("XXX", "de")
             .build();
