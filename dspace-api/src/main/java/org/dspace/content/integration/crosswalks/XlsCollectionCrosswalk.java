@@ -124,7 +124,7 @@ public class XlsCollectionCrosswalk implements StreamDisseminationCrosswalk {
     }
 
     private XlsCollectionSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
-        XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items");
+        XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items", false);
         mainSheet.appendHeader(ID_CELL);
         List<String> metadataFields = getSubmissionFormMetadata(collection);
         for (String metadataField : metadataFields) {
@@ -134,7 +134,7 @@ public class XlsCollectionCrosswalk implements StreamDisseminationCrosswalk {
     }
 
     private XlsCollectionSheet writeNestedMetadataSheetHeader(Collection collection, Workbook workbook, String field) {
-        XlsCollectionSheet nestedMetadataSheet = new XlsCollectionSheet(workbook, field);
+        XlsCollectionSheet nestedMetadataSheet = new XlsCollectionSheet(workbook, field, true);
         List<String> nestedMetadataFields = getSubmissionFormMetadataGroup(collection, field);
         nestedMetadataSheet.appendHeader(PARENT_ID_CELL);
         for (String metadataField : nestedMetadataFields) {
@@ -215,6 +215,7 @@ public class XlsCollectionCrosswalk implements StreamDisseminationCrosswalk {
             writeMetadataValue(item, nestedMetadataSheet, header, metadata.get(groupIndex));
 
         }
+
     }
 
     private void writeMetadataValue(Item item, XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
@@ -225,7 +226,7 @@ public class XlsCollectionCrosswalk implements StreamDisseminationCrosswalk {
             return;
         }
 
-        if (isLanguageSupported(item.getOwningCollection(), language, header)) {
+        if (isLanguageSupported(item.getOwningCollection(), language, header, sheet.isNestedMetadata())) {
             String headerWithLanguage = header + LANGUAGE_SEPARATOR_PREFIX + language + LANGUAGE_SEPARATOR_SUFFIX;
             sheet.appendHeaderIfNotPresent(headerWithLanguage);
             sheet.appendValueOnLastRow(headerWithLanguage, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
@@ -273,9 +274,9 @@ public class XlsCollectionCrosswalk implements StreamDisseminationCrosswalk {
         }
     }
 
-    private boolean isLanguageSupported(Collection collection, String language, String metadataField) {
+    private boolean isLanguageSupported(Collection collection, String language, String metadataField, boolean group) {
         try {
-            List<String> languages = this.reader.getLanguagesForMetadata(collection, metadataField);
+            List<String> languages = this.reader.getLanguagesForMetadata(collection, metadataField, group);
             return CollectionUtils.isNotEmpty(languages) ? languages.contains(language) : false;
         } catch (DCInputsReaderException e) {
             throw new RuntimeException("An error occurs reading the input configuration by collection", e);
