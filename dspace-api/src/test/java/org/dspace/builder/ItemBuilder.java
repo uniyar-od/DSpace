@@ -237,6 +237,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "dc", "identifier", "doi", doi);
     }
 
+    public ItemBuilder withDoiIdentifierForLanguage(String doi, String language) {
+        return addMetadataValue(item, "dc", "identifier", "doi", language, doi);
+    }
+
     public ItemBuilder withIsbnIdentifier(String isbn) {
         return addMetadataValue(item, "dc", "identifier", "isbn", isbn);
     }

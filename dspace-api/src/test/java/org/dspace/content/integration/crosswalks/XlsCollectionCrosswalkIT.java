@@ -344,6 +344,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             .withTitleForLanguage("Test Publication", "de")
             .withAuthorForLanguage("John Smith", "de")
             .withDescriptionAbstract("Description Abstract")
+            .withDoiIdentifierForLanguage("XXX", "de")
             .build();
 
         context.restoreAuthSystemState();
