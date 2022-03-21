@@ -1973,10 +1973,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         WorkspaceItem workspaceItem1 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withTitle("Workspace Item 1")
                 .withIssueDate("2017-10-17")
+                .grantLicense()
                 .build();
 
         WorkspaceItem workspaceItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withTitle("Workspace Item 2")
+                .grantLicense()
                 .build();
 
         //disable file upload mandatory
@@ -2050,11 +2052,13 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .withTitle("Test publication with mandatory DOI 1")
             .withIssueDate("2017-10-17")
             .withDoiIdentifier("10.1000/182")
+            .grantLicense()
             .build();
 
         WorkspaceItem workspaceItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
             .withTitle("Test publication with mandatory DOI 2")
             .withIssueDate("2017-10-17")
+            .grantLicense()
             .build();
 
         // disable file upload mandatory
@@ -2102,10 +2106,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .withTitle("Test publication with mandatory DOI 1")
             .withIssueDate("2017-10-17")
             .withDoiIdentifier("10.1000/182")
+            .grantLicense()
             .build();
 
         WorkspaceItem workspaceItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
             .withTitle("Test publication with mandatory DOI 2")
+            .grantLicense()
             .build();
 
         // disable file upload mandatory
@@ -2470,6 +2476,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .withTitle("Workspace Item 1")
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
+                .grantLicense()
                 .build();
 
         //disable file upload mandatory
@@ -2762,6 +2769,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .withTitle("Workspace Item 1")
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
+                .grantLicense()
                 .build();
 
         WorkspaceItem witemMultipleSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
@@ -2771,6 +2779,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("Subject2")
                 .withSubject("Subject3")
                 .withSubject("Subject4")
+                .grantLicense()
                 .build();
 
         WorkspaceItem witemWithTitleDateAndSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
@@ -2780,6 +2789,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("Subject2")
                 .withSubject("Subject3")
                 .withSubject("Subject4")
+                .grantLicense()
                 .build();
 
         context.restoreAuthSystemState();
@@ -3094,6 +3104,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
+                .grantLicense()
                 .build();
 
         //disable file upload mandatory
@@ -3165,6 +3176,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
+                .grantLicense()
                 .build();
 
         //disable file upload mandatory
@@ -3375,6 +3387,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withTitle("Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
+                .grantLicense()
                 .build();
 
         //disable file upload mandatory
@@ -3780,7 +3793,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                             .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
+                            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
                             .andExpect(jsonPath("$.sections.license.granted",
                                     is(false)))
                             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3790,7 +3804,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // verify that the patch changes have been persisted
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
             .andExpect(jsonPath("$.sections.license.granted",
                     is(false)))
             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3806,7 +3821,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                             .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
+                            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
                             .andExpect(jsonPath("$.sections.license.granted",
                                     is(false)))
                             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3816,7 +3832,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // verify that the patch changes have been persisted
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem2.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
             .andExpect(jsonPath("$.sections.license.granted",
                     is(false)))
             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3832,7 +3849,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                             .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
+                            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
                             .andExpect(jsonPath("$.sections.license.granted",
                                     is(false)))
                             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3842,7 +3860,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // verify that the patch changes have been persisted
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem3.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
             .andExpect(jsonPath("$.sections.license.granted",
                     is(false)))
             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3858,7 +3877,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .content(patchBody)
                 .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                             .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
+                            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
                             .andExpect(jsonPath("$.sections.license.granted",
                                     is(false)))
                             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -3868,7 +3888,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         // verify that the patch changes have been persisted
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem4.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist())
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.license.notgranted')]",
+                contains( hasJsonPath("$.paths", contains(hasJsonPath("$", is("/sections/license")))))))
             .andExpect(jsonPath("$.sections.license.granted",
                     is(false)))
             .andExpect(jsonPath("$.sections.license.acceptanceDate").isEmpty())
@@ -4235,6 +4256,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
             .withTitle("Test WorkspaceItem")
             .withIssueDate("2017-10-17")
+            .grantLicense()
             .build();
 
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
@@ -5572,6 +5594,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test witem")
                                                   .withIssueDate("2017-10-17")
                                                   .withSubject("ExtraEntry")
+                                                  .grantLicense()
                                                   .build();
 
         //disable file upload mandatory
@@ -5630,6 +5653,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test witem")
                                                   .withIssueDate("2017-10-17")
                                                   .withSubject("ExtraEntry")
+                                                  .grantLicense()
                                                   .build();
 
         //disable file upload mandatory
@@ -6562,6 +6586,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                       "Test Item patchUploadAddAdminRPInstallAndVerifyOnlyAdminCanView")
                                                   .withIssueDate("2019-03-06")
                                                   .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                                  .grantLicense()
                                                   .build();
         context.restoreAuthSystemState();
 
@@ -6640,6 +6665,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                 .withTitle("Test Item patchUploadAddOpenAccessRPInstallAndVerifyOnlyAdminCanView")
                                 .withIssueDate("2019-03-06")
                                 .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                .grantLicense()
                                 .build();
         context.restoreAuthSystemState();
 
@@ -6706,6 +6732,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                 .withTitle("Test Item patchUploadAddOpenAccessRPInstallAndVerifyOnlyAdminCanView")
                                 .withIssueDate("2019-03-06")
                                 .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                .grantLicense()
                                 .build();
         context.restoreAuthSystemState();
 
@@ -6799,6 +6826,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test wsItem")
                                                   .withIssueDate("2019-03-06")
                                                   .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                                  .grantLicense()
                                                   .build();
         context.restoreAuthSystemState();
 
@@ -6872,6 +6900,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test wsItem")
                                                   .withIssueDate("2019-03-06")
                                                   .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                                  .grantLicense()
                                                   .build();
         context.restoreAuthSystemState();
 
@@ -6935,6 +6964,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test wsItem")
                                                   .withIssueDate("2019-03-06")
                                                   .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                                  .grantLicense()
                                                   .build();
         context.restoreAuthSystemState();
 
@@ -7017,6 +7047,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test wsItem")
                                                   .withIssueDate("2019-03-06")
                                                   .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                                  .grantLicense()
                                                   .build();
         context.restoreAuthSystemState();
 
@@ -7081,6 +7112,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withTitle("Test wsItem")
                                                   .withIssueDate("2019-03-06")
                                                   .withFulltext("upload2.pdf", "/local/path/simple-article.pdf", pdf)
+                                                  .grantLicense()
                                                   .build();
         context.restoreAuthSystemState();
 
@@ -8254,6 +8286,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                              .withTitle("My Article")
                              .withIssueDate("2019-03-16")
                              .withFulltext("upload.pdf", "/local/path/simple-article.pdf", pdf)
+                             .grantLicense()
                              .build();
 
         Bundle bundle = wItem.getItem().getBundles().get(0);
