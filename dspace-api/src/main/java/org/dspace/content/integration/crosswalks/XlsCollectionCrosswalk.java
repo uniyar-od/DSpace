@@ -29,11 +29,11 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.app.bulkedit.BulkImport;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
@@ -98,7 +98,7 @@ public class XlsCollectionCrosswalk implements StreamDisseminationCrosswalk {
 
         Collection collection = (Collection) dso;
 
-        try (Workbook workbook = new HSSFWorkbook()) {
+        try (Workbook workbook = new XSSFWorkbook()) {
 
             XlsCollectionSheet mainSheet = writeMainSheetHeader(context, collection, workbook);
             List<XlsCollectionSheet> nestedMetadataSheets = writeNestedMetadataSheetsHeader(collection, workbook);
