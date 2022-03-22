@@ -379,3 +379,7 @@ div.footerPanel {
 	color: #337ab7;
     margin-bottom: 0.5em;
 }
+
+form#searchglobalprocessor.col-md-10.col-md-offset-1 div.input-group input.form-control {
+        width: 100% !important;
+}
