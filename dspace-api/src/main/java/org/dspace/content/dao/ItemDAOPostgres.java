@@ -61,6 +61,7 @@ public class ItemDAOPostgres extends ItemDAO
                 + "  )"
                 + " WHERE item2bundle.item_id=?"
                 + "  AND MD1.text_value=?"
+                + " ORDER BY bundle2bitstream.bitstream_id ASC"
                 + " LIMIT 1";
 
         SELECT_NAMED_BITSTREAM_ID =
@@ -80,7 +81,8 @@ public class ItemDAOPostgres extends ItemDAO
                 + "  )"
                 + " WHERE item2bundle.item_id=?"
                 + "  AND MD1.text_value=?"
-                + "  AND MD2.text_value=?";
+                + "  AND MD2.text_value=?"
+                + " ORDER BY bitstream.bitstream_id ASC";
     }
 
     @Override

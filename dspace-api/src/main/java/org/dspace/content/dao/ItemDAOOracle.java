@@ -74,7 +74,8 @@ public class ItemDAOOracle extends ItemDAO
                 + "   AND MD1.metadata_field_id = " + MD_FIELD_ID_NAME
                 + "  )"
                 + " WHERE item2bundle.item_id = ?"
-                + "  AND dbms_lob.compare(MD1.text_value, ?) = 0";
+                + "  AND dbms_lob.compare(MD1.text_value, ?) = 0"
+                + " ORDER BY bundle2bitstream.bitstream_id ASC";
 
         SELECT_NAMED_BITSTREAM_ID =
             "SELECT bitstream_id"
@@ -94,7 +95,8 @@ public class ItemDAOOracle extends ItemDAO
                 + "  )"
                 + " WHERE item2bundle.item_id = ?"
                 + "  AND dbms_lob.compare(MD1.text_value, ?) = 0 "
-                + "  AND dbms_lob.compare(MD2.text_value, ?) = 0";
+                + "  AND dbms_lob.compare(MD2.text_value, ?) = 0"
+                + " ORDER BY bitstream_id ASC";
     }
 
     @Override
