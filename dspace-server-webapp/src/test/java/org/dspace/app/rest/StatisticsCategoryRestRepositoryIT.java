@@ -24,6 +24,7 @@ import org.dspace.content.service.SiteService;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +35,9 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private ConfigurationService configurationService;
 
     @Test
     public void findAllTest() throws Exception {
@@ -173,6 +177,35 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.is("item-mainReports")))
                 .andExpect(jsonPath("$.category-type", Matchers.is("mainReports")));
+    }
+
+    @Test
+    public void searchObjectNotWithoutAdminRestrictionTest() throws Exception {
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", false);
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+        //create collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+        //create collections
+        Collection colPeople = CollectionBuilder.createCollection(context, parentCommunity).withName("People")
+            .withEntityType("Person").build();
+        Item itemPers = ItemBuilder.createItem(context, colPeople).withTitle("Test Person item").build();
+        context.restoreAuthSystemState();
+        getClient().perform(get("/api/statistics/categories/search/object")
+            .param("uri", "http://localhost:8080/server/api/items/" + itemPers.getID().toString())
+        )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page", PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)))
+            .andExpect(jsonPath("$._embedded.categories", Matchers.contains(
+                StatisticsCategoryMatcher.match("person-mainReports", "mainReports"),
+                StatisticsCategoryMatcher.match("person-publicationsReports", "publicationsReports"),
+                StatisticsCategoryMatcher.match("person-projectsReports", "projectsReports")
+            )));
+        configurationService.setProperty("usage-statistics.authorization.admin.usage", true);
     }
 
     @Test

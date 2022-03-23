@@ -9,6 +9,7 @@ package org.dspace.app.rest.security;
 
 import java.io.Serializable;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.commons.lang3.StringUtils;
@@ -64,6 +65,7 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
         DSpaceRestPermission restPermission) {
         if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME, targetType)
+            || StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "categorysearch", targetType)
             || StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "search", targetType)) {
             Request request = requestService.getCurrentRequest();
             Context context = ContextUtil.obtainContext(request.getHttpServletRequest());
@@ -80,7 +82,8 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
                         }
                         // Get uuid from uuidDSO_reportId pathParam
                         uuidObject = UUID.fromString(StringUtils.substringBefore(targetId.toString(), "_"));
-                    } else if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "search", targetType)) {
+                    } else if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "search", targetType)
+                        || StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "categorysearch", targetType)) {
                         // Get uuid from url (selfLink of dso) queryParam
                         uuidObject = UUID.fromString(StringUtils.substringAfterLast(targetId.toString(), "/"));
                     } else {
