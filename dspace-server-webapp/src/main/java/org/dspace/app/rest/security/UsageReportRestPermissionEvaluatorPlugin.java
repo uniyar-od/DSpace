@@ -63,9 +63,7 @@ public class UsageReportRestPermissionEvaluatorPlugin extends RestObjectPermissi
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
         DSpaceRestPermission restPermission) {
-        if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME, targetType)
-            || StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "categorysearch", targetType)
-            || StringUtils.equalsIgnoreCase(UsageReportRest.NAME + "search", targetType)) {
+        if (StringUtils.equalsIgnoreCase(UsageReportRest.NAME, targetType)) {
             Request request = requestService.getCurrentRequest();
             Context context = ContextUtil.obtainContext(request.getHttpServletRequest());
             UUID uuidObject = null;

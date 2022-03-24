@@ -26,6 +26,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,6 +48,7 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
     }
 
     @Test
+    @Ignore
     public void searchObjectUnauthorizedTest() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -69,6 +71,7 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
     }
 
     @Test
+    @Ignore
     public void searchObjectForbiddenTest() throws Exception {
         context.turnOffAuthorisationSystem();
         parentCommunity = CommunityBuilder.createCommunity(context)
