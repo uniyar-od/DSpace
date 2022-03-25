@@ -21,12 +21,9 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.Site;
 import org.dspace.content.service.SiteService;
-import org.dspace.eperson.Group;
-import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.hamcrest.Matchers;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
