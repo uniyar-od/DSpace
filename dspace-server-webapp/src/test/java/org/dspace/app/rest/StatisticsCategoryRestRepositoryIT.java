@@ -48,53 +48,6 @@ public class StatisticsCategoryRestRepositoryIT extends AbstractControllerIntegr
     }
 
     @Test
-    @Ignore
-    public void searchObjectUnauthorizedTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
-        //create collection
-        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-        Group adminGroup = groupService.findByName(context, Group.ADMIN);
-        Item itemReserved = ItemBuilder.createItem(context, col).withTitle("Test item").withReaderGroup(adminGroup)
-                .build();
-        Item itemWithdrawn = ItemBuilder.createItem(context, col).withTitle("Test withdrawn item").withdrawn().build();
-        context.restoreAuthSystemState();
-        getClient()
-                .perform(get("/api/statistics/categories/search/object")
-                .param("uri", "http://localhost:8080/server/api/items/" + itemReserved.getID().toString())
-                ).andExpect(status().isUnauthorized());
-        getClient().perform(get("/api/statistics/categories/search/object")
-                .param("uri", "http://localhost:8080/server/api/items/" + itemWithdrawn.getID().toString())
-                ).andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @Ignore
-    public void searchObjectForbiddenTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community")
-                .build();
-        //create collection
-        Collection col = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-        GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
-        Group adminGroup = groupService.findByName(context, Group.ADMIN);
-        Item itemReserved = ItemBuilder.createItem(context, col).withTitle("Test item").withReaderGroup(adminGroup)
-                .build();
-        Item itemWithdrawn = ItemBuilder.createItem(context, col).withTitle("Test withdrawn item").withdrawn().build();
-        context.restoreAuthSystemState();
-        String authToken = getAuthToken(eperson.getEmail(), password);
-        getClient(authToken).perform(get("/api/statistics/categories/search/object")
-                .param("uri", "http://localhost:8080/server/api/items/" + itemReserved.getID().toString())
-                ).andExpect(status().isForbidden());
-        getClient(authToken).perform(get("/api/statistics/categories/search/object")
-                .param("uri", "http://localhost:8080/server/api/items/" + itemWithdrawn.getID().toString())
-                ).andExpect(status().isForbidden());
-    }
-
-    @Test
     public void searchObjectDifferentTypesTest() throws Exception {
         context.turnOffAuthorisationSystem();
         Site site = siteService.findSite(context);
