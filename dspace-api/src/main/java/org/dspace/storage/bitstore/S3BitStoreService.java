@@ -32,6 +32,7 @@ import org.apache.http.HttpStatus;
 import org.apache.log4j.Logger;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Utils;
+import org.dspace.storage.bitstore.cache.S3CachingSystem;
 import org.dspace.storage.rdbms.TableRow;
 import org.springframework.beans.factory.annotation.Required;
 
@@ -76,6 +77,8 @@ public class S3BitStoreService extends ABitStoreService
     /** transfer manager */
     private TransferManager transferManager = null;
 
+    private S3CachingSystem s3CachingSystem;
+    
     public S3BitStoreService()
     {
     }
@@ -137,6 +140,8 @@ public class S3BitStoreService extends ABitStoreService
                 .withS3Client(s3Service)
                 .build();
         
+        s3CachingSystem = new S3CachingSystem(transferManager, bucketName);
+        
         log.info("AWS S3 Assetstore ready to go! bucket:"+bucketName);
     }
 
@@ -164,22 +169,8 @@ public class S3BitStoreService extends ABitStoreService
     public InputStream get(TableRow bitstream) throws IOException
     {
         String key = getFullKey(bitstream.getStringColumn("internal_id"));
-        try
-        {
-            File tempFile = File.createTempFile("s3-disk-copy", "temp");
-            tempFile.deleteOnExit();
-
-            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
-            Download download = transferManager.download(getObjectRequest, tempFile);
-            download.waitForCompletion();
-
-            return new DeleteOnCloseFileInputStream(tempFile);
-        }
-        catch (Exception e)
-        {
-            log.error("get("+key+")", e);
-            throw new IOException(e);
-        }
+        boolean isCacheEnabled = ConfigurationManager.getBooleanProperty("assetstore.s3.local.cache.enable",false);
+        return s3CachingSystem.getInputStreamForBitstream(key, isCacheEnabled);
     }
 
     /**
