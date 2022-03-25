@@ -12,6 +12,7 @@ public enum CrisLayoutBoxTypes {
         METADATA,
         RELATION,
         METRICS,
+        HIERARCHY,
         ORCID_SYNC_SETTINGS,
         ORCID_AUTHORIZATIONS,
         ORCID_SYNC_QUEUE;
