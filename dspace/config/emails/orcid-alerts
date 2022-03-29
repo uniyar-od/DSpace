@@ -1,6 +1,7 @@
 # Email sent to DSpace users when they have works to send to the Orcid Registry but have disable the batch mode
 #
 #          
+#	Parameters: {0} the researcher page
 #
 # See org.dspace.core.Email for information on the format of this file.
 #

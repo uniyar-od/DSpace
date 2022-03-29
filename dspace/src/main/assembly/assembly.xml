@@ -58,7 +58,6 @@
             <exclude>config/hibernate.properties</exclude>
             <exclude>config/crosswalks/oai/description.xml</exclude>
             <exclude>config/crosswalks/oai/service-description.xml</exclude>
-            <exclude>solr/search/conf/database.properties</exclude>
             <exclude>config/log4j.properties</exclude>
             <exclude>config/modules/**</exclude>
          </excludes>
@@ -100,11 +99,6 @@
          <outputDirectory>config/crosswalks/oai/</outputDirectory>
          <filtered>true</filtered>
       </file>      
-	  <file>
-         <source>solr/search/conf/database.properties</source>
-         <outputDirectory>solr/search/conf</outputDirectory>
-         <filtered>true</filtered>
-      </file>
    </files>
 
    <!--

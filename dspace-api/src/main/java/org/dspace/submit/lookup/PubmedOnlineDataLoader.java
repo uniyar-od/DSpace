@@ -111,6 +111,19 @@ public class PubmedOnlineDataLoader extends NetworkSubmissionLookupDataLoader
         return results;
     }
 
+    public List<Record> search(String query) throws IOException, HttpException{
+        List<Record> pubmedResults = pubmedService.search(query);
+        List<Record> results = new ArrayList<Record>();
+        if (pubmedResults != null)
+        {
+            for (Record p : pubmedResults)
+            {
+                results.add(convertFields(p));
+            }
+        }
+        return results;
+    }
+
     @Override
     public List<Record> search(Context context, String title, String author,
             int year) throws HttpException, IOException

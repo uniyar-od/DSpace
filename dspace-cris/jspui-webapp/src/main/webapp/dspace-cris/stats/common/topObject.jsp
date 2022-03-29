@@ -16,8 +16,11 @@
 <c:choose>
 	<c:when test="${data.resultBean.dataBeans[statType][objectName]['total'].dataTable[0][0] > 0}">
 		<c:set var="drillDownInfo" >drillDown-${pieType}-${objectName}</c:set>
-	
+		<% if(StringUtils.isNotBlank(mapsApiKey)) { %>
 		<%@include file="../modules/map/map.jsp" %> 
+		<% } else { %>
+			<%@include file="../modules/geochart/map.jsp" %>
+		<% } %>	 
 <div id="statstabs">
 <div id="statstab-menu">
 <ul>

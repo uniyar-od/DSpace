@@ -5,6 +5,7 @@
  *
  * http://www.dspace.org/license/
  */
+html {font-size: 14px;}
 .banner img {background-color: #FFFFFF;padding:15px;margin-top:20px;}
 .brand h4 {color: #999999}
 #communitylist-top-menu a, #userloggedin-top-menu a {padding-top:0.3em;padding-bottom:0.3em;}
@@ -295,7 +296,8 @@ footer .container {
 
 .form-control{
 	color:#000;
-	height: auto !important;
+	height: auto;
+	width: auto !important;
 }
 
 .modal.in .modal-dialog {
@@ -366,4 +368,18 @@ div.row > label.col-md-2 {clear: left;}
 
 div.footerPanel {
     background: url(../../../image/logo-4science-small.png) no-repeat center bottom;
+}
+.uv .footerPanel .search .searchTextContainer {
+    color: #000;
+}
+.uv .headerPanel .centerOptions .autocompleteText {
+    color: #000;
+}
+.default-thumbnail-icon {
+	color: #337ab7;
+    margin-bottom: 0.5em;
+}
+
+form#searchglobalprocessor.col-md-10.col-md-offset-1 div.input-group input.form-control {
+        width: 100% !important;
 }

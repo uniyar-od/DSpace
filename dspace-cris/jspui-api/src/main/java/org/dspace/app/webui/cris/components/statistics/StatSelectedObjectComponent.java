@@ -30,10 +30,10 @@ public class StatSelectedObjectComponent<T extends DSpaceObject> extends
         StatsComponent<T>
 {
 
-    protected static String STATS_QUERY = "id:{0}";
+    protected static String STATS_QUERY = "id:{0} OR handle:{1}";
 
     @Override
-    public TreeKeyMap query(String id, HttpSolrServer solrServer, Date startDate, Date endDate)
+    public TreeKeyMap query(String id, HttpSolrServer solrServer, Date startDate, Date endDate, String handle)
             throws Exception
     {
         statisticDatasBeans = new TreeKeyMap();
@@ -70,7 +70,7 @@ public class StatSelectedObjectComponent<T extends DSpaceObject> extends
                 }
             }
 
-            solrQuery.setQuery(MessageFormat.format(query, id));
+            solrQuery.setQuery(MessageFormat.format(query, id, handle));
             if (getBean() instanceof BeanFacetComponent)
             {
                 BeanFacetComponent beanFacet = (BeanFacetComponent) getBean();

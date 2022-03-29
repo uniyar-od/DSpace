@@ -1,3 +1,13 @@
+# Request Item notification email
+#
+# Parameters: {0} Bitstream Identifier
+#             {1} Handle
+#             {2} Token
+#             {3} Name
+#             {4} Email
+#
+# See org.dspace.core.Email for information on the format of this file.
+#
 Subject: Request for Open Access
 
 {3}, with address {4},

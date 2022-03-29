@@ -9,6 +9,7 @@ package org.dspace.storage.rdbms;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.Date;
@@ -817,6 +818,7 @@ public class DatabaseManager
                 .append(" set ");
 
         List<ColumnInfo> columns = new ArrayList<ColumnInfo>();
+		Collection<ColumnInfo> lobColumns = new ArrayList<ColumnInfo>();
         ColumnInfo pk = getPrimaryKeyColumnInfo(context, table);
         Collection<ColumnInfo> info = getColumnInfo(context, table);
 
@@ -828,12 +830,26 @@ public class DatabaseManager
             {
                 if (row.hasColumnChanged(col.getName()))
                 {
-                    sql.append(separator).append(col.getName()).append(" = ?");
-                    columns.add(col);
-                    separator = ", ";
+					// lob columns must be set at the end of statement to avoid
+					// the possibility of oracle ORA-24816 error
+					if (col.getType() == Types.BLOB || col.getType() == Types.CLOB || col.getType() == Types.NCLOB) {
+						lobColumns.add(col);
+					} else {
+						sql.append(separator).append(col.getName()).append(" = ?");
+						columns.add(col);
+						separator = ", ";
+					}
                 }
             }
         }
+		
+		// add lob columns
+		for (ColumnInfo col : lobColumns) {
+			sql.append(separator).append(col.getName()).append(" = ?");
+			columns.add(col);
+			separator = ", ";
+		}
+
 
         // Only execute the update if there is anything to update
         if (columns.size() > 0)
@@ -1081,6 +1097,18 @@ public class DatabaseManager
 
                 case Types.DOUBLE:
                     row.setColumn(name, results.getDouble(i));
+                    break;
+
+                case Types.BINARY:
+                case Types.BLOB:
+                    if (isOracle) {
+                        Blob blob = results.getBlob(i);
+                        if (blob != null) {
+                            row.setColumn(name, blob.getBytes(1, (int)blob.length()));
+                        }
+                    } else {
+                        throw new IllegalArgumentException("Unsupported JDBC type: " + jdbctype);
+                    }
                     break;
 
                 case Types.CLOB:
@@ -1742,6 +1770,10 @@ public class DatabaseManager
                         {
                             throw new IllegalArgumentException("Unsupported JDBC type: " + jdbctype);
                         }
+                        break;
+                    case Types.BLOB:
+                    case Types.BINARY:
+                        statement.setBytes(count, row.getBinaryData(column));
                         break;
 
                     case Types.VARCHAR:

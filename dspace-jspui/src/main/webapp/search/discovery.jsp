@@ -79,6 +79,9 @@
 	}
 	String crisID = request.getParameter("crisID") != null ? (String) request.getParameter("crisID") : "";
 	String relationName = request.getParameter("relationName") != null ? (String) request.getParameter("relationName") : "";
+	if(StringUtils.isNotBlank(relationName)) {
+	    relationName = Utils.addEntities(relationName);
+	}
 	ACrisObject cris = (ACrisObject) request.getAttribute("crisObject");
 	boolean addRelation = request.getAttribute("addRelation") != null ? ((Boolean)request.getAttribute("addRelation")).booleanValue() : false;
 	boolean removeRelation = request.getAttribute("removeRelation") != null ? ((Boolean)request.getAttribute("removeRelation")).booleanValue() : false;
@@ -899,6 +902,7 @@ if((showGlobalFacet) || (brefine)) {
 	    {
 	        currFp = 0;
 	    }
+	    String locationQueryArg = StringUtils.isBlank(searchScope) ? "" : ("&amp;location=" + Utils.addEntities(searchScope));
 	    for (FacetResult fvalue : facet)
 	    { 
 	        if (idx != limit && !appliedFilterQueries.contains(f+"::"+fvalue.getFilterType()+"::"+fvalue.getAsFilterQuery()))
@@ -906,7 +910,7 @@ if((showGlobalFacet) || (brefine)) {
 	        %><li class="list-group-item"><span class="badge"><%= fvalue.getCount() %></span> <a href="<%= searchName
                 + "?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + Utils.addEntities(searchScope)
+				+ locationQueryArg
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
@@ -933,7 +937,7 @@ if((showGlobalFacet) || (brefine)) {
 	        <a class="pull-left" href="<%= searchName
                 + "?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + Utils.addEntities(searchScope)
+				+ locationQueryArg
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp
@@ -947,7 +951,7 @@ if((showGlobalFacet) || (brefine)) {
             <a href="<%= searchName
                 + "?query="
                 + URLEncoder.encode(query,"UTF-8")
-				+ "&amp;location=" + Utils.addEntities(searchScope)
+				+ locationQueryArg
                 + "&amp;sort_by=" + sortedBy
                 + "&amp;order=" + order
                 + "&amp;rpp=" + rpp

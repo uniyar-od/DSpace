@@ -22,7 +22,7 @@ public class CrisConstants {
     private static Logger log = Logger
             .getLogger(CrisConstants.class);
     
-    private static final String PREFIX_TYPE = "CRIS";
+    public static final String PREFIX_TYPE = "CRIS";
 
     private static ApplicationService applicationService;
     
@@ -76,6 +76,11 @@ public class CrisConstants {
             return Constants.typeText[type].toLowerCase();
         }
 	}
+
+    public static boolean dynamicEntityExists(String type) {
+        return getApplicationService()
+                .findTypoByShortName(DynamicObjectType.class, type) != null;
+    }
 
     public static ApplicationService getApplicationService()
     {

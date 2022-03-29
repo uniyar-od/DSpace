@@ -7,13 +7,14 @@
  */
 package org.dspace.submit.lookup;
 
+import gr.ekt.bte.core.MutableRecord;
 import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.Value;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URISyntaxException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,17 +26,9 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.apache.commons.httpclient.HostConfiguration;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpException;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.conn.params.ConnRoutePNames;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.log4j.Logger;
 import org.dspace.app.util.XMLUtils;
@@ -57,7 +50,7 @@ public class ScopusService
 
     private int timeout = 1000;
 
-    int itemPerPage = 25;
+    private int itemPerPage = 25;
 
     public List<Record> search(String title, String author, int year)
             throws HttpException, IOException
@@ -91,6 +84,11 @@ public class ScopusService
         String proxyPort = ConfigurationManager.getProperty("http.proxy.port");
         String endpoint = ConfigurationManager.getProperty("submission.lookup.scopus.endpoint");
         String apiKey = ConfigurationManager.getProperty("submission.lookup.scopus.apikey");
+        String token = ConfigurationManager.getProperty("submission.lookup.scopus.insttoken");
+        String modeview = ConfigurationManager.getProperty("submission.lookup.scopus.modeview");
+        if(StringUtils.isBlank(modeview)) {
+        	modeview = "COMPLETE";
+        }
         
         List<Record> results = new ArrayList<>();
         if (!ConfigurationManager.getBooleanProperty(SubmissionLookupService.CFG_MODULE, "remoteservice.demo"))
@@ -112,9 +110,14 @@ public class ScopusService
                 boolean lastPageReached= false;
                 while(!lastPageReached){
                         // open session
-		                method = new GetMethod(endpoint + "?httpAccept=application/xml&apiKey="+ apiKey +"&view=COMPLETE&start="+start+"&query="+URLEncoder.encode(query));
+                		String call = endpoint + "?httpAccept=application/xml&apiKey="+ apiKey;
+                		if(StringUtils.isNotBlank(token)) {
+                			call+="&insttoken="+token;
+                		}
+                		call+= "&view="+modeview+"&start="+start+"&query="+URLEncoder.encode(query);
 		
 		                // Execute the method.
+                		method = new GetMethod(call);
 		                int statusCode = client.executeMethod(method);
 		                
 		                if (statusCode != HttpStatus.SC_OK)
@@ -153,21 +156,12 @@ public class ScopusService
 		
 		            		for (Element xmlArticle : pubArticles)
 		            		{
-		            			Record scopusItem = null;
-		            			try
-		            			{
-		            				scopusItem = ScopusUtils
+		            			MutableRecord scopusItem = ScopusUtils
 		            						.convertScopusDomToRecord(xmlArticle);
-		            				results.add(scopusItem);
-		            			}
-		            			catch (Exception e)
-		            			{
-		            				throw new RuntimeException(
-		            						"EID is not valid or not exist: "
-		            								+ e.getMessage(), e);
+		            			if (scopusItem != null) {
+		            			    results.add(scopusItem);
 		            			}
 		            		}
-		
 		                }
 		                catch (ParserConfigurationException e1)
 		                {
@@ -231,7 +225,9 @@ public class ScopusService
                 	{
                 		scopusItem = ScopusUtils
                 				.convertScopusDomToRecord(xmlArticle);
-                		results.add(scopusItem);
+                		if (scopusItem != null) {
+                			results.add(scopusItem);
+                		}
                 	}
                 	catch (Exception e)
                 	{
@@ -280,5 +276,15 @@ public class ScopusService
             query.append("EID(").append(eid).append(")");
         }
         return search(query.toString());
+    }
+
+    public void setItemPerPage(int itemPerPage)
+    {
+        this.itemPerPage = itemPerPage;
+    }
+
+    public void setTimeout(int timeout)
+    {
+        this.timeout = timeout;
     }
 }

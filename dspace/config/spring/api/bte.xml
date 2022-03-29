@@ -25,7 +25,7 @@
 				<entry key="ciniiXML" value-ref="ciniiFileDataLoader" />
 				<entry key="bibtex" value-ref="bibTeXDataLoader" />
 				<entry key="ris" value-ref="risDataLoader" />
-				<entry key="wosris" value-ref="wosRISDataLoader" />
+				<entry key="isiceciw" value-ref="isiceCiwDataLoader" />
 				<entry key="endnote" value-ref="endnoteDataLoader" />
 				<entry key="csv" value-ref="csvDataLoader" />
 				<entry key="tsv" value-ref="tsvDataLoader" />
@@ -115,10 +115,10 @@
 	            	or conform to "FileDataLoader" interface of BTE -->
 	            <entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
 	            <!-- <entry key="pubmedEurope" value-ref="pubmedEuropeOnlineDataLoader"/> -->	            
-	            <entry key="crossref" value-ref="crossRefOnlineDataLoader"/>
+	            <!-- <entry key="crossref" value-ref="crossRefOnlineDataLoader"/> -->
 	            <entry key="orcid" value-ref="orcidOnlineDataLoader"/>
-	            <entry key="arxiv" value-ref="arXivOnlineDataLoader"/>
-	            <entry key="cinii" value-ref="ciniiOnlineDataLoader"/>
+	            <!-- <entry key="arxiv" value-ref="arXivOnlineDataLoader"/> -->
+	            <!-- <entry key="cinii" value-ref="ciniiOnlineDataLoader"/> -->
 			    <entry key="localduplicate" value-ref="localDuplicateDataLoader" />
 <!-- 	            depending on your apiKey you should use scopusOnlineDataLoader or scivalOnlineDataLoader or
 					adsOnlineDataLoader 
@@ -128,17 +128,17 @@
 	            <entry key="pubmedXML" value-ref="pubmedFileDataLoader"/>
 	            <!-- <entry key="pubmedEuropeXML" value-ref="pubmedEuropeFileDataLoader"/> -->
 	            <entry key="crossRefXML" value-ref="crossRefFileDataLoader"/>
-	            <entry key="arXivXML" value-ref="arXivFileDataLoader"/>
-	            <entry key="ciniiXML" value-ref="ciniiFileDataLoader"/>
+	            <!-- <entry key="arXivXML" value-ref="arXivFileDataLoader"/>
+	            <entry key="ciniiXML" value-ref="ciniiFileDataLoader"/> -->
 	            <entry key="bibtex" value-ref="bibTeXDataLoader"/>
 	            <entry key="ris" value-ref="risDataLoader"/>
-	            <entry key="wosris" value-ref="wosRISDataLoader"/>
+	            <entry key="isiceciw" value-ref="isiceCiwDataLoader" />
 	            <entry key="endnote" value-ref="endnoteDataLoader"/>
 	            <entry key="csv" value-ref="csvDataLoader"/>
 	            <entry key="tsv" value-ref="tsvDataLoader"/>
 	            <!-- <entry key="pdf" value-ref="grobidDataLoader" /> -->
-		    <entry key="b3kat" value-ref="ISBNOnlineDataLoaderB3Kat" />
-		    <entry key="loc" value-ref="ISBNOnlineDataLoaderLOC" />
+		    <!-- <entry key="b3kat" value-ref="ISBNOnlineDataLoaderB3Kat" />
+		    <entry key="loc" value-ref="ISBNOnlineDataLoaderLOC" /> -->
 			</map>
 	    </property>
 	</bean>
@@ -146,6 +146,9 @@
 	<bean name="org.dspace.submit.lookup.SubmissionLookupOutputGenerator" class="org.dspace.submit.lookup.SubmissionLookupOutputGenerator" scope="prototype">
 	<property name="identifiersMap">
 		<map>
+			<entry key="orcid">
+				<value>externalID</value>
+			</entry>
 			<entry key="pubmed">
 				<value>pubmedID</value>
 			</entry>
@@ -181,7 +184,8 @@
 			    <ref bean="mapConverter_scopusType"/>
 			    <ref bean="mapConverter_crossrefType"/>
 			    <ref bean="mapConverter_wosType"/>			    			    
-			    <ref bean="splitValue"/>							    
+			    <ref bean="splitValuePipe"/>
+			    <ref bean="splitValueDotComma"/>
 			    <ref bean="removeLastDot"/>
 			</list>
 		</property>
@@ -287,15 +291,26 @@
 	    </property>
 	</bean>
 
-	<!-- Remove the last dot in the specified field keys -->
-	<bean name="splitValue" class="org.dspace.submit.lookup.SplitValueModifier">
-	    <constructor-arg value="SplitValue Modifier"/>
+	<!-- Split values by | in the specified field keys -->
+	<bean name="splitValuePipe" class="org.dspace.submit.lookup.SplitValueModifier">
+	    <constructor-arg value="SplitValue Modifier Pipe"/>
 	    <property name="fieldKeys">
 	        <list>
-	        	<value>scopusKeywords</value>
+	        	<value>keywords</value>
 	        </list>
 	    </property>
 	    <property name="separator" value="|" />
+	</bean>
+
+	<!-- Split values by ; in the specified field keys -->
+	<bean name="splitValueDotComma" class="org.dspace.submit.lookup.SplitValueModifier">
+	    <constructor-arg value="SplitValue Modifier DotComma"/>
+	    <property name="fieldKeys">
+	        <list>
+	        	<value>keywords</value>
+	        </list>
+	    </property>
+	    <property name="separator" value=";" />
 	</bean>	
 	
 	<!-- **************************************************************************************************** -->
@@ -308,14 +323,23 @@
     	<property name="outputGenerator" ref="org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator"/>
   	</bean>
   	
-	<bean name="submissionItemDataLoader" class="org.dspace.submit.lookup.SubmissionItemDataLoader"/>
+	<bean name="submissionItemDataLoader"
+		class="org.dspace.submit.lookup.SubmissionItemDataLoader">
+		<property name="providersPriority">
+			<list>
+				<value>pubmed</value>
+				<value>scopus</value>
+				<value>wos</value>
+			</list>
+		</property>
+	</bean>
 	
 	<!-- Specify here any filters or modifiers to run before the output -->
 	<bean name="phase2linearWorkflow" class="gr.ekt.bte.core.LinearWorkflow">
 	    <property name="process">
 			<list>
 			    <ref bean="fieldMergeModifier"/>
-			    <ref bean="valueConcatenationModifier"/>
+			    <!-- <ref bean="valueConcatenationModifier"/> -->
 			    <ref bean="languageCodeModifier"/>			    
 			    <ref bean="journalsModifier"/>
 			    <ref bean="authorsModifier"/>			    
@@ -334,8 +358,9 @@
 	            <entry key="allkeywords">
 	                <list>
 						<value>keywords</value>
-						<value>meshheadings</value>
-						<value>meshqualifiers</value>
+						<value>keywordsPlus</value>
+						<value>primaryMeshHeading</value>
+						<value>secondaryMeshHeading</value>
 						<value>arxivCategory</value>
 						<value>classificationASJC</value>						
 					</list>
@@ -416,7 +441,29 @@
 		</property>
 		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearcherPage" />
 	</bean>
-	
+	<!-- To use ORCIDAuthorityLookupModified instead of AuthorityLookupModifier
+		use this bean instead of the one above -->
+	<!-- <bean name="authorsModifier"
+		class="org.dspace.submit.lookup.ORCIDAuthorityLookupModifier">
+		<property name="searchService" ref="org.dspace.discovery.SearchService" />
+		<property name="resourceTypeID" value="9" />
+		<property name="metadataInputConfiguration">
+			<map>
+				<entry key="authors" value="crisauthoritylookup" />
+			</map>
+		</property>
+		<property name="mappingOutputConfiguration">
+			<map>
+				<entry key="fullName" value="authors" />
+			</map>
+		</property>
+		<property name="mappingAuthorityConfiguration">
+			<map>
+				<entry key="fullName" value="authors" />
+			</map>
+		</property>
+		<property name="clazzCrisObject" value="org.dspace.app.cris.model.ResearcherPage" />
+	</bean> -->
 
 	<bean name="org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator" class="org.dspace.submit.lookup.DSpaceWorkspaceItemOutputGenerator" scope="prototype">
 	    <property name="outputMap" ref="outputMap"/>
@@ -522,7 +569,7 @@
 
 	<!-- The keys in the RIS data loader map have to be the RIS tags that 
 		need to be loaded. -->
-	<bean id="risDataLoader" class="gr.ekt.bteio.loaders.RISDataLoader">
+	<bean id="risDataLoader" class="org.dspace.submit.extraction.RisDataLoader">
 		<property name="fieldMap">
 			<map>
 				<entry key="T1" value="title" />
@@ -548,7 +595,7 @@
 		</property>
 	</bean>
 
-	<bean id="wosRISDataLoader" class="org.dspace.submit.extraction.WOSRISDataLoader">
+	<bean id="isiceCiwDataLoader" class="org.dspace.submit.extraction.ISICECiwDataLoader">
 		<property name="fieldMap">
 			<map>
 				<entry key="TI" value="title" />
@@ -657,13 +704,14 @@
 				<entry key="publicationType" value="subtype" />
 				<entry key="primaryKeyword" value="keywords" />
 				<entry key="secondaryKeyword" value="keywords" />
-				<entry key="primaryMeshHeading" value="mesh" />
-				<entry key="secondaryMeshHeading" value="mesh" />
+				<entry key="primaryMeshHeading" value="primaryMeshHeading" />
+				<entry key="secondaryMeshHeading" value="secondaryMeshHeading" />
 				<entry key="startPage" value="firstpage" />
 				<entry key="endPage" value="lastpage" />
 				<entry key="abstractText" value="abstract" />
 				<entry key="publicationStatus" value="publicationStatus" />
 				<entry key="author" value="authors" />
+				<entry key="affiliations" value="affiliations" />
 				<!-- Not used -->
 				<!-- 
 					<entry key="pubblicationModel" value="" />
@@ -711,10 +759,13 @@
 	<bean name="orcidInputMap" class="java.util.HashMap" scope="prototype">
 		<constructor-arg>
 			<map key-type="java.lang.String" value-type="java.lang.String">
+	<!-- the KEY in this map MUST match the VALUE of the file data loader (bibtex
+		etc) as this file loader extends the metadata read from ORCID, otherwise
+		we will get duplicate information (journal title, authors, etc) -->
 				<entry key="url" value="url" />
 				<entry key="title" value="title" />
 				<entry key="providerType" value="providerType" />
-				<entry key="sourceTitle" value="journal" />
+				<entry key="journal" value="journal" />
 				<entry key="issued" value="issued" />
 				<entry key="abstract" value="abstract" />				
 				<entry key="language" value="language" />
@@ -921,7 +972,13 @@
 				<entry value="editors" key="dc.contributor.editor" />
 				<entry value="others" key="dc.contributor.other" />
 				<entry value="abstract" key="dc.description.abstract" />
-				<entry value="allkeywords" key="dc.subject" />
+				<!-- allkeywords is not mapped, instead the specific keywords are mapped to specific metadata -->
+				<entry value="keywords" key="dc.subject" />
+				<entry value="keywordsPlus" key="dc.subject.keywordsplus" />
+				<entry value="primaryMeshHeading" key="dc.subject.mesh" />
+				<entry value="secondaryMeshHeading" key="dc.subject.meshsecondary" />
+				<entry value="primaryMeshTerms" key="dc.subject.meshterms" />
+				<entry value="secondaryMeshTerms" key="dc.subject.meshtermssecondary" />
 				<entry value="doi" key="dc.identifier.doi" />
 				<entry value="publisher" key="dc.publisher" />
 				<entry value="publisherPlace" key="dc.publisher.place" />
@@ -937,15 +994,15 @@
 				<entry value="editionnumber" key="dc.relation.edition" />
 				<entry value="seriestitle" key="dc.relation.ispartofjournal" />
 				<entry value="booktitle" key="dc.relation.ispartofbook" />				
-				<entry value="meshheadings" key="dc.subject.mesh" />
-				<entry value="meshqualifiers" key="dc.subject.meshqualifier" />
 				<entry value="eid" key="dc.identifier.scopus" />
 				<entry value="isiId" key="dc.identifier.isi" />
 				<entry value="providerType" key="dc.source.type" />
 				<entry value="orcid" key="dc.contributor.orcid" />
 				<entry value="rights" key="dc.rights" />
 				<entry value="note" key="dc.description" />
-				<entry value="externalID" key="dc.identifier.external" />				
+				<entry value="externalID" key="dc.identifier.external" />
+				<entry value="authorsWithAffiliation" key="" />
+				<entry value="affiliations" key="dc.contributor.affiliation" />
 				
 				<!-- Not used - new metadata fields need to be declared for them in DSpace registry -->
 				<!-- 
@@ -1003,6 +1060,7 @@
 					<entry key="authorUrl" value="authorUrl" />
 					<entry key="authorScopusid" value="authorScopusID" />
 					<entry key="orcid" value="orcid" />
+					<entry key="affiliations" value="affiliations" />
                 </map>
             </constructor-arg>
 	</bean>
@@ -1113,7 +1171,7 @@
 				<entry key="authors" value="authors" />
 				<entry key="citationCount" value="wosCitation" />
 				<entry key="keywords" value="keywords" />
-				<entry key="keywordsPlus" value="keywords" />
+				<entry key="keywordsPlus" value="keywordsPlus" />
 				<entry key="language" value="language" />
 				<entry key="abstracts" value="abstract" />
 				<entry key="abstractita" value="abstractita" />
@@ -1126,6 +1184,7 @@
 				<entry key="publisherCountry" value="publisherCountry" />
 				<entry key="itemType" value="subtype" />
 				<entry key="wosType" value="providerType" />
+				<entry key="affiliations" value="affiliations" />
 			</map>
 		</constructor-arg>
 	</bean>
@@ -1157,8 +1216,8 @@
 				<entry key="language" value="language" />				
 				<entry key="pubType" value="subtype" />
 				<entry key="keyword" value="keywords" />
-				<entry key="primaryMeshHeading" value="meshheadings" />
-				<entry key="secondaryMeshHeading" value="meshqualifiers" />
+				<entry key="primaryMeshHeading" value="primaryMeshHeading" />
+				<entry key="secondaryMeshHeading" value="secondaryMeshHeading" />
 				<entry key="abstractText" value="abstract" />
 				<entry key="author" value="authors" />
 				<entry key="investigator" value="others" />
@@ -1244,7 +1303,7 @@
     	<property name="workflow" ref="phase2linearWorkflow"/>
     	<property name="outputGenerator" ref="pubmedOutputGenerator"/>
   	</bean>
-	<bean name="pubmedOutputGenerator" class="org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator">
+	<bean name="pubmedEuropeOutputGenerator" class="org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator">
 		<property name="outputMap" ref="outputMap"/>
 		<property name="sourceIdMetadata" value="dc.identifier.pmid" />
 		<property name="providerName" value="pubmedEurope" />		
@@ -1259,7 +1318,9 @@
   	<bean name="scopusFeedDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader">
 	    <property name="dataloadersMap">
 	        <map>
+                <entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
 	            <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
+	            <entry key="wos" value-ref="wosOnlineDataLoader"/>
 			</map>
 	    </property>
 	</bean>
@@ -1285,6 +1346,8 @@
   	<bean name="wosFeedDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader">
 	    <property name="dataloadersMap">
 	        <map>
+                <entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
+	            <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
 	            <entry key="wos" value-ref="wosOnlineDataLoader"/>
 			</map>
 	    </property>
@@ -1323,7 +1386,35 @@
 	<bean name="adsOutputGenerator" class="org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator">
 		<property name="outputMap" ref="outputMap"/>
 		<property name="sourceIdMetadata" value="dc.identifier.adsbibcode" />
-		<property name="providerName" value="scopus" />		
+		<property name="providerName" value="ads" />
+	</bean>
+
+
+	<!-- PUBMED FEED -->
+	<bean name="pubmedFeedTransformationEnginePhaseOne" class="gr.ekt.bte.core.TransformationEngine">
+		<property name="dataLoader" ref="pubmedFeedDataLoader"/>
+		<property name="workflow" ref="phase1LinearWorkflow"/>
+		<property name="outputGenerator" ref="org.dspace.submit.lookup.SubmissionLookupOutputGenerator"/>
+	</bean>
+	<bean name="pubmedFeedDataLoader" class="org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader">
+		<property name="dataloadersMap">
+			<map>
+				<entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
+				<entry key="scopus" value-ref="scopusOnlineDataLoader"/>
+				<entry key="wos" value-ref="wosOnlineDataLoader"/>
+			</map>
+		</property>
+	</bean>
+
+	<bean name="pubmedFeedTransformationEnginePhaseTwo" class="gr.ekt.bte.core.TransformationEngine">
+		<property name="dataLoader" ref="submissionItemDataLoader"/>
+		<property name="workflow" ref="phase2linearWorkflow"/>
+		<property name="outputGenerator" ref="pubmedOutputGenerator"/>
+	</bean>
+	<bean name="pubmedOutputGenerator" class="org.dspace.app.cris.batch.bte.ImpRecordOutputGenerator">
+		<property name="outputMap" ref="outputMap"/>
+		<property name="sourceIdMetadata" value="dc.identifier.pmid" />
+		<property name="providerName" value="pubmed" />
 	</bean>
 
 	
@@ -1337,6 +1428,9 @@
 	    <property name="dataloadersMap">
 	        <map>
 	            <entry key="orcid" value-ref="orcidOnlineDataLoader"/>
+	            <entry key="pubmed" value-ref="pubmedOnlineDataLoader"/>
+	            <entry key="scopus" value-ref="scopusOnlineDataLoader"/>
+	            <entry key="wos" value-ref="wosOnlineDataLoader"/>
 			</map>
 	    </property>
 	</bean>
@@ -1350,4 +1444,54 @@
 		<property name="sourceIdMetadata" value="dc.identifier.external" />
 		<property name="providerName" value="orcid" />		
 	</bean>		
+
+	<bean name="RPNameVariantsScopusQueryGenerator" class="org.dspace.app.cris.batch.RPNameVariantsScopusQueryGenerator">
+		<property name="defaultSubmitter" value="1" />
+		<property name="solrExtraFilter" value="" />
+		<property name="extraFilters">
+			<list>
+			</list>
+		</property>
+	</bean>
+	<bean name="RPNameVariantsWOSQueryGenerator" class="org.dspace.app.cris.batch.RPNameVariantsWOSQueryGenerator">
+		<property name="defaultSubmitter" value="1" />
+		<property name="solrExtraFilter" value="" />
+		<property name="extraFilters">
+			<list>
+			</list>
+		</property>
+	</bean>
+	<bean name="RPNameVariantsPubmedQueryGenerator" class="org.dspace.app.cris.batch.RPNameVariantsPubmedQueryGenerator">
+		<property name="defaultSubmitter" value="1" />
+		<property name="solrExtraFilter" value="" />
+		<property name="extraFilters">
+			<list>
+			</list>
+		</property>
+	</bean>
+
+	<bean name="OrcidPubmedQueryGenerator" class="org.dspace.app.cris.batch.OrcidPubmedQueryGenerator">
+		<property name="defaultSubmitter" value="1"/>
+		<property name="extraFilters">
+			<list>
+			</list>
+		</property>
+	</bean>
+
+	<bean name="OrcidWOSQueryGenerator" class="org.dspace.app.cris.batch.OrcidWOSQueryGenerator">
+		<property name="defaultSubmitter" value="1"/>
+		<property name="extraFilters">
+			<list>
+			</list>
+		</property>
+	</bean>
+
+	<bean name="feedOrcidQueryGenerator" class="org.dspace.app.cris.batch.FeedOrcidQueryGenerator">
+		<property name="defaultSubmitter" value="1"/>
+		<property name="extraFilters">
+			<list>
+			</list>
+		</property>
+	</bean>
+
 </beans>

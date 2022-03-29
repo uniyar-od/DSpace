@@ -22,6 +22,10 @@ import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.discovery.SolrServiceIndexPlugin;
 import org.dspace.discovery.configuration.DiscoverySearchFilter;
+import org.dspace.utils.DSpace;
+import org.dspace.versioning.Version;
+import org.dspace.versioning.VersionHistory;
+import org.dspace.versioning.VersioningService;
 
 public class BitstreamSolrIndexer implements SolrServiceIndexPlugin
 {
@@ -31,6 +35,8 @@ public class BitstreamSolrIndexer implements SolrServiceIndexPlugin
     private static final String MVUNT_SUFFIX = "_mvuntokenized";
     
     private static final String ORIGINAL_BUNDLE = "ORIGINAL";
+    
+    private static final String REAL_ORIGINAL_BUNDLE = "REALORIGINAL";
     
     private static final String DISPLAY_BUNDLE = "DISPLAY";
 
@@ -64,12 +70,49 @@ public class BitstreamSolrIndexer implements SolrServiceIndexPlugin
                 document.addField(bundleName + MVUNT_SUFFIX, bitstreams);
 
             }
-            
-            if (!unitedOriginalAndDisplay.isEmpty()) {
-            	document.addField(ORIGINAL_BUNDLE + MVUNT_SUFFIX, unitedOriginalAndDisplay);
+
+            //added versioned visit on old ORIGINAL/DISPLAY bitstream
+            List<String> versionedUnitedOriginalAndDisplay = new ArrayList<String>();
+            boolean existVersions = false;
+            VersioningService versioningService = new DSpace().getSingletonService(VersioningService.class);
+            VersionHistory versionHistory = versioningService.findVersionHistory(context, item.getID());
+            if(versionHistory!=null) {
+            	for(Version version : versionHistory.getVersions()) {
+            		Item itemOld = version.getItem();
+            		Bundle[] bundle = itemOld.getBundles(ORIGINAL_BUNDLE);
+                    for (Bundle b : bundle)
+                    {
+	                    for (Bitstream bitstream : b.getBitstreams())
+	                    {
+	                    	versionedUnitedOriginalAndDisplay.add(bitstream.getType() + "-"
+	                                + bitstream.getID());
+	                    }
+                    }
+            		bundle = itemOld.getBundles(DISPLAY_BUNDLE);
+                    for (Bundle b : bundle)
+                    {
+	                    for (Bitstream bitstream : b.getBitstreams())
+	                    {
+	                    	versionedUnitedOriginalAndDisplay.add(bitstream.getType() + "-"
+	                                + bitstream.getID());
+	                    }
+                    }
+            	}
+            	existVersions = true;
+            	if (!versionedUnitedOriginalAndDisplay.isEmpty()) {
+            		document.addField(ORIGINAL_BUNDLE + MVUNT_SUFFIX, versionedUnitedOriginalAndDisplay);
+            	}
             }
-            
-        }
+
+            if (!unitedOriginalAndDisplay.isEmpty()) {
+            	if(!existVersions) {
+            		document.addField(ORIGINAL_BUNDLE + MVUNT_SUFFIX, unitedOriginalAndDisplay);
+            	}
+            	else {
+            		document.addField(REAL_ORIGINAL_BUNDLE + MVUNT_SUFFIX, unitedOriginalAndDisplay);
+            	}
+            }            
+        }      
         catch (SQLException e)
         {
             throw new RuntimeException(e);

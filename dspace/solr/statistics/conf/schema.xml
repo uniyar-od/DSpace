@@ -311,6 +311,7 @@
    <field name="bundleName" type="string" indexed="true" stored="true" required="false" multiValued="true" docValues="true"/>
    <field name="referrer" type="string" indexed="true" stored="true" required="false" docValues="true"/>
    <field name="topdomain" type="string" indexed="true" stored="true" required="false"/>
+   <field name="handle" type="string" indexed="true" stored="true" omitNorms="true" docValues="true" />
     <!-- use uuid as uniqueKey update processor chain, see solrconfig.xml-->
    <field name="uid" type="string" indexed="true" stored="true" required="true" docValues="true"/>
 

@@ -74,6 +74,7 @@ import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
 import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 
+import static org.dspace.content.Item.find;
 /**
  * @author Lyncode Development Team <dspace@lyncode.com>
  */
@@ -400,6 +401,39 @@ public class XOAI {
             throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
         }
     }
+    
+    public int index(List<Integer> idList)
+            throws DSpaceSolrIndexerException {
+        try {
+            int i = 0;
+            SolrServer server = solrServerResolver.getServer();
+            for (Integer id : idList) {
+                try {
+                    server.add(this.indexResults(find(context, id), false));
+                    context.clearCache();
+	            } catch (SQLException ex) {
+	                log.error(ex.getMessage(), ex);
+	            } catch (MetadataBindException e) {
+	                log.error(e.getMessage(), e);
+	            } catch (ParseException e) {
+	                log.error(e.getMessage(), e);
+	            } catch (XMLStreamException e) {
+	                log.error(e.getMessage(), e);
+	            } catch (WritingXmlException e) {
+	                log.error(e.getMessage(), e);
+	            }
+                i++;
+                if (i % 100 == 0) System.out.println(i + " items imported so far...");
+            }
+            System.out.println("Total: " + i + " items");
+            server.commit();
+            return i;
+        } catch (SolrServerException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        } catch (IOException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        }
+    }
 
     /***
      * Index one item
@@ -623,6 +657,21 @@ public class XOAI {
             	throw new DSpaceSolrIndexerException("Index is not supported for type " + idxType);
             }
             solrServerResolver.getServer().deleteByQuery(eraseQuery);
+            solrServerResolver.getServer().commit();
+            System.out.println("Index cleared");
+        } catch (SolrServerException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        } catch (IOException ex) {
+            throw new DSpaceSolrIndexerException(ex.getMessage(), ex);
+        }
+    }
+    
+    public void clearIndex(List<Integer> ids) throws DSpaceSolrIndexerException {
+        try {
+            System.out.println("Clearing " + ids.size() + " entries from index");
+            for (Integer id : ids) {
+            	solrServerResolver.getServer().deleteByQuery("item.id:" + id);
+			}
             solrServerResolver.getServer().commit();
             System.out.println("Index cleared");
         } catch (SolrServerException ex) {

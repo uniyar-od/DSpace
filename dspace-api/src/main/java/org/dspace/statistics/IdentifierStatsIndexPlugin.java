@@ -20,7 +20,8 @@ public class IdentifierStatsIndexPlugin implements SolrStatsIndexPlugin
             SolrInputDocument document)
     {
         document.addField("search.uniqueid", dso.getType() + "-"
-                + dso.getID());   
+                + dso.getID());
+        document.addField("handle", dso.getHandle());        
     }
     
 }

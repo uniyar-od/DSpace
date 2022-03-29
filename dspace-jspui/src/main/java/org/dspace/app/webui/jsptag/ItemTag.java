@@ -33,6 +33,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.util.IViewer;
 import org.dspace.app.util.MetadataExposure;
 import org.dspace.app.webui.jsptag.DisplayItemMetadataUtils.DisplayMetadata;
+import org.dspace.app.webui.util.ThumbDisplayStrategy;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeManager;
 import org.dspace.authorize.ResourcePolicy;
@@ -41,6 +42,8 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
+import org.dspace.content.dao.ItemDAO;
+import org.dspace.content.dao.ItemDAOFactory;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -596,23 +599,39 @@ public class ItemTag extends TagSupport {
 								out.print("</td><td class=\"standard\" align=\"center\">");
 
 								// is there a thumbnail bundle?
-								if ((thumbs.length > 0) && showThumbs) {
-									String tName = bitstreams[k].getName() + ".jpg";
-									String tAltText = LocaleSupport.getLocalizedMessage(pageContext,
-											"org.dspace.app.webui.jsptag.ItemTag.thumbnail");
-									Bitstream tb = thumbs[0].getBitstreamByName(tName);
-
-									if (tb != null) {
-										if (AuthorizeManager.authorizeActionBoolean(context, tb, Constants.READ)) {
-											String myPath = request.getContextPath() + "/retrieve/" + tb.getID() + "/"
-													+ UIUtil.encodeBitstreamName(tb.getName(),
-															Constants.DEFAULT_ENCODING);
-
-											out.print("<a ");
-											out.print(bsLink);
-											out.print("<img src=\"" + myPath + "\" ");
-											out.print("alt=\"" + tAltText + "\" /></a><br />");
+								if (showThumbs) {
+									if(thumbs.length > 0) {
+										String tName = bitstreams[k].getName() + ".jpg";
+										String tAltText = LocaleSupport.getLocalizedMessage(pageContext,
+												"org.dspace.app.webui.jsptag.ItemTag.thumbnail");
+										Bitstream tb = thumbs[0].getBitstreamByName(tName);
+	
+										if (tb != null) {
+											if (AuthorizeManager.authorizeActionBoolean(context, tb, Constants.READ)) {
+												String myPath = request.getContextPath() + "/retrieve/" + tb.getID() + "/"
+														+ UIUtil.encodeBitstreamName(tb.getName(),
+																Constants.DEFAULT_ENCODING);
+	
+												out.print("<a ");
+												out.print(bsLink);
+												out.print("<img src=\"" + myPath + "\" ");
+												out.print("alt=\"" + tAltText + "\" /></a><br />");
+											}
 										}
+									} else {
+										// Display default thumbnail
+										String bitstreamMimetype = bitstreams[k].getFormat()
+												.getMIMEType();
+
+										out.print("<div class=\"default-thumbnail-icon\"><a target=\"_blank\"  href=\"");
+										out.print(request.getContextPath());
+										out.print("/retrieve/");
+										out.print(bitstreams[k].getID() + "/");
+										out.print(UIUtil.encodeBitstreamName(bitstreams[k].getName(),
+												Constants.DEFAULT_ENCODING));
+										out.print("\" >");
+										out.print(ThumbDisplayStrategy.generateDefaultThumbnailIcon(bitstreamMimetype));
+										out.print("</a></div>");
 									}
 								}
 
@@ -676,7 +695,7 @@ public class ItemTag extends TagSupport {
 
 										for (int idx = 1; idx < viewOptions.size() - 1; idx++) {
 											out.print("<li><a href=\"" + viewOptions.get(idx).link + "\">");
-											out.print(viewOptions.get(0).label);
+											out.print(viewOptions.get(idx).label);
 											out.print("</a></li>");
 										}
 
@@ -923,12 +942,20 @@ public class ItemTag extends TagSupport {
 				showDownload = false;
 				continue;
 			}
-			ViewOption opt = new ViewOption();
-			opt.link = request.getContextPath() + "/explore?bitstream_id=" + bit.getID() + "&handle=" + handle
-					+ "&provider=" + externalProvider;
-			opt.label = LocaleSupport.getLocalizedMessage(pageContext,
-					"org.dspace.app.webui.jsptag.ItemTag.explore." + externalProvider);
-			results.add(opt);
+			// retrieve viewers configuration
+			String[] viewers = null;
+			String sViewers = ConfigurationManager.getProperty(externalProvider + ".viewers");
+			if (StringUtils.isNotBlank(sViewers)) {
+				viewers = sViewers.split(",");
+			}
+			if (viewers != null && viewers.length > 0) {
+				for (String viewer : viewers) {
+					results.add(buildOption(context, request, pageContext, handle, bit, externalProvider,
+							"&viewer=" + viewer, "." + viewer));
+				}
+			} else {
+				results.add(buildOption(context, request, pageContext, handle, bit, externalProvider));
+			}
 		}
 
 		if (showDownload) {
@@ -946,5 +973,21 @@ public class ItemTag extends TagSupport {
 			results.add(opt);
 		}
 		return results;
+	}
+
+	public static ViewOption buildOption(Context context, HttpServletRequest request, PageContext pageContext,
+			String handle, Bitstream bit, String externalProvider) {
+		return buildOption(context, request, pageContext, handle, bit, externalProvider, "", "");
+
+	}
+
+	public static ViewOption buildOption(Context context, HttpServletRequest request, PageContext pageContext,
+			String handle, Bitstream bit, String externalProvider, String viewerParameter, String viewerLabel) {
+		ViewOption opt = new ViewOption();
+		opt.link = request.getContextPath() + "/explore?bitstream_id=" + bit.getID() + "&handle=" + handle
+				+ "&provider=" + externalProvider + viewerParameter;
+		opt.label = LocaleSupport.getLocalizedMessage(pageContext,
+				"org.dspace.app.webui.jsptag.ItemTag.explore." + externalProvider + viewerLabel);
+		return opt;
 	}
 }

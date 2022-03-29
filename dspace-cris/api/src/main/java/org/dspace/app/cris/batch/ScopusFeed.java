@@ -8,6 +8,7 @@
 package org.dspace.app.cris.batch;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -40,13 +41,16 @@ import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.submit.lookup.MultipleSubmissionLookupDataLoader;
+import org.dspace.submit.lookup.NetworkSubmissionLookupDataLoader;
 import org.dspace.submit.lookup.ScopusOnlineDataLoader;
 import org.dspace.submit.lookup.SubmissionItemDataLoader;
+import org.dspace.submit.lookup.SubmissionLookupDataLoader;
 import org.dspace.submit.lookup.SubmissionLookupOutputGenerator;
 import org.dspace.submit.util.ItemSubmissionLookupDTO;
 import org.dspace.utils.DSpace;
 
 import gr.ekt.bte.core.Record;
+import gr.ekt.bte.core.RecordSet;
 import gr.ekt.bte.core.TransformationEngine;
 import gr.ekt.bte.core.TransformationSpec;
 import gr.ekt.bte.exceptions.BadTransformationSpec;
@@ -57,6 +61,7 @@ public class ScopusFeed
 
     private static final Logger log = Logger.getLogger(ScopusFeed.class);
 
+    // this is the format needed in the scopus query
     private static DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
     
     // p = workspace, w = workflow step 1, y = workflow step 2, x =
@@ -77,10 +82,24 @@ public class ScopusFeed
             .getServiceManager().getServiceByName("scopusOnlineDataLoader",
                     ScopusOnlineDataLoader.class);
 
+    private static long retentionQueryTime = Long.MAX_VALUE;
+
     public static void main(String[] args) throws SQLException,
             BadTransformationSpec, MalformedSourceException,
-            java.text.ParseException, HttpException, IOException, org.apache.http.HttpException, AuthorizeException
+            java.text.ParseException, HttpException, IOException, org.apache.http.HttpException, AuthorizeException, NoSuchAlgorithmException
     {
+        // the configuration will hold the value in seconds, -1 mean forever
+        retentionQueryTime = ConfigurationManager.getIntProperty("scopusfeed",
+                "query-retention");
+        if (retentionQueryTime == -1)
+        {
+            retentionQueryTime = Long.MAX_VALUE;
+        }
+        else
+        {
+            // convert second in ms
+            retentionQueryTime = retentionQueryTime * 1000;
+        }
 
         Context context = new Context();
 
@@ -96,10 +115,15 @@ public class ScopusFeed
                         "UserQuery, default query setup in the scopusfeed.cfg")
                 .create("q"));
 
+        options.addOption(OptionBuilder.withArgName("Query Generator").hasArg(true)
+                .withDescription(
+                        "Generate query using the plugin, default query setup in the pubmedfeed.cfg")
+                .create("g"));
+
         options.addOption(
                 OptionBuilder.withArgName("query Start Date").hasArg(true)
                         .withDescription(
-                                "Query start date to retrieve data publications from Scopus, default start date is yesterday")
+                                "Query start date to retrieve data publications from Scopus, default start date is yesterday (format yyyy-mm-dd)")
                 .create("s"));
 
         options.addOption(
@@ -124,6 +148,10 @@ public class ScopusFeed
                 .withDescription(
                         "Status of new item p = workspace, w = workflow step 1, y = workflow step 2, x = workflow step 3, z = inarchive")
                 .create("o"));
+
+        options.addOption(OptionBuilder.withArgName("excludeTypes")
+                .hasArg(false).withDescription("Do not import publication with type that is not mapped in pubmedfeed.cfg")
+                .create("d"));
 
         try
         {
@@ -167,13 +195,13 @@ public class ScopusFeed
         {
             startDate = line.getOptionValue("s");
             Date date = df.parse(startDate);
-            startDate = Long.toString(date.getTime());
+            startDate = df.format(date);
         }
         else
         {
             Calendar cal = Calendar.getInstance();
             cal.add(Calendar.DATE, -1);
-            startDate = Long.toString(cal.getTimeInMillis());
+            startDate = df.format(new Date(cal.getTimeInMillis()));
         }
 
         startDate = startDate.substring(0, 10);
@@ -182,12 +210,12 @@ public class ScopusFeed
         {
             endDate = line.getOptionValue("e");
             Date date = df.parse(endDate);
-            endDate = Long.toString(date.getTime());
+            endDate = df.format(date);
         }
         else
         {
             Calendar cal = Calendar.getInstance();
-            endDate = Long.toString(cal.getTimeInMillis());
+            endDate = df.format(new Date(cal.getTimeInMillis()));
         }
         endDate = endDate.substring(0, 10);
         String userQuery = ConfigurationManager.getProperty("scopusfeed",
@@ -197,113 +225,167 @@ public class ScopusFeed
             userQuery = line.getOptionValue("q");
         }
 
+        String queryGen="";
+        if(line.hasOption("g")) {
+            queryGen = line.getOptionValue("g");
+        }
+
         if (line.hasOption("o"))
         {
             status = line.getOptionValue("o");
         }
 
+        boolean excludeImports = line.hasOption("d");
+
         int total = 0;
         int deleted = 0;
 
+        HashMap<Integer,List<String>> submitterID2query = new HashMap<Integer,List<String>>();
+
+        IFeedQueryGenerator queryGenerator = new DSpace().getServiceManager()
+                .getServiceByName(queryGen, IFeedQueryGenerator.class);
+
+        if(queryGenerator != null) {
+	         submitterID2query = queryGenerator.generate();
+        }else {
+            List<String> queries = new ArrayList<String>();
+            queries.add(userQuery);
+            submitterID2query.put(eperson.getID(), queries);
+        }
+
+        //getIdentifiers
+        Set<String> DOIList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "doi");
+        Set<String> PMIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "pmid");
+        Set<String> EIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "scopus");
+        Set<String> ISIIDList = FeedUtils.getIdentifiersToSkip(context, "dc", "identifier", "isi");
+
         ImpRecordDAO dao = ImpRecordDAOFactory.getInstance(context);
-        List<ImpRecordItem> pmeItemList = new ArrayList<ImpRecordItem>();
+        Set<Integer> ids = submitterID2query.keySet();
 
-        pmeItemList
-                .addAll(convertToImpRecordItem(userQuery, startDate, endDate));
+        System.out.println("#Submitters: " + ids.size());
+        int submitterCount = 0;
+        for(Integer id : ids) {
+            submitterCount++;
+            List<String> queryList = submitterID2query.get(id);
+            System.out.println("Submitter # " + submitterCount + " queries " + queryList.size());
 
-     
-        for (ImpRecordItem pmeItem : pmeItemList)
-        {
-            try
-            {
-                int tmpCollectionID = collection_id;
-                if (!forceCollectionId)
+            for(String q: queryList) {
+                String checksum = FeedUtils.getChecksum(
+                        ScopusFeed.class.getCanonicalName(), q, startDate,
+                        endDate, null);
+                if (!FeedUtils.shouldRunQuery(context, checksum, retentionQueryTime)) {
+                    System.out.println("QUERY: "+ q);
+                    System.out.println("--> SKIPPED");
+                    continue;
+                }
+                List<ImpRecordItem> impItems = convertToImpRecordItem(q, startDate, endDate, EIDList);
+                System.out.println("Records returned by the query: "+ impItems.size());
+                impRecordLoop:
+                for (ImpRecordItem pmeItem : impItems)
                 {
-                    Set<ImpRecordMetadata> t = pmeItem.getMetadata().get("dc.source.type");
-                    if (t != null && !t.isEmpty())
+                    boolean alreadyImported =
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.doi", DOIList,
+                                    pmeItem) ||
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.pmid", PMIDList,
+                                    pmeItem) ||
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.scopus", EIDList,
+                                    pmeItem) ||
+                            FeedUtils.checkAlreadyImportedIdentifier("dc.identifier.isi", ISIIDList,
+                                    pmeItem);
+
+                    if (alreadyImported) {
+                        System.out.println("Skip already processed record after providers merge");
+                        continue impRecordLoop;
+                    }
+
+                    boolean authorityFound = FeedUtils.isAtLeastOneAuthorFound(pmeItem);
+                    if(!authorityFound) {
+                        System.out.println("Skip record " + pmeItem.getSourceId() + " no matching authors found");
+                        FeedUtils.writeDiscardedIdentifiers(context, pmeItem, ScopusFeed.class.getCanonicalName());
+                        FeedUtils.addProcessedIdentifiers(pmeItem, DOIList, PMIDList, EIDList, ISIIDList);
+                        context.commit();
+                        continue impRecordLoop;
+                    }
+
+                    boolean affiliationFound = FeedUtils.isAtLeastOneAffiliationFound(pmeItem);
+                    if(!affiliationFound) {
+                        System.out.println("Skip record " + pmeItem.getSourceId() + " no matching affiliation found");
+                        FeedUtils.writeDiscardedIdentifiers(context, pmeItem, ScopusFeed.class.getCanonicalName());
+                        FeedUtils.addProcessedIdentifiers(pmeItem, DOIList, PMIDList, EIDList, ISIIDList);
+                        context.commit();
+                        continue impRecordLoop;
+                    }
+
+                    try
                     {
-                        String stringTmpCollectionID = "";
-                        Iterator<ImpRecordMetadata> iterator = t.iterator();
-                        while (iterator.hasNext())
+                        int tmpCollectionID = 0;
+                        if (!forceCollectionId)
                         {
-                            String stringTrimTmpCollectionID = iterator.next().getValue();
-                            stringTmpCollectionID += stringTrimTmpCollectionID
-                                    .trim();
+                            tmpCollectionID=collection_id;
+                        }else {
+                            Set<ImpRecordMetadata> t = pmeItem.getMetadata().get("dc.source.type");
+                            if (t != null && !t.isEmpty())
+                            {
+                                String stringTmpCollectionID = "";
+                                Iterator<ImpRecordMetadata> iterator = t.iterator();
+                                while (iterator.hasNext())
+                                {
+                                    String stringTrimTmpCollectionID = iterator.next().getValue();
+                                    stringTmpCollectionID += stringTrimTmpCollectionID
+                                            .trim();
+
+                                    tmpCollectionID = ConfigurationManager
+                                            .getIntProperty("scopusfeed",
+                                                    "scopus.type." + stringTmpCollectionID
+                                                    + ".collectionid",
+                                                    collection_id);
+                                    if(tmpCollectionID>0) {
+                                        break;
+                                    }
+                                }
+                            }
+                            if(excludeImports && tmpCollectionID<=0) {
+                                continue;
+                            }else if(tmpCollectionID<=0){
+                                tmpCollectionID = collection_id;
+                            }
                         }
-                        tmpCollectionID = ConfigurationManager
-                                .getIntProperty("scopusfeed",
-                                        "scopus.type." + stringTmpCollectionID
-                                                + ".collectionid",
-                                        collection_id);
+
+                        total++;
+                        String action = "insert";
+                        DTOImpRecord impRecord = FeedUtils.writeImpRecord("scopusfeed", context, dao,
+                                tmpCollectionID, pmeItem, action, eperson.getID(), status);
+
+                        dao.write(impRecord, true);
+                        FeedUtils.addProcessedIdentifiers(pmeItem, DOIList, PMIDList, EIDList, ISIIDList);
+                    }
+                    catch (Exception ex)
+                    {
+                        deleted++;
+                    }
+                    if(total %100 ==0) {
+                        context.commit();
                     }
                 }
 
-                total++;
-                String action = "insert";
-                DTOImpRecord impRecord = writeImpRecord(context, dao,
-                        tmpCollectionID, pmeItem, action, eperson.getID());
+                System.out.println("Imported " + (total - deleted) + " record; "
+                        + deleted + " marked as removed");
 
-                dao.write(impRecord, true);
-            }
-            catch (Exception ex)
-            {
-                deleted++;
+                FeedUtils.writeExecutedQuery(context, q, checksum, total - deleted,
+                        deleted, ScopusFeed.class.getCanonicalName());
+                context.commit();
             }
         }
-
-        System.out.println("Imported " + (total - deleted) + " record; "
-                + deleted + " marked as removed");
-        pmeItemList.clear();
-
         context.complete();
-
-    }
-
-    private static DTOImpRecord writeImpRecord(Context context,
-            ImpRecordDAO dao, int collection_id, ImpRecordItem pmeItem,
-            String action, Integer epersonId) throws SQLException
-    {
-        DTOImpRecord dto = new DTOImpRecord(dao);
-
-        HashMap<String, Set<ImpRecordMetadata>> meta = pmeItem.getMetadata();
-        for (String md : meta.keySet())
-        {
-            Set<ImpRecordMetadata> values = meta.get(md);
-            String[] splitMd = StringUtils.split(md, "\\.");
-            int metadata_order = 0;
-            for (ImpRecordMetadata value : values)
-            {
-                metadata_order++;
-                if (splitMd.length > 2)
-                {
-                    dto.addMetadata(splitMd[0], splitMd[1], splitMd[2], value.getValue(),
-                            value.getAuthority(), value.getConfidence(), metadata_order, -1);
-                }
-                else
-                {
-                    dto.addMetadata(splitMd[0], splitMd[1], null, value.getValue(), value.getAuthority(),
-                            value.getConfidence(), metadata_order, value.getShare());
-                }
-            }
-        }
-
-        dto.setImp_collection_id(collection_id);
-        dto.setImp_eperson_id(epersonId);
-        dto.setOperation(action);
-        dto.setImp_sourceRef(pmeItem.getSourceRef());
-        dto.setImp_record_id(pmeItem.getSourceId());
-        dto.setStatus(status);
-        return dto;
-
     }
 
     private static List<ImpRecordItem> convertToImpRecordItem(String userQuery,
-            String start, String end)
+            String start, String end, Set<String> scopusIDList)
                     throws BadTransformationSpec, MalformedSourceException,
                     HttpException, IOException, org.apache.http.HttpException
     {
         List<ImpRecordItem> pmeResult = new ArrayList<ImpRecordItem>();
-        List<Record> wosResult = new ArrayList<Record>();
+        List<Record> scopusResult = new ArrayList<Record>();
         String query = userQuery;
         if (StringUtils.isNotBlank(start))
         {
@@ -313,41 +395,81 @@ public class ScopusFeed
         {
             query += " AND ORIG-LOAD-DATE BEF " + end;
         }
-        wosResult = scopusOnlineDataLoader.search(query);
+        scopusResult = scopusOnlineDataLoader.search(query);
 
         List<ItemSubmissionLookupDTO> results = new ArrayList<ItemSubmissionLookupDTO>();
-        if (wosResult != null && !wosResult.isEmpty())
+        if (scopusResult != null && !scopusResult.isEmpty())
         {
-
             TransformationEngine transformationEngine1 = getFeedTransformationEnginePhaseOne();
             if (transformationEngine1 != null)
             {
-                for (Record record : wosResult)
+                HashMap<String, Set<String>> map = new HashMap<String, Set<String>>(2);
+                HashSet<String> set = new HashSet<String>(70); // so that will no grow up when reach 50 entries
+                List<Record> cachedResults = new ArrayList<Record>(70);
+                for (Record record : scopusResult)
                 {
-                    if (record.getValues("eid").isEmpty())
+                    if (record.getValues("eid") == null || record.getValues("eid").isEmpty())
                         continue;
-                    HashMap<String, Set<String>> map = new HashMap<String, Set<String>>();
-                    HashSet<String> set = new HashSet<String>();
-                    set.add(record.getValues("eid").get(0).getAsString());
-                    map.put("scopuseid", set);
+                    String scopusId = record.getValues("eid").get(0).getAsString();
+                    // as we extends the records with all the providers we can just check for the primary id
+                    if (scopusIDList.contains(scopusId)) {
+                        System.out.println("Skip already processed record: " + scopusId);
+                        continue;
+                    }
+                    else {
+                        set.add(scopusId);
+                        cachedResults.add(record);
+                    }
+
+                    if (cachedResults.size() == 50) {
+                        map.put(SubmissionLookupDataLoader.SCOPUSEID, set);
+
+                        MultipleSubmissionLookupDataLoader mdataLoader = (MultipleSubmissionLookupDataLoader) transformationEngine1
+                                .getDataLoader();
+                        mdataLoader.setIdentifiers(map);
+                        RecordSet cachedRecordSet = new RecordSet();
+                        cachedRecordSet.setRecords(cachedResults);
+                        ((NetworkSubmissionLookupDataLoader) mdataLoader.getProvidersMap().get("scopus")).setRecordSetCache(cachedRecordSet);
+                        SubmissionLookupOutputGenerator outputGenerator = (SubmissionLookupOutputGenerator) transformationEngine1
+                                .getOutputGenerator();
+                        outputGenerator
+                                .setDtoList(new ArrayList<ItemSubmissionLookupDTO>());
+
+                        transformationEngine1.transform(new TransformationSpec());
+                        results.addAll(outputGenerator.getDtoList());
+
+                        map.clear();
+                        set.clear();
+                        cachedResults.clear();
+                    }
+                }
+
+                // process the latest records over 50s
+                if (cachedResults.size() > 0) {
+                    map.put(SubmissionLookupDataLoader.SCOPUSEID, set);
 
                     MultipleSubmissionLookupDataLoader mdataLoader = (MultipleSubmissionLookupDataLoader) transformationEngine1
                             .getDataLoader();
                     mdataLoader.setIdentifiers(map);
+                    RecordSet cachedRecordSet = new RecordSet();
+                    cachedRecordSet.setRecords(cachedResults);
+                    ((NetworkSubmissionLookupDataLoader) mdataLoader.getProvidersMap().get("scopus")).setRecordSetCache(cachedRecordSet);
                     SubmissionLookupOutputGenerator outputGenerator = (SubmissionLookupOutputGenerator) transformationEngine1
                             .getOutputGenerator();
                     outputGenerator
                             .setDtoList(new ArrayList<ItemSubmissionLookupDTO>());
 
                     transformationEngine1.transform(new TransformationSpec());
-                    log.debug("BTE transformation finished!");
                     results.addAll(outputGenerator.getDtoList());
-                }                
-                
+
+                    map.clear();
+                    set.clear();
+                    cachedResults.clear();
+                }
             }
 
             TransformationEngine transformationEngine2 = getFeedTransformationEnginePhaseTwo();
-            if (transformationEngine2 != null && results!=null)
+            if (transformationEngine2 != null && results!=null && results.size() > 0)
             {
                 SubmissionItemDataLoader dataLoader = (SubmissionItemDataLoader) transformationEngine2
                         .getDataLoader();

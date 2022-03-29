@@ -21,6 +21,7 @@ import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
+import org.dspace.core.Context;
 import org.hibernate.annotations.Type;
 
 import com.google.gson.Gson;
@@ -35,7 +36,9 @@ import it.cilea.osd.common.model.Identifiable;
         @NamedQuery(name = "CrisMetrics.findAll", query = "from CrisMetrics order by id"),
         @NamedQuery(name = "CrisMetrics.count", query = "select count(*) from CrisMetrics"),
         @NamedQuery(name = "CrisMetrics.uniqueLastMetricByResourceIdAndResourceTypeIdAndMetricsType", query = "select cit from CrisMetrics cit where resourceId = :par0 and resourceTypeId = :par1 and metrictype = :par2 and timeStampInfo.timestampCreated.timestamp in (select max(timeStampInfo.timestampCreated.timestamp) from CrisMetrics cit where resourceId = :par0 and resourceTypeId = :par1 and metrictype = :par2 and last = true)"),
-        @NamedQuery(name = "CrisMetrics.findLastMetricByResourceIdAndResourceTypeIdAndMetricsTypes", query = "select cit from CrisMetrics cit where resourceId = :par0 and resourceTypeId = :par1 and metrictype in (:par2) and last = true")
+        @NamedQuery(name = "CrisMetrics.findLastMetricByResourceIdAndResourceTypeIdAndMetricsTypes", query = "from CrisMetrics where resourceId = :par0 and resourceTypeId = :par1 and metrictype in (:par2) and last = true"),
+        @NamedQuery(name = "CrisMetrics.findAllLastMetricByResourceIDAndResourceType", query = "from CrisMetrics where resourceId = :par0 and resourceTypeId = :par1 and last = true"),
+        @NamedQuery(name = "CrisMetrics.deleteAllMetricsByResourceIdAndResourceTypeAndMetricsType", query = "delete from CrisMetrics where resourceId = :par0 and resourcetypeid = :par1 and (metrictype = :par2 or metrictype = :par3)")
 })
 public class CrisMetrics implements Identifiable, HasTimeStampInfo
 {
@@ -70,6 +73,9 @@ public class CrisMetrics implements Identifiable, HasTimeStampInfo
     private Integer resourceTypeId;
     
     private boolean last;
+    
+    @Transient
+    private Context context;
 
     public TimeStampInfo getTimeStampInfo()
     {
@@ -210,4 +216,14 @@ public class CrisMetrics implements Identifiable, HasTimeStampInfo
     public void setLast(boolean last) {
 		this.last = last;
 	}
+
+    public Context getContext()
+    {
+        return context;
+    }
+
+    public void setContext(Context context)
+    {
+        this.context = context;
+    }
 }

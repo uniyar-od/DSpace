@@ -12,6 +12,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.services.ConfigurationService;
 
 
@@ -62,7 +63,12 @@ public class DSpaceDataSource {
 	
 	public String getUrl()
 	{
-		return configurationService.getProperty("db.url");
+		String url = configurationService.getProperty("db.url");
+		String schema = configurationService.getProperty("db.schema");
+		if(StringUtils.isNotBlank(schema)) {
+			url = url + "?currentSchema=" + schema;
+		}
+		return url;
 	}
 	
 	public String getDriver()

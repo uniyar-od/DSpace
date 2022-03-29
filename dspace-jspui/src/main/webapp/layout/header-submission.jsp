@@ -92,7 +92,7 @@
 <%
         }
 %>
-	<script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.4.1.min.js"></script>
+	<script type='text/javascript' src="<%= request.getContextPath() %>/static/js/jquery/jquery-3.6.0.min.js"></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/jquery/jquery-ui-1.12.1.min.js'></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/bootstrap/bootstrap.min.js'></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/tmpl.min.js"></script>
@@ -104,6 +104,7 @@
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/buttons.html5.min.js"></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/dataTables.responsive.min.js"></script>
 	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/holder.js'></script>
+	<script type='text/javascript' src='<%= request.getContextPath() %>/static/js/edit-item-display-tables.js'></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/js/jdyna/jdyna.js"></script>
 	<script type="text/javascript" src="<%= request.getContextPath() %>/utils.js"></script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"></script>    

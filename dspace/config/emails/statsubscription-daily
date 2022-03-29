@@ -1,5 +1,8 @@
 # E-mail sent with the daily statistics update subscribed
 #
+# Parameters: {0} Unsubscription link
+#             {1} Manage Subscriptions
+#
 # See org.dspace.core.Email for information on the format of this file.
 #
 Subject: Daily statistics update

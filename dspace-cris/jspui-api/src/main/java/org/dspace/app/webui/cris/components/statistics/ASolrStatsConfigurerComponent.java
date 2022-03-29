@@ -154,8 +154,7 @@ public abstract class ASolrStatsConfigurerComponent<T extends DSpaceObject>
                 }
                 catch (Exception e)
                 {
-                    fullData.add(new MapPointBean(_NotAvailable, _NotAvailable,
-                            null));
+                    log.error(e.getMessage());
                     e.printStackTrace();
                 }
             }

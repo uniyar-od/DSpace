@@ -510,6 +510,13 @@
     </attribute>    
 
    <attribute>
+      <name>rootNodeDisable</name>
+      <required>no</required>
+      <rtexprvalue>true</rtexprvalue>
+    </attribute>    
+
+
+   <attribute>
       <name>vocabulary</name>
       <required>no</required>
       <rtexprvalue>true</rtexprvalue>
