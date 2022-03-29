@@ -486,10 +486,8 @@ public class Util {
 	}
 	
     public static String normalizeISSN(String issn) {
-        if (issn != null) {
+        if (issn != null && issn.replaceAll("\\s", "").trim().length() == 8) {
             issn = issn.replaceAll("\\s", "");
-        }
-        if (issn != null && issn.trim().length() == 8) {
             return StringUtils.upperCase(issn.trim().substring(0, 4) + "-" + issn.trim().substring(4));
         }
         return issn;
