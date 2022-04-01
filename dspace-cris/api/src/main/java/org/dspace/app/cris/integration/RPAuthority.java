@@ -200,8 +200,9 @@ public class RPAuthority extends CRISAuthority implements
                     ResearcherPage rp = (ResearcherPage) dso;
                     Map<String, String> extras = ResearcherPageUtils.buildExtra(rp);
                     choiceList
-                            .add(new Choice(rp.getCrisID(), rp.getFullName(),
-                                    generateDisplayValue(rp.getFullName(), rp), extras));
+                            .add(new Choice(rp.getCrisID(),
+                                    generateDisplayValue(rp.getFullName(), rp),
+                                    rp.getFullName(), extras));
                 }
             }
 
