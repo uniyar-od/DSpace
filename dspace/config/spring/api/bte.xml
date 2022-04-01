@@ -387,9 +387,9 @@
 		<!-- the list of BTE fields (keys) to use for the SOLR lookup -->
 		<property name="metadataInputConfiguration">
 			<map>
-				<entry key="journal" value="crisjournal.journalname" />
-				<entry key="jissn" value="crisjournal.journalissn" />
-				<entry key="jeissn" value="crisjournal.journaleissn" />
+				<entry key="journal" value="crisjournals.journalsname" />
+				<entry key="jissn" value="crisjournals.journalsissn" />
+				<entry key="jeissn" value="crisjournals.journalseissn" />
 			</map>
 		</property>
 		<!-- the list of BTE fields (keys) to use for the CRIS lookup -->
@@ -403,10 +403,10 @@
 		<!-- the list of CRIS properties (keys) to expose as BTE fields (values) -->
 		<property name="mappingOutputConfiguration">
 			<map>
-				<entry key="journalname" value="journal" />
-				<entry key="journalissn" value="jissn" />
-				<entry key="journaleissn" value="jeissn" />
-				<entry key="journalpublisher" value="publisher" />
+				<entry key="journalsname" value="journal" />
+				<entry key="journalsissn" value="jissn" />
+				<entry key="journalseissn" value="jeissn" />
+				<entry key="journalspublisher" value="publisher" />
 			</map>
 		</property>
 		<!-- the list of choice properties (keys) to expose as BTE fields (values) -->
