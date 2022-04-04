@@ -629,12 +629,18 @@ public class CrisMetricsRestRepositoryIT extends AbstractControllerIntegrationTe
                 .andExpect(jsonPath("$._embedded.metrics", Matchers.containsInAnyOrder(
                         CrisMetricsMatcher.matchCrisMetrics(metric),
                         CrisMetricsMatcher.matchCrisMetrics(metric3),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "google-scholar", googleScholarRemark),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-view", embeddedViewRemark),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download",embeddedDownloadRemark),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric", itemDoi),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX", itemDoi),
-                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "dimensions", itemDoi)
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "google-scholar",
+                            googleScholarRemark),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-view",
+                            embeddedViewRemark),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "embedded-download",
+                            embeddedDownloadRemark),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "altmetric",
+                            itemDoi),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "plumX",
+                            itemDoi),
+                        CrisMetricsMatcher.matchCrisDynamicMetrics(itemA.getID(), "dimensions",
+                            itemDoi)
                 )))
                 .andExpect(jsonPath("$._links.self.href",
                                     Matchers.containsString("api/core/items/" + itemA.getID() + "/metrics")))
