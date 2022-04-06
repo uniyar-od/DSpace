@@ -109,7 +109,7 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
                 while (solrDoc.hasNext())
                 {
                     SolrDocument doc = solrDoc.next();
-                    Integer resourceId = (Integer) doc
+                    String resourceId = (String) doc
                             .getFirstValue("search.resourceid");
                     String handle = (String) doc.getFirstValue("handle");
                     String url = ConfigurationManager.getProperty("dspace.url")
@@ -117,7 +117,7 @@ public class LocalDuplicateDataLoader extends NetworkSubmissionLookupDataLoader
                     MutableRecord record = new SubmissionLookupPublication(
                             LOCAL_DUPLICATE_DATALOADER_NAME);
 
-                    record.addValue("id", new StringValue("" + resourceId));
+                    record.addValue("id", new StringValue(resourceId));
                     record.addValue("handle", new StringValue(handle));
                     record.addValue("url", new StringValue(url));
 
