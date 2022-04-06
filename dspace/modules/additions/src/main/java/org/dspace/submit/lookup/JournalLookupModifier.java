@@ -8,7 +8,7 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.util.Util;
 
 public class JournalLookupModifier<T extends ACrisObject>
-        extends AuthorityLookupModifier<T>
+        extends AuthorityLookupModifierAdvanced<T>
 {
     private static Logger log = Logger.getLogger(JournalLookupModifier.class);
 
