@@ -1,60 +1,40 @@
 image: maven:3.6.1
 
+definitions:
+  caches:
+    gradlewrapper: ~/.gradle/wrapper
+  steps:
+    - step: &unit-test-code-checks
+        name: unit-test-code-checks
+        size: 2x
+        caches:
+          - maven
+        script:
+          - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest -Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+    - step: &integration-test
+        name: integration-test
+        size: 2x
+        caches:
+          - gradle
+          - gradlewrapper
+          - maven
+        script:
+          - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
+          - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
 
 pipelines:
   branches:
     'bitbucket-pipelines':
-      - step:
-          name: unit-test-code-checks
-          size: 2x
-          caches:
-            - maven
-          script:
-#            - export MAVEN_OPTS="-Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
-            - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest
-      - step:
-          name: integration-test
-          size: 2x
-          caches:
-            - gradle
-            - gradlewrapper
-            - maven
-          script:
-#            - export MAVEN_OPTS="-Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
-            - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
-            - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
+      - parallel:
+        - step: *unit-test-code-checks
+        - step: *integration-test
 
   pull-requests:
     manual:
-      - step:
-          name: unit-test-code-checks
-          size: 2x
-          caches:
-            - maven
-          script:
-            - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest -Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-      - step:
-          name: integration-test
-          size: 2x
-          caches:
-            - gradle
-            - gradlewrapper
-            - maven
-          script:
-            - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
-            - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
+      - parallel:
+          - step: *unit-test-code-checks
+          - step: *integration-test
   custom:
     manual:
-       - step:
-           size: 2x
-           caches:
-             - gradle
-             - gradlewrapper
-             - maven
-           script:
-             - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
-             - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
+       - step: *integration-test
 
-definitions:
-  caches:
-    gradlewrapper: ~/.gradle/wrapper
