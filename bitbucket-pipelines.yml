@@ -2,8 +2,7 @@ image: maven:3.6.1
 
 pipelines:
   branches:
-    {'bitbucket-pipelines'}
-    manual:
+    'bitbucket-pipelines':
       - step:
           name: unit-test-code-checks
           size: 2x
