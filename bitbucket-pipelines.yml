@@ -10,9 +10,9 @@ definitions:
         caches:
           - maven
         script:
-          - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest -Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
-    - step: &integration-test
-        name: integration-test
+          - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest
+    - step: &integration-tests
+        name: integration-tests
         size: 2x
         caches:
           - gradle
@@ -24,17 +24,17 @@ definitions:
 
 pipelines:
   branches:
-    'bitbucket-pipelines':
+    'dspace-cris-7':
       - parallel:
         - step: *unit-test-code-checks
-        - step: *integration-test
+        - step: *integration-tests
 
   pull-requests:
     manual:
       - parallel:
           - step: *unit-test-code-checks
-          - step: *integration-test
+          - step: *integration-tests
   custom:
     manual:
-       - step: *integration-test
+       - step: *integration-tests
 
