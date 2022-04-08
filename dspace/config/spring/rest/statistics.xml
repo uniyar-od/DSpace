@@ -592,7 +592,6 @@
                 <entry key="TopCountries" value-ref="topCountriesGenerator"/>
                 <entry key="TopCities" value-ref="topCitiesGenerator"/>
                 <entry key="TotalDownloads" value-ref="totalDownloadsGenerator"/>
-                <entry key="TotalVisitsAndDownloads" value-ref="totalDownloadsAndVisitsGenerator"/>
             </map>
         </property>
     </bean>
