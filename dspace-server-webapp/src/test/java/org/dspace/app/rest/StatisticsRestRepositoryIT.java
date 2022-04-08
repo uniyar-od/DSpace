@@ -1597,8 +1597,6 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                     TOP_CITIES_REPORT_ID, Arrays.asList(expectedPointCity)),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOP_COUNTRIES_REPORT_ID,
                     TOP_COUNTRIES_REPORT_ID, Arrays.asList(expectedPointCountry)),
-//                UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_VISITS_TOTAL_DOWNLOADS,
-//                    TOTAL_VISITS_TOTAL_DOWNLOADS, totalDownloadsPoints),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID,
                     TOTAL_DOWNLOADS_REPORT_ID, new ArrayList<>()))));
     }
@@ -1712,8 +1710,6 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                     TOP_CITIES_REPORT_ID, Arrays.asList(expectedPointCity)),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOP_COUNTRIES_REPORT_ID,
                     TOP_COUNTRIES_REPORT_ID, Arrays.asList(expectedPointCountry)),
-//                UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_VISITS_TOTAL_DOWNLOADS,
-//                    TOTAL_VISITS_TOTAL_DOWNLOADS, usageReportPointRestsVisitsAndDownloads),
                 UsageReportMatcher.matchUsageReport(itemVisited.getID() + "_" + TOTAL_DOWNLOADS_REPORT_ID,
                     TOTAL_DOWNLOADS_REPORT_ID, totalDownloadsPoints))));
     }
