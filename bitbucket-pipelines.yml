@@ -10,7 +10,8 @@ definitions:
         caches:
           - maven
         script:
-          - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest
+          - export MAVEN_OPTS="-Xmx4096M"
+          - mvn install -B -V -P-assembly -Dtest.argLine=-Xmx4096M -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest
     - step: &integration-tests
         name: integration-tests
         size: 2x
@@ -19,8 +20,9 @@ definitions:
           - gradlewrapper
           - maven
         script:
+          - export MAVEN_OPTS="-Xmx4096M"
           - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
-          - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
+          - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2 -Dtest.argLine=-Xmx4096M
 
 pipelines:
   branches:
