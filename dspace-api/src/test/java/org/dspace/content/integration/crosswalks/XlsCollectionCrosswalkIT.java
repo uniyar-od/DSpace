@@ -242,7 +242,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             List<String> publicationMetadataFieldGroups = asList("dc.contributor.author");
             List<String> authorGroup = asList("dc.contributor.author", "oairecerif.author.affiliation");
 
-            when(reader.getLanguagesForMetadata(collection, "dc.title")).thenReturn(Arrays.asList("en", "it"));
+            when(reader.getLanguagesForMetadata(collection, "dc.title", false)).thenReturn(Arrays.asList("en", "it"));
             when(reader.getSubmissionFormMetadata(collection)).thenReturn(publicationMetadataFields);
             when(reader.getSubmissionFormMetadataGroups(collection)).thenReturn(publicationMetadataFieldGroups);
             when(reader.getAllNestedMetadataByGroupName(collection, "dc.contributor.author")).thenReturn(authorGroup);
@@ -327,6 +327,68 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
             this.xlsCollectionCrosswalk.setReader(new DCInputsReader());
         }
 
+    }
+
+    @Test
+    public void testDisseminateWithUnexpectedLanguageOnMetadataValues() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withHandle("123456789/001")
+            .withTitleForLanguage("Test Publication", "de")
+            .withAuthorForLanguage("John Smith", "de")
+            .withAuthorAffiliationForLanguage("4Science", "de")
+            .withDescriptionAbstract("Description Abstract")
+            .withDoiIdentifierForLanguage("XXX", "de")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        xlsCollectionCrosswalk.disseminate(context, collection, baos);
+
+        Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
+        assertThat(workbook.getNumberOfSheets(), equalTo(4));
+
+        String itemId = item.getID().toString();
+
+        Sheet mainSheet = workbook.getSheetAt(0);
+        String[] mainSheetHeader = { "ID", "dc.identifier.doi", "dc.identifier.scopus", "dc.identifier.isi",
+            "dc.identifier.adsbibcode", "dc.identifier.pmid", "dc.identifier.arxiv", "dc.identifier.issn",
+            "dc.identifier.other", "dc.identifier.ismn", "dc.identifier.govdoc",
+            "dc.identifier.uri", "dc.identifier.isbn", "dc.title", "dc.title.alternative", "dc.date.issued",
+            "dc.type", "dc.language.iso", "dc.subject", "dc.description.abstract", "dc.relation.publication",
+            "dc.relation.isbn", "dc.relation.doi", "dc.relation.ispartof", "dc.relation.ispartofseries",
+            "dc.relation.issn", "dc.coverage.publication", "dc.coverage.isbn", "dc.coverage.doi",
+            "dc.description.sponsorship", "dc.description.volume", "dc.description.issue", "dc.description.startpage",
+            "dc.description.endpage", "dc.relation.conference", "dc.relation.product",
+            "dc.identifier.citation", "dc.description" };
+
+        String[] mainSheetRow = { itemId, "", "", "", "", "", "", "", "", "", "",
+            "http://localhost:4000/handle/123456789/001", "", "", "", "", "", "", "", "Description Abstract", "", "",
+            "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "" };
+
+        List<String[]> rows = new ArrayList<String[]>();
+        rows.add(mainSheetRow);
+        asserThatSheetHas(mainSheet, "items", 2, mainSheetHeader, rows);
+
+        Sheet authorSheet = workbook.getSheetAt(1);
+        String[] authorSheetHeader = { "PARENT-ID", "dc.contributor.author", "oairecerif.author.affiliation" };
+        asserThatSheetHas(authorSheet, "dc.contributor.author", 2, authorSheetHeader, List.of());
+
+        Sheet editorSheet = workbook.getSheetAt(2);
+        String[] editorSheetHeader = { "PARENT-ID", "dc.contributor.editor", "oairecerif.editor.affiliation" };
+        asserThatSheetHas(editorSheet, "dc.contributor.editor", 1, editorSheetHeader, List.of());
+
+        Sheet projectSheet = workbook.getSheetAt(3);
+        String[] projectSheetHeader = { "PARENT-ID", "dc.relation.project", "dc.relation.grantno" };
+        asserThatSheetHas(projectSheet, "dc.relation.project", 1, projectSheetHeader, List.of());
     }
 
     @SuppressWarnings("unchecked")
