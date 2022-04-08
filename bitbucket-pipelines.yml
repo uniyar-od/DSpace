@@ -1,5 +1,6 @@
 image: maven:3.6.1
 
+
 pipelines:
   branches:
     'bitbucket-pipelines':
@@ -9,7 +10,8 @@ pipelines:
           caches:
             - maven
           script:
-            - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest -Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+            - export MAVEN_OPTS="-Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
+            - mvn install -B -V -P-assembly -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest
       - step:
           name: integration-test
           size: 2x
@@ -18,6 +20,7 @@ pipelines:
             - gradlewrapper
             - maven
           script:
+            - export MAVEN_OPTS="-Xmx1024M -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
             - ./dspace-api/src/test/data/dspaceFolder/bin/install_grobid.sh
             - mvn clean install license:check -DskipUnitTests=false -Pdspace-rest -DskipITs=false -Pdspace-rest -DskipIntegrationTests=false -P !assembly -B -V -Dsurefire.rerunFailingTestsCount=2
 
