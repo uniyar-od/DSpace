@@ -24,7 +24,7 @@ definitions:
 
 pipelines:
   branches:
-    'dspace-cris-7':
+    'bitbucket-pipelines':
       - parallel:
         - step: *unit-test-code-checks
         - step: *integration-tests
