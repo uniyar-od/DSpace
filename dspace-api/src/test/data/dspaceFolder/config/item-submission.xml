@@ -270,7 +270,6 @@
             <step id="extraction" />
             <step id="traditionalpageone"/>"
             <step id="traditionalpagetwo"/>
-            <step id="license"/>
             <step id="custom-url"/>
         </submission-process>
 

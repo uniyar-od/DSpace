@@ -38,11 +38,15 @@ public final class XlsCollectionSheet {
 
     private final Map<String, Integer> headers;
 
-    public XlsCollectionSheet(Workbook workbook, String sheetname, Collection collection) {
+    private final boolean nestedMetadata;
+
+    public XlsCollectionSheet(Workbook workbook, String sheetname, boolean nestedMetadata,
+                              Collection collection) {
         this.sheet = workbook.createSheet(sheetname);
         this.collection = collection;
         this.headerRow = sheet.createRow(0);
         this.headers = new HashMap<String, Integer>();
+        this.nestedMetadata = nestedMetadata;
     }
 
     public Sheet getSheet() {
@@ -55,6 +59,10 @@ public final class XlsCollectionSheet {
 
     public List<String> getHeaders() {
         return new ArrayList<>(headers.keySet());
+    }
+
+    public boolean isNestedMetadata() {
+        return nestedMetadata;
     }
 
     public boolean hasHeader(String header) {

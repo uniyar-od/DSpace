@@ -32,11 +32,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.app.bulkedit.BulkImport;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
@@ -141,7 +141,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private void writeWorkbook(Context context, Collection collection, Iterator<Item> itemIterator, OutputStream out)
         throws CrosswalkException, IOException, SQLException, AuthorizeException {
 
-        try (Workbook workbook = new HSSFWorkbook()) {
+        try (Workbook workbook = new XSSFWorkbook()) {
 
             XlsCollectionSheet mainSheet = writeMainSheetHeader(context, collection, workbook);
             List<XlsCollectionSheet> nestedMetadataSheets = writeNestedMetadataSheetsHeader(collection, workbook);
@@ -165,7 +165,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     }
 
     private XlsCollectionSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
-        XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items", collection);
+        XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items", false, collection);
         mainSheet.appendHeader(ID_CELL);
         List<String> metadataFields = getSubmissionFormMetadata(collection);
         for (String metadataField : metadataFields) {
@@ -175,7 +175,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     }
 
     private XlsCollectionSheet writeNestedMetadataSheetHeader(Collection collection, Workbook workbook, String field) {
-        XlsCollectionSheet nestedMetadataSheet = new XlsCollectionSheet(workbook, field, collection);
+        XlsCollectionSheet nestedMetadataSheet = new XlsCollectionSheet(workbook, field, true, collection);
         List<String> nestedMetadataFields = getSubmissionFormMetadataGroup(collection, field);
         nestedMetadataSheet.appendHeader(PARENT_ID_CELL);
         for (String metadataField : nestedMetadataFields) {
@@ -264,6 +264,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             writeMetadataValue(item, nestedMetadataSheet, header, metadata.get(groupIndex));
 
         }
+
     }
 
     private void writeMetadataValue(Item item, XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
@@ -274,7 +275,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             return;
         }
 
-        if (isLanguageSupported(sheet.getCollection(), language, header)) {
+        if (isLanguageSupported(sheet.getCollection(), language, header, sheet.isNestedMetadata())) {
             String headerWithLanguage = header + LANGUAGE_SEPARATOR_PREFIX + language + LANGUAGE_SEPARATOR_SUFFIX;
             sheet.appendHeaderIfNotPresent(headerWithLanguage);
             sheet.appendValueOnLastRow(headerWithLanguage, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
@@ -346,9 +347,9 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private boolean isLanguageSupported(Collection collection, String language, String metadataField) {
+    private boolean isLanguageSupported(Collection collection, String language, String metadataField, boolean group) {
         try {
-            List<String> languages = this.reader.getLanguagesForMetadata(collection, metadataField);
+            List<String> languages = this.reader.getLanguagesForMetadata(collection, metadataField, group);
             return CollectionUtils.isNotEmpty(languages) ? languages.contains(language) : false;
         } catch (DCInputsReaderException e) {
             throw new RuntimeException("An error occurs reading the input configuration by collection", e);
