@@ -27,9 +27,8 @@ definitions:
 pipelines:
   branches:
     'bitbucket-pipelines':
-      - parallel:
-        - step: *unit-test-code-checks
-        - step: *integration-tests
+      - step: *unit-test-code-checks
+      - step: *integration-tests
 
   pull-requests:
     manual:
