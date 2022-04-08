@@ -31,7 +31,7 @@ pipelines:
       - step: *integration-tests
 
   pull-requests:
-    manual:
+    '**':
       - parallel:
           - step: *unit-test-code-checks
           - step: *integration-tests
