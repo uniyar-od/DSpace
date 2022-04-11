@@ -43,5 +43,6 @@ public class CrisLayoutHierarchicalBoxConfigurator implements CrisLayoutBoxConfi
 
     @Override
     public void configure(Context context, CrisLayoutBox box, CrisLayoutBoxConfigurationRest rest) {
+        // Nothing to do
     }
 }
