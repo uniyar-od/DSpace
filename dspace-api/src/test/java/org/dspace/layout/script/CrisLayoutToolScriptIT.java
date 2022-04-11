@@ -38,6 +38,7 @@ import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutField;
 import org.dspace.layout.CrisLayoutFieldBitstream;
+import org.dspace.layout.CrisLayoutHierarchicalVocabulary2Box;
 import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.CrisMetadataGroup;
@@ -102,7 +103,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(9));
+        assertThat(errorMessages, hasSize(10));
         assertThat(errorMessages, containsInAnyOrder(
             "The tab sheet is missing",
             "The box sheet is missing",
@@ -110,6 +111,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "The box2metadata sheet is missing",
             "The metadatagroups sheet is missing",
             "The box2metrics sheet is missing",
+            "The box2hierarchicalvocabulary sheet is missing",
             "The boxpolicy sheet is missing",
             "The tabpolicy sheet is missing",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
@@ -127,7 +129,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(41));
+        assertThat(errorMessages, hasSize(45));
         assertThat(errorMessages, containsInAnyOrder(
             "The sheet tab has no ENTITY column",
             "The sheet tab has no LEADING column",
@@ -163,6 +165,10 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "The sheet box2metrics has no ENTITY column",
             "The sheet box2metrics has no BOX column",
             "The sheet box2metrics has no METRIC_TYPE column",
+            "The sheet box2hierarchicalvocabulary has no ENTITY column",
+            "The sheet box2hierarchicalvocabulary has no BOX column",
+            "The sheet box2hierarchicalvocabulary has no VOCABULARY column",
+            "The sheet box2hierarchicalvocabulary has no METADATA column",
             "The sheet boxpolicy has no METADATA column",
             "The sheet boxpolicy has no ENTITY column",
             "The sheet boxpolicy has no SHORTNAME column",
@@ -243,7 +249,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         createEntityType("Person");
         context.restoreAuthSystemState();
 
-        String fileLocation = getXlsFilePath("valid-layout-with-3-tabs.xls");
+        String fileLocation = getXlsFilePath("valid-layout-with-4-tabs.xls");
         String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
@@ -255,14 +261,14 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(infoMessages, hasSize(6));
         assertThat(infoMessages.get(0), containsString("The given workbook is valid. Proceed with the import"));
         assertThat(infoMessages.get(1), containsString("The workbook has been parsed correctly, "
-            + "found 3 tabs to import"));
+            + "found 4 tabs to import"));
         assertThat(infoMessages.get(2), containsString("Proceed with the clearing of the previous layout"));
         assertThat(infoMessages.get(3), containsString("Found 0 tabs to delete"));
         assertThat(infoMessages.get(4), containsString("The previous layout has been deleted, "
             + "proceed with the import of the new configuration"));
         assertThat(infoMessages.get(5), containsString("Import completed successfully"));
 
-        assertThat(tabService.findAll(context), hasSize(3));
+        assertThat(tabService.findAll(context), hasSize(4));
 
         List<CrisLayoutTab> personTabs = tabService.findByEntityType(context, "Person");
         assertThat(personTabs, hasSize(2));
@@ -360,9 +366,11 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             contains(matches(metadataField -> metadataField.toString('.').equals("cris.owner"))));
 
         List<CrisLayoutTab> publicationTabs = tabService.findByEntityType(context, "Publication");
-        assertThat(publicationTabs, hasSize(1));
+        assertThat(publicationTabs, hasSize(2));
 
         CrisLayoutTab publicationTab = publicationTabs.get(0);
+        CrisLayoutTab publicationTab1 = publicationTabs.get(1);
+
         assertThatTabHas(publicationTab, "details", "Publication", "Details", 1, 1, true, 0,
             LayoutSecurity.CUSTOM_DATA_AND_ADMINISTRATOR);
         assertThat(publicationTab.getMetadataSecurityFields(),
@@ -372,13 +380,32 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(publicationTabRow.getStyle(), is("test-style"));
         assertThat(publicationTabRow.getCells(), hasSize(2));
 
+        assertThatTabHas(publicationTab1, "details-hierarchical", "Publication", "Details Hierarchical",
+                         1, 0, false, 0,
+                         LayoutSecurity.PUBLIC);
+
+        CrisLayoutRow publicationTabRow1 = publicationTab1.getRows().get(0);
+        assertThat(publicationTabRow1.getStyle(), nullValue());
+        assertThat(publicationTabRow1.getCells(), hasSize(1));
+
         CrisLayoutCell publicationTabFirstCell = publicationTabRow.getCells().get(0);
         assertThat(publicationTabFirstCell.getStyle(), nullValue());
         assertThat(publicationTabFirstCell.getBoxes(), hasSize(1));
 
+        CrisLayoutCell publicationTabFirstCell1 = publicationTabRow1.getCells().get(0);
+        assertThat(publicationTabFirstCell1.getStyle(), nullValue());
+        assertThat(publicationTabFirstCell1.getBoxes(), hasSize(1));
+
         CrisLayoutBox publicationDetailsBox = publicationTabFirstCell.getBoxes().get(0);
         assertThatBoxHas(publicationDetailsBox, "details", "METADATA", "Publication", "Details", 4, 0,
             0, true, false, true, null, LayoutSecurity.PUBLIC);
+
+        CrisLayoutBox publicationDetailsBox1 = publicationTabFirstCell1.getBoxes().get(0);
+        assertThatBoxHas(publicationDetailsBox1, "hierarchy", "HIERARCHY", "Publication", "Hierarchy", 0, 0,
+                         0, false, false, false, null, LayoutSecurity.PUBLIC);
+
+        assertThatHierarchicalBoxHas(publicationDetailsBox1.getHierarchicalVocabulary2Box(), "publication-coar-types",
+                                     "dc.type");
 
         CrisLayoutField publicationTitleField = publicationDetailsBox.getLayoutFields().get(0);
         assertThatMetadataFieldHas(publicationTitleField, "Title", "container row", null, 1, 1, 0, null,
@@ -438,6 +465,51 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
     }
 
+    @Test
+    public void testWithMissingHierarchicalSheet() throws Exception {
+        context.turnOffAuthorisationSystem();
+        createEntityType("Publication");
+        createEntityType("Person");
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("missing-hierarchical-sheet.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasSize(2));
+        assertThat(errorMessages, containsInAnyOrder(
+            "The box2hierarchicalvocabulary sheet is missing",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+    }
+
+    @Test
+    public void testWithMissingColumnHierarchicalSheet() throws Exception {
+        context.turnOffAuthorisationSystem();
+        createEntityType("Publication");
+        createEntityType("Person");
+        context.restoreAuthSystemState();
+
+        // Missing VOCABULARY column
+        String fileLocation = getXlsFilePath("missing-column-hierarchical-sheet.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasSize(2));
+        assertThat(errorMessages, containsInAnyOrder(
+            "The sheet box2hierarchicalvocabulary has no VOCABULARY column",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+    }
+
     private void assertThatBitstreamFieldHas(CrisLayoutField field, String label, String rowStyle, String cellStyle,
         int row, int cell, int priority, String rendering, int metadataGroupSize, String metadataField,
         String labelStyle, String valueStyle, boolean labelAsHeading, boolean valuesInline, String bundle,
@@ -478,7 +550,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         assertThat(tabService.findAll(context), hasSize(1));
 
-        String fileLocation = getXlsFilePath("valid-layout-with-3-tabs.xls");
+        String fileLocation = getXlsFilePath("valid-layout-with-4-tabs.xls");
         String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
         TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
 
@@ -486,7 +558,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getErrorMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
 
-        assertThat(tabService.findAll(context), hasSize(3));
+        assertThat(tabService.findAll(context), hasSize(4));
         assertThat(context.reloadEntity(tab), nullValue());
         assertThat(context.reloadEntity(box), nullValue());
 
@@ -599,6 +671,12 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(box.getShortname(), is(shortname));
         assertThat(box.getType(), is(type));
 
+    }
+
+    private void assertThatHierarchicalBoxHas(CrisLayoutHierarchicalVocabulary2Box box,
+                                              String vocabularity, String metadata) {
+        assertThat(box.getVocabulary(), is(vocabularity));
+        assertThat(box.getMetadataField().toString('.'), is(metadata));
     }
 
     private EntityType createEntityType(String entityType) {

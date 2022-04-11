@@ -24,6 +24,7 @@ import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.OrderBy;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
@@ -84,6 +85,9 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
 
     @OneToMany(mappedBy = "box", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CrisLayoutMetric2Box> metric2box = new ArrayList<>();
+
+    @OneToOne(mappedBy = "box", cascade = CascadeType.ALL, orphanRemoval = true)
+    private CrisLayoutHierarchicalVocabulary2Box hierarchicalVocabulary2Box;
 
     @Column(name = "max_columns")
     private Integer maxColumns = null;
@@ -262,7 +266,6 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         this.metric2box.add(box2metric);
     }
 
-
     public CrisLayoutCell getCell() {
         return cell;
     }
@@ -277,6 +280,15 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
 
     public void setContainer(Boolean container) {
         this.container = container;
+    }
+
+    public CrisLayoutHierarchicalVocabulary2Box getHierarchicalVocabulary2Box() {
+        return hierarchicalVocabulary2Box;
+    }
+
+    public void setHierarchicalVocabulary2Box(CrisLayoutHierarchicalVocabulary2Box hierarchicalVocabulary2Box) {
+        hierarchicalVocabulary2Box.setBox(this);
+        this.hierarchicalVocabulary2Box = hierarchicalVocabulary2Box;
     }
 
     @Override
