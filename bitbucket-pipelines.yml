@@ -11,7 +11,7 @@ definitions:
           - maven
         script:
           - export MAVEN_OPTS="-Xmx4096M"
-          - mvn install -B -V -P-assembly -Dtest.argLine=-Xmx4096M -Pcoverage-report -Dtest.argLine=-Xmx2048m -DskipUnitTests=false -Pdspace-rest
+          - mvn install -B -V -P-assembly -Dtest.argLine=-Xmx4096M -Pcoverage-report -DskipUnitTests=false -Pdspace-rest
     - step: &integration-tests
         name: integration-tests
         size: 2x
@@ -26,9 +26,10 @@ definitions:
 
 pipelines:
   branches:
-    'dspace-cris-7':
-      - step: *unit-test-code-checks
-      - step: *integration-tests
+    'bitbucket-pipelines':
+      - parallel:
+        - step: *unit-test-code-checks
+        - step: *integration-tests
 
   pull-requests:
     '**':
