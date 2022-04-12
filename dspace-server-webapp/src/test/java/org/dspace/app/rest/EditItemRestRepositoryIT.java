@@ -1269,6 +1269,48 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
+    public void testUploadWithOwner() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withEntityType("Publication")
+            .withName("Collection 1")
+            .build();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withNameInMetadata("First", "User")
+            .withEmail("user1@example.com")
+            .withPassword(password)
+            .build();
+
+        Item itemA = ItemBuilder.createItem(context, collection)
+            .withTitle("My Item")
+            .withIssueDate("2022")
+            .withCrisOwner(user)
+            .build();
+
+        EditItem editItem = new EditItem(context, itemA);
+
+        context.restoreAuthSystemState();
+
+        InputStream bibtex = getClass().getResourceAsStream("bibtex-test.bib");
+        final MockMultipartFile bibtexFile = new MockMultipartFile("file", "/local/path/bibtex-test.bib",
+            "application/x-bibtex", bibtex);
+
+        String userToken = getAuthToken(user.getEmail(), password);
+        getClient(userToken).perform(multipart("/api/core/edititems/" + editItem.getID() + ":TRADITIONAL-OWNER")
+            .file(bibtexFile))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.source'][0].value",
+                is("/local/path/bibtex-test.bib")))
+            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.title'][0].value", is("bibtex-test.bib")));
+    }
+
+    @Test
     public void testUploadWithoutUploadableStepDefined() throws Exception {
         context.turnOffAuthorisationSystem();
 
