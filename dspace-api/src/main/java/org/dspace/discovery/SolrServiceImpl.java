@@ -73,6 +73,11 @@ import org.apache.solr.common.params.MoreLikeThisParams;
 import org.apache.solr.common.params.SpellingParams;
 import org.apache.solr.common.util.NamedList;
 import org.apache.solr.handler.extraction.ExtractingParams;
+import org.apache.tika.exception.TikaException;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.parser.ParseContext;
+import org.apache.tika.parser.txt.TXTParser;
+import org.apache.tika.sax.BodyContentHandler;
 import org.dspace.app.util.Util;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
@@ -112,6 +117,7 @@ import org.dspace.storage.rdbms.TableRowIterator;
 import org.dspace.util.MultiFormatDateParser;
 import org.dspace.utils.DSpace;
 import org.springframework.stereotype.Service;
+import org.xml.sax.SAXException;
 
 /**
  * SolrIndexer contains the methods that index Items and their metadata,
@@ -814,42 +820,55 @@ public class SolrServiceImpl implements SearchService, IndexingService {
      * @param streams
      * @throws IOException IO exception
      */
-    protected void writeDocument(SolrInputDocument doc, List<BitstreamContentStream> streams) throws IOException {
-
+    protected void writeDocument(SolrInputDocument doc, FullTextContentStreams streams) throws IOException {
         try {
             if(getSolr() != null)
             {
-                if(CollectionUtils.isNotEmpty(streams))
+                if (streams != null && !streams.isEmpty())
                 {
-                    ContentStreamUpdateRequest req = new ContentStreamUpdateRequest("/update/extract");
+                	// limit full text indexing to first 100,000 characters unless configured otherwise
+                    final int charLimit = ConfigurationManager.getIntProperty("discovery", "discovery.solr.fulltext.charLimit", 100000);
+                 // Use Tika's Text parser as the streams are always from the TEXT bundle (i.e. already extracted text)
+                    // TODO: We may wish to consider using Tika to extract the text in the future.
+                    TXTParser tikaParser = new TXTParser();
+                    BodyContentHandler tikaHandler = new BodyContentHandler(charLimit);
+                    Metadata tikaMetadata = new Metadata();
+                    ParseContext tikaContext = new ParseContext();
+                    
 
-                    for(BitstreamContentStream bce : streams)
-                    {
-                        req.addContentStream(bce);
+                    // Use Apache Tika to parse the full text stream(s)
+                    try (InputStream fullTextStreams = streams.getStream()) {
+                        tikaParser.parse(fullTextStreams, tikaHandler, tikaMetadata, tikaContext);
+                    } catch (SAXException saxe) {
+                        // Check if this SAXException is just a notice that this file was longer than the character limit.
+                        // Unfortunately there is not a unique, public exception type to catch here. This error is thrown
+                        // by Tika's WriteOutContentHandler when it encounters a document longer than the char limit
+                        // https://github.com/apache/tika/blob/main/tika-core/src/main/java/org/apache/tika/sax/WriteOutContentHandler.java
+                        if (saxe.getMessage().contains("limit has been reached")) {
+                            // log that we only indexed up to that configured limit
+                            log.info("Full text is larger than the configured limit (discovery.solr.fulltext.charLimit)."
+                                         + " Only the first {} characters were indexed."+ charLimit);
+                        } else {
+                            throw new IOException("Tika parsing error. Could not index full text.", saxe);
+                        }
+                    } catch (TikaException ex) {
+                        throw new IOException("Tika parsing error. Could not index full text.", ex);
                     }
 
-                    ModifiableSolrParams params = new ModifiableSolrParams();
-
-                    //req.setParam(ExtractingParams.EXTRACT_ONLY, "true");
-                    for(String name : doc.getFieldNames())
-                    {
-                        for(Object val : doc.getFieldValues(name))
-                        {
-                             params.add(ExtractingParams.LITERALS_PREFIX + name,val.toString());
+                    // Write Tika metadata to "tika_meta_*" fields.
+                    // This metadata is not very useful right now, but we'll keep it just in case it becomes more useful.
+                    for (String name : tikaMetadata.names()) {
+                        for (String value : tikaMetadata.getValues(name)) {
+                            doc.addField("tika_meta_" + name, value);
                         }
                     }
+                    
+                    // Save (parsed) full text to "fulltext" field
+                    doc.addField("fulltext", tikaHandler.toString());
+                }
 
-                    req.setParams(params);
-                    req.setParam(ExtractingParams.UNKNOWN_FIELD_PREFIX, "attr_");
-                    req.setParam(ExtractingParams.MAP_PREFIX + "content", "fulltext");
-                    req.setParam(ExtractingParams.EXTRACT_FORMAT, "text");
-                    req.setAction(AbstractUpdateRequest.ACTION.COMMIT, true, true);
-                    req.process(getSolr());
-                }
-                else
-                {
-                    getSolr().add(doc);
-                }
+                // Add document to index
+                solr.add(doc);
             }
         } catch (SolrServerException e)
         {
@@ -1577,7 +1596,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 
         // write the index and close the inputstreamreaders
         try {
-            writeDocument(doc, streams);
+            writeDocument(doc, new FullTextContentStreams(context, item));
             log.info("Wrote Item: " + handle + " to Index");
         } catch (RuntimeException e)
         {
