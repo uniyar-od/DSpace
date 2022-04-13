@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
+import org.dspace.app.rest.exception.MethodNotAllowedException;
 import org.dspace.app.rest.exception.UnprocessableEditException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
 import org.dspace.app.rest.model.EditItemRest;
@@ -159,30 +160,6 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
     }
 
     @Override
-    protected void delete(Context context, String data) {
-        EditItem source = null;
-        try {
-            String uuid = null;
-            String[] values = data.split(":");
-            if (values != null && values.length > 0) {
-                uuid = values[0];
-            } else {
-                throw new DSpaceBadRequestException(
-                        "Data: " + data);
-            }
-            source = eis.find(context, UUID.fromString(uuid));
-            if (!authorizeService.isAdmin(context) && !eis.getItemService().canEdit(context, source.getItem())) {
-                throw new AuthorizeException("Unauthorized attempt to edit ItemID " + source.getItem().getID());
-            }
-            context.turnOffAuthorisationSystem();
-            eis.deleteWrapper(context, source);
-        } catch (SQLException | AuthorizeException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    @PreAuthorize("hasPermission(#id, 'WORKSPACEITEM', 'WRITE')")
-    @Override
     public EditItemRest upload(HttpServletRequest request, String apiCategory, String model, String data,
                                     MultipartFile file) throws SQLException {
 
@@ -222,6 +199,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
         SubmissionConfig submissionConfig =
             submissionConfigReader.getSubmissionConfigByName(source.getMode().getSubmissionDefinition());
         context.turnOffAuthorisationSystem();
+        boolean hasUploadableStep = false;
         for (int i = 0; i < submissionConfig.getNumberOfSteps(); i++) {
             SubmissionStepConfig stepConfig = submissionConfig.getStep(i);
 
@@ -236,6 +214,7 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
 
                 Object stepInstance = stepClass.newInstance();
                 if (UploadableStep.class.isAssignableFrom(stepClass)) {
+                    hasUploadableStep = true;
                     UploadableStep uploadableStep = (UploadableStep) stepInstance;
                     ErrorRest err = uploadableStep.upload(context, submissionService, stepConfig, source, file);
                     if (err != null) {
@@ -248,6 +227,11 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
             }
 
         }
+
+        if (!hasUploadableStep) {
+            throw new MethodNotAllowedException("No uploadable step defined for the given edit item mode");
+        }
+
         context.commit();
         context.reloadEntity(source.getItem());
         eir = converter.toRest(source, utils.obtainProjection());
