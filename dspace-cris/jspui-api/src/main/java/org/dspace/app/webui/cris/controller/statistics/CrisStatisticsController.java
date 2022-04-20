@@ -239,7 +239,7 @@ public class CrisStatisticsController<T extends ACrisObject<P, TP, NP, NTP, ACNO
                 statcomponent.setRelationObjectType(relationObjectType);
             }
 
-            dataBeans.putAll(statcomponent.query(id, solrServer, startDate, endDate));
+            dataBeans.putAll(statcomponent.query(id, crisObject.getType(),solrServer, startDate, endDate));
             label.putAll(statcomponent.getLabels(UIUtil.obtainContext(request),
                     CrisConstants.getEntityTypeText(relationObjectType)));
 

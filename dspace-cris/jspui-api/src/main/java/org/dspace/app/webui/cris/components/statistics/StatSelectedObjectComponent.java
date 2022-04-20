@@ -34,7 +34,7 @@ public class StatSelectedObjectComponent<T extends BrowsableDSpaceObject> extend
     protected static String STATS_QUERY = "id:{0}";
 
     @Override
-    public TreeKeyMap query(String id, HttpSolrServer solrServer, Date startDate, Date endDate)
+    public TreeKeyMap query(String id,int type, HttpSolrServer solrServer, Date startDate, Date endDate)
             throws Exception
     {
         statisticDatasBeans = new TreeKeyMap();

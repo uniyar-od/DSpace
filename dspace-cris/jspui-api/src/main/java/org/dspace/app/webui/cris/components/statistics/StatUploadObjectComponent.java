@@ -57,7 +57,7 @@ public class StatUploadObjectComponent<T extends BrowsableDSpaceObject> extends 
        }
 
 	@Override
-	public TreeKeyMap query(String id, HttpSolrServer solrServer,
+	public TreeKeyMap query(String id,int type, HttpSolrServer solrServer,
 			Date startDate, Date endDate) throws Exception {
 
 		statisticDatasBeans = new TreeKeyMap();
