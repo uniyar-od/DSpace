@@ -32,6 +32,7 @@ import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
 import org.dspace.validation.service.ValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 /**
  * Abstract implementation providing the common functionalities for all the inprogressSubmission Converter
@@ -49,6 +50,8 @@ public abstract class AInprogressItemConverter<T extends InProgressSubmission,
 
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(AInprogressItemConverter.class);
 
+    // Must be loaded @Lazy, as ConverterService autowires all DSpaceConverter components
+    @Lazy
     @Autowired
     private ConverterService converter;
 
