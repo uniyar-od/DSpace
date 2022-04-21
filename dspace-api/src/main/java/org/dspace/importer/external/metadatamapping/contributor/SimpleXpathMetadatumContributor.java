@@ -33,7 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Roeland Dillen (roeland at atmire dot com)
  */
 public class SimpleXpathMetadatumContributor implements MetadataContributor<Element> {
-    private MetadataFieldConfig field;
+    protected MetadataFieldConfig field;
 
     private static final Logger log
         = org.apache.logging.log4j.LogManager.getLogger();
@@ -47,7 +47,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<Elem
         return prefixToNamespaceMapping;
     }
 
-    private MetadataFieldMapping<Element, MetadataContributor<Element>> metadataFieldMapping;
+    protected MetadataFieldMapping<Element, MetadataContributor<Element>> metadataFieldMapping;
 
     /**
      * Return metadataFieldMapping

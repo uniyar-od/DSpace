@@ -31,6 +31,7 @@ import org.dspace.core.Context;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.data.repository.support.QueryMethodParameterConversionException;
 import org.springframework.http.HttpHeaders;
@@ -74,6 +75,7 @@ public class DSpaceApiExceptionControllerAdvice extends ResponseEntityExceptionH
     private ConfigurationService configurationService;
 
     @Autowired
+    @Lazy
     private ConverterService converterService;
 
     @Autowired

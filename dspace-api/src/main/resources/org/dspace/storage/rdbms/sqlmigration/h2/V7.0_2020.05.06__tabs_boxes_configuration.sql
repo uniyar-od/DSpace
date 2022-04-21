@@ -49,7 +49,7 @@ CREATE TABLE cris_layout_field
     metadata_field_id INTEGER NOT NULL,
     bundle VARCHAR(255),
     rendering VARCHAR(255),
-    row INTEGER NOT NULL, 
+    "row" INTEGER NOT NULL, 
     priority INTEGER NOT NULL,
     type VARCHAR(255),
     label VARCHAR(255),
