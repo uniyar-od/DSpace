@@ -34,8 +34,7 @@ import org.junit.contrib.java.lang.system.SystemOutRule;
  *
  * @author mhwood
  */
-public class ConfigurationIT
-        extends AbstractDSpaceTest {
+public class ConfigurationTest extends AbstractDSpaceTest {
 
     private static ConfigurationService cfg;
 
