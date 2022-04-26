@@ -10,12 +10,14 @@ package org.dspace.content.authority;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.content.Item;
@@ -51,6 +53,11 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
 
     private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
+    private static Map<UUID, Boolean> ITEM_CHILDREN_CACHE = new HashMap<>();
+
+    private static final boolean ENABLED_CACHE = DSpaceServicesFactory.getInstance().getConfigurationService()
+        .getBooleanProperty(CONFIG_PREFIX + ".enable.cache");
+
     public ItemControlledVocabularyService() {
         super();
     }
@@ -82,6 +89,11 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         discoverQuery.setMaxResults(limit);
         discoverQuery.setQuery(controlledVocabulary.getParentQuery());
 
+        if (! StringUtils.isEmpty(controlledVocabulary.getSortFieldAndOrder())) {
+            String sortAndOrder[] = controlledVocabulary.getSortFieldAndOrder().split(" ");
+            discoverQuery.setSortField(sortAndOrder[0], DiscoverQuery.SORT_ORDER.valueOf(sortAndOrder[1]));
+        }
+
         try {
             DiscoverResult result = searchService.search(ContextUtil.obtainCurrentRequestContext(), discoverQuery);
 
@@ -110,6 +122,11 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
 
         discoverQuery.setStart(start);
         discoverQuery.setMaxResults(limit);
+
+        if (! StringUtils.isEmpty(controlledVocabulary.getSortFieldAndOrder())) {
+            String sortAndOrder[] = controlledVocabulary.getSortFieldAndOrder().split(" ");
+            discoverQuery.setSortField(sortAndOrder[0], DiscoverQuery.SORT_ORDER.valueOf(sortAndOrder[1]));
+        }
 
         String childrenQuery = MessageFormat.format(controlledVocabulary.getChildrenQuery(), parentId);
         discoverQuery.setQuery(childrenQuery);
@@ -162,7 +179,7 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         return result.getIndexableObjects().stream()
             .map(i -> {
                 Item item = (Item) i.getIndexedObject();
-                return getChoiceFromItem(controlledVocabulary ,item);
+                return getChoiceFromItem(controlledVocabulary, item);
             }).collect(Collectors.toList());
     }
 
@@ -189,11 +206,32 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         return mtd == null ? "" : mtd;
     }
 
-    // TODO Instead of querying for each node maybe we can find a better way
     private boolean hasChildren(Item item) {
-        Choices choices = getChoicesByParent(this.getPluginInstanceName(),
-                                             item.getID().toString(),0, 1, null);
-        return choices.values.length > 0;
+        // Check cache first
+        if (ENABLED_CACHE && ITEM_CHILDREN_CACHE.containsKey(item.getID())) {
+            return ITEM_CHILDREN_CACHE.get(item.getID());
+        }
+
+        ItemControlledVocabulary controlledVocabulary =
+            itemAuthorityServiceFactory.getInstance(this.getPluginInstanceName());
+
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+
+        discoverQuery.setStart(0);
+        discoverQuery.setMaxResults(1);
+
+        String childrenQuery = MessageFormat.format(controlledVocabulary.getChildrenQuery(), item.getID());
+        discoverQuery.setQuery(childrenQuery);
+
+        try {
+            DiscoverResult result = searchService.search(ContextUtil.obtainCurrentRequestContext(), discoverQuery);
+            ITEM_CHILDREN_CACHE.put(item.getID(), !result.getIndexableObjects().isEmpty());
+            return !result.getIndexableObjects().isEmpty();
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+        }
+
+        return false;
     }
 
     @Override

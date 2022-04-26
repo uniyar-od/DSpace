@@ -44,6 +44,8 @@
 		<property name="labelMetadata" value="dc.title"/>
 		<property name="authorityMetadata" value=""/>
 		<property name="extraValuesMapper" ref="orgunitsExtraValuesMapper"/>
+		<!-- <field_name> <order> - If empty no sorting is made -->
+		<property name="sortFieldAndOrder" value="dc.title_sort asc"/>
 	</bean>
 
 	<bean name="orgunitsExtraValuesMapper" class="org.dspace.content.authority.mapper.impl.SimpleMetadataMapper">

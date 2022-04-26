@@ -26,6 +26,8 @@ public class  ItemControlledVocabulary {
 
     private String labelMetadata;
 
+    private String sortFieldAndOrder;
+
     private ItemControlledVocabularyMapper extraValuesMapper;
 
     // Getters and setters
@@ -86,4 +88,11 @@ public class  ItemControlledVocabulary {
         this.extraValuesMapper = extraValuesMapper;
     }
 
+    public String getSortFieldAndOrder() {
+        return sortFieldAndOrder;
+    }
+
+    public void setSortFieldAndOrder(String sortFieldAndOrder) {
+        this.sortFieldAndOrder = sortFieldAndOrder;
+    }
 }
