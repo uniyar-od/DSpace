@@ -27,10 +27,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
-
-import javax.ws.rs.core.MediaType;
 
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
@@ -98,7 +95,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private RelationshipTypeService relationshipTypeService;
-    
+
     @Autowired
     private XmlWorkflowItemService xmlWorkflowItemService;
 
@@ -110,15 +107,14 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
     private Item itemToBeCorrected;
 
     private EntityType publicationType;
-    
+
     private String date;
     private String title;
     private String type;
     private String subject;
-    
 
     private AtomicReference<Integer> workspaceItemIdRef = new AtomicReference<Integer>();
-    
+
     @Value("classpath:org/dspace/app/rest/simple-article.pdf")
     private Resource simpleArticle;
 
@@ -160,7 +156,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
 
         context.setCurrentUser(eperson);
-        
+
         context.restoreAuthSystemState();
     }
 
@@ -205,10 +201,10 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
     }
     @Test
     public void checkCorrection() throws Exception {
-        
+
         String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
 
-        //create a correction item       
+        //create a correction item
         getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
                 .param("owningCollection", collection.getID().toString())
                 .param("relationship", "isCorrectionOfItem")
@@ -274,7 +270,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
     public void checkEmptyCorrection() throws Exception {
         String tokenSubmitter = getAuthToken(eperson.getEmail(), password);
 
-        //create a correction item       
+        //create a correction item
         getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
                 .param("owningCollection", collection.getID().toString())
                 .param("relationship", "isCorrectionOfItem")
@@ -288,7 +284,6 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
         assert (relationshipList.size() > 0);
         Item correctedItem = relationshipList.get(0).getLeftItem();
         WorkspaceItem newWorkspaceItem = workspaceItemService.findByItem(context, correctedItem);
-
 
         //check if the correction section is empty on relation item
         getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + newWorkspaceItem.getID()))
@@ -306,7 +301,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 hasJsonPath("$.newValues[0]", is(value)),
                 hasJsonPath("$.oldValues[0]", is(value)));
     }
-    
+
     private void claimTaskAndCheckResponse(String authToken, Integer poolTaskId) throws SQLException, Exception {
         getClient(authToken).perform(post("/api/workflow/claimedtasks")
                 .contentType(RestMediaTypes.TEXT_URI_LIST)
