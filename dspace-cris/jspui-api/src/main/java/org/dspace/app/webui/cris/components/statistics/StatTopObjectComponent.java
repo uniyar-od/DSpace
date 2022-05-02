@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -26,10 +25,10 @@ import org.dspace.app.cris.statistics.bean.TreeKeyMap;
 import org.dspace.app.cris.statistics.bean.TwoKeyMap;
 import org.dspace.app.webui.cris.components.BeanFacetComponent;
 import org.dspace.browse.BrowsableDSpaceObject;
-import org.dspace.content.DSpaceObject;
 import org.dspace.content.RootObject;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.statistics.service.SolrLoggerService;
@@ -44,7 +43,7 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
     private String fromField;
 
     @Override
-    public TreeKeyMap query(String id, HttpSolrServer solrServer,Date startDate, Date endDate) throws Exception
+    public TreeKeyMap query(String id,int type,  HttpSolrServer solrServer,Date startDate, Date endDate) throws Exception
     {
         statisticDatasBeans = new TreeKeyMap();
         if (id != null && !id.equals("") && StatComponentsService.getYearsQuery() != null)
@@ -71,10 +70,11 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
                 solrQuery.addFilterQuery(filter);
             }
             String query="";
-            if(!StringUtils.equals(id,"0") ){
-            	query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());
-            }else{
+            
+            if(type == Constants.SITE ){
             	query = MessageFormat.format(QUERY_GLOBAL, getFromField(), getSearchCore());
+            }else{
+            	query = MessageFormat.format(QUERY_COMMON, getFromField(), getBean().getQuery(), getSearchCore());
             }
             String sID = getObjectId(id);
             query = MessageFormat.format(query, sID);
@@ -89,7 +89,7 @@ public class StatTopObjectComponent<T extends BrowsableDSpaceObject> extends
             solrResponse = solrServer.query(solrQuery);            
             if(!getBean().getSubQueries().isEmpty()) {                
                 statisticDatasBeans.addValue(TOP, CrisConstants.getEntityTypeText(relationType), CATEGORY,
-                    generateCategoryView(solrServer, TOP, relationType.toString(), CATEGORY, StatComponentsService.getTopCityLength(), query, getBean().getSubQueries(), sID, solrQuery.getFilterQueries()));
+                    generateCategoryView(solrServer, TOP, relationType.toString(), CATEGORY, StatComponentsService.getTopCityLength(), query, getBean().getSubQueries(), id, solrQuery.getFilterQueries()));
             }
             buildTopResultModules(relationType);
 
