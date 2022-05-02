@@ -11,6 +11,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -41,13 +42,19 @@ public class GeoRefAdditionalStatisticsData implements
             DSpaceObject dspaceObject)
     {
         String ip = (String) doc1.getFieldValue("ip");
+        boolean localhost=false;
+        try {
+			localhost=InetAddress.getByName(ip).isLoopbackAddress();
+		} catch (UnknownHostException e1) {
+			log.error(e1 + " ERROR parsing IP: "+ip);
+		}
         if (ip == null)
             return;
         // Save the location information if valid, save the event without
         // location information if not valid
         if (ConfigurationManager.getBooleanProperty(
                 SolrLogger.CFG_USAGE_MODULE, "randomize-localhost", false)
-                && ip.equals("127.0.0.1"))
+                && localhost)
         {
             ip = "";
             for (int j = 0; j < 4; j++)
