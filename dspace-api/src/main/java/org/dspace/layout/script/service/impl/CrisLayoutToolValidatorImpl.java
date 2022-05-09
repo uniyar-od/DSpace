@@ -38,7 +38,6 @@ import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.script.service.CrisLayoutToolValidationResult;
 import org.dspace.layout.script.service.CrisLayoutToolValidator;
 import org.dspace.util.WorkbookUtils;
-import org.dspace.web.ContextUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -274,13 +273,12 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
         int groupColumn = getCellIndexFromHeaderName(policySheet, GROUP_COLUMN);
         if (groupColumn == -1) {
-            result.addError("The sheet " + policySheetName + " has no " + METADATA_COLUMN + " column");
+            result.addError("The sheet " + policySheetName + " has no " + GROUP_COLUMN + " column");
         }
 
         if (metadataColumn != -1 && groupColumn != -1) {
-//            validateMetadataFields(allMetadataFields, policySheet, metadataColumn, -1, result);
-
-            validateMetadataAndGroupFields(context, allMetadataFields, policySheet, metadataColumn, groupColumn, result);
+            validateMetadataAndGroupFields(context, allMetadataFields, policySheet,
+                                           metadataColumn, groupColumn, result);
         }
 
         validateColumnsPresence(policySheet, result, ENTITY_COLUMN, SHORTNAME_COLUMN);
@@ -352,13 +350,14 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
-    private void validateMetadataAndGroupFields(Context context, List<String> allMetadataFields, Sheet sheet, int metadataColumn, int groupColumn,
+    private void validateMetadataAndGroupFields(Context context, List<String> allMetadataFields, Sheet sheet,
+                                                int metadataColumn, int groupColumn,
                                                 CrisLayoutToolValidationResult result) {
         List<Cell> metadataCells = getColumnWithoutHeader(sheet, metadataColumn);
         List<Cell> groupCells = getColumnWithoutHeader(sheet, groupColumn);
 
         // Only METADATA or GROUP column must have a value for each row
-        for (int i=0; i<metadataCells.size(); i++) {
+        for (int i = 0; i < metadataCells.size(); i++) {
             String metadataValue = getCellValue(metadataCells.get(i));
             String groupValue = getCellValue(groupCells.get(i));
 
@@ -369,13 +368,13 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             }
 
             if (StringUtils.isNotBlank(metadataValue) && !allMetadataFields.contains(metadataValue)) {
-                result.addError("The " + sheet.getSheetName() + " contains an unknown metadata field " + metadataValue
-                                    + " at row " + i);
+                result.addError("The " + sheet.getSheetName() + " contains an unknown metadata field: '" + metadataValue
+                                    + "' at row " + i);
             }
 
             if (StringUtils.isNotBlank(groupValue) && !doesGroupExists(context, groupValue)) {
-                result.addError("The " + sheet.getSheetName() + " contains an unknown group field " + groupValue
-                                    + " at row " + i);
+                result.addError("The " + sheet.getSheetName() + " contains an unknown group field: '" + groupValue
+                                    + "' at row " + i);
             }
         }
     }

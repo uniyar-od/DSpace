@@ -62,7 +62,8 @@ public class LayoutSecurityServiceImpl implements LayoutSecurityService {
 
     @Override
     public boolean hasAccess(LayoutSecurity layoutSecurity, Context context, EPerson user,
-                             Set<MetadataField> metadataSecurityFields, Set<Group> groupSecurityFields, Item item) throws SQLException {
+                             Set<MetadataField> metadataSecurityFields,
+                             Set<Group> groupSecurityFields, Item item) throws SQLException {
 
         switch (layoutSecurity) {
             case PUBLIC:
@@ -83,13 +84,14 @@ public class LayoutSecurityServiceImpl implements LayoutSecurityService {
         }
     }
 
-    private boolean customDataGrantAccess(final Context context, EPerson user, Set<MetadataField> metadataSecurityFields,
+    private boolean customDataGrantAccess(final Context context, EPerson user,
+                                          Set<MetadataField> metadataSecurityFields,
                                           Set<Group> groupSecurityFields, Item item) {
         return metadataSecurityFields.stream()
                                      .map(mf -> getMetadata(item, mf))
                                      .filter(Objects::nonNull)
                                      .filter(metadataValues -> !metadataValues.isEmpty())
-                                     .anyMatch(values -> checkUser(context, user, item, values)) &&
+                                     .anyMatch(values -> checkUser(context, user, item, values)) ||
             groupSecurityFields.stream().anyMatch(group -> isMemberOfGroup(context, group));
     }
 

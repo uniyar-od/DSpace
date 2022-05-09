@@ -7,11 +7,11 @@
 --
 
 -----------------------------------------------------------------------------------
-CREATE TABLE public.cris_layout_tab2securitygroup
+CREATE TABLE cris_layout_tab2securitygroup
 (
     tab_id integer NOT NULL,
     group_id uuid NOT NULL,
     CONSTRAINT cris_layout_tab2securitygroup_pkey PRIMARY KEY (tab_id, group_id),
-    CONSTRAINT cris_layout_tab2securitygroup_tab_id FOREIGN KEY (tab_id) REFERENCES public.cris_layout_tab (id),
-    CONSTRAINT cris_layout_tab2securitygroup_group_id FOREIGN KEY (group_id) REFERENCES public.epersongroup (uuid)
+    CONSTRAINT cris_layout_tab2securitygroup_tab_id FOREIGN KEY (tab_id) REFERENCES cris_layout_tab (id),
+    CONSTRAINT cris_layout_tab2securitygroup_group_id FOREIGN KEY (group_id) REFERENCES epersongroup (uuid)
 );
