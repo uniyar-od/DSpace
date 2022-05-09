@@ -15,6 +15,7 @@ import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -440,6 +441,68 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "The metadatagroups contains an empty metadata field at row 2",
             "The boxpolicy at row 1 contains invalid values for METADATA/GROUP column.",
             "The tabpolicy at row 0 contains invalid values for METADATA/GROUP column.",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+    }
+
+    @Test
+    public void testWithMissingGroupColumn() throws InstantiationException, IllegalAccessException {
+        String fileLocation = getXlsFilePath("missing-group-column.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasItems(
+            "The sheet boxpolicy has no GROUP column",
+            "The sheet tabpolicy has no GROUP column"));
+    }
+
+    /*
+     * Each row must contain ONE value for METADATA column OR GROUP column.
+     * Both values missing or both values present is considered invalid.
+     */
+    @Test
+    public void testWithIllegalMetadataAndGroupValues() throws InstantiationException, IllegalAccessException {
+        context.turnOffAuthorisationSystem();
+        createEntityType("Publication");
+        createEntityType("Person");
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("invalid-metadata-and-group-column.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, containsInAnyOrder(
+            "The boxpolicy at row 2 contains invalid values for METADATA/GROUP column.",
+            "The tabpolicy at row 0 contains invalid values for METADATA/GROUP column.",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+    }
+
+    /*
+     * Test for group validation, the 'xls' file contains a group value
+     * that does not exist.
+     */
+    @Test
+    public void testWithInvalidGroupValue() throws InstantiationException, IllegalAccessException {
+        context.turnOffAuthorisationSystem();
+        createEntityType("Publication");
+        createEntityType("Person");
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("invalid-group-value.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, containsInAnyOrder(
+            "The boxpolicy contains an unknown group field: 'Researchers' at row 2",
+            "The tabpolicy contains an unknown group field: 'Researchers' at row 0",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
     }
 

@@ -71,12 +71,14 @@ public class LayoutSecurityServiceImpl implements LayoutSecurityService {
             case OWNER_ONLY:
                 return crisSecurityService.isOwner(user, item);
             case CUSTOM_DATA:
-                return customDataGrantAccess(context, user, metadataSecurityFields, groupSecurityFields, item);
+                return customDataGrantAccess(context, user, metadataSecurityFields, item)
+                    || customDataGrantAccessGroup(context, groupSecurityFields);
             case ADMINISTRATOR:
                 return authorizeService.isAdmin(context);
             case CUSTOM_DATA_AND_ADMINISTRATOR:
                 return authorizeService.isAdmin(context)
-                    || customDataGrantAccess(context, user, metadataSecurityFields, groupSecurityFields, item);
+                    || customDataGrantAccess(context, user, metadataSecurityFields, item)
+                    || customDataGrantAccessGroup(context, groupSecurityFields);
             case OWNER_AND_ADMINISTRATOR:
                 return authorizeService.isAdmin(context) || crisSecurityService.isOwner(user, item);
             default:
@@ -85,14 +87,16 @@ public class LayoutSecurityServiceImpl implements LayoutSecurityService {
     }
 
     private boolean customDataGrantAccess(final Context context, EPerson user,
-                                          Set<MetadataField> metadataSecurityFields,
-                                          Set<Group> groupSecurityFields, Item item) {
+                                          Set<MetadataField> metadataSecurityFields, Item item) {
         return metadataSecurityFields.stream()
                                      .map(mf -> getMetadata(item, mf))
                                      .filter(Objects::nonNull)
                                      .filter(metadataValues -> !metadataValues.isEmpty())
-                                     .anyMatch(values -> checkUser(context, user, item, values)) ||
-            groupSecurityFields.stream().anyMatch(group -> isMemberOfGroup(context, group));
+                                     .anyMatch(values -> checkUser(context, user, item, values));
+    }
+
+    private boolean customDataGrantAccessGroup(Context context, Set<Group> groupSecurityFields) {
+        return groupSecurityFields.stream().anyMatch(group -> isMemberOfGroup(context, group));
     }
 
     private List<MetadataValue> getMetadata(Item item, MetadataField mf) {
