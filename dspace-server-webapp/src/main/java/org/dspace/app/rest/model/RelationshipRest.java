@@ -28,7 +28,6 @@ public class RelationshipRest extends BaseObjectRest<Integer> {
     public static final String NAME = "relationship";
     public static final String CATEGORY = "core";
 
-    public static final String RELATIONSHIPS = "relationships";
     public static final String RELATIONSHIP_TYPE = "relationshipType";
 
     @JsonIgnore

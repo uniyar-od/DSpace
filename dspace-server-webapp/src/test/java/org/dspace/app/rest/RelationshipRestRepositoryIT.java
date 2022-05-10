@@ -3175,7 +3175,6 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
         context.restoreAuthSystemState();
 
         Integer relationshipId = relationship.getID();
-
         getClient().perform(get("/api/core/relationships/" + relationshipId))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$.id", is(relationship.getID())))
@@ -3184,6 +3183,9 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
                        containsString("/api/core/relationships/" + relationshipId + "/relationshipType"))
                    );
 
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        getClient(adminToken).perform(get("/api/core/relationships/" + relationshipId + "/relationshipType"))
+                             .andExpect(status().isOk());
     }
 
 }
