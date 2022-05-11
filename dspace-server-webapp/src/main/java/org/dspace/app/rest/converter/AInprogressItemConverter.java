@@ -7,7 +7,6 @@
  */
 package org.dspace.app.rest.converter;
 
-import java.sql.SQLException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
@@ -29,7 +28,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
-import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
@@ -147,8 +145,9 @@ public abstract class AInprogressItemConverter<T extends InProgressSubmission,
         Context context = ContextUtil.obtainContext(currentRequest.getServletRequest());
         try {
             return itemCorrectionService.checkIfIsCorrectionItem(context, item);
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
+        } catch (Exception ex) {
+            log.error("An error occurs checking if the given item is a correction item.", ex);
+            return false;
         }
     }
 
