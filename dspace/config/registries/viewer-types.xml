@@ -16,7 +16,14 @@
         <schema>viewer</schema>
         <element>uv</element>
         <qualifier>download</qualifier>
-        <scope_note>Metadata field used to configure download options on viewer</scope_note>
+        <scope_note>Metadata field used to configure download options on UV viewer</scope_note>
+    </dc-type>
+
+    <dc-type>
+        <schema>viewer</schema>
+        <element>mirador</element>
+        <qualifier>download</qualifier>
+        <scope_note>Metadata field used to configure download options on Mirador viewer</scope_note>
     </dc-type>
 
 </dspace-dc-types>
