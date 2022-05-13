@@ -22,6 +22,7 @@ import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.MethodNotAllowedException;
 import org.dspace.app.rest.exception.UnprocessableEditException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.EditItemModeRest;
 import org.dspace.app.rest.model.EditItemRest;
 import org.dspace.app.rest.model.ErrorRest;
 import org.dspace.app.rest.model.WorkspaceItemRest;
@@ -38,6 +39,8 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.edit.EditItem;
+import org.dspace.content.edit.EditItemMode;
+import org.dspace.content.edit.service.EditItemModeService;
 import org.dspace.content.edit.service.EditItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -86,6 +89,9 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
 
     @Autowired
     private ValidationService validationService;
+
+    @Autowired
+    private EditItemModeService editItemModeService;
 
     public EditItemRestRepository() throws SubmissionConfigReaderException {
         submissionConfigReader = new SubmissionConfigReader();
@@ -357,4 +363,23 @@ public class EditItemRestRepository extends DSpaceRestRepository<EditItemRest, S
             throw new RuntimeException(e.getMessage(), e);
         }
     }
+
+    @PreAuthorize("permitAll")
+    @SearchRestMethod(name = "findModesById")
+    public Page<EditItemModeRest> findModesById(@Parameter(value = "uuid", required = true) UUID id,
+                                                Pageable pageable) {
+
+        Context context = obtainContext();
+        List<EditItemMode> modes = null;
+        try {
+            modes = editItemModeService.findModes(context, id);
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+        if (modes == null) {
+            return null;
+        }
+        return converter.toRestPage(modes, pageable, modes.size(), utils.obtainProjection());
+    }
+
 }
