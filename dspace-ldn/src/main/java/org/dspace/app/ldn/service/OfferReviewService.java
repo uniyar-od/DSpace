@@ -175,7 +175,7 @@ public class OfferReviewService implements BusinessService {
     /**
      * @param  ctx
      * @param  item
-     * @param  value
+     * @param  service
      * @param  isEndorsementSupported
      * @throws SQLException
      */

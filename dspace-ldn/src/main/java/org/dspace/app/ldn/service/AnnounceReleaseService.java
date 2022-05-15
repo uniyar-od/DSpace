@@ -67,8 +67,8 @@ public class AnnounceReleaseService implements BusinessService {
      * Build and POST announce release notification to configured service LDN
      * inboxes.
      *
-     * @param item      associated item
-     * @param serviceId service id for targer inbox
+     * @param ctx  current context
+     * @param item associated item
      */
     @Override
     public void doProcessing(org.dspace.core.Context ctx, Item item) {

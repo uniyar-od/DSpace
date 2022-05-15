@@ -59,12 +59,12 @@ public class LDNReleaseConsumer implements Consumer {
      * Consume event and determine if release announce is required. Will populate
      * itemsToRelease for those needing to be announced.
      *
-     * @param context current context
-     * @param event   event consumed
+     * @param ctx   current context
+     * @param event event consumed
      * @throws Exception something went wrong
      */
     @Override
-    public void consume(Context context, Event event) throws Exception {
+    public void consume(Context ctx, Event event) throws Exception {
         if (itemsToRelease == null) {
             itemsToRelease = new HashSet<Item>();
         }
@@ -80,7 +80,7 @@ public class LDNReleaseConsumer implements Consumer {
             if (eventType == Event.MODIFY ||
                     eventType == Event.MODIFY_METADATA) {
 
-                Item item = (Item) event.getSubject(context);
+                Item item = (Item) event.getSubject(ctx);
 
                 if (item == null) {
                     log.info("Item not found as subject on event");
@@ -136,16 +136,16 @@ public class LDNReleaseConsumer implements Consumer {
     /**
      * At end of consumer activity, announce all items release.
      *
-     * @param context current context
+     * @param ctx current context
      * @throws Exception failed to announce release
      */
     @Override
-    public void end(Context context) throws Exception {
+    public void end(Context ctx) throws Exception {
         if (itemsToRelease != null) {
             for (Item item : itemsToRelease) {
                 log.info("Item for release {} {}", item.getID(), item.getName());
                 try {
-                    ldnBusinessDelegate.handleRequest("Announce:ReleaseAction", context, item);
+                    ldnBusinessDelegate.handleRequest("Announce:ReleaseAction", ctx, item);
                 } catch (Exception e) {
                     log.error(format("Failed to announce item %s %s for release",
                             item.getID(), item.getName()), e);
@@ -157,11 +157,11 @@ public class LDNReleaseConsumer implements Consumer {
     }
 
     /**
-     * @param context
-     * @throws Exception
+     * @param ctx current context
+     * @throws Exception if failed to finish
      */
     @Override
-    public void finish(Context context) throws Exception {
+    public void finish(Context ctx) throws Exception {
         // nothing to do here
     }
 

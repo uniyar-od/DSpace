@@ -51,15 +51,15 @@ public class LDNOfferConsumer implements Consumer {
      * Consume event and determine if release announce is required. Will populate
      * itemsToRelease for those needing to be announced.
      *
-     * @param  context   current context
-     * @param  event     event consumed
+     * @param ctx   current context
+     * @param event event consumed
      * @throws Exception something went wrong
      */
     @Override
     public void consume(Context ctx, Event event) throws Exception {
 
         log.info("LDN Offer Review Event consumer consumed {} {}",
-            event.getSubjectTypeAsString(), event.getEventTypeAsString());
+                event.getSubjectTypeAsString(), event.getEventTypeAsString());
 
         int subjectType = event.getSubjectType();
         int eventType = event.getEventType();
@@ -67,7 +67,7 @@ public class LDNOfferConsumer implements Consumer {
         if (subjectType == Constants.ITEM) {
 
             if (eventType == Event.MODIFY_METADATA ||
-                eventType == Event.INSTALL) {
+                    eventType == Event.INSTALL) {
 
                 Item item = (Item) event.getSubject(ctx);
 
@@ -88,7 +88,7 @@ public class LDNOfferConsumer implements Consumer {
     /**
      * At end of consumer activity, announce all items release.
      *
-     * @param  context   current context
+     * @param ctx current context
      * @throws Exception if failed to request review
      */
     @Override
@@ -104,11 +104,11 @@ public class LDNOfferConsumer implements Consumer {
     }
 
     /**
-     * @param  context
-     * @throws Exception
+     * @param ctx current context
+     * @throws Exception if failed to finish
      */
     @Override
     public void finish(Context ctx) throws Exception {
-
+        // nothing to do here
     }
 }
