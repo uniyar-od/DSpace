@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import org.dspace.app.rest.RestResourceController;
+import org.dspace.layout.CrisLayoutCarouselComponent;
 import org.dspace.layout.CrisLayoutCountersComponent;
 import org.dspace.layout.CrisLayoutMultiColumnTopComponent;
 
@@ -538,6 +539,71 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
             public String getTitleKey() {
                 return titleKey;
             }
+        }
+    }
+
+    public static class CrisLayoutCarouselComponentRest implements CrisLayoutSectionComponentRest {
+
+        private String discoveryConfigurationName;
+
+        private String title;
+
+        private String link;
+
+        private String description;
+
+        private String style;
+
+        /**
+         * Initializes the rest component using the
+         * CrisLayoutCarouselComponent component
+         * 
+         * @param component
+         */
+        public CrisLayoutCarouselComponentRest(CrisLayoutCarouselComponent component) {
+            discoveryConfigurationName = component.getDiscoveryConfigurationName();
+            title = component.getTitle();
+            link = component.getLink();
+            description = component.getDescription();
+            style = component.getStyle();
+        }
+
+        /**
+         * @return the discoveryConfigurationName
+         */
+        public String getDiscoveryConfigurationName() {
+            return discoveryConfigurationName;
+        }
+
+        /**
+         * @return the title
+         */
+        public String getTitle() {
+            return title;
+        }
+
+        /**
+         * @return the link
+         */
+        public String getLink() {
+            return link;
+        }
+
+        /**
+         * @return the description
+         */
+        public String getDescription() {
+            return description;
+        }
+
+        @Override
+        public String getComponentType() {
+            return "carousel";
+        }
+
+        @Override
+        public String getStyle() {
+            return style;
         }
     }
 
