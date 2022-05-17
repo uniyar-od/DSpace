@@ -192,7 +192,7 @@
       <type>extract</type>
       <scope visibility="hidden" visibilityOutside="hidden">submission</scope>
     </step-definition>
-    <step-definition id="custom-url"> 
+    <step-definition id="custom-url" mandatory="false">
         <heading>submit.progressbar.CustomUrlStep</heading>
         <processing-class>org.dspace.app.rest.submit.step.CustomUrlStep</processing-class>
         <type>custom-url</type>
