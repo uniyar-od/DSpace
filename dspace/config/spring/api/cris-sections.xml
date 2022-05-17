@@ -46,6 +46,12 @@
                      <property name="order" value="desc" />
                      <property name="style" value="col-md-6"/>
                      <property name="numberOfItems" value="5"/>
+                     <property name="showAsCard" value="false"/>
+                     <property name="showLayoutSwitch" value="false"/>
+                     <property name="defaultLayoutMode" value="LIST"/>
+                     <property name="cardStyle" value="border: 1px solid red"/>
+                     <property name="itemListStyle" value="border: 1px solid black"/>
+                     <property name="showAllResults" value="true"/>
                  </bean>
                  <bean class="org.dspace.layout.CrisLayoutTopComponent">
                      <property name="discoveryConfigurationName" value="researchoutputs" />
@@ -53,6 +59,12 @@
                      <property name="order" value="desc" />
                      <property name="style" value="col-md-6"/>
                      <property name="numberOfItems" value="5"/>
+                     <property name="showAsCard" value="false"/>
+                     <property name="showLayoutSwitch" value="false"/>
+                     <property name="defaultLayoutMode" value="LIST"/>
+                     <property name="cardStyle" value="border: 1px solid red"/>
+                     <property name="itemListStyle" value="border: 1px solid black"/>
+                     <property name="showAllResults" value="true"/>
                  </bean>
              </list>
              <list>
@@ -175,6 +187,12 @@
                     <property name="order" value="desc" />
                     <property name="style" value="col-md-6"/>
                     <property name="numberOfItems" value="5"/>
+                    <property name="showAsCard" value="false"/>
+                    <property name="showLayoutSwitch" value="false"/>
+                    <property name="defaultLayoutMode" value="LIST"/>
+                    <property name="cardStyle" value="border: 1px solid red"/>
+                    <property name="itemListStyle" value="border: 1px solid black"/>
+                    <property name="showAllResults" value="true"/>
                 </bean>
                 <bean class="org.dspace.layout.CrisLayoutTopComponent">
                     <property name="discoveryConfigurationName" value="homePageTopItems" />
@@ -182,6 +200,12 @@
                     <property name="order" value="desc" />
                     <property name="style" value="col-md-6"/>
                     <property name="numberOfItems" value="5"/>
+                    <property name="showAsCard" value="false"/>
+                    <property name="showLayoutSwitch" value="false"/>
+                    <property name="defaultLayoutMode" value="LIST"/>
+                    <property name="cardStyle" value="border: 1px solid red"/>
+                    <property name="itemListStyle" value="border: 1px solid black"/>
+                    <property name="showAllResults" value="true"/>
                 </bean>
             </list>
           </list>
