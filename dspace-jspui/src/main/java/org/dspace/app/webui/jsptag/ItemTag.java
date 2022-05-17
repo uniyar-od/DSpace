@@ -623,13 +623,8 @@ public class ItemTag extends TagSupport {
 										String bitstreamMimetype = bitstreams[k].getFormat()
 												.getMIMEType();
 
-										out.print("<div class=\"default-thumbnail-icon\"><a target=\"_blank\"  href=\"");
-										out.print(request.getContextPath());
-										out.print("/retrieve/");
-										out.print(bitstreams[k].getID() + "/");
-										out.print(UIUtil.encodeBitstreamName(bitstreams[k].getName(),
-												Constants.DEFAULT_ENCODING));
-										out.print("\" >");
+										out.print("<div class=\"default-thumbnail-icon\"><a ");
+										out.print(bsLink);
 										out.print(ThumbDisplayStrategy.generateDefaultThumbnailIcon(bitstreamMimetype));
 										out.print("</a></div>");
 									}
