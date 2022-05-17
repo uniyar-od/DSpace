@@ -554,6 +554,12 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
 
         private String style;
 
+        private int order;
+
+        private String sortField;
+
+        private int numberOfItems;
+
         /**
          * Initializes the rest component using the
          * CrisLayoutCarouselComponent component
@@ -605,6 +611,29 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
         public String getStyle() {
             return style;
         }
+
+        /**
+         * @return the order
+         */
+        public int getOrder() {
+            return order;
+        }
+
+        /**
+         * @return the sortField
+         */
+        public String getSortField() {
+            return sortField;
+        }
+
+        /**
+         * @return the numberOfItems
+         */
+        public int getNumberOfItems() {
+            return numberOfItems;
+        }
+
+
     }
 
 }
