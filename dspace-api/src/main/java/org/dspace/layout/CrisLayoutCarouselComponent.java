@@ -23,6 +23,12 @@ public class CrisLayoutCarouselComponent implements CrisLayoutSectionComponent {
 
     private String style;
 
+    private int order;
+
+    private String sortField;
+
+    private int numberOfItems;
+
     /**
      * @return the discoveryConfigurationName
      */
@@ -84,9 +90,53 @@ public class CrisLayoutCarouselComponent implements CrisLayoutSectionComponent {
         return style;
     }
 
+    /**
+     * @param style the configured style
+     */
     public void setStyle(String style) {
         this.style = style;
     }
 
+    /**
+     * @return the order
+     */
+    public int getOrder() {
+        return order;
+    }
+
+    /**
+     * @param order the order to set
+     */
+    public void setOrder(int order) {
+        this.order = order;
+    }
+
+    /**
+     * @return the sortField
+     */
+    public String getSortField() {
+        return sortField;
+    }
+
+    /**
+     * @param sortField the sortField to set
+     */
+    public void setSortField(String sortField) {
+        this.sortField = sortField;
+    }
+
+    /**
+     * @return the numberOfItems
+     */
+    public int getNumberOfItems() {
+        return numberOfItems;
+    }
+
+    /**
+     * @param numberOfItems the numberOfItems to set
+     */
+    public void setNumberOfItems(int numberOfItems) {
+        this.numberOfItems = numberOfItems;
+    }
 
 }
