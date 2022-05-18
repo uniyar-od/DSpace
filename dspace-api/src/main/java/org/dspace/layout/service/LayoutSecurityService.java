@@ -37,5 +37,6 @@ public interface LayoutSecurityService {
      * @return {@code true} if access has to be granted, {@code false} otherwise.
      */
     boolean hasAccess(LayoutSecurity layoutSecurity, Context context, EPerson user,
-                      Set<MetadataField> metadataSecurityFields, Set<Group> groupSecurityFields, Item item) throws SQLException;
+                      Set<MetadataField> metadataSecurityFields, Set<Group> groupSecurityFields,
+                      Item item) throws SQLException;
 }
