@@ -8422,4 +8422,57 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                              .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
+    @Test
+    public void testCorrectionSubmissionDefinition() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withEmail("test@email.it")
+            .withPassword(password)
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withSubmissionDefinition("traditional")
+            .withCorrectionSubmissionDefinition("traditional-cris")
+            .withEntityType("Publication")
+            .withSubmitterGroup(user)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Test item")
+            .build();
+
+        configurationService.setProperty("item-correction.permit-all", true);
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(user.getEmail(), password);
+
+        getClient(authToken).perform(post("/api/submission/workspaceitems")
+            .param("owningCollection", collection.getID().toString())
+            .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.sections.traditionalpageone").exists())
+            .andExpect(jsonPath("$.sections.traditionalpagetwo").exists());
+
+        getClient(authToken).perform(post("/api/submission/workspaceitems")
+            .param("owningCollection", collection.getID().toString())
+            .param("item", item.getID().toString())
+            .param("relationship", "isCorrectionOfItem")
+            .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.sections.traditionalpageone-cris").exists())
+            .andExpect(jsonPath("$.sections.traditionalpagetwo").exists())
+            .andExpect(jsonPath("$.sections.traditionalpagethree-cris-open").exists())
+            .andExpect(jsonPath("$.sections.traditionalpagethree-cris-collapsed").exists());
+    }
+
 }

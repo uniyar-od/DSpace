@@ -20,6 +20,7 @@ import org.dspace.app.rest.submit.DataProcessingStep;
 import org.dspace.app.rest.submit.RestProcessingStep;
 import org.dspace.app.rest.submit.SubmissionService;
 import org.dspace.app.rest.utils.ContextUtil;
+import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
@@ -31,6 +32,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.services.RequestService;
 import org.dspace.services.model.Request;
 import org.dspace.validation.service.ValidationService;
+import org.dspace.versioning.ItemCorrectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
@@ -69,6 +71,9 @@ public abstract class AInprogressItemConverter<T extends InProgressSubmission,
     @Autowired
     private ValidationService validationService;
 
+    @Autowired
+    private ItemCorrectionService itemCorrectionService;
+
     public AInprogressItemConverter() throws SubmissionConfigReaderException {
         submissionConfigReader = new SubmissionConfigReader();
     }
@@ -90,8 +95,7 @@ public abstract class AInprogressItemConverter<T extends InProgressSubmission,
 
             addValidationErrorsToItem(obj, witem);
 
-            SubmissionDefinitionRest def = converter.toRest(
-                    submissionConfigReader.getSubmissionConfigByCollection(collection), projection);
+            SubmissionDefinitionRest def = converter.toRest(getSubmissionConfig(item, collection), projection);
             witem.setSubmissionDefinition(def);
             storeSubmissionName(def.getName());
             for (SubmissionSectionRest sections : def.getPanels()) {
@@ -129,6 +133,25 @@ public abstract class AInprogressItemConverter<T extends InProgressSubmission,
         }
         // need to be after to have stored the submission-name in the request attribute
         witem.setItem(converter.toRest(item, projection));
+    }
+
+    private SubmissionConfig getSubmissionConfig(Item item, Collection collection) {
+        if (isCorrectionItem(item)) {
+            return submissionConfigReader.getCorrectionSubmissionConfigByCollection(collection);
+        } else {
+            return submissionConfigReader.getSubmissionConfigByCollection(collection);
+        }
+    }
+
+    private boolean isCorrectionItem(Item item) {
+        Request currentRequest = requestService.getCurrentRequest();
+        Context context = ContextUtil.obtainContext(currentRequest.getServletRequest());
+        try {
+            return itemCorrectionService.checkIfIsCorrectionItem(context, item);
+        } catch (Exception ex) {
+            log.error("An error occurs checking if the given item is a correction item.", ex);
+            return false;
+        }
     }
 
     @SuppressWarnings("unchecked")
