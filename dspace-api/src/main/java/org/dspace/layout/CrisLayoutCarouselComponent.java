@@ -23,7 +23,7 @@ public class CrisLayoutCarouselComponent implements CrisLayoutSectionComponent {
 
     private String style;
 
-    private int order;
+    private String order;
 
     private String sortField;
 
@@ -100,14 +100,14 @@ public class CrisLayoutCarouselComponent implements CrisLayoutSectionComponent {
     /**
      * @return the order
      */
-    public int getOrder() {
+    public String getOrder() {
         return order;
     }
 
     /**
      * @param order the order to set
      */
-    public void setOrder(int order) {
+    public void setOrder(String order) {
         this.order = order;
     }
 

@@ -554,7 +554,7 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
 
         private String style;
 
-        private int order;
+        private String order;
 
         private String sortField;
 
@@ -572,6 +572,9 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
             link = component.getLink();
             description = component.getDescription();
             style = component.getStyle();
+            order = component.getOrder();
+            sortField = component.getSortField();
+            numberOfItems = component.getNumberOfItems();
         }
 
         /**
@@ -615,7 +618,7 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
         /**
          * @return the order
          */
-        public int getOrder() {
+        public String getOrder() {
             return order;
         }
 

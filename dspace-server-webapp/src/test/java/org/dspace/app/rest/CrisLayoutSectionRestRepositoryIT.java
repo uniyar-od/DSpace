@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withBrowseComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withFacetComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndBrowseComponent;
+import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndCarouselComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndCountersComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndFacetComponent;
 import static org.dspace.app.rest.matcher.CrisLayoutSectionMatcher.withIdAndSearchComponent;
@@ -99,6 +100,8 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(jsonPath("$._embedded.sections",
               hasItem(withIdAndTopComponent("site", 3, 1, "col-md-6", "homePageTopItems", "metric.view",
                                             "desc", 5))))
+            .andExpect(jsonPath("$._embedded.sections",
+                hasItem(withIdAndCarouselComponent("site", 4, 0, "col-md-12", "person"))))
             ;
     }
 
