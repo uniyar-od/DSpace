@@ -97,6 +97,12 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
     @Column(name = "values_inline")
     private Boolean valuesInline;
 
+    @Column(name = "bundle")
+    private String bundle;
+
+    @Column(name = "metadata_value")
+    private String metadataValue;
+
     @Override
     public Integer getID() {
         return id;
@@ -216,6 +222,34 @@ public class CrisLayoutField implements ReloadableEntity<Integer> {
 
     public void setCell(Integer cell) {
         this.cell = cell;
+    }
+
+    /**
+     * @return the bundle
+     */
+    public String getBundle() {
+        return bundle;
+    }
+
+    /**
+     * @param bundle the bundle to set
+     */
+    public void setBundle(String bundle) {
+        this.bundle = bundle;
+    }
+
+    /**
+     * @return the metadataValue
+     */
+    public String getMetadataValue() {
+        return metadataValue;
+    }
+
+    /**
+     * @param metadataValue the metadataValue to set
+     */
+    public void setMetadataValue(String metadataValue) {
+        this.metadataValue = metadataValue;
     }
 
     public String getType() {
