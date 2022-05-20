@@ -62,10 +62,12 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
                 hasItem(withIdAndSearchComponent("researchoutputs", 0, 1, "col-md-8", "researchoutputs"))))
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndTopComponent("researchoutputs", 1, 0, "col-md-6",
-                    "researchoutputs", "dc.date.accessioned", "desc", 5))))
+                    "researchoutputs", "dc.date.accessioned", "desc", 5, false, false, "list",
+                    "border: 1px solid red", "border: 1px solid black", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndTopComponent("researchoutputs", 1, 1, "col-md-6",
-                                    "researchoutputs", "metric.view", "desc", 5))))
+                                    "researchoutputs", "metric.view", "desc", 5, false, false, "list",
+                                    "border: 1px solid red", "border: 1px solid black", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndFacetComponent("researchoutputs", 2, 0, "col-md-12", "researchoutputs"))))
 
@@ -95,10 +97,12 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
 
             .andExpect(jsonPath("$._embedded.sections",
               hasItem(withIdAndTopComponent("site", 3, 0, "col-md-6", "homePageTopItems", "dc.date.accessioned",
-                                            "desc", 5))))
+                                            "desc", 5, false, false, "list",
+                                            "border: 1px solid red", "border: 1px solid black", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
               hasItem(withIdAndTopComponent("site", 3, 1, "col-md-6", "homePageTopItems", "metric.view",
-                                            "desc", 5))))
+                                            "desc", 5, false, false, "list",
+                                            "border: 1px solid red", "border: 1px solid black", true, "top"))))
             ;
     }
 
@@ -155,9 +159,11 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(jsonPath("$", withBrowseComponent(0, 0, "col-md-4", expectedBrowseNames)))
             .andExpect(jsonPath("$", withSearchComponent(0, 1, "col-md-8", "researchoutputs")))
             .andExpect(jsonPath("$", withTopComponent(1, 0, "col-md-6", "researchoutputs",
-                                                      "dc.date.accessioned", "desc", 5)))
+                "dc.date.accessioned", "desc", 5, false, false, "list",
+                "border: 1px solid red", "border: 1px solid black", true, "top")))
             .andExpect(jsonPath("$", withTopComponent(1, 1, "col-md-6", "researchoutputs", "metric.view", "desc",
-                5)))
+                5, false, false, "list",
+                "border: 1px solid red", "border: 1px solid black", true, "top")))
             .andExpect(jsonPath("$", withFacetComponent(2, 0, "col-md-12", "researchoutputs")));
     }
 
