@@ -122,7 +122,20 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
         private String style;
 
         private String titleKey;
+
         private Integer numberOfItems;
+
+        private boolean showAsCard;
+
+        private boolean showLayoutSwitch;
+
+        private String defaultLayoutMode;
+
+        private String cardStyle;
+
+        private String itemListStyle;
+
+        private boolean showAllResults;
 
         public String getDiscoveryConfigurationName() {
             return discoveryConfigurationName;
@@ -184,6 +197,91 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
         public Integer getNumberOfItems() {
             return numberOfItems;
         }
+
+        /**
+         * @return the showAsCard
+         */
+        public boolean isShowAsCard() {
+            return showAsCard;
+        }
+
+        /**
+         * @param showAsCard the showAsCard to set
+         */
+        public void setShowAsCard(boolean showAsCard) {
+            this.showAsCard = showAsCard;
+        }
+
+        /**
+         * @return the showLayoutSwitch
+         */
+        public boolean isShowLayoutSwitch() {
+            return showLayoutSwitch;
+        }
+
+        /**
+         * @param showLayoutSwitch the showLayoutSwitch to set
+         */
+        public void setShowLayoutSwitch(boolean showLayoutSwitch) {
+            this.showLayoutSwitch = showLayoutSwitch;
+        }
+
+        /**
+         * @return the defaultLayoutMode
+         */
+        public String getDefaultLayoutMode() {
+            return defaultLayoutMode;
+        }
+
+        /**
+         * @param defaultLayoutMode the defaultLayoutMode to set
+         */
+        public void setDefaultLayoutMode(String defaultLayoutMode) {
+            this.defaultLayoutMode = defaultLayoutMode;
+        }
+
+        /**
+         * @return the cardStyle
+         */
+        public String getCardStyle() {
+            return cardStyle;
+        }
+
+        /**
+         * @param cardStyle the cardStyle to set
+         */
+        public void setCardStyle(String cardStyle) {
+            this.cardStyle = cardStyle;
+        }
+
+        /**
+         * @return the itemListStyle
+         */
+        public String getItemListStyle() {
+            return itemListStyle;
+        }
+
+        /**
+         * @param itemListStyle the itemListStyle to set
+         */
+        public void setItemListStyle(String itemListStyle) {
+            this.itemListStyle = itemListStyle;
+        }
+
+        /**
+         * @return the showAllResults
+         */
+        public boolean isShowAllResults() {
+            return showAllResults;
+        }
+
+        /**
+         * @param showAllResults the showAllResults to set
+         */
+        public void setShowAllResults(boolean showAllResults) {
+            this.showAllResults = showAllResults;
+        }
+
     }
 
     public static class CrisLayoutFacetComponentRest implements CrisLayoutSectionComponentRest {
