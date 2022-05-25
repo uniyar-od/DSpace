@@ -67,6 +67,7 @@ import org.dspace.identifier.IdentifierException;
 import org.dspace.identifier.service.IdentifierService;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutField;
+import org.dspace.layout.CrisLayoutFieldBitstream;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.service.CrisLayoutTabService;
 import org.dspace.services.ConfigurationService;
@@ -213,9 +214,13 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             return null;
         }
         for (CrisLayoutField thumbField : thumbFields) {
-            String bundle = thumbField.getBundle();
-            MetadataField metadata = thumbField.getMetadataField();
-            String value = thumbField.getMetadataValue();
+            if (!(thumbField instanceof CrisLayoutFieldBitstream)) {
+                continue;
+            }
+            CrisLayoutFieldBitstream thumbFieldBitstream = (CrisLayoutFieldBitstream)thumbField;
+            String bundle = thumbFieldBitstream.getBundle();
+            MetadataField metadata = thumbFieldBitstream.getMetadataField();
+            String value = thumbFieldBitstream.getMetadataValue();
             Thumbnail thumbnail = retrieveThumbnail(context, item, bundle, metadata, value,
                 requireOriginal);
             if (thumbnail != null) {

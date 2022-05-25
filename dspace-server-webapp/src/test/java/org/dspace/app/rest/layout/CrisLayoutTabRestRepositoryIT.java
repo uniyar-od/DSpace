@@ -67,6 +67,7 @@ import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutCell;
 import org.dspace.layout.CrisLayoutField;
+import org.dspace.layout.CrisLayoutFieldBitstream;
 import org.dspace.layout.CrisLayoutRow;
 import org.dspace.layout.CrisLayoutTab;
 import org.dspace.layout.LayoutSecurity;
@@ -1625,7 +1626,7 @@ public class CrisLayoutTabRestRepositoryIT extends AbstractControllerIntegration
             .withRendering("thumbnail")
             .withBox(box)
             .build();
-        field.setMetadataValue("logo");
+        ((CrisLayoutFieldBitstream)field).setMetadataValue("logo");
         CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, eType, 0)
             .withShortName("TabOne")
             .withSecurity(LayoutSecurity.PUBLIC)
