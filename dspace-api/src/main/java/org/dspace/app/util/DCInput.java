@@ -199,7 +199,7 @@ public class DCInput {
         inputType = fieldMap.get("input-type");
         // these types are list-controlled
         if ("dropdown".equals(inputType) || "qualdrop_value".equals(inputType)
-            || "list".equals(inputType)) {
+            || "list".equals(inputType) ) {
             valueListName = fieldMap.get("value-pairs-name");
             valueList = listMap.get(valueListName);
         }
@@ -432,6 +432,13 @@ public class DCInput {
      */
     public void setVocabulary(String vocabulary) {
         this.vocabulary = vocabulary;
+    }
+
+    /**
+     * Returns true if the DC input is controlled vocabulary, false otherwise.
+     */
+    public boolean isControlledVocabulary() {
+        return StringUtils.isNotBlank(getVocabulary());
     }
 
     /**

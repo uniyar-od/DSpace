@@ -146,7 +146,7 @@ public class WebSecurityConfiguration extends WebSecurityConfigurerAdapter {
             .addFilterBefore(new OrcidAuthenticationFilter("/api/authn/orcid", authenticationManager(),
                                                       restAuthenticationService),
                              LogoutFilter.class)
-            .addFilterBefore(new OidcAuthenticationFilter("/api/authn/oidc", authenticationManager(),
+            .addFilterBefore(new OidcLoginFilter("/api/authn/oidc", authenticationManager(),
                                                       restAuthenticationService),
                              LogoutFilter.class)
             // Add a custom Token based authentication filter based on the token previously given to the client

@@ -46,6 +46,7 @@ import org.dspace.content.crosswalk.CrosswalkObjectNotSupported;
 import org.dspace.content.integration.crosswalks.model.TabularTemplateLine;
 import org.dspace.content.integration.crosswalks.virtualfields.VirtualField;
 import org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMapper;
+import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -77,6 +78,8 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
     @Autowired
     protected VirtualFieldMapper virtualFieldMapper;
 
+    @Autowired
+    private MetadataSecurityService metadataSecurityService;
 
     protected DCInputsReader dcInputsReader;
 
@@ -224,7 +227,7 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
         } else if (line.isMetadataGroupField()) {
             return getMetadataGroupValues(context, line, item);
         } else {
-            return getMetadataValues(item, line.getField());
+            return getMetadataValues(context, item, line.getField());
         }
     }
 
@@ -258,7 +261,7 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
                 if (metadataValues.containsKey(metadataGroupEntry)) {
                     metadata = metadataValues.get(metadataGroupEntry);
                 } else {
-                    metadata = getMetadataValues(item, metadataGroupEntry);
+                    metadata = getMetadataValues(context, item, metadataGroupEntry);
                     metadataValues.put(metadataGroupEntry, metadata);
                 }
 
@@ -312,8 +315,8 @@ public abstract class TabularCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private List<String> getMetadataValues(Item item, String metadata) {
-        return itemService.getMetadataByMetadataString(item, metadata).stream()
+    private List<String> getMetadataValues(Context context, Item item, String metadata) {
+        return metadataSecurityService.getPermissionFilteredMetadataValues(context, item, metadata).stream()
             .map(MetadataValue::getValue)
             .collect(Collectors.toList());
     }

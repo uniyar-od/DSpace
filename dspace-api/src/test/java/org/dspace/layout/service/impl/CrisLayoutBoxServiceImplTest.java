@@ -27,10 +27,14 @@ import java.util.stream.Collectors;
 
 import org.dspace.app.metrics.CrisMetrics;
 import org.dspace.authorize.service.AuthorizeService;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService;
@@ -38,6 +42,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.layout.CrisLayoutBox;
 import org.dspace.layout.CrisLayoutBoxTypes;
 import org.dspace.layout.CrisLayoutField;
+import org.dspace.layout.CrisLayoutFieldBitstream;
 import org.dspace.layout.CrisLayoutMetric2Box;
 import org.dspace.layout.dao.CrisLayoutBoxDAO;
 import org.dspace.metrics.CrisItemMetricsService;
@@ -74,6 +79,9 @@ public class CrisLayoutBoxServiceImplTest {
 
     @Mock
     private DiscoveryConfigurationUtilsService searchConfigurationUtilsService;
+
+    @Mock
+    private ItemService itemService;
 
     @Test
     public void testHasContentWithMetadataBox() {
@@ -142,6 +150,62 @@ public class CrisLayoutBoxServiceImplTest {
         Item item = item(metadataValue(titleField, "John Smith"));
 
         assertThat(crisLayoutBoxService.hasContent(context, box, item), is(false));
+    }
+
+    @Test
+    public void testHasContentWithBoxWithBitstream() {
+
+        MetadataField titleField = metadataField("dc", "title", null);
+        MetadataField typeField = metadataField("dc", "type", null);
+
+        Item item = item();
+
+        Bitstream bitstream = mock(Bitstream.class);
+
+        MetadataValue bitstreamType = metadataValue(typeField, "thumbnail");
+        when(bitstream.getMetadata()).thenReturn(List.of(bitstreamType));
+
+        Bundle bundle = mock(Bundle.class);
+        when(bundle.getBitstreams()).thenReturn(List.of(bitstream));
+
+        when(item.getBundles("ORIGINAL")).thenReturn(List.of(bundle));
+
+        CrisLayoutFieldBitstream fieldBitstream = new CrisLayoutFieldBitstream();
+        fieldBitstream.setBundle("ORIGINAL");
+        fieldBitstream.setMetadataValue("thumbnail");
+        fieldBitstream.setMetadataField(typeField);
+
+        CrisLayoutBox box = new CrisLayoutBox();
+        box.addLayoutField(crisLayoutField(titleField));
+        box.addLayoutField(fieldBitstream);
+        box.setShortname("Main Box");
+        box.setType("METADATA");
+
+        assertThat(crisLayoutBoxService.hasContent(context, box, item), is(true));
+
+    }
+
+    @Test
+    public void testHasNoContentWithBoxWithBitstream() {
+
+        MetadataField titleField = metadataField("dc", "title", null);
+        MetadataField typeField = metadataField("dc", "type", null);
+
+        Item item = item();
+
+        CrisLayoutFieldBitstream fieldBitstream = new CrisLayoutFieldBitstream();
+        fieldBitstream.setBundle("ORIGINAL");
+        fieldBitstream.setMetadataValue("thumbnail");
+        fieldBitstream.setMetadataField(typeField);
+
+        CrisLayoutBox box = new CrisLayoutBox();
+        box.addLayoutField(crisLayoutField(titleField));
+        box.addLayoutField(fieldBitstream);
+        box.setShortname("Main Box");
+        box.setType("METADATA");
+
+        assertThat(crisLayoutBoxService.hasContent(context, box, item), is(false));
+
     }
 
     @Test
@@ -352,13 +416,44 @@ public class CrisLayoutBoxServiceImplTest {
 
         when(context.getCurrentUser()).thenReturn(null);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("cris", "owner", "");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_QUEUE");
 
         assertFalse(crisLayoutBoxService.hasContent(context, box, item));
 
+    }
+
+    @Test
+    public void testIiifBoxHasContentWithMetadataTrue() {
+        Item item = item();
+
+        when(itemService.getMetadataFirstValue(item, new MetadataFieldName("dspace", "iiif", "enabled"),
+        Item.ANY)).thenReturn("true");
+
+        CrisLayoutBox box = crisLayoutBox("Box", "IIIFVIEWER");
+
+        assertTrue(crisLayoutBoxService.hasContent(context, box, item));
+    }
+
+    @Test public void testIiifBoxHasNoContentWithMetadataFalse() {
+        Item item = item();
+
+        when(itemService.getMetadataFirstValue(item, new MetadataFieldName("dspace", "iiif", "enabled"),
+        Item.ANY)).thenReturn("false");
+
+        CrisLayoutBox box = crisLayoutBox("Box", "IIIFVIEWER");
+
+        assertFalse(crisLayoutBoxService.hasContent(context, box, item));
+    }
+
+    @Test public void testIiifBoxHasNoContentWithMetadataUndefined() {
+        Item item = item();
+
+        CrisLayoutBox box = crisLayoutBox("Box", "IIIFVIEWER");
+
+        assertFalse(crisLayoutBoxService.hasContent(context, box, item));
     }
 
     private CrisLayoutBox crisLayoutMetadataBox(String shortname, MetadataField... metadataFields) {

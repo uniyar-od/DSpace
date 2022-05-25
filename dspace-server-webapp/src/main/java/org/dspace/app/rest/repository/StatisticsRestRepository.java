@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.dspace.app.rest.Parameter;
 import org.dspace.app.rest.SearchRestMethod;
+import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.exception.RepositoryMethodNotImplementedException;
 import org.dspace.app.rest.model.StatisticsSupportRest;
 import org.dspace.app.rest.model.UsageReportRest;
@@ -27,6 +28,7 @@ import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +40,9 @@ public class StatisticsRestRepository extends DSpaceRestRepository<UsageReportRe
 
     @Autowired
     private UsageReportUtils usageReportUtils;
+
+    @Autowired
+    private ConverterService converterService;
 
     public StatisticsSupportRest getStatisticsSupport() {
         return new StatisticsSupportRest();
@@ -53,7 +58,7 @@ public class StatisticsRestRepository extends DSpaceRestRepository<UsageReportRe
         try {
             DSpaceObject dso = dspaceObjectUtil.findDSpaceObject(context, uuidObject);
             if (dso == null) {
-                return null;
+                throw new ResourceNotFoundException("No DSO found with uuid: " + uuidObject);
             }
             usageReportRest = usageReportUtils.createUsageReport(context, dso, reportId);
 
@@ -63,7 +68,7 @@ public class StatisticsRestRepository extends DSpaceRestRepository<UsageReportRe
         return converter.toRest(usageReportRest, utils.obtainProjection());
     }
 
-    @PreAuthorize("hasPermission(#uri, 'usagereportsearch', 'READ')")
+    @PreAuthorize("permitAll()")
     @SearchRestMethod(name = "object")
     public Page<UsageReportRest> findByObject(@Parameter(value = "uri", required = true) String uri,
             @Parameter(value = "category") String category, Pageable pageable,
@@ -75,7 +80,7 @@ public class StatisticsRestRepository extends DSpaceRestRepository<UsageReportRe
             Context context = obtainContext();
             DSpaceObject dso = dspaceObjectUtil.findDSpaceObject(context, uuid);
             if (dso == null) {
-                return null;
+                throw new ResourceNotFoundException("No DSO found with uuid: " + uuid);
             }
             if (category != null && !usageReportUtils.categoryExists(dso, category)) {
                 throw new IllegalArgumentException("The specified category doesn't exists: " + category);
