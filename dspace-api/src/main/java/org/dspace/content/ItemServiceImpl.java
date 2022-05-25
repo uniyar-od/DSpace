@@ -202,17 +202,23 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         throws SQLException {
         List<CrisLayoutTab> crisLayoutTabs = crisLayoutTabService.findByItem(context, String.valueOf(item.getID()));
 
-        List<CrisLayoutField> thumbFields = new LinkedList<>();
-        for (CrisLayoutTab tab : crisLayoutTabs) {
-            for (CrisLayoutBox box : tab.getBoxes()) {
-                thumbFields.addAll(box.getLayoutFields().stream()
-                    .filter(field -> field.getRendering() != null && field.getRendering().equals("thumbnail"))
-                    .collect(Collectors.toList()));
-            }
-        }
+        List<CrisLayoutField> thumbFields = getThumbnailFields(crisLayoutTabs);
         if (CollectionUtils.isEmpty(thumbFields)) {
             return null;
         }
+        return retrieveThumbnailFromFields(context, item, thumbFields, requireOriginal);
+    }
+
+    /**
+     * @param context
+     * @param item
+     * @param thumbFields
+     * @param requireOriginal
+     * @return Thumbnail
+     * @throws SQLException
+     */
+    private Thumbnail retrieveThumbnailFromFields(Context context, Item item, List<CrisLayoutField> thumbFields,
+        boolean requireOriginal) throws SQLException {
         for (CrisLayoutField thumbField : thumbFields) {
             if (!(thumbField instanceof CrisLayoutFieldBitstream)) {
                 continue;
@@ -228,6 +234,22 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             }
         }
         return null;
+    }
+
+    /**
+     * @param crisLayoutTabs
+     * @return List<CrisLayoutField>
+     */
+    private List<CrisLayoutField> getThumbnailFields(List<CrisLayoutTab> crisLayoutTabs) {
+        List<CrisLayoutField> thumbFields = new LinkedList<>();
+        for (CrisLayoutTab tab : crisLayoutTabs) {
+            for (CrisLayoutBox box : tab.getBoxes()) {
+                thumbFields.addAll(box.getLayoutFields().stream()
+                    .filter(field -> field.getRendering() != null && field.getRendering().equals("thumbnail"))
+                    .collect(Collectors.toList()));
+            }
+        }
+        return thumbFields;
     }
 
     /**
