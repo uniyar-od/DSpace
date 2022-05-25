@@ -570,7 +570,7 @@ public class ItemTag extends TagSupport {
 							// Skip internal types
 							if (!bitstreams[k].getFormat().isInternal()) {
 								List<ViewOption> viewOptions = getViewOptions(context, request, pageContext, handle,
-										bitstreams[k]);
+										bitstreams[k], item);
 
 								// Work out what the bitstream link should be
 								// (persistent
@@ -927,7 +927,7 @@ public class ItemTag extends TagSupport {
 	}
 
 	public static List<ViewOption> getViewOptions(Context context, HttpServletRequest request, PageContext pageContext,
-			String handle, Bitstream bit) throws UnsupportedEncodingException {
+			String handle, Bitstream bit, Item item) throws UnsupportedEncodingException, SQLException {
 		List<ViewOption> results = new ArrayList<ViewOption>();
 
 		List<String> externalProviders = bit.getMetadataValue(IViewer.METADATA_STRING_PROVIDER);
@@ -952,6 +952,12 @@ public class ItemTag extends TagSupport {
 				results.add(buildOption(context, request, pageContext, handle, bit, externalProvider));
 			}
 		}
+		if (showDownload) {
+			boolean isPdfAndDownloadForbidden = checkPdfAndDownloadForbidden(item, bit);
+			if (isPdfAndDownloadForbidden) {
+				showDownload = false;
+			}
+		}
 
 		if (showDownload) {
 			ViewOption opt = new ViewOption();
@@ -968,6 +974,31 @@ public class ItemTag extends TagSupport {
 			results.add(opt);
 		}
 		return results;
+	}
+
+	private static boolean checkPdfAndDownloadForbidden(Item item, Bitstream bit) throws SQLException {
+		if(!bit.getFormat().getMIMEType().equals("application/pdf")) {
+			return false;
+		}
+		//if the bitstream type is PDF then check if access is restricted in other bundles
+		Bundle[] bundles = item.getBundles("IIIF-PDF-"+bit.getID());
+		if (bundles.length == 0) {
+			return false;
+		}
+		for (Bundle bundle : bundles) {
+			// A bundle of images generated from the pdf has been created
+			// check the STOP_DOWNLOAD policy on these images
+			for (Bitstream imagePdf : bundle.getBitstreams()) {
+				List<String> externalProvPdf = imagePdf.getMetadataValue(IViewer.METADATA_STRING_PROVIDER);
+				for (String metadatumProvider : externalProvPdf) {
+					if (IViewer.STOP_DOWNLOAD.equals(metadatumProvider)) {
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+		
 	}
 
 	public static ViewOption buildOption(Context context, HttpServletRequest request, PageContext pageContext,
