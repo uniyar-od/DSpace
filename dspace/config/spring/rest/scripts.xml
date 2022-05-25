@@ -93,4 +93,14 @@
         <property name="description" value="export metadata from a discovery search" />
         <property name="dspaceRunnableClass" value="org.dspace.app.bulkedit.MetadataExportSearch" />
     </bean>
+
+    <bean id="import" class="org.dspace.app.itemimport.ItemImportScriptConfiguration" primary="true">
+        <property name="description" value="Batch Import" />
+        <property name="dspaceRunnableClass" value="org.dspace.app.itemimport.ItemImportCLITool"/>
+    </bean>
+
+    <bean id="export" class="org.dspace.app.itemexport.ItemExportScriptConfiguration" primary="true">
+        <property name="description" value="Batch Export"/>
+        <property name="dspaceRunnableClass" value="org.dspace.app.itemexport.ItemExportCLITool"/>
+    </bean>
 </beans>
