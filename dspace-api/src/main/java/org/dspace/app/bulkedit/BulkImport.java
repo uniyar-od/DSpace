@@ -21,6 +21,7 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -454,11 +455,19 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
     private List<UploadDetails> getUploadDetails(Workbook workbook) {
         Sheet uploadSheet = workbook.getSheet(BITSTREAM_METADATA);
+
+        if (uploadSheet == null) {
+            return Collections.emptyList();
+        }
+
+        final List<MetadataGroup> metadataGroups = getValidMetadataGroup(uploadSheet, false)
+            .collect(Collectors.toList());
+
         return getRows(uploadSheet)
             .filter(WorkbookUtils::isNotFirstRow)
             .filter(WorkbookUtils::isNotEmptyRow)
             .filter(this::isUploadRowValid)
-            .map(row -> buildUploadDetails(row, uploadSheet))
+            .map(row -> buildUploadDetails(row, metadataGroups))
             .collect(Collectors.toList());
     }
 
@@ -467,15 +476,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         StringUtils.isEmpty(getCellValue(row.getCell(1))));
     }
 
-    private UploadDetails buildUploadDetails(Row row, Sheet sheet) {
-        List<MetadataGroup> metadataGroups = getValidMetadataGroup(sheet, false)
-            .collect(Collectors.toList());
-
-        metadataGroups = metadataGroups.stream()
-            .filter(m -> m.getParentId().equals(ROW_ID + "::" + row.getRowNum())).collect(Collectors.toList());
-
+    private UploadDetails buildUploadDetails(Row row, List<MetadataGroup> metadataGroups) {
         return new UploadDetails(getCellValue(row.getCell(0)), getCellValue(row.getCell(1)),
-                                 getCellValue(row.getCell(2)), metadataGroups);
+                                 getCellValue(row.getCell(2)), metadataGroups.get(row.getRowNum() - 1));
     }
 
     private List<Sheet> getAllMetadataGroupSheets(Workbook workbook) {
@@ -639,7 +642,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
                 if (optionalBundle.isPresent() && optionalInputStream.isPresent()) {
                     Optional<Bitstream> bitstream =
                         createBitstream(optionalBundle.get(), optionalInputStream.get());
-                    bitstream.ifPresent(value -> addMetadataToBitstream(value, u.getMetadataGroups()));
+                    bitstream.ifPresent(value -> addMetadataToBitstream(value, u.getMetadataGroup()));
                 } else {
                     handler.logError("Cannot create bundle or input stream for " +
                                          "bundle: " + u.getBundleName() + " with path: " + u.getFilePath() +
@@ -649,13 +652,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
     }
 
-    private void addMetadataToBitstream(Bitstream bitstream, List<MetadataGroup> metadataGroups) {
-        metadataGroups.forEach(m -> {
-            for (Map.Entry<String, MetadataValueVO> entry : m.getMetadata().entries()) {
-                Optional<MetadataField> metadataField = getMetadataFieldByString(entry.getKey());
-                metadataField.ifPresent(field -> addMetadataToBitstream(bitstream, field, entry.getValue()));
-            }
-        });
+    private void addMetadataToBitstream(Bitstream bitstream, MetadataGroup metadataGroup) {
+        for (Map.Entry<String, MetadataValueVO> entry : metadataGroup.getMetadata().entries()) {
+            Optional<MetadataField> metadataField = getMetadataFieldByString(entry.getKey());
+            metadataField.ifPresent(field -> addMetadataToBitstream(bitstream, field, entry.getValue()));
+        }
     }
 
     private Optional<MetadataField> getMetadataFieldByString(String metadata) {
@@ -764,6 +765,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         }
 
         addMetadata(item, entityRow, true);
+        addUploadsToItem(item, entityRow);
 
         handler.logInfo("Row " + entityRow.getRow() + " - Item updated successfully - ID: " + item.getID());
 

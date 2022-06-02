@@ -8,9 +8,6 @@
 
 package org.dspace.app.bulkimport.model;
 
-import java.util.List;
-
-
 /*
  * @author Jurgen Mamani
  */
@@ -22,13 +19,13 @@ public class UploadDetails {
 
     private final String bundleName;
 
-    private final List<MetadataGroup> metadataGroups;
+    private final MetadataGroup metadataGroup;
 
-    public UploadDetails(String parentId, String filePath, String bundleName, List<MetadataGroup> metadataGroups) {
+    public UploadDetails(String parentId, String filePath, String bundleName, MetadataGroup metadataGroup) {
         this.parentId = parentId;
         this.filePath = filePath;
         this.bundleName = bundleName;
-        this.metadataGroups = metadataGroups;
+        this.metadataGroup = metadataGroup;
     }
 
     public String getParentId() {
@@ -43,7 +40,7 @@ public class UploadDetails {
         return bundleName;
     }
 
-    public List<MetadataGroup> getMetadataGroups() {
-        return metadataGroups;
+    public MetadataGroup getMetadataGroup() {
+        return metadataGroup;
     }
 }

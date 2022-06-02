@@ -26,13 +26,29 @@ import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.launcher.ScriptLauncher;
 import org.dspace.app.scripts.handler.impl.TestDSpaceRunnableHandler;
@@ -40,12 +56,15 @@ import org.dspace.authority.CrisConsumer;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
+import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.CrisConstants;
@@ -54,6 +73,7 @@ import org.dspace.event.service.EventService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.workflow.WorkflowItem;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -69,18 +89,28 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String BASE_XLS_DIR_PATH = "./target/testing/dspace/assetstore/bulk-import/";
 
+    private static final String BASE_BITSTREAM_DIR_PATH = "./target/testing/dspace/assetstore/bulk-import/bitstreams/";
+
     private static final String PLACEHOLDER = CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 
     private static final Pattern UUID_PATTERN = compile(
         "[0-9a-fA-F]{8}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{4}\\-[0-9a-fA-F]{12}");
 
+    private static final String BITSTREAM_METADATA = "bitstream-metadata";
+
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();
+
+    private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+
+    private BundleService bundleService = ContentServiceFactory.getInstance().getBundleService();
 
     private WorkspaceItemService workspaceItemService = ContentServiceFactory.getInstance().getWorkspaceItemService();
 
     private Community community;
 
     private Collection collection;
+
+    private static Set<String> temporaryFiles = new HashSet<>();
 
     @Before
     public void beforeTests() throws SQLException, AuthorizeException {
@@ -1383,6 +1413,11 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         return iterator.hasNext() ? iterator.next() : null;
     }
 
+    private List<String> getItemUuidFromMessage(List<String> message) {
+        List<String> itemIds = new ArrayList<>();
+        message.forEach(m -> itemIds.add(getItemUuidFromMessage(m)));
+        return itemIds;
+    }
 
     private String getItemUuidFromMessage(String message) {
         Matcher matcher = UUID_PATTERN.matcher(message);
@@ -1396,4 +1431,339 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
     private String getXlsFilePath(String name) {
         return new File(BASE_XLS_DIR_PATH, name).getAbsolutePath();
     }
+
+    private String getBitstreamFilePath(String name) {
+        return new File(BASE_BITSTREAM_DIR_PATH, name).getAbsolutePath();
+    }
+
+    @Test
+    public void uploadSingleBitstreamTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection publication = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "add-bitstream-to-item.xls";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = getBitstreamFilePath("test.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
+                                                          null, Arrays.asList(bitstreamLocation));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+
+        String itemUuid = getItemUuidFromMessage(handler.getWarningMessages().get(0));
+        Item item = itemService.find(context, UUID.fromString(itemUuid));
+        Bitstream bitstream = bitstreamService.getItemBitstreams(context, item).next();
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream);
+
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.description"), is("test file descr"));
+        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
+    }
+
+    @Test
+    public void uploadMultipleBitstreamTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection publication = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "add-multiple-bitstreams-to-items.xls";
+        String fileLocation = getXlsFilePath(fileName);
+
+        String bitstreamLocation1 = getBitstreamFilePath("test.txt");
+        String bitstreamLocation2 = getBitstreamFilePath("test_2.txt");
+        String bitstreamLocation3 = getBitstreamFilePath("test_3.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
+                                                              Arrays.asList(bitstreamLocation1,
+                                                                       bitstreamLocation2,
+                                                                       bitstreamLocation3));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+
+        List<String> itemUuids = getItemUuidFromMessage(handler.getWarningMessages());
+
+        Item item = itemService.find(context, UUID.fromString(itemUuids.get(0)));
+        Item item2 = itemService.find(context, UUID.fromString(itemUuids.get(1)));
+
+        // Get bitstream from items (first item has two bitstreams)
+        List<Bitstream> item1Bitstreams = new ArrayList<>();
+        bitstreamService.getItemBitstreams(context, item).forEachRemaining(item1Bitstreams::add);
+        Bitstream bitstream2 = bitstreamService.getItemBitstreams(context, item2).next();
+
+        // Get content of first item bitstreams
+        InputStream inputStream = bitstreamService.retrieve(context, item1Bitstreams.get(0));
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+        InputStream inputStream1 = bitstreamService.retrieve(context, item1Bitstreams.get(1));
+        String bitstreamContent1 = IOUtils.toString(inputStream1, StandardCharsets.UTF_8);
+
+        // Get content of second item bitstream
+        InputStream inputStream2 = bitstreamService.retrieve(context, bitstream2);
+        String bitstreamContent2 = IOUtils.toString(inputStream2, StandardCharsets.UTF_8);
+
+        // Get metadata map of items bitstreams
+        Map<String, String> metadataMap = getMetadataFromBitStream(item1Bitstreams.get(0));
+        Map<String, String> metadataMap2 = getMetadataFromBitStream(item1Bitstreams.get(1));
+        Map<String, String> metadataMap3 = getMetadataFromBitStream(bitstream2);
+
+        // First bitstream of item 1
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.description"), is("test file description"));
+        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+
+        // Second bitstream of item 1
+        assertThat(metadataMap2.get("dc.title"), is("Test title 2"));
+        assertThat(metadataMap2.get("dc.description"), is("test file description 2"));
+        assertThat(bitstreamContent1, is("this is a second test file for uploading bitstreams"));
+
+        // First item bundles
+        assertThat(item1Bitstreams.get(0).getBundles().get(0).getName(), is("TEST-BUNDLE"));
+        assertThat(item1Bitstreams.get(1).getBundles().get(0).getName(), is("TEST-BUNDLE2"));
+
+        // Second item
+        assertThat(metadataMap3.get("dc.title"), is("Test title 3"));
+        assertThat(metadataMap3.get("dc.description"), is("test file description 3"));
+        assertThat(bitstreamContent2, is("this is a third test file for uploading bitstreams"));
+        assertThat(bitstream2.getBundles().get(0).getName(), is("SECOND-BUNDLE"));
+    }
+
+    @Test
+    public void uploadSingleBitstreamUpdateTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection publication = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item publicationItem = createItem(context, publication)
+            .withTitle("Test Publication")
+            .withAuthor("Luca G.")
+            .withDescription("This is a test for bulk import")
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "add-bitstream-to-item-update.xls";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = getBitstreamFilePath("test.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
+                                                          Arrays.asList(publicationItem.getID().toString()),
+                                                          Arrays.asList(bitstreamLocation));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        Bitstream bitstream = bitstreamService.getItemBitstreams(context, publicationItem).next();
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream);
+
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.description"), is("test file description"));
+        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
+    }
+
+    @Test
+    public void uploadMultipleBitstreamsUpdateMultipleTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection publication = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item publicationItem = createItem(context, publication)
+            .withTitle("Test Publication")
+            .withAuthor("Luca G.")
+            .withDescription("This is a test for bulk import")
+            .build();
+
+        Item publicationItem2 = createItem(context, publication)
+            .withTitle("Test Publication 2")
+            .withAuthor("Luca G.")
+            .withDescription("This is a test for bulk import")
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "add-bitstream-to-multiple-items-update.xls";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = getBitstreamFilePath("test.txt");
+        String bitstreamLocation2 = getBitstreamFilePath("test_2.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
+                                                          Arrays.asList(publicationItem.getID().toString(),
+                                                                        publicationItem2.getID().toString()),
+                                                          Arrays.asList(bitstreamLocation, bitstreamLocation2));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+
+        Bitstream bitstream = bitstreamService.getItemBitstreams(context, publicationItem).next();
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Bitstream bitstream2 = bitstreamService.getItemBitstreams(context, publicationItem2).next();
+        InputStream inputStream2 = bitstreamService.retrieve(context, bitstream2);
+        String bitstreamContent2 = IOUtils.toString(inputStream2, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream);
+        Map<String, String> metadataMap2 = getMetadataFromBitStream(bitstream2);
+
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.description"), is("test file description"));
+        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
+
+        assertThat(metadataMap2.get("dc.title"), is("Test title 2"));
+        assertThat(metadataMap2.get("dc.description"), is("test file description 2"));
+        assertThat(bitstreamContent2, is("this is a second test file for uploading bitstreams"));
+        assertThat(bitstream2.getBundles().get(0).getName(), is("TEST-BUNDLE2"));
+    }
+
+    @Test
+    public void uploadSingleBitstreamUpdateTestWithExistingBundle() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection publication = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item publicationItem = createItem(context, publication)
+            .withTitle("Test Publication")
+            .withAuthor("Luca G.")
+            .withDescription("This is a test for bulk import")
+            .build();
+
+        bundleService.create(context, publicationItem, "JM-BUNDLE");
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "add-bitstream-to-item-bundle.xls";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = getBitstreamFilePath("test.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName,
+                                                          Arrays.asList(publicationItem.getID().toString()),
+                                                          Arrays.asList(bitstreamLocation));
+
+        String[] args = new String[] { "bulk-import", "-c", publication.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+
+        // Assert that no new bundle was created from script
+        assertThat(publicationItem.getBundles(), hasSize(1));
+
+        Bitstream bitstream = bitstreamService.getItemBitstreams(context, publicationItem).next();
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream);
+
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.description"), is("test file description"));
+        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstream.getBundles().get(0).getName(), is("JM-BUNDLE"));
+    }
+
+
+    /*
+     * Creates a temporary Excel file which is a copy of the one provided
+     * but set's the FILE_PATH column to the new bitstream path.
+     */
+    private String createTemporaryExcelFile(String excelFilePath, String excelFileName,
+                                            List<String> idList, List<String> bitstreamFilePaths) throws IOException {
+        XSSFWorkbook workbook = new XSSFWorkbook(excelFilePath);
+        setIdsToExcelFile(workbook, idList);
+        setBitstreamPathToExcelFile(workbook, bitstreamFilePaths);
+
+        // Write file to disk
+        File file = new File(getXlsFilePath("tmp_" + excelFileName));
+        FileOutputStream outputStream = new FileOutputStream(file);
+        workbook.write(outputStream);
+        outputStream.close();
+
+        temporaryFiles.add(file.getAbsolutePath());
+        return file.getAbsolutePath();
+    }
+
+    private void setIdsToExcelFile(Workbook workbook, List<String> idList) {
+        if (idList == null) {
+            return;
+        }
+
+        Sheet sheet = workbook.getSheetAt(0);
+        for (int i = 0; i < idList.size(); i++) {
+            sheet.getRow(i + 1).getCell(0).setCellValue(idList.get(i));
+        }
+    }
+
+    private void setBitstreamPathToExcelFile(Workbook workbook, List<String> bitstreams) {
+        if (bitstreams == null) {
+            return;
+        }
+
+        Sheet sheet = workbook.getSheet(BITSTREAM_METADATA);
+        for (int i = 0; i < bitstreams.size(); i++) {
+            sheet.getRow(i + 1).getCell(1).setCellValue("file://" + bitstreams.get(i));
+        }
+    }
+
+    private void cleanUpTemporaryFiles() {
+        temporaryFiles.forEach(f -> new File(f).delete());
+    }
+
+    private Map<String, String> getMetadataFromBitStream(Bitstream bitstream) {
+        Map<String, String> map = new HashMap<>();
+        bitstream.getMetadata().forEach(m -> map.put(getMetadataName(m), m.getValue()));
+        return map;
+    }
+
+    private String getMetadataName(MetadataValue m) {
+        if (StringUtils.isBlank(m.getQualifier())) {
+            return String.format("%s.%s", m.getSchema(), m.getElement());
+        }
+
+        return String.format("%s.%s.%s", m.getSchema(),
+                             m.getQualifier(),
+                             m.getElement());
+    }
+
+    @After
+    public void cleanUp() {
+        cleanUpTemporaryFiles();
+    }
+
 }
