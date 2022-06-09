@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,13 +38,20 @@ import org.dspace.app.util.DCInputsReader;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
+import org.dspace.content.Bitstream;
+import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
 import org.dspace.content.WorkspaceItem;
+import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.BitstreamService;
+import org.dspace.content.service.BundleService;
 import org.dspace.core.Constants;
 import org.dspace.core.CrisConstants;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.hamcrest.Matcher;
 import org.junit.Assert;
@@ -60,7 +68,15 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
 
     private XlsCollectionCrosswalk xlsCollectionCrosswalk;
 
+    private BitstreamService bitstreamService;
+
+    private BundleService bundleService;
+
+    private ConfigurationService configurationService;
+
     private Community community;
+
+    private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";
 
     @Before
     public void setup() throws SQLException, AuthorizeException {
@@ -70,6 +86,10 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         assertThat(crosswalkMapper, notNullValue());
 
         xlsCollectionCrosswalk = (XlsCollectionCrosswalk) crosswalkMapper.getByType("collection-xls");
+
+        bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
+        bundleService = ContentServiceFactory.getInstance().getBundleService();
+        configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
 
         context.turnOffAuthorisationSystem();
         community = createCommunity(context).build();
@@ -150,7 +170,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         xlsCollectionCrosswalk.disseminate(context, collection, baos);
 
         Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
-        assertThat(workbook.getNumberOfSheets(), equalTo(4));
+        assertThat(workbook.getNumberOfSheets(), equalTo(5));
 
         String firstItemId = firstItem.getID().toString();
         String secondItemId = secondItem.getID().toString();
@@ -219,7 +239,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         xlsCollectionCrosswalk.disseminate(context, collection, baos);
 
         Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
-        assertThat(workbook.getNumberOfSheets(), equalTo(1));
+        assertThat(workbook.getNumberOfSheets(), equalTo(2));
 
         Sheet mainSheet = workbook.getSheetAt(0);
         String[] mainSheetHeader = { "ID", "dc.contributor.author", "dc.title", "dc.title.alternative",
@@ -304,7 +324,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
 
             Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
 
-            assertThat(workbook.getNumberOfSheets(), equalTo(2));
+            assertThat(workbook.getNumberOfSheets(), equalTo(3));
 
             String firstId = firstPublication.getID().toString();
             String secondId = secondPublication.getID().toString();
@@ -422,7 +442,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         xlsCollectionCrosswalk.disseminate(context, itemIterator, baos);
 
         Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
-        assertThat(workbook.getNumberOfSheets(), equalTo(4));
+        assertThat(workbook.getNumberOfSheets(), equalTo(5));
 
         String firstItemId = firstItem.getID().toString();
         String secondItemId = secondItem.getID().toString();
@@ -576,7 +596,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         xlsCollectionCrosswalk.disseminate(context, collection, baos);
 
         Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
-        assertThat(workbook.getNumberOfSheets(), equalTo(4));
+        assertThat(workbook.getNumberOfSheets(), equalTo(5));
 
         String itemId = item.getID().toString();
 
@@ -613,6 +633,158 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         asserThatSheetHas(projectSheet, "dc.relation.project", 1, projectSheetHeader, List.of());
     }
 
+    @Test
+    public void testCollectionDisseminateWithBitstreamSheet() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item firstItem = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Test Publication")
+            .withDescription("Description")
+            .build();
+
+        Item secondItem = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Second Publication")
+            .withDescription("Publication Description")
+            .build();
+
+        // Create first bundle and bitstream
+        Bundle firstBundle = bundleService.create(context, firstItem, "TEST-BUNDLE");
+        Bitstream firstBitstream = bitstreamService.create(context, getBitstreamSample("First bitstream sample"));
+        bundleService.addBitstream(context, firstBundle, firstBitstream);
+
+        // Add metadata to the first bitstream
+        bitstreamService.addMetadata(context, firstBitstream, "dc", "title",
+                                     null, null, List.of("test.txt"));
+        bitstreamService.addMetadata(context, firstBitstream, "dc", "description",
+                                     null, null, List.of("test description 1"));
+
+        // Create second bundle and bitstream
+        Bundle secondBundle = bundleService.create(context, secondItem, "TEST-BUNDLE2");
+        Bitstream secondBitstream = bitstreamService.create(context, getBitstreamSample("Second bitstream sample"));
+        bundleService.addBitstream(context, secondBundle, secondBitstream);
+
+        // Add metadata to the second bitstream
+        bitstreamService.addMetadata(context, secondBitstream, "dc", "title",
+                                     null, null, List.of("test2.txt"));
+        bitstreamService.addMetadata(context, secondBitstream, "dc", "description",
+                                     null, null, List.of("test description 2"));
+
+        context.restoreAuthSystemState();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        xlsCollectionCrosswalk.disseminate(context, collection, baos);
+
+        Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
+        assertThat(workbook.getNumberOfSheets(), equalTo(5));
+
+        String firstItemId = firstItem.getID().toString();
+        String secondItemId = secondItem.getID().toString();
+
+        String[] bitstreamSheetHeaders = {"PARENT-ID", "FILE-PATH", "BUNDLE-NAME", "dc.title", "dc.description"};
+        String[] firstRow = {firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test.txt",
+            "test description 1"};
+        String[] secondRow = {secondItemId, getBitstreamLocationUrl(secondBitstream), "TEST-BUNDLE2",
+            "test2.txt", "test description 2"};
+
+        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 3,
+                          bitstreamSheetHeaders, List.of(firstRow, secondRow));
+    }
+
+    @Test
+    public void testCollectionDisseminateWithBitstreamSheetOneBitstream() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item firstItem = ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Test Publication")
+            .withDescription("Description")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Second Publication")
+            .withDescription("Publication Description")
+            .build();
+
+        // Create first bundle and bitstream
+        Bundle firstBundle = bundleService.create(context, firstItem, "TEST-BUNDLE");
+        Bitstream firstBitstream = bitstreamService.create(context, getBitstreamSample("First bitstream sample"));
+        bundleService.addBitstream(context, firstBundle, firstBitstream);
+
+        // Add metadata to the first bitstream
+        bitstreamService.addMetadata(context, firstBitstream, "dc", "title",
+                                     null, null, List.of("test.txt"));
+        bitstreamService.addMetadata(context, firstBitstream, "dc", "description",
+                                     null, null, List.of("test description 1"));
+
+        context.restoreAuthSystemState();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        xlsCollectionCrosswalk.disseminate(context, collection, baos);
+
+        Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
+        assertThat(workbook.getNumberOfSheets(), equalTo(5));
+
+        String firstItemId = firstItem.getID().toString();
+
+        String[] bitstreamSheetHeaders = {"PARENT-ID", "FILE-PATH", "BUNDLE-NAME", "dc.title", "dc.description"};
+        String[] firstRow = {firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE",
+            "test.txt", "test description 1"};
+
+        List<String[]> rowList = new ArrayList<>();
+        rowList.add(firstRow);
+
+        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 2,
+                          bitstreamSheetHeaders, rowList);
+    }
+
+    @Test
+    public void testCollectionDisseminateWithBitstreamSheetEmptyBitstream() throws Exception {
+        context.turnOffAuthorisationSystem();
+        Collection collection = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Test Publication")
+            .withDescription("Description")
+            .build();
+
+        ItemBuilder.createItem(context, collection)
+            .withEntityType("Publication")
+            .withTitle("Second Publication")
+            .withDescription("Publication Description")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        xlsCollectionCrosswalk.disseminate(context, collection, baos);
+
+        Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
+        assertThat(workbook.getNumberOfSheets(), equalTo(5));
+
+        String[] bitstreamSheetHeaders = {"PARENT-ID", "FILE-PATH", "BUNDLE-NAME", "dc.title", "dc.description"};
+        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 1,
+                          bitstreamSheetHeaders, List.of());
+    }
+
+    private InputStream getBitstreamSample(String text) {
+        return new ByteArrayInputStream(text.getBytes());
+    }
+
     @SuppressWarnings("unchecked")
     private void asserThatSheetHas(Sheet sheet, String name, int rowsNumber, String[] header, List<String[]> rows) {
         assertThat(sheet.getSheetName(), equalTo(name));
@@ -627,6 +799,11 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         for (String[] row : rows) {
             assertThat(getRowValues(sheet.getRow(rowCount++), row.length), anyOf(rowMatchers));
         }
+    }
+
+    private String getBitstreamLocationUrl(Bitstream bitstream) {
+        String dspaceServerUrl = configurationService.getProperty("dspace.server.url");
+        return String.format(BITSTREAM_URL_FORMAT, dspaceServerUrl, bitstream.getID().toString());
     }
 
 }

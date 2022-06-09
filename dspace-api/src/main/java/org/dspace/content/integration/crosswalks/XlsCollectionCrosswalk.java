@@ -88,7 +88,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     @Autowired
     private ConfigurationService configurationService;
 
-    private static final String BITSTREAM_SHEET = "bistream-metadata";
+    private static final String BITSTREAM_SHEET = "bitstream-metadata";
 
     private static final String[] BITSTREAM_HEADERS = {"PARENT-ID" ,"FILE-PATH", "BUNDLE-NAME",
         "dc.title", "dc.description"};
