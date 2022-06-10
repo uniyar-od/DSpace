@@ -1469,7 +1469,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(metadataMap.get("dc.title"), is("Test title"));
         assertThat(metadataMap.get("dc.description"), is("test file descr"));
-        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
         assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
     }
 
@@ -1529,7 +1529,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         // First bitstream of item 1
         assertThat(metadataMap.get("dc.title"), is("Test title"));
         assertThat(metadataMap.get("dc.description"), is("test file description"));
-        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
 
         // Second bitstream of item 1
         assertThat(metadataMap2.get("dc.title"), is("Test title 2"));
@@ -1585,7 +1585,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(metadataMap.get("dc.title"), is("Test title"));
         assertThat(metadataMap.get("dc.description"), is("test file description"));
-        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
         assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
     }
 
@@ -1641,7 +1641,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(metadataMap.get("dc.title"), is("Test title"));
         assertThat(metadataMap.get("dc.description"), is("test file description"));
-        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
         assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
 
         assertThat(metadataMap2.get("dc.title"), is("Test title 2"));
@@ -1694,7 +1694,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(metadataMap.get("dc.title"), is("Test title"));
         assertThat(metadataMap.get("dc.description"), is("test file description"));
-        assertThat(bitstreamContent, is("this is a test file for bitstream\n"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
         assertThat(bitstream.getBundles().get(0).getName(), is("JM-BUNDLE"));
     }
 
