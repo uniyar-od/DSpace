@@ -625,7 +625,14 @@ public class ItemTag extends TagSupport {
 
 										out.print("<div class=\"default-thumbnail-icon\"><a ");
 										out.print(bsLink);
-										out.print(ThumbDisplayStrategy.generateDefaultThumbnailIcon(bitstreamMimetype));
+										
+										ThumbDisplayStrategy.ThumbnailSize thumbnailSize = ThumbDisplayStrategy.ThumbnailSize.MEDIUM; 
+										String hideNotPrimary = bunds[i].getMetadata(IViewer.METADATA_STRING_HIDENOTPRIMARY);
+										if(StringUtils.isNotBlank(hideNotPrimary) && hideNotPrimary.equals("true")) {
+											thumbnailSize = ThumbDisplayStrategy.ThumbnailSize.LARGE;
+										}
+										
+										out.print(ThumbDisplayStrategy.generateDefaultThumbnailIcon(bitstreamMimetype, thumbnailSize));
 										out.print("</a></div>");
 									}
 								}

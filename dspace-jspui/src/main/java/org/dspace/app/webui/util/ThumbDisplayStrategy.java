@@ -240,7 +240,7 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 			Bitstream original = dao.getPrimaryBitstream(itemID, "ORIGINAL");
 			String primaryBitstreamMimetype = dao.getPrimaryBitstream(itemID, "ORIGINAL").getFormat().getMIMEType();
 			
-            defaultThumbnail=generateDefaultThumbnailIcon(primaryBitstreamMimetype);
+			defaultThumbnail = generateDefaultThumbnailIcon(primaryBitstreamMimetype, ThumbnailSize.MEDIUM);
 	        if (linkToBitstream)
 	        {
 	            String link = hrq.getContextPath() + "/bitstream/" + handle + "/" + original.getSequenceID() + "/" +
@@ -261,16 +261,16 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 		return defaultThumbnail;
 	}
 
-	public static String generateDefaultThumbnailIcon(String primaryBitstreamMimetype) {
-		String defaultThumbnail = "<i class=\"fa fa-file-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+	public static String generateDefaultThumbnailIcon(String primaryBitstreamMimetype, ThumbnailSize thumbnailSize) {
+		String defaultThumbnail = "<i class=\"fa fa-file-o \" style=\"font-size:" + thumbnailSize.getSize() + "em;\" aria-hidden=\"true\"></i>";
 		if (primaryBitstreamMimetype.startsWith("audio/")) {
-			defaultThumbnail = "<i class=\"fa fa-file-audio-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			defaultThumbnail = "<i class=\"fa fa-file-audio-o \" style=\"font-size:" + thumbnailSize.getSize() + "em;\" aria-hidden=\"true\"></i>";
 		} else if (primaryBitstreamMimetype.startsWith("video/")) {
-			defaultThumbnail = "<i class=\"fa fa-file-video-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			defaultThumbnail = "<i class=\"fa fa-file-video-o \" style=\"font-size:" + thumbnailSize.getSize() + "em;\" aria-hidden=\"true\"></i>";
 		} else if (primaryBitstreamMimetype.startsWith("image/")) {
-			defaultThumbnail = "<i class=\"fa fa-file-image-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			defaultThumbnail = "<i class=\"fa fa-file-image-o \" style=\"font-size:" + thumbnailSize.getSize() + "em;\" aria-hidden=\"true\"></i>";
 		} else if (primaryBitstreamMimetype.equals("application/pdf")) {
-			defaultThumbnail = "<i class=\"fa fa-file-pdf-o \" style=\"font-size:5em;\" aria-hidden=\"true\"></i>";
+			defaultThumbnail = "<i class=\"fa fa-file-pdf-o \" style=\"font-size:" + thumbnailSize.getSize() + "em;\" aria-hidden=\"true\"></i>";
 		}
 		return defaultThumbnail;
 	}
@@ -280,5 +280,22 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 			int colIdx, String field, Metadatum[] metadataArray, IGlobalSearchResult item, boolean disableCrossLinks,
 			boolean emph) throws JspException {
 		return getThumbMarkup(hrq, item.getID(), item.getHandle());
+	}
+	
+	public enum ThumbnailSize {
+		
+		LARGE(ConfigurationManager.getIntProperty("thumbnail.large.em.size", 7)),
+		MEDIUM(ConfigurationManager.getIntProperty("thumbnail.medium.em.size", 5)),
+		SMALL(ConfigurationManager.getIntProperty("thumbnail.small.em.size", 3));
+
+		private int sizeEm;
+
+		public int getSize() {
+			return sizeEm;
+		}
+
+		private ThumbnailSize(int size) {
+			sizeEm = size;
+		}
 	}
 }
