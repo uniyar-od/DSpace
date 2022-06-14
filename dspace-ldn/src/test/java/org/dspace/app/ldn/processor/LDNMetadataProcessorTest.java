@@ -8,7 +8,9 @@
 package org.dspace.app.ldn.processor;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,10 +18,13 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.UUID;
 
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 import org.dspace.app.ldn.MockNotificationUtility;
-import org.dspace.app.ldn.action.LDNAction;
+import org.dspace.app.ldn.action.ActionStatus;
+import org.dspace.app.ldn.action.LDNEmailAction;
 import org.dspace.app.ldn.model.Notification;
 import org.dspace.content.Item;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -78,6 +83,15 @@ public class LDNMetadataProcessorTest {
     @Mock
     private Item item;
 
+    @Mock
+    private LDNEmailAction ldnEmailAction;
+
+    @Mock
+    private LDNMetadataRemove ldnMetadataRemove;
+
+    @Mock
+    private LDNMetadataAdd ldnMetadataAdd;
+
     @InjectMocks
     private LDNMetadataProcessor ldnMetadataProcessor;
 
@@ -85,13 +99,16 @@ public class LDNMetadataProcessorTest {
     public String mockNotificationPath;
 
     @Parameter(1)
-    public List<LDNAction> mockActions;
+    public int resolveUrlToHandle;
 
     @Parameter(2)
-    public List<LDNMetadataChange> mockChanges;
+    public int resolveToObject;
+
+    @Parameter(3)
+    public int find;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         MockitoAnnotations.openMocks(this);
 
         contextMock = Mockito.mockStatic(ContextUtil.class);
@@ -123,6 +140,40 @@ public class LDNMetadataProcessorTest {
         when(configurationService.getProperty(eq("ldn.metadata.delimiter"))).thenReturn("||");
 
         when(item.getType()).thenReturn(Constants.ITEM);
+
+
+        when(ldnEmailAction.execute(
+            any(Notification.class),
+            any(Item.class)
+        )).thenReturn(ActionStatus.CONTINUE);
+
+        when(ldnMetadataRemove.renderTemplate(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            eq("true")
+        )).thenReturn("true");
+        doNothing().when(ldnMetadataRemove).doAction(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            any(Context.class),
+            any(Item.class)
+        );
+
+        when(ldnMetadataRemove.getConditionTemplate()).thenReturn("true");
+
+        when(ldnMetadataAdd.renderTemplate(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            eq("true")
+        )).thenReturn("true");
+        doNothing().when(ldnMetadataAdd).doAction(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            any(Context.class),
+            any(Item.class)
+        );
+
+        when(ldnMetadataAdd.getConditionTemplate()).thenReturn("true");
     }
 
     @After
@@ -137,15 +188,61 @@ public class LDNMetadataProcessorTest {
     public void testInitAndProcess() throws Exception {
         Notification notification = MockNotificationUtility.read(mockNotificationPath);
 
-        ldnMetadataProcessor.setActions(mockActions);
-        ldnMetadataProcessor.setChanges(mockChanges);
+        ldnMetadataProcessor.setActions(Arrays.asList(ldnEmailAction));
+        ldnMetadataProcessor.setChanges(Arrays.asList(ldnMetadataRemove, ldnMetadataAdd));
 
-        when(handleService.resolveUrlToHandle(any(Context.class), eq("http://localhost:4200/handle/123456789/3"))).thenReturn("123456789/3");
-        when(handleService.resolveToObject(any(Context.class), eq("123456789/3"))).thenReturn(item);
+        when(handleService.resolveUrlToHandle(any(Context.class), anyString())).thenReturn("123456789/1");
+        when(handleService.resolveToObject(any(Context.class), anyString())).thenReturn(item);
+
+        when(itemService.find(any(Context.class), any(UUID.class))).thenReturn(item);
 
         ldnMetadataProcessor.init();
 
         ldnMetadataProcessor.process(notification);
+
+        verify(handleService, times(resolveUrlToHandle)).resolveUrlToHandle(
+            any(Context.class),
+             anyString()
+        );
+
+        verify(handleService, times(resolveToObject)).resolveToObject(
+            any(Context.class),
+            anyString()
+        );
+
+        verify(itemService, times(find)).find(
+            any(Context.class),
+            any(UUID.class)
+        );
+
+        verify(ldnEmailAction, times(1)).execute(
+            any(Notification.class),
+            any(Item.class)
+        );
+
+        verify(ldnMetadataRemove, times(1)).renderTemplate(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            eq("true")
+        );
+        verify(ldnMetadataRemove, times(1)).doAction(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            any(Context.class),
+            any(Item.class)
+        );
+
+        verify(ldnMetadataAdd, times(1)).renderTemplate(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            eq("true")
+        );
+        verify(ldnMetadataAdd, times(1)).doAction(
+            any(VelocityContext.class),
+            any(VelocityEngine.class),
+            any(Context.class),
+            any(Item.class)
+        );
 
         verify(context, times(1)).turnOffAuthorisationSystem();
         verify(itemService, times(1)).update(any(Context.class), eq(item));
@@ -156,12 +253,8 @@ public class LDNMetadataProcessorTest {
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
         return new ArrayList<>(Arrays.asList(new Object[][] {
-            // test not changes or actions
-            {
-                "src/test/resources/mocks/fromDataverse.json",
-                new ArrayList<>(),
-                new ArrayList<>(),
-            }
+            { "src/test/resources/mocks/fromDataverse.json", 1, 1, 0 },
+            { "src/test/resources/mocks/fromDataverseUUID.json", 0, 0, 1 }
         }));
     }
 
