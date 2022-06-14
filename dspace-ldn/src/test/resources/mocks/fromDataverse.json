@@ -12,8 +12,8 @@
   "context": {
     "IsSupplementTo": [
       {
-        "id": "http://dspace.swiftagiledev.com/handle/123456789/3",
-        "ietf:cite-as": "http://dspace.swiftagiledev.com/handle/123456789/3",
+        "id": "http://localhost:4200/handle/123456789/3",
+        "ietf:cite-as": "http://localhost:4200/handle/123456789/3",
         "type": "sorg:ScholarlyArticle"
       }
     ]
@@ -30,8 +30,8 @@
     "type": "Service"
   },
   "target": {
-    "id": "http://dspace.swiftagiledev.com/",
-    "inbox": "http://api.swiftagiledev.com/server/ldn/inbox",
+    "id": "http://localhost:4200/",
+    "inbox": "http://localhost:8080/server/ldn/inbox",
     "type": "Service"
   },
   "type": [
