@@ -187,15 +187,20 @@ public class CrisItemEnhancerUtility {
 		if (aCrisObject != null) {
 			List<P> props = aCrisObject.getAnagrafica4view().get(splitted[0]);
 			if (splitted.length == 2) {
-				for (P prop : props) {
-					if (prop.getObject() instanceof ACrisObject) {
-						result.addAll(getPathAsMetadata(as, (ACrisObject) prop.getObject(), splitted[1]));
-					} else {
-						log.error(
-								"Wrong configuration, asked for path " + splitted[1] + " on a not CRIS Object value.");
-					}
-				}
-
+			    if (props.isEmpty()) {
+			        for (Metadatum md : aCrisObject.getMetadataByMetadataString(path)) {
+                        result.add(new String[] { md.value, md.authority });
+                    }
+                }else {
+                    for (P prop : props) {
+                        if (prop.getObject() instanceof ACrisObject) {
+                            result.addAll(getPathAsMetadata(as, (ACrisObject) prop.getObject(), splitted[1]));
+                        } else {
+                            log.error(
+                                    "Wrong configuration, asked for path " + splitted[1] + " on a not CRIS Object value.");
+                        }
+                    }
+                }
 			}
 			else {
 				if (props.size() > 0) {
