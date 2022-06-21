@@ -11,10 +11,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
@@ -46,6 +45,9 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
     @Autowired
     private AuthorizeService authorizeService;
 
+    @Autowired
+    private ResearcherProfileService researcherProfileService;
+
     @Override
     public boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode)
         throws SQLException {
@@ -76,12 +78,7 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
 
     @Override
     public boolean isOwner(EPerson eperson, Item item) {
-        if (eperson == null) {
-            return false;
-        }
-        List<MetadataValue> owners = itemService.getMetadataByMetadataString(item, "cris.owner");
-        Predicate<MetadataValue> checkOwner = v -> StringUtils.equals(v.getAuthority(), eperson.getID().toString());
-        return owners.stream().anyMatch(checkOwner);
+        return researcherProfileService.isOwnerOfItem(eperson, item);
     }
 
     private boolean hasAccessByCustomPolicy(Context context, Item item, EPerson user, AccessItemMode accessMode)
