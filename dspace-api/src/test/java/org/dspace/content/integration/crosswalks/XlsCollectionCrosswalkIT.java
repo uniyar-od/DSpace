@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -54,6 +55,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.hamcrest.Matcher;
+import org.hamcrest.Matchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -686,11 +688,15 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         String firstItemId = firstItem.getID().toString();
         String secondItemId = secondItem.getID().toString();
 
-        String[] bitstreamSheetHeaders = {"PARENT-ID", "FILE-PATH", "BUNDLE-NAME", "dc.title", "dc.description"};
-        String[] firstRow = {firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test.txt",
-            "test description 1"};
-        String[] secondRow = {secondItemId, getBitstreamLocationUrl(secondBitstream), "TEST-BUNDLE2",
-            "test2.txt", "test description 2"};
+        String[] bitstreamSheetHeaders = Stream.concat(
+                XlsCollectionCrosswalk.BITSTREAM_BASE_HEADERS.stream(),
+                Stream.of("dc.description", "dc.title")
+            )
+            .toArray(String[]::new);
+        String[] firstRow = { firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test description 1",
+                "test.txt" };
+        String[] secondRow = { secondItemId, getBitstreamLocationUrl(secondBitstream), "TEST-BUNDLE2",
+                "test description 2", "test2.txt" };
 
         asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 3,
                           bitstreamSheetHeaders, List.of(firstRow, secondRow));
@@ -737,15 +743,18 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
 
         String firstItemId = firstItem.getID().toString();
 
-        String[] bitstreamSheetHeaders = {"PARENT-ID", "FILE-PATH", "BUNDLE-NAME", "dc.title", "dc.description"};
-        String[] firstRow = {firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE",
-            "test.txt", "test description 1"};
+        String[] bitstreamSheetHeaders = Stream.concat(
+                XlsCollectionCrosswalk.BITSTREAM_BASE_HEADERS.stream(),
+                Stream.of("dc.description", "dc.title")
+            )
+            .toArray(String[]::new);
+        String[] firstRow = { firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test description 1",
+                "test.txt" };
 
         List<String[]> rowList = new ArrayList<>();
         rowList.add(firstRow);
 
-        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 2,
-                          bitstreamSheetHeaders, rowList);
+        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 2, bitstreamSheetHeaders, rowList);
     }
 
     @Test
@@ -776,9 +785,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
         Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(baos.toByteArray()));
         assertThat(workbook.getNumberOfSheets(), equalTo(5));
 
-        String[] bitstreamSheetHeaders = {"PARENT-ID", "FILE-PATH", "BUNDLE-NAME", "dc.title", "dc.description"};
-        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 1,
-                          bitstreamSheetHeaders, List.of());
+        String[] bitstreamSheetHeaders = XlsCollectionCrosswalk.BITSTREAM_BASE_HEADERS.stream().toArray(String[]::new);
+        asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 1, bitstreamSheetHeaders, List.of());
     }
 
     private InputStream getBitstreamSample(String text) {
@@ -793,7 +801,7 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
 
         int rowCount = 1;
         Matcher<List<String>>[] rowMatchers = rows.stream()
-            .map(row -> contains(row))
+            .map(Matchers::contains)
             .toArray(Matcher[]::new);
 
         for (String[] row : rows) {

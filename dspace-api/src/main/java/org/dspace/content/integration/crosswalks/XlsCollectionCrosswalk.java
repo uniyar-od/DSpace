@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -74,13 +76,24 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private static Logger log = LogManager.getLogger(XlsCollectionCrosswalk.class);
 
+
+    private static final String COMMON_ERROR_MESSAGE = "An error has occurred trying to %s";
+    private static final String BITSTREAM_ITEM_ERROR_MESSAGE = "get bitstreams of item: %s";
+    private static final String BUNDLES_BITSTREAM_ERROR_MESSAGE = "get bundles of bitstream: %s";
+
+    private static final String BITSTREAM_SHEET = "bitstream-metadata";
+    private static final String PARENT_ID_COLUMN = "PARENT-ID";
+    private static final String FILE_PATH = "FILE-PATH";
+    private static final String BUNDLE_NAME = "BUNDLE-NAME";
+    private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";
+
+    protected static final List<String> BITSTREAM_BASE_HEADERS = Arrays.asList(PARENT_ID_COLUMN,FILE_PATH,BUNDLE_NAME);
+
     @Autowired
     private ItemService itemService;
 
     @Autowired
     private CollectionService collectionService;
-
-    private DCInputsReader reader;
 
     @Autowired
     private BitstreamService bitstreamService;
@@ -88,27 +101,12 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     @Autowired
     private ConfigurationService configurationService;
 
-    private static final String BITSTREAM_SHEET = "bitstream-metadata";
-
-    private static final String[] BITSTREAM_HEADERS = {"PARENT-ID" ,"FILE-PATH", "BUNDLE-NAME",
-        "dc.title", "dc.description"};
-
-    private static final String PARENT_ID_COLUMN = "PARENT-ID";
-
-    private static final String FILE_PATH = "FILE-PATH";
-
-    private static final String BUNDLE_NAME = "BUNDLE-NAME";
-
-    private static final String DC_TITLE = "dc.title";
-
-    private static final String DC_DESCRIPTION = "dc.description";
-
-    private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";
+    private DCInputsReader reader;
 
     @PostConstruct
     private void postConstruct() {
         try {
-            this.reader = new DCInputsReader();
+            this.setReader(new DCInputsReader());
         } catch (DCInputsReaderException e) {
             throw new RuntimeException(e);
         }
@@ -216,16 +214,20 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private XlsCollectionSheet writeBitstreamSheetHeader(Collection collection, Workbook workbook) {
         XlsCollectionSheet bitstreamSheet = new XlsCollectionSheet(workbook, BITSTREAM_SHEET, true, collection);
 
-        for (String header : BITSTREAM_HEADERS) {
-            bitstreamSheet.appendHeader(header);
-        }
+        BITSTREAM_BASE_HEADERS
+            .stream()
+            .forEach(bitstreamSheet::appendHeader);
 
         return bitstreamSheet;
     }
 
-    private void writeWorkbookContent(Context context, Iterator<Item> itemIterator,
-        XlsCollectionSheet mainSheet, List<XlsCollectionSheet> nestedMetadataSheets,
-                                      XlsCollectionSheet bitstreamSheet) throws SQLException {
+    private void writeWorkbookContent(
+            Context context,
+            Iterator<Item> itemIterator,
+            XlsCollectionSheet mainSheet,
+            List<XlsCollectionSheet> nestedMetadataSheets,
+            XlsCollectionSheet bitstreamSheet
+    ) throws SQLException {
 
         while (itemIterator.hasNext()) {
 
@@ -255,30 +257,55 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private void writeBitstreamRow(XlsCollectionSheet bitstreamSheet, Item item, Bitstream bitstream) {
         bitstreamSheet.appendRow();
-        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream);
+        writeBitstreamBaseValues(bitstreamSheet, item, bitstream);
+        writeBitstreamMetadataValues(bitstreamSheet, getMetadataFromBitStream(bitstream));
+    }
 
+    private void writeBitstreamMetadataValues(XlsCollectionSheet bitstreamSheet, Map<String, String> metadataMap) {
+        metadataMap
+            .entrySet()
+            .stream()
+            .forEach(metadataEntry ->
+                    writeBitstreamMetadataItem(bitstreamSheet, metadataEntry)
+            );
+    }
+
+    private void writeBitstreamMetadataItem(XlsCollectionSheet bitstreamSheet, Entry<String, String> metadataEntry) {
+        bitstreamSheet.appendHeaderIfNotPresent(metadataEntry.getKey());
+        bitstreamSheet.setValueOnLastRow(
+                metadataEntry.getKey(),
+                metadataEntry.getValue()
+        );
+    }
+
+    private void writeBitstreamBaseValues(XlsCollectionSheet bitstreamSheet, Item item, Bitstream bitstream) {
         bitstreamSheet.setValueOnLastRow(PARENT_ID_COLUMN, item.getID().toString());
         bitstreamSheet.setValueOnLastRow(FILE_PATH, getBitstreamLocationUrl(bitstream));
         bitstreamSheet.setValueOnLastRow(BUNDLE_NAME, getBitstreamBundles(bitstream));
-        bitstreamSheet.setValueOnLastRow(DC_TITLE, metadataMap.get(DC_TITLE));
-        bitstreamSheet.setValueOnLastRow(DC_DESCRIPTION, metadataMap.get(DC_DESCRIPTION));
     }
 
     private String getBitstreamLocationUrl(Bitstream bitstream) {
-        String dspaceServerUrl = configurationService.getProperty("dspace.server.url");
-        return String.format(BITSTREAM_URL_FORMAT, dspaceServerUrl, bitstream.getID().toString());
+        return String.format(
+                BITSTREAM_URL_FORMAT,
+                configurationService.getProperty("dspace.server.url"),
+                bitstream.getID().toString()
+        );
     }
 
     private String getBitstreamBundles(Bitstream bitstream) {
         try {
-            List<String> bundles = bitstream.getBundles()
+            return bitstream.getBundles()
                 .stream()
                 .map(Bundle::getName)
-                .collect(Collectors.toList());
-            return StringUtils.join(bundles, ',');
+                .collect(Collectors.joining(","));
         } catch (SQLException e) {
-            throw new RuntimeException("An error has occurred trying to get bundles of bitstream: "
-                                           + bitstream.getID() + "\n" + e);
+            throw new RuntimeException(
+                    String.format(
+                            COMMON_ERROR_MESSAGE,
+                            String.format(BUNDLES_BITSTREAM_ERROR_MESSAGE, bitstream.getID())
+                    ),
+                    e
+            );
         }
     }
 
@@ -286,12 +313,15 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         try {
             return bitstreamService.getItemBitstreams(context, item);
         } catch (SQLException e) {
-            throw new RuntimeException("An error has occurred trying to get bitstreams of item: "
-                                           + item.getID() + "\n" + e);
+            throw new RuntimeException(
+                    String.format(
+                            COMMON_ERROR_MESSAGE,
+                            String.format(BITSTREAM_ITEM_ERROR_MESSAGE, item.getID())
+                    ),
+                    e
+            );
         }
     }
-
-
 
     private void writeMainSheet(Context context, Item item, XlsCollectionSheet mainSheet) {
 
@@ -466,14 +496,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    public void setReader(DCInputsReader reader) {
-        this.reader = reader;
-    }
-
     private Map<String, String> getMetadataFromBitStream(Bitstream bitstream) {
-        Map<String, String> map = new HashMap<>();
-        bitstream.getMetadata().forEach(m -> map.put(getMetadataName(m), m.getValue()));
-        return map;
+        return bitstream
+            .getMetadata()
+            .stream()
+            .collect(Collectors.toMap(this::getMetadataName, MetadataValue::getValue));
     }
 
     private String getMetadataName(MetadataValue m) {
@@ -481,9 +508,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             return String.format("%s.%s", m.getSchema(), m.getElement());
         }
 
-        return String.format("%s.%s.%s", m.getSchema(),
-                             m.getQualifier(),
-                             m.getElement());
+        return String.format("%s.%s.%s", m.getSchema(), m.getQualifier(), m.getElement()
+        );
     }
 
+    public void setReader(DCInputsReader reader) {
+        this.reader = reader;
+    }
 }
