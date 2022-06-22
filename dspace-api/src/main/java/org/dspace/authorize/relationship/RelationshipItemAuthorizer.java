@@ -22,13 +22,13 @@ import org.dspace.core.Context;
 public interface RelationshipItemAuthorizer {
 
     /**
-     * Check if a relationship that involves the given item can be created by the
-     * current user.
+     * Check if the current user is authorized to create/edit/delete a relationship
+     * that involves the given item.
      *
      * @param  context the DSpace context
      * @param  item    the item to check
-     * @return         true if a relationship can be created, false otherwise
+     * @return         true if a relationship can be modified, false otherwise
      */
-    public boolean isRelationshipCreatableOnItem(Context context, Item item);
+    public boolean canHandleRelationshipOnItem(Context context, Item item);
 
 }

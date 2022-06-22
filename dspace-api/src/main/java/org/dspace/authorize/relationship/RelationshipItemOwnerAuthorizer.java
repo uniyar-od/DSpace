@@ -11,6 +11,7 @@ import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implementation of {@link RelationshipItemAuthorizer} that check if the
@@ -21,10 +22,11 @@ import org.dspace.eperson.EPerson;
  */
 public class RelationshipItemOwnerAuthorizer implements RelationshipItemAuthorizer {
 
+    @Autowired
     private ResearcherProfileService researcherProfileService;
 
     @Override
-    public boolean isRelationshipCreatableOnItem(Context context, Item item) {
+    public boolean canHandleRelationshipOnItem(Context context, Item item) {
         EPerson currentUser = context.getCurrentUser();
         if (currentUser == null) {
             return false;

@@ -56,7 +56,7 @@ public class RelationshipAuthorizerImplTest {
         authorizer.setRightEntityType("Type2");
         authorizer.setRightwardType("rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, null, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, null, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -77,7 +77,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("AnotherType1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -98,7 +98,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "AnotherLeftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -119,7 +119,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "AnotherType2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -140,7 +140,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "AnotherRightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -161,7 +161,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType(null, "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -182,7 +182,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", null, "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -203,7 +203,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", null, "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -224,7 +224,7 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", null);
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
@@ -246,11 +246,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -270,11 +270,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -294,10 +294,10 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -317,10 +317,10 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -339,10 +339,10 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -361,10 +361,10 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -383,11 +383,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -406,11 +406,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(false));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -429,11 +429,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -452,11 +452,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", null, "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -475,11 +475,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -498,11 +498,11 @@ public class RelationshipAuthorizerImplTest {
 
         RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
 
-        boolean result = authorizer.isRelationshipCreatable(context, relationshipType, leftItemMock, rightItemMock);
+        boolean result = authorizer.canHandleRelationship(context, relationshipType, leftItemMock, rightItemMock);
         assertThat(result, is(true));
 
-        verify(leftItemAuthorizer).isRelationshipCreatableOnItem(context, leftItemMock);
-        verify(rightItemAuthorizer).isRelationshipCreatableOnItem(context, rightItemMock);
+        verify(leftItemAuthorizer).canHandleRelationshipOnItem(context, leftItemMock);
+        verify(rightItemAuthorizer).canHandleRelationshipOnItem(context, rightItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -516,21 +516,21 @@ public class RelationshipAuthorizerImplTest {
         RelationshipAuthorizerImpl authorizer = new RelationshipAuthorizerImpl(leftItemAuthorizer, rightItemAuthorizer);
 
         RelationshipType type = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
-        assertThat(authorizer.isRelationshipCreatable(context, type, leftItemMock, rightItemMock), is(true));
+        assertThat(authorizer.canHandleRelationship(context, type, leftItemMock, rightItemMock), is(true));
 
         type = mockRelationshipType("Type1", null, "Type2", "rightType");
-        assertThat(authorizer.isRelationshipCreatable(context, type, leftItemMock, rightItemMock), is(true));
+        assertThat(authorizer.canHandleRelationship(context, type, leftItemMock, rightItemMock), is(true));
 
         type = mockRelationshipType("Type1", null, "Type2", null);
-        assertThat(authorizer.isRelationshipCreatable(context, type, leftItemMock, rightItemMock), is(true));
+        assertThat(authorizer.canHandleRelationship(context, type, leftItemMock, rightItemMock), is(true));
 
         type = mockRelationshipType("Type1", null, null, null);
-        assertThat(authorizer.isRelationshipCreatable(context, type, leftItemMock, rightItemMock), is(true));
+        assertThat(authorizer.canHandleRelationship(context, type, leftItemMock, rightItemMock), is(true));
 
         type = mockRelationshipType(null, null, null, null);
-        assertThat(authorizer.isRelationshipCreatable(context, type, leftItemMock, rightItemMock), is(true));
+        assertThat(authorizer.canHandleRelationship(context, type, leftItemMock, rightItemMock), is(true));
 
-        verify(leftItemAuthorizer, times(5)).isRelationshipCreatableOnItem(context, leftItemMock);
+        verify(leftItemAuthorizer, times(5)).canHandleRelationshipOnItem(context, leftItemMock);
         verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
 
     }
@@ -566,7 +566,7 @@ public class RelationshipAuthorizerImplTest {
 
     private RelationshipItemAuthorizer mockItemAuthorizer(boolean result) {
         RelationshipItemAuthorizer itemAuthorizer = mock(RelationshipItemAuthorizer.class);
-        lenient().when(itemAuthorizer.isRelationshipCreatableOnItem(any(), any())).thenReturn(result);
+        lenient().when(itemAuthorizer.canHandleRelationshipOnItem(any(), any())).thenReturn(result);
         return itemAuthorizer;
     }
 

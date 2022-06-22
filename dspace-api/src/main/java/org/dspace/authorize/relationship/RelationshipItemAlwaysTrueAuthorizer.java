@@ -20,7 +20,7 @@ import org.dspace.core.Context;
 public class RelationshipItemAlwaysTrueAuthorizer implements RelationshipItemAuthorizer {
 
     @Override
-    public boolean isRelationshipCreatableOnItem(Context context, Item item) {
+    public boolean canHandleRelationshipOnItem(Context context, Item item) {
         return true;
     }
 

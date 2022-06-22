@@ -60,7 +60,7 @@ public class RelationshipItemWritePolicyAuthorizerIT extends AbstractIntegration
         context.restoreAuthSystemState();
         context.setCurrentUser(admin);
 
-        assertThat(authorizer.isRelationshipCreatableOnItem(context, item), is(true));
+        assertThat(authorizer.canHandleRelationshipOnItem(context, item), is(true));
     }
 
     @Test
@@ -74,7 +74,7 @@ public class RelationshipItemWritePolicyAuthorizerIT extends AbstractIntegration
         context.restoreAuthSystemState();
         context.setCurrentUser(null);
 
-        assertThat(authorizer.isRelationshipCreatableOnItem(context, item), is(false));
+        assertThat(authorizer.canHandleRelationshipOnItem(context, item), is(false));
     }
 
     @Test
@@ -94,7 +94,7 @@ public class RelationshipItemWritePolicyAuthorizerIT extends AbstractIntegration
         context.restoreAuthSystemState();
         context.setCurrentUser(eperson);
 
-        assertThat(authorizer.isRelationshipCreatableOnItem(context, item), is(true));
+        assertThat(authorizer.canHandleRelationshipOnItem(context, item), is(true));
     }
 
     @Test
@@ -108,7 +108,7 @@ public class RelationshipItemWritePolicyAuthorizerIT extends AbstractIntegration
         context.restoreAuthSystemState();
         context.setCurrentUser(eperson);
 
-        assertThat(authorizer.isRelationshipCreatableOnItem(context, item), is(false));
+        assertThat(authorizer.canHandleRelationshipOnItem(context, item), is(false));
     }
 
 }

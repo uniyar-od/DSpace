@@ -25,7 +25,7 @@ public class RelationshipItemCanEditAuthorizer implements RelationshipItemAuthor
     private EditItemModeService editItemModeService;
 
     @Override
-    public boolean isRelationshipCreatableOnItem(Context context, Item item) {
+    public boolean canHandleRelationshipOnItem(Context context, Item item) {
         return editItemModeService.canEdit(context, item);
     }
 

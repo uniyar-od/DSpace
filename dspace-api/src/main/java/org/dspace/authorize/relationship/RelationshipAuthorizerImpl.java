@@ -34,7 +34,7 @@ public class RelationshipAuthorizerImpl implements RelationshipAuthorizer {
 
     private RelationshipItemAuthorizer rightItemAuthorizer;
 
-    private boolean isAndCondition;
+    private boolean andCondition;
 
     public RelationshipAuthorizerImpl(RelationshipItemAuthorizer leftItemAuthorizer,
         RelationshipItemAuthorizer rightItemAuthorizer) {
@@ -43,19 +43,19 @@ public class RelationshipAuthorizerImpl implements RelationshipAuthorizer {
     }
 
     @Override
-    public boolean isRelationshipCreatable(Context context,
+    public boolean canHandleRelationship(Context context,
         RelationshipType relationshipType, Item leftItem, Item rightItem) {
 
         if (notMatchesRelationshipType(relationshipType)) {
             return false;
         }
 
-        if (isAndCondition) {
-            return leftItemAuthorizer.isRelationshipCreatableOnItem(context, leftItem)
-                && rightItemAuthorizer.isRelationshipCreatableOnItem(context, rightItem);
+        if (andCondition) {
+            return leftItemAuthorizer.canHandleRelationshipOnItem(context, leftItem)
+                && rightItemAuthorizer.canHandleRelationshipOnItem(context, rightItem);
         } else {
-            return leftItemAuthorizer.isRelationshipCreatableOnItem(context, leftItem)
-                || rightItemAuthorizer.isRelationshipCreatableOnItem(context, rightItem);
+            return leftItemAuthorizer.canHandleRelationshipOnItem(context, leftItem)
+                || rightItemAuthorizer.canHandleRelationshipOnItem(context, rightItem);
         }
 
     }
@@ -106,8 +106,8 @@ public class RelationshipAuthorizerImpl implements RelationshipAuthorizer {
         this.rightwardType = rightwardType;
     }
 
-    public void setAndCondition(boolean isAndCondition) {
-        this.isAndCondition = isAndCondition;
+    public void setAndCondition(boolean andCondition) {
+        this.andCondition = andCondition;
     }
 
 

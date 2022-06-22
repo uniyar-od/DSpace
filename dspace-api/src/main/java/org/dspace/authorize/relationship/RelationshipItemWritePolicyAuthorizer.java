@@ -29,7 +29,7 @@ public class RelationshipItemWritePolicyAuthorizer implements RelationshipItemAu
     private AuthorizeService authorizeService;
 
     @Override
-    public boolean isRelationshipCreatableOnItem(Context context, Item item) {
+    public boolean canHandleRelationshipOnItem(Context context, Item item) {
         try {
             return authorizeService.authorizeActionBoolean(context, item, Constants.WRITE);
         } catch (SQLException e) {

@@ -21,16 +21,16 @@ import org.dspace.core.Context;
 public interface RelationshipAuthorizer {
 
     /**
-     * Check if a relationship of the given type can be created between the leftItem
-     * and the rigthItem.
+     * Check if the current user is authorized to create/edit/delete a relationship
+     * of the given type between the leftItem and the rigthItem.
      *
      * @param  context          The DSpace context
-     * @param  relationshipType the type of the relationship to be created
+     * @param  relationshipType the type of the relationship to be checked
      * @param  leftItem         the left item of the relationship
      * @param  rightItem        the right item of the relationship
-     * @return                  true if a relationship can be created, false
-     *                          otherwise
+     * @return                  true if the current user can create/edit or delete
+     *                          the relationship, false otherwise
      */
-    boolean isRelationshipCreatable(Context context, RelationshipType relationshipType, Item leftItem, Item rightItem);
+    boolean canHandleRelationship(Context context, RelationshipType relationshipType, Item leftItem, Item rightItem);
 
 }
