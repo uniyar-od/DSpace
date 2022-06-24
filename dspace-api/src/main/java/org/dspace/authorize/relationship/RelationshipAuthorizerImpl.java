@@ -8,6 +8,7 @@
 package org.dspace.authorize.relationship;
 
 import static java.util.Objects.requireNonNull;
+import static org.springframework.util.Assert.notNull;
 
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
@@ -46,6 +47,10 @@ public class RelationshipAuthorizerImpl implements RelationshipAuthorizer {
     public boolean canHandleRelationship(Context context,
         RelationshipType relationshipType, Item leftItem, Item rightItem) {
 
+        notNull(relationshipType, "The relationship type is required to handle a relationship");
+        notNull(leftItem, "The left item is required to handle a relationship");
+        notNull(rightItem, "The right item is required to handle a relationship");
+
         if (notMatchesRelationshipType(relationshipType)) {
             return false;
         }
@@ -61,10 +66,6 @@ public class RelationshipAuthorizerImpl implements RelationshipAuthorizer {
     }
 
     private boolean notMatchesRelationshipType(RelationshipType relationshipType) {
-
-        if (relationshipType == null) {
-            return true;
-        }
 
         if (leftEntityType != null && !leftEntityType.equals(getEntityTypeLabel(relationshipType.getLeftType()))) {
             return true;

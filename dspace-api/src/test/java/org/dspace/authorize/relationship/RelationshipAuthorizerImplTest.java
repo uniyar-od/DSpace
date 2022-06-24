@@ -9,6 +9,7 @@ package org.dspace.authorize.relationship;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mock;
@@ -51,15 +52,45 @@ public class RelationshipAuthorizerImplTest {
         RelationshipItemAuthorizer rightItemAuthorizer = mockItemAuthorizer(true);
 
         RelationshipAuthorizerImpl authorizer = new RelationshipAuthorizerImpl(leftItemAuthorizer, rightItemAuthorizer);
-        authorizer.setLeftEntityType("AnotherType1");
-        authorizer.setLeftwardType("leftType");
-        authorizer.setRightEntityType("Type2");
-        authorizer.setRightwardType("rightType");
 
-        boolean result = authorizer.canHandleRelationship(context, null, leftItemMock, rightItemMock);
-        assertThat(result, is(false));
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> authorizer.canHandleRelationship(context, null, leftItemMock, rightItemMock));
 
-        verifyNoMoreInteractions(leftItemAuthorizer, rightItemAuthorizer);
+        assertThat(exception.getMessage(), is("The relationship type is required to handle a relationship"));
+
+    }
+
+    @Test
+    public void testNullLeftItem() {
+
+        RelationshipItemAuthorizer leftItemAuthorizer = mockItemAuthorizer(true);
+        RelationshipItemAuthorizer rightItemAuthorizer = mockItemAuthorizer(true);
+
+        RelationshipAuthorizerImpl authorizer = new RelationshipAuthorizerImpl(leftItemAuthorizer, rightItemAuthorizer);
+
+        RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> authorizer.canHandleRelationship(context, relationshipType, null, rightItemMock));
+
+        assertThat(exception.getMessage(), is("The left item is required to handle a relationship"));
+
+    }
+
+    @Test
+    public void testNullRightItem() {
+
+        RelationshipItemAuthorizer leftItemAuthorizer = mockItemAuthorizer(true);
+        RelationshipItemAuthorizer rightItemAuthorizer = mockItemAuthorizer(true);
+
+        RelationshipAuthorizerImpl authorizer = new RelationshipAuthorizerImpl(leftItemAuthorizer, rightItemAuthorizer);
+
+        RelationshipType relationshipType = mockRelationshipType("Type1", "leftType", "Type2", "rightType");
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+            () -> authorizer.canHandleRelationship(context, relationshipType, leftItemMock, null));
+
+        assertThat(exception.getMessage(), is("The right item is required to handle a relationship"));
 
     }
 

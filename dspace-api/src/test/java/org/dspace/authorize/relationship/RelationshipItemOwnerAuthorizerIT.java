@@ -11,13 +11,12 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
-import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
-import org.dspace.utils.DSpace;
+import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,7 +44,7 @@ public class RelationshipItemOwnerAuthorizerIT extends AbstractIntegrationTestWi
         context.restoreAuthSystemState();
 
         authorizer = new RelationshipItemOwnerAuthorizer();
-        authorizer.setResearcherProfileService(getResearcherProfileService());
+        authorizer.setEPersonService(EPersonServiceFactory.getInstance().getEPersonService());
     }
 
     @Test
@@ -103,11 +102,6 @@ public class RelationshipItemOwnerAuthorizerIT extends AbstractIntegrationTestWi
         context.setCurrentUser(eperson);
 
         assertThat(authorizer.canHandleRelationshipOnItem(context, item), is(true));
-    }
-
-    private ResearcherProfileService getResearcherProfileService() {
-        return new DSpace().getServiceManager()
-            .getServiceByName("org.dspace.app.profile.ResearcherProfileServiceImpl", ResearcherProfileService.class);
     }
 
 }

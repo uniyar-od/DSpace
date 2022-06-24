@@ -212,18 +212,6 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
         return new ResearcherProfile(item);
     }
 
-    @Override
-    public boolean isOwnerOfItem(EPerson user, Item item) {
-
-        if (user == null) {
-            return false;
-        }
-
-        return itemService.getMetadata(item, "cris", "owner", null, Item.ANY).stream()
-            .anyMatch(metadataValue -> user.getID().toString().equals(metadataValue.getAuthority()));
-
-    }
-
     private boolean notClaimableEntityType(final Item item) {
         final String entityType = itemService.getEntityType(item);
         return Arrays.stream(configurationService.getArrayProperty("claimable.entityType"))

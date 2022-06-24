@@ -7,10 +7,10 @@
  */
 package org.dspace.authorize.relationship;
 
-import org.dspace.app.profile.service.ResearcherProfileService;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
+import org.dspace.eperson.service.EPersonService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -23,7 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class RelationshipItemOwnerAuthorizer implements RelationshipItemAuthorizer {
 
     @Autowired
-    private ResearcherProfileService researcherProfileService;
+    private EPersonService ePersonService;
 
     @Override
     public boolean canHandleRelationshipOnItem(Context context, Item item) {
@@ -31,11 +31,11 @@ public class RelationshipItemOwnerAuthorizer implements RelationshipItemAuthoriz
         if (currentUser == null) {
             return false;
         }
-        return researcherProfileService.isOwnerOfItem(currentUser, item);
+        return ePersonService.isOwnerOfItem(currentUser, item);
     }
 
-    public void setResearcherProfileService(ResearcherProfileService researcherProfileService) {
-        this.researcherProfileService = researcherProfileService;
+    public void setEPersonService(EPersonService ePersonService) {
+        this.ePersonService = ePersonService;
     }
 
 }
