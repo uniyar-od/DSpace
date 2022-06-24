@@ -18,6 +18,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.PageContext;
 
+import org.apache.log4j.Logger;
 import org.dspace.browse.BrowseItem;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Item;
@@ -35,6 +36,9 @@ import org.dspace.utils.DSpace;
 
 public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
 {
+    /** log4j category */
+    private static Logger logger = Logger.getLogger(ThumbDisplayStrategy.class);
+    
     /** Config value of thumbnail view toggle */
     private boolean showThumbs;
 
@@ -140,13 +144,10 @@ public class ThumbDisplayStrategy implements IDisplayMetadataValueStrategy
             buf = ImageIO.read(is);
             is.close();
         }
-        catch (SQLException sqle)
+        catch (Exception e)
         {
-            throw new JspException(sqle.getMessage());
-        }
-        catch (IOException ioe)
-        {
-            throw new JspException(ioe.getMessage());
+            logger.error(e.getMessage());
+            return "";
         }
 
         // now get the image dimensions
