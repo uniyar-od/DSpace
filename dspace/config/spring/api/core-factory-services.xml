@@ -51,6 +51,8 @@
 
     <bean id="openURLTrackerLoggerServiceFactory" class="org.dspace.statistics.export.factory.OpenURLTrackerLoggerServiceFactoryImpl"/>
 
+    <bean id="orcidServiceFactory" class="org.dspace.orcid.factory.OrcidServiceFactoryImpl"/>
+
     <!-- LDN COAR Notify services -->
     <bean id="ldnBusinessDelegateFactory" class="org.dspace.app.ldn.factory.LDNBusinessDelegateFactoryImpl"/>
 

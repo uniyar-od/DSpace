@@ -5,7 +5,7 @@
   ],
   "id": "urn:uuid:9ff5b44d-5a88-4dc9-a403-57b73be1ae5e",
   "actor": {
-    "id": "http://dspace.swiftagiledev.com",
+    "id": "http://localhost:4200",
     "name": "DSpace Repository",
     "type": "Service"
   },
@@ -19,14 +19,14 @@
     ]
   },
   "object": {
-    "id": "http://dspace.swiftagiledev.com/handle/123456789/3",
-    "ietf:cite-as": "http://dspace.swiftagiledev.com/handle/123456789/3",
+    "id": "http://localhost:4200/handle/123456789/3",
+    "ietf:cite-as": "http://localhost:4200/handle/123456789/3",
     "sorg:name": "An Interesting Publication",
     "type": "sorg:ScholarlyArticle"
   },
   "origin": {
-    "id": "http://dspace.swiftagiledev.com",
-    "inbox": "http://api.swiftagiledev.com/server/ldn/inbox",
+    "id": "http://localhost:4200",
+    "inbox": "http://localhost:8080/server/ldn/inbox",
     "type": "Service"
   },
   "target": {
