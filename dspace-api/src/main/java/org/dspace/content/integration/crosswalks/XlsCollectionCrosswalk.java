@@ -177,6 +177,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
             List<XlsCollectionSheet> sheets = new ArrayList<XlsCollectionSheet>(nestedMetadataSheets);
             sheets.add(mainSheet);
+            sheets.add(bitstreamSheet);
             autoSizeColumns(sheets);
 
             workbook.write(out);
@@ -500,7 +501,8 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         return bitstream
             .getMetadata()
             .stream()
-            .collect(Collectors.toMap(this::getMetadataName, MetadataValue::getValue));
+            .filter(mv -> StringUtils.isNotBlank(mv.getValue()))
+            .collect(Collectors.toMap(this::getMetadataName, MetadataValue::getValue, (s1, s2) -> s1));
     }
 
     private String getMetadataName(MetadataValue m) {
