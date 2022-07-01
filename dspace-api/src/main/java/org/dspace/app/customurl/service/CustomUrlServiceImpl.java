@@ -133,6 +133,7 @@ public class CustomUrlServiceImpl implements CustomUrlService {
         DiscoverQuery discoverQuery = new DiscoverQuery();
         discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
         discoverQuery.addFilterQueries("customurl:" + customUrl);
+        discoverQuery.setIncludeNotDiscoverable(true);
 
         List<IndexableObject> indexableObjects = findIndexableObjects(context, discoverQuery);
 
