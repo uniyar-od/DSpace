@@ -49,8 +49,8 @@
                      <property name="showAsCard" value="false"/>
                      <property name="showLayoutSwitch" value="false"/>
                      <property name="defaultLayoutMode" value="LIST"/>
-                     <property name="cardStyle" value="border: 1px solid red"/>
-                     <property name="itemListStyle" value="border: 1px solid black"/>
+                     <property name="cardStyle" value=""/>
+                     <property name="itemListStyle" value=""/>
                      <property name="showAllResults" value="true"/>
                  </bean>
                  <bean class="org.dspace.layout.CrisLayoutTopComponent">
@@ -62,8 +62,8 @@
                      <property name="showAsCard" value="false"/>
                      <property name="showLayoutSwitch" value="false"/>
                      <property name="defaultLayoutMode" value="LIST"/>
-                     <property name="cardStyle" value="border: 1px solid red"/>
-                     <property name="itemListStyle" value="border: 1px solid black"/>
+                     <property name="cardStyle" value=""/>
+                     <property name="itemListStyle" value=""/>
                      <property name="showAllResults" value="true"/>
                  </bean>
              </list>
@@ -190,8 +190,8 @@
                     <property name="showAsCard" value="false"/>
                     <property name="showLayoutSwitch" value="false"/>
                     <property name="defaultLayoutMode" value="LIST"/>
-                    <property name="cardStyle" value="border: 1px solid red"/>
-                    <property name="itemListStyle" value="border: 1px solid black"/>
+                    <property name="cardStyle" value=""/>
+                    <property name="itemListStyle" value=""/>
                     <property name="showAllResults" value="true"/>
                 </bean>
                 <bean class="org.dspace.layout.CrisLayoutTopComponent">
@@ -203,8 +203,8 @@
                     <property name="showAsCard" value="false"/>
                     <property name="showLayoutSwitch" value="false"/>
                     <property name="defaultLayoutMode" value="LIST"/>
-                    <property name="cardStyle" value="border: 1px solid red"/>
-                    <property name="itemListStyle" value="border: 1px solid black"/>
+                    <property name="cardStyle" value=""/>
+                    <property name="itemListStyle" value=""/>
                     <property name="showAllResults" value="true"/>
                 </bean>
             </list>
