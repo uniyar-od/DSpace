@@ -5081,4 +5081,33 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Test
+    public void testSearchWithdrawnItemByCustomUrl() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 1")
+            .withCustomUrl("my-custom-url")
+            .withdrawn()
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+            .param("q", "my-custom-url"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.uuid", is(item.getID().toString())));
+
+    }
+
 }

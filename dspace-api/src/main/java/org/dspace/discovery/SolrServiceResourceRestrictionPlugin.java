@@ -148,6 +148,11 @@ public class SolrServiceResourceRestrictionPlugin implements SolrServiceIndexPlu
                     resourceQuery.append(locations);
                 }
 
+                if (discoveryQuery.isIncludeNotDiscoverableAndWithdrawn()) {
+                    resourceQuery.append(" OR ");
+                    resourceQuery.append("withdrawn: true");
+                }
+
                 solrQuery.addFilterQuery(resourceQuery.toString());
             }
         } catch (SQLException e) {
