@@ -20,6 +20,7 @@ public class AccessConditionConfiguration {
     private String name;
     private Boolean canChangeDiscoverable;
     private List<AccessConditionOption> options;
+    private Boolean singleAccessCondition = false;
 
     public String getName() {
         return name;
@@ -45,4 +46,11 @@ public class AccessConditionConfiguration {
         this.options = options;
     }
 
+    public Boolean getSingleAccessCondition() {
+        return singleAccessCondition;
+    }
+
+    public void setSingleAccessCondition(Boolean singleAccessCondition) {
+        this.singleAccessCondition = singleAccessCondition;
+    }
 }
