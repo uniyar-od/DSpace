@@ -806,8 +806,11 @@ public class ProcessRestRepositoryIT extends AbstractControllerIntegrationTest {
                         .andExpect(status().isBadRequest());
     }
 
+    /**
+     * Test get process output by admin created by himself
+     */
     @Test
-    public void getProcessOutputByAdminTest() throws Exception {
+    public void getProcessOutput() throws Exception {
         try (InputStream is = IOUtils.toInputStream("Test File For Process", CharEncoding.UTF_8)) {
             processService.appendLog(process.getID(), process.getName(), "testlog", ProcessLogLevel.INFO);
         }
