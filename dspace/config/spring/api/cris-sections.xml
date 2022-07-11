@@ -216,7 +216,14 @@
 				    <property name="link" value="oairecerif.identifier.url" />
 				    <property name="description" value="dc.description.abstract" />
 				    <property name="order" value="desc" />
-				</bean>
+                    <property name="targetBlank" value="true" />
+                    <property name="fitWidth" value="false" />
+                    <property name="fitHeight" value="false" />
+                    <property name="keepAspectRatio" value="false" />
+                    <property name="carouselHeightPx" value="500" />
+                    <property name="captionStyle" value="text-justify" />
+                    <property name="titleStyle" value="text-center" />
+                </bean>
             </list>
           </list>
         </constructor-arg>
