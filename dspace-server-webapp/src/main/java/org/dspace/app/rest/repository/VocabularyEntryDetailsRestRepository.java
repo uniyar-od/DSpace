@@ -82,7 +82,7 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
     }
 
     @SearchRestMethod(name = "top")
-    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    @PreAuthorize("@vocabularySecurity.isVocabularyPublic(#vocabularyId) || hasAuthority('AUTHENTICATED')")
     public Page<VocabularyEntryDetailsRest> findAllTop(@Parameter(value = "vocabulary", required = true)
            String vocabularyId, Pageable pageable) {
         Context context = obtainContext();
