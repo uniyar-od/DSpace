@@ -7,19 +7,30 @@
  */
 package org.dspace.app.rest;
 
+import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
@@ -44,27 +55,41 @@ import org.dspace.app.rest.model.CommunityRest;
 import org.dspace.app.rest.model.EPersonRest;
 import org.dspace.app.rest.model.ItemRest;
 import org.dspace.app.rest.model.SiteRest;
+import org.dspace.app.rest.model.patch.AddOperation;
+import org.dspace.app.rest.model.patch.Operation;
+import org.dspace.app.rest.model.patch.RemoveOperation;
+import org.dspace.app.rest.model.patch.ReplaceOperation;
 import org.dspace.app.rest.projection.DefaultProjection;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.app.rest.utils.Utils;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
+import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
+import org.dspace.builder.RelationshipTypeBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.EntityType;
 import org.dspace.content.Item;
+import org.dspace.content.Relationship;
 import org.dspace.content.Site;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.SiteService;
+import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
@@ -132,6 +157,15 @@ public class AuthorizationRestRepositoryIT extends AbstractControllerIntegration
      * this hold a reference to the test feature {@link TrueForUsersInGroupTestFeature}
      */
     private AuthorizationFeature trueForUsersInGroupTest;
+    
+    @Value("classpath:org/dspace/app/rest/simple-article.pdf")
+    private Resource simpleArticle;
+    
+    @Autowired
+    private RelationshipService relationshipService;
+    
+    @Autowired
+    private WorkspaceItemService workspaceItemService;
 
     @Override
     @Before
@@ -2514,6 +2548,100 @@ public class AuthorizationRestRepositoryIT extends AbstractControllerIntegration
                 .param("feature", trueForUsersInGroupTest.getName())
                 .param("eperson", memberOfTestGroup.getID().toString()))
             .andExpect(status().isOk());
+    }
+    
+    @Test
+    public void verifySpecialGroupForNonAdministrativeUsersTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context).withName("Parent Community").build();
+
+        Group testGroup = GroupBuilder.createGroup(context).withName(TrueForUsersInGroupTestFeature.GROUP_NAME).build();
+
+        EPerson normalUser = EPersonBuilder.createEPerson(context).withEmail("normal@example.com")
+                .withPassword(password).build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection")
+                .withEntityType("Publication").withSubmitterGroup(normalUser)
+                .withSubmissionDefinition("traditional-with-correction").build();
+
+        EntityType publicationType = EntityTypeBuilder.createEntityTypeBuilder(context, "Publication").build();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
+                "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+
+        AtomicReference<Integer> workspaceItemIdRef = new AtomicReference<Integer>();
+
+        Item itemToBeCorrected = ItemBuilder.createItem(context, collection)
+                .withTitle("Title " + (new Date().getTime()))
+                .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", simpleArticle.getInputStream())
+                .withIssueDate("2022-07-15").withSubject("Entry").withEntityType("Publication").withType("text")
+                .grantLicense().build();
+
+        configurationService.setProperty("authentication-password.login.specialgroup",
+                TrueForUsersInGroupTestFeature.GROUP_NAME);
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        String normalUserToken = getAuthToken(normalUser.getEmail(), password);
+
+        getClient(normalUserToken)
+                .perform(post("/api/submission/workspaceitems").param("owningCollection", collection.getID().toString())
+                        .param("relationship", "isCorrectionOfItem").param("item", itemToBeCorrected.getID().toString())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        Integer workspaceItemId = workspaceItemIdRef.get();
+
+        List<Relationship> relationshipList = relationshipService.findByItem(context, itemToBeCorrected);
+        assert (relationshipList.size() > 0);
+        Item correctedItem = relationshipList.get(0).getLeftItem();
+        WorkspaceItem newWorkspaceItem = workspaceItemService.findByItem(context, correctedItem);
+
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "New Title");
+        List<Operation> addGrant = new ArrayList<Operation>();
+        addGrant.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+        String patchBody = getPatchContent(addGrant);
+        getClient(normalUserToken)
+                .perform(patch("/api/submission/workspaceitems/" + newWorkspaceItem.getID()).content(patchBody)
+                        .contentType("application/json-patch+json"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.errors").doesNotExist());
+
+        addGrant = new ArrayList<Operation>();
+        addGrant.add(new RemoveOperation("/sections/traditionalpagetwo/dc.subject/0"));
+        patchBody = getPatchContent(addGrant);
+        getClient(normalUserToken)
+                .perform(patch("/api/submission/workspaceitems/" + newWorkspaceItem.getID()).content(patchBody)
+                        .contentType("application/json-patch+json"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.errors").doesNotExist());
+
+        Map addValue = new HashMap();
+        addValue.put("value", "Description Test");
+        addGrant = new ArrayList<Operation>();
+        addGrant.add(new AddOperation("/sections/traditionalpagetwo/dc.description.abstract", List.of(addValue)));
+        patchBody = getPatchContent(addGrant);
+        getClient(normalUserToken)
+                .perform(patch("/api/submission/workspaceitems/" + newWorkspaceItem.getID()).content(patchBody)
+                        .contentType("application/json-patch+json"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.errors").doesNotExist());
+
+        getClient(normalUserToken).perform(get("/api/submission/workspaceitems/" + newWorkspaceItem.getID()))
+
+                .andExpect(status().isOk())
+
+                .andExpect(jsonPath("$.sections.correction.metadata", hasSize(equalTo(3))))
+                .andExpect(jsonPath("$.sections.correction.empty", is(false))).andExpect(jsonPath(
+                        "$.sections.correction.metadata", containsInAnyOrder(matchMetadataCorrection("Entry"))));
+    }
+    
+    private static Matcher matchMetadataCorrection(String value) {
+        return Matchers.anyOf(
+                // Check workspaceitem properties
+                hasJsonPath("$.newValues[0]", is(value)),
+                hasJsonPath("$.oldValues[0]", is(value)));
     }
 
     @Test
