@@ -35,6 +35,8 @@ public class CrisLayoutTopComponent implements CrisLayoutSectionComponent {
 
     private String cardStyle;
 
+    private String cardColumnStyle;
+
     private String itemListStyle;
 
     private boolean showAllResults;
@@ -176,6 +178,20 @@ public class CrisLayoutTopComponent implements CrisLayoutSectionComponent {
      */
     public void setCardStyle(String cardStyle) {
         this.cardStyle = cardStyle;
+    }
+
+    /**
+     * @return the cardColumnStyle
+     */
+    public String getCardColumnStyle() {
+        return cardColumnStyle;
+    }
+
+    /**
+     * @param cardColumnStyle the cardColumnStyle to set
+     */
+    public void setCardColumnStyle(String cardColumnStyle) {
+        this.cardColumnStyle = cardColumnStyle;
     }
 
     /**

@@ -50,6 +50,7 @@
                      <property name="showLayoutSwitch" value="false"/>
                      <property name="defaultLayoutMode" value="LIST"/>
                      <property name="cardStyle" value=""/>
+                     <property name="cardColumnStyle" value=""/>
                      <property name="itemListStyle" value=""/>
                      <property name="showAllResults" value="true"/>
                  </bean>
@@ -63,6 +64,7 @@
                      <property name="showLayoutSwitch" value="false"/>
                      <property name="defaultLayoutMode" value="LIST"/>
                      <property name="cardStyle" value=""/>
+                     <property name="cardColumnStyle" value=""/>
                      <property name="itemListStyle" value=""/>
                      <property name="showAllResults" value="true"/>
                  </bean>
@@ -191,6 +193,7 @@
                     <property name="showLayoutSwitch" value="false"/>
                     <property name="defaultLayoutMode" value="LIST"/>
                     <property name="cardStyle" value=""/>
+                    <property name="cardColumnStyle" value=""/>
                     <property name="itemListStyle" value=""/>
                     <property name="showAllResults" value="true"/>
                 </bean>
@@ -201,6 +204,7 @@
                     <property name="style" value="col-md-6"/>
                     <property name="numberOfItems" value="5"/>
                     <property name="showAsCard" value="false"/>
+                    <property name="cardColumnStyle" value=""/>
                     <property name="showLayoutSwitch" value="false"/>
                     <property name="defaultLayoutMode" value="LIST"/>
                     <property name="cardStyle" value=""/>

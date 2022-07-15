@@ -64,13 +64,13 @@ public final class CrisLayoutSectionMatcher {
      */
     public static Matcher<? super Object> withIdAndTopComponent(String id, int row, int pos, String style,
         String discoveryConfig, String sortField, String order, Integer numberOfItems, boolean showAsCard,
-        boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String itemListStyle,
+        boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String cardColumnStyle, String itemListStyle,
         boolean showAllResult, String componentType) {
 
         return allOf(
             hasJsonPath("$.id", is(id)),
             withTopComponent(row, pos, style, discoveryConfig, sortField, order, numberOfItems,
-                showAsCard, showLayoutSwitch, defaultLayoutMode, cardStyle, itemListStyle,
+                showAsCard, showLayoutSwitch, defaultLayoutMode, cardStyle, cardColumnStyle, itemListStyle,
                 showAllResult, componentType)
         );
     }
@@ -147,7 +147,7 @@ public final class CrisLayoutSectionMatcher {
      */
     public static Matcher<? super Object> withTopComponent(int row, int pos, String style,
         String discoveryConfig, String sortField, String order, Integer numberOfItems, boolean showAsCard,
-        boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String itemListStyle,
+        boolean showLayoutSwitch, String defaultLayoutMode, String cardStyle, String cardColumnStyle, String itemListStyle,
         boolean showAllResults, String componentType) {
 
         return allOf(
@@ -161,6 +161,7 @@ public final class CrisLayoutSectionMatcher {
             hasJsonPath("$.componentRows[" + row + "][" + pos + "].showLayoutSwitch", is(showLayoutSwitch)),
             hasJsonPath("$.componentRows[" + row + "][" + pos + "].defaultLayoutMode", is(defaultLayoutMode)),
             hasJsonPath("$.componentRows[" + row + "][" + pos + "].cardStyle", is(cardStyle)),
+            hasJsonPath("$.componentRows[" + row + "][" + pos + "].cardColumnStyle", is(cardColumnStyle)),
             hasJsonPath("$.componentRows[" + row + "][" + pos + "].itemListStyle", is(itemListStyle)),
             hasJsonPath("$.componentRows[" + row + "][" + pos + "].showAllResults", is(showAllResults)),
             hasJsonPath("$.componentRows[" + row + "][" + pos + "].componentType", is(componentType)));

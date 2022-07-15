@@ -39,6 +39,7 @@ public class CrisLayoutTopComponentConverter implements CrisLayoutSectionCompone
         rest.setShowAsCard(topComponent.isShowAsCard());
         rest.setShowLayoutSwitch(topComponent.isShowLayoutSwitch());
         rest.setDefaultLayoutMode(topComponent.getDefaultLayoutMode().toString());
+        rest.setCardColumnStyle(topComponent.getCardColumnStyle());
         rest.setCardStyle(topComponent.getCardStyle());
         rest.setItemListStyle(topComponent.getItemListStyle());
         rest.setShowAllResults(topComponent.isShowAllResults());
