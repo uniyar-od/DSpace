@@ -64,11 +64,11 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndTopComponent("researchoutputs", 1, 0, "col-md-6",
                     "researchoutputs", "dc.date.accessioned", "desc", 5, false, false, "list",
-                    "", "", "", true, "top"))))
+                    "", "col-12 col-lg-6", "", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndTopComponent("researchoutputs", 1, 1, "col-md-6",
                                     "researchoutputs", "metric.view", "desc", 5, false, false, "list",
-                                    "", "", "", true, "top"))))
+                                    "", "col-12 col-lg-6", "", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndFacetComponent("researchoutputs", 2, 0, "col-md-12", "researchoutputs"))))
 
@@ -99,11 +99,11 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(jsonPath("$._embedded.sections",
               hasItem(withIdAndTopComponent("site", 3, 0, "col-md-6", "homePageTopItems", "dc.date.accessioned",
                                             "desc", 5, false, false, "list",
-                                            "", "", "", true, "top"))))
+                                            "", "col-12 col-lg-6", "", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
               hasItem(withIdAndTopComponent("site", 3, 1, "col-md-6", "homePageTopItems", "metric.view",
                                             "desc", 5, false, false, "list",
-                                            "", "", "", true, "top"))))
+                                            "", "col-12 col-lg-6", "", true, "top"))))
             .andExpect(jsonPath("$._embedded.sections",
                 hasItem(withIdAndCarouselComponent("site", 4, 0, "col-md-12", "person"))))
             ;
@@ -163,10 +163,10 @@ public class CrisLayoutSectionRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(jsonPath("$", withSearchComponent(0, 1, "col-md-8", "researchoutputs")))
             .andExpect(jsonPath("$", withTopComponent(1, 0, "col-md-6", "researchoutputs",
                 "dc.date.accessioned", "desc", 5, false, false, "list",
-                "", "", "", true, "top")))
+                "", "col-12 col-lg-6", "", true, "top")))
             .andExpect(jsonPath("$", withTopComponent(1, 1, "col-md-6", "researchoutputs", "metric.view", "desc",
                 5, false, false, "list",
-                "", "", "", true, "top")))
+                "", "col-12 col-lg-6", "", true, "top")))
             .andExpect(jsonPath("$", withFacetComponent(2, 0, "col-md-12", "researchoutputs")));
     }
 
