@@ -170,6 +170,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
             case "ORCID_AUTHORIZATIONS":
                 return hasOrcidAuthorizationsBoxContent(context, box, values);
             case "IIIFVIEWER":
+            case "IIIFTOOLBAR":
                 return isIiifEnabled(item);
             case "HIERARCHY":
                 return hasHierarchicBoxContent(context, box, item);

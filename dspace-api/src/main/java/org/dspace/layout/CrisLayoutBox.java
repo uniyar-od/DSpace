@@ -32,6 +32,7 @@ import javax.persistence.Table;
 import org.dspace.content.EntityType;
 import org.dspace.content.MetadataField;
 import org.dspace.core.ReloadableEntity;
+import org.dspace.eperson.Group;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 @Entity
@@ -78,6 +79,14 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
         inverseJoinColumns = {@JoinColumn(name = "metadata_field_id")}
     )
     private Set<MetadataField> metadataSecurityFields = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "cris_layout_box2securitygroup",
+        joinColumns = {@JoinColumn(name = "box_id")},
+        inverseJoinColumns = {@JoinColumn(name = "group_id")}
+    )
+    private Set<Group> groupSecurityFields = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "box", cascade = CascadeType.ALL)
     @OrderBy(value = "row, cell, priority")
@@ -289,6 +298,22 @@ public class CrisLayoutBox implements ReloadableEntity<Integer> {
     public void setHierarchicalVocabulary2Box(CrisLayoutHierarchicalVocabulary2Box hierarchicalVocabulary2Box) {
         hierarchicalVocabulary2Box.setBox(this);
         this.hierarchicalVocabulary2Box = hierarchicalVocabulary2Box;
+    }
+
+    public void setGroupSecurityFields(Set<Group> groupSecurityFields) {
+        this.groupSecurityFields = groupSecurityFields;
+    }
+
+    public void addGroupSecurityFields(Set<Group> groupSecurityFields) {
+        this.groupSecurityFields.addAll(groupSecurityFields);
+    }
+
+    public void addGroupSecurityFields(Group group) {
+        this.groupSecurityFields.add(group);
+    }
+
+    public Set<Group> getGroupSecurityFields() {
+        return groupSecurityFields;
     }
 
     @Override

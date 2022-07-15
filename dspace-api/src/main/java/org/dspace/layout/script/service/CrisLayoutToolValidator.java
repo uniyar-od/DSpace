@@ -100,6 +100,8 @@ public interface CrisLayoutToolValidator {
 
     String VOCABULARY_COLUMN = "VOCABULARY";
 
+    String GROUP_COLUMN = "GROUP";
+
     String METADATA_TYPE = "METADATA";
 
     String BITSTREAM_TYPE = "BITSTREAM";
