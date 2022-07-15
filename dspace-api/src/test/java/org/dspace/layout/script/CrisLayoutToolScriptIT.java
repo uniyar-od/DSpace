@@ -131,7 +131,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(43));
+        assertThat(errorMessages, hasSize(47));
         assertThat(errorMessages, containsInAnyOrder(
             "The sheet tab has no ENTITY column",
             "The sheet tab has no LEADING column",
@@ -461,14 +461,17 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(6));
+        assertThat(errorMessages, hasSize(7));
         assertThat(errorMessages, containsInAnyOrder(
-            "The box2metadata contains an empty metadata field at row 3",
-            "The box2metadata contains an empty metadata field at row 6",
-            "The metadatagroups contains an empty metadata field at row 2",
-            "The boxpolicy at row 1 contains invalid values for METADATA/GROUP column.",
-            "The tabpolicy at row 0 contains invalid values for METADATA/GROUP column.",
-            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+                "The box2metadata contains an empty metadata field at row 3",
+                "The box2metadata contains an empty metadata field at row 6",
+                "The box2hierarchicalvocabulary sheet is missing",
+                "The metadatagroups contains an empty metadata field at row 2",
+                "The boxpolicy at row 1 contains invalid values for METADATA/GROUP column.",
+                "The tabpolicy at row 0 contains invalid values for METADATA/GROUP column.",
+                "IllegalArgumentException: The given workbook is not valid. Import canceled"
+            )
+        );
     }
 
     @Test
@@ -504,6 +507,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, containsInAnyOrder(
+            "The box2hierarchicalvocabulary sheet is missing",
             "The boxpolicy at row 2 contains invalid values for METADATA/GROUP column.",
             "The tabpolicy at row 0 contains invalid values for METADATA/GROUP column.",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
@@ -528,6 +532,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
         List<String> errorMessages = handler.getErrorMessages();
         assertThat(errorMessages, containsInAnyOrder(
+            "The box2hierarchicalvocabulary sheet is missing",
             "The boxpolicy contains an unknown group field: 'Researchers' at row 2",
             "The tabpolicy contains an unknown group field: 'Researchers' at row 0",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
