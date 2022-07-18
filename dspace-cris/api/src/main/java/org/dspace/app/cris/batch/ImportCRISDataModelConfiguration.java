@@ -71,6 +71,7 @@ import org.dspace.app.cris.model.jdyna.TabOrganizationUnit;
 import org.dspace.app.cris.model.jdyna.TabProject;
 import org.dspace.app.cris.model.jdyna.TabResearcherPage;
 import org.dspace.app.cris.model.jdyna.VisibilityTabConstant;
+import org.dspace.app.cris.model.jdyna.widget.WidgetClassificationTree;
 import org.dspace.app.cris.model.jdyna.widget.WidgetEPerson;
 import org.dspace.app.cris.model.jdyna.widget.WidgetFileDO;
 import org.dspace.app.cris.model.jdyna.widget.WidgetFileOU;
@@ -1279,7 +1280,40 @@ public class ImportCRISDataModelConfiguration
             builderW = BeanDefinitionBuilder
                     .genericBeanDefinition(WidgetGroup.class);
         }
+        else if (widget.equals("classificationtree"))
+        {
+            builderW = BeanDefinitionBuilder
+                    .genericBeanDefinition(WidgetClassificationTree.class);
+            pointer = StringUtils.strip(pointer);
+            String[] pointers = StringUtils.split(pointer, "|||");
+            String type = null;
+            String treePointer = null;
             
+            if (pointers.length > 0) {
+                if (StringUtils.startsWith(pointer, "|||")) {
+                    treePointer = StringUtils.strip(pointers[0]);
+                } else
+                {
+                    if (pointers.length > 1) {
+                        treePointer = StringUtils.strip(pointers[1]);
+                    }
+                    type = StringUtils.strip(pointers[0]);
+                }
+            }
+            
+            if (StringUtils.isNotBlank(type)) {
+                builderW.addPropertyValue("treeObjectType", type);
+            }
+            if (StringUtils.isNotBlank(treePointer)) {
+                DynamicPropertiesDefinition propdef = applicationService.findPropertiesDefinitionByShortName(DynamicPropertiesDefinition.class, treePointer);
+                if (propdef != null) {
+                    builderW.addPropertyValue("metadataBuilderTree", propdef);
+                }else {
+                    System.out.println("Warning! the metadata " + treePointer + " has not been created yet, please manually set it on the classificationtree " + shortName);
+                }
+            }
+        }
+        
 		builderW.getBeanDefinition().setAttribute("id", widget);
 		String widgetName = "widget" + widget;
 		ctx.registerBeanDefinition(widgetName, builderW.getBeanDefinition());

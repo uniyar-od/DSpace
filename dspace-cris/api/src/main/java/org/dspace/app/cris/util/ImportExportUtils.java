@@ -2555,6 +2555,9 @@ public class ImportExportUtils {
 		else if (widget instanceof WidgetPointer) {
 			return ((WidgetPointer) widget).getUrlPath();
 		}
+		else if (widget instanceof WidgetClassificationTree) {
+            return ((WidgetClassificationTree) widget).getDisplay();
+        }
 		return "";
 	}
 
@@ -2591,7 +2594,9 @@ public class ImportExportUtils {
 		else if (widget instanceof WidgetCheckRadio) {
 			return ((WidgetCheckRadio) widget).isDropdown() != null && ((WidgetCheckRadio) widget).isDropdown()?
 					"dropdown": repeatable?"checkbox":"radio";
-		}
+		}else if (widget instanceof WidgetClassificationTree) {
+            return "classificationtree";
+        }
 		throw new IllegalArgumentException("Widget unknown "+widget.getClass().getSimpleName());
 	}
 	
@@ -2604,8 +2609,21 @@ public class ImportExportUtils {
 			return "pj";
 		} else if (widget instanceof WidgetPointerDO) {
 			String idString = ((WidgetPointerDO) widget).getFilterExtended();
-			return applicationService.get(DynamicObjectType.class,
-					Integer.valueOf(idString.substring("search.resourcetype:".length())) - 1000).getShortName();
+		    return applicationService.get(DynamicObjectType.class,
+		            Integer.valueOf(idString.substring("search.resourcetype:".length())) - 1000).getShortName();
+		} else if (widget instanceof WidgetClassificationTree)
+		{
+		    String type = ((WidgetClassificationTree) widget).getTreeObjectType();
+		    String relation = null;
+		    DynamicPropertiesDefinition builderTree = ((WidgetClassificationTree) widget).getMetadataBuilderTree();
+		    if (builderTree != null) {
+		        relation = builderTree.getShortName();
+            }
+		    boolean typePresent = StringUtils.isNotBlank(type);
+		    boolean relationPresent = StringUtils.isNotBlank(relation);
+		    if (typePresent || relationPresent) {
+		        return (typePresent ? type : "") + "|||" + (relationPresent ? relation : "");
+            }
 		}
 		return "n";
 	}
