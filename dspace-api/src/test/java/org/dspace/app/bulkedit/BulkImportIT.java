@@ -1461,7 +1461,10 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
         String itemUuid = getItemUuidFromMessage(handler.getWarningMessages().get(0));
         Item item = itemService.find(context, UUID.fromString(itemUuid));
-        Bitstream bitstream = bitstreamService.getItemBitstreams(context, item).next();
+        List<Bitstream> bitstreams = new ArrayList<>();
+        bitstreamService.getItemBitstreams(context, item).forEachRemaining(bitstreams::add);
+        String bundleName = "TEST-BUNDLE";
+        Bitstream bitstream = getBitstreamByBundleName(bitstreams, bundleName);
         InputStream inputStream = bitstreamService.retrieve(context, bitstream);
         String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
 
@@ -1470,7 +1473,7 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(metadataMap.get("dc.title"), is("Test title"));
         assertThat(metadataMap.get("dc.description"), is("test file descr"));
         assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
-        assertThat(bitstream.getBundles().get(0).getName(), is("TEST-BUNDLE"));
+        assertThat(bitstream.getBundles().get(0).getName(), is(bundleName));
     }
 
     @Test
@@ -1506,25 +1509,34 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         Item item = itemService.find(context, UUID.fromString(itemUuids.get(0)));
         Item item2 = itemService.find(context, UUID.fromString(itemUuids.get(1)));
 
-        // Get bitstream from items (first item has two bitstreams)
+        // Get bitstream from items (first item has three bitstreams)
         List<Bitstream> item1Bitstreams = new ArrayList<>();
+        List<Bitstream> item2Bitstreams = new ArrayList<>();
         bitstreamService.getItemBitstreams(context, item).forEachRemaining(item1Bitstreams::add);
-        Bitstream bitstream2 = bitstreamService.getItemBitstreams(context, item2).next();
+        bitstreamService.getItemBitstreams(context, item2).forEachRemaining(item2Bitstreams::add);
+
+        String item1bundle1 = "TEST-BUNDLE";
+        String item1bundle2 = "TEST-BUNDLE2";
+        String item2bundle1 = "SECOND-BUNDLE";
+
+        Bitstream item1Bitstream1 = getBitstreamByBundleName(item1Bitstreams, item1bundle1);
+        Bitstream item1Bitstream2 = getBitstreamByBundleName(item1Bitstreams, item1bundle2);
+        Bitstream item2bitstream1 = getBitstreamByBundleName(item2Bitstreams, item2bundle1);
 
         // Get content of first item bitstreams
-        InputStream inputStream = bitstreamService.retrieve(context, item1Bitstreams.get(0));
+        InputStream inputStream = bitstreamService.retrieve(context, item1Bitstream1);
         String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
-        InputStream inputStream1 = bitstreamService.retrieve(context, item1Bitstreams.get(1));
+        InputStream inputStream1 = bitstreamService.retrieve(context, item1Bitstream2);
         String bitstreamContent1 = IOUtils.toString(inputStream1, StandardCharsets.UTF_8);
 
         // Get content of second item bitstream
-        InputStream inputStream2 = bitstreamService.retrieve(context, bitstream2);
+        InputStream inputStream2 = bitstreamService.retrieve(context, item2bitstream1);
         String bitstreamContent2 = IOUtils.toString(inputStream2, StandardCharsets.UTF_8);
 
         // Get metadata map of items bitstreams
-        Map<String, String> metadataMap = getMetadataFromBitStream(item1Bitstreams.get(0));
-        Map<String, String> metadataMap2 = getMetadataFromBitStream(item1Bitstreams.get(1));
-        Map<String, String> metadataMap3 = getMetadataFromBitStream(bitstream2);
+        Map<String, String> metadataMap = getMetadataFromBitStream(item1Bitstream1);
+        Map<String, String> metadataMap2 = getMetadataFromBitStream(item1Bitstream2);
+        Map<String, String> metadataMap3 = getMetadataFromBitStream(item2bitstream1);
 
         // First bitstream of item 1
         assertThat(metadataMap.get("dc.title"), is("Test title"));
@@ -1537,14 +1549,14 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(bitstreamContent1, is("this is a second test file for uploading bitstreams"));
 
         // First item bundles
-        assertThat(item1Bitstreams.get(0).getBundles().get(0).getName(), is("TEST-BUNDLE"));
-        assertThat(item1Bitstreams.get(1).getBundles().get(0).getName(), is("TEST-BUNDLE2"));
+        assertThat(item1Bitstream1.getBundles().get(0).getName(), is(item1bundle1));
+        assertThat(item1Bitstream2.getBundles().get(0).getName(), is(item1bundle2));
 
         // Second item
         assertThat(metadataMap3.get("dc.title"), is("Test title 3"));
         assertThat(metadataMap3.get("dc.description"), is("test file description 3"));
         assertThat(bitstreamContent2, is("this is a third test file for uploading bitstreams"));
-        assertThat(bitstream2.getBundles().get(0).getName(), is("SECOND-BUNDLE"));
+        assertThat(item2bitstream1.getBundles().get(0).getName(), is("SECOND-BUNDLE"));
     }
 
     @Test
@@ -1698,6 +1710,86 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         assertThat(bitstream.getBundles().get(0).getName(), is("JM-BUNDLE"));
     }
 
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testCreatePublicationInWorkspaceItemsAndItemHasLicense() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileName = "items-with-bitstreams.xlsx";
+        String fileLocation = getXlsFilePath(fileName);
+        String bitstreamLocation = getBitstreamFilePath("test.txt");
+
+        String tmpFileLocation = createTemporaryExcelFile(fileLocation, fileName, null,
+            Arrays.asList(bitstreamLocation));
+
+        String[] args = new String[] { "bulk-import", "-c", publications.getID().toString(), "-f", tmpFileLocation};
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+        assertThat("Expected no warnings", handler.getWarningMessages(), empty());
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat("Expected 4 info messages", infoMessages, hasSize(4));
+
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 2 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 1 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - WorkflowItem created successfully"));
+
+        // verify created item (ROW 2)
+        String itemUuid = getItemUuidFromMessage(infoMessages.get(3));
+
+        Item createdItem = itemService.findByIdOrLegacyId(context, itemUuid);
+        assertThat("Item expected to be created", createdItem, notNullValue());
+        assertThat(createdItem.isArchived(), is(true));
+        assertThat(findWorkspaceItem(createdItem), nullValue());
+
+        List<Bitstream> bitstreams = new ArrayList<>();
+        bitstreamService.getItemBitstreams(context, createdItem).forEachRemaining(bitstreams::add);
+
+        Bitstream bitstream = getBitstreamByBundleName(bitstreams, "LICENSE");
+        InputStream inputStream = bitstreamService.retrieve(context, bitstream);
+        String bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        assertThat(bitstream.getBundles().get(0).getName(), is("LICENSE"));
+        assertThat(bitstreamContent, containsString("NOTE: PLACE YOUR OWN LICENSE HERE\n" +
+            "This sample license is provided for informational purposes only."));
+
+        Bitstream bitstream1 = getBitstreamByBundleName(bitstreams, "ORIGINAL");
+        inputStream = bitstreamService.retrieve(context, bitstream1);
+        bitstreamContent = IOUtils.toString(inputStream, StandardCharsets.UTF_8);
+
+        Map<String, String> metadataMap = getMetadataFromBitStream(bitstream1);
+
+        assertThat(metadataMap.get("dc.title"), is("Test title"));
+        assertThat(metadataMap.get("dc.description"), is("test file descr"));
+        assertThat(bitstreamContent, is("this is a test file for uploading bitstreams"));
+        assertThat(bitstream1.getBundles().get(0).getName(), is("ORIGINAL"));
+
+        List<MetadataValue> metadata = createdItem.getMetadata();
+        assertThat(metadata, hasItems(with("dc.title", "publication with attachment uploaded part second")));
+        assertThat(metadata, hasItems(with("dc.title.alternative", "lorem ipsum new new new")));
+        assertThat(metadata, hasItems(with("dc.date.issued", "2022-05-31")));
+        assertThat(metadata, hasItems(with("dc.type", "Resource Types::text::manuscript")));
+        assertThat(metadata, hasItems(with("dc.language.iso", "en")));
+        assertThat(metadata, hasItems(with("dc.contributor.author",
+            "Lombardi, Corrado", "b5ad6864-012d-4989-8e0d-4acfa1156fd9", 0, 600)));
+        assertThat(metadata, hasItems(with("oairecerif.author.affiliation", "4Science",
+            "a14ba215-c0f0-4b74-b21a-06359bfabd45", 0, 600)));
+        assertThat(metadata, hasItems(with("dc.contributor.editor",
+            "Corrado Francesco, Lombardi", "29177bec-ff50-4428-aa43-1fdf932f0d33", 0, 600)));
+
+    }
 
     /*
      * Creates a temporary Excel file which is a copy of the one provided
@@ -1759,6 +1851,15 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
         return String.format("%s.%s.%s", m.getSchema(),
                              m.getQualifier(),
                              m.getElement());
+    }
+
+    private Bitstream getBitstreamByBundleName(List<Bitstream> bitstreams, String bundleName) throws SQLException {
+        for (Bitstream bitstream : bitstreams) {
+            if (bitstream.getBundles().get(0).getName().equals(bundleName)) {
+                return bitstream;
+            }
+        }
+        return null;
     }
 
     @After
