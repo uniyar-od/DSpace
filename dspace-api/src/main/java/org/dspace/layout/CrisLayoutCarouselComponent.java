@@ -29,6 +29,22 @@ public class CrisLayoutCarouselComponent implements CrisLayoutSectionComponent {
 
     private int numberOfItems;
 
+    private boolean targetBlank;
+
+    private boolean fitWidth;
+
+    private boolean fitHeight;
+
+    private boolean keepAspectRatio;
+
+    private double aspectRatio;
+
+    private int carouselHeightPx;
+
+    private String captionStyle;
+
+    private String titleStyle;
+
     /**
      * @return the discoveryConfigurationName
      */
@@ -139,4 +155,114 @@ public class CrisLayoutCarouselComponent implements CrisLayoutSectionComponent {
         this.numberOfItems = numberOfItems;
     }
 
+    /**
+     * @return the targetBlank
+     */
+    public boolean isTargetBlank() {
+        return targetBlank;
+    }
+
+    /**
+     * @param targetBlank the targetBlank to set
+     */
+    public void setTargetBlank(boolean targetBlank) {
+        this.targetBlank = targetBlank;
+    }
+
+    /**
+     * @return the fitWidth
+     */
+    public boolean isFitWidth() {
+        return fitWidth;
+    }
+
+    /**
+     * @param fitWidth the fitWidth to set
+     */
+    public void setFitWidth(boolean fitWidth) {
+        this.fitWidth = fitWidth;
+    }
+
+    /**
+     * @return the fitHeight
+     */
+    public boolean isFitHeight() {
+        return fitHeight;
+    }
+
+    /**
+     * @param fitHeight the fitHeight to set
+     */
+    public void setFitHeight(boolean fitHeight) {
+        this.fitHeight = fitHeight;
+    }
+
+    /**
+     * @return the keepAspectRatio
+     */
+    public boolean isKeepAspectRatio() {
+        return keepAspectRatio;
+    }
+
+    /**
+     * @param keepAspectRatio the keepAspectRatio to set
+     */
+    public void setKeepAspectRatio(boolean keepAspectRatio) {
+        this.keepAspectRatio = keepAspectRatio;
+    }
+
+    /**
+     * @return the aspectRatio
+     */
+    public double getAspectRatio() {
+        return aspectRatio;
+    }
+
+    /**
+     * @param aspectRatio the aspectRatio to set
+     */
+    public void setAspectRatio(double aspectRatio) {
+        this.aspectRatio = aspectRatio;
+    }
+
+    /**
+     * @return the carouselHeightPx
+     */
+    public int getCarouselHeightPx() {
+        return carouselHeightPx;
+    }
+
+    /**
+     * @param carouselHeightPx the carouselHeightPx to set
+     */
+    public void setCarouselHeightPx(int carouselHeightPx) {
+        this.carouselHeightPx = carouselHeightPx;
+    }
+
+    /**
+     * @return the captionStyle
+     */
+    public String getCaptionStyle() {
+        return captionStyle;
+    }
+
+    /**
+     * @param captionStyle the captionStyle to set
+     */
+    public void setCaptionStyle(String captionStyle) {
+        this.captionStyle = captionStyle;
+    }
+
+    /**
+     * @return the titleStyle
+     */
+    public String getTitleStyle() {
+        return titleStyle;
+    }
+
+    /**
+     * @param titleStyle the titleStyle to set
+     */
+    public void setTitleStyle(String titleStyle) {
+        this.titleStyle = titleStyle;    }
 }
