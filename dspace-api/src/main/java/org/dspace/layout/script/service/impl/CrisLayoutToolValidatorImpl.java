@@ -35,6 +35,7 @@ import org.dspace.core.ReloadableEntity;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.layout.CrisLayoutBoxTypes;
+import org.dspace.layout.script.service.CrisLayoutRenderValidator;
 import org.dspace.layout.script.service.CrisLayoutToolValidationResult;
 import org.dspace.layout.script.service.CrisLayoutToolValidator;
 import org.dspace.util.WorkbookUtils;
@@ -56,6 +57,9 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     @Autowired
     private GroupService groupService;
+
+    @Autowired
+    private List<CrisLayoutRenderValidator> crisLayoutRenderValidators;
 
     @Override
     public CrisLayoutToolValidationResult validate(Context context, Workbook workbook) {
@@ -204,6 +208,14 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             validatePresenceInBoxSheet(result, box2metadataSheet, entityTypeColumn, boxColumn);
         }
 
+        int renderingColumn = getCellIndexFromHeaderName(box2metadataSheet, RENDERING_COLUMN);
+        if (renderingColumn == -1) {
+            result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + RENDERING_COLUMN + " column");
+        } else {
+            validateRendering(box2metadataSheet, renderingColumn, fieldTypeColumn, result);
+        }
+
+
     }
 
     private void validateMetadataGroupsSheet(List<String> allMetadataFields,
@@ -231,6 +243,13 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             result.addError("The sheet " + METADATAGROUPS_SHEET + " has no " + PARENT_COLUMN + " column");
         } else {
             validateMetadataFields(allMetadataFields, metadataGroupsSheet, parentColumn, fieldTypeColumn, result);
+        }
+
+        int renderingColumn = getCellIndexFromHeaderName(metadataGroupsSheet, RENDERING_COLUMN);
+        if (renderingColumn == -1) {
+            result.addError("The sheet " + METADATAGROUPS_SHEET + " has no " + RENDERING_COLUMN + " column");
+        } else {
+            validateRendering(metadataGroupsSheet, renderingColumn, fieldTypeColumn, result);
         }
 
     }
@@ -348,6 +367,36 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             }
         }
 
+    }
+
+    private void validateRendering(Sheet sheet, int renderingColumn,
+                                   int fieldTypeColumn, CrisLayoutToolValidationResult result) {
+        boolean renderTypeFound;
+        for (Cell cell : getColumnWithoutHeader(sheet, renderingColumn)) {
+            String renderType = WorkbookUtils.getCellValue(cell);
+            if (!renderType.isEmpty()) {
+                String fieldType = getCellValue(cell.getRow(), fieldTypeColumn);
+                String renderName = renderType.split("\\.")[0];
+                renderTypeFound = false;
+                for (CrisLayoutRenderValidator validator : crisLayoutRenderValidators) {
+                    if (validator.getName().equals(renderName)) {
+                        renderTypeFound = true;
+                        try {
+                            validator.validate(renderType, fieldType);
+                        } catch (Exception e) {
+                            result.addError("the sheet " + sheet.getSheetName() + " " + e.getMessage() + " at row "
+                                + cell.getRow().getRowNum());
+                        }
+                        break;
+                    }
+                }
+
+                if (!renderTypeFound) {
+                    result.addError("the sheet " + sheet.getSheetName() + " wrong RENDERING value " + renderType
+                        + " found at row " + cell.getRow().getRowNum());
+                }
+            }
+        }
     }
 
     private void validateMetadataAndGroupFields(Context context, List<String> allMetadataFields, Sheet sheet,
