@@ -129,7 +129,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(43));
+        assertThat(errorMessages, hasSize(45));
         assertThat(errorMessages, containsInAnyOrder(
             "The sheet tab has no ENTITY column",
             "The sheet tab has no LEADING column",
@@ -173,6 +173,8 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "The sheet tabpolicy has no SHORTNAME column",
             "The sheet tabpolicy has no GROUP column",
             "The sheet boxpolicy has no GROUP column",
+            "The sheet box2metadata has no RENDERING column",
+            "The sheet metadatagroups has no RENDERING column",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
     }
 
@@ -192,7 +194,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(32));
+        assertThat(errorMessages, hasSize(33));
         assertThat(errorMessages, containsInAnyOrder(
             "The tab contains an unknown entity type 'Publication' at row 3",
             "The LEADING value specified on the row 2 of sheet tab is not valid: u. Allowed values: [yes, y, no, n]",
@@ -236,7 +238,8 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
                 + " is not present in the box sheet",
             "IllegalArgumentException: The given workbook is not valid. Import canceled",
             "The sheet boxpolicy has no GROUP column",
-            "The sheet tabpolicy has no GROUP column"));
+            "The sheet tabpolicy has no GROUP column",
+            "the sheet box2metadata contains wrong field type of RENDERING thumbnail at row 3"));
     }
 
     @Test
@@ -604,6 +607,58 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(context.reloadEntity(tab), notNullValue());
         assertThat(context.reloadEntity(box), notNullValue());
 
+    }
+
+    @Test
+    public void testWithInvalidRendering() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        EntityType publicationType = createEntityType("Publication");
+        createEntityType("Person");
+
+        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, publicationType, false, false)
+                                                .withHeader("New Box Header - priority")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .withShortname("Shortname")
+                                                .withStyle("STYLE")
+                                                .build();
+
+        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
+                                                .withShortName("New Tab shortname")
+                                                .withSecurity(LayoutSecurity.PUBLIC)
+                                                .withHeader("New Tab header")
+                                                .withLeading(true)
+                                                .addBoxIntoNewRow(box)
+                                                .build();
+
+        GroupBuilder.createGroup(context)
+                    .withName("Researchers")
+                    .build();
+
+        context.restoreAuthSystemState();
+
+        assertThat(tabService.findAll(context), hasSize(1));
+
+        String fileLocation = getXlsFilePath("invalid-rendering.xls");
+        String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getInfoMessages(), empty());
+        assertThat(handler.getWarningMessages(), empty());
+
+        List<String> errorMessages = handler.getErrorMessages();
+        assertThat(errorMessages, hasSize(9));
+        assertThat(errorMessages, containsInAnyOrder(
+            "the sheet box2metadata wrong RENDERING value invalid found at row 3",
+            "the sheet box2metadata contains wrong field type of RENDERING thumbnail at row 1",
+            "the sheet box2metadata contains wrong field type of RENDERING longtext at row 7",
+            "the sheet box2metadata contains not allowed subtype of RENDERING attachment at row 14",
+            "the sheet metadatagroups must contain subType for RENDERING identifier at row 5",
+            "the sheet metadatagroups contains wrong subtype for RENDERING identifier at row 6",
+            "the sheet box2metadata contains wrong field type of RENDERING table at row 8",
+            "the sheet box2metadata contains wrong subtype for RENDERING valuepair at row 10",
+            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
     }
 
     private void assertThatMetadataFieldHas(CrisLayoutField field, String label, String rowStyle, String cellStyle,
