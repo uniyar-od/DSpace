@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -99,7 +100,8 @@ public class ScriptRestRepository extends DSpaceRestRepository<ScriptRest, Strin
         }
         EPerson user = context.getCurrentUser();
         RestDSpaceRunnableHandler restDSpaceRunnableHandler = new RestDSpaceRunnableHandler(
-            user, scriptToExecute.getName(), dSpaceCommandLineParameters, context.getSpecialGroups());
+            context.getCurrentUser(), scriptToExecute.getName(), dSpaceCommandLineParameters,
+            new HashSet<>(context.getSpecialGroups()));
         List<String> args = constructArgs(dSpaceCommandLineParameters);
         runDSpaceScript(files, context, user, scriptToExecute, restDSpaceRunnableHandler, args);
         return converter.toRest(restDSpaceRunnableHandler.getProcess(context), utils.obtainProjection());

@@ -210,8 +210,8 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
         return addMetadataValue(MetadataSchemaEnum.DC.getName(), "subject", null, subject);
     }
 
-    public WorkspaceItemBuilder withAbstract(final String subject) {
-        return addMetadataValue(MetadataSchemaEnum.DC.getName(),"description", "abstract", subject);
+    public WorkspaceItemBuilder withIssn(String issn) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(), "identifier", "issn", issn);
     }
 
     public WorkspaceItemBuilder withEntityType(final String entityType) {
@@ -244,6 +244,10 @@ public class WorkspaceItemBuilder extends AbstractBuilder<WorkspaceItem, Workspa
 
     public WorkspaceItemBuilder withOldCustomUrl(String url) {
         return addMetadataValue("cris", "customurl", "old", url);
+
+    }
+    public WorkspaceItemBuilder withAbstract(final String subject) {
+        return addMetadataValue(MetadataSchemaEnum.DC.getName(),"description", "abstract", subject);
     }
 
     public WorkspaceItemBuilder grantLicense() {

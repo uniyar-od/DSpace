@@ -21,6 +21,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
@@ -111,7 +112,21 @@ public interface ItemService
      * @return an iterator over the items in the archive.
      * @throws SQLException if database error
      */
+    @Deprecated
     public Iterator<Item> findAllUnfiltered(Context context) throws SQLException;
+
+    /**
+     * Find all items that are:
+     * - NOT in the workspace
+     * - NOT in the workflow
+     * - NOT a template item for e.g. a collection
+     *
+     * This implies that the result also contains older versions of items and withdrawn items.
+     * @param context the DSpace context.
+     * @return iterator over all regular items.
+     * @throws SQLException if database error.
+     */
+    public Iterator<Item> findAllRegularItems(Context context) throws SQLException;
 
     /**
      * Find all the items in the archive by a given submitter. The order is
@@ -592,8 +607,9 @@ public interface ItemService
      * @throws SQLException       if database error
      * @throws AuthorizeException if authorization error
      */
-    public Iterator<Item> findArchivedByMetadataField(Context context, String schema, String element,
-        String qualifier, String value) throws SQLException, AuthorizeException;
+    public Iterator<Item> findArchivedByMetadataField(Context context, String schema,
+                                                      String element, String qualifier,
+                                                      String value) throws SQLException, AuthorizeException;
 
     /**
      * Returns an iterator of in archive items possessing the passed metadata field, or only
@@ -607,7 +623,7 @@ public interface ItemService
      * @throws AuthorizeException if authorization error
      */
     public Iterator<Item> findArchivedByMetadataField(Context context, String metadataField, String value)
-        throws SQLException, AuthorizeException;
+            throws SQLException, AuthorizeException;
 
     public Iterator<Item> findUnfilteredByMetadataField(Context context, String schema, String element,
         String qualifier, String value) throws SQLException, AuthorizeException;
@@ -798,14 +814,6 @@ public interface ItemService
                                            String lang, boolean enableVirtualMetadata);
 
     /**
-     * Returns the item's entity type, if any.
-     *
-     * @param  item    the item
-     * @return         the entity type as string, if any
-     */
-    public String getEntityType(Item item);
-
-    /**
      * Find all the items in the archive or not with a given authority key value in LIKE format.
      * 
      * @param context         DSpace context object
@@ -829,5 +837,22 @@ public interface ItemService
      * @throws SQLException   if database error
      */
     Iterator<Item> findByIds(Context context, List<String> ids) throws SQLException;
+
+    /**
+     * Retrieve the label of the entity type of the given item.
+     * @param  item the item.
+     * @return      the label of the entity type, taken from the item metadata, or
+     *              null if not found.
+     */
+    public String getEntityTypeLabel(Item item);
+
+    /**
+     * Retrieve the entity type of the given item.
+     * @param context the DSpace context.
+     * @param item the item.
+     * @return the entity type of the given item, or null if not found.
+     */
+    public EntityType getEntityType(Context context, Item item) throws SQLException;
+
 
 }

@@ -14,8 +14,8 @@ import java.io.StringWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.cli.HelpFormatter;
@@ -62,13 +62,14 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
      * @param ePerson       The eperson that creates the process
      * @param scriptName    The name of the script for which is a process will be created
      * @param parameters    The parameters for this process
-     * @param specialGroups The list of special groups related to eperson creating process at process creation time
+     * @param specialGroups specialGroups The list of special groups related to eperson
+     *                      creating process at process creation time
      */
     public RestDSpaceRunnableHandler(EPerson ePerson, String scriptName, List<DSpaceCommandLineParameter> parameters,
-                                     final List<Group> specialGroups) {
+                                     final Set<Group> specialGroups) {
         Context context = new Context();
         try {
-            ePersonId = Objects.nonNull(ePerson) ? ePerson.getID() : null;
+            ePersonId = ePerson.getID();
             Process process = processService.create(context, ePerson, scriptName, parameters, specialGroups);
             processId = process.getID();
             this.scriptName = process.getName();
@@ -313,15 +314,14 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
     @Override
     public List<UUID> getSpecialGroups() {
         Context context = new Context();
-        List<UUID> specialGroups = new ArrayList<UUID>();
+        List<UUID> specialGroups = new ArrayList<>();
         try {
             Process process = processService.find(context, processId);
             for (Group group : process.getGroups()) {
-                context.setSpecialGroup(group.getID());
                 specialGroups.add(group.getID());
             }
         } catch (SQLException e) {
-            log.error("RestDSpaceRunnableHandler with process: " + processId + " could not find the proccess", e);
+            log.error("RestDSpaceRunnableHandler with process: " + processId + " could not find the process", e);
         } finally {
             if (context.isValid()) {
                 context.abort();

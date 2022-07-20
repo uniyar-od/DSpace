@@ -13,12 +13,12 @@ import static java.util.Arrays.asList;
 import static java.util.UUID.fromString;
 import static org.dspace.app.matcher.LambdaMatcher.has;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
-import static org.dspace.app.profile.OrcidEntitySyncPreference.ALL;
-import static org.dspace.app.profile.OrcidEntitySyncPreference.MINE;
 import static org.dspace.app.rest.matcher.HalMatcher.matchLinks;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataNotEmpty;
+import static org.dspace.profile.OrcidEntitySyncPreference.ALL;
+import static org.dspace.profile.OrcidEntitySyncPreference.MINE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
@@ -51,11 +51,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 import com.jayway.jsonpath.JsonPath;
-import org.dspace.app.orcid.OrcidQueue;
-import org.dspace.app.orcid.client.OrcidClient;
-import org.dspace.app.orcid.model.OrcidTokenResponseDTO;
-import org.dspace.app.orcid.service.OrcidQueueService;
-import org.dspace.app.orcid.webhook.OrcidWebhookServiceImpl;
 import org.dspace.app.rest.model.MetadataValueRest;
 import org.dspace.app.rest.model.patch.AddOperation;
 import org.dspace.app.rest.model.patch.Operation;
@@ -68,6 +63,7 @@ import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.OrcidQueueBuilder;
+import org.dspace.builder.OrcidTokenBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -75,6 +71,11 @@ import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.orcid.OrcidQueue;
+import org.dspace.orcid.client.OrcidClient;
+import org.dspace.orcid.model.OrcidTokenResponseDTO;
+import org.dspace.orcid.service.OrcidQueueService;
+import org.dspace.orcid.webhook.OrcidWebhookServiceImpl;
 import org.dspace.services.ConfigurationService;
 import org.dspace.util.UUIDUtils;
 import org.junit.After;
@@ -963,11 +964,11 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
-            .withOrcidAccessToken("af097328-ac1c-4a3e-9eb4-069897874910")
-            .withOrcidRefreshToken("32aadae0-829e-49c5-824f-ccaf4d1913e4")
             .withOrcidScope("/first-scope")
             .withOrcidScope("/second-scope")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "af097328-ac1c-4a3e-9eb4-069897874910").build();
 
         context.restoreAuthSystemState();
 
@@ -1014,11 +1015,11 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
-            .withOrcidAccessToken("af097328-ac1c-4a3e-9eb4-069897874910")
-            .withOrcidRefreshToken("32aadae0-829e-49c5-824f-ccaf4d1913e4")
             .withOrcidScope("/first-scope")
             .withOrcidScope("/second-scope")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "af097328-ac1c-4a3e-9eb4-069897874910").build();
 
         context.restoreAuthSystemState();
 
@@ -1073,11 +1074,11 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
-            .withOrcidAccessToken("af097328-ac1c-4a3e-9eb4-069897874910")
-            .withOrcidRefreshToken("32aadae0-829e-49c5-824f-ccaf4d1913e4")
             .withOrcidScope("/first-scope")
             .withOrcidScope("/second-scope")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "af097328-ac1c-4a3e-9eb4-069897874910").build();
 
         context.restoreAuthSystemState();
 
@@ -1132,11 +1133,11 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
-            .withOrcidAccessToken("af097328-ac1c-4a3e-9eb4-069897874910")
-            .withOrcidRefreshToken("32aadae0-829e-49c5-824f-ccaf4d1913e4")
             .withOrcidScope("/first-scope")
             .withOrcidScope("/second-scope")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "af097328-ac1c-4a3e-9eb4-069897874910").build();
 
         context.restoreAuthSystemState();
 
@@ -1195,11 +1196,11 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
-            .withOrcidAccessToken("af097328-ac1c-4a3e-9eb4-069897874910")
-            .withOrcidRefreshToken("32aadae0-829e-49c5-824f-ccaf4d1913e4")
             .withOrcidScope("/first-scope")
             .withOrcidScope("/second-scope")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "af097328-ac1c-4a3e-9eb4-069897874910").build();
 
         context.restoreAuthSystemState();
 
@@ -1253,11 +1254,11 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
-            .withOrcidAccessToken("af097328-ac1c-4a3e-9eb4-069897874910")
-            .withOrcidRefreshToken("32aadae0-829e-49c5-824f-ccaf4d1913e4")
             .withOrcidScope("/first-scope")
             .withOrcidScope("/second-scope")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "af097328-ac1c-4a3e-9eb4-069897874910").build();
 
         context.restoreAuthSystemState();
 
@@ -1315,14 +1316,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1359,14 +1360,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1403,14 +1404,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         EPerson anotherUser = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
@@ -1454,14 +1455,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1503,14 +1504,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1547,14 +1548,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1591,14 +1592,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1635,14 +1636,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1684,14 +1685,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1728,14 +1729,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1777,14 +1778,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1826,14 +1827,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1872,14 +1873,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid(orcid)
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         Item profile = createProfile(ePerson);
 
@@ -1940,14 +1941,14 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         EPerson ePerson = EPersonBuilder.createEPerson(context)
             .withCanLogin(true)
             .withOrcid("0000-1111-2222-3333")
-            .withOrcidAccessToken("3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4")
-            .withOrcidRefreshToken("6b29a03d-f494-4690-889f-2c0ddf26b82d")
             .withOrcidScope("/read")
             .withOrcidScope("/write")
             .withEmail("test@email.it")
             .withPassword(password)
             .withNameInMetadata("Test", "User")
             .build();
+
+        OrcidTokenBuilder.create(context, ePerson, "3de2e370-8aa9-4bbe-8d7e-f5b1577bdad4").build();
 
         UUID ePersonId = ePerson.getID();
 
@@ -1967,7 +1968,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         context.restoreAuthSystemState();
 
         // no preferences configured, so no orcid queue records created
-        assertThat(orcidQueueService.findByOwnerId(context, profileItemId), empty());
+        assertThat(orcidQueueService.findByProfileItemId(context, profileItemId), empty());
 
         String authToken = getAuthToken(ePerson.getEmail(), password);
 
@@ -1976,7 +1977,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk());
 
-        List<OrcidQueue> queueRecords = orcidQueueService.findByOwnerId(context, profileItemId);
+        List<OrcidQueue> queueRecords = orcidQueueService.findByProfileItemId(context, profileItemId);
         assertThat(queueRecords, hasSize(1));
         assertThat(queueRecords, has(orcidQueueRecordWithEntity(publication)));
 
@@ -1985,7 +1986,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk());
 
-        queueRecords = orcidQueueService.findByOwnerId(context, profileItemId);
+        queueRecords = orcidQueueService.findByProfileItemId(context, profileItemId);
         assertThat(queueRecords, hasSize(3));
         assertThat(queueRecords, has(orcidQueueRecordWithEntity(publication)));
         assertThat(queueRecords, has(orcidQueueRecordWithEntity(firstFunding)));
@@ -1996,7 +1997,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk());
 
-        queueRecords = orcidQueueService.findByOwnerId(context, profileItemId);
+        queueRecords = orcidQueueService.findByProfileItemId(context, profileItemId);
         assertThat(queueRecords, hasSize(2));
         assertThat(queueRecords, has(orcidQueueRecordWithEntity(firstFunding)));
         assertThat(queueRecords, has(orcidQueueRecordWithEntity(secondFunding)));
@@ -2006,7 +2007,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk());
 
-        assertThat(orcidQueueService.findByOwnerId(context, profileItemId), empty());
+        assertThat(orcidQueueService.findByProfileItemId(context, profileItemId), empty());
 
         configurationService.setProperty("orcid.linkable-metadata-fields.ignore", "crisfund.coinvestigators");
 
@@ -2015,7 +2016,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk());
 
-        queueRecords = orcidQueueService.findByOwnerId(context, profileItemId);
+        queueRecords = orcidQueueService.findByProfileItemId(context, profileItemId);
         assertThat(queueRecords, hasSize(1));
         assertThat(queueRecords, has(orcidQueueRecordWithEntity(firstFunding)));
 
@@ -2025,7 +2026,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isOk());
 
-        List<OrcidQueue> newRecords = orcidQueueService.findByOwnerId(context, profileItemId);
+        List<OrcidQueue> newRecords = orcidQueueService.findByProfileItemId(context, profileItemId);
         assertThat(newRecords, hasSize(1));
         assertThat(queueRecords.get(0).getID(), is(newRecords.get(0).getID()));
 

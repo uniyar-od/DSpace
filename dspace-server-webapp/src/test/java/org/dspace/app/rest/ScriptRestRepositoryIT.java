@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import org.apache.commons.collections4.CollectionUtils;
 import org.dspace.app.rest.converter.DSpaceRunnableParameterConverter;
@@ -80,7 +81,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     private ConfigurationService configurationService;
 
     @Autowired
-    private List<ScriptConfiguration<?>> scriptConfigurations;
+    private List<ScriptConfiguration> scriptConfigurations;
 
     @Autowired
     private DSpaceRunnableParameterConverter dSpaceRunnableParameterConverter;
@@ -286,7 +287,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         try {
             getClient(token)
                     .perform(multipart("/api/system/scripts/mock-script/processes")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -330,7 +331,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         try {
             getClient(token)
                     .perform(multipart("/api/system/scripts/mock-script/processes")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -367,7 +368,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
         try {
             getClient(token)
                     .perform(multipart("/api/system/scripts/mock-script/processes")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -393,10 +394,9 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content")).andReturn();
             String content = mvcResult.getResponse().getContentAsString();
 
-            assertThat(content, CoreMatchers
-                    .containsString("INFO mock-script - " + process.getID() + " @ The script has started"));
             assertThat(content,
-                       CoreMatchers.containsString(
+                CoreMatchers.containsString("INFO mock-script - " + process.getID() + " @ The script has started"));
+            assertThat(content, CoreMatchers.containsString(
                                "INFO mock-script - " + process.getID() + " @ Logging INFO for Mock DSpace Script"));
             assertThat(content,
                        CoreMatchers.containsString(
@@ -475,7 +475,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                     .perform(multipart("/api/system/scripts/mock-script/processes")
                                  .file(bitstreamFile)
                                  .characterEncoding("UTF-8")
-                                 .param("properties", new Gson().toJson(list)))
+                                 .param("properties", new ObjectMapper().writeValueAsString(list)))
                     .andExpect(status().isAccepted())
                     .andExpect(jsonPath("$", is(
                             ProcessMatcher.matchProcess("mock-script",
@@ -484,64 +484,6 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                                                         acceptableProcessStatuses))))
                     .andDo(result -> idRef
                             .set(read(result.getResponse().getContentAsString(), "$.processId")));
-        } finally {
-            ProcessBuilder.deleteProcess(idRef.get());
-        }
-    }
-
-    @Test
-    public void TrackSpecialGroupduringprocessSchedulingTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        Group specialGroup = GroupBuilder.createGroup(context)
-                                         .withName("Special Group")
-                                         .addMember(admin)
-                                         .build();
-
-        context.restoreAuthSystemState();
-
-        configurationService.setProperty("authentication-password.login.specialgroup", specialGroup.getName());
-
-        LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
-
-        parameters.add(new DSpaceCommandLineParameter("-r", "test"));
-        parameters.add(new DSpaceCommandLineParameter("-i", null));
-
-        List<ParameterValueRest> list = parameters.stream()
-                                                  .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
-                                                  .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
-                                                  .collect(Collectors.toList());
-
-
-
-        String token = getAuthToken(admin.getEmail(), password);
-        List<ProcessStatus> acceptableProcessStatuses = new LinkedList<>();
-        acceptableProcessStatuses.addAll(Arrays.asList(ProcessStatus.SCHEDULED,
-                                                       ProcessStatus.RUNNING,
-                                                       ProcessStatus.COMPLETED));
-
-        AtomicReference<Integer> idRef = new AtomicReference<>();
-
-        try {
-            getClient(token).perform(post("/api/system/scripts/mock-script/processes")
-                            .contentType("multipart/form-data")
-                            .param("properties", new Gson().toJson(list)))
-                            .andExpect(status().isAccepted())
-                            .andExpect(jsonPath("$", is(ProcessMatcher.matchProcess("mock-script",
-                                                        String.valueOf(admin.getID()),
-                                                        parameters, acceptableProcessStatuses))))
-                            .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.processId")));
-
-            Process process = processService.find(context, idRef.get());
-            List<Group> groups = process.getGroups();
-            boolean isPresent = false;
-            for (Group group : groups) {
-                if (group.getID().equals(specialGroup.getID())) {
-                    isPresent = true;
-                }
-            }
-            assertTrue(isPresent);
-
         } finally {
             ProcessBuilder.deleteProcess(idRef.get());
         }
@@ -647,6 +589,59 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
                                         hasJsonPath("$.nameLong", is("--file"))
                                 )
                         ) ));
+    }
+
+    @Test
+    public void TrackSpecialGroupduringprocessSchedulingTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        Group specialGroup = GroupBuilder.createGroup(context)
+            .withName("Special Group")
+            .addMember(admin)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        configurationService.setProperty("authentication-password.login.specialgroup", specialGroup.getName());
+
+        LinkedList<DSpaceCommandLineParameter> parameters = new LinkedList<>();
+
+        parameters.add(new DSpaceCommandLineParameter("-r", "test"));
+        parameters.add(new DSpaceCommandLineParameter("-i", null));
+
+        List<ParameterValueRest> list = parameters.stream()
+            .map(dSpaceCommandLineParameter -> dSpaceRunnableParameterConverter
+                .convert(dSpaceCommandLineParameter, Projection.DEFAULT))
+            .collect(Collectors.toList());
+
+
+
+        String token = getAuthToken(admin.getEmail(), password);
+        List<ProcessStatus> acceptableProcessStatuses = new LinkedList<>();
+        acceptableProcessStatuses.addAll(Arrays.asList(ProcessStatus.SCHEDULED,
+                                                       ProcessStatus.RUNNING,
+                                                       ProcessStatus.COMPLETED));
+
+        AtomicReference<Integer> idRef = new AtomicReference<>();
+
+        try {
+            getClient(token).perform(post("/api/system/scripts/mock-script/processes")
+                                         .contentType("multipart/form-data")
+                                         .param("properties", new ObjectMapper().writeValueAsString(list)))
+                .andExpect(status().isAccepted())
+                .andExpect(jsonPath("$", is(ProcessMatcher.matchProcess("mock-script",
+                                                                        String.valueOf(admin.getID()),
+                                                                        parameters, acceptableProcessStatuses))))
+                .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.processId")));
+
+            Process process = processService.find(context, idRef.get());
+            List<Group> groups = process.getGroups();
+            boolean isPresent = groups.stream().anyMatch(g -> g.getID().equals(specialGroup.getID()));
+            assertTrue(isPresent);
+
+        } finally {
+            ProcessBuilder.deleteProcess(idRef.get());
+        }
     }
 
 

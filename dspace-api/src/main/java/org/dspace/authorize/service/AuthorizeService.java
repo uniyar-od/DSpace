@@ -611,6 +611,7 @@ public interface AuthorizeService {
      */
     long countAdminAuthorizedCollection(Context context, String query)
         throws SearchServiceException, SQLException;
+
     public boolean isPartOfTheGroup(Context c, String egroup) throws SQLException;
 
     /**
@@ -636,4 +637,13 @@ public interface AuthorizeService {
      *                      relationship, false otherwise
      */
     boolean canHandleRelationship(Context context, Relationship relationship);
+
+    /**
+     * Returns true if the current user can manage accounts.
+     *
+     * @param  context context with the current user
+     * @return         true if the current user can manage accounts
+     */
+    boolean isAccountManager(Context context);
+
 }
