@@ -18,11 +18,15 @@
 <%@ taglib uri="researchertags" prefix="researcher"%>
 <%@ taglib uri="jdynatags" prefix="dyna"%>
 
+<%@ page import="java.net.URLEncoder"%>
+<%@ page import="java.util.Map"%>
+<%@ page import="org.dspace.app.cris.model.ResearcherPage"%>
+<%@ page import="org.dspace.core.Utils"%>
 <%
 	
 	ResearcherPage researchertarget = (ResearcherPage) request.getAttribute("researchertarget");
-	String authoritytarget = (String) request.getAttribute("authoritytarget");
-	String authority = (String) request.getAttribute("authority");
+	String authoritytarget = Utils.addEntities((String) request.getAttribute("authoritytarget"));
+	String authority = Utils.addEntities((String) request.getAttribute("authority"));
 	Map<String,Integer> relations = (Map<String,Integer>) request.getAttribute("relations");
 	String depth = (String) request.getAttribute("depth");
 	String typo = (String) request.getAttribute("typo");
@@ -58,14 +62,14 @@
 					<div class="rp-header">
 						<div class="rp-image">
 						
-										<a target="_blank" href="<%=request.getContextPath()%>/cris/rp/${authoritytarget}">
-											<img title="A preview ${authoritytarget} picture"
-												src="researcherimage/${authoritytarget}"
-												alt="${authoritytarget} picture" name="picture" id="picture" onError="this.onerror=null;this.src='<%=request.getContextPath() %>/image/cris/photo_not_available.png'" /> </a>
+										<a target="_blank" href="<%=request.getContextPath()%>/cris/rp/<%= authoritytarget %>">
+											<img title="A preview <%= authoritytarget %> picture"
+												src="researcherimage/<%= authoritytarget %>"
+												alt="<%= authoritytarget %> picture" name="picture" id="picture" onError="this.onerror=null;this.src='<%=request.getContextPath() %>/image/cris/photo_not_available.png'" /> </a>
 						
 					</div>
 					<div class="rp-content">
-							<div class="rp-name"><a target="_blank" href="<%= request.getContextPath() %>/cris/rp/${authoritytarget}">
+							<div class="rp-name"><a target="_blank" href="<%= request.getContextPath() %>/cris/rp/<%= authoritytarget %>">
 							<c:if test="${fn:length(researchertarget.anagrafica4view['honorific'])>0 && researchertarget.anagrafica4view['honorific'][0].visibility==1}">
 								researchertarget.anagrafica4view['honorific'][0].value
 							</c:if>
@@ -96,7 +100,7 @@
 							<c:url var="deptSearch" value="/cris/ou/"/>
 							<a target="_blank" href="${deptSearch}${dept.authority}">${dept.value}</a>        											
 							<%--a target="_blank" href="<%=request.getContextPath()%>/dnetwork/graph?dept="><span class="icon-network"><img src='../image/wheel-icon2.jpg' alt="<fmt:message key='jsp.network.label.link.network.dept'/>" title="<fmt:message key='jsp.network.label.link.network.dept'/>"/></span></a>
-							<a target="_blank" href="<%=request.getContextPath()%>/network/${authoritytarget}"><span class="icon-network"><img src='../image/wheel-icon1.jpg' alt="<fmt:message key='jsp.layout.hku.network.researcher.link'><fmt:param value='<%= researchertarget.getFullName()%>'/></fmt:message>" title="<fmt:message key='jsp.layout.hku.network.researcher.link'><fmt:param value='<%= researchertarget.getFullName()%>'/></fmt:message>"/></span></a--%>
+							<a target="_blank" href="<%=request.getContextPath()%>/network/<%= authoritytarget %>"><span class="icon-network"><img src='../image/wheel-icon1.jpg' alt="<fmt:message key='jsp.layout.hku.network.researcher.link'><fmt:param value='<%= researchertarget.getFullName()%>'/></fmt:message>" title="<fmt:message key='jsp.layout.hku.network.researcher.link'><fmt:param value='<%= researchertarget.getFullName()%>'/></fmt:message>"/></span></a--%>
 						</li>
 </c:if>
 </c:forEach>
@@ -165,13 +169,13 @@
 											
 						var parameterId = this.id;
 						var servletpathcaller = "<%= request.getServletPath() %>";
-						var ajaxurlrelations = "<%= request.getContextPath() %>/networkdatarelations/${authority}";
+						var ajaxurlrelations = "<%= request.getContextPath() %>/networkdatarelations/<%=authority %>";
 						j.ajax( {
 							url : ajaxurlrelations,
 							data : {
 								"servletpathcaller" : servletpathcaller,
 								"relation" : parameterId,
-								"with" : "${authoritytarget}"
+								"with" : "<%= authoritytarget %>"
 							},
 							success : function(data) {
 								j("#log").dialog("close");
