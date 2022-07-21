@@ -1421,6 +1421,7 @@ public class VersioningWithRelationshipsTest extends AbstractIntegrationTestWith
      * @throws Exception
      */
     @Test
+    @SuppressWarnings("unchecked")
     public void test_createNewVersionOfItemWithAddRemoveMove() throws Exception {
         ///////////////////////////////////////////
         // create a publication with 10 projects //
@@ -1444,10 +1445,10 @@ public class VersioningWithRelationshipsTest extends AbstractIntegrationTestWith
         }
 
         AtomicInteger counterOriginalPublication = new AtomicInteger();
-        List<Matcher<Object>> listOriginalPublication = projects.stream().map(
+        Matcher<Object>[] listOriginalPublication = projects.stream().map(
                 project -> isRel(originalPublication, isProjectOfPublication, project, BOTH,
                         counterOriginalPublication.getAndIncrement(), 0)
-        ).collect(Collectors.toCollection(ArrayList::new));
+        ).toArray(Matcher[]::new);
 
         /////////////////////////////////////////////////////////////////////
         // verify the relationships of all items (excludeNonLatest = true) //
@@ -1566,6 +1567,7 @@ public class VersioningWithRelationshipsTest extends AbstractIntegrationTestWith
         newProjects.add(newPlace, project);
     }
 
+    @SuppressWarnings("unchecked")
     protected void verifyProjectsMatch(Item originalPublication, List<Item> originalProjects,
                                      Item newPublication, List<Item> newProjects, boolean newPublicationArchived)
             throws SQLException {
@@ -1575,19 +1577,19 @@ public class VersioningWithRelationshipsTest extends AbstractIntegrationTestWith
         /////////////////////////////////////////////////////////
 
         AtomicInteger counterOriginalPublication = new AtomicInteger();
-        List<Matcher<Object>> listOriginalPublication = originalProjects.stream().map(
+        Matcher<Object>[] listOriginalPublication = originalProjects.stream().map(
                 project -> isRel(originalPublication, isProjectOfPublication, project,
                         newPublicationArchived ? RIGHT_ONLY : BOTH,
                         counterOriginalPublication.getAndIncrement(), 0)
-        ).collect(Collectors.toCollection(ArrayList::new));
+        ).toArray(Matcher[]::new);
 
         AtomicInteger counterNewPublication = new AtomicInteger();
-        List<Matcher<Object>> listNewPublication = newProjects.stream().map(
+        Matcher<Object>[] listNewPublication = newProjects.stream().map(
                 project -> isRel(newPublication, isProjectOfPublication, project,
                         newPublicationArchived || !originalProjects.contains(project) ?
                                 BOTH : RIGHT_ONLY,
                         counterNewPublication.getAndIncrement(), 0)
-        ).collect(Collectors.toCollection(ArrayList::new));
+        ).toArray(Matcher[]::new);
 
         /////////////////////////////////////////////////////////////////////
         // verify the relationships of all items (excludeNonLatest = true) //
