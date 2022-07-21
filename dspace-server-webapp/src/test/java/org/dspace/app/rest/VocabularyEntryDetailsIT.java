@@ -20,6 +20,7 @@ import org.dspace.app.rest.matcher.VocabularyEntryDetailsMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -69,6 +70,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                                 endsWith("api/submission/vocabularyEntryDetails/srsc:SCB110/children")));
     }
 
+    /**
+     * [DSC-524]
+     * 
+     * Commented now all `DSpaceControlledVocabulary` are public
+     * 
+     * @throws Exception
+     */
+    @Ignore
     @Test
     public void findOneUnauthorizedTest() throws Exception {
         String idAuthority = "srsc:SCB110";
@@ -253,6 +262,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                              .andExpect(status().isBadRequest());
     }
 
+    /**
+   * [DSC-524]
+   * 
+   * Commented now all `DSpaceControlledVocabulary` are public
+   * 
+   * @throws Exception
+   */
+    @Ignore
     @Test
     public void searchTopUnauthorizedTest() throws Exception {
         getClient().perform(get("/api/submission/vocabularyEntryDetails/search/top")
@@ -327,6 +344,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                              .andExpect(status().isBadRequest());
     }
 
+    /**
+   * [DSC-524]
+   * 
+   * Commented now all `DSpaceControlledVocabulary` are public
+   * 
+   * @throws Exception
+   */
+    @Ignore
     @Test
     public void srscSearchTopUnauthorizedTest() throws Exception {
         getClient().perform(get("/api/submission/vocabularyEntryDetails/search/top")
@@ -352,6 +377,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                                .andExpect(status().isBadRequest());
     }
 
+    /**
+   * [DSC-524]
+   * 
+   * Commented now all `DSpaceControlledVocabulary` are public
+   * 
+   * @throws Exception
+   */
+    @Ignore
     @Test
     public void findParentByChildUnauthorizedTest() throws Exception {
         getClient().perform(get("/api/submission/vocabularyEntryDetails/srsc:SCB180/parent"))
