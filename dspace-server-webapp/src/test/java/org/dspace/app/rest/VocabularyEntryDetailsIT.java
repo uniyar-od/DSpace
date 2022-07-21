@@ -27,6 +27,7 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.junit.Ignore;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -99,6 +100,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                                 endsWith("api/submission/vocabularyEntryDetails/srsc:SCB110/children")));
     }
 
+    /**
+     * [DSC-524]
+     * 
+     * Commented now all `DSpaceControlledVocabulary` are public
+     * 
+     * @throws Exception
+     */
+    @Ignore
     @Test
     public void findOneUnauthorizedTest() throws Exception {
         String idAuthority = "srsc:SCB110";
@@ -283,6 +292,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                              .andExpect(status().isBadRequest());
     }
 
+    /**
+   * [DSC-524]
+   * 
+   * Commented now all `DSpaceControlledVocabulary` are public
+   * 
+   * @throws Exception
+   */
+    @Ignore
     @Test
     public void searchTopUnauthorizedTest() throws Exception {
         getClient().perform(get("/api/submission/vocabularyEntryDetails/search/top")
@@ -357,6 +374,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                              .andExpect(status().isBadRequest());
     }
 
+    /**
+   * [DSC-524]
+   * 
+   * Commented now all `DSpaceControlledVocabulary` are public
+   * 
+   * @throws Exception
+   */
+    @Ignore
     @Test
     public void srscSearchTopUnauthorizedTest() throws Exception {
         getClient().perform(get("/api/submission/vocabularyEntryDetails/search/top")
@@ -382,6 +407,14 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                                .andExpect(status().isBadRequest());
     }
 
+    /**
+   * [DSC-524]
+   * 
+   * Commented now all `DSpaceControlledVocabulary` are public
+   * 
+   * @throws Exception
+   */
+    @Ignore
     @Test
     public void findParentByChildUnauthorizedTest() throws Exception {
         getClient().perform(get("/api/submission/vocabularyEntryDetails/srsc:SCB180/parent"))
@@ -467,335 +500,6 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                    "Dogmatics with symbolics",
                    "Research Subject Categories::HUMANITIES and RELIGION::Religion/Theology::Dogmatics with symbolics")
           );
-    }
-
-    @Test
-    public void itemVocabularyNoParentsTest() throws Exception {
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/search/top").param("vocabulary", "orgunits"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails").doesNotExist());
-    }
-
-    @Test
-    public void itemVocabularyWithParentsAndNoChildrenTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        Item item1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Title1")
-            .withDescriptionAbstract("Description1")
-            .build();
-
-        Item item2 = ItemBuilder.createItem(context, collection)
-            .withTitle("Title2")
-            .withDescriptionAbstract("Description2")
-            .build();
-
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-            get("/api/submission/vocabularyEntryDetails/search/top").param("vocabulary", "orgunits"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails", hasSize(2)))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].display", is("Title1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].value", is(String.valueOf(item1.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.note",
-                                is("Description1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.display",
-                                is("Title1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.hasChildren",
-                                is("false")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].display", is("Title2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].value", is(String.valueOf(item2.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.note",
-                                is("Description2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.display",
-                                is("Title2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.hasChildren",
-                                is("false")));
-    }
-
-    @Test
-    public void itemVocabularyWithParentsAndChildrenTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        // This item has no children
-        Item noChildrenParent = ItemBuilder.createItem(context, collection)
-            .withTitle("NoChildrenItem")
-            .withDescriptionAbstract("Description0")
-            .build();
-
-        Item parent1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Parent1")
-            .withDescriptionAbstract("Description1")
-            .build();
-
-        Item parent2 = ItemBuilder.createItem(context, collection)
-            .withTitle("Parent2")
-            .withDescriptionAbstract("Description2")
-            .build();
-
-        // Create child for parent1
-        Item child1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Child1")
-            .withDescriptionAbstract("ChildDescription1")
-            .withParentOrganization("Parent1", parent1.getID().toString())
-            .build();
-
-        // Create child for parent2
-        Item child2 = ItemBuilder.createItem(context, collection)
-            .withTitle("Child2")
-            .withDescriptionAbstract("ChildDescription2")
-            .withParentOrganization("Parent2", parent2.getID().toString())
-            .build();
-
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/search/top").param("vocabulary", "orgunits"))
-            .andExpect(status().isOk())
-            // No children item
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails", hasSize(3)))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].display", is("NoChildrenItem")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].value",
-                                is(String.valueOf(noChildrenParent.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.note",
-                                is("Description0")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.display",
-                                is("NoChildrenItem")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.hasChildren",
-                                is("false")))
-            // First parent
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].display", is("Parent1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].value", is(String.valueOf(parent1.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.note",
-                                is("Description1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.display",
-                                is("Parent1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.hasChildren",
-                                is("true")))
-            // Second parent
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].display", is("Parent2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].value", is(String.valueOf(parent2.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].otherInformation.note",
-                                is("Description2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].otherInformation.display",
-                                is("Parent2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].otherInformation.hasChildren",
-                                is("true")));
-    }
-
-
-    @Test
-    public void itemVocabularyWithChildrenTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        Item parent1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Parent1")
-            .withDescriptionAbstract("Description1")
-            .build();
-
-        // Create child for parent1
-        Item child1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Child1")
-            .withDescriptionAbstract("ChildDescription1")
-            .withParentOrganization("Parent1", parent1.getID().toString())
-            .build();
-
-        context.restoreAuthSystemState();
-
-        // Verify that parent is returned and hasChildren is true
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/search/top").param("vocabulary", "orgunits"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails", hasSize(1)))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].display", is("Parent1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].value", is(String.valueOf(parent1.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.note",
-                                is("Description1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.display",
-                                is("Parent1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.hasChildren",
-                                is("true")));
-
-        // Verify child
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:" + parent1.getID() + "/children"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.children", hasSize(1)))
-            .andExpect(jsonPath("$._embedded.children[0].display", is("Child1")))
-            .andExpect(jsonPath("$._embedded.children[0].value", is(String.valueOf(child1.getID()))))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.note",
-                                is("ChildDescription1")))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.display",
-                                is("Child1")))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.hasChildren",
-                                is("false")));
-    }
-
-    @Test
-    public void itemVocabularyWithMultipleParentsAndChildrenTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        // This item has no children
-        Item noChildrenParent = ItemBuilder.createItem(context, collection)
-            .withTitle("NoChildrenItem")
-            .withDescriptionAbstract("Description0")
-            .build();
-
-        Item parent1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Parent1")
-            .withDescriptionAbstract("Description1")
-            .build();
-
-        Item parent2 = ItemBuilder.createItem(context, collection)
-            .withTitle("Parent2")
-            .withDescriptionAbstract("Description2")
-            .build();
-
-        // Create child for parent1
-        Item child1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Child1")
-            .withDescriptionAbstract("ChildDescription1")
-            .withParentOrganization("Parent1", parent1.getID().toString())
-            .build();
-
-        // Create child for parent2
-        Item child2 = ItemBuilder.createItem(context, collection)
-            .withTitle("Child2")
-            .withDescriptionAbstract("ChildDescription2")
-            .withParentOrganization("Parent2", parent2.getID().toString())
-            .build();
-
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/search/top").param("vocabulary", "orgunits"))
-            .andExpect(status().isOk())
-            // No children item
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails", hasSize(3)))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].display", is("NoChildrenItem")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].value",
-                                is(String.valueOf(noChildrenParent.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.note",
-                                is("Description0")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.display",
-                                is("NoChildrenItem")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[0].otherInformation.hasChildren",
-                                is("false")))
-            // First parent
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].display", is("Parent1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].value", is(String.valueOf(parent1.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.note",
-                                is("Description1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.display",
-                                is("Parent1")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[1].otherInformation.hasChildren",
-                                is("true")))
-            // Second parent
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].display", is("Parent2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].value", is(String.valueOf(parent2.getID()))))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].otherInformation.note",
-                                is("Description2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].otherInformation.display",
-                                is("Parent2")))
-            .andExpect(jsonPath("$._embedded.vocabularyEntryDetails[2].otherInformation.hasChildren",
-                                is("true")));
-
-        // Verify children
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:"
-                        + noChildrenParent.getID() + "/children"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.children", hasSize(0)));
-
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:" + parent1.getID() + "/children"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.children", hasSize(1)))
-            .andExpect(jsonPath("$._embedded.children[0].display", is("Child1")))
-            .andExpect(jsonPath("$._embedded.children[0].value", is(String.valueOf(child1.getID()))))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.note",
-                                is("ChildDescription1")))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.display",
-                                is("Child1")))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.hasChildren",
-                                is("false")));
-
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:" + parent2.getID() + "/children"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$._embedded.children", hasSize(1)))
-            .andExpect(jsonPath("$._embedded.children[0].display", is("Child2")))
-            .andExpect(jsonPath("$._embedded.children[0].value", is(String.valueOf(child2.getID()))))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.note",
-                                is("ChildDescription2")))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.display",
-                                is("Child2")))
-            .andExpect(jsonPath("$._embedded.children[0].otherInformation.hasChildren",
-                                is("false")));
-    }
-
-    @Test
-    public void itemVocabularyGetSelfTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        Item item1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Title1")
-            .withDescriptionAbstract("Description1")
-            .build();
-
-        context.restoreAuthSystemState();
-
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:" + item1.getID()))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.display", is("Title1")))
-            .andExpect(jsonPath("$.value", is(String.valueOf(item1.getID()))))
-            .andExpect(jsonPath("$.otherInformation.note", is("Description1")))
-            .andExpect(jsonPath("$.otherInformation.display", is("Title1")))
-            .andExpect(jsonPath("$.otherInformation.hasChildren", is("false")));
-    }
-
-    @Test
-    public void itemVocabularyGetParentTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        Item parent1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Parent1")
-            .withDescriptionAbstract("Description1")
-            .build();
-
-        // Create child for parent1
-        Item child1 = ItemBuilder.createItem(context, collection)
-            .withTitle("Child1")
-            .withDescriptionAbstract("ChildDescription1")
-            .withParentOrganization("Parent1", parent1.getID().toString())
-            .build();
-
-        context.restoreAuthSystemState();
-
-        // Get parent of child
-        String tokenAdmin = getAuthToken(admin.getEmail(), password);
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:" + child1.getID() + "/parent"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.display", is("Parent1")))
-            .andExpect(jsonPath("$.value", is(String.valueOf(parent1.getID()))))
-            .andExpect(jsonPath("$.otherInformation.note", is("Description1")))
-            .andExpect(jsonPath("$.otherInformation.display", is("Parent1")))
-            .andExpect(jsonPath("$.otherInformation.hasChildren", is("true")));
-
-        // When item has no parent no content is expected
-        getClient(tokenAdmin).perform(
-                get("/api/submission/vocabularyEntryDetails/orgunits:" + parent1.getID() + "/parent"))
-            .andExpect(status().isNoContent());
     }
 
     @Test
