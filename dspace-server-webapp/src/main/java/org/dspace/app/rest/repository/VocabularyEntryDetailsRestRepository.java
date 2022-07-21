@@ -66,10 +66,10 @@ public class VocabularyEntryDetailsRestRepository extends DSpaceRestRepository<V
         throw new RepositoryMethodNotImplementedException(ResourcePolicyRest.NAME, "findAll");
     }
 
-    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    @PreAuthorize("@vocabularySecurity.isQualifiedVocabularyPublic(#id) || hasAuthority('AUTHENTICATED')")
     @Override
-    public VocabularyEntryDetailsRest findOne(Context context, String name) {
-        String[] parts = StringUtils.split(name, ":", 2);
+    public VocabularyEntryDetailsRest findOne(Context context, String id) {
+        String[] parts = StringUtils.split(id, ":", 2);
         if (parts.length != 2) {
             return null;
         }

@@ -60,9 +60,7 @@ public class AuthorityUtils {
         return cas.getPresentation(org.dspace.core.Utils.standardize(schema, element, qualifier, "_"));
     }
 
-    /**
-     * TODO the authorityName MUST be a part of Choice model
-     *
+    /*
      * @param choice
      * @param authorityName
      * @param projection the name of the projection to use, or {@code null}.
@@ -75,7 +73,7 @@ public class AuthorityUtils {
         }
         VocabularyEntryDetailsRest entry = converter.toRest(choice, projection);
         entry.setVocabularyName(authorityName);
-        entry.setId(authorityName + ":" + entry.getId());
+        entry.setId(entry.getId());
         entry.setInHierarchicalVocabulary(isHierarchical);
         return entry;
     }
@@ -110,9 +108,7 @@ public class AuthorityUtils {
         return entry;
     }
 
-    /**
-     * TODO the authorityName MUST be a part of ChoiceAuthority model
-     *
+    /*
      * @param source
      * @param authorityName
      * @param projection the projecton to use.
