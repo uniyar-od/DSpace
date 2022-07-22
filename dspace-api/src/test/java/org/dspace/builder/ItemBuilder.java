@@ -217,13 +217,6 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
                                     final String value, Integer securityLevel) {
         return addMetadataValue(item, schema, element, qualifier, value);
     }
-    public ItemBuilder withCrisOwner(String value, String authority) {
-        return addMetadataValue(item, CRIS.getName(), "owner", null, null, value, authority, CF_ACCEPTED);
-    }
-
-    public ItemBuilder withCrisOwner(EPerson ePerson) {
-        return withCrisOwner(ePerson.getFullName(), ePerson.getID().toString());
-    }
 
     public ItemBuilder withCrisPolicyEPerson(String value, String authority) {
         return addMetadataValue(item, CRIS.getName(), "policy", "eperson", null, value, authority, CF_ACCEPTED);
@@ -263,12 +256,8 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
 
     }
 
-    public ItemBuilder withOrcidAccessToken(String accessToken) {
-        return addMetadataValue(item, "cris", "orcid", "access-token", accessToken);
-    }
-
     public ItemBuilder withOrcidWebhook(String webhook) {
-        return addMetadataValue(item, "cris", "orcid", "webhook", webhook);
+        return addMetadataValue(item, "dspace", "orcid", "webhook", webhook);
     }
 
     public ItemBuilder withIsniIdentifier(String isni) {
@@ -531,6 +520,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "crispj", "openaireid", null, openaireid);
     }
 
+    public ItemBuilder withDspaceObjectOwner(EPerson ePerson) {
+        return withDspaceObjectOwner(ePerson.getFullName(), ePerson.getID().toString());
+    }
+
     public ItemBuilder withDspaceObjectOwner(String value, String authority) {
         return addMetadataValue(item, "dspace", "object", "owner", null, value, authority, CF_ACCEPTED);
     }
@@ -592,7 +585,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     }
 
     public ItemBuilder withPersonCountry(String country) {
-        return addMetadataValue(item, "person", "country", null, country);
+        return addMetadataValue(item, "crisrp", "country", null, country);
     }
 
     public ItemBuilder withScopusAuthorIdentifier(String id) {
@@ -604,11 +597,11 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     }
 
     public ItemBuilder withVernacularName(String vernacularName) {
-        return setMetadataSingleValue(item, "person", "name", "translated", vernacularName);
+        return setMetadataSingleValue(item, "crisrp", "name", "translated", vernacularName);
     }
 
     public ItemBuilder withVariantName(String variant) {
-        return addMetadataValue(item, "person", "name", "variant", variant);
+        return addMetadataValue(item, "crisrp", "name", "variant", variant);
     }
 
     public ItemBuilder makeUnDiscoverable() {

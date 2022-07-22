@@ -2117,7 +2117,7 @@ public class ReferCrosswalkIT extends AbstractIntegrationTestWithDatabase {
 
         Item item = ItemBuilder.createItem(context, col)
                                .withDoiIdentifier("doi:111.111/publication")
-                               .withCrisOwner("Owner", owner.getID().toString())
+                               .withDspaceObjectOwner("Owner", owner.getID().toString())
                                .withIssueDate("2020-01-01")
                                .build();
 

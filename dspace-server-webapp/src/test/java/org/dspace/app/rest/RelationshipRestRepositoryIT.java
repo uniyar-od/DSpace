@@ -3362,7 +3362,7 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
 
         Item userProfile = ItemBuilder.createItem(context, col1)
             .withTitle("User profile")
-            .withCrisOwner(user1)
+            .withDspaceObjectOwner(user1)
             .build();
 
         RelationshipType hiddenResearchOutput = createRelationshipTypeBuilder(context, null,
@@ -3417,7 +3417,7 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
 
         Item userProfile = ItemBuilder.createItem(context, col1)
             .withTitle("User profile")
-            .withCrisOwner(user1)
+            .withDspaceObjectOwner(user1)
             .build();
 
         RelationshipType hiddenProject = createRelationshipTypeBuilder(context, null,
@@ -3472,7 +3472,7 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
 
         Item userProfile = ItemBuilder.createItem(context, col1)
             .withTitle("User profile")
-            .withCrisOwner(user1)
+            .withDspaceObjectOwner(user1)
             .build();
 
         RelationshipType selectedResearchOutput = createRelationshipTypeBuilder(context, null,
@@ -3527,7 +3527,7 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
 
         Item userProfile = ItemBuilder.createItem(context, col1)
             .withTitle("User profile")
-            .withCrisOwner(user1)
+            .withDspaceObjectOwner(user1)
             .build();
 
         RelationshipType selectedProject = createRelationshipTypeBuilder(context, null,
@@ -3583,7 +3583,7 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
 
         Item userProfile = ItemBuilder.createItem(context, col1)
             .withTitle("User profile")
-            .withCrisOwner(user1)
+            .withDspaceObjectOwner(user1)
             .build();
 
         RelationshipType selectedResearchOutput = createRelationshipTypeBuilder(context, null,
@@ -3618,7 +3618,7 @@ public class RelationshipRestRepositoryIT extends AbstractEntityIntegrationTest 
 
         Item userProfile = ItemBuilder.createItem(context, col1)
             .withTitle("User profile")
-            .withCrisOwner(user1)
+            .withDspaceObjectOwner(user1)
             .build();
 
         RelationshipType selectedResearchOutput = createRelationshipTypeBuilder(context, null,

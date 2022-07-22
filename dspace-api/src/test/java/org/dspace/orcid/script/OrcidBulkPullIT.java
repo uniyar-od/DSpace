@@ -126,7 +126,7 @@ public class OrcidBulkPullIT extends AbstractIntegrationTestWithDatabase {
         Item profile4 = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Fourth profile")
             .withOrcidIdentifier(orcid3)
-            .withOrcidAccessToken("ccf31b21-d8f8-403a-8bb9-8e1835b8ebcc")
+            .withOrcidAccessToken("ccf31b21-d8f8-403a-8bb9-8e1835b8ebcc", eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -206,7 +206,7 @@ public class OrcidBulkPullIT extends AbstractIntegrationTestWithDatabase {
         Item profile4 = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Fourth profile")
             .withOrcidIdentifier(orcid3)
-            .withOrcidAccessToken("ccf31b21-d8f8-403a-8bb9-8e1835b8ebcc")
+            .withOrcidAccessToken("ccf31b21-d8f8-403a-8bb9-8e1835b8ebcc", eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -284,7 +284,7 @@ public class OrcidBulkPullIT extends AbstractIntegrationTestWithDatabase {
         Item profile4 = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Fourth profile")
             .withOrcidIdentifier(orcid3)
-            .withOrcidAccessToken("ccf31b21-d8f8-403a-8bb9-8e1835b8ebcc")
+            .withOrcidAccessToken("ccf31b21-d8f8-403a-8bb9-8e1835b8ebcc", eperson)
             .build();
 
         context.restoreAuthSystemState();

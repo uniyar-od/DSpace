@@ -153,7 +153,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
 
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test user")
-            .withCrisOwner("Test User", user.getID().toString())
+            .withDspaceObjectOwner("Test User", user.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -188,7 +188,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
 
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test user")
-            .withCrisOwner("Test User", user.getID().toString())
+            .withDspaceObjectOwner("Test User", user.getID().toString())
             .build();
 
         EPersonBuilder.createEPerson(context)
@@ -230,7 +230,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
 
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test user")
-            .withCrisOwner("Test User", user.getID().toString())
+            .withDspaceObjectOwner("Test User", user.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -251,7 +251,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
 
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test user")
-            .withCrisOwner("Test User", user.getID().toString())
+            .withDspaceObjectOwner("Test User", user.getID().toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -402,7 +402,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Walter White")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -430,7 +430,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Walter White")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .withOrcidWebhook("2020-01-01")
             .withOrcidAuthenticated("2020-02-01")
             .build();
@@ -463,7 +463,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Walter White")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .withOrcidWebhook("2020-02-01")
             .withOrcidAuthenticated("2020-02-01")
             .build();
@@ -501,7 +501,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Walter White")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -534,7 +534,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
         Item profileItem = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Walter White")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .withOrcidAuthenticated("2020-02-01")
             .build();
 

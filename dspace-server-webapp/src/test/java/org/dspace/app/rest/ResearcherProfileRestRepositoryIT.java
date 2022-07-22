@@ -183,7 +183,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         context.turnOffAuthorisationSystem();
 
         ItemBuilder.createItem(context, personCollection)
-            .withCrisOwner(name, id.toString())
+            .withDspaceObjectOwner(name, id.toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -227,7 +227,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         context.turnOffAuthorisationSystem();
 
         ItemBuilder.createItem(context, personCollection)
-            .withCrisOwner(name, id.toString())
+            .withDspaceObjectOwner(name, id.toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -268,7 +268,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         context.turnOffAuthorisationSystem();
 
         ItemBuilder.createItem(context, personCollection)
-            .withCrisOwner(name, id.toString())
+            .withDspaceObjectOwner(name, id.toString())
             .build();
 
         context.restoreAuthSystemState();
@@ -939,7 +939,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         ItemBuilder.createItem(context, personCollection)
             .withTitle("Admin User")
             .withPersonEmail("test@email.it")
-            .withCrisOwner("Admin User", admin.getID().toString())
+            .withDspaceObjectOwner("Admin User", admin.getID().toString())
             .build();
 
         context.restoreAuthSystemState();

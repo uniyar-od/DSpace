@@ -805,11 +805,11 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
             .build();
 
         Item author = ItemBuilder.createItem(context, collection)
-            .withCrisOwner(firstUser)
+            .withDspaceObjectOwner(firstUser)
             .build();
 
         Item editor = ItemBuilder.createItem(context, collection)
-            .withCrisOwner(secondUser)
+            .withDspaceObjectOwner(secondUser)
             .build();
 
         Item item = ItemBuilder.createItem(context, collection)
@@ -1291,7 +1291,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         Item itemA = ItemBuilder.createItem(context, collection)
             .withTitle("My Item")
             .withIssueDate("2022")
-            .withCrisOwner(user)
+            .withDspaceObjectOwner(user)
             .build();
 
         EditItem editItem = new EditItem(context, itemA);

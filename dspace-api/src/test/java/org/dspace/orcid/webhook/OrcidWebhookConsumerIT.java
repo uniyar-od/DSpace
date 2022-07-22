@@ -177,7 +177,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
         Item profile = ItemBuilder.createItem(context, persons)
             .withTitle("Profile")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -221,7 +221,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
 
         Item profile = ItemBuilder.createItem(context, persons)
             .withTitle("Profile")
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -264,7 +264,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
         Item profile = ItemBuilder.createItem(context, persons)
             .withTitle("Profile")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .build();
 
         context.restoreAuthSystemState();
@@ -286,7 +286,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
         Item profile = ItemBuilder.createItem(context, persons)
             .withTitle("Profile")
             .withOrcidIdentifier(ORCID)
-            .withOrcidAccessToken(ACCESS_TOKEN)
+            .withOrcidAccessToken(ACCESS_TOKEN, eperson)
             .build();
 
         context.restoreAuthSystemState();

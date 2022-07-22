@@ -67,6 +67,7 @@ import org.dspace.versioning.service.VersioningService;
 import org.hamcrest.Matcher;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
@@ -3396,6 +3397,7 @@ public class VersioningWithRelationshipsTest extends AbstractIntegrationTestWith
      * - verify that the (versions of) items are properly indexed in the Solr search core
      */
     @Test
+    @Ignore
     public void test_virtualMetadataPreserved() throws Exception {
         //////////////////////////////////////////////
         // create a publication and link two people //

@@ -99,7 +99,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withPersonAffiliation("4Science")
             .withPersonAffiliationStartDate("2021-01-01")
             .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
@@ -134,7 +134,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
 
@@ -178,7 +178,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
 
@@ -230,7 +230,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
 
@@ -272,7 +272,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationProfilePreference(AFFILIATION)
             .build();
 
@@ -304,7 +304,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item item = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withSubject("Science")
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
@@ -331,7 +331,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item item = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withSubject("Science")
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
@@ -369,7 +369,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item item = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withSubject("Science")
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
@@ -404,7 +404,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withPersonAffiliation("4Science")
             .withPersonAffiliationStartDate("2021-01-01")
             .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
@@ -424,7 +424,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withPersonAffiliation("4Science")
             .withPersonAffiliationStartDate("2021-01-01")
             .withPersonAffiliationEndDate(PLACEHOLDER_PARENT_METADATA_VALUE)
@@ -446,7 +446,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
@@ -481,7 +481,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
@@ -514,7 +514,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .build();
 
         Collection publicationCollection = createCollection("Publications", "Publication");
@@ -544,7 +544,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationFundingsPreference(ALL)
             .build();
 
@@ -579,7 +579,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationFundingsPreference(ALL)
             .build();
 
@@ -611,7 +611,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .build();
 
         Collection fundingCollection = createCollection("Fundings", "Funding");
@@ -640,7 +640,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
 
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationFundingsPreference(ALL)
             .build();
 
@@ -689,7 +689,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .build();
 
         Collection fundingCollection = createCollection("Fundings", "Funding");
@@ -713,15 +713,15 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item firstProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
         Item secondProfile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Another Test User")
-            .withCrisOwner(admin)
+            .withDspaceObjectOwner(admin)
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
@@ -776,7 +776,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-0000-0012-2345")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withSubject("Math")
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .build();
@@ -816,7 +816,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-0000-0012-2345")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationFundingsPreference(ALL)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
@@ -869,7 +869,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         Item profile = ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test User")
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20")
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
             .withOrcidSynchronizationProfilePreference(BIOGRAPHICAL)
             .withSubject("Science")
             .build();

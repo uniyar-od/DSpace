@@ -201,7 +201,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
 
     private void configurePaginationForFacets(Long offset, DiscoverQuery queryArgs) {
         if (offset != null) {
-            queryArgs.setFacetMinCount(Math.toIntExact(offset));
+            queryArgs.setFacetOffset(Math.toIntExact(offset));
         }
     }
 

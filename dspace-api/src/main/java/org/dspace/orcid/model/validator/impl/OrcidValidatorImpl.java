@@ -71,6 +71,10 @@ public class OrcidValidatorImpl implements OrcidValidator {
             return validateFunding((Funding) object);
         }
 
+        if (object instanceof Affiliation && isAffiliationValidationEnabled()) {
+            return validateAffiliation((Affiliation) object);
+        }
+
         return Collections.emptyList();
     }
 

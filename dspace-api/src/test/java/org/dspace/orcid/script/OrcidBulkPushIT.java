@@ -455,7 +455,7 @@ public class OrcidBulkPushIT extends AbstractIntegrationTestWithDatabase {
     private Item createOwnerItem(String orcid, OrcidSynchronizationMode mode) {
         return ItemBuilder.createItem(context, profileCollection)
             .withTitle("Test user")
-            .withOrcidAccessToken("9c913f57-961e-48af-9223-cfad6562c925")
+            .withOrcidAccessToken("9c913f57-961e-48af-9223-cfad6562c925", eperson)
             .withOrcidIdentifier(orcid)
             .withOrcidSynchronizationMode(mode)
             .build();

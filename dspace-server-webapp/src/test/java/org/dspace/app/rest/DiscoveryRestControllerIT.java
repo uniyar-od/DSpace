@@ -6387,7 +6387,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
             .withNameInMetadata("John", "Doe").build();
 
         Item author = ItemBuilder.createItem(context, people)
-                                  .withCrisOwner(owner.getFullName(), UUIDUtils.toString(owner.getID()))
+                                  .withDspaceObjectOwner(owner.getFullName(), UUIDUtils.toString(owner.getID()))
                                   .withTitle("Doe, John").build();
 
         Item publication1 = ItemBuilder.createItem(context, publications).withTitle("Publication 1")
