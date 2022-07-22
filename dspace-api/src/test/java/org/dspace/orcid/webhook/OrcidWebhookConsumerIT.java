@@ -35,6 +35,7 @@ import org.dspace.orcid.client.OrcidClient;
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.orcid.service.OrcidSynchronizationService;
+import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.junit.After;
@@ -60,6 +61,8 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
     private ConfigurationService configurationService;
 
     private OrcidSynchronizationService orcidSynchronizationService;
+
+    private OrcidTokenService orcidTokenService;
 
     private ItemService itemService;
 
@@ -87,6 +90,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
         orcidWebhookService = (OrcidWebhookServiceImpl) OrcidServiceFactory.getInstance().getOrcidWebhookService();
         configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
         orcidSynchronizationService = OrcidServiceFactory.getInstance().getOrcidSynchronizationService();
+        orcidTokenService = OrcidServiceFactory.getInstance().getOrcidTokenService();
         itemService = ContentServiceFactory.getInstance().getItemService();
 
         orcidClientMock = mock(OrcidClient.class);
@@ -100,6 +104,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
 
     @After
     public void after() {
+        orcidTokenService.deleteAll(context);
         orcidWebhookService.setOrcidClient(orcidClient);
     }
 
@@ -303,7 +308,7 @@ public class OrcidWebhookConsumerIT extends AbstractIntegrationTestWithDatabase 
     }
 
     private Predicate<MetadataValue> webhookMetadataField() {
-        return value -> value.getMetadataField().toString('.').equals("cris.orcid.webhook");
+        return value -> value.getMetadataField().toString('.').equals("dspace.orcid.webhook");
     }
 
     private OrcidTokenResponseDTO buildTokenResponse(String accessToken) {

@@ -23,6 +23,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.orcid.factory.OrcidServiceFactory;
 import org.dspace.orcid.service.OrcidSynchronizationService;
+import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.orcid.webhook.OrcidWebhookAction;
 import org.dspace.scripts.DSpaceRunnable;
 import org.dspace.utils.DSpace;
@@ -35,6 +36,8 @@ import org.dspace.utils.DSpace;
  *
  */
 public class OrcidBulkPull extends DSpaceRunnable<OrcidBulkPullScriptConfiguration<OrcidBulkPull>> {
+
+    private OrcidTokenService orcidTokenService;
 
     private List<OrcidWebhookAction> orcidWebhookActions;
 
@@ -49,6 +52,7 @@ public class OrcidBulkPull extends DSpaceRunnable<OrcidBulkPullScriptConfigurati
     @Override
     public void setup() throws ParseException {
 
+        orcidTokenService = OrcidServiceFactory.getInstance().getOrcidTokenService();
         orcidWebhookActions = OrcidServiceFactory.getInstance().getOrcidWebhookActions();
         itemService = ContentServiceFactory.getInstance().getItemService();
         orcidSynchronizationService = OrcidServiceFactory.getInstance().getOrcidSynchronizationService();
@@ -110,7 +114,7 @@ public class OrcidBulkPull extends DSpaceRunnable<OrcidBulkPullScriptConfigurati
     }
 
     private boolean hasNotAccessToken(Item profile) {
-        return itemService.getMetadataFirstValue(profile, "dspace", "orcid", "access-token", Item.ANY) == null;
+        return orcidTokenService.findByProfileItem(context, profile) == null;
     }
 
     private void assignCurrentUserInContext() throws SQLException {

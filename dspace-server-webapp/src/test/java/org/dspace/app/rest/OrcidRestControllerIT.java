@@ -490,7 +490,7 @@ public class OrcidRestControllerIT extends AbstractControllerIntegrationTest {
 
         assertThat(profileItem.getMetadata(), has(not(metadataField("cris.orcid.access-token"))));
         assertThat(profileItem.getMetadata(), has(not(metadataField("cris.orcid.authenticated"))));
-        assertThat(profileItem.getMetadata(), has(not(metadataField("cris.orcid.webhook"))));
+        assertThat(profileItem.getMetadata(), has(not(metadataField("dspace.orcid.webhook"))));
     }
 
     @Test

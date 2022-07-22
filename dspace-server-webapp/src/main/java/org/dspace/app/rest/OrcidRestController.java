@@ -7,16 +7,12 @@
  */
 package org.dspace.app.rest;
 
-import java.net.URI;
 import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.apache.commons.collections4.IteratorUtils;
@@ -27,23 +23,17 @@ import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.orcid.client.OrcidClient;
-import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.orcid.service.OrcidSynchronizationService;
 import org.dspace.orcid.service.OrcidWebhookService;
 import org.dspace.orcid.webhook.OrcidWebhookAction;
-import org.dspace.profile.ResearcherProfile;
 import org.dspace.services.ConfigurationService;
-import org.dspace.util.UUIDUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.rest.webmvc.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -81,26 +71,6 @@ public class OrcidRestController {
         if (orcidWebhookActions == null) {
             orcidWebhookActions = Collections.emptyList();
         }
-    }
-
-    @GetMapping(value = "/{itemId}")
-    public void linkProfileFromCode(HttpServletRequest request, HttpServletResponse response,
-        @RequestParam(name = "code") String code, @PathVariable(name = "itemId") String itemId,
-        @RequestParam(name = "url") String url) throws Exception {
-
-        Context context = ContextUtil.obtainContext(request);
-
-        ResearcherProfile profile = findResearcherProfile(context, UUIDUtils.fromString(itemId))
-            .orElseThrow(() -> new ResourceNotFoundException("No profile found by item id: " + itemId));
-
-        OrcidTokenResponseDTO token = orcidClient.getAccessToken(code);
-
-        orcidSynchronizationService.linkProfile(context, profile.getItem(), token);
-
-        context.complete();
-
-        URI dspaceUiUrl = new URI(configurationService.getProperty("dspace.ui.url"));
-        response.sendRedirect(dspaceUiUrl.resolve(url).toString());
     }
 
     @PostMapping(value = "/{orcid}/webhook/{token}")
@@ -146,11 +116,6 @@ public class OrcidRestController {
             orcidWebhookActions.forEach(plugin -> plugin.perform(context, profile, orcid));
             itemService.update(context, profile);
         }
-    }
-
-    private Optional<ResearcherProfile> findResearcherProfile(Context context, UUID itemId) throws SQLException {
-        return Optional.ofNullable(itemService.find(context, itemId))
-            .map(ResearcherProfile::new);
     }
 
     public OrcidClient getOrcidClient() {

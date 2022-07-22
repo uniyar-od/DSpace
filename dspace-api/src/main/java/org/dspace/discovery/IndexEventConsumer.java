@@ -159,7 +159,7 @@ public class IndexEventConsumer implements Consumer {
                                  + event.getObjectTypeAsString() + " id="
                                  + event.getObjectID()
                                  + ", perhaps it has been deleted.");
-                } else {
+                } else if (st != Constants.SITE) {
                     log.debug("consume() adding event to update queue: " + event.toString());
                     objectsToUpdate.addAll(indexObjectServiceFactory.getIndexableObjects(ctx, subject));
 

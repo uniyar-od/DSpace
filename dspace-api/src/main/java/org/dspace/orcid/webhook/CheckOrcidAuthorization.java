@@ -16,8 +16,10 @@ import org.apache.http.HttpStatus;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.orcid.OrcidToken;
 import org.dspace.orcid.client.OrcidClient;
 import org.dspace.orcid.exception.OrcidClientException;
+import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.orcid.service.OrcidWebhookService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,9 +48,12 @@ public class CheckOrcidAuthorization implements OrcidWebhookAction {
     @Autowired
     private OrcidWebhookService orcidWebhookService;
 
+    @Autowired
+    private OrcidTokenService orcidTokenService;
+
     @Override
     public void perform(Context context, Item profile, String orcid) {
-        String accessToken = getAccessToken(profile);
+        String accessToken = getAccessToken(context, profile);
         if (StringUtils.isBlank(accessToken)) {
             return;
         }
@@ -72,12 +77,13 @@ public class CheckOrcidAuthorization implements OrcidWebhookAction {
 
     }
 
-    private String getAccessToken(Item profile) {
-        return itemService.getMetadataFirstValue(profile, "dspace", "orcid", "access-token", Item.ANY);
+    private String getAccessToken(Context context, Item profile) {
+        OrcidToken orcidToken = orcidTokenService.findByProfileItem(context, profile);
+        return orcidToken != null ? orcidToken.getAccessToken() : null;
     }
 
     private void removeAccessToken(Context context, Item profile) throws SQLException {
-        itemService.clearMetadata(context, profile, "dspace", "orcid", "access-token", Item.ANY);
+        orcidTokenService.deleteByProfileItem(context, profile);
         itemService.clearMetadata(context, profile, "dspace", "orcid", "authenticated", Item.ANY);
     }
 

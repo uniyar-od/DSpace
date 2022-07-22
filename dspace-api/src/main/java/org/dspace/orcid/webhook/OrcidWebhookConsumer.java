@@ -22,9 +22,10 @@ import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.dspace.orcid.factory.OrcidServiceFactory;
+import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.orcid.service.OrcidWebhookService;
-import org.dspace.services.ConfigurationService;
-import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.profile.service.ResearcherProfileService;
+import org.dspace.utils.DSpace;
 
 /**
  * Implementation of {@link Consumer} that perform registrations and
@@ -41,13 +42,16 @@ public class OrcidWebhookConsumer implements Consumer {
 
     private OrcidWebhookService orcidWebhookService;
 
-    private ConfigurationService configurationService;
+    private OrcidTokenService orcidTokenService;
+
+    private ResearcherProfileService researcherProfileService;
 
     @Override
     public void initialize() throws Exception {
         this.itemService = ContentServiceFactory.getInstance().getItemService();
-        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        this.researcherProfileService = new DSpace().getSingletonService(ResearcherProfileService.class);
         this.orcidWebhookService = OrcidServiceFactory.getInstance().getOrcidWebhookService();
+        this.orcidTokenService = OrcidServiceFactory.getInstance().getOrcidTokenService();
     }
 
     @Override
@@ -75,7 +79,7 @@ public class OrcidWebhookConsumer implements Consumer {
         }
 
         boolean isWebhookAlreadyRegistered = orcidWebhookService.isProfileRegistered(item);
-        boolean hasRequiredOrcidMetadata = hasRequiredOrcidMetadata(item, webhookConfiguration);
+        boolean hasRequiredOrcidMetadata = hasRequiredOrcidMetadata(context, item, webhookConfiguration);
 
         if (!isWebhookAlreadyRegistered && hasRequiredOrcidMetadata) {
             orcidWebhookService.register(context, item);
@@ -84,17 +88,16 @@ public class OrcidWebhookConsumer implements Consumer {
     }
 
     private boolean isNotProfile(Item item) {
-        return !getProfileType().equals(itemService.getEntityTypeLabel(item));
+        return !researcherProfileService.getProfileType().equals(itemService.getEntityTypeLabel(item));
     }
 
-    private boolean hasRequiredOrcidMetadata(Item item, OrcidWebhookMode webhookConfiguration) {
+    private boolean hasRequiredOrcidMetadata(Context context, Item item, OrcidWebhookMode webhookConfiguration) {
         boolean hasOrcidId = isNotBlank(getMetadataFirstValue(item, "person.identifier.orcid"));
-        boolean hasAccessToken = isNotBlank(getMetadataFirstValue(item, "cris.orcid.access-token"));
-        return webhookConfiguration == ALL ? hasOrcidId : hasOrcidId && hasAccessToken;
+        return webhookConfiguration == ALL ? hasOrcidId : hasOrcidId && hasOrcidAccessToken(context, item);
     }
 
-    private String getProfileType() {
-        return configurationService.getProperty("researcher-profile.type", "Person");
+    private boolean hasOrcidAccessToken(Context context, Item item) {
+        return orcidTokenService.findByProfileItem(context, item) != null;
     }
 
     private String getMetadataFirstValue(Item item, String metadataField) {

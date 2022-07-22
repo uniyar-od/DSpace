@@ -200,7 +200,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("item")))
-            .andExpect(jsonPath("$.metadata", matchMetadata("cris.owner", name, id.toString(), 0)))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dspace.object.owner", name, id.toString(), 0)))
             .andExpect(jsonPath("$.metadata", matchMetadata("dspace.entity.type", "Person", 0)));
 
         getClient(authToken).perform(get("/api/cris/profiles/{id}/eperson", id))
@@ -242,7 +242,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("item")))
-            .andExpect(jsonPath("$.metadata", matchMetadata("cris.owner", name, id.toString(), 0)))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dspace.object.owner", name, id.toString(), 0)))
             .andExpect(jsonPath("$.metadata", matchMetadata("dspace.entity.type", "Person", 0)));
 
         getClient(authToken).perform(get("/api/cris/profiles/{id}/eperson", id))
@@ -311,7 +311,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("item")))
-            .andExpect(jsonPath("$.metadata", matchMetadata("cris.owner", name, id.toString(), 0)))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dspace.object.owner", name, id.toString(), 0)))
             .andExpect(jsonPath("$.metadata", matchMetadata("cris.sourceId", id, 0)))
             .andExpect(jsonPath("$.metadata", matchMetadata("cris.policy.group", administrators.getName(),
                                                             UUIDUtils.toString(administrators.getID()), 0)))
@@ -354,7 +354,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("item")))
-            .andExpect(jsonPath("$.metadata", matchMetadata("cris.owner", name, id.toString(), 0)))
+            .andExpect(jsonPath("$.metadata", matchMetadata("dspace.object.owner", name, id.toString(), 0)))
             .andExpect(jsonPath("$.metadata", matchMetadata("cris.sourceId", id, 0)))
             .andExpect(jsonPath("$.metadata", matchMetadata("cris.policy.group", administrators.getName(),
                                                             UUIDUtils.toString(administrators.getID()), 0)))
@@ -462,7 +462,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
 
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasJsonPath("$.metadata", matchMetadataNotEmpty("cris.owner"))))
+            .andExpect(jsonPath("$", hasJsonPath("$.metadata", matchMetadataNotEmpty("dspace.object.owner"))))
             .andDo(result -> itemIdRef.set(fromString(read(result.getResponse().getContentAsString(), "$.id"))));
 
         getClient(authToken).perform(delete("/api/cris/profiles/{id}", id))
@@ -473,7 +473,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
 
         getClient(authToken).perform(get("/api/core/items/{id}", itemIdRef.get()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasJsonPath("$.metadata", matchMetadataDoesNotExist("cris.owner"))));
+            .andExpect(jsonPath("$", hasJsonPath("$.metadata", matchMetadataDoesNotExist("dspace.object.owner"))));
 
     }
 
@@ -500,7 +500,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
 
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasJsonPath("$.metadata", matchMetadataNotEmpty("cris.owner"))))
+            .andExpect(jsonPath("$", hasJsonPath("$.metadata", matchMetadataNotEmpty("dspace.object.owner"))))
             .andDo(result -> itemIdRef.set(fromString(read(result.getResponse().getContentAsString(), "$.id"))));
 
         getClient(authToken).perform(delete("/api/cris/profiles/{id}", id))
@@ -1921,7 +1921,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             assertThat(getMetadataValues(profile, "cris.orcid.access-token"), empty());
             assertThat(getMetadataValues(profile, "cris.orcid.refresh-token"), empty());
             assertThat(getMetadataValues(profile, "cris.orcid.scope"), empty());
-            assertThat(getMetadataValues(profile, "cris.orcid.webhook"), empty());
+            assertThat(getMetadataValues(profile, "dspace.orcid.webhook"), empty());
 
             verify(orcidClientMock).getWebhookAccessToken();
             verify(orcidClientMock).unregisterWebhook(eq(webhookAccessToken), eq(orcid), any());
@@ -2066,7 +2066,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
         getClient(authToken).perform(get("/api/cris/profiles/{id}/item", id))
                             .andExpect(status().isOk())
                             .andExpect(jsonPath("$.type", is("item")))
-                            .andExpect(jsonPath("$.metadata", matchMetadata("cris.owner", name, id, 0)))
+                            .andExpect(jsonPath("$.metadata", matchMetadata("dspace.object.owner", name, id, 0)))
                             .andExpect(jsonPath("$.metadata", matchMetadata("cris.sourceId", id, 0)))
                             .andExpect(jsonPath("$.metadata", matchMetadata("dspace.entity.type", "Person", 0)));
 
