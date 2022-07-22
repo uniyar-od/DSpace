@@ -73,12 +73,12 @@ public class CheckOrcidAuthorization implements OrcidWebhookAction {
     }
 
     private String getAccessToken(Item profile) {
-        return itemService.getMetadataFirstValue(profile, "cris", "orcid", "access-token", Item.ANY);
+        return itemService.getMetadataFirstValue(profile, "dspace", "orcid", "access-token", Item.ANY);
     }
 
     private void removeAccessToken(Context context, Item profile) throws SQLException {
-        itemService.clearMetadata(context, profile, "cris", "orcid", "access-token", Item.ANY);
-        itemService.clearMetadata(context, profile, "cris", "orcid", "authenticated", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "access-token", Item.ANY);
+        itemService.clearMetadata(context, profile, "dspace", "orcid", "authenticated", Item.ANY);
     }
 
     private boolean isAccessTokenExpired(String accessToken, String orcid) {

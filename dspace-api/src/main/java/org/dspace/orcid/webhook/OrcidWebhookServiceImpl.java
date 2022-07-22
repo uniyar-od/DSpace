@@ -53,7 +53,7 @@ public class OrcidWebhookServiceImpl implements OrcidWebhookService {
 
     @Override
     public boolean isProfileRegistered(Item profile) {
-        return isNotBlank(itemService.getMetadataFirstValue(profile, "cris", "orcid", "webhook", Item.ANY));
+        return isNotBlank(itemService.getMetadataFirstValue(profile, "dspace", "orcid", "webhook", Item.ANY));
     }
 
     @Override
@@ -66,7 +66,7 @@ public class OrcidWebhookServiceImpl implements OrcidWebhookService {
 
         String currentDate = ISO_DATE_TIME.format(now());
         try {
-            itemService.setMetadataSingleValue(context, profile, "cris", "orcid", "webhook", null, currentDate);
+            itemService.setMetadataSingleValue(context, profile, "dspace", "orcid", "webhook", null, currentDate);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
@@ -79,7 +79,7 @@ public class OrcidWebhookServiceImpl implements OrcidWebhookService {
         unregister(context, getOrcid(profile));
 
         try {
-            itemService.clearMetadata(context, profile, "cris", "orcid", "webhook", Item.ANY);
+            itemService.clearMetadata(context, profile, "dspace", "orcid", "webhook", Item.ANY);
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }

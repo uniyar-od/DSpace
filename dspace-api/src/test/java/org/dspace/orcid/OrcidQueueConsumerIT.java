@@ -529,7 +529,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(orcidQueueService.findAll(context), empty());
 
-        addMetadata(profile, "cris", "orcid", "sync-publications", DISABLED.name(), null);
+        addMetadata(profile, "dspace", "orcid", "sync-publications", DISABLED.name(), null);
         addMetadata(publication, "dc", "date", "issued", "2021-01-01", null);
         context.commit();
 
@@ -626,7 +626,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
 
         assertThat(orcidQueueService.findAll(context), empty());
 
-        addMetadata(profile, "cris", "orcid", "sync-fundings", DISABLED.name(), null);
+        addMetadata(profile, "dspace", "orcid", "sync-fundings", DISABLED.name(), null);
         addMetadata(funding, "crispj", "partnerou", null, "Partner", null);
         context.commit();
 
@@ -721,7 +721,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
             .withTitle("Another Test User")
             .withDspaceObjectOwner(admin)
             .withOrcidIdentifier("0000-1111-2222-3333")
-            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", eperson)
+            .withOrcidAccessToken("ab4d18a0-8d9a-40f1-b601-a417255c8d20", admin)
             .withOrcidSynchronizationPublicationsPreference(ALL)
             .build();
 
@@ -789,7 +789,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(records, hasItem(matches(profile, "KEYWORDS", null, "dc.subject::Math", "Math", INSERT)));
 
         addMetadata(profile, "person", "identifier", "rid", "ID", null);
-        addMetadata(profile, "cris", "orcid", "sync-profile", IDENTIFIERS.name(), null);
+        addMetadata(profile, "dspace", "orcid", "sync-profile", IDENTIFIERS.name(), null);
 
         context.commit();
 
@@ -798,7 +798,7 @@ public class OrcidQueueConsumerIT extends AbstractIntegrationTestWithDatabase {
         assertThat(records, hasItem(matches(profile, "KEYWORDS", null, "dc.subject::Math", "Math", INSERT)));
         assertThat(records, hasItem(matches(profile, "EXTERNAL_IDS", null, "person.identifier.rid::ID", "ID", INSERT)));
 
-        removeMetadata(profile, "cris", "orcid", "sync-profile");
+        removeMetadata(profile, "dspace", "orcid", "sync-profile");
 
         context.commit();
 

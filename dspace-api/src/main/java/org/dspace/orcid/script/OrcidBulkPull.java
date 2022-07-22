@@ -110,7 +110,7 @@ public class OrcidBulkPull extends DSpaceRunnable<OrcidBulkPullScriptConfigurati
     }
 
     private boolean hasNotAccessToken(Item profile) {
-        return itemService.getMetadataFirstValue(profile, "cris", "orcid", "access-token", Item.ANY) == null;
+        return itemService.getMetadataFirstValue(profile, "dspace", "orcid", "access-token", Item.ANY) == null;
     }
 
     private void assignCurrentUserInContext() throws SQLException {

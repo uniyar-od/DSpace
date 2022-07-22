@@ -1884,7 +1884,7 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
 
         Item profile = createProfile(ePerson);
 
-        addMetadata(profile, "cris", "orcid", "webhook", "2020-02-02");
+        addMetadata(profile, "dspace", "orcid", "webhook", "2020-02-02");
 
         OrcidQueue firstQueueRecord = OrcidQueueBuilder.createOrcidQueue(context, profile, profile).build();
         OrcidQueue secondQueueRecord = OrcidQueueBuilder.createOrcidQueue(context, profile, profile).build();
