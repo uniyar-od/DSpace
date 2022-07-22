@@ -612,8 +612,6 @@ public interface AuthorizeService {
     long countAdminAuthorizedCollection(Context context, String query)
         throws SearchServiceException, SQLException;
 
-    public boolean isPartOfTheGroup(Context c, String egroup) throws SQLException;
-
     /**
      * Check if the current user is authorized to create/edit/delete a relationship
      * of the given type between the leftItem and the rigthItem.

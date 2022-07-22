@@ -180,7 +180,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                                 .build();
 
         itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
@@ -272,7 +272,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                                 .build();
 
         itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
@@ -679,7 +679,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                                 userA.getID().toString(), 600);
         itemService.addMetadata(context, itemA, "cris", "policy", "group", null, groupA.getName(),
                                 groupA.getID().toString(), 600);
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userB.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userB.getID().toString());
 
         MetadataField policyEperson = mfss.findByElement(context, "cris", "policy", "eperson");
         MetadataField policyGroup = mfss.findByElement(context, "cris", "policy", "group");
@@ -1121,7 +1121,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                              .build();
 
         itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, eperson.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, eperson.getID().toString());
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
@@ -1592,7 +1592,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
                              .withUser(userA).build();
 
         itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "A secured abstract");
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");
         MetadataField title = mfss.findByElement(context, "dc", "title", null);
@@ -1814,7 +1814,7 @@ public class LayoutSecurityIT extends AbstractControllerIntegrationTest {
 
         itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "First Abstract description");
         itemService.addMetadata(context, itemA, "dc", "description", "abstract", null, "Second Abstract description");
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, eperson.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, eperson.getID().toString());
 
 
         MetadataField abs = mfss.findByElement(context, "dc", "description", "abstract");

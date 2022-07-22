@@ -619,7 +619,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                                 .withAuthor("Smith, Maria")
                                 .build();
 
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         EditItem editItem = new EditItem(context, itemA);
 
@@ -659,7 +659,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                                 .withAuthor("Smith, Maria")
                                 .build();
 
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         EditItem editItem = new EditItem(context, itemA);
 
@@ -693,7 +693,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                                 .withAuthor("Smith, Maria")
                                 .build();
 
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, userA.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         EditItem editItem = new EditItem(context, itemA);
 
@@ -850,7 +850,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                                 .withIssueDate("2015-06-25")
                                 .withAuthor("Mykhaylo, Boychuk").build();
 
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, eperson.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, eperson.getID().toString());
 
         EditItem editItem = new EditItem(context, itemA);
 
@@ -899,7 +899,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                                 .withIssueDate("2015-06-25")
                                 .withAuthor("Mykhaylo, Boychuk").build();
 
-        itemService.addMetadata(context, itemA, "cris", "owner", null, null, eperson.getID().toString());
+        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, eperson.getID().toString());
 
         EditItem editItem = new EditItem(context, itemA);
 

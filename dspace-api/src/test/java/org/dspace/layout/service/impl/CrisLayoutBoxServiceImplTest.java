@@ -259,7 +259,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(userUuid);
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", userUuid.toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_AUTHORIZATIONS");
@@ -274,7 +274,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(UUID.randomUUID());
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_AUTHORIZATIONS");
@@ -288,7 +288,7 @@ public class CrisLayoutBoxServiceImplTest {
 
         when(context.getCurrentUser()).thenReturn(null);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_AUTHORIZATIONS");
@@ -304,7 +304,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(userUuid);
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", userUuid.toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_SETTINGS");
@@ -320,7 +320,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(userUuid);
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         MetadataField orcidField = metadataField("person", "identifier", "orcid");
         MetadataField tokenField = metadataField("cris", "orcid", "access-token");
         Item item = item(metadataValue(ownerField, "Owner", userUuid.toString()),
@@ -338,7 +338,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(UUID.randomUUID());
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_SETTINGS");
@@ -352,7 +352,7 @@ public class CrisLayoutBoxServiceImplTest {
 
         when(context.getCurrentUser()).thenReturn(null);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_SETTINGS");
@@ -368,7 +368,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(userUuid);
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", userUuid.toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_QUEUE");
@@ -384,7 +384,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(userUuid);
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         MetadataField orcidField = metadataField("person", "identifier", "orcid");
         MetadataField tokenField = metadataField("cris", "orcid", "access-token");
         Item item = item(metadataValue(ownerField, "Owner", userUuid.toString()),
@@ -402,7 +402,7 @@ public class CrisLayoutBoxServiceImplTest {
         EPerson currentUser = ePerson(UUID.randomUUID());
         when(context.getCurrentUser()).thenReturn(currentUser);
 
-        MetadataField ownerField = metadataField("cris", "owner", null);
+        MetadataField ownerField = metadataField("dspace", "object", "owner");
         Item item = item(metadataValue(ownerField, "Owner", UUID.randomUUID().toString()));
 
         CrisLayoutBox box = crisLayoutBox("Box", "ORCID_SYNC_QUEUE");
