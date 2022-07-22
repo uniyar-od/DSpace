@@ -791,27 +791,19 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     }
 
     public ItemBuilder withProjectStartDate(String startDate) {
-        return addMetadataValue(item, "project", "startDate", null, startDate);
+        return addMetadataValue(item, "oairecerif", "project", "startDate", startDate);
     }
 
     public ItemBuilder withProjectEndDate(String endDate) {
-        return addMetadataValue(item, "project", "endDate", null, endDate);
+        return addMetadataValue(item, "oairecerif", "project", "endDate", endDate);
     }
 
     public ItemBuilder withProjectInvestigator(String investigator) {
-        return addMetadataValue(item, "project", "investigator", null, investigator);
+        return addMetadataValue(item, "crispj", "investigator", null, investigator);
     }
 
     public ItemBuilder withDescription(String description) {
         return addMetadataValue(item, MetadataSchemaEnum.DC.getName(), "description", null, description);
-    }
-
-    public ItemBuilder withProjectAmount(String amount) {
-        return addMetadataValue(item, "project", "amount", null, amount);
-    }
-
-    public ItemBuilder withProjectAmountCurrency(String currency) {
-        return addMetadataValue(item, "project", "amount", "currency", currency);
     }
 
     public ItemBuilder withUriIdentifier(String uri) {
