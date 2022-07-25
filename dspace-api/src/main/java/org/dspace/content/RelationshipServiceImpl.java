@@ -110,7 +110,7 @@ public class RelationshipServiceImpl implements RelationshipService {
         relationship.setRightPlace(rightPlace);
         relationship.setLeftwardValue(leftwardValue);
         relationship.setRightwardValue(rightwardValue);
-        return create(c, relationship);
+        return relationship;
     }
 
     public Relationship create(

@@ -691,9 +691,8 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
                                 .withTitle("Title item A")
                                 .withIssueDate("2015-06-25")
                                 .withAuthor("Smith, Maria")
+                                .withDspaceObjectOwner(userA)
                                 .build();
-
-        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, userA.getID().toString());
 
         EditItem editItem = new EditItem(context, itemA);
 
@@ -848,9 +847,9 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
 
         Item itemA = ItemBuilder.createItem(context, col1)
                                 .withIssueDate("2015-06-25")
-                                .withAuthor("Mykhaylo, Boychuk").build();
-
-        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, eperson.getID().toString());
+                                .withAuthor("Mykhaylo, Boychuk")
+                                .withDspaceObjectOwner(eperson)
+                                .build();
 
         EditItem editItem = new EditItem(context, itemA);
 
@@ -897,9 +896,9 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
 
         Item itemA = ItemBuilder.createItem(context, col1)
                                 .withIssueDate("2015-06-25")
-                                .withAuthor("Mykhaylo, Boychuk").build();
-
-        itemService.addMetadata(context, itemA, "dspace", "object", "owner", null, eperson.getID().toString());
+                                .withAuthor("Mykhaylo, Boychuk")
+                                .withDspaceObjectOwner(eperson)
+                                .build();
 
         EditItem editItem = new EditItem(context, itemA);
 

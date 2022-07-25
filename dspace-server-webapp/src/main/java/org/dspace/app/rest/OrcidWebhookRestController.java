@@ -38,15 +38,15 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Rest controller that store ORCID infos and handles redirect.
+ * Rest controller that handle the ORCID webhook callback.
  *
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
  */
 @RequestMapping(value = "/api/" + RestModel.CRIS + "/orcid")
 @RestController
-public class OrcidRestController {
+public class OrcidWebhookRestController {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrcidRestController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrcidWebhookRestController.class);
 
     @Autowired
     private ConfigurationService configurationService;
