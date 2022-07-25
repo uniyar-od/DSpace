@@ -187,6 +187,7 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
             }
 
             if (isAllowedToModifyRelationship(context, relationship, newLeftItem, newRightItem)) {
+                context.turnOffAuthorisationSystem();
                 try {
                     relationshipService.move(context, relationship, newLeftItem, newRightItem);
                     context.commit();
@@ -247,14 +248,6 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
         relationship.setLeftwardValue(relationshipRest.getLeftwardValue());
         relationship.setRightwardValue(relationshipRest.getRightwardValue());
 
-        if (jsonNode.hasNonNull("rightPlace")) {
-            relationship.setRightPlace(relationshipRest.getRightPlace());
-        }
-
-        if (jsonNode.hasNonNull("leftPlace")) {
-            relationship.setLeftPlace(relationshipRest.getLeftPlace());
-        }
-
         if (!authorizeService.canHandleRelationship(context, relationship)) {
             throw new AccessDeniedException("You do not have write rights on this relationship's metadata");
         }
@@ -300,6 +293,8 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
         RelationshipType relationshipType = relationship.getRelationshipType();
         Item oldLeftItem = relationship.getLeftItem();
         Item oldRightItem = relationship.getRightItem();
+        newLeftItem = newLeftItem != null ? newLeftItem : oldLeftItem;
+        newRightItem = newRightItem != null ? newRightItem : oldRightItem;
 
         return authorizeService.canHandleRelationship(context, relationshipType, newLeftItem, newRightItem) &&
             authorizeService.canHandleRelationship(context, relationshipType, oldLeftItem, oldRightItem);

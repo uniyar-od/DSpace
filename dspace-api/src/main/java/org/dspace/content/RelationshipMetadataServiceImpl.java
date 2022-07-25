@@ -110,7 +110,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
             //       on the left item as a storage/performance improvement.
             //       As a consequence, when searching for related items (using discovery)
             //       on the pages of the right items you won't be able to find the left item.
-            if (relationshipType.getTilted() != RIGHT && relationshipType.getLeftType().equals(itemEntityType)) {
+            if (relationshipType.getTilted() != RIGHT && itemEntityType.equals(relationshipType.getLeftType())) {
                 String element = relationshipType.getLeftwardType();
                 List<ItemUuidAndRelationshipId> data = relationshipService
                     .findByLatestItemAndRelationshipType(context, item, relationshipType, true);
@@ -123,7 +123,7 @@ public class RelationshipMetadataServiceImpl implements RelationshipMetadataServ
             //       on the right item as a storage/performance improvement.
             //       As a consequence, when searching for related items (using discovery)
             //       on the pages of the left items you won't be able to find the right item.
-            if (relationshipType.getTilted() != LEFT && relationshipType.getRightType().equals(itemEntityType)) {
+            if (relationshipType.getTilted() != LEFT && itemEntityType.equals(relationshipType.getRightType())) {
                 String element = relationshipType.getRightwardType();
                 List<ItemUuidAndRelationshipId> data = relationshipService
                     .findByLatestItemAndRelationshipType(context, item, relationshipType, false);
