@@ -674,6 +674,22 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
 
         private int numberOfItems;
 
+        private boolean targetBlank;
+
+        private boolean fitWidth;
+
+        private boolean fitHeight;
+
+        private boolean keepAspectRatio;
+
+        private double aspectRatio;
+
+        private int carouselHeightPx;
+
+        private String captionStyle;
+
+        private String titleStyle;
+
         /**
          * Initializes the rest component using the
          * CrisLayoutCarouselComponent component
@@ -689,6 +705,14 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
             order = component.getOrder();
             sortField = component.getSortField();
             numberOfItems = component.getNumberOfItems();
+            targetBlank = component.isTargetBlank();
+            fitWidth = component.isFitWidth();
+            fitHeight = component.isFitHeight();
+            keepAspectRatio = component.isKeepAspectRatio();
+            aspectRatio = component.getAspectRatio();
+            carouselHeightPx = component.getCarouselHeightPx();
+            captionStyle = component.getCaptionStyle();
+            titleStyle = component.getTitleStyle();
         }
 
         /**
@@ -750,6 +774,61 @@ public class CrisLayoutSectionRest extends BaseObjectRest<String> {
             return numberOfItems;
         }
 
+        /**
+         * @return the targetBlank
+         */
+        public boolean isTargetBlank() {
+            return targetBlank;
+        }
+
+        /**
+         * @return the fitWidth
+         */
+        public boolean isFitWidth() {
+            return fitWidth;
+        }
+
+        /**
+         * @return the fitHeight
+         */
+        public boolean isFitHeight() {
+            return fitHeight;
+        }
+
+        /**
+         * @return the keepAspectRatio
+         */
+        public boolean isKeepAspectRatio() {
+            return keepAspectRatio;
+        }
+
+        /**
+         * @return the aspectRatio
+         */
+        public double getAspectRatio() {
+            return aspectRatio;
+        }
+
+        /**
+         * @return the carouselHeightPx
+         */
+        public int getCarouselHeightPx() {
+            return carouselHeightPx;
+        }
+
+        /**
+         * @return the captionStyle
+         */
+        public String getCaptionStyle() {
+            return captionStyle;
+        }
+
+        /**
+         * @return the titleStyle
+         */
+        public String getTitleStyle() {
+            return titleStyle;
+        }
 
     }
 
