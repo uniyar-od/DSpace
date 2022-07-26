@@ -177,6 +177,7 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
     private List<Choice> getChoicesFromResult(String authorityName, ItemControlledVocabulary controlledVocabulary,
                                               DiscoverResult result) {
         return result.getIndexableObjects().stream()
+            .filter(i -> i.getIndexedObject() instanceof Item)
             .map(i -> {
                 Item item = (Item) i.getIndexedObject();
                 return getChoiceFromItem(authorityName, controlledVocabulary, item);
