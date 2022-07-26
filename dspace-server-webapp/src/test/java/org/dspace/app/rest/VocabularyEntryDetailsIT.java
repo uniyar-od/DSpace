@@ -8,7 +8,9 @@
 package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -17,11 +19,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.UUID;
 
 import org.dspace.app.rest.matcher.VocabularyEntryDetailsMatcher;
+import org.dspace.app.rest.matcher.VocabularyMatcher;
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.ItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.Item;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.junit.Before;
@@ -514,4 +519,388 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                              .andExpect(jsonPath("$._links.top.href", Matchers.allOf(
                                  Matchers.containsString("/api/submission/vocabularyEntryDetails/search/top"))));
     }
+
+    @Test
+    public void itemVocabularyNoParentsTest() throws Exception {
+        getClient().perform(
+                        get("/api/submission/vocabularyEntryDetails/search/top")
+                            .param("vocabulary", "orgunits")
+                   )
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.page.totalElements", is(0)));
+    }
+
+    @Test
+    public void itemVocabularyWithParentsAndNoChildrenTest() throws Exception {
+        // Given an Item
+      context.turnOffAuthorisationSystem();
+
+      Item orgUnit1 = ItemBuilder.createItem(context, collection)
+              .withTitle("OrgUnit1")
+              .withIssueDate("2022-07-25")
+              .withAuthor("Vins01, 4Science")
+              .withAuthor("Waters, Roger")
+              .build();
+
+      Item orgUnit5 = ItemBuilder.createItem(context, collection)
+              .withTitle("OrgUnit5")
+              .withIssueDate("2022-07-25")
+              .withAuthor("Vins01, 4Science")
+              .withAuthor("Hendrix, Jimi")
+              .build();
+
+      context.restoreAuthSystemState();
+      //
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/search/top")
+                    .param("vocabulary", "orgunits")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(2)));
+    }
+
+    @Test
+    public void itemVocabularyWithParentsAndChildrenTest() throws Exception {
+        // Given an Item
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit1 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit1")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Waters, Roger")
+                .build();
+
+        Item orgUnit2 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit2")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Rose, Axl")
+                .withParentOrganization("OrgUnit1", orgUnit1.getID().toString())
+                .build();
+
+        Item orgUnit3 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit3")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Young, Angus")
+                .build();
+
+        Item orgUnit4 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit4")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Gilmour, David")
+                .withParentOrganization("OrgUnit3", orgUnit3.getID().toString())
+                .build();
+
+        Item orgUnit5 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit5")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Hendrix, Jimi")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/search/top")
+                    .param("vocabulary", "orgunits")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(3)))
+                .andExpect(
+                        jsonPath(
+                                "$._embedded.vocabularyEntryDetails",
+                                hasItems(
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
+                                                orgUnit1.getID().toString(), "vocabularyEntryDetail"),
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit3.getName(),
+                                                orgUnit3.getID().toString(), "vocabularyEntryDetail"),
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit5.getName(),
+                                                orgUnit5.getID().toString(), "vocabularyEntryDetail")
+                                )
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$._embedded.vocabularyEntryDetails",
+                                hasItems(
+                                    allOf(
+                                            hasJsonPath("$.value", is(orgUnit1.getID().toString())),
+                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                    ),
+                                    allOf(
+                                            hasJsonPath("$.value", is(orgUnit3.getID().toString())),
+                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                    ),
+                                    allOf(
+                                            hasJsonPath("$.value", is(orgUnit5.getID().toString())),
+                                            hasJsonPath("$.otherInformation.hasChildren", is("false"))
+                                    )
+                                )
+                        )
+                );
+        //
+    }
+
+    @Test
+    public void itemVocabularyWithChildrenTest() throws Exception {
+        // Given an Item
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit1 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit1")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Waters, Roger")
+                .build();
+
+        Item orgUnit2 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit2")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Rose, Axl")
+                .withParentOrganization("OrgUnit1", orgUnit1.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/search/top")
+                .param("vocabulary", "orgunits")
+                )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(1)))
+        .andExpect(
+                jsonPath(
+                        "$._embedded.vocabularyEntryDetails",
+                        hasItems(
+                                VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
+                                        orgUnit1.getID().toString(), "vocabularyEntryDetail")
+                                )
+                        )
+                )
+        .andExpect(
+                jsonPath(
+                        "$._embedded.vocabularyEntryDetails",
+                        hasItems(
+                                allOf(
+                                        hasJsonPath("$.value", is(orgUnit1.getID().toString())),
+                                        hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                )
+                        )
+                )
+        );
+
+        getClient().perform(
+                    get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit1.getID().toString() + "/children")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(1)))
+                .andExpect(
+                        jsonPath(
+                                "$._embedded.children",
+                                hasItems(
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit2.getName(),
+                                                orgUnit2.getID().toString(), "vocabularyEntryDetail")
+                                )
+                        )
+                )
+        ;
+        //
+    }
+
+    @Test
+    public void itemVocabularyWithMultipleParentsAndChildrenTest() throws Exception {
+     // Given an Item
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit1 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit1")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Waters, Roger")
+                .build();
+
+        Item orgUnit2 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit2")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Rose, Axl")
+                .withParentOrganization("OrgUnit1", orgUnit1.getID().toString())
+                .build();
+
+        Item orgUnit3 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit3")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Young, Angus")
+                .build();
+
+        Item orgUnit4 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit4")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Gilmour, David")
+                .withParentOrganization("OrgUnit3", orgUnit3.getID().toString())
+                .build();
+
+        Item orgUnit5 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit5")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Hendrix, Jimi")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/search/top")
+                    .param("vocabulary", "orgunits")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.page.totalElements", is(3)))
+                .andExpect(
+                        jsonPath(
+                                "$._embedded.vocabularyEntryDetails",
+                                hasItems(
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
+                                                orgUnit1.getID().toString(), "vocabularyEntryDetail"),
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit3.getName(),
+                                                orgUnit3.getID().toString(), "vocabularyEntryDetail"),
+                                        VocabularyMatcher.matchVocabularyEntry(orgUnit5.getName(),
+                                                orgUnit5.getID().toString(), "vocabularyEntryDetail")
+                                )
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$._embedded.vocabularyEntryDetails",
+                                hasItems(
+                                    allOf(
+                                            hasJsonPath("$.value", is(orgUnit1.getID().toString())),
+                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                    ),
+                                    allOf(
+                                            hasJsonPath("$.value", is(orgUnit3.getID().toString())),
+                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                    ),
+                                    allOf(
+                                            hasJsonPath("$.value", is(orgUnit5.getID().toString())),
+                                            hasJsonPath("$.otherInformation.hasChildren", is("false"))
+                                    )
+                                )
+                        )
+                );
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit1.getID().toString() + "/children")
+            )
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page.totalElements", is(1)))
+            .andExpect(
+                    jsonPath(
+                            "$._embedded.children",
+                            hasItems(
+                                    VocabularyMatcher.matchVocabularyEntry(orgUnit2.getName(),
+                                            orgUnit2.getID().toString(), "vocabularyEntryDetail")
+                            )
+                    )
+            );
+
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit3.getID().toString() + "/children")
+                )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(1)))
+        .andExpect(
+                jsonPath(
+                        "$._embedded.children",
+                        hasItems(
+                                VocabularyMatcher.matchVocabularyEntry(orgUnit4.getName(),
+                                        orgUnit4.getID().toString(), "vocabularyEntryDetail")
+                                )
+                        )
+                );
+
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit5.getID().toString() + "/children")
+                )
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.page.totalElements", is(0)));
+        //
+    }
+
+    @Test
+    public void itemVocabularyGetSelfTest() throws Exception {
+        // Given an Item
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit1 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit1")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Waters, Roger")
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(
+                        get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit1.getID().toString())
+                    )
+                    .andExpect(status().isOk())
+                    .andExpect(
+                            jsonPath(
+                                    "$",
+                                    VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
+                                            orgUnit1.getID().toString(), "vocabularyEntryDetail")
+                            )
+                    )
+                    .andExpect(
+                            jsonPath(
+                                    "$.otherInformation.hasChildren",
+                                    is("false")
+                            )
+                    );
+        //
+    }
+
+    @Test
+    public void itemVocabularyGetParentTest() throws Exception {
+        // Given an Item
+        context.turnOffAuthorisationSystem();
+
+        Item orgUnit1 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit1")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Vins01, 4Science")
+                .withAuthor("Waters, Roger")
+                .build();
+
+        Item orgUnit2 = ItemBuilder.createItem(context, collection)
+                .withTitle("OrgUnit2")
+                .withIssueDate("2022-07-25")
+                .withAuthor("Rose, Axl")
+                .withParentOrganization("OrgUnit1", orgUnit1.getID().toString())
+                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(
+                    get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit2.getID().toString() + "/parent")
+                )
+                .andExpect(status().isOk())
+                .andExpect(
+                        jsonPath(
+                                "$",
+                                VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
+                                        orgUnit1.getID().toString(), "vocabularyEntryDetail")
+                        )
+                )
+                .andExpect(
+                        jsonPath(
+                                "$.otherInformation.hasChildren",
+                                is("true")
+                        )
+                );
+
+        getClient().perform(
+                get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit1.getID() + "/parent"))
+                .andExpect(status().isNoContent());
+        //
+    }
+
 }
