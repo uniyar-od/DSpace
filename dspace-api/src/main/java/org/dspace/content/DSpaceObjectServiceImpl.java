@@ -29,6 +29,7 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.content.service.DSpaceObjectService;
 import org.dspace.content.service.MetadataFieldService;
 import org.dspace.content.service.MetadataValueService;
@@ -71,6 +72,8 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     protected RelationshipService relationshipService;
     @Autowired
     private RequestService requestService;
+    @Autowired(required = true)
+    protected MetadataSecurityService metadataSecurityService;
 
     public DSpaceObjectServiceImpl() {
 
@@ -129,6 +132,8 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                 values.add(dcv);
             }
         }
+
+        values = metadataSecurityService.getFilteredMetadataValuesByLanguage(values, lang);
 
         // Create an array of matching values
         return values;
@@ -704,19 +709,6 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         } else if (!qualifier.equals(Item.ANY)) {
             // Not a wildcard, so qualifier must match exactly
             if (!qualifier.equals(metadataField.getQualifier())) {
-                return false;
-            }
-        }
-
-        if (language == null) {
-            // Value must be null language to match
-            if (metadataValue.getLanguage() != null) {
-                // Value is qualified, so no match
-                return false;
-            }
-        } else if (!language.equals(Item.ANY)) {
-            // Not a wildcard, so language must match exactly
-            if (!language.equals(metadataValue.getLanguage())) {
                 return false;
             }
         }

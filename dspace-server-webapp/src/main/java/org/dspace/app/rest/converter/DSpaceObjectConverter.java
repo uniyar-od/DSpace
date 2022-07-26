@@ -10,6 +10,7 @@ package org.dspace.app.rest.converter;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -21,6 +22,7 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.core.Context;
 import org.dspace.services.RequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +55,9 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
     @Autowired
     RequestService requestService;
 
+    @Autowired
+    private MetadataSecurityService metadataSecurityService;
+
 
     @Override
     public R convert(M obj, Projection projection) {
@@ -84,6 +89,12 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
     public MetadataValueList getPermissionFilteredMetadata(Context context, M obj, Projection projection) {
         List<MetadataValue> metadata = obj.getMetadata();
         List<MetadataValue> visibleMetadata = new ArrayList<MetadataValue>();
+        Locale locale = context.getCurrentLocale();
+
+        if (!(projection.isAllLanguages())) {
+            metadata = metadataSecurityService.getFilteredMetadataValuesByLanguage(metadata, locale.getLanguage());
+        }
+
         try {
             if (context != null && authorizeService.isAdmin(context)) {
                 return new MetadataValueList(metadata);
