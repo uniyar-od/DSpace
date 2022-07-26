@@ -97,10 +97,10 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         try {
             DiscoverResult result = searchService.search(ContextUtil.obtainCurrentRequestContext(), discoverQuery);
 
-            if (! result.getIndexableObjects().isEmpty()) {
+            if (!result.getIndexableObjects().isEmpty()) {
                 int total = (int) result.getTotalSearchResults();
 
-                List<Choice> choices = getChoicesFromResult(controlledVocabulary, result);
+                List<Choice> choices = getChoicesFromResult(authorityName, controlledVocabulary, result);
 
                 return new Choices(choices.toArray(new Choice[choices.size()]), start, total, Choices.CF_AMBIGUOUS,
                                    total > start + limit);
@@ -134,10 +134,10 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         try {
             DiscoverResult result = searchService.search(ContextUtil.obtainCurrentRequestContext(), discoverQuery);
 
-            if (! result.getIndexableObjects().isEmpty()) {
+            if (!result.getIndexableObjects().isEmpty()) {
                 int total = (int) result.getTotalSearchResults();
 
-                List<Choice> choices = getChoicesFromResult(controlledVocabulary, result);
+                List<Choice> choices = getChoicesFromResult(authorityName, controlledVocabulary, result);
 
                 return new Choices(choices.toArray(new Choice[choices.size()]), start, total, Choices.CF_AMBIGUOUS,
                                    total > start + limit);
@@ -165,7 +165,7 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
             if (parentMtd != null) {
                 Item parentItem = itemService.find(ContextUtil.obtainCurrentRequestContext(),
                                  UUID.fromString(parentMtd.getAuthority()));
-                return getChoiceFromItem(controlledVocabulary, parentItem);
+                return getChoiceFromItem(authorityName, controlledVocabulary, parentItem);
             }
         } catch (SQLException e) {
             log.warn(e.getMessage(), e);
@@ -174,16 +174,16 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         return null;
     }
 
-    private List<Choice> getChoicesFromResult(ItemControlledVocabulary controlledVocabulary,
+    private List<Choice> getChoicesFromResult(String authorityName, ItemControlledVocabulary controlledVocabulary,
                                               DiscoverResult result) {
         return result.getIndexableObjects().stream()
             .map(i -> {
                 Item item = (Item) i.getIndexedObject();
-                return getChoiceFromItem(controlledVocabulary, item);
+                return getChoiceFromItem(authorityName, controlledVocabulary, item);
             }).collect(Collectors.toList());
     }
 
-    private Choice getChoiceFromItem(ItemControlledVocabulary controlledVocabulary,
+    private Choice getChoiceFromItem(String authorityName, ItemControlledVocabulary controlledVocabulary,
                                      Item item) {
         Choice choice = new Choice();
 
@@ -196,6 +196,7 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
 
         String authority = getValueFromMetadata(item, controlledVocabulary.getAuthorityMetadata());
         choice.authority = authority.isEmpty() ? String.valueOf(item.getID()) : authority;
+        choice.authorityName = authorityName;
 
         choice.extras.put("hasChildren", String.valueOf(hasChildren(item)));
         return choice;
@@ -286,7 +287,11 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         try {
             Item item = itemService
                 .find(ContextUtil.obtainCurrentRequestContext(), UUID.fromString(authKey));
-            return getChoiceFromItem(itemControlledVocabulary, item);
+            return getChoiceFromItem(
+                    super.getPluginInstanceName(),
+                    itemControlledVocabulary,
+                    item
+            );
         } catch (Exception e) {
             log.warn(e);
         }
