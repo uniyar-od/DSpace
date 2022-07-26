@@ -329,6 +329,7 @@ public class RelationshipServiceImpl implements RelationshipService {
         updateItem(context, rightItem);
 
         context.restoreAuthSystemState();
+        relationshipPlacesIndexingService.updateRelationReferences(context, relationship);
     }
 
     /**

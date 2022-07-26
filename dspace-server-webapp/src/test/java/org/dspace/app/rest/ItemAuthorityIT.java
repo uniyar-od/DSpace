@@ -279,7 +279,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
        context.restoreAuthSystemState();
 
-       String token = getAuthToken(eperson.getEmail(), password);
+       String token = getAuthToken(admin.getEmail(), password);
        getClient(token).perform(get("/api/submission/vocabularies/EPersonAuthority/entries")
                        .param("filter", "Andrea"))
                        .andExpect(status().isOk())
