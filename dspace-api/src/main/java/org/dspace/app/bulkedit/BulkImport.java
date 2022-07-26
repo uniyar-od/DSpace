@@ -65,6 +65,7 @@ import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.factory.ContentServiceFactory;
+import org.dspace.content.packager.PackageUtils;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
@@ -607,6 +608,9 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         WorkspaceItem workspaceItem = workspaceItemService.create(context, getCollection(), false);
 
         Item item = workspaceItem.getItem();
+
+        PackageUtils.addDepositLicense(context, null, item, workspaceItem.getCollection());
+
         addMetadata(item, entityRow, false);
         addUploadsToItem(item, entityRow);
 
