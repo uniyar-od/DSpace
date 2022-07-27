@@ -84,7 +84,11 @@ public abstract class DSpaceObjectConverter<M extends DSpaceObject, R extends or
      */
     public MetadataValueList getPermissionFilteredMetadata(Context context, M obj, Projection projection) {
         List<MetadataValue> visibleMetadata = new ArrayList<MetadataValue>();
-        String language = projection.isAllLanguages() ? Item.ANY : context.getCurrentLocale().getLanguage();
+        String language = Item.ANY;
+
+        if (context != null && !projection.isAllLanguages()) {
+            language = context.getCurrentLocale().getLanguage();
+        }
 
         List<MetadataValue> metadata = ContentServiceFactory.getInstance().getDSpaceObjectService(obj.getType())
             .getMetadata(obj, Item.ANY, Item.ANY, Item.ANY, language);

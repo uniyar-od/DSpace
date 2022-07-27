@@ -105,9 +105,9 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
     @Override
     public List<MetadataValue> getPermissionAndLangFilteredMetadataFields(Context context, Item item,
                                                                               boolean preventBoxSecurityCheck) {
-        Locale locale = context.getCurrentLocale();
-        List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY,
-            locale.getLanguage(), true);
+        String language = context != null ? context.getCurrentLocale().getLanguage() : Item.ANY;
+
+        List<MetadataValue> values = itemService.getMetadata(item, Item.ANY, Item.ANY, Item.ANY, language, true);
         return getPermissionFilteredMetadata(context, item, values, preventBoxSecurityCheck);
     }
 
