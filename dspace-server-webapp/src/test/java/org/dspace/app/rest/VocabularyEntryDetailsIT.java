@@ -610,30 +610,44 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                         jsonPath(
                                 "$._embedded.vocabularyEntryDetails",
                                 hasItems(
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
-                                                orgUnit1.getID().toString(), "vocabularyEntryDetail"),
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit3.getName(),
-                                                orgUnit3.getID().toString(), "vocabularyEntryDetail"),
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit5.getName(),
-                                                orgUnit5.getID().toString(), "vocabularyEntryDetail")
-                                )
-                        )
-                )
-                .andExpect(
-                        jsonPath(
-                                "$._embedded.vocabularyEntryDetails",
-                                hasItems(
                                     allOf(
-                                            hasJsonPath("$.value", is(orgUnit1.getID().toString())),
-                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit1.getID().toString(),
+                                                orgUnit1.getName(),
+                                                orgUnit1.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit1.getID().toString(),
+                                                orgUnit1.getName(),
+                                                "true"
+                                        )
                                     ),
                                     allOf(
-                                            hasJsonPath("$.value", is(orgUnit3.getID().toString())),
-                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit3.getID().toString(),
+                                                orgUnit3.getName(),
+                                                orgUnit3.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit3.getID().toString(),
+                                                orgUnit3.getName(),
+                                                "true"
+                                        )
                                     ),
                                     allOf(
-                                            hasJsonPath("$.value", is(orgUnit5.getID().toString())),
-                                            hasJsonPath("$.otherInformation.hasChildren", is("false"))
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit5.getID().toString(),
+                                                orgUnit5.getName(),
+                                                orgUnit5.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit5.getID().toString(),
+                                                orgUnit5.getName(),
+                                                "false"
+                                        )
                                     )
                                 )
                         )
@@ -672,19 +686,19 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                 jsonPath(
                         "$._embedded.vocabularyEntryDetails",
                         hasItems(
-                                VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
-                                        orgUnit1.getID().toString(), "vocabularyEntryDetail")
-                                )
-                        )
-                )
-        .andExpect(
-                jsonPath(
-                        "$._embedded.vocabularyEntryDetails",
-                        hasItems(
-                                allOf(
-                                        hasJsonPath("$.value", is(orgUnit1.getID().toString())),
-                                        hasJsonPath("$.otherInformation.hasChildren", is("true"))
-                                )
+                            allOf(
+                                    VocabularyMatcher.matchVocabularyEntry(
+                                            "orgunits:" + orgUnit1.getID().toString(),
+                                            orgUnit1.getName(),
+                                            orgUnit1.getName(),
+                                            "vocabularyEntryDetail"
+                                    ),
+                                    VocabularyMatcher.matchOtherInformations(
+                                            orgUnit1.getID().toString(),
+                                            orgUnit1.getName(),
+                                            "true"
+                                    )
+                            )
                         )
                 )
         );
@@ -698,8 +712,12 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                         jsonPath(
                                 "$._embedded.children",
                                 hasItems(
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit2.getName(),
-                                                orgUnit2.getID().toString(), "vocabularyEntryDetail")
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit2.getID().toString(),
+                                                orgUnit2.getName(),
+                                                orgUnit2.getName(),
+                                                "vocabularyEntryDetail"
+                                        )
                                 )
                         )
                 )
@@ -758,30 +776,44 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                         jsonPath(
                                 "$._embedded.vocabularyEntryDetails",
                                 hasItems(
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
-                                                orgUnit1.getID().toString(), "vocabularyEntryDetail"),
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit3.getName(),
-                                                orgUnit3.getID().toString(), "vocabularyEntryDetail"),
-                                        VocabularyMatcher.matchVocabularyEntry(orgUnit5.getName(),
-                                                orgUnit5.getID().toString(), "vocabularyEntryDetail")
-                                )
-                        )
-                )
-                .andExpect(
-                        jsonPath(
-                                "$._embedded.vocabularyEntryDetails",
-                                hasItems(
                                     allOf(
-                                            hasJsonPath("$.value", is(orgUnit1.getID().toString())),
-                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit1.getID().toString(),
+                                                orgUnit1.getName(),
+                                                orgUnit1.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit1.getID().toString(),
+                                                orgUnit1.getName(),
+                                                "true"
+                                        )
                                     ),
                                     allOf(
-                                            hasJsonPath("$.value", is(orgUnit3.getID().toString())),
-                                            hasJsonPath("$.otherInformation.hasChildren", is("true"))
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit3.getID().toString(),
+                                                orgUnit3.getName(),
+                                                orgUnit3.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit3.getID().toString(),
+                                                orgUnit3.getName(),
+                                                "true"
+                                        )
                                     ),
                                     allOf(
-                                            hasJsonPath("$.value", is(orgUnit5.getID().toString())),
-                                            hasJsonPath("$.otherInformation.hasChildren", is("false"))
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit5.getID().toString(),
+                                                orgUnit5.getName(),
+                                                orgUnit5.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit5.getID().toString(),
+                                                orgUnit5.getName(),
+                                                "false"
+                                        )
                                     )
                                 )
                         )
@@ -795,8 +827,12 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                     jsonPath(
                             "$._embedded.children",
                             hasItems(
-                                    VocabularyMatcher.matchVocabularyEntry(orgUnit2.getName(),
-                                            orgUnit2.getID().toString(), "vocabularyEntryDetail")
+                                    VocabularyMatcher.matchVocabularyEntry(
+                                            "orgunits:" + orgUnit2.getID().toString(),
+                                            orgUnit2.getName(),
+                                            orgUnit2.getName(),
+                                            "vocabularyEntryDetail"
+                                    )
                             )
                     )
             );
@@ -810,11 +846,15 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                 jsonPath(
                         "$._embedded.children",
                         hasItems(
-                                VocabularyMatcher.matchVocabularyEntry(orgUnit4.getName(),
-                                        orgUnit4.getID().toString(), "vocabularyEntryDetail")
+                                VocabularyMatcher.matchVocabularyEntry(
+                                        "orgunits:" + orgUnit4.getID().toString(),
+                                        orgUnit4.getName(),
+                                        orgUnit4.getName(),
+                                        "vocabularyEntryDetail"
                                 )
                         )
-                );
+                )
+        );
 
         getClient().perform(
                 get("/api/submission/vocabularyEntryDetails/orgunits:" + orgUnit5.getID().toString() + "/children")
@@ -845,14 +885,19 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                     .andExpect(
                             jsonPath(
                                     "$",
-                                    VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
-                                            orgUnit1.getID().toString(), "vocabularyEntryDetail")
-                            )
-                    )
-                    .andExpect(
-                            jsonPath(
-                                    "$.otherInformation.hasChildren",
-                                    is("false")
+                                    allOf(
+                                        VocabularyMatcher.matchVocabularyEntry(
+                                                "orgunits:" + orgUnit1.getID().toString(),
+                                                orgUnit1.getName(),
+                                                orgUnit1.getName(),
+                                                "vocabularyEntryDetail"
+                                        ),
+                                        VocabularyMatcher.matchOtherInformations(
+                                                orgUnit1.getID().toString(),
+                                                orgUnit1.getName(),
+                                                "false"
+                                        )
+                                    )
                             )
                     );
         //
@@ -886,14 +931,19 @@ public class VocabularyEntryDetailsIT extends AbstractControllerIntegrationTest 
                 .andExpect(
                         jsonPath(
                                 "$",
-                                VocabularyMatcher.matchVocabularyEntry(orgUnit1.getName(),
-                                        orgUnit1.getID().toString(), "vocabularyEntryDetail")
-                        )
-                )
-                .andExpect(
-                        jsonPath(
-                                "$.otherInformation.hasChildren",
-                                is("true")
+                                allOf(
+                                    VocabularyMatcher.matchVocabularyEntry(
+                                            "orgunits:" + orgUnit1.getID().toString(),
+                                            orgUnit1.getName(),
+                                            orgUnit1.getName(),
+                                            "vocabularyEntryDetail"
+                                    ),
+                                    VocabularyMatcher.matchOtherInformations(
+                                            orgUnit1.getID().toString(),
+                                            orgUnit1.getName(),
+                                            "true"
+                                    )
+                                )
                         )
                 );
 
