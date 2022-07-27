@@ -188,8 +188,9 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
                                      Item item) {
         Choice choice = new Choice();
 
-        choice.value = String.valueOf(item.getID());
-        choice.label = getValueFromMetadata(item, controlledVocabulary.getLabelMetadata());
+        String labelMeta = getValueFromMetadata(item, controlledVocabulary.getLabelMetadata());
+        choice.value = labelMeta;
+        choice.label = labelMeta;
         choice.extras = controlledVocabulary.getExtraValuesMapper().buildExtraValues(item);
 
         String selectableValue = getValueFromMetadata(item, controlledVocabulary.getSelectableMetadata());
@@ -200,6 +201,7 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         choice.authorityName = authorityName;
 
         choice.extras.put("hasChildren", String.valueOf(hasChildren(item)));
+        choice.extras.put("id", choice.authority);
         return choice;
     }
 
