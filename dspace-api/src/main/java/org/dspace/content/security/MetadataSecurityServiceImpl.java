@@ -34,7 +34,6 @@ import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.MetadataSecurityEvaluation;
 import org.dspace.core.Context;
-import org.dspace.core.I18nUtil;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.EPerson;
 import org.dspace.layout.CrisLayoutBox;
@@ -125,30 +124,6 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
         return isMetadataFieldVisible(context, boxes, item, metadataField, false);
     }
 
-    @Override
-    public List<MetadataValue> getFilteredMetadataValuesByLanguage(List<MetadataValue> metadataValues,
-                                                                   String language) {
-        List<MetadataValue> matchedValues = new ArrayList<>();
-
-        if (language == null) {
-            for (MetadataValue value : metadataValues) {
-                if (value.getLanguage() == null) {
-                    matchedValues.add(value);
-                }
-            }
-        } else if (!language.equals(Item.ANY)) {
-            Locale[] locales = I18nUtil.getSupportedLocales();
-            Map<String, List<MetadataValue>> metadataMap = metadataValues.stream()
-                .collect(Collectors.groupingBy(v -> v.getMetadataField().toString()));
-
-            for (Map.Entry<String, List<MetadataValue>> metadata : metadataMap.entrySet()) {
-                matchedValues.addAll(filterMetadataValuesByLanguage(language, locales, metadata.getValue()));
-            }
-        } else if (language.equals(Item.ANY)) {
-            matchedValues = metadataValues;
-        }
-        return matchedValues;
-    }
 
     private List<MetadataValue> getPermissionFilteredMetadata(Context context, Item item,
         List<MetadataValue> metadataValues, boolean preventBoxSecurityCheck) {
@@ -342,75 +317,4 @@ public class MetadataSecurityServiceImpl implements MetadataSecurityService {
     public MetadataSecurityEvaluation getMetadataSecurityEvaluator(int securityValue) {
         return securityLevelsMap.get(securityValue + "");
     }
-
-    private List<MetadataValue> filterMetadataValuesByLanguage(String language, Locale [] locales,
-                                                               List<MetadataValue> metadataValues) {
-
-        List<MetadataValue> matchedValues;
-
-//        search for input language in supported locales
-//        then get metadata values contains language equal to input language
-        matchedValues = filterByLanguageInSupportedLocales(metadataValues, locales, language);
-
-        if (matchedValues.isEmpty()) {
-//            here input language not found in supported locales.
-//            so, check that input language contains '_' like 'en_US' , and search for first part 'en'
-            matchedValues = filterByLanguageInSupportedLocales(metadataValues, locales, language.split("_")[0]);
-        }
-
-        if (matchedValues.isEmpty()) {
-//            here input language not found in supported locales.
-//            so, search for metadata value has language equal to any supported locales language
-            for (Locale locale : locales) {
-                matchedValues = filterByLanguage(metadataValues, locale.getLanguage());
-                if (!matchedValues.isEmpty()) {
-                    break;
-                }
-            }
-        }
-
-        if (matchedValues.isEmpty()) {
-//            here input language not found in supported locales.
-//            and no metadata value has language equal to any supported locales language was found
-//            so, will search for metadata value with language equal to input language
-            matchedValues = filterByLanguage(metadataValues, language);
-        }
-
-        if (matchedValues.isEmpty()) {
-//            here no matching found so, will return all metadata values
-            return metadataValues;
-        }
-
-        return matchedValues;
-    }
-
-    private List<MetadataValue> filterByLanguageInSupportedLocales(List<MetadataValue> metadataValues,
-                                                                   Locale[] locales, String language) {
-
-        List<MetadataValue> matchedValues = new ArrayList<>();
-
-        for (Locale locale : locales) {
-            if (locale.getLanguage().equals(language)) {
-                for (MetadataValue value : metadataValues) {
-                    if (value.getLanguage() != null && value.getLanguage().equals(language)) {
-                        matchedValues.add(value);
-                    }
-                }
-            }
-        }
-        return matchedValues;
-    }
-
-    private List<MetadataValue> filterByLanguage(List<MetadataValue> metadataValues, String language) {
-
-        List<MetadataValue> matchedValues = new ArrayList<>();
-
-        for (MetadataValue value : metadataValues) {
-            if (value.getLanguage() != null && value.getLanguage().equals(language)) {
-                matchedValues.add(value);
-            }
-        }
-        return matchedValues;
-    }
-
 }

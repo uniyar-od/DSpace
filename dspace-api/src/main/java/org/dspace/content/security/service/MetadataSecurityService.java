@@ -98,14 +98,4 @@ public interface MetadataSecurityService {
      *                                 otherwise
      */
     boolean checkMetadataFieldVisibility(Context context, Item item, MetadataField metadataField);
-
-    /**
-     * Returns all the metadata values filtered by the input language.
-     *
-     * @param metadataValues list of metadata values.
-     * @param language the language that must metadataValues filtered by.
-     *
-     * @return the metadata values
-     */
-    List<MetadataValue> getFilteredMetadataValuesByLanguage(List<MetadataValue> metadataValues, String language);
 }

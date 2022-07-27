@@ -42,7 +42,6 @@ import org.dspace.authorize.service.ResourcePolicyService;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.content.factory.ContentServiceFactory;
-import org.dspace.content.security.service.MetadataSecurityService;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
@@ -143,9 +142,6 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     protected SubscribeService subscribeService;
     @Autowired(required = true)
     protected CrisMetricsService crisMetricsService;
-
-    @Autowired(required = true)
-    private MetadataSecurityService metadataSecurityService;
 
     protected ItemServiceImpl() {
         super();
@@ -1582,12 +1578,12 @@ prevent the generation of resource policy entry values with null dspace_object a
         // Build up list of matching values based on the cache
         List<MetadataValue> values = new ArrayList<>();
         for (MetadataValue dcv : item.getCachedMetadata()) {
-            if (match(schema, element, qualifier, lang, dcv)) {
+            if (match(schema, element, qualifier, dcv)) {
                 values.add(dcv);
             }
         }
 
-        values = metadataSecurityService.getFilteredMetadataValuesByLanguage(values, lang);
+        values = getFilteredMetadataValuesByLanguage(values, lang);
 
         // Create an array of matching values
         return values;
