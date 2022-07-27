@@ -8,14 +8,22 @@
 
 package org.dspace.app.bulkedit;
 
+import java.sql.SQLException;
+
 import org.apache.commons.cli.Options;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.core.Context;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.scripts.configuration.ScriptConfiguration;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * The {@link ScriptConfiguration} for the {@link MetadataExportSearch} script
  */
 public class MetadataExportSearchScriptConfiguration<T extends MetadataExportSearch> extends ScriptConfiguration<T> {
+
+    @Autowired
+    private AuthorizeService authorizeService;
 
     private Class<T> dspaceRunnableclass;
 
@@ -31,7 +39,11 @@ public class MetadataExportSearchScriptConfiguration<T extends MetadataExportSea
 
     @Override
     public boolean isAllowedToExecute(Context context) {
-        return true;
+        try {
+            return authorizeService.isAdmin(context);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
     }
 
     @Override

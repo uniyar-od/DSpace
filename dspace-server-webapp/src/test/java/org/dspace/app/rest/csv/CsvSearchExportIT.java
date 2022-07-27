@@ -110,7 +110,6 @@ public class CsvSearchExportIT extends AbstractControllerIntegrationTest {
             getClient(token).perform(multipart("/api/system/scripts/metadata-export-search/processes")
                                          .param("properties", new ObjectMapper().writeValueAsString(restparams)))
                             .andExpect(status().isAccepted())
-                            .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
                             .andDo(result -> idRef.set(read(result.getResponse().getContentAsString(), "$.processId")));
         } finally {
             ProcessBuilder.deleteProcess(idRef.get());
