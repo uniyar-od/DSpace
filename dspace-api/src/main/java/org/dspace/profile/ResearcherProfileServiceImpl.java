@@ -12,7 +12,6 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 import static org.dspace.core.Constants.READ;
-import static org.dspace.core.Constants.WRITE;
 import static org.dspace.eperson.Group.ANONYMOUS;
 
 import java.io.IOException;
@@ -287,7 +286,6 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
         }
 
         authorizeService.addPolicy(context, item, READ, ePerson);
-        authorizeService.addPolicy(context, item, WRITE, ePerson);
 
         return reloadItem(context, item);
     }

@@ -13,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.dspace.app.rest.matcher.EntityTypeMatcher;
 import org.dspace.app.rest.matcher.ExternalSourceMatcher;
@@ -121,8 +122,19 @@ public class ExternalSourcesByEntityTypesIT extends AbstractControllerIntegratio
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entitytypes", Matchers.hasSize(1)))
                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(4)));
+
+        List<String> mockSupportedEntityTypes = ((AbstractExternalDataProvider) externalDataService
+            .getExternalDataProvider("mock")).getSupportedEntityTypes();
+
+        List<String> suggestionSupportedEntityTypes = ((AbstractExternalDataProvider) externalDataService
+            .getExternalDataProvider("suggestion")).getSupportedEntityTypes();
+
+        List<String> pubmedSupportedEntityTypes = ((AbstractExternalDataProvider) externalDataService
+            .getExternalDataProvider("pubmed")).getSupportedEntityTypes();
+
         // temporary alter the mock, orcid, suggestion data providers to restrict them to Publication
         try {
+
             ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("mock"))
                     .setSupportedEntityTypes(Arrays.asList("Publication"));
             ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("suggestion"))
@@ -151,11 +163,11 @@ public class ExternalSourcesByEntityTypesIT extends AbstractControllerIntegratio
 
         } finally {
             ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("mock"))
-                    .setSupportedEntityTypes(null);
+                .setSupportedEntityTypes(mockSupportedEntityTypes);
             ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("suggestion"))
-                    .setSupportedEntityTypes(null);
+                .setSupportedEntityTypes(suggestionSupportedEntityTypes);
             ((AbstractExternalDataProvider) externalDataService.getExternalDataProvider("pubmed"))
-                .setSupportedEntityTypes(null);
+                .setSupportedEntityTypes(pubmedSupportedEntityTypes);
         }
     }
 
