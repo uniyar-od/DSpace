@@ -209,6 +209,12 @@
             <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
             <type>submission-form</type>
         </step-definition>
+        
+        <step-definition id="sherpaPolicies" mandatory="true">
+            <heading>submit.progressbar.sherpapolicy</heading>
+            <processing-class>org.dspace.app.rest.submit.step.SherpaPolicyStep</processing-class>
+            <type>sherpaPolicy</type>
+        </step-definition>
 
         <step-definition id="titleAndIssuedDate" mandatory="true">
             <heading>submit.progressbar.describe.stepone</heading>
@@ -261,7 +267,7 @@
             <step id="extraction" />
 
             <!--Step will be to Describe the item. -->
-            <step id="traditionalpageone"/>"
+            <step id="traditionalpageone"/>
             <step id="traditionalpagetwo"/>
 
             <!--Step will be to Upload the item -->
@@ -270,6 +276,7 @@
             <step id="detect-duplicate"/>
             <!-- <step id="extractionstep"/> -->
             <step id="defaultAC"/>
+            <step id="sherpaPolicies"/>
 
             <!--Step will be to Sign off on the License -->
             <step id="license"/>

@@ -2931,13 +2931,6 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .grantLicense()
                 .build();
 
-        context.restoreAuthSystemState();
-
-        List<Operation> addIssueDate = new ArrayList<Operation>();
-        Map<String, String> value = new HashMap<String, String>();
-        value.put("value", "2017-10-17");
-        addIssueDate.add(new ReplaceOperation("/metadata/dc.date.issued/0", value));
-
         WorkspaceItem witemMultipleSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withTitle("Workspace Item 1")
                 .withIssueDate("2017-10-17")
@@ -2957,6 +2950,13 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .withSubject("Subject4")
                 .grantLicense()
                 .build();
+
+        context.restoreAuthSystemState();
+
+        List<Operation> addIssueDate = new ArrayList<Operation>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "2017-10-17");
+        addIssueDate.add(new ReplaceOperation("/metadata/dc.date.issued/0", value));
 
         String patchBody = getPatchContent(addIssueDate);
         UUID idItem = witem.getItem().getID();
