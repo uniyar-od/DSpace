@@ -1574,7 +1574,7 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
     @Test
-    public void ignoreCollectionEntityTypeWhenCreatingNewVersionOfItem() throws Exception {
+    public void ignoreEntityTypeWhenCreatingNewVersionOfItem() throws Exception {
         context.turnOffAuthorisationSystem();
 
         Community community = CommunityBuilder.createCommunity(context)
@@ -1583,21 +1583,13 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         Collection collection = CollectionBuilder.createCollection(context, community)
             .withName("Collection")
-            // collection has dspace.entity.type = Person
-            .withEntityType("Person")
+            .withEntityType("Publication")
             .build();
 
         Item v1 = ItemBuilder.createItem(context, collection)
             .withTitle("item version 1")
-            // NOTE: cannot use withEntityType here, because the collection already adds dspace.entity.type to this item
-            //       => it would result in 2 metadata values
             .build();
 
-        // modify the entity type (that has been added to the item by the collection)
-        itemService.replaceMetadata(
-            context, v1, "dspace", "entity", "type", Item.ANY, "Publication", null, -1, 0
-        );
-        itemService.update(context, v1);
         context.commit();
 
         context.restoreAuthSystemState();
@@ -1606,11 +1598,9 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient().perform(get("/api/core/items/" + v1.getID()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.metadata", allOf(
-                // dc.title should have exactly one value => item version 1
                 hasJsonPath("$.['dc.title']", containsInAnyOrder(
                     hasJsonPath("$.value", is("item version 1"))
                 )),
-                // dspace.entity.type should have exactly one value => Publication
                 hasJsonPath("$.['dspace.entity.type']", containsInAnyOrder(
                     hasJsonPath("$.value", is("Publication"))
                 ))
@@ -1623,11 +1613,9 @@ public class VersionRestRepositoryIT extends AbstractControllerIntegrationTest {
         getClient().perform(get("/api/core/items/" + v2.getID()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.metadata", allOf(
-                // dc.title should have exactly one value => item version 2
                 hasJsonPath("$.['dc.title']", containsInAnyOrder(
                     hasJsonPath("$.value", is("item version 2"))
                 )),
-                // dspace.entity.type should have exactly one value => Publication
                 hasJsonPath("$.['dspace.entity.type']", containsInAnyOrder(
                     hasJsonPath("$.value", is("Publication"))
                 ))

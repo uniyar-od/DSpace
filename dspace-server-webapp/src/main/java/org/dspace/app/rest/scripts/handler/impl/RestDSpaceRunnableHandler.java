@@ -69,7 +69,7 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
                                      final Set<Group> specialGroups) {
         Context context = new Context();
         try {
-            ePersonId = ePerson.getID();
+            ePersonId = ePerson != null ? ePerson.getID() : null;
             Process process = processService.create(context, ePerson, scriptName, parameters, specialGroups);
             processId = process.getID();
             this.scriptName = process.getName();
