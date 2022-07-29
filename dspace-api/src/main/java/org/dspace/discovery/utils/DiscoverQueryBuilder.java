@@ -206,17 +206,17 @@ public class DiscoverQueryBuilder implements InitializingBean {
         return queryArgs;
     }
 
+    private void configurePaginationForFacets(Long offset, DiscoverQuery queryArgs) {
+        if (offset != null && queryArgs.getFacetFields().size() == 1) {
+            queryArgs.getFacetFields().get(0).setOffset(offset.intValue());
+        }
+    }
+
     private void addScopeForHiddenFilter(final IndexableObject scope,
                                          final DiscoveryConfiguration discoveryConfiguration,
                                          final DiscoverQuery queryArgs) {
         if (scope != null) {
             queryArgs.setScopeObject(scope);
-        }
-    }
-
-    private void configurePaginationForFacets(Long offset, DiscoverQuery queryArgs) {
-        if (offset != null) {
-            queryArgs.setFacetOffset(Math.toIntExact(offset));
         }
     }
 
