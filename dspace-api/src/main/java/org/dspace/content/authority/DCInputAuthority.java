@@ -110,12 +110,15 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
     // once-only load of values and labels
     private void init(String locale)
     {
+ 		String pname = this.getPluginInstanceName();
+    	String key = pname + "-" + locale;
+    	
         if(StringUtils.isNotBlank(locale)) {
-            values = valuesMultilang.get(locale);
+            values = valuesMultilang.get(key);
+            labels = labelsMultilang.get(key);
         }
         if (values == null)
         {
-            String pname = this.getPluginInstanceName();
             List<String> pairs = dcInputsReader.get(locale).getPairs(pname);
             if (pairs != null)
             {
@@ -126,8 +129,8 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
                     labels[i/2] = pairs.get(i);
                     values[i/2] = pairs.get(i+1);
                 }
-                valuesMultilang.put(locale, values);
-                labelsMultilang.put(locale, labels);
+                valuesMultilang.put(key, values);
+                labelsMultilang.put(key, labels);
                 log.debug("Found pairs for name="+pname);
             }
             else
@@ -146,7 +149,7 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
         Choice v[] = new Choice[values.length];
         for (int i = 0; i < values.length; ++i)
         {
-            v[i] = new Choice(values[i], valuesMultilang.get(locale)[i], labelsMultilang.get(locale)[i]);
+            v[i] = new Choice(values[i], values[i], labels[i]);
             if (values[i].equalsIgnoreCase(query))
             {
                 dflt = i;
@@ -163,7 +166,7 @@ public class DCInputAuthority extends SelfNamedPlugin implements ChoiceAuthority
             if (text.equalsIgnoreCase(values[i]))
             {
                 Choice v[] = new Choice[1];
-                v[0] = new Choice(String.valueOf(i), valuesMultilang.get(locale)[i], labelsMultilang.get(locale)[i]);
+                v[0] = new Choice(String.valueOf(i), values[i], labels[i]);
                 return new Choices(v, 0, v.length, Choices.CF_UNCERTAIN, false, 0);
             }
         }
