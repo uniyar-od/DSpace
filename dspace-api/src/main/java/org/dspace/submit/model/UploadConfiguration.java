@@ -23,6 +23,7 @@ public class UploadConfiguration {
     private Long maxSize;
     private Boolean required;
     private String name;
+    private Boolean singleAccessCondition = false;
 
     public List<AccessConditionOption> getOptions() {
         return options;
@@ -80,5 +81,11 @@ public class UploadConfiguration {
         this.name = name;
     }
 
+    public Boolean getSingleAccessCondition() {
+        return singleAccessCondition;
+    }
 
+    public void setSingleAccessCondition(Boolean singleAccessCondition) {
+        this.singleAccessCondition = singleAccessCondition;
+    }
 }
