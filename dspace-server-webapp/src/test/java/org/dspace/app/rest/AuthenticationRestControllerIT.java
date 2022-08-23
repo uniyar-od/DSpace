@@ -672,8 +672,9 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         String token = getAuthToken(eperson.getEmail(), password);
 
         // Save token to an Authorization cookie
-        Cookie[] cookies = new Cookie[1];
+        Cookie[] cookies = new Cookie[2];
         cookies[0] = new Cookie(AUTHORIZATION_COOKIE, token);
+        cookies[1] = new Cookie("DSPACE-XSRF-COOKIE", "e35a7170-3409-4bcf-9283-d63a4a8707dd");
 
         // POSTing to /login should be a valid request...it just refreshes your token (see testRefreshToken())
         // However, in this case, we are POSTing with an *INVALID* CSRF Token in Header.
@@ -1345,7 +1346,9 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 
         // Same request as prior method, but this time we are sending the CSRF token as a querystring param.
         // NOTE: getClient() method defaults to sending CSRF tokens as Headers, so we are overriding its behavior here
-        getClient(token).perform(post("/api/authn/shortlivedtokens").with(csrf()))
+        getClient(token).perform(post("/api/authn/shortlivedtokens")
+            .with(csrf())
+            .cookie(new Cookie("DSPACE-XSRF-COOKIE", "e35a7170-3409-4bcf-9283-d63a4a8707dd")))
             // BECAUSE we sent the CSRF token on querystring, it should be regenerated & a new token
             // is sent back (in cookie and header).
             .andExpect(cookie().exists("DSPACE-XSRF-COOKIE"))
