@@ -24,6 +24,7 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -1543,6 +1544,45 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 
         getClient(newMachineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
             .andExpect(status().isOk());
+
+        getClient(machineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isUnauthorized());
+
+    }
+
+    @Test
+    public void testDeleteMachineToken() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withPassword(password)
+            .withEmail("myuser@test.com")
+            .build();
+
+        Bitstream bitstream = createPrivateBitstream(user);
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(user.getEmail(), password);
+
+        AtomicReference<String> machineToken = new AtomicReference<>();
+
+        getClient(token).perform(post("/api/authn/machinetokens"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token", notNullValue()))
+            .andExpect(jsonPath("$.type", is("machinetoken")))
+            .andDo(result -> machineToken.set(read(result.getResponse().getContentAsString(), "$.token")));
+
+        getClient(machineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isOk());
+
+        getClient(token).perform(delete("/api/authn/machinetokens"))
+            .andExpect(status().isNoContent());
+
+        user = context.reloadEntity(user);
+        assertThat(user.getMachineSessionSalt(), is(""));
 
         getClient(machineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
             .andExpect(status().isUnauthorized());

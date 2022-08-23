@@ -182,6 +182,13 @@ public class AuthenticationRestController implements InitializingBean {
         return converter.toResource(authenticationTokenRest);
     }
 
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    @RequestMapping(value = "/machinetokens", method = RequestMethod.DELETE)
+    public ResponseEntity<?> deleteMachineToken(HttpServletRequest request) throws Exception {
+        restAuthenticationService.deleteMachineAuthenticationToken(ContextUtil.obtainContext(request), request);
+        return ResponseEntity.noContent().build();
+    }
+
     /**
      * This method will generate a short lived token to be used for bitstream downloads among other things.
      *

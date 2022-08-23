@@ -208,6 +208,15 @@ public abstract class JWTTokenHandler {
         }
     }
 
+    public void invalidateMachineToken(Context context, HttpServletRequest request, String token) throws Exception {
+        if (StringUtils.isNotBlank(token)) {
+            EPerson ePerson = parseEPersonFromToken(token, request, context);
+            if (ePerson != null) {
+                ePerson.setMachineSalt("");
+            }
+        }
+    }
+
     /**
      * Retrieve the token secret key from configuration. If not specified, generate and cache a random 32 byte key
      * @return configuration value or random 32 byte key
