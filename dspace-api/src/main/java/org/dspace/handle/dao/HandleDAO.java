@@ -35,6 +35,8 @@ public interface HandleDAO extends GenericDAO<Handle> {
 
     public long countHandlesByPrefix(Context context, String prefix) throws SQLException;
 
+    public boolean isResourceIdExistGivenHandle(Context context, String prefix) throws SQLException;
+
     int updateHandlesWithNewPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException;
 
     int countRows(Context context) throws SQLException;

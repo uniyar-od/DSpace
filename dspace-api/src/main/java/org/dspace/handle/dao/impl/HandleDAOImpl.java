@@ -91,7 +91,6 @@ public class HandleDAOImpl extends AbstractHibernateDAO<Handle> implements Handl
     @Override
     public long countHandlesByPrefix(Context context, String prefix) throws SQLException {
 
-
         CriteriaBuilder criteriaBuilder = getCriteriaBuilder(context);
         CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
 
@@ -99,6 +98,19 @@ public class HandleDAOImpl extends AbstractHibernateDAO<Handle> implements Handl
         criteriaQuery.select(criteriaBuilder.count(criteriaQuery.from(Handle.class)));
         criteriaQuery.where(criteriaBuilder.like(handleRoot.get(Handle_.handle), prefix + "%"));
         return countLong(context, criteriaQuery, criteriaBuilder, handleRoot);
+    }
+
+    @Override
+    public boolean isResourceIdExistGivenHandle(Context context, String handle) throws SQLException {
+        Query query = createQuery(context,
+                "SELECT h " + "FROM Handle h " + "WHERE h.handle = :handle ");
+
+        query.setParameter("handle", handle);
+
+        if (singleResult(query) != null) {
+            return singleResult(query).getDSpaceObject() == null;
+        }
+        return false;
     }
 
     @Override
