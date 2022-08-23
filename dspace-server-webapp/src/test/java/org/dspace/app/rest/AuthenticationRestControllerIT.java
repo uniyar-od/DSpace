@@ -7,12 +7,16 @@
  */
 package org.dspace.app.rest;
 
+import static com.jayway.jsonpath.JsonPath.read;
 import static java.lang.Thread.sleep;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_UUID;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
@@ -33,6 +37,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.servlet.http.Cookie;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -1495,6 +1500,55 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .andExpect(status().isNoContent());
     }
 
+    @Test
+    public void testGenerateMachineTokenToDownloadBitstream() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withPassword(password)
+            .withEmail("myuser@test.com")
+            .build();
+
+        Bitstream bitstream = createPrivateBitstream(user);
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(user.getEmail(), password);
+
+        AtomicReference<String> machineToken = new AtomicReference<>();
+
+        getClient(token).perform(post("/api/authn/machinetokens"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token", notNullValue()))
+            .andExpect(jsonPath("$.type", is("machinetoken")))
+            .andDo(result -> machineToken.set(read(result.getResponse().getContentAsString(), "$.token")));
+
+        String machineSalt = context.reloadEntity(user).getMachineSessionSalt();
+        assertThat(machineSalt, notNullValue());
+
+        getClient(machineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isOk());
+
+        AtomicReference<String> newMachineToken = new AtomicReference<>();
+
+        getClient(token).perform(post("/api/authn/machinetokens"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token", notNullValue()))
+            .andExpect(jsonPath("$.type", is("machinetoken")))
+            .andDo(result -> newMachineToken.set(read(result.getResponse().getContentAsString(), "$.token")));
+
+        assertThat(machineSalt, not(equalTo(context.reloadEntity(user).getMachineSessionSalt())));
+
+        getClient(newMachineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isOk());
+
+        getClient(machineToken.get()).perform(get("/api/core/bitstreams/" + bitstream.getID() + "/content"))
+            .andExpect(status().isUnauthorized());
+
+    }
+
     // Get a short-lived token based on an active login token
     private String getShortLivedToken(String loginToken) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -1508,6 +1562,10 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     private Bitstream createPrivateBitstream() throws Exception {
+        return createPrivateBitstream(eperson);
+    }
+
+    private Bitstream createPrivateBitstream(EPerson staffMember) throws Exception {
         context.turnOffAuthorisationSystem();
 
         //** GIVEN **
@@ -1532,7 +1590,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         //2. An item restricted to a specific internal group
         Group staffGroup = GroupBuilder.createGroup(context)
             .withName("Staff")
-            .addMember(eperson)
+            .addMember(staffMember)
             .build();
 
         String bitstreamContent = "ThisIsSomeDummyText";

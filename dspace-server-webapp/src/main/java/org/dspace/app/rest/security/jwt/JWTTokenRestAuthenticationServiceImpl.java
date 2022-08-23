@@ -106,7 +106,7 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
         try {
             String token = shortLivedJWTTokenHandler.createTokenForEPerson(context, request, null);
             context.commit();
-            return new AuthenticationToken(token);
+            return AuthenticationToken.shortLivedToken(token);
         } catch (JOSEException e) {
             log.error("JOSE Exception", e);
         } catch (SQLException e) {
@@ -114,6 +114,19 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
         }
 
         return null;
+    }
+
+    @Override
+    public AuthenticationToken getMachineAuthenticationToken(Context context, HttpServletRequest request) {
+        request.setAttribute(MachineClaimProvider.MACHINE_TOKEN, true);
+        try {
+            String token = loginJWTTokenHandler.createTokenForEPerson(context, request, null);
+            context.commit();
+            return AuthenticationToken.machineToken(token);
+        } catch (Exception ex) {
+            log.error("An error occurs creating machine authentication token", ex);
+            throw new RuntimeException(ex);
+        }
     }
 
     @Override

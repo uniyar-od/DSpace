@@ -167,6 +167,22 @@ public class AuthenticationRestController implements InitializingBean {
     }
 
     /**
+     * This method will generate a machine token.
+     *
+     * @param  request the HttpServletRequest
+     * @return         the created token
+     */
+    @PreAuthorize("hasAuthority('AUTHENTICATED')")
+    @RequestMapping(value = "/machinetokens", method = RequestMethod.POST)
+    public AuthenticationTokenResource machineToken(HttpServletRequest request) {
+        Projection projection = utils.obtainProjection();
+        AuthenticationToken machineToken = restAuthenticationService
+            .getMachineAuthenticationToken(ContextUtil.obtainContext(request), request);
+        AuthenticationTokenRest authenticationTokenRest = converter.toRest(machineToken, projection);
+        return converter.toResource(authenticationTokenRest);
+    }
+
+    /**
      * This method will generate a short lived token to be used for bitstream downloads among other things.
      *
      * For security reasons, this endpoint only responds to a explicitly defined list of ips.

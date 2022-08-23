@@ -49,6 +49,8 @@ public interface RestAuthenticationService {
      */
     AuthenticationToken getShortLivedAuthenticationToken(Context context, HttpServletRequest request);
 
+    AuthenticationToken getMachineAuthenticationToken(Context context, HttpServletRequest request);
+
     /**
      * Checks the current request for a valid authentication token. If found, extracts that token and obtains the
      * currently logged in EPerson.
