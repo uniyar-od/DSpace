@@ -212,7 +212,7 @@ public abstract class JWTTokenHandler {
         if (StringUtils.isNotBlank(token)) {
             EPerson ePerson = parseEPersonFromToken(token, request, context);
             if (ePerson != null) {
-                ePerson.setMachineSalt("");
+                ePerson.setMachineSessionSalt("");
             }
         }
     }

@@ -109,6 +109,6 @@ public interface RestAuthenticationService {
      */
     void invalidateAuthenticationCookie(HttpServletRequest request, HttpServletResponse res);
 
-    void deleteMachineAuthenticationToken(Context obtainContext, HttpServletRequest request) throws Exception;
+    void invalidateMachineAuthenticationToken(Context obtainContext, HttpServletRequest request) throws Exception;
 
 }

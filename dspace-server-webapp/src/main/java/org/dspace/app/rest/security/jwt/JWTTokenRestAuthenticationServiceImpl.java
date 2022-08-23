@@ -169,7 +169,7 @@ public class JWTTokenRestAuthenticationServiceImpl implements RestAuthentication
     }
 
     @Override
-    public void deleteMachineAuthenticationToken(Context context, HttpServletRequest request) throws Exception {
+    public void invalidateMachineAuthenticationToken(Context context, HttpServletRequest request) throws Exception {
         String token = getLoginToken(request);
         loginJWTTokenHandler.invalidateMachineToken(context, request, token);
         context.commit();

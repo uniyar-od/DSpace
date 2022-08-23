@@ -182,10 +182,16 @@ public class AuthenticationRestController implements InitializingBean {
         return converter.toResource(authenticationTokenRest);
     }
 
+    /**
+     * This method will invalidate the machine token related to the current user.
+     * @param  request   the HttpServletRequest
+     * @return           a no content response
+     * @throws Exception if an error occurs during the invalidation
+     */
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(value = "/machinetokens", method = RequestMethod.DELETE)
-    public ResponseEntity<?> deleteMachineToken(HttpServletRequest request) throws Exception {
-        restAuthenticationService.deleteMachineAuthenticationToken(ContextUtil.obtainContext(request), request);
+    public ResponseEntity<?> invalidateMachineToken(HttpServletRequest request) throws Exception {
+        restAuthenticationService.invalidateMachineAuthenticationToken(ContextUtil.obtainContext(request), request);
         return ResponseEntity.noContent().build();
     }
 
