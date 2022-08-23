@@ -418,6 +418,6 @@ public class HandleServiceImpl implements HandleService {
 
     @Override
     public boolean isHandleMatchingDSO(Context context, String handle) throws SQLException {
-        return handleDAO.isResourceIdExistGivenHandle(context, handle);
+        return handleDAO.hasDSpaceObject(context, handle);
     }
 }

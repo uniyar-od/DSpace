@@ -101,14 +101,11 @@ public class HandleDAOImpl extends AbstractHibernateDAO<Handle> implements Handl
     }
 
     @Override
-    public boolean isResourceIdExistGivenHandle(Context context, String handle) throws SQLException {
-        Query query = createQuery(context,
-                "SELECT h " + "FROM Handle h " + "WHERE h.handle = :handle ");
+    public boolean hasDSpaceObject(Context context, String prefix) throws SQLException {
+        Handle handle = findByHandle(context, prefix);
 
-        query.setParameter("handle", handle);
-
-        if (singleResult(query) != null) {
-            return singleResult(query).getDSpaceObject() == null;
+        if (handle != null) {
+            return handle.getDSpaceObject() == null;
         }
         return false;
     }

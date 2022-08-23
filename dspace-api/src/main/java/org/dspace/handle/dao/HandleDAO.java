@@ -35,7 +35,7 @@ public interface HandleDAO extends GenericDAO<Handle> {
 
     public long countHandlesByPrefix(Context context, String prefix) throws SQLException;
 
-    public boolean isResourceIdExistGivenHandle(Context context, String prefix) throws SQLException;
+    public boolean hasDSpaceObject(Context context, String prefix) throws SQLException;
 
     int updateHandlesWithNewPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException;
 
