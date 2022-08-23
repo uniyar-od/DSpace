@@ -79,7 +79,7 @@ public class IdentifierRestControllerIT extends AbstractControllerIntegrationTes
                    // We expect a Location header to redirect to the item's page
                    .andExpect(header().string("Location", itemLocation));
     }
-    
+
     @Test
     public void testIdentifierGoneItem() throws Exception {
         // We turn off the authorization system in order to create the structure as
@@ -91,9 +91,9 @@ public class IdentifierRestControllerIT extends AbstractControllerIntegrationTes
         Collection owningCollection = CollectionBuilder.createCollection(context, parentCommunity)
                 .withName("Owning Collection").build();
         String token = getAuthToken(admin.getEmail(), password);
-                
+
         Item item = ItemBuilder.createItem(context, owningCollection).withTitle("Test item").build();
-        
+
         context.restoreAuthSystemState();
 
         getClient(token).perform(get("/api/pid/find?id={handle}", item.getHandle())).andExpect(status().isFound());
