@@ -101,16 +101,6 @@ public class HandleDAOImpl extends AbstractHibernateDAO<Handle> implements Handl
     }
 
     @Override
-    public boolean hasDSpaceObject(Context context, String prefix) throws SQLException {
-        Handle handle = findByHandle(context, prefix);
-
-        if (handle != null) {
-            return handle.getDSpaceObject() == null;
-        }
-        return false;
-    }
-
-    @Override
     public int updateHandlesWithNewPrefix(Context context, String newPrefix, String oldPrefix) throws SQLException {
         String hql = "UPDATE Handle set handle = concat(:newPrefix, '/', substring(handle, :oldPrefixLength + 2)) " +
             "WHERE handle like concat(:oldPrefix,'%')";

@@ -321,10 +321,10 @@ public class VersionedHandleIdentifierProvider extends IdentifierProvider {
     }
 
     @Override
-    public boolean isItemGone(Context context, String identifier)
+    public boolean isGone(Context context, String identifier)
         throws IdentifierNotFoundException, IdentifierNotResolvableException {
         try {
-            return handleService.isHandleMatchingDSO(context, identifier);
+            return handleService.isGone(context, identifier);
         } catch (SQLException sqe) {
             throw new IdentifierNotResolvableException(sqe.getMessage(), sqe);
         }

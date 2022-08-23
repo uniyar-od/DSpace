@@ -270,7 +270,7 @@ public class IdentifierServiceImpl implements IdentifierService {
         for (IdentifierProvider provider : providers) {
             try {
                 if (provider.supports(identifier)) {
-                    return provider.isItemGone(context, identifier);
+                    return provider.isGone(context, identifier);
                 }
             } catch (IdentifierException e) {
                 log.error(e.getMessage(), e);

@@ -417,7 +417,12 @@ public class HandleServiceImpl implements HandleService {
     }
 
     @Override
-    public boolean isHandleMatchingDSO(Context context, String handle) throws SQLException {
-        return handleDAO.hasDSpaceObject(context, handle);
+    public boolean isGone(Context context, String prefix) throws SQLException {
+        Handle handle = handleDAO.findByHandle(context, prefix);
+
+        if (handle != null) {
+            return handle.getDSpaceObject() == null;
+        }
+        return false;
     }
 }

@@ -139,14 +139,14 @@ public abstract class IdentifierProvider {
         throws IdentifierException;
 
     /**
-     * Checks whether the given identifier matches the one of an once-existing item or it's a non-existent one
+     * Checks whether the given identifier matches the one of an once-existing object or it's a non-existent one
      * 
      * @param context    The relevant DSpace Context.
      * @param identifier to look out for.
      * @return false by default.
      * @throws IdentifierException
      */
-    public boolean isItemGone(Context context, String identifier) throws IdentifierException {
+    public boolean isGone(Context context, String identifier) throws IdentifierException {
         return false;
     }
 }

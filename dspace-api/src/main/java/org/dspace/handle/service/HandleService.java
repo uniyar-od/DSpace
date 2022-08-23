@@ -199,5 +199,5 @@ public interface HandleService {
      * @return
      * @throws SQLException
      */
-    public boolean isHandleMatchingDSO(Context context, String handle) throws SQLException;
+    public boolean isGone(Context context, String handle) throws SQLException;
 }

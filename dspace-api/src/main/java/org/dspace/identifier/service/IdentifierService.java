@@ -144,7 +144,7 @@ public interface IdentifierService {
         throws AuthorizeException, SQLException, IdentifierException;
 
     /**
-     * Checks whether the given identifier matches the one of an once-existing item or it's a non-existent one
+     * Checks whether the given identifier matches the one of an once-existing object or it's a non-existent one
      * 
      * @param context    The relevant DSpace Context.
      * @param identifier instance of an Identifier of the required type.

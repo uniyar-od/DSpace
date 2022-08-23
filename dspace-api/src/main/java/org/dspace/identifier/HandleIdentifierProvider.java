@@ -178,9 +178,9 @@ public class HandleIdentifierProvider extends IdentifierProvider {
     }
 
     @Override
-    public boolean isItemGone(Context context, String identifier) throws IdentifierException {
+    public boolean isGone(Context context, String identifier) throws IdentifierException {
         try {
-            return handleService.isHandleMatchingDSO(context, identifier);
+            return handleService.isGone(context, identifier);
         } catch (SQLException sqe) {
             throw new IdentifierException(sqe.getMessage(), sqe);
         }
