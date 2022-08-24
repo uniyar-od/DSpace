@@ -1609,6 +1609,13 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     @Test
+    public void testGenerateMachineTokenWithAnonymousUser() throws Exception {
+
+        getClient().perform(post("/api/authn/machinetokens"))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     public void testGenerateMachineTokenForbiddenWithLoginAsFeature() throws Exception {
 
         configurationService.setProperty("webui.user.assumelogin", "true");
@@ -1694,6 +1701,13 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
         getClient(adminToken).perform(delete("/api/authn/machinetokens")
             .header(ON_BEHALF_OF_REQUEST_PARAM, user.getID().toString()))
             .andExpect(status().isForbidden());
+    }
+
+    @Test
+    public void testDeleteMachineTokenWithAnonymousUser() throws Exception {
+
+        getClient().perform(delete("/api/authn/machinetokens"))
+            .andExpect(status().isUnauthorized());
     }
 
     // Get a short-lived token based on an active login token
