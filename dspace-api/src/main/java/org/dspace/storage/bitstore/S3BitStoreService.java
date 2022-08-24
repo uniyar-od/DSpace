@@ -8,6 +8,7 @@
 package org.dspace.storage.bitstore;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
@@ -28,6 +29,7 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -53,6 +55,9 @@ public class S3BitStoreService implements BitStoreService {
      * log4j log
      */
     private static final Logger log = LogManager.getLogger(S3BitStoreService.class);
+
+    public static final String TEMP_PREFIX = "s3-virtual-path";
+    public static final String TEMP_SUFFIX = "temp";
 
     /**
      * Checksum algorithm
@@ -483,4 +488,15 @@ public class S3BitStoreService implements BitStoreService {
         store.get(id);
 */
     }
+
+    @Override
+    public String path(Bitstream bitstream) throws IOException {
+        final File tempFile = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
+        tempFile.deleteOnExit();
+        try (FileOutputStream out = new FileOutputStream(tempFile)) {
+            IOUtils.copy(get(bitstream), out);
+        }
+        return tempFile.getAbsolutePath();
+    }
+
 }
