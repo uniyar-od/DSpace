@@ -7,11 +7,14 @@
  */
 package org.dspace.app.rest;
 
+import static org.dspace.app.rest.security.StatelessAuthenticationFilter.ON_BEHALF_OF_REQUEST_PARAM;
+
 import java.sql.SQLException;
 import java.util.Arrays;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.converter.EPersonConverter;
 import org.dspace.app.rest.link.HalLinkService;
@@ -171,14 +174,20 @@ public class AuthenticationRestController implements InitializingBean {
      *
      * @param  request the HttpServletRequest
      * @return         the created token
+     * @throws AuthorizeException if the 'login as' feature is used
      */
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(value = "/machinetokens", method = RequestMethod.POST)
-    public AuthenticationTokenResource machineToken(HttpServletRequest request) {
-        Projection projection = utils.obtainProjection();
-        AuthenticationToken machineToken = restAuthenticationService
-            .getMachineAuthenticationToken(ContextUtil.obtainContext(request), request);
-        AuthenticationTokenRest authenticationTokenRest = converter.toRest(machineToken, projection);
+    public AuthenticationTokenResource machineToken(HttpServletRequest request) throws AuthorizeException {
+
+        if (isLoginAsFeatureUsed(request)) {
+            throw new AuthorizeException("You're unable to use the 'login as' feature to generate a new machine token");
+        }
+
+        Context context = ContextUtil.obtainContext(request);
+        AuthenticationToken machineToken = restAuthenticationService.getMachineAuthenticationToken(context, request);
+        AuthenticationTokenRest authenticationTokenRest = converter.toRest(machineToken, utils.obtainProjection());
+
         return converter.toResource(authenticationTokenRest);
     }
 
@@ -191,6 +200,11 @@ public class AuthenticationRestController implements InitializingBean {
     @PreAuthorize("hasAuthority('AUTHENTICATED')")
     @RequestMapping(value = "/machinetokens", method = RequestMethod.DELETE)
     public ResponseEntity<?> invalidateMachineToken(HttpServletRequest request) throws Exception {
+
+        if (isLoginAsFeatureUsed(request)) {
+            throw new AuthorizeException("You're unable to use the login as feature to invalidate a machine token");
+        }
+
         restAuthenticationService.invalidateMachineAuthenticationToken(ContextUtil.obtainContext(request), request);
         return ResponseEntity.noContent().build();
     }
@@ -290,6 +304,10 @@ public class AuthenticationRestController implements InitializingBean {
             //We have a user, so the login was successful.
             return ResponseEntity.ok().build();
         }
+    }
+
+    private boolean isLoginAsFeatureUsed(HttpServletRequest request) {
+        return StringUtils.isNotBlank(request.getHeader(ON_BEHALF_OF_REQUEST_PARAM));
     }
 
 }

@@ -9,6 +9,7 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static java.lang.Thread.sleep;
+import static org.dspace.app.rest.security.StatelessAuthenticationFilter.ON_BEHALF_OF_REQUEST_PARAM;
 import static org.dspace.app.rest.utils.RegexUtils.REGEX_UUID;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -1608,6 +1609,28 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     @Test
+    public void testGenerateMachineTokenForbiddenWithLoginAsFeature() throws Exception {
+
+        configurationService.setProperty("webui.user.assumelogin", "true");
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withPassword(password)
+            .withEmail("myuser@test.com")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String adminToken = getAuthToken(user.getEmail(), password);
+
+        getClient(adminToken).perform(post("/api/authn/machinetokens")
+            .header(ON_BEHALF_OF_REQUEST_PARAM, user.getID().toString()))
+            .andExpect(status().isForbidden());
+    }
+
+    @Test
     public void testDeleteMachineToken() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1646,6 +1669,33 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 
     }
 
+    @Test
+    public void testDeleteMachineTokenForbiddenWithLoginAsFeature() throws Exception {
+
+        configurationService.setProperty("webui.user.assumelogin", "true");
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withPassword(password)
+            .withEmail("myuser@test.com")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(user.getEmail(), password);
+
+        getClient(token).perform(post("/api/authn/machinetokens"))
+            .andExpect(status().isOk());
+
+        String adminToken = getAuthToken(admin.getEmail(), password);
+
+        getClient(adminToken).perform(delete("/api/authn/machinetokens")
+            .header(ON_BEHALF_OF_REQUEST_PARAM, user.getID().toString()))
+            .andExpect(status().isForbidden());
+    }
+
     // Get a short-lived token based on an active login token
     private String getShortLivedToken(String loginToken) throws Exception {
         ObjectMapper mapper = new ObjectMapper();
@@ -1660,20 +1710,28 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
 
     private Bitstream createPrivateBitstream() throws Exception {
 
+        context.turnOffAuthorisationSystem();
+
         Group staffGroup = GroupBuilder.createGroup(context)
             .withName("Staff")
             .addMember(eperson)
             .build();
+
+        context.restoreAuthSystemState();
 
         return createPrivateBitstream(staffGroup);
     }
 
     private Bitstream createPrivateBitstream(EPerson staffMember) throws Exception {
 
+        context.turnOffAuthorisationSystem();
+
         Group staffGroup = GroupBuilder.createGroup(context)
             .withName("Staff")
             .addMember(staffMember)
             .build();
+
+        context.restoreAuthSystemState();
 
         return createPrivateBitstream(staffGroup);
     }
