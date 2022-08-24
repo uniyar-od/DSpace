@@ -12,6 +12,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.security.web.csrf.CsrfTokenRepository;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
+/**
+ * Implementation of {@link RequestMatcher} that matches the request only if no
+ * CSRF cookie is present. This matcher is used to skip the CSRF check if no
+ * cookie is provided by the calling user.
+ *
+ * @author Luca Giamminonni (luca.giamminonni at 4science.it)
+ *
+ */
 public class DSpaceCsrfIgnoringRequestMatcher implements RequestMatcher {
 
     private CsrfTokenRepository csrfTokenRepository;

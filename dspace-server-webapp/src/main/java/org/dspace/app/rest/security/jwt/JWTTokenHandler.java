@@ -208,6 +208,13 @@ public abstract class JWTTokenHandler {
         }
     }
 
+    /**
+     * Invalidate the current machine JWT in the current request
+     * @param  token     current token
+     * @param  request   current request
+     * @param  context   current Context
+     * @throws Exception
+     */
     public void invalidateMachineToken(Context context, HttpServletRequest request, String token) throws Exception {
         if (StringUtils.isNotBlank(token)) {
             EPerson ePerson = parseEPersonFromToken(token, request, context);

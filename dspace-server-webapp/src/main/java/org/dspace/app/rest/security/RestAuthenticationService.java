@@ -49,6 +49,12 @@ public interface RestAuthenticationService {
      */
     AuthenticationToken getShortLivedAuthenticationToken(Context context, HttpServletRequest request);
 
+    /**
+     * Retrieve a machine to machine authentication token.
+     * @param context the DSpace context
+     * @param request The current client request
+     * @return An AuthenticationToken that contains a string with the token
+     */
     AuthenticationToken getMachineAuthenticationToken(Context context, HttpServletRequest request);
 
     /**
@@ -109,6 +115,13 @@ public interface RestAuthenticationService {
      */
     void invalidateAuthenticationCookie(HttpServletRequest request, HttpServletResponse res);
 
-    void invalidateMachineAuthenticationToken(Context obtainContext, HttpServletRequest request) throws Exception;
+    /**
+     * Invalidate the machine token related to the current user.
+     *
+     * @param  context   the DSpace context
+     * @param  request   The current client request
+     * @throws Exception if an error occurs
+     */
+    void invalidateMachineAuthenticationToken(Context context, HttpServletRequest request) throws Exception;
 
 }
