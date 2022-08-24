@@ -465,6 +465,10 @@ public abstract class JWTTokenHandler {
     }
 
     private String getSalt(JWTClaimsSet jwtClaimsSet, EPerson ePerson) {
+        if (ePerson == null) {
+            return null;
+        }
+
         return isMachineToken(jwtClaimsSet) ? ePerson.getMachineSessionSalt() : ePerson.getSessionSalt();
     }
 
