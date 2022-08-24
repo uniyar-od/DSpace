@@ -565,8 +565,6 @@ public class SolrServiceImpl implements SearchService, IndexingService {
 				query.setFields(HANDLE_FIELD);
                 query.addSort(HANDLE_FIELD, SolrQuery.ORDER.asc);
                 query.setQuery(RESOURCE_TYPE_FIELD + ":" + type);
-                QueryResponse rsp = getSolr().query(query);
-                SolrDocumentList docs = rsp.getResults();
 
                 // Get the total amount of results
                 QueryResponse totalResponse = getSolr().query(query);
