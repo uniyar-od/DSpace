@@ -1554,6 +1554,60 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     @Test
+    public void testGenerateMachineTokenWithSpecialGroups() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withPassword(password)
+            .withEmail("myuser@test.com")
+            .build();
+
+        Group specialGroup = GroupBuilder.createGroup(context)
+            .withName("Special group")
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection")
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withReaderGroup(specialGroup)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(user.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isForbidden());
+
+        configurationService.setProperty("authentication-password.login.specialgroup", "Special group");
+
+        token = getAuthToken(user.getEmail(), password);
+
+        configurationService.setProperty("authentication-password.login.specialgroup", null);
+
+        getClient(token).perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk());
+
+        AtomicReference<String> machineToken = new AtomicReference<>();
+
+        getClient(token).perform(post("/api/authn/machinetokens"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token", notNullValue()))
+            .andExpect(jsonPath("$.type", is("machinetoken")))
+            .andDo(result -> machineToken.set(read(result.getResponse().getContentAsString(), "$.token")));
+
+        getClient(machineToken.get()).perform(get("/api/core/items/" + item.getID()))
+            .andExpect(status().isOk());
+    }
+
+    @Test
     public void testDeleteMachineToken() throws Exception {
 
         context.turnOffAuthorisationSystem();
@@ -1605,20 +1659,37 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
     }
 
     private Bitstream createPrivateBitstream() throws Exception {
-        return createPrivateBitstream(eperson);
+
+        Group staffGroup = GroupBuilder.createGroup(context)
+            .withName("Staff")
+            .addMember(eperson)
+            .build();
+
+        return createPrivateBitstream(staffGroup);
     }
 
     private Bitstream createPrivateBitstream(EPerson staffMember) throws Exception {
+
+        Group staffGroup = GroupBuilder.createGroup(context)
+            .withName("Staff")
+            .addMember(staffMember)
+            .build();
+
+        return createPrivateBitstream(staffGroup);
+    }
+
+    private Bitstream createPrivateBitstream(Group staff) throws Exception {
         context.turnOffAuthorisationSystem();
 
-        //** GIVEN **
-        //1. A community-collection structure with one parent community with sub-community and one collection.
+        // ** GIVEN **
+        // 1. A community-collection structure with one parent community with
+        // sub-community and one collection.
         parentCommunity = CommunityBuilder.createCommunity(context)
             .withName("Parent Community")
             .build();
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
 
-        //2. One public items that is readable by Anonymous
+        // 2. One public items that is readable by Anonymous
         Item publicItem1 = ItemBuilder.createItem(context, col1)
             .withTitle("Test")
             .withIssueDate("2010-10-17")
@@ -1630,12 +1701,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
             .withName("TEST BUNDLE")
             .build();
 
-        //2. An item restricted to a specific internal group
-        Group staffGroup = GroupBuilder.createGroup(context)
-            .withName("Staff")
-            .addMember(staffMember)
-            .build();
-
+        // 2. An item restricted to a specific internal group
         String bitstreamContent = "ThisIsSomeDummyText";
         Bitstream bitstream = null;
         try (InputStream is = IOUtils.toInputStream(bitstreamContent, CharEncoding.UTF_8)) {
@@ -1644,7 +1710,7 @@ public class AuthenticationRestControllerIT extends AbstractControllerIntegratio
                 .withName("Bitstream")
                 .withDescription("description")
                 .withMimeType("text/plain")
-                .withReaderGroup(staffGroup)
+                .withReaderGroup(staff)
                 .build();
         }
 
