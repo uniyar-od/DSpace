@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
-import java.util.logging.Level;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -270,6 +269,7 @@ public class Authenticate
             // Shibboleth stores information about special groups in the session. Preserve these information.
             Boolean shibbolethAuthenticated = (Boolean) session.getAttribute("shib.authenticated");
             int[] shibbolethSpecialGroups = (int[]) session.getAttribute("shib.specialgroup");
+
             // Invalidate session unless dspace.cfg says not to
             if(ConfigurationManager.getBooleanProperty("webui.session.invalidate", true))
             {

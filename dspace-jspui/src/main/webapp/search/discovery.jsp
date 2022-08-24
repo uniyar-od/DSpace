@@ -251,7 +251,7 @@
 									tmp_val = item.displayedValue;
 								}
 								return {
-									label: item.displayedValue + " (" + item.count + ")",
+									label: escapeHtml(item.displayedValue) + " (" + item.count + ")",
 									value: tmp_val
 								};
 							}))			
@@ -285,7 +285,13 @@
 		return document.getElementById("filterquery").value.length > 0;
 	}
 	-->		
-</script>		
+
+	// Generic HTML escape utility
+	var escapeHtml = s => (s + '').replace(/[&<>"']/g, m => ({
+		'&': '&amp;', '<': '&lt;', '>': '&gt;',
+		'"': '&quot;', "'": '&#39;'
+	})[m]);
+</script>
 </c:set>
 
 <c:set var="searchinKey">
@@ -344,7 +350,7 @@ if(StringUtils.contains(searchScope, hdlPrefix) ){
                                 <a class="btn btn-default" href="<%= request.getContextPath()+"/global-search" %>"><fmt:message key="jsp.search.general.new-search" /></a>
                                
 <% if (StringUtils.isNotBlank(spellCheckQuery)) {%>
-	<p class="lead"><fmt:message key="jsp.search.didyoumean"><fmt:param><a id="spellCheckQuery" data-spell="<%= Utils.addEntities(spellCheckQuery) %>" href="#"><%= spellCheckQuery %></a></fmt:param></fmt:message></p>
+	<p class="lead"><fmt:message key="jsp.search.didyoumean"><fmt:param><a id="spellCheckQuery" data-spell="<%= Utils.addEntities(spellCheckQuery) %>" href="#"><%=Utils.addEntities(spellCheckQuery) %></a></fmt:param></fmt:message></p>
 <% } %>                  
 
 <br/>
