@@ -39,12 +39,12 @@
 		<dependency>
 			<groupId>javax.servlet</groupId>
 			<scope>provided</scope>
-			<artifactId>javax.servlet-api</artifactId>
+			<artifactId>servlet-api</artifactId>
 		</dependency>
 
 		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
+           <groupId>ch.qos.reload4j</groupId>
+           <artifactId>reload4j</artifactId>
 		</dependency>
 
 		<!-- JAX-RS: Java API for RESTful Web Services -->

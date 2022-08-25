@@ -64,7 +64,7 @@
         <dependency>
             <groupId>javax.servlet</groupId>
             <scope>provided</scope>
-            <artifactId>javax.servlet-api</artifactId>
+            <artifactId>servlet-api</artifactId>
         </dependency>
     </dependencies>
 
