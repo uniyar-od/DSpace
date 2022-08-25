@@ -10,6 +10,7 @@ package org.dspace.app.rest.repository;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -32,10 +33,12 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +74,9 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
 
     @Autowired
     private HandleService handleService;
+
+    @Autowired
+    private ItemService itemService;
 
     @Autowired
     public BitstreamRestRepository(BitstreamService dsoService) {
@@ -186,6 +192,65 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
         }
     }
 
+    /**
+     * Find the bitstream for the provided uuid of an item, the name of bundle, the metadata field
+     * and the value of this metadata.
+     *
+     * @param uuid The uuid of the item
+     * @param name The bundle name
+     * @param metadata The filter metadata field
+     * @param value The filter metadata value
+     *
+     * @return a Page of BitstreamRest instance matching the user query
+     */
+    @SearchRestMethod(name = "byItemId")
+    public Page<BitstreamRest> findByItemId(@Parameter(value = "uuid", required = true) UUID uuid,
+                                            @Parameter(value = "name", required = true) String name,
+                                            @Parameter(value = "filterMetadata") String metadata,
+                                            @Parameter(value = "filterMetadataValue") String value,
+                                            Pageable pageable) {
+
+        validateParameters(metadata, value);
+
+        try {
+
+            List<Bitstream> bitstreams = new ArrayList<>();
+            List<Bitstream> matchedBitstreams;
+            Context context = obtainContext();
+
+            Item item = itemService.find(context, uuid);
+
+            if (item == null) {
+                throw new UnprocessableEntityException("The provided uuid:" + uuid + " does not correspond to an " +
+                    "existing item");
+            }
+
+            bs.getItemBitstreams(context, item).forEachRemaining(bitstreams::add);
+
+            matchedBitstreams = filterByBundleName(bitstreams, name);
+
+            if (metadata != null && value != null) {
+                matchedBitstreams = filterByMetadataAndValue(matchedBitstreams, metadata, value);
+            }
+
+            if (matchedBitstreams.isEmpty()) {
+                throw new ResourceNotFoundException("no matched bitstreams found");
+            }
+
+            return converter.toRestPage(matchedBitstreams, pageable, matchedBitstreams.size(),
+                utils.obtainProjection());
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    private void validateParameters(String metadata, String value) {
+        if ((metadata != null && value == null) || (value != null && metadata == null)) {
+            throw new IllegalArgumentException("The request must include a filterMetadata " +
+                "and a filterMetadataValue together");
+        }
+    }
+
     private Bitstream getFirstMatchedBitstream(Item item, Integer sequence, String filename) {
         List<Bundle> bundles = item.getBundles();
         List<Bitstream> bitstreams = new LinkedList<>();
@@ -248,4 +313,42 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
 
         return converter.toRest(targetBundle, utils.obtainProjection());
     }
+
+    private List<Bitstream> filterByBundleName(List<Bitstream> bitstreams, String name) throws SQLException {
+        List<Bitstream> matchedBitstreams = new ArrayList<>();
+        for (Bitstream bitstream : bitstreams) {
+            for (Bundle bundle : bitstream.getBundles()) {
+                if (bundle.getName().equals(name)) {
+                    matchedBitstreams.add(bitstream);
+                }
+            }
+        }
+        return matchedBitstreams;
+    }
+
+    private List<Bitstream> filterByMetadataAndValue(List<Bitstream> bitstreams, String metadata, String value) {
+        List<Bitstream> matchedBitstreams = new ArrayList<>();
+        for (Bitstream bitstream : bitstreams) {
+            for (MetadataValue metadataValue : bitstream.getMetadata()) {
+                if (isMatched(metadataValue, metadata, value)) {
+                    matchedBitstreams.add(bitstream);
+                }
+            }
+        }
+
+        return matchedBitstreams;
+    }
+
+    private boolean isMatched(MetadataValue metadataValue, String metadata, String value) {
+
+        boolean metadataMatched = metadataValue.getMetadataField().toString('.').equals(metadata);
+
+        if (value.startsWith("(") && value.endsWith(")")) {
+            value = value.substring(1, value.length() - 1);
+            return metadataMatched && metadataValue.getValue().matches(value);
+        } else {
+            return metadataMatched && metadataValue.getValue().equals(value);
+        }
+    }
+
 }
