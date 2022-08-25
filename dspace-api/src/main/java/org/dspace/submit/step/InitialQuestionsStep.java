@@ -236,10 +236,10 @@ public class InitialQuestionsStep extends AbstractProcessingStep
             }
         }
         else {
-            List<MetadataValue> metadata = itemService.getMetadata(item, "dc", "date", "issued", Item.ANY);
+            List<IMetadataValue> metadata = itemService.getMetadata(item, "dc", "date", "issued", Item.ANY);
             itemService.clearMetadata(context, item,MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY);
 
-            for (MetadataValue metadataValue : metadata) {
+            for (IMetadataValue metadataValue : metadata) {
                 if(!StringUtils.equals(metadataValue.getValue(), "today")){
                     itemService.addMetadata(context, item,MetadataSchema.DC_SCHEMA, "date", "issued", Item.ANY, metadataValue.getValue());
                 }

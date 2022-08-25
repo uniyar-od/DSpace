@@ -19,6 +19,7 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocumentList;
 import org.dspace.authority.AuthoritySearchService;
 import org.dspace.authority.factory.AuthorityServiceFactory;
+import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
@@ -64,7 +65,7 @@ public class OrcidVirtualElementAdditional implements XOAIItemCompilePlugin {
 		String element = tokens[1];
 		String qualifier = tokens[2];
 
-		List<MetadataValue> values = null;
+		List<IMetadataValue> values = null;
 		if ("*".equals(qualifier)) {
 			values = itemService.getMetadata(item, schema, element, Item.ANY, Item.ANY);
 		} else if ("".equals(qualifier)) {
@@ -72,7 +73,7 @@ public class OrcidVirtualElementAdditional implements XOAIItemCompilePlugin {
 		} else {
 			values = itemService.getMetadata(item, schema, element, qualifier, Item.ANY);
 		}
-		for (MetadataValue val : values) {
+		for (IMetadataValue val : values) {
 			if (StringUtils.isNotBlank(val.getAuthority())) {
 				SolrQuery queryArgs = new SolrQuery();
 				queryArgs.setQuery("id:" + val.getAuthority());

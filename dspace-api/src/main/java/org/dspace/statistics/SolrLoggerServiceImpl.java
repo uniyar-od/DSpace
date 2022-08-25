@@ -92,6 +92,8 @@ import org.hibernate.LazyInitializationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.maxmind.geoip2.DatabaseReader;
+
 import au.com.bytecode.opencsv.CSVReader;
 import au.com.bytecode.opencsv.CSVWriter;
 
@@ -120,6 +122,8 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 		return solr;
 	}
 
+    protected DatabaseReader locationService;
+    
 	public static final String DATE_FORMAT_8601 = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'";
 
     public static final String DATE_FORMAT_DCDATE = "yyyy-MM-dd'T'HH:mm:ss'Z'";
@@ -938,7 +942,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     @Override
     public QueryResponse query(String query, int max) throws SolrServerException
     {
-       return query(query, null, null,0, max, null, null, null, null, null, false);
+        return query(query, null, null,0, max, null, null, null, null, null, false);
     }
 
     @Override
@@ -998,7 +1002,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             String dateEnd, int gap, boolean showTotal, Context context) throws SolrServerException
     {
         QueryResponse queryResponse = query(query, filterQuery, null, 0, max,
-                dateType, dateStart, dateEnd, gap, null, null, false);
+                dateType, dateStart, dateEnd, null, null, false);
         if (queryResponse == null)
         {
             return new ObjectCount[0];
@@ -1145,7 +1149,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
                     // EXAMPLE: NOW/MONTH+1MONTH
                     setParam("facet.date.end",
                             "NOW/" + dateType + dateEnd + dateType).setParam(
-                            "facet.date.gap", "+" + gap + dateType)
+                            "facet.date.gap", "+1" + dateType)
                     .
                     // EXAMPLE: NOW/MONTH-" + nbMonths + "MONTHS
                     setParam("facet.date.start",

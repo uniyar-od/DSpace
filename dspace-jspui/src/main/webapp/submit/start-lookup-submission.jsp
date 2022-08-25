@@ -571,7 +571,7 @@ void generateCollectionTree(javax.servlet.jsp.JspWriter out, CollectionsTree tre
 	   			}
         	}
     	});
-	
+
     	j('#link-ricerca-identificatore').on("click",function(){
     		j('#tabs-search-accordion').accordion({'active': 2});
     	});

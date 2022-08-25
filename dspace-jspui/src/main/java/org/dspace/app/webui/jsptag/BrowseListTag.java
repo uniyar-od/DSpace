@@ -7,6 +7,11 @@
  */
 package org.dspace.app.webui.jsptag;
 
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +19,7 @@ import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
@@ -29,20 +35,26 @@ import org.dspace.app.webui.util.IDisplayMetadataValueStrategy;
 import org.dspace.app.webui.util.LinkDisplayStrategy;
 import org.dspace.app.webui.util.ThumbDisplayStrategy;
 import org.dspace.app.webui.util.TitleDisplayStrategy;
+import org.dspace.app.webui.util.UIUtil;
+import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.factory.AuthorizeServiceFactory;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.browse.BrowsableDSpaceObject;
 import org.dspace.browse.BrowseIndex;
 import org.dspace.browse.BrowseInfo;
 import org.dspace.browse.CrossLinks;
+import org.dspace.content.Bitstream;
 import org.dspace.content.IMetadataValue;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValueVolatile;
+import org.dspace.content.Thumbnail;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
+import org.dspace.core.Context;
 import org.dspace.core.factory.CoreServiceFactory;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
@@ -1063,4 +1075,69 @@ public class BrowseListTag extends TagSupport
             throw new JspException("Server does not support DSpace's default encoding. ", e);
         }
     }
+    
+    /*
+     * Get the (X)HTML width and height attributes. As the browser is being used
+     * for scaling, we only scale down otherwise we'll get hideously chunky
+     * images. This means the media filter should be run with the maxheight and
+     * maxwidth set greater than or equal to the size of the images required in
+     * the search/browse
+     */
+    private String getScalingAttr(HttpServletRequest hrq, Bitstream bitstream)
+            throws JspException, AuthorizeException
+    {
+        BufferedImage buf;
+
+        try
+        {
+            Context c = UIUtil.obtainContext(hrq);
+
+            InputStream is = bitstreamService.retrieve(c, bitstream);
+
+            //AuthorizeManager.authorizeAction(bContext, this, Constants.READ);
+            // 	read in bitstream's image
+            buf = ImageIO.read(is);
+            is.close();
+        }
+        catch (SQLException sqle)
+        {
+            throw new JspException(sqle.getMessage(), sqle);
+        }
+        catch (IOException ioe)
+        {
+            throw new JspException(ioe.getMessage(), ioe);
+        }
+
+        // now get the image dimensions
+        float xsize = (float) buf.getWidth(null);
+        float ysize = (float) buf.getHeight(null);
+
+        // scale by x first if needed
+        if (xsize > (float) thumbItemListMaxWidth)
+        {
+            // calculate scaling factor so that xsize * scale = new size (max)
+            float scaleFactor = (float) thumbItemListMaxWidth / xsize;
+
+            // now reduce x size and y size
+            xsize = xsize * scaleFactor;
+            ysize = ysize * scaleFactor;
+        }
+
+        // scale by y if needed
+        if (ysize > (float) thumbItemListMaxHeight)
+        {
+            float scaleFactor = (float) thumbItemListMaxHeight / ysize;
+
+            // now reduce x size
+            // and y size
+            xsize = xsize * scaleFactor;
+            ysize = ysize * scaleFactor;
+        }
+
+        StringBuffer sb = new StringBuffer("width=\"").append(xsize).append(
+                "\" height=\"").append(ysize).append("\"");
+
+        return sb.toString();
+    }
+
 }

@@ -8,6 +8,7 @@
 package org.dspace.statistics.service;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
@@ -25,13 +26,6 @@ import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.statistics.ObjectCount;
 import org.dspace.usage.UsageWorkflowEvent;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Static holder for a HttpSolrClient connection pool to issue
@@ -132,7 +126,7 @@ public interface SolrLoggerService {
                        List<String> fieldNames, List<List<Object>> fieldValuesList, boolean commit)
         throws SolrServerException, IOException;
 
-    public void query(String query, int max) throws SolrServerException;
+    public QueryResponse query(String query, int max) throws SolrServerException;
 
     /**
      * Query used to get values grouped by the given facet field.

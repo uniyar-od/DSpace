@@ -107,9 +107,9 @@ public class MetadataExport
      * @return Iterator over the Collection of item ids
      * @throws SQLException if database error
      */
-    protected Iterator<Item> buildFromCommunity(Context context, Community community, int indent)
+    protected Iterator<BrowseDSpaceObject> buildFromCommunity(Context context, Community community, int indent)
             throws SQLException {
-        Set<Item> result = new HashSet<>();
+    	Iterator<BrowseDSpaceObject> result = null;
 
         // Add all the collections
         List<Collection> collections = community.getCollections();
@@ -119,8 +119,10 @@ public class MetadataExport
             }
 
             Iterator<Item> items = itemService.findByCollection(context, collection);
-            while (items.hasNext()) {
-                result.add(items.next());
+            List<BrowseDSpaceObject> bdo = new ArrayList<>();
+            while(items.hasNext()) {
+            	Item item = items.next();
+            	bdo.add(new BrowseDSpaceObject(context, item));
             }
         }
 
@@ -130,13 +132,23 @@ public class MetadataExport
             for (int i = 0; i < indent; i++) {
                 System.out.print(" ");
             }
-            Iterator<Item> items = buildFromCommunity(context, subCommunity, indent + 1);
-            while (items.hasNext()) {
-                result.add(items.next());
-            }
+
+            Iterator<BrowseDSpaceObject> items = buildFromCommunity(context, subCommunity, indent + 1);
+            result = addItemsToResult(result,items);
         }
 
-        return result.iterator();
+        return result;
+    }
+
+    private Iterator<BrowseDSpaceObject> addItemsToResult(Iterator<BrowseDSpaceObject> result, Iterator<BrowseDSpaceObject> items) {
+        if(result == null)
+        {
+            result = items;
+        }else{
+            result = Iterators.concat(result, items);
+        }
+
+        return result;
     }
 
     /**
