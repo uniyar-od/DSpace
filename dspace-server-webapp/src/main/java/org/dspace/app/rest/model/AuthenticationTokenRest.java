@@ -8,6 +8,7 @@
 package org.dspace.app.rest.model;
 
 import org.dspace.app.rest.RestResourceController;
+import org.dspace.app.rest.model.wrapper.AuthenticationToken;
 
 /**
  * The authentication token REST HAL Resource. The HAL Resource wraps the REST Resource
@@ -48,6 +49,6 @@ public class AuthenticationTokenRest extends RestAddressableModel {
     }
 
     public boolean isShortLivedToken() {
-        return "shortlivedtoken".equals(type);
+        return AuthenticationToken.SHORTLIVEDTOKEN_TYPE.equals(type);
     }
 }

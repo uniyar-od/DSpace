@@ -13,16 +13,20 @@ package org.dspace.app.rest.model.wrapper;
  */
 public class AuthenticationToken {
 
-    private String token;
+    public static final String MACHINETOKEN_TYPE = "machinetoken";
+
+	public static final String SHORTLIVEDTOKEN_TYPE = "shortlivedtoken";
+
+	private String token;
 
     private String type;
 
     public static AuthenticationToken shortLivedToken(String token) {
-        return new AuthenticationToken(token, "shortlivedtoken");
+        return new AuthenticationToken(token, SHORTLIVEDTOKEN_TYPE);
     }
 
     public static AuthenticationToken machineToken(String token) {
-        return new AuthenticationToken(token, "machinetoken");
+        return new AuthenticationToken(token, MACHINETOKEN_TYPE);
     }
 
     private AuthenticationToken(String token, String type) {
