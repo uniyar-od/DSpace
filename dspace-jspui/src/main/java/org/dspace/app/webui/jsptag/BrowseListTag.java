@@ -1012,5 +1012,55 @@ public class BrowseListTag extends TagSupport
 
     public void setType(String type) {
         this.type = type;
+	}
+    /* generate the (X)HTML required to show the thumbnail */
+    private String getThumbMarkup(HttpServletRequest hrq, Item item)
+            throws JspException, AuthorizeException
+    {
+    	try
+    	{
+            Context c = UIUtil.obtainContext(hrq);
+            Thumbnail thumbnail = itemService.getThumbnail(c, item, linkToBitstream);
+
+            if (thumbnail == null || !authorizeService.authorizeActionBoolean(c, thumbnail.getThumb(), Constants.READ))
+    		{
+    			return "";
+    		}
+        	StringBuffer thumbFrag = new StringBuffer();
+
+        	if (linkToBitstream)
+        	{
+        		Bitstream original = thumbnail.getOriginal();
+        		String link = hrq.getContextPath() + "/bitstream/" + item.getHandle() + "/" + original.getSequenceID() + "/" +
+        						UIUtil.encodeBitstreamName(original.getName(), Constants.DEFAULT_ENCODING);
+        		thumbFrag.append("<a target=\"_blank\" rel=\"noopener\" href=\"").append(link).append("\" />");
+        	}
+        	else
+        	{
+        		String link = hrq.getContextPath() + "/handle/" + item.getHandle();
+        		thumbFrag.append("<a href=\"").append(link).append("\" />");
+        	}
+
+        	Bitstream thumb = thumbnail.getThumb();
+        	String img = hrq.getContextPath() + "/retrieve/" + thumb.getID() + "/" +
+        				UIUtil.encodeBitstreamName(thumb.getName(), Constants.DEFAULT_ENCODING);
+        	String alt = thumb.getName();
+            String scAttr = getScalingAttr(hrq, thumb);
+            thumbFrag.append("<img src=\"")
+                    .append(img)
+                    .append("\" alt=\"").append(alt).append("\" ")
+                     .append(scAttr)
+                     .append("/ border=\"0\"></a>");
+
+        	return thumbFrag.toString();
+        }
+        catch (SQLException sqle)
+        {
+        	throw new JspException(sqle.getMessage(), sqle);
+        }
+        catch (UnsupportedEncodingException e)
+        {
+            throw new JspException("Server does not support DSpace's default encoding. ", e);
+        }
     }
 }

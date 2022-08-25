@@ -529,6 +529,7 @@ public class SolrBrowseDAO implements BrowseDAO
 
     @Override
     public void setStartsWith(String startsWith) {
+        sResponse = null;
         this.startsWith = startsWith;
     }
 

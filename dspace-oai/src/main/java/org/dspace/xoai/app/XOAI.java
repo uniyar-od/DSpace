@@ -31,7 +31,7 @@ import com.lyncode.xoai.dataprovider.exceptions.ConfigurationException;
 import com.lyncode.xoai.dataprovider.exceptions.MetadataBindException;
 import com.lyncode.xoai.dataprovider.exceptions.WritingXmlException;
 import com.lyncode.xoai.dataprovider.xml.XmlOutputContext;
-
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
@@ -379,7 +379,7 @@ public class XOAI {
     @SuppressWarnings("rawtypes")
     private int indexResults(DiscoverResult result, int subtotal)
             throws DSpaceSolrIndexerException {
-    	int batchSize = DSpaceServicesFactory.getInstance().getConfigurationService().getIntProperty("oai.import.batch.size", 1000);
+        int batchSize = configurationService.getIntProperty("oai.import.batch.size", 1000);
         try {
             int i = 0;
             SolrServer server = solrServerResolver.getServer();
@@ -389,6 +389,10 @@ public class XOAI {
                 	SolrInputDocument solrDoc = null;
                 	if (o instanceof Item) {
                 	    Item item = (Item)o;
+                	    if (item.getHandle() == null) {
+                            log.warn("Skipped item without handle: " + item.getID());
+                            continue;
+                        } 
                 	    list.add(this.indexResults(item, false));
                 	    context.uncacheEntity(item);
                 	}
@@ -539,7 +543,6 @@ public class XOAI {
         {
             metadata = xOAIItemCompilePlugin.additionalMetadata(context, metadata, item);
         }
-
         metadata.write(xmlContext);
         xmlContext.getWriter().flush();
         xmlContext.getWriter().close();
@@ -710,7 +713,7 @@ public class XOAI {
     private static boolean getKnownExplanation(Throwable t) {
         if (t instanceof ConnectException) {
             System.err.println(
-                    "Solr server (" + ConfigurationManager.getProperty("oai", "solr.url") + ") is down, turn it on.");
+                    "Solr server (" + configurationService.getProperty("oai.solr.uri", "") + ") is down, turn it on.");
             return true;
         }
 

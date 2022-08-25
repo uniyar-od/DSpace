@@ -21,14 +21,11 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.log4j.Logger;
 import org.dspace.app.sherpa.v2.SHERPAResponse;
-import org.dspace.core.ConfigurationManager;
 import org.dspace.services.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class SHERPAService
-{
+public class SHERPAService {
     private CloseableHttpClient client = null;
-
     private int maxNumberOfTries;
     private long sleepBetweenTimeouts;
     private int timeout = 5000;
@@ -41,29 +38,35 @@ public class SHERPAService
 
     public SHERPAService() {
         HttpClientBuilder builder = HttpClientBuilder.create();
-        // httpclient 4.3+ doesn't appear to have any sensible defaults any more. Setting conservative defaults as not to hammer the SHERPA service too much.
+        // httpclient 4.3+ doesn't appear to have any sensible defaults any more.
+        // Setting conservative defaults as not to hammer the SHERPA service too much.
         client = builder
                 .disableAutomaticRetries()
                 .setMaxConnTotal(5)
                 .build();
     }
 
+    public SHERPAResponse searchByJournalISSN(String query) {
+        String endpoint = configurationService.getProperty("sherpa.romeo.url",
+            "https://v2.sherpa.ac.uk/cgi/retrieve");
+        String apiKey = configurationService.getProperty("sherpa.romeo.apikey");
 
-    public SHERPAResponse searchByJournalISSN(String query)
-    {
-        String endpoint = ConfigurationManager.getProperty("sherpa.romeo.url");
-        String apiKey = ConfigurationManager.getProperty("sherpa.romeo.apikey");
+        // API Key is *required* for v2 API calls
+        if (null == apiKey) {
+            log.error("SHERPA ROMeO API Key missing: please register for an API key and set sherpa.romeo.apikey");
+            return new SHERPAResponse("SHERPA/RoMEO configuration invalid or missing");
+        }
 
         HttpGet method = null;
         SHERPAResponse sherpaResponse = null;
         int numberOfTries = 0;
 
-        while(numberOfTries<maxNumberOfTries && sherpaResponse==null) {
+        while (numberOfTries < maxNumberOfTries && sherpaResponse == null) {
             numberOfTries++;
 
-            if (log.isDebugEnabled())
-            {
-                log.debug(String.format("Trying to contact SHERPA/RoMEO - attempt %d of %d; timeout is %d; sleep between timeouts is %d",
+            if (log.isDebugEnabled()) {
+                log.debug(String.format("Trying to contact SHERPA/RoMEO - attempt %d of %d; timeout is %d; sleep" +
+                        "between timeouts is %d",
                         numberOfTries,
                         maxNumberOfTries,
                         timeout,
@@ -75,8 +78,8 @@ public class SHERPAService
 
                 URIBuilder uriBuilder = new URIBuilder(endpoint);
 
-                uriBuilder.addParameter("item-type", "publication");
-                uriBuilder.addParameter("filter", "[[\"issn\",\"equals\",\""+query+"\"]]");
+                uriBuilder.addParameter("item-type", "publication");   
+                uriBuilder.addParameter("filter", "[[\"issn\",\"equals\",\"" + query + "\"]]");
                 uriBuilder.addParameter("format", "Json");
                 if (StringUtils.isNotBlank(apiKey)) {
                     uriBuilder.addParameter("api-key", apiKey);
@@ -106,17 +109,15 @@ public class SHERPAService
                     InputStream content = null;
                     try {
                         content = responseBody.getContent();
-                        sherpaResponse = new SHERPAResponse(responseBody.getContent(), SHERPAResponse.SHERPAFormat.JSON);
+                        sherpaResponse = new SHERPAResponse(content, SHERPAResponse.SHERPAFormat.JSON);
                     } catch (IOException e) {
-                        log.error("Encountered exception parsing response from  SHERPA/RoMEO: "
-                            + e.getMessage(), e);
+                        log.error("Encountered exception while contacting SHERPA/RoMEO: " + e.getMessage(), e);
                     } finally {
                         if (content != null) {
                             content.close();
                         }
                     }
-                }
-                else {
+                } else {
                     sherpaResponse = new SHERPAResponse("SHERPA/RoMEO returned no response");
                 }
             } catch (Exception e) {
@@ -128,7 +129,7 @@ public class SHERPAService
             }
         }
 
-        if(sherpaResponse==null){
+        if (sherpaResponse == null) {
             sherpaResponse = new SHERPAResponse(
                     "Error processing the SHERPA/RoMEO answer");
         }

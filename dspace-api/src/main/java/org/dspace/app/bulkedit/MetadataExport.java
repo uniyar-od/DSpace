@@ -7,11 +7,7 @@
  */
 package org.dspace.app.bulkedit;
 
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
+import org.apache.commons.cli.*;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -30,6 +26,12 @@ import org.dspace.core.Context;
 import org.dspace.handle.factory.HandleServiceFactory;
 
 import com.google.common.collect.Iterators;
+import java.util.ArrayList;
+import java.sql.SQLException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Metadata exporter to allow the batch export of metadata into a file
@@ -102,55 +104,39 @@ public class MetadataExport
      * @param context DSpace context
      * @param community The community to build from
      * @param indent How many spaces to use when writing out the names of items added
-     * @return The list of item ids
+     * @return Iterator over the Collection of item ids
      * @throws SQLException if database error
      */
-    protected Iterator<BrowseDSpaceObject> buildFromCommunity(Context context, Community community, int indent)
-                                                                               throws SQLException
-    {
+    protected Iterator<Item> buildFromCommunity(Context context, Community community, int indent)
+            throws SQLException {
+        Set<Item> result = new HashSet<>();
+
         // Add all the collections
         List<Collection> collections = community.getCollections();
-        Iterator<BrowseDSpaceObject> result = null;
-        for (Collection collection : collections)
-        {
-            for (int i = 0; i < indent; i++)
-            {
+        for (Collection collection : collections) {
+            for (int i = 0; i < indent; i++) {
                 System.out.print(" ");
             }
 
             Iterator<Item> items = itemService.findByCollection(context, collection);
-            List<BrowseDSpaceObject> bdo = new ArrayList<>();
-            while(items.hasNext()) {
-            	Item item = items.next();
-            	bdo.add(new BrowseDSpaceObject(context, item));
+            while (items.hasNext()) {
+                result.add(items.next());
             }
-            result = addItemsToResult(result,bdo.iterator());
-
         }
+
         // Add all the sub-communities
         List<Community> communities = community.getSubcommunities();
-        for (Community subCommunity : communities)
-        {
-            for (int i = 0; i < indent; i++)
-            {
+        for (Community subCommunity : communities) {
+            for (int i = 0; i < indent; i++) {
                 System.out.print(" ");
             }
-            Iterator<BrowseDSpaceObject> items = buildFromCommunity(context, subCommunity, indent + 1);
-            result = addItemsToResult(result,items);
+            Iterator<Item> items = buildFromCommunity(context, subCommunity, indent + 1);
+            while (items.hasNext()) {
+                result.add(items.next());
+            }
         }
 
-        return result;
-    }
-
-    private Iterator<BrowseDSpaceObject> addItemsToResult(Iterator<BrowseDSpaceObject> result, Iterator<BrowseDSpaceObject> items) {
-        if(result == null)
-        {
-            result = items;
-        }else{
-            result = Iterators.concat(result, items);
-        }
-
-        return result;
+        return result.iterator();
     }
 
     /**

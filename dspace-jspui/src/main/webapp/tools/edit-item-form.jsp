@@ -601,8 +601,8 @@
             <tr id="<%="row_" + bundle.getName() + "_" + bitstream.getID()%>">
             	<td headers="t10" class="<%= row %>RowEvenCol" align="center">
                 	<%-- <a target="_blank" href="<%= request.getContextPath() %>/retrieve/<%= bitstream.getID() %>">View</a>&nbsp;<input type="submit" name="submit_delete_bitstream_<%= key %>" value="Remove"> --%>
-					<a class="btn btn-info" target="_blank" href="<%= request.getContextPath() %>/retrieve/<%= bitstream.getID() %>"><fmt:message key="jsp.tools.general.view"/></a>&nbsp;
-					<a class="btn btn-warning" target="_blank" href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=0&resource_id=<%= bitstreams.get(j).getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
+					<a class="btn btn-info" target="_blank" rel="noopener" href="<%= request.getContextPath() %>/retrieve/<%= bitstream.getID() %>"><fmt:message key="jsp.tools.general.view"/></a>&nbsp;
+					<a class="btn btn-warning" target="_blank" rel="noopener" href="<%= request.getContextPath() %>/tools/edit-dso?resource_type=0&resource_id=<%= bitstreams.get(j).getID() %>"><fmt:message key="jsp.tools.general.edit"/></a>
 				</td>
                 <% if (bundle.getName().equals("ORIGINAL"))
                    { %>

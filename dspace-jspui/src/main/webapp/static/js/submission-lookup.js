@@ -156,7 +156,7 @@ submissionLookupShowResult = function(info, suffixID){
 		j('#result-list').append(par);
 		bt.button();
 		bt.data({uuid: info.result[i].uuid});
-		bt.on('click',function(){
+		bt.on('click', function(){
 			submissionLookupDetails(this, suffixID);
 		});
 	}
@@ -247,7 +247,7 @@ submissionLookupShowDetails = function(info){
 	var start = j('<button class="btn btn-success" type="button">');
 	start.append(j('#jsfilldatabuttonmessage').text());
 	start.button();
-	start.on('click',function(){
+	start.on('click', function(){
 		var selcolid = j('#select-collection').val();
 		if (selcolid != null && selcolid != -1)
 		{

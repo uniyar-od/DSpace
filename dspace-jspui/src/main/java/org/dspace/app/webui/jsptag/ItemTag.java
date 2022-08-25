@@ -658,7 +658,7 @@ public class ItemTag extends TagSupport
             		}
 
             		out.print("<tr><td headers=\"t1\" class=\"standard break-all\">");
-                    out.print("<a target=\"_blank\" href=\"");
+                    out.print("<a target=\"_blank\" rel=\"noopener\" href=\"");
                     out.print(request.getContextPath());
                     out.print("/html/");
                     out.print(handle + "/");
@@ -679,11 +679,11 @@ public class ItemTag extends TagSupport
             		}
 
             		out.print("</td><td headers=\"t3\" class=\"standard\">");
-                    out.print(UIUtil.formatFileSize(primaryBitstream.getSize()));
+                    out.print(UIUtil.formatFileSize(primaryBitstream.getSizeBytes()));
                     out.print("</td><td headers=\"t4\" class=\"standard\">");
             		out.print(primaryBitstream.getFormatDescription(context));
             		out
-                        .print("</td><td class=\"standard\"><a class=\"btn btn-primary\" target=\"_blank\" href=\"");
+                        .print("</td><td class=\"standard\"><a class=\"btn btn-primary\" target=\"_blank\" rel=\"noopener\" href=\"");
             		out.print(request.getContextPath());
             		out.print("/html/");
             		out.print(handle + "/");
@@ -735,6 +735,21 @@ public class ItemTag extends TagSupport
                                 String bsLink = "target=\"_blank\" href=\"";
                                 bsLink = bsLink + viewOptions.get(0).link;
                                 bsLink = bsLink + "\">";
+                                String bsLink = "target=\"_blank\" rel=\"noopener\" href=\""
+                                        + request.getContextPath();
+
+                                if ((handle != null)
+                                        && (b.getSequenceID() > 0))
+                                {
+                                    bsLink = bsLink + "/bitstream/"
+                                            + item.getHandle() + "/"
+                                            + b.getSequenceID() + "/";
+                                }
+                                else
+                                {
+                                    bsLink = bsLink + "/retrieve/"
+                                            + b.getID() + "/";
+                                }
 
 
             					out
@@ -827,7 +842,7 @@ public class ItemTag extends TagSupport
 
             					out
                                     .print("</td><td headers=\"t3\" class=\"standard\">");
-                                out.print(UIUtil.formatFileSize(b.getSize()));
+                                out.print(UIUtil.formatFileSize(b.getSizeBytes()));
             					out
                                 .print("</td><td headers=\"t4\" class=\"standard\">");
             					out.print(b.getFormatDescription(context));
@@ -972,8 +987,8 @@ public class ItemTag extends TagSupport
 
             for (Bitstream b : bitstreams)
             {
-				out.print("<div class=\"text-center\">");
-                out.print("<strong><a class=\"btn btn-primary\" target=\"_blank\" href=\"");
+                out.print("<div align=\"center\" class=\"standard\">");
+                out.print("<strong><a class=\"btn btn-primary\" target=\"_blank\" rel=\"noopener\" href=\"");
                 out.print(request.getContextPath());
                 out.print("/retrieve/");
                 out.print(b.getID() + "/");

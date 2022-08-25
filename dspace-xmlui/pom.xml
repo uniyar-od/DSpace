@@ -11,7 +11,7 @@
    <parent>
       <groupId>org.dspace</groupId>
       <artifactId>dspace-parent</artifactId>
-      <version>CRIS-6.3.0-SNAPSHOT</version>
+      <version>CRIS-6.4.0-SNAPSHOT</version>
       <relativePath>..</relativePath>
    </parent>
 
@@ -121,6 +121,10 @@
                     <groupId>org.apache.excalibur.components</groupId>
                     <artifactId>excalibur-sourceresolve</artifactId>
                 </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 
@@ -178,6 +182,10 @@
             		<groupId>javax.servlet</groupId>
   					<artifactId>servlet-api</artifactId>
             	</exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
 

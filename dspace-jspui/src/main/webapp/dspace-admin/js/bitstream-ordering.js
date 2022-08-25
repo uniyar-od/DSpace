@@ -18,7 +18,7 @@
             return false;
         });
 
-        downArrows.on("click",function(event){
+        downArrows.on("click", function(event){
             moveRow($(this), false);
             return false;
         });

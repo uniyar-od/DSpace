@@ -595,38 +595,45 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 SolrQuery query = new SolrQuery();
 				// Query for all indexed Items, Collections and Communities,
                 // returning just their handle
-				query.setFields(HANDLE_FIELD);
+
+                query.setFields(HANDLE_FIELD);
+                query.addSort(HANDLE_FIELD, SolrQuery.ORDER.asc);
                 query.setQuery(RESOURCE_TYPE_FIELD + ":" + type);
-                QueryResponse rsp = getSolr().query(query, SolrRequest.METHOD.POST);
-                SolrDocumentList docs = rsp.getResults();
 
-                Iterator iter = docs.iterator();
-                while (iter.hasNext())
-                {
+                // Get the total amount of results
+                QueryResponse totalResponse = getSolr().query(query);
+                long total = totalResponse.getResults().getNumFound();
 
-                    SolrDocument doc = (SolrDocument) iter.next();
+                int start = 0;
+                int batch = 100;
 
-                    String handle = (String) doc.getFieldValue(HANDLE_FIELD);
-                    
-                    BrowsableDSpaceObject o = findDSpaceObject(context, doc);
+                query.setRows(batch);
+                while (start < total) {
+                    query.setStart(start);
+                    QueryResponse rsp = getSolr().query(query, SolrRequest.METHOD.POST);
+                    SolrDocumentList docs = rsp.getResults();
 
-                    if (o == null)
-                    {
-                        log.info("Deleting: " + handle);
-                        /*
-                         * Use IndexWriter to delete, its easier to manage
-                         * write.lock
-                         */
-                        unIndexContent(context, handle);
+                    for (SolrDocument doc : docs) {
+                        String handle = (String) doc.getFieldValue(HANDLE_FIELD);
+
+                        DSpaceObject o = handleService.resolveToObject(context, handle);
+
+                        if (o == null) {
+                            log.info("Deleting: " + handle);
+                            /*
+                             * Use IndexWriter to delete, its easier to manage
+                             * write.lock
+                             */
+                            unIndexContent(context, handle);
+                        } else {
+                            log.debug("Keeping: " + handle);
+                        }
                     }
-                    else
-                    {
-                        log.debug("Keeping: " + o.getHandle());
-                    }
+
+                    start += batch;
                 }
             }
-        }
-        catch (Exception e)
+        } catch(Exception e)
         {
             log.error("Error cleaning cris discovery index: " + e.getMessage(),
                     e);
@@ -2390,7 +2397,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
                 if(!value.matches("\\[.*TO.*\\]"))
                 {
                     value = ClientUtils.escapeQueryChars(value);
-                    filterQuery.append("(").append(value).append(")");
+                    filterQuery.append("\"").append(value).append("\"");
                 }
                 else
                 {

@@ -10,7 +10,11 @@ package org.dspace.app.xmlui.aspect.submission.submit;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import org.apache.avalon.framework.parameters.Parameters;
 import org.apache.cocoon.ProcessingException;
@@ -20,6 +24,7 @@ import org.dspace.app.sherpa.v2.SHERPAJournal;
 import org.dspace.app.sherpa.v2.SHERPAPublisher;
 import org.dspace.app.sherpa.v2.SHERPAResponse;
 import org.dspace.app.sherpa.submit.SHERPASubmitService;
+import org.dspace.app.sherpa.v2.SHERPASystemMetadata;
 import org.dspace.app.xmlui.utils.UIException;
 import org.dspace.app.xmlui.aspect.submission.AbstractSubmissionStep;
 import org.dspace.app.xmlui.wing.Message;
@@ -278,7 +283,7 @@ public class UploadStep extends AbstractSubmissionStep
                 UUID id = bitstream.getID();
                 String name = bitstream.getName();
                 String url = makeBitstreamLink(item, bitstream);
-                long bytes = bitstream.getSize();
+                long bytes = bitstream.getSizeBytes();
                 String desc = bitstream.getDescription();
                 String algorithm = bitstream.getChecksumAlgorithm();
                 String checksum = bitstream.getChecksum();
@@ -332,13 +337,13 @@ public class UploadStep extends AbstractSubmissionStep
                     cell.addContent(" ");
                     switch (support)
                     {
-                        case 1:
-                            cell.addContent(T_supported);
-                            break;
-                        case 2:
+                        case BitstreamFormat.KNOWN:
                             cell.addContent(T_known);
                             break;
-                        case 3:
+                        case BitstreamFormat.SUPPORTED:
+                            cell.addContent(T_supported);
+                            break;
+                        case BitstreamFormat.UNKNOWN:
                             cell.addContent(T_unsupported);
                             break;
                     }
@@ -400,6 +405,7 @@ public class UploadStep extends AbstractSubmissionStep
                     SHERPAResponse shresp = sherpaSubmitService.searchRelatedJournalsByISSN(issnsIterator.next());
 
                     java.util.List<SHERPAJournal> journals = shresp.getJournals();
+                    SHERPASystemMetadata metadata = shresp.getMetadata();
 
                     if (CollectionUtils.isNotEmpty(journals)) {
                         for (SHERPAJournal journ : journals) {
@@ -410,22 +416,35 @@ public class UploadStep extends AbstractSubmissionStep
                             sherpaList.addItem().addFigure(contextPath + "/static/images/" + (i == 0 ? "romeosmall" : "clear") + ".gif", "http://www.sherpa.ac.uk/romeo/", "sherpaLogo");
 
                             sherpaList.addItem().addHighlight("sherpaBold").addContent(T_sherpa_journal);
-                            String issn = null;
-                            if (CollectionUtils.isNotEmpty(journ.getIssns()) && CollectionUtils.isNotEmpty(journ.getTitles())) {
+
+                            // Get first title from list (in v2 this is now an array)
+                            String title = "";
+                            String issn = "";
+                            String url = "https://v2.sherpa.ac.uk/romeo/";
+                            if (CollectionUtils.isNotEmpty(journ.getIssns())) {
                                 issn = journ.getIssns().get(0);
-                                sherpaList.addItem(journ.getTitles().get(0) + " (" + issn + ")");
                             }
+                            if (CollectionUtils.isNotEmpty(journ.getTitles())) {
+                                title = journ.getTitles().get(0);
+                            }
+                            if (null != metadata.getUri()) {
+                                url = metadata.getUri();
+                            }
+
+
+                            sherpaList.addItem(title + " (" + issn + ")");
 
                             if(CollectionUtils.isNotEmpty(publishers)) {
                                 SHERPAPublisher pub = publishers.get(0);
                                 sherpaList.addItem().addHighlight("sherpaBold").addContent(T_sherpa_publisher);
                                 sherpaList.addItemXref(pub.getUri(), pub.getName());
 
+                                // ROMeO colours are deprecated and should not be used any more
                                 //sherpaList.addItem().addHighlight("sherpaBold").addContent(T_sherpa_colour);
                                 //sherpaList.addItem().addHighlight("sherpaStyle " + pub.getRomeocolour()).addContent(message("xmlui.aspect.sherpa.submission." + pub.getRomeocolour()));
                             }
 
-                            sherpaList.addItem().addXref("http://www.sherpa.ac.uk/romeo/search.php?issn=" + issn, T_sherpa_more, "sherpaMoreInfo");
+                            sherpaList.addItem().addXref(url, T_sherpa_more, "sherpaMoreInfo");
 
                             i = i + 1;
                         }

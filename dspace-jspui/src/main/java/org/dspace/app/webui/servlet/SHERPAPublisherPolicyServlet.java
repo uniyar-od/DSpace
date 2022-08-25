@@ -9,6 +9,8 @@ package org.dspace.app.webui.servlet;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
@@ -18,8 +20,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.log4j.Logger;
+import org.dspace.app.sherpa.v2.SHERPAJournal;
+import org.dspace.app.sherpa.v2.SHERPAPublisher;
+import org.dspace.app.sherpa.v2.SHERPAPublisherPolicy;
 import org.dspace.app.sherpa.v2.SHERPAResponse;
 import org.dspace.app.sherpa.submit.SHERPASubmitService;
+import org.dspace.app.sherpa.v2.SHERPASystemMetadata;
 import org.dspace.app.webui.util.JSPManager;
 import org.dspace.app.webui.util.UIUtil;
 import org.dspace.authorize.AuthorizeException;

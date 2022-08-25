@@ -488,6 +488,10 @@ public class BrowseInfo
         return results;
     }
 
+	public void setResults(List results) {
+		this.results = results;
+	}
+
     /**
      * Return the results of the Browse as an array of String array.
      * The first element (i.e. index 0) is the value, the second is the authority key
@@ -568,6 +572,10 @@ public class BrowseInfo
     {
         return total;
     }
+
+	public void setTotal(int total) {
+		this.total = total;
+	}
 
     /**
      * Return the position of the requested item or value in the set of results.

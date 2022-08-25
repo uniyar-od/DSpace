@@ -256,7 +256,7 @@
 									tmp_val = item.displayedValue;
 								}
 								return {
-									label: item.displayedValue + " (" + item.count + ")",
+									label: escapeHtml(item.displayedValue) + " (" + item.count + ")",
 									value: tmp_val
 								};
 							}))			
@@ -289,7 +289,12 @@
 	function validateFilters() {
 		return document.getElementById("filterquery").value.length > 0;
 	}
-	-->		
+	-->
+	// Generic HTML escape utility
+	var escapeHtml = s => (s + '').replace(/[&<>"']/g, m => ({
+		'&': '&amp;', '<': '&lt;', '>': '&gt;',
+		'"': '&quot;', "'": '&#39;'
+	})[m]);
 </script>		
 </c:set>
 
@@ -336,8 +341,7 @@ if(StringUtils.contains(searchScope, hdlPrefix) ){
 		</fmt:message>
 	</h2>
 <% } %>
-
-<div class="discovery-search-form">
+<div class="discovery-search-form panel panel-default row">
     <%-- Controls for a repeat search --%>
 	<div class="discovery-query">
      <form id="update-form" action="<%= searchName %>" method="get">
@@ -350,7 +354,7 @@ if(StringUtils.contains(searchScope, hdlPrefix) ){
                                 <a class="btn btn-default" href="<%= request.getContextPath()+"/global-search" %>"><fmt:message key="jsp.search.general.new-search" /></a>
                                
 <% if (StringUtils.isNotBlank(spellCheckQuery)) {%>
-	<p class="lead"><fmt:message key="jsp.search.didyoumean"><fmt:param><a id="spellCheckQuery" data-spell="<%= Utils.addEntities(spellCheckQuery) %>" href="#"><%= spellCheckQuery %></a></fmt:param></fmt:message></p>
+	<p class="lead"><fmt:message key="jsp.search.didyoumean"><fmt:param><a id="spellCheckQuery" data-spell="<%= Utils.addEntities(spellCheckQuery) %>" href="#"><%= Utils.addEntities(spellCheckQuery) %></a></fmt:param></fmt:message></p>
 <% } %>                  
 
 <br/>
@@ -547,7 +551,7 @@ else if( qResults != null)
 
 %>
 <hr/>
-<div class="discovery-result-pagination">
+<div class="discovery-result-pagination row">
 <%
 	long lastHint = qResults.getStart()+qResults.getMaxResults() <= qResults.getTotalSearchResults()?
 	        qResults.getStart()+qResults.getMaxResults():qResults.getTotalSearchResults();
@@ -680,7 +684,7 @@ else if( qResults != null)
 	</div>
 <!-- give a content to the div -->
 </div>
-<div class="discovery-result-results">
+<div class="discovery-result-results row">
 <%
        Set<Integer> otherTypes = mapOthers.keySet();
        if (otherTypes != null && otherTypes.size() > 0)

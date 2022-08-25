@@ -43,7 +43,7 @@
         <meta name="Generator" content="DSpace" />
         <link rel="stylesheet" href="<%= request.getContextPath() %>/static/css/jquery-ui/redmond/jquery-ui-1.13.1.css" type="text/css" />
         <link rel="stylesheet" href="<%= request.getContextPath() %>/styles.css" type="text/css" />
-        <link rel="stylesheet" href="<%= request.getContextPath() %>/print.css" media="print" type="text/css" />
+        <link rel="stylesheet" href="<%= request.getContextPath() %>/print.css" media="print" type="text/css" />        
         <link rel="shortcut icon" href="<%= request.getContextPath() %>/favicon.ico" type="image/x-icon"/>
 <%
     if (extraHeadData != null)
@@ -61,6 +61,9 @@
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/scriptaculous/builder.js"> </script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/scriptaculous/controls.js"> </script>
     <script type="text/javascript" src="<%= request.getContextPath() %>/static/js/choice-support.js"> </script>
+    <script type='text/javascript'>
+		jQuery.noConflict();
+	</script>    
     </head>
 
     <%-- HACK: leftmargin, topmargin: for non-CSS compliant Microsoft IE browser --%>

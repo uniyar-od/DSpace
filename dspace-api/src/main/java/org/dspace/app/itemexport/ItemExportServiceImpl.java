@@ -610,7 +610,7 @@ public class ItemExportServiceImpl implements ItemExportService
                                 for (Bitstream bitstream : bitstreams)
                                 {
                                     // add up the size
-                                    size += bitstream.getSize();
+                                    size += bitstream.getSizeBytes();
                                 }
                             }
                             items.add(item.getID());
@@ -646,7 +646,7 @@ public class ItemExportServiceImpl implements ItemExportService
                             for (Bitstream bitstream : bitstreams)
                             {
                                 // add up the size
-                                size += bitstream.getSize();
+                                size += bitstream.getSizeBytes();
                             }
                         }
                         items.add(item.getID());
@@ -672,7 +672,7 @@ public class ItemExportServiceImpl implements ItemExportService
                     for (Bitstream bitstream : bitstreams)
                     {
                         // add up the size
-                        size += bitstream.getSize();
+                        size += bitstream.getSizeBytes();
                     }
                 }
                 ArrayList<UUID> items = new ArrayList<>();

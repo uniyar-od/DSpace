@@ -877,7 +877,7 @@
         sb.append("</div><br/>");
         out.write(sb.toString());
     }
-    
+
     StringBuffer doNumberInput(List<IMetadataValue> defaults,int count,String authorityType,int fieldCount, String fieldName, String schema, String element, 
     		String qualifier, boolean repeatable, boolean required, boolean readonly, int fieldCountIncr, PageContext pageContext,
     		Collection collection,boolean hasParent){

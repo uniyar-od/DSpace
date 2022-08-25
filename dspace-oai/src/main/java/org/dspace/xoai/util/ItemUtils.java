@@ -26,6 +26,12 @@ import org.dspace.app.cris.model.ACrisObject;
 import org.dspace.app.cris.service.ApplicationService;
 import org.dspace.app.cris.util.MetadatumAuthorityDecorator;
 import org.dspace.app.cris.util.UtilsCrisMetadata;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import org.dspace.app.util.factory.UtilServiceFactory;
 import org.dspace.app.util.service.MetadataExposureService;
 import org.dspace.authorize.AuthorizeException;
@@ -43,6 +49,10 @@ import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataField;
+import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.Choices;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -58,6 +68,11 @@ import org.dspace.xoai.app.XOAI;
 import org.dspace.xoai.data.DSpaceItem;
 
 import java.text.SimpleDateFormat;
+import org.dspace.xoai.data.DSpaceItem;
+
+import com.lyncode.xoai.dataprovider.xml.xoai.Element;
+import com.lyncode.xoai.dataprovider.xml.xoai.Metadata;
+import com.lyncode.xoai.util.Base64Utils;
 
 /**
  * 
@@ -441,7 +456,7 @@ public class ItemUtils
                             createValue("format", bit.getFormat(context)
                                     .getMIMEType()));
                     bitstream.getField().add(
-                            createValue("size", "" + bit.getSize()));
+                            createValue("size", "" + bit.getSizeBytes()));
                     bitstream.getField().add(createValue("url", url));
                     bitstream.getField().add(
                             createValue("checksum", cks));
@@ -661,8 +676,7 @@ public class ItemUtils
 	 * @param rps
 	 * @return
 	 */
-	public static String getAccessRightsValue(Context context, List<ResourcePolicy> rps)
-			throws SQLException {
+	public static String getAccessRightsValue(Context context, List<ResourcePolicy> rps) throws SQLException {
 		Date now = new Date();
 		Date embargoEndDate = null;
 		boolean openAccess = false;
@@ -714,3 +728,4 @@ public class ItemUtils
     			"applicationService", ApplicationService.class);
     }
 }
+
