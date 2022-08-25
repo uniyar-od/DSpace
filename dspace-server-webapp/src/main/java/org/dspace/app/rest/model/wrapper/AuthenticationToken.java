@@ -15,9 +15,9 @@ public class AuthenticationToken {
 
     public static final String MACHINETOKEN_TYPE = "machinetoken";
 
-	public static final String SHORTLIVEDTOKEN_TYPE = "shortlivedtoken";
+    public static final String SHORTLIVEDTOKEN_TYPE = "shortlivedtoken";
 
-	private String token;
+    private String token;
 
     private String type;
 
