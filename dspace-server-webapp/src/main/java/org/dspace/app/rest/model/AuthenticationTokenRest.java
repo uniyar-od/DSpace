@@ -14,10 +14,11 @@ import org.dspace.app.rest.RestResourceController;
  * adding support for the links and embedded resources
  */
 public class AuthenticationTokenRest extends RestAddressableModel {
-    public static final String NAME = "shortlivedtoken";
     public static final String CATEGORY = RestAddressableModel.AUTHENTICATION;
 
     private String token;
+
+    private String type;
 
     @Override
     public String getCategory() {
@@ -31,7 +32,7 @@ public class AuthenticationTokenRest extends RestAddressableModel {
 
     @Override
     public String getType() {
-        return NAME;
+        return type;
     }
 
     public String getToken() {
@@ -40,5 +41,13 @@ public class AuthenticationTokenRest extends RestAddressableModel {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isShortLivedToken() {
+        return "shortlivedtoken".equals(type);
     }
 }
