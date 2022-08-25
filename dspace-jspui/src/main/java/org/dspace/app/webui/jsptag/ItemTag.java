@@ -732,23 +732,9 @@ public class ItemTag extends TagSupport
                                 // Work out what the bitstream link should be
                                 // (persistent
                                 // ID if item has Handle)
-                                String bsLink = "target=\"_blank\" rel=\"noopener\" href=\""
-                                        + request.getContextPath();
+                                String bsLink = "target=\"_blank\" rel=\"noopener\" href=\"";
                                 bsLink = bsLink + viewOptions.get(0).link;
                                 bsLink = bsLink + "\">";
-
-                                if ((handle != null)
-                                        && (b.getSequenceID() > 0))
-                                {
-                                    bsLink = bsLink + "/bitstream/"
-                                            + item.getHandle() + "/"
-                                            + b.getSequenceID() + "/";
-                                }
-                                else
-                                {
-                                    bsLink = bsLink + "/retrieve/"
-                                            + b.getID() + "/";
-                                }
 
 
             					out
