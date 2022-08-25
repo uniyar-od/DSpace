@@ -178,14 +178,14 @@
             <groupId>org.swordapp</groupId>
             <artifactId>sword-common</artifactId>
             <exclusions>
-            	<exclusion>
-            		<groupId>javax.servlet</groupId>
-  					<artifactId>servlet-api</artifactId>
-            	</exclusion>
                 <exclusion>
                     <groupId>log4j</groupId>
                     <artifactId>log4j</artifactId>
                 </exclusion>
+                <exclusion>
+            		<groupId>javax.servlet</groupId>
+  					<artifactId>servlet-api</artifactId>
+            	</exclusion>
             </exclusions>
         </dependency>
 

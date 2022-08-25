@@ -59,8 +59,14 @@
 		</dependency>
 
 		<dependency>
-        <groupId>net.sourceforge.jexcelapi</groupId>
+        	<groupId>net.sourceforge.jexcelapi</groupId>
 			<artifactId>jxl</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
          <dependency>

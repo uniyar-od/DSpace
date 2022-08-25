@@ -88,7 +88,13 @@
     <dependencies>
         <dependency>
             <groupId>org.dspace</groupId>
-            <artifactId>dspace-api</artifactId>
+            <artifactId>dspace-api</artifactId>            
+			<exclusions>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
+			</exclusions>
         </dependency>
 <!--         <dependency>
             <groupId>org.dspace</groupId>

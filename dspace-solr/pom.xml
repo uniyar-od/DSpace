@@ -227,6 +227,10 @@
                     <artifactId>jetty-xml</artifactId>
                     <groupId>org.eclipse.jetty</groupId>
                 </exclusion>
+				<exclusion>
+					<groupId>log4j</groupId>
+					<artifactId>log4j</artifactId>
+				</exclusion>
             </exclusions>
         </dependency>
 
