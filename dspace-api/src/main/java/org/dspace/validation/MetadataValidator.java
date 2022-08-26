@@ -163,6 +163,10 @@ public class MetadataValidator implements SubmissionStepValidator {
         this.metadataAuthorityService = metadataAuthorityService;
     }
 
+    public void setChoiceAuthorityService(ChoiceAuthorityService choiceAuthorityService) {
+        this.choiceAuthorityService = choiceAuthorityService;
+    }
+
     public DCInputsReader getInputReader() {
         if (inputReader == null) {
             try {
