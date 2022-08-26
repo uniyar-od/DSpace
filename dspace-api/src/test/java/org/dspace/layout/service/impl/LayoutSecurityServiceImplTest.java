@@ -12,6 +12,7 @@ import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -277,7 +278,7 @@ public class LayoutSecurityServiceImplTest {
                                      securityMetadataField().getElement(), null, Item.ANY, true))
             .thenReturn(metadataValueList);
 
-        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), any(), any()))
+        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), anyInt(), any()))
             .thenReturn("EPersonAuthority");
 
         when(choiceAuthorityService.getChoiceAuthorityByAuthorityName("EPersonAuthority"))
