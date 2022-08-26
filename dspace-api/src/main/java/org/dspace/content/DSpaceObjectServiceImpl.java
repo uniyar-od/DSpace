@@ -338,7 +338,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                 Bitstream bit = (Bitstream) dso;
                 BitstreamService bitService = ContentServiceFactory.getInstance().getBitstreamService();
                 DSpaceObject pDSO = bitService.getParentObject(context, bit);
-                if (pDSO.getType() == Constants.ITEM) {
+                if (pDSO != null && pDSO.getType() == Constants.ITEM) {
                     Item pItem = (Item) pDSO;
                     col = (Collection) pItem.getItemService().getParentObject(context, pItem);
                 }
