@@ -440,7 +440,7 @@ public class LayoutSecurityServiceImplTest {
             Arrays.asList(metadataValueWithAuthority(securityMetadataField, securityAuthorityUuid.toString()),
                 metadataValueWithAuthority(securityMetadataField, groupUuid.toString()));
 
-        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), any(), any()))
+        when(choiceAuthorityService.getChoiceAuthorityName(any(), any(), any(), anyInt(), any()))
             .thenReturn("GroupAuthority");
 
         when(choiceAuthorityService.getChoiceAuthorityByAuthorityName("GroupAuthority"))
