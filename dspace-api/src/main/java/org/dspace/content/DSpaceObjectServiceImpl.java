@@ -251,7 +251,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                     throws SQLException {
 
         Collection collection = getCollection(context, dso);
-        boolean authorityControlled = choiceAuthorityService.isChoicesConfigured(metadataField.toString(),
+        boolean authorityControlled = metadataAuthorityService.isAuthorityAllowed(metadataField,
                 dso.getType(), collection);
 
         boolean nonValidAuthority = isNonValidAuthority(authorityControlled, authorities);
@@ -353,7 +353,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
         String lang, List<String> values, List<String> authorities, List<Integer> confidences,
         Supplier<Integer> placeSupplier, Integer securityValue) throws SQLException {
         Collection collection = getCollection(context, dso);
-        boolean authorityControlled = choiceAuthorityService.isChoicesConfigured(metadataField.toString(),
+        boolean authorityControlled = metadataAuthorityService.isAuthorityAllowed(metadataField.toString(),
                 dso.getType(), collection);
         boolean authorityRequired = metadataAuthorityService.isAuthorityRequired(metadataField, dso.getType(),
                 collection);
@@ -441,7 +441,7 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
 
 
         Collection collection = getCollection(context, dso);
-        boolean authorityControlled = choiceAuthorityService.isChoicesConfigured(metadataField.toString(),
+        boolean authorityControlled = metadataAuthorityService.isAuthorityAllowed(metadataField.toString(),
                 dso.getType(), collection);
         boolean authorityRequired = metadataAuthorityService.isAuthorityRequired(metadataField, dso.getType(),
                 collection);
@@ -571,7 +571,8 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
                 .makeFieldKey(metadataField.getMetadataSchema().getName(), metadataField.getElement(),
                               metadataField.getQualifier());
             Collection collection = getCollection(context, dso);
-            if (choiceAuthorityService.isChoicesConfigured(fieldKey, dso.getType(), collection)) {
+            if (metadataAuthorityService.isAuthorityAllowed(metadataField, dso.getType(), collection)
+                    && choiceAuthorityService.isChoicesConfigured(fieldKey, dso.getType(), collection)) {
                 List<String> authorities = new ArrayList<>();
                 List<Integer> confidences = new ArrayList<>();
                 for (int i = 0; i < values.size(); ++i) {

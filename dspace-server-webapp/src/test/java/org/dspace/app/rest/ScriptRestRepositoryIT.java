@@ -104,7 +104,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
 
     @After
     public void after() {
-    	DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
+        DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
         metadataAuthorityService.clearCache();
         choiceAuthorityService.clearCache();
     }
