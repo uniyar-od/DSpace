@@ -79,9 +79,13 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     private boolean initialized = false;
 
     // map of authority name to field keys (the same authority can be configured over multiple metadata)
+    // the keys used by this cache are unique across all the dso type so there is
+    // no need to add a dsoType (int key) level
     protected Map<String, List<String>> authorities = new HashMap<String, List<String>>();
 
     // map of authority name to form definition and field keys
+    // the keys used by this cache are unique across all the dso type so there is
+    // no need to add a dsoType (int key) level
     protected Map<String, Map<String, List<String>>> authoritiesFormDefinitions =
             new HashMap<String, Map<String, List<String>>>();
 
@@ -360,7 +364,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                         }
 
                         addAuthorityToFormCacheMap(dsoType, submissionName, fieldKey, ca);
-                        addFormDetailsToAuthorityCacheMap(dsoType, submissionName, authorityName, fieldKey);
+                        addFormDetailsToAuthorityCacheMap(submissionName, authorityName, fieldKey);
                     }
                 }
             }
@@ -375,7 +379,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
      * @param authorityName  the name of the authority plugin
      * @param fieldKey       the field key that use the authority
      */
-    private void addFormDetailsToAuthorityCacheMap(int dsoType, String submissionName, String authorityName,
+    private void addFormDetailsToAuthorityCacheMap(String submissionName, String authorityName,
             String fieldKey) {
         Map<String, List<String>> submissionDefinitionNames2fieldKeys;
         if (authoritiesFormDefinitions.containsKey(authorityName)) {
