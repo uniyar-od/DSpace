@@ -30,6 +30,8 @@ public class IIIFSharedUtils {
 
     // metadata used to enable the iiif features on the item
     public static final String METADATA_IIIF_ENABLED = "dspace.iiif.enabled";
+    // metadata used to enable the iiif search service on the item
+    public static final String METADATA_IIIF_SEARCH_ENABLED = "iiif.search.enabled";
     // The DSpace bundle for other content related to item.
     protected static final String OTHER_CONTENT_BUNDLE = "OtherContent";
     // The IIIF image server url from configuration
@@ -102,6 +104,20 @@ public class IIIFSharedUtils {
             && b.getMetadata().stream()
                 .filter(m -> m.getMetadataField().toString('.').contentEquals(METADATA_IIIF_ENABLED))
                 .noneMatch(m -> m.getValue().equalsIgnoreCase("false") || m.getValue().equalsIgnoreCase("no"));
+    }
+
+    /**
+     * Checks to see if the item is searchable. Based on the
+     * {@link #METADATA_IIIF_SEARCH_ENABLED} metadata.
+     *
+     * @param item DSpace item
+     * @return true if the iiif search is enabled
+     */
+    public static boolean isSearchable(Item item) {
+        return item.getMetadata().stream()
+                .filter(m -> m.getMetadataField().toString('.').contentEquals("iiif.search.enabled"))
+                .anyMatch(m -> m.getValue().equalsIgnoreCase("true")  ||
+                        m.getValue().equalsIgnoreCase("yes"));
     }
 
     /**

@@ -60,7 +60,6 @@
         <jersey.version>2.35</jersey.version>
 
         <!--=== ADDON DEPENDENCIES ===-->
-        <addon-commons.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-commons.version>
         <addon-ocr.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-ocr.version>
 
         <!--=== MAVEN SETTINGS ===-->
@@ -1811,11 +1810,6 @@
                 <groupId>net.bytebuddy</groupId>
                 <artifactId>byte-buddy</artifactId>
                 <version>1.11.13</version>
-            </dependency>
-            <dependency>
-                <groupId>it.4science.dspace</groupId>
-                <artifactId>addon-commons-api</artifactId>
-                <version>${addon-commons.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
