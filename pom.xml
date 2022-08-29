@@ -61,7 +61,7 @@
         <solr.version>4.10.2</solr.version>
         <jena.version>2.12.0</jena.version>
         <slf4j.version>1.6.1</slf4j.version>
-        <orcid-jaxb-api.version>3.0.0-SNAPSHOT</orcid-jaxb-api.version>
+        <orcid-jaxb-api.version>3.0.0</orcid-jaxb-api.version>
         <!-- 'root.basedir' is the path to the root [dspace-src] dir. It must be redefined by each child POM,
              as it is used to reference the LICENSE_HEADER and *.properties file(s) in that directory. -->
         <root.basedir>${basedir}</root.basedir>
