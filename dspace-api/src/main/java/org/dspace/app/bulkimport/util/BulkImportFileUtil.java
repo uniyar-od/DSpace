@@ -100,7 +100,7 @@ public class BulkImportFileUtil {
         ConfigurationService configurationService = new DSpace().getConfigurationService();
         String bulkUploadFolder = configurationService.getProperty("bulk-uploads.local-folder");
         if (!StringUtils.startsWith(path, "/")) {
-            path = bulkUploadFolder + (StringUtils.endsWithAny(bulkUploadFolder, "/") ? path : "/" + path);
+            path = bulkUploadFolder + (StringUtils.endsWith(bulkUploadFolder, "/") ? path : "/" + path);
         }
         File file = new File(path);
         String canonicalPath = file.getCanonicalPath();
