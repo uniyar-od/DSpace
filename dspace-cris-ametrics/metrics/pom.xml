@@ -9,7 +9,7 @@
 
     <parent>
 		<groupId>org.dspace</groupId>
-		<version>CRIS-6.4.0</version>
+		<version>CRIS-6.5.0-SNAPSHOT</version>
 		<artifactId>dspace-cris-ametrics</artifactId>
     </parent>
     
