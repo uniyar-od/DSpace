@@ -101,7 +101,9 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
                 continue;
             }
             Item coAuthor = itemService.find(context, UUIDUtils.fromString(authority));
-            addRead(document, findOwner(context, coAuthor));
+            if (coAuthor != null) {
+                addRead(document, findOwner(context, coAuthor));
+            }
 
         }
     }
@@ -127,7 +129,7 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
 
     private Optional<EPerson> findOwner(Context context, Item source) throws SQLException {
         List<MetadataValue> metadata =
-            itemService.getMetadata(source, "cris", "owner", null, null);
+            itemService.getMetadata(source, "dspace", "object", "owner", null);
         if (metadata.isEmpty()) {
             return Optional.empty();
         }
