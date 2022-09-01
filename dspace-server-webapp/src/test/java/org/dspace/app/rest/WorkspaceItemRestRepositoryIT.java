@@ -9191,7 +9191,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
-    public void testAuthorFindOne() throws Exception {
+    public void testAuthorFindOneAndDeposit() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -9213,6 +9213,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
+            .withWorkflowGroup(1, eperson)
             .build();
 
         Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
@@ -9233,8 +9234,10 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
             .withTitle("Workspace Item")
             .withIssueDate("2017-10-17")
-            .withAuthor("Author 1")
-            .withAuthor("Author 2", userProfile.getID().toString())
+            .withAuthor("Author")
+            .withEditor("Editor", userProfile.getID().toString())
+            .grantLicense()
+            .withFulltext("test.pdf", "source", InputStream.nullInputStream())
             .build();
 
         context.restoreAuthSystemState();
@@ -9246,6 +9249,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         getClient(getAuthToken(user.getEmail(), password))
             .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
             .andExpect(status().isOk());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                .content("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .contentType(textUriContentType))
+            .andExpect(status().isCreated());
 
     }
 
