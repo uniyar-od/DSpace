@@ -9190,4 +9190,63 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         assertTrue(date.equals(date2));
     }
 
+    @Test
+    public void testAuthorFindOne() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withEmail("user@test.com")
+            .withPassword(password)
+            .build();
+
+        EPerson anotherUser = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withEmail("anotheruser@test.com")
+            .withPassword(password)
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .build();
+
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 2")
+            .withEntityType("Person")
+            .build();
+
+        Item userProfile = ItemBuilder.createItem(context, personCollection)
+            .withTitle("User")
+            .withDspaceObjectOwner(user)
+            .build();
+
+        Item anotherUserProfile = ItemBuilder.createItem(context, personCollection)
+            .withTitle("User")
+            .withDspaceObjectOwner(anotherUser)
+            .build();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+            .withTitle("Workspace Item")
+            .withIssueDate("2017-10-17")
+            .withAuthor("Author 1")
+            .withAuthor("Author 2", userProfile.getID().toString())
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(anotherUser.getEmail(), password))
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isForbidden());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isOk());
+
+    }
+
 }
