@@ -111,7 +111,7 @@ public class FileUploadRequest extends HttpServletRequestWrapper
                             File fileDir = new File(chunkDirPath);
 
                             // Test fileDir to see if canonical path is within the original tempDir
-                            if(!fileDir.getCanonicalPath().startsWith(tempDir)) {
+                            if(!fileDir.getAbsolutePath().startsWith(tempDir)) {
                                 log.error("Error processing resumable upload chunk: temporary chunk file would be created outside " +
                                         "permissible temp dir ("+ tempDir +") for file: " + filename);
                                 throw new IOException("Error processing resumable chunk directory " + chunkDirPath +
@@ -136,7 +136,7 @@ public class FileUploadRequest extends HttpServletRequestWrapper
                         {
                             File fileDir = new File(tempDir + File.separator+ filename);
                             // Test fileDir to see if canonical path is within the original tempDir
-                            if(!fileDir.getCanonicalPath().startsWith(tempDir)) {
+                            if(!fileDir.getAbsolutePath().startsWith(tempDir)) {
                                 log.error("Error processing resumable upload chunk: temporary chunk file would be created outside " +
                                         "permissible temp dir ("+ tempDir +") for file: " + filename);
                                 throw new IOException("Error processing resumable chunk directory " + fileDir +
