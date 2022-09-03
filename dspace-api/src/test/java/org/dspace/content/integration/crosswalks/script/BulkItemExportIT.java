@@ -510,12 +510,12 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
         context.turnOffAuthorisationSystem();
         Item item1 = createItem(collection, "Edward Red", "Science", "Publication");
         createItem(collection, "My publication", "", "Publication");
-        Item item3 = createItem(collection, "Walter White", "Science", "Publication");
+        Item item2 = createItem(collection, "Walter White", "Science", "Publication");
         createItem(collection, "John Smith", "Science", "Publication");
         context.restoreAuthSystemState();
         context.commit();
 
-        String items = item1.getID().toString() + ";" + item3.getID().toString();
+        String items = item1.getID().toString() + ";" + item2.getID().toString();
 
         String[] args = new String[] { "bulk-item-export", "-si", items, "-f", "publication-chicago" };
 
@@ -527,9 +527,58 @@ public class BulkItemExportIT extends AbstractIntegrationTestWithDatabase {
 
         try (FileInputStream fis = new FileInputStream(txt)) {
             String content = IOUtils.toString(fis, Charset.defaultCharset());
-            assertThat(content, containsString("Edward Red,” n.d. http://localhost:4000/handle/123456789/3"));
-            assertThat(content, containsString("Walter White,” n.d. http://localhost:4000/handle/123456789/5"));
+            assertThat(content,
+                    containsString("“Edward Red,” n.d. http://localhost:4000/handle/" + item1.getHandle()));
+            assertThat(content,
+                    containsString("“Walter White,” n.d. http://localhost:4000/handle/" + item2.getHandle()));
         }
+    }
+
+    @Test
+    public void testBulkItemExportLimited() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+        createItem(collection, "Edward Red", "Science", "Person");
+        createItem(collection, "My publication", "", "Publication");
+        createItem(collection, "Walter White", "Science", "Person");
+        createItem(collection, "John Smith", "Science", "Person");
+        context.restoreAuthSystemState();
+        context.commit();
+
+        ConfigurationService configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        int loggedInLimit = configurationService.getIntProperty("bulk-export.limit.loggedIn");
+        int notLoggedInLimit = configurationService.getIntProperty("bulk-export.limit.notLoggedIn");
+        configurationService.setProperty("bulk-export.limit.loggedIn", 2);
+        configurationService.setProperty("bulk-export.limit.notLoggedIn", 1);
+
+        File xml = new File("person.xml");
+        xml.deleteOnExit();
+
+        String[] args = new String[] { "bulk-item-export", "-t", "Person", "-f", "person-xml", "-so", "dc.title,ASC" };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, admin);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Found 3 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Export will be limited to 2 items."));
+        assertThat(handler.getInfoMessages(), hasItem("Found 2 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, null);
+
+        assertThat(handler.getErrorMessages(), empty());
+        assertThat(handler.getInfoMessages(), hasItem("Export will be limited to 1 items."));
+        assertThat(handler.getInfoMessages(), hasItem("Found 1 items to export"));
+        assertThat("The xml file should be created", xml.exists(), is(true));
+
+        configurationService.setProperty("bulk-export.limit.loggedIn", loggedInLimit);
+        configurationService.setProperty("bulk-export.limit.notLoggedIn", notLoggedInLimit);
     }
 
     private Item createItem(Collection collection, String title, String subject, String entityType) {
