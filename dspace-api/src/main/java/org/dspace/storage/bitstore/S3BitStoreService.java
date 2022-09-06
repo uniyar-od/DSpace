@@ -31,12 +31,8 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.transfer.Download;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
-import com.amazonaws.services.s3.transfer.Upload;
-import com.amazonaws.services.s3.transfer.model.UploadResult;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -44,8 +40,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.LogManager;
@@ -68,16 +62,13 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
  *
  */
-
 public class S3BitStoreService extends BaseBitStoreService {
     protected static final String DEFAULT_BUCKET_PREFIX = "dspace-asset-";
+
     /**
      * log4j log
      */
     private static final Logger log = LogManager.getLogger(S3BitStoreService.class);
-
-    public static final String TEMP_PREFIX = "s3-virtual-path";
-    public static final String TEMP_SUFFIX = "temp";
 
     /**
      * Checksum algorithm
@@ -119,18 +110,12 @@ public class S3BitStoreService extends BaseBitStoreService {
      */
     private AmazonS3 s3Service = null;
 
-    /**
-     * S3 transfer manager
-     * this is reused between put calls to use less resources for multiple uploads
-     */
-    private TransferManager tm = null;
-
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
     /**
      * Utility method for generate AmazonS3 builder
-     *
+     * 
      * @param regions wanted regions in client
      * @param awsCredentials credentials of the client
      * @return builder with the specified parameters
@@ -150,12 +135,11 @@ public class S3BitStoreService extends BaseBitStoreService {
     /**
      * This constructor is used for test purpose.
      * In this way is possible to use a mocked instance of AmazonS3
-     *
+     * 
      * @param s3Service mocked AmazonS3 service
      */
-    protected S3BitStoreService(AmazonS3 s3Service, TransferManager tm) {
+    protected S3BitStoreService(AmazonS3 s3Service) {
         this.s3Service = s3Service;
-        this.tm = tm;
     }
 
     @Override
@@ -229,13 +213,8 @@ public class S3BitStoreService extends BaseBitStoreService {
             log.error("Can't initialize this store!", e);
         }
 
-        log.info("AWS S3 Assetstore ready to go! bucket:" + bucketName);
-
-        tm = FunctionalUtils.getDefaultOrBuild(tm, () -> TransferManagerBuilder.standard()
-                                                               .withAlwaysCalculateMultipartMd5(true)
-                                                               .withS3Client(s3Service)
-                                                               .build());
     }
+
 
     /**
      * Return an identifier unique to this asset store instance
@@ -259,20 +238,9 @@ public class S3BitStoreService extends BaseBitStoreService {
     public InputStream get(Bitstream bitstream) throws IOException {
         String key = getFullKey(bitstream.getInternalId());
         try {
-            File tempFile = File.createTempFile("s3-disk-copy", "temp");
-            tempFile.deleteOnExit();
-
-            GetObjectRequest getObjectRequest = new GetObjectRequest(bucketName, key);
-
-            TransferManager transferManager = TransferManagerBuilder.standard()
-                .withS3Client(s3Service)
-                .build();
-
-            Download download = transferManager.download(getObjectRequest, tempFile);
-            download.waitForCompletion();
-
-            return new DeleteOnCloseFileInputStream(tempFile);
-        } catch (AmazonClientException | InterruptedException e) {
+            S3Object object = s3Service.getObject(new GetObjectRequest(bucketName, key));
+            return (object != null) ? object.getObjectContent() : null;
+        } catch (AmazonClientException e) {
             log.error("get(" + key + ")", e);
             throw new IOException(e);
         }
@@ -301,22 +269,14 @@ public class S3BitStoreService extends BaseBitStoreService {
         ) {
             Utils.bufferedCopy(dis, fos);
             in.close();
-            long fileSize = scratchFile.length();
             byte[] md5Digest = dis.getMessageDigest().digest();
             String md5Base64 = Base64.encodeBase64String(md5Digest);
             ObjectMetadata objMetadata = new ObjectMetadata();
             objMetadata.setContentMD5(md5Base64);
-            objMetadata.setContentLength(fileSize);
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, key, scratchFile);
-            putObjectRequest.setMetadata(objMetadata);
-            TransferManager transferManager = TransferManagerBuilder.standard()
-                .withS3Client(s3Service)
-                .build();
+            PutObjectResult putObjectResult = s3Service.putObject(putObjectRequest);
 
-            Upload upload = transferManager.upload(putObjectRequest);
-            UploadResult uploadResult = upload.waitForUploadResult();
-
-            bitstream.setSizeBytes(fileSize);
+            bitstream.setSizeBytes(scratchFile.length());
             // we cannot use the S3 ETAG here as it could be not a MD5 in case of multipart upload (large files) or if
             // the bucket is encrypted
             bitstream.setChecksum(Utils.toHex(md5Digest));
@@ -324,15 +284,15 @@ public class S3BitStoreService extends BaseBitStoreService {
 
             scratchFile.delete();
 
-        } catch (AmazonClientException | IOException | InterruptedException e) {
+        } catch (AmazonClientException | IOException e) {
             log.error("put(" + bitstream.getInternalId() + ", is)", e);
             throw new IOException(e);
         } catch (NoSuchAlgorithmException nsae) {
             // Should never happen
             log.warn("Caught NoSuchAlgorithmException", nsae);
         } finally {
-            if (!scratchFile.delete()) {
-                scratchFile.deleteOnExit();
+            if (scratchFile.exists()) {
+                scratchFile.delete();
             }
         }
     }
@@ -379,7 +339,7 @@ public class S3BitStoreService extends BaseBitStoreService {
      *  <li>checksum_algorithm</li>
      *  <li>modified</li>
      * </ul>
-     *
+     * 
      * @param objectMetadata containing technical data
      * @param attrs map with keys populated
      * @return Map of enriched attrs with values
@@ -447,7 +407,7 @@ public class S3BitStoreService extends BaseBitStoreService {
      * - registered bitstream, conventional storage
      *  conventional bitstream: dspace ingested, dspace random name/path
      *  registered bitstream: registered to dspace, any name/path
-     *
+     * 
      * @param sInternalId
      * @return Computed Relative path
      */
@@ -464,19 +424,6 @@ public class S3BitStoreService extends BaseBitStoreService {
         }
 
         return sIntermediatePath + sInternalId;
-    }
-
-    public String intermediatePath(String internalId) {
-        StringBuilder buf = new StringBuilder();
-        for (int i = 0; i < directoryLevels; i++) {
-            int digits = i * digitsPerLevel;
-            if (i > 0) {
-                buf.append(File.separator);
-            }
-            buf.append(internalId.substring(digits, digits + digitsPerLevel));
-        }
-        buf.append(File.separator);
-        return buf.toString();
     }
 
     public void setEnabled(boolean enabled) {
@@ -588,7 +535,7 @@ public class S3BitStoreService extends BaseBitStoreService {
         //Bucketname should be lowercase
         store.bucketName = DEFAULT_BUCKET_PREFIX + hostname + ".s3test";
         store.s3Service.createBucket(store.bucketName);
-        /* Broken in DSpace 6 TODO Refactor
+/* Broken in DSpace 6 TODO Refactor
         // time everything, todo, swtich to caliper
         long start = System.currentTimeMillis();
         // Case 1: store a file
@@ -641,15 +588,4 @@ public class S3BitStoreService extends BaseBitStoreService {
         store.get(id);
 */
     }
-
-    @Override
-    public String path(Bitstream bitstream) throws IOException {
-        final File tempFile = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
-        tempFile.deleteOnExit();
-        try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            IOUtils.copy(get(bitstream), out);
-        }
-        return tempFile.getAbsolutePath();
-    }
-
 }
