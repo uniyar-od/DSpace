@@ -75,11 +75,16 @@
 	<% } %>
 
 </div>
-<button class="btn btn-default pull-right" style="margin-top: -7px;" type="button"
+<button id="collapseButton" class="btn btn-default pull-right" style="margin-top: -7px;" type="button"
 	data-toggle="collapse" data-target="#collapseFacet_${holder.shortName}"
 	aria-expanded="false" aria-controls="collapseFacet"
 	title="<fmt:message key="jsp.components.button.seealso.button" />">
 	<fmt:message key="jsp.components.button.seealso.open.facet" />
 	&nbsp;<i class="fa fa-angle-double-down"></i>
 </button>
+<script type="text/javascript">
+if(document.location.href.includes("#")){
+	document.getElementById("collapseButton").click();
+}
+</script>
 <% } %>

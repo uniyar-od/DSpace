@@ -181,9 +181,14 @@
 			<div class="clearfix"></div>
 			<br/>
 			<div class="row text-center">
-					<button class="btn btn-default col-xs-12" type="button" data-toggle="collapse" data-target="#collapseFacet_${holder.shortName}" aria-expanded="false" aria-controls="collapseFacet" title="<fmt:message key="jsp.components.button.seealso.button" />">
+					<button id="collapseButton" class="btn btn-default col-xs-12" type="button" data-toggle="collapse" data-target="#collapseFacet_${holder.shortName}" aria-expanded="false" aria-controls="collapseFacet" title="<fmt:message key="jsp.components.button.seealso.button" />">
   						<fmt:message key="jsp.components.button.seealso.close.facet"/>&nbsp;<i class="fa fa-angle-double-up"></i>
 					</button>
+					<script type="text/javascript">
+						if(document.location.href.includes("#")){
+							document.getElementById("collapseButton").click();
+						}
+					</script>
 			</div>
 			<hr/>
 	</div>
