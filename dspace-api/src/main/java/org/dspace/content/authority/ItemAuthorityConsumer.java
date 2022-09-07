@@ -9,6 +9,8 @@ package org.dspace.content.authority;
 
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +26,7 @@ import org.dspace.core.Context;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.dspace.handle.HandleManager;
+import org.dspace.submit.step.DescribeStep;
 import org.dspace.utils.DSpace;
 
 /**
@@ -76,7 +79,7 @@ public class ItemAuthorityConsumer implements Consumer
 	        boolean needCommit = false;
 	        if (reciprocalMetadata != null) {
 	        	for (String m : reciprocalMetadata.keySet()) {
-	        		needCommit = needCommit || checkItemRefs(ctx, item, m);
+	        		needCommit = checkItemRefs(ctx, item, m) || needCommit;
 	        	}
 	        }
 	        
@@ -100,7 +103,7 @@ public class ItemAuthorityConsumer implements Consumer
 					DSpaceObject dso = HandleManager.resolveToObject(ctx, md.authority);
 		    		if (dso != null && dso instanceof Item) {
 		    			Item target = (Item) dso;
-		    			needCommit = needCommit || assureReciprocalLink(target, reciprocalMetadata.get(m), item.getName(), item.getHandle());
+		    			needCommit = assureReciprocalLink(target, reciprocalMetadata.get(m), item.getName(), item.getHandle()) || needCommit;
 		    		}			
 				}
 			}
@@ -108,10 +111,10 @@ public class ItemAuthorityConsumer implements Consumer
 		return needCommit;
 	}
 
-    private boolean assureReciprocalLink(Item target, String mdString, String name, String handle) {
+    private synchronized boolean assureReciprocalLink(Item target, String mdString, String name, String handle) {
     	Metadatum[] meta = target.getMetadataByMetadataString(mdString);
     	String[] mdSplit = mdString.split("\\.");
-    	target.clearMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, Item.ANY);
+    	List<Metadatum> toAdd = new LinkedList<Metadatum>();
     	boolean added = false;
 		if (meta != null) {
 			for (Metadatum md : meta) {
@@ -124,12 +127,17 @@ public class ItemAuthorityConsumer implements Consumer
 						return false;
 					}
 				}
-				target.addMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, null, md.value, md.authority, md.confidence);
+				toAdd.add(md);
 			}
 		}
 		if (!added) {
-			target.addMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, null, name, handle, Choices.CF_ACCEPTED);
-		}
+			target.addMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, DescribeStep.LANGUAGE_QUALIFIER, name, handle, Choices.CF_ACCEPTED);
+		}else {
+		    target.clearMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, Item.ANY);
+            for (Metadatum md : toAdd) {
+                target.addMetadata(mdSplit[0], mdSplit[1], mdSplit.length>2?mdSplit[2]:null, DescribeStep.LANGUAGE_QUALIFIER, md.value, md.authority, md.confidence);
+            }
+        }
     	try {
     		target.updateMetadata();
 		} catch (SQLException | AuthorizeException e) {
@@ -141,7 +149,6 @@ public class ItemAuthorityConsumer implements Consumer
 	public void end(Context ctx)
         throws Exception
     {
-    	// nothing
 		processedHandles.clear();
     }
     
