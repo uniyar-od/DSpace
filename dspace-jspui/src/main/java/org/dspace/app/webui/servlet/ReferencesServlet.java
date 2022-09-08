@@ -197,8 +197,12 @@ public class ReferencesServlet extends DSpaceServlet
                 String ext = ConfigurationManager.getProperty("crosswalk.refer."+format+".file.ext");
                 response.setContentType(mimeType);
                 if(streamCrosswalkDefault instanceof FileNameDisseminator) {
-                    response.setHeader("Content-Disposition",
-                    "attachment;filename="+((FileNameDisseminator)streamCrosswalkDefault).getFileName()+"-"+format+(StringUtils.isNotBlank(ext)?"."+ext:""));
+					String headerAttachment = "attachment;filename="
+							+ ((FileNameDisseminator) streamCrosswalkDefault).getFileName();
+					if (StringUtils.isNotBlank(ext)) {
+						headerAttachment += "-" + format + "." + ext;
+					}
+					response.setHeader("Content-Disposition", headerAttachment);
                 }
                 else {
                     response.setHeader("Content-Disposition",

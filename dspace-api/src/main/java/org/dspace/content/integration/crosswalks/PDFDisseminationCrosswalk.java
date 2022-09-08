@@ -240,7 +240,7 @@ implements StreamGenericDisseminationCrosswalk, FileNameDisseminator {
 		String result = ConfigurationManager.getProperty(FILE_NAME_EXPORT_PDF);
 		if (StringUtils.isNotEmpty(result))
 			return result;
-		return "export";
+		return "export.pdf";
 	}
 
 	@Override
