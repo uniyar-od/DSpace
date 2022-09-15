@@ -69,6 +69,8 @@
     
     <bean class="org.dspace.app.profile.OrcidMetadataCopyingAction"/>
     <bean class="org.dspace.app.profile.OrcidProfileEnricher"/>
+
+    <bean class="org.dspace.handle.hdlresolver.HdlResolverServiceImpl"/>
     
     <bean class='org.dspace.service.impl.HttpConnectionPoolService'
           id='solrHttpConnectionPoolService'
