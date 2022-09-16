@@ -67,7 +67,7 @@ public class ScopusProvider {
             return crisMetricList;
         }
         log.error("The query : " + id + " is wrong!");
-        return null;
+        return List.of();
     }
 
     public CrisMetricDTO getScopusObject(String id) {

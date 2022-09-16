@@ -79,20 +79,18 @@ public class UpdateScopusMetrics extends MetricsExternalServices {
                     itemList.add(itemIterator.next());
                 }
                 foundItems += itemList.size();
-                updatedItems += Optional.ofNullable(
+                updatedItems +=
                         scopusProvider.getScopusList(this.generateQuery(queryMap, itemList))
-                    )
-                    .orElse(new ArrayList<>())
-                    .stream()
-                    .filter(Objects::nonNull)
-                    .map(scopusMetric -> this.updateScopusMetrics(
-                            context,
-                            this.findItem(queryMap, scopusMetric),
-                            scopusMetric
-                        )
-                    )
-                    .filter(BooleanUtils::isTrue)
-                    .count();
+                            .stream()
+                            .filter(Objects::nonNull)
+                            .map(scopusMetric -> this.updateScopusMetrics(
+                                    context,
+                                    this.findItem(queryMap, scopusMetric),
+                                    scopusMetric
+                                )
+                            )
+                            .filter(BooleanUtils::isTrue)
+                            .count();
                 apiCalls++;
                 context.commit();
             }
