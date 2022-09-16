@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -150,12 +149,9 @@ public class TotalVisitPerPeriodGenerator extends AbstractUsageReportGenerator {
 
         UsageReportRest usageReportRest = new UsageReportRest();
         ArrayList<Pair<Integer, UsageReportPointDateRest>> pairs = new ArrayList<>(reportValues.values());
-        Collections.sort(
-                pairs,
-                (a, b) -> Integer.compare(a.getFirst(), b.getFirst())
-        );
         pairs
             .stream()
+            .sorted((a, b) -> Integer.compare(a.getFirst(), b.getFirst()))
             .map(Pair::getSecond)
             .forEach(usageReportRest::addPoint);
 
