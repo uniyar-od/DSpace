@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.dspace.content.Item;
 import org.dspace.core.Context;
 
@@ -46,11 +45,7 @@ public abstract class MetricsExternalServices {
      * @return number of items updated successfully
      */
     public long updateMetric(Context context, List<Item> itemList, String param) {
-        return itemList
-                .stream()
-                .map(item -> this.updateMetric(context, item, param))
-                .filter(BooleanUtils::isTrue)
-                .count();
+        return this.updateMetric(context, itemList.iterator(), param);
     }
 
     /**
