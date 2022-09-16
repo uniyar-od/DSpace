@@ -2144,7 +2144,10 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
 
         context.restoreAuthSystemState();
 
@@ -2213,7 +2216,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                 matchMetadata("dc.rights",
                                     "Custom Copyright Text"),
                                 matchMetadata("dc.title",
-                                    "Title Text")
+                                    "Title Text"),
+                                matchMetadata("dspace.entity.type",
+                                    "Publication")
                             )))));
 
         getClient(token).perform(post("/api/core/items?owningCollection=" +
@@ -2228,6 +2233,40 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             ItemBuilder.deleteItem(idRef);
             ItemBuilder.deleteItem(idRefNoEmbeds.get());
         }
+    }
+
+    @Test
+    public void testCreateItemWithNotConsistentEntityType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = new ItemRest();
+        itemRest.setName("Title Text");
+        itemRest.setInArchive(true);
+        itemRest.setDiscoverable(true);
+        itemRest.setWithdrawn(false);
+
+        itemRest.setMetadata(new MetadataRest()
+            .put("dc.title", new MetadataValueRest("Title Text"))
+            .put("dspace.entity.type", new MetadataValueRest("Patent")));
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(post("/api/core/items?owningCollection=" + collection.getID().toString())
+            .content(mapper.writeValueAsBytes(itemRest)).contentType(contentType))
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
@@ -3068,7 +3107,8 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
 
         String token = getAuthToken(admin.getEmail(), password);
 
-        getClient(token).perform(get("/api/core/items/" + item.getID()))
+        getClient(token).perform(get("/api/core/items/" + item.getID())
+                            .param("projection", "allLanguages"))
                    .andExpect(status().isOk())
                    .andExpect(jsonPath("$", ItemMatcher.matchItemProperties(item)))
                    .andExpect(jsonPath("$.metadata", matchMetadata("dc.title", "Public item 1")))
@@ -5051,4 +5091,63 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$.uuid", is(secondItem.getID().toString())));
 
     }
+
+    @Test
+    public void testSearchNotDiscoverableItemByCustomUrl() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 1")
+            .withCustomUrl("my-custom-url")
+            .makeUnDiscoverable()
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+            .param("q", "my-custom-url"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.uuid", is(item.getID().toString())));
+
+    }
+
+    @Test
+    public void testSearchWithdrawnItemByCustomUrl() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1").build();
+
+        Item item = ItemBuilder.createItem(context, col1)
+            .withTitle("Item 1")
+            .withCustomUrl("my-custom-url")
+            .withdrawn()
+            .build();
+
+        context.restoreAuthSystemState();
+
+        String token = getAuthToken(eperson.getEmail(), password);
+
+        getClient(token).perform(get("/api/core/items/search/findByCustomURL")
+            .param("q", "my-custom-url"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.uuid", is(item.getID().toString())));
+
+    }
+
 }
