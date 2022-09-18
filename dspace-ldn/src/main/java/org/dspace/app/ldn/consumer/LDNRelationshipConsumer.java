@@ -9,7 +9,7 @@ package org.dspace.app.ldn.consumer;
 
 import static java.lang.String.format;
 import static org.dspace.app.ldn.LDNMetadataFields.ELEMENT;
-import static org.dspace.app.ldn.LDNMetadataFields.RELEASE;
+import static org.dspace.app.ldn.LDNMetadataFields.RELATIONSHIP;
 import static org.dspace.app.ldn.LDNMetadataFields.SCHEMA;
 import static org.dspace.content.Item.ANY;
 
@@ -31,14 +31,14 @@ import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 
 /**
- * Consumer listening for item deposit or update to announce release
+ * Consumer listening for item deposit or update to announce relationship
  * notification.
  */
-public class LDNReleaseConsumer implements Consumer {
+public class LDNRelationshipConsumer implements Consumer {
 
-    private final static Logger log = LogManager.getLogger(LDNReleaseConsumer.class);
+    private final static Logger log = LogManager.getLogger(LDNRelationshipConsumer.class);
 
-    private static Set<Item> itemsToRelease;
+    private static Set<Item> itemsWithRelationship;
 
     private ItemService itemService;
 
@@ -57,7 +57,7 @@ public class LDNReleaseConsumer implements Consumer {
 
     /**
      * Consume event and determine if release announce is required. Will populate
-     * itemsToRelease for those needing to be announced.
+     * itemsWithRelationship for those needing to be announced.
      *
      * @param ctx   current context
      * @param event event consumed
@@ -65,11 +65,11 @@ public class LDNReleaseConsumer implements Consumer {
      */
     @Override
     public void consume(Context ctx, Event event) throws Exception {
-        if (itemsToRelease == null) {
-            itemsToRelease = new HashSet<Item>();
+        if (itemsWithRelationship == null) {
+            itemsWithRelationship = new HashSet<Item>();
         }
 
-        log.info("LDN Release Event consumer consumed {} {}",
+        log.info("LDN Relationship Event consumer consumed {} {}",
                 event.getSubjectTypeAsString(), event.getEventTypeAsString());
 
         int subjectType = event.getSubjectType();
@@ -90,14 +90,14 @@ public class LDNReleaseConsumer implements Consumer {
                 if (item.isArchived() || ("ARCHIVED: " + true).equals(event.getDetail())) {
                     if (eventType == Event.MODIFY_METADATA) {
                         List<MetadataValue> releaseMetadata = itemService.getMetadata(
-                                item, SCHEMA, ELEMENT, RELEASE, ANY);
+                                item, SCHEMA, ELEMENT, RELATIONSHIP, ANY);
 
                         if (!releaseMetadata.isEmpty()) {
-                            itemsToRelease.remove(item);
-                            log.info("Skipping item {} as it has been notified of release", item.getID());
+                            itemsWithRelationship.remove(item);
+                            log.info("Skipping item {} as it has been notified of relationship", item.getID());
                             for (MetadataValue metadatum : releaseMetadata) {
                                 log.info("\t {}.{}.{} {} {}",
-                                        SCHEMA, ELEMENT, RELEASE, ANY, metadatum.getValue());
+                                        SCHEMA, ELEMENT, RELATIONSHIP, ANY, metadatum.getValue());
                             }
                             return;
                         }
@@ -118,9 +118,9 @@ public class LDNReleaseConsumer implements Consumer {
                         }
                     }
 
-                    if (!itemsToRelease.add(item)) {
-                        itemsToRelease.remove(item);
-                        itemsToRelease.add(item);
+                    if (!itemsWithRelationship.add(item)) {
+                        itemsWithRelationship.remove(item);
+                        itemsWithRelationship.add(item);
                     }
                 } else {
                     log.info("Ignoring item {} as it is not archived or being archived", item.getID());
@@ -134,26 +134,26 @@ public class LDNReleaseConsumer implements Consumer {
     }
 
     /**
-     * At end of consumer activity, announce all items release.
+     * At end of consumer activity, announce all items relationship.
      *
      * @param ctx current context
-     * @throws Exception failed to announce release
+     * @throws Exception failed to announce relationship
      */
     @Override
     public void end(Context ctx) throws Exception {
-        if (itemsToRelease != null) {
-            for (Item item : itemsToRelease) {
-                log.info("Item for release {} {}", item.getID(), item.getName());
+        if (itemsWithRelationship != null) {
+            for (Item item : itemsWithRelationship) {
+                log.info("Item for relationship {} {}", item.getID(), item.getName());
                 try {
-                    ldnBusinessDelegate.handleRequest("Announce:ReleaseAction", ctx, item);
+                    ldnBusinessDelegate.handleRequest("Announce:RelationshipAction", ctx, item);
                 } catch (Exception e) {
-                    log.error(format("Failed to announce item %s %s for release",
+                    log.error(format("Failed to announce item %s %s for relationship",
                             item.getID(), item.getName()), e);
                 }
             }
         }
 
-        itemsToRelease = null;
+        itemsWithRelationship = null;
     }
 
     /**

@@ -1,4 +1,4 @@
-## Notification email sent that a related resource has been released by a service
+## Notification email sent that a resource has been related by a service
 ##
 ## Parameters: {0} Service Name
 ##             {1} Item Name
@@ -10,19 +10,17 @@
 ##             {7} Item
 ##
 ##
-#set($subject = "DSpace: The Service ${params[0]} has released a Resource ""${params[6].object.title}""")
+#set($subject = "DSpace: The Service ${params[0]} has related a Resource ""${params[6].object.subject}""")
 
-A release announce notification has been received relating to the Item: ${params[1]}
+A relationship announce notification has been received relating to the Item: ${params[1]}
 
 Here is a more detailed report:
 Item: ${params[1]}
 Item URL: ${params[3]}
 Submitted by: ${params[4]}
-Linked Resource: ${params[6].object.title}
-Linked Resource URL: ${params[6].object.id}
-Linked Resource DOI: ${params[6].object.ietfCiteAs}
+Linked Resource URL: ${params[6].object.subject}
 
-Has a new status: RELEASED
+Has a new status: RELATED
 
 By Service: ${params[0]}
 Service URL: ${params[2]}

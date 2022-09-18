@@ -7,54 +7,16 @@
  */
 package org.dspace.app.ldn.model;
 
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  *
  */
 public class Context extends Citation {
-
-    @JsonProperty("IsSupplementedBy")
-    private List<Context> isSupplementedBy;
-
-    @JsonProperty("IsSupplementTo")
-    private List<Context> isSupplementTo;
 
     /**
      * 
      */
     public Context() {
         super();
-    }
-
-    /**
-     * @return List<Context>
-     */
-    public List<Context> getIsSupplementedBy() {
-        return isSupplementedBy;
-    }
-
-    /**
-     * @param isSupplementedBy
-     */
-    public void setIsSupplementedBy(List<Context> isSupplementedBy) {
-        this.isSupplementedBy = isSupplementedBy;
-    }
-
-    /**
-     * @return List<Context>
-     */
-    public List<Context> getIsSupplementTo() {
-        return isSupplementTo;
-    }
-
-    /**
-     * @param isSupplementTo
-     */
-    public void setIsSupplementTo(List<Context> isSupplementTo) {
-        this.isSupplementTo = isSupplementTo;
     }
 
 }

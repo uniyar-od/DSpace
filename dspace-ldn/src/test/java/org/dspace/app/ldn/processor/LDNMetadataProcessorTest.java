@@ -131,12 +131,8 @@ public class LDNMetadataProcessorTest {
         contextMock.when(() -> ContextUtil.obtainCurrentRequestContext())
             .thenReturn(context);
 
-        LDNContextRepeater repeater = new LDNContextRepeater();
-        repeater.setRepeatOver("IsSupplementTo");
-        ldnMetadataProcessor.setRepeater(repeater);
-
         when(configurationService.getProperty(eq("ldn.notify.allowed-external-resolver-urls"))).thenReturn("");
-        when(configurationService.getProperty(eq("dspace.ui.url"))).thenReturn("http://localhost:4200");
+        when(configurationService.getProperty(eq("dspace.ui.url"))).thenReturn("http://localhost:4000");
         when(configurationService.getProperty(eq("ldn.metadata.delimiter"))).thenReturn("||");
 
         when(item.getType()).thenReturn(Constants.ITEM);
@@ -253,8 +249,8 @@ public class LDNMetadataProcessorTest {
     @Parameterized.Parameters
     public static Collection<Object[]> parameters() {
         return new ArrayList<>(Arrays.asList(new Object[][] {
-            { "src/test/resources/mocks/fromDataverse.json", 1, 1, 0 },
-            { "src/test/resources/mocks/fromDataverseUUID.json", 0, 0, 1 }
+            { "src/test/resources/mocks/inbound.json", 1, 1, 0 },
+            { "src/test/resources/mocks/inboundUUID.json", 0, 0, 1 }
         }));
     }
 

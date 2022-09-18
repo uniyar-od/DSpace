@@ -1,0 +1,35 @@
+{
+  "@context": [
+    "https://purl.org/coar/notify",
+    "https://www.w3.org/ns/activitystreams"
+  ],
+  "id": "urn:uuid:9ff5b44d-5a88-4dc9-a403-57b73be1ae5e",
+  "actor": {
+    "id": "http://localhost:4000",
+    "name": "DSpace Repository",
+    "type": "Service"
+  },
+  "object": {
+    "id": "http://localhost:4000/item/f8c3fc0e-906f-41fa-85a4-f045084b422d",
+    "ietf:cite-as": "http://localhost:4000/handle/123456789/3",
+    "sorg:name": "An Interesting Publication",
+    "type": "https://www.w3.org/ns/activitystreams#Relationship",
+    "subject": "http://localhost:4000/handle/123456789/3",
+    "relationship": "http://purl.org/vocab/frbr/core#supplement",
+    "object": "https://doi.org/10.5072/FK2/NUB975"
+  },
+  "origin": {
+    "id": "http://localhost:4000",
+    "inbox": "http://localhost:8080/server/ldn/inbox",
+    "type": "Service"
+  },
+  "target": {
+    "id": "http://localhost:9100",
+    "inbox": "http://localhost:9100/api/inbox",
+    "type": "Service"
+  },
+  "type": [
+    "Announce",
+    "coar-notify:RelationshipAction"
+  ]
+}
