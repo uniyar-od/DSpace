@@ -31,9 +31,11 @@ public class IIIFSharedUtils {
     // metadata used to enable the iiif features on the item
     public static final String METADATA_IIIF_ENABLED = "dspace.iiif.enabled";
     // metadata used to enable the ocr search on the item
-    public static final String METADATA_IIIF_SEARCHABLE = "iiif.search.enabled";
+    public static final String[] METADATA_IIIF_SEARCHABLE_ARRAY = {"iiif", "search", "enabled"};
+    public static final String METADATA_IIIF_SEARCHABLE = METADATA_IIIF_SEARCHABLE_ARRAY[0] + "."
+            + METADATA_IIIF_SEARCHABLE_ARRAY[1] + "." + METADATA_IIIF_SEARCHABLE_ARRAY[2];
     // The DSpace bundle for other content related to item.
-    protected static final String OTHER_CONTENT_BUNDLE = "OtherContent";
+    public static final String OTHER_CONTENT_BUNDLE = "OtherContent";
     // The IIIF image server url from configuration
     protected static final String IMAGE_SERVER_PATH = "iiif.image.server";
     // IIIF metadata definitions
