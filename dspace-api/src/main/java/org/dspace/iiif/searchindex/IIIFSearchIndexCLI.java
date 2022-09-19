@@ -8,6 +8,7 @@
 package org.dspace.iiif.searchindex;
 
 import java.util.Arrays;
+import java.util.Scanner;
 import java.util.UUID;
 
 import org.apache.commons.cli.CommandLine;
@@ -93,6 +94,8 @@ public class IIIFSearchIndexCLI {
             "do not print anything except in the event of errors");
         options.addOption("m", "maximum", true,
             "process no more than maximum items");
+        options.addOption("z", "silent", false,
+            "silent operation - doesn't request confirmation of changes");
         options.addOption("h", "help", false,
             "display help");
 
@@ -175,11 +178,17 @@ public class IIIFSearchIndexCLI {
                 System.out.println("You must provide either an \"add\" or a \"delete\" option.");
                 System.exit(1);
             }
-            String s = System.console().readLine("\nThis action will delete all entries from the IIIF search " +
-                "index for this DSpace \nCommunity, Collection, or Item. \n\nAre you sure you want to do this? Y/n: ");
-            if (!"Y".equals(s)) {
-                System.out.println("Action stopped.");
-                System.exit(1);
+            if (!line.hasOption('z')) {
+                System.out.print("\nThis action will delete all entries from the IIIF search " +
+                    "index for this DSpace \nCommunity, Collection, or Item." +
+                    "\n\nAre you sure you want to do this? Y/n: ");
+                try (Scanner input = new Scanner(System.in)) {
+                    String s = input.nextLine();
+                    if (!"Y".equalsIgnoreCase(s)) {
+                        System.out.println("Action stopped.");
+                        System.exit(1);
+                    }
+                }
             }
             action = "delete";
         }
