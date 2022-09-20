@@ -16,6 +16,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -126,6 +127,7 @@ public class DiscoverQueryBuilder implements InitializingBean {
             scope);
 
         addDiscoveryHitHighlightFields(discoveryConfiguration, queryArgs);
+        Optional.ofNullable(scope).ifPresent(queryArgs::setScopeObject);
         return queryArgs;
     }
 
