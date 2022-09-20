@@ -194,7 +194,6 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(33));
         assertThat(errorMessages, containsInAnyOrder(
             "The tab contains an unknown entity type 'Publication' at row 3",
             "The LEADING value specified on the row 2 of sheet tab is not valid: u. Allowed values: [yes, y, no, n]",
@@ -239,7 +238,8 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
             "IllegalArgumentException: The given workbook is not valid. Import canceled",
             "The sheet boxpolicy has no GROUP column",
             "The sheet tabpolicy has no GROUP column",
-            "the sheet box2metadata contains wrong field type of RENDERING thumbnail at row 3"));
+            "The sheet box2metadata contains an invalid RENDERING type at row 3: "
+                + "Rendering named thumbnail is not supported by field type 'METADATA'"));
     }
 
     @Test
@@ -611,33 +611,11 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
 
     @Test
     public void testWithInvalidRendering() throws Exception {
+
         context.turnOffAuthorisationSystem();
-
-        EntityType publicationType = createEntityType("Publication");
+        createEntityType("Publication");
         createEntityType("Person");
-
-        CrisLayoutBox box = CrisLayoutBoxBuilder.createBuilder(context, publicationType, false, false)
-                                                .withHeader("New Box Header - priority")
-                                                .withSecurity(LayoutSecurity.PUBLIC)
-                                                .withShortname("Shortname")
-                                                .withStyle("STYLE")
-                                                .build();
-
-        CrisLayoutTab tab = CrisLayoutTabBuilder.createTab(context, publicationType, 0)
-                                                .withShortName("New Tab shortname")
-                                                .withSecurity(LayoutSecurity.PUBLIC)
-                                                .withHeader("New Tab header")
-                                                .withLeading(true)
-                                                .addBoxIntoNewRow(box)
-                                                .build();
-
-        GroupBuilder.createGroup(context)
-                    .withName("Researchers")
-                    .build();
-
         context.restoreAuthSystemState();
-
-        assertThat(tabService.findAll(context), hasSize(1));
 
         String fileLocation = getXlsFilePath("invalid-rendering.xls");
         String[] args = new String[] { "cris-layout-tool", "-f", fileLocation };
@@ -646,19 +624,24 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
         assertThat(handler.getInfoMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
-
-        List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(9));
-        assertThat(errorMessages, containsInAnyOrder(
-            "the sheet box2metadata wrong RENDERING value invalid found at row 3",
-            "the sheet box2metadata contains wrong field type of RENDERING thumbnail at row 1",
-            "the sheet box2metadata contains wrong field type of RENDERING longtext at row 7",
-            "the sheet box2metadata contains not allowed subtype of RENDERING attachment at row 14",
-            "the sheet metadatagroups must contain subType for RENDERING identifier at row 5",
-            "the sheet metadatagroups contains wrong subtype for RENDERING identifier at row 6",
-            "the sheet box2metadata contains wrong field type of RENDERING table at row 8",
-            "the sheet box2metadata contains wrong subtype for RENDERING valuepair at row 10",
+        assertThat(handler.getErrorMessages(), containsInAnyOrder(
+            "The sheet box2metadata contains an invalid RENDERING type at row 1: "
+                + "Rendering named thumbnail is not supported by field type 'METADATA'",
+            "The sheet box2metadata contains an unknown RENDERING type invalid at row 3",
+            "The sheet box2metadata contains an invalid RENDERING type at row 7: "
+                + "Rendering named longtext is not supported by field type 'BITSTREAM'",
+            "The sheet box2metadata contains an invalid RENDERING type at row 8: "
+                + "Rendering named table is not supported by field type 'METADATA'",
+            "The sheet box2metadata contains an invalid RENDERING type at row 10: "
+                + "Rendering named valuepair don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 14: "
+                + "Rendering named attachment don't supports sub types",
+            "The sheet metadatagroups contains an invalid RENDERING type at row 5: "
+                + "Rendering named identifier requires a sub type",
+            "The sheet metadatagroups contains an invalid RENDERING type at row 6: "
+                + "Rendering named identifier don't supports the configured sub type",
             "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+
     }
 
     private void assertThatMetadataFieldHas(CrisLayoutField field, String label, String rowStyle, String cellStyle,

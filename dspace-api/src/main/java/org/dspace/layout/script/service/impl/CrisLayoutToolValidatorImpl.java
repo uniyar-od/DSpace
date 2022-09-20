@@ -17,8 +17,11 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -35,7 +38,7 @@ import org.dspace.core.ReloadableEntity;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.layout.CrisLayoutBoxTypes;
-import org.dspace.layout.script.service.CrisLayoutRenderValidator;
+import org.dspace.layout.script.service.CrisLayoutToolRenderValidator;
 import org.dspace.layout.script.service.CrisLayoutToolValidationResult;
 import org.dspace.layout.script.service.CrisLayoutToolValidator;
 import org.dspace.util.WorkbookUtils;
@@ -59,7 +62,15 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
     private GroupService groupService;
 
     @Autowired
-    private List<CrisLayoutRenderValidator> crisLayoutRenderValidators;
+    private List<CrisLayoutToolRenderValidator> renderingValidators;
+
+    private Map<String, CrisLayoutToolRenderValidator> renderingValidatorsByName;
+
+    @PostConstruct
+    private void setup() {
+        renderingValidatorsByName = renderingValidators.stream()
+            .collect(Collectors.toMap(CrisLayoutToolRenderValidator::getName, Function.identity()));
+    }
 
     @Override
     public CrisLayoutToolValidationResult validate(Context context, Workbook workbook) {
@@ -208,13 +219,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             validatePresenceInBoxSheet(result, box2metadataSheet, entityTypeColumn, boxColumn);
         }
 
-        int renderingColumn = getCellIndexFromHeaderName(box2metadataSheet, RENDERING_COLUMN);
-        if (renderingColumn == -1) {
-            result.addError("The sheet " + BOX2METADATA_SHEET + " has no " + RENDERING_COLUMN + " column");
-        } else {
-            validateRendering(box2metadataSheet, renderingColumn, fieldTypeColumn, result);
-        }
-
+        validateRenderingColumn(box2metadataSheet, fieldTypeColumn, result);
 
     }
 
@@ -245,12 +250,7 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
             validateMetadataFields(allMetadataFields, metadataGroupsSheet, parentColumn, fieldTypeColumn, result);
         }
 
-        int renderingColumn = getCellIndexFromHeaderName(metadataGroupsSheet, RENDERING_COLUMN);
-        if (renderingColumn == -1) {
-            result.addError("The sheet " + METADATAGROUPS_SHEET + " has no " + RENDERING_COLUMN + " column");
-        } else {
-            validateRendering(metadataGroupsSheet, renderingColumn, fieldTypeColumn, result);
-        }
+        validateRenderingColumn(metadataGroupsSheet, fieldTypeColumn, result);
 
     }
 
@@ -369,34 +369,50 @@ public class CrisLayoutToolValidatorImpl implements CrisLayoutToolValidator {
 
     }
 
-    private void validateRendering(Sheet sheet, int renderingColumn,
-                                   int fieldTypeColumn, CrisLayoutToolValidationResult result) {
-        boolean renderTypeFound;
-        for (Cell cell : getColumnWithoutHeader(sheet, renderingColumn)) {
-            String renderType = WorkbookUtils.getCellValue(cell);
-            if (!renderType.isEmpty()) {
-                String fieldType = getCellValue(cell.getRow(), fieldTypeColumn);
-                String renderName = renderType.split("\\.")[0];
-                renderTypeFound = false;
-                for (CrisLayoutRenderValidator validator : crisLayoutRenderValidators) {
-                    if (validator.getName().equals(renderName)) {
-                        renderTypeFound = true;
-                        try {
-                            validator.validate(renderType, fieldType);
-                        } catch (Exception e) {
-                            result.addError("the sheet " + sheet.getSheetName() + " " + e.getMessage() + " at row "
-                                + cell.getRow().getRowNum());
-                        }
-                        break;
-                    }
-                }
+    private void validateRenderingColumn(Sheet sheet, int fieldTypeColumn, CrisLayoutToolValidationResult result) {
 
-                if (!renderTypeFound) {
-                    result.addError("the sheet " + sheet.getSheetName() + " wrong RENDERING value " + renderType
-                        + " found at row " + cell.getRow().getRowNum());
-                }
+        int renderingColumn = getCellIndexFromHeaderName(sheet, RENDERING_COLUMN);
+        if (renderingColumn == -1) {
+            result.addError("The sheet " + sheet.getSheetName() + " has no " + RENDERING_COLUMN + " column");
+            return;
+        }
+
+        for (Cell cell : getColumnWithoutHeader(sheet, renderingColumn)) {
+            if (WorkbookUtils.isCellNotEmpty(cell)) {
+                validateRenderType(cell, fieldTypeColumn, result);
             }
         }
+
+    }
+
+    private void validateRenderType(Cell cell, int fieldTypeColumn, CrisLayoutToolValidationResult result) {
+
+        String renderType = WorkbookUtils.getCellValue(cell);
+
+        String fieldType = getCellValue(cell.getRow(), fieldTypeColumn);
+        if (StringUtils.isEmpty(fieldType)) {
+            fieldType = CrisLayoutBoxTypes.METADATA.name();
+        }
+
+        String sheetName = cell.getRow().getSheet().getSheetName();
+
+        CrisLayoutToolRenderValidator renderValidator = findRenderValidatorByName(renderType);
+
+        if (renderValidator == null) {
+            result.addError("The sheet " + sheetName + " contains an unknown RENDERING type " + renderType + " at row "
+                + cell.getRow().getRowNum());
+            return;
+        }
+
+        renderValidator.validate(renderType, fieldType)
+            .ifPresent(validationError -> result.addError("The sheet " + sheetName + " contains an invalid "
+                + "RENDERING type at row " + cell.getRow().getRowNum() + ": " + validationError));
+
+    }
+
+    private CrisLayoutToolRenderValidator findRenderValidatorByName(String renderType) {
+        String renderName = renderType.split("\\.")[0];
+        return renderingValidatorsByName.get(renderName);
     }
 
     private void validateMetadataAndGroupFields(Context context, List<String> allMetadataFields, Sheet sheet,
