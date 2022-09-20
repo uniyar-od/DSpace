@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -274,14 +275,19 @@ public class RelationshipServiceImpl implements RelationshipService {
         Item leftItem = relationship.getLeftItem();
         Item rightItem = relationship.getRightItem();
 
+        final boolean onlyRightRelationship = placesOnly(relationship.getRelationshipType(), false);
+        final boolean onlyLeftRelationship = placesOnly(relationship.getRelationshipType(), true);
+
         // These list also include the non-latest. This is relevant to determine whether it's deleted.
         // This can also imply there may be overlapping places, and/or the given relationship will overlap
         // But the shift will allow this, and only happen when needed based on the latest status
-        List<Relationship> leftRelationships = findByItemAndRelationshipType(
-            context, leftItem, relationship.getRelationshipType(), true, -1, -1, false
-        );
-        List<Relationship> rightRelationships = findByItemAndRelationshipType(
-            context, rightItem, relationship.getRelationshipType(), false, -1, -1, false
+        List<Relationship> leftRelationships = onlyRightRelationship ? Collections.emptyList() :
+            findByItemAndRelationshipType(
+                context, leftItem, relationship.getRelationshipType(), true, -1, -1, false
+            );
+        List<Relationship> rightRelationships = onlyLeftRelationship ? Collections.emptyList() :
+            findByItemAndRelationshipType(
+                context, rightItem, relationship.getRelationshipType(), false, -1, -1, false
         );
 
         // These relationships are only deleted from the temporary lists in case they're present in them so that we can
@@ -325,11 +331,38 @@ public class RelationshipServiceImpl implements RelationshipService {
             );
         }
 
+        updateRelationCardinality(relationship, onlyRightRelationship, onlyLeftRelationship,
+                                  leftRelationships, rightRelationships);
+
+
         updateItem(context, leftItem);
         updateItem(context, rightItem);
 
         context.restoreAuthSystemState();
         relationshipPlacesIndexingService.updateRelationReferences(context, relationship);
+    }
+
+    private void updateRelationCardinality(Relationship relationship, boolean onlyRightRelationship,
+                                           boolean onlyLeftRelationship, List<Relationship> leftRelationships,
+                                           List<Relationship> rightRelationships) {
+        if (onlyLeftRelationship) {
+
+            BiConsumer<Integer, Relationship> placesUpdate = (places,rel) -> rel.setRightPlace(places);
+            updatePlaces(relationship, leftRelationships, placesUpdate);
+        }
+        if (onlyRightRelationship) {
+            BiConsumer<Integer, Relationship> placesUpdate = (places,rel) -> rel.setLeftPlace(places);
+            updatePlaces(relationship, rightRelationships, placesUpdate);
+        }
+    }
+
+    private void updatePlaces(Relationship relationship, List<Relationship> relationships,
+                                  BiConsumer<Integer, Relationship> consumer) {
+        int place = relationships.size() + 1;
+        consumer.accept(place, relationship);
+        for (Relationship rel : relationships) {
+            consumer.accept(place, rel);
+        }
     }
 
     /**

@@ -439,9 +439,6 @@ public class RelationshipRestRepository extends DSpaceRestRepository<Relationshi
         return converter.toRestPage(relationships, pageable, total, utils.obtainProjection());
     }
 
-    private boolean updateRelationshipPlaces(final RelationshipType relationshipType) {
-        return relationshipService.placesOnly(relationshipType, true)
-            || relationshipService.placesOnly(relationshipType, false);
-    }
+
 
 }
