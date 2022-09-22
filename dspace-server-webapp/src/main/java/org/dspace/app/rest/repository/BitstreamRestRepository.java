@@ -7,13 +7,22 @@
  */
 package org.dspace.app.rest.repository;
 
+import static org.apache.commons.lang3.ArrayUtils.nullToEmpty;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Spliterators;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +49,7 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.handle.service.HandleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -205,50 +215,22 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
      */
     @SearchRestMethod(name = "byItemId")
     public Page<BitstreamRest> findByItemId(@Parameter(value = "uuid", required = true) UUID uuid,
-                                            @Parameter(value = "name", required = true) String name,
-                                            @Parameter(value = "filterMetadata") String metadata,
-                                            @Parameter(value = "filterMetadataValue") String value,
+                                            @Parameter(value = "name", required = true) String bundleName,
+                                            @Parameter(value = "filterMetadata") String[] filterMetadataFields,
+                                            @Parameter(value = "filterMetadataValue") String[] filterMetadataValues,
                                             Pageable pageable) {
 
-        validateParameters(metadata, value);
+        Map<String, String> filterMetadata = composeFilterMetadata(filterMetadataFields, filterMetadataValues);
 
-        try {
+        Item item = findItemById(uuid)
+            .orElseThrow(() -> new UnprocessableEntityException("No item found with the given UUID"));
 
-            List<Bitstream> bitstreams = new ArrayList<>();
-            List<Bitstream> matchedBitstreams;
-            Context context = obtainContext();
+        List<Bitstream> bitstreams = getItemBitstreams(item)
+            .filter(bitstream -> isContainedInBundleNamed(bitstream, bundleName))
+            .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata))
+            .collect(Collectors.toList());
 
-            Item item = itemService.find(context, uuid);
-
-            if (item == null) {
-                throw new UnprocessableEntityException("The provided uuid:" + uuid + " does not correspond to an " +
-                    "existing item");
-            }
-
-            bs.getItemBitstreams(context, item).forEachRemaining(bitstreams::add);
-
-            matchedBitstreams = filterByBundleName(bitstreams, name);
-
-            if (metadata != null && value != null) {
-                matchedBitstreams = filterByMetadataAndValue(matchedBitstreams, metadata, value);
-            }
-
-            if (matchedBitstreams.isEmpty()) {
-                throw new ResourceNotFoundException("no matched bitstreams found");
-            }
-
-            return converter.toRestPage(matchedBitstreams, pageable, matchedBitstreams.size(),
-                utils.obtainProjection());
-        } catch (SQLException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
-    }
-
-    private void validateParameters(String metadata, String value) {
-        if ((metadata != null && value == null) || (value != null && metadata == null)) {
-            throw new IllegalArgumentException("The request must include a filterMetadata " +
-                "and a filterMetadataValue together");
-        }
+        return converter.toRestPage(bitstreams, pageable, bitstreams.size(), utils.obtainProjection());
     }
 
     private Bitstream getFirstMatchedBitstream(Item item, Integer sequence, String filename) {
@@ -314,41 +296,73 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
         return converter.toRest(targetBundle, utils.obtainProjection());
     }
 
-    private List<Bitstream> filterByBundleName(List<Bitstream> bitstreams, String name) throws SQLException {
-        List<Bitstream> matchedBitstreams = new ArrayList<>();
-        for (Bitstream bitstream : bitstreams) {
-            for (Bundle bundle : bitstream.getBundles()) {
-                if (bundle.getName().equals(name)) {
-                    matchedBitstreams.add(bitstream);
-                }
-            }
+    private Optional<Item> findItemById(UUID uuid) {
+        try {
+            return Optional.ofNullable(itemService.find(obtainContext(), uuid));
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
         }
-        return matchedBitstreams;
     }
 
-    private List<Bitstream> filterByMetadataAndValue(List<Bitstream> bitstreams, String metadata, String value) {
-        List<Bitstream> matchedBitstreams = new ArrayList<>();
-        for (Bitstream bitstream : bitstreams) {
-            for (MetadataValue metadataValue : bitstream.getMetadata()) {
-                if (isMatched(metadataValue, metadata, value)) {
-                    matchedBitstreams.add(bitstream);
-                }
-            }
+    private Map<String, String> composeFilterMetadata(String[] fields, String[] values) {
+
+        if (filterMetadataDoNotHaveSameCardinality(fields, values)) {
+            throw new IllegalArgumentException("The request must include a filterMetadata " +
+                "and a filterMetadataValue parameters with the same cardinality");
         }
 
-        return matchedBitstreams;
+        Map<String, String> filterMetadata = new HashMap<String, String>();
+
+        for (int i = 0; i < nullToEmpty(fields).length; i++) {
+            filterMetadata.put(fields[i], values[i]);
+        }
+
+        return filterMetadata;
+
     }
 
-    private boolean isMatched(MetadataValue metadataValue, String metadata, String value) {
+    private boolean filterMetadataDoNotHaveSameCardinality(String[] fields, String[] values) {
+        return nullToEmpty(fields).length != nullToEmpty(values).length;
+    }
 
-        boolean metadataMatched = metadataValue.getMetadataField().toString('.').equals(metadata);
+    private Stream<Bitstream> getItemBitstreams(Item item) {
+        try {
+            Iterator<Bitstream> bitstreamIterator = bs.getItemBitstreams(obtainContext(), item);
+            return StreamSupport.stream(Spliterators.spliteratorUnknownSize(bitstreamIterator, 0), false);
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    private boolean isContainedInBundleNamed(Bitstream bitstream, String name) {
+        try {
+            return bitstream.getBundles().stream()
+                .anyMatch(bundle -> bundle.getName().equals(name));
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    private boolean hasAllMetadataValues(Bitstream bitstream, Map<String, String> filterMetadata) {
+        return filterMetadata.keySet().stream()
+            .allMatch(metadataField -> hasMetadataValue(bitstream, metadataField, filterMetadata.get(metadataField)));
+    }
+
+    private boolean hasMetadataValue(Bitstream bitstream, String metadataField, String value) {
+        return bitstream.getMetadata().stream()
+            .filter(metadataValue -> metadataValue.getMetadataField().toString('.').equals(metadataField))
+            .anyMatch(metadataValue -> matchesMetadataValue(metadataValue, value));
+    }
+
+    private boolean matchesMetadataValue(MetadataValue metadataValue, String value) {
 
         if (value.startsWith("(") && value.endsWith(")")) {
             value = value.substring(1, value.length() - 1);
-            return metadataMatched && metadataValue.getValue().matches(value);
+            return metadataValue.getValue().matches(value);
         } else {
-            return metadataMatched && metadataValue.getValue().equals(value);
+            return metadataValue.getValue().equals(value);
         }
+
     }
 
 }
