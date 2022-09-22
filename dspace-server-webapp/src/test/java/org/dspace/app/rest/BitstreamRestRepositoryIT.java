@@ -11,6 +11,7 @@ import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
 import static org.dspace.core.Constants.WRITE;
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
@@ -2308,7 +2309,7 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void findByItemIdWithMetadataAndWithoutMetadataValue() throws Exception {
+    public void findByItemIdWithMetadataFieldsAndValuesWithDifferentCardinality() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -2332,6 +2333,20 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
                        .param("uuid", publicItem1.getID().toString())
                        .param("name", "bundle name")
                        .param("filterMetadata", "dc.title"))
+                   .andExpect(status().isBadRequest());
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+                       .param("uuid", publicItem1.getID().toString())
+                       .param("name", "bundle name")
+                       .param("filterMetadata", "dc.title")
+                       .param("filterMetadataValue", "Test", "Test 2"))
+                   .andExpect(status().isBadRequest());
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+                       .param("uuid", publicItem1.getID().toString())
+                       .param("name", "bundle name")
+                       .param("filterMetadata", "dc.title", "dc.date.issued", "dc.description")
+                       .param("filterMetadataValue", "Test", "Test 2"))
                    .andExpect(status().isBadRequest());
 
     }
@@ -2387,7 +2402,8 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
                        .param("name", license.getName())
                        .param("filterMetadata", "dc.title")
                        .param("filterMetadataValue", "wrong value"))
-                   .andExpect(status().isNotFound());
+                       .andExpect(status().isOk())
+                       .andExpect(jsonPath("$.page.totalElements", is(0)));
 
     }
 
@@ -2460,6 +2476,20 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
                        BitstreamMatcher.matchBitstreamEntry(bitstream1)
                    )));
 
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+                       .param("uuid", publicItem1.getID().toString())
+                       .param("name", license.getName())
+                       .param("filterMetadata", "dc.title")
+                       .param("filterMetadataValue", "(this is a test.*)")
+                       .param("projection", "full"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$.page.totalElements", is(2)))
+                   .andExpect(jsonPath("$._embedded.bitstreams", hasSize(2)))
+                   .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
+                       BitstreamMatcher.matchBitstreamEntry(bitstream1),
+                       BitstreamMatcher.matchBitstreamEntry(bitstream2)
+                   )));
+
     }
 
     @Test
@@ -2521,6 +2551,85 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
                    .andExpect(jsonPath("$._embedded.bitstreams", contains(
                        BitstreamMatcher.matchBitstreamEntry(bitstream1)
                    )));
+
+    }
+
+    @Test
+    public void searchByItemWithManyFilterMetadata() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .build();
+
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+            .withTitle("Test")
+            .withIssueDate("2010-10-17")
+            .withAuthor("Smith, Donald")
+            .build();
+
+        Bundle license = BundleBuilder.createBundle(context, publicItem1)
+            .withName("LICENSE")
+            .build();
+
+        Bitstream bitstream1 = BitstreamBuilder.createBitstream(context, license, InputStream.nullInputStream())
+            .withName("this is a test")
+            .withType("Image")
+            .withMimeType("text/plain")
+            .build();
+
+        Bitstream bitstream2 = BitstreamBuilder.createBitstream(context, license, InputStream.nullInputStream())
+            .withName("this is a test")
+            .withType("Personal Picture")
+            .withMimeType("text/plain")
+            .build();
+
+        Bitstream bitstream3 = BitstreamBuilder.createBitstream(context, license, InputStream.nullInputStream())
+            .withName("this is a test 2")
+            .withType("Personal Picture")
+            .withMimeType("text/plain")
+            .build();
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+            .param("uuid", publicItem1.getID().toString())
+            .param("name", license.getName())
+            .param("filterMetadata", "dc.title")
+            .param("filterMetadataValue", "this is a test")
+            .param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page.totalElements", is(2)))
+            .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
+                BitstreamMatcher.matchBitstreamEntry(bitstream1),
+                BitstreamMatcher.matchBitstreamEntry(bitstream2))));
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+            .param("uuid", publicItem1.getID().toString())
+            .param("name", license.getName())
+            .param("filterMetadata", "dc.type")
+            .param("filterMetadataValue", "Personal Picture")
+            .param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page.totalElements", is(2)))
+            .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
+                BitstreamMatcher.matchBitstreamEntry(bitstream2),
+                BitstreamMatcher.matchBitstreamEntry(bitstream3))));
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+            .param("uuid", publicItem1.getID().toString())
+            .param("name", license.getName())
+            .param("filterMetadata", "dc.title", "dc.type")
+            .param("filterMetadataValue", "this is a test", "Personal Picture")
+            .param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page.totalElements", is(1)))
+            .andExpect(jsonPath("$._embedded.bitstreams", hasSize(1)))
+            .andExpect(jsonPath("$._embedded.bitstreams", contains(
+                BitstreamMatcher.matchBitstreamEntry(bitstream2))));
 
     }
 
