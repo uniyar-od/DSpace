@@ -2055,7 +2055,6 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
         final String theFilePath = filepath;
         final String theInputType = inputType;
         final String theResumeDir = resumeDir;
-        final boolean useTemplateItem = template;
 
         Thread go = new Thread() {
             @Override
