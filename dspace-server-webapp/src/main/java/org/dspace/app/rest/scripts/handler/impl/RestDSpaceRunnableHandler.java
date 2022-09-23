@@ -13,9 +13,11 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 
 import org.apache.commons.cli.HelpFormatter;
@@ -56,22 +58,26 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
     private Integer processId;
     private String scriptName;
     private UUID ePersonId;
+    private Locale locale;
 
     /**
      * This constructor will initialise the handler with the process created from the parameters
      * @param ePerson       The eperson that creates the process
      * @param scriptName    The name of the script for which is a process will be created
      * @param parameters    The parameters for this process
-     * @param specialGroups specialGroups The list of special groups related to eperson
-     *                      creating process at process creation time
+     * @param specialGroups The list of special groups related to eperson creating process at process creation time
+     * @param currentLocale The context current locale to use inside the runnable handler
      */
     public RestDSpaceRunnableHandler(EPerson ePerson, String scriptName, List<DSpaceCommandLineParameter> parameters,
-                                     final Set<Group> specialGroups) {
+            final List<Group> specialGroups, final Locale currentLocale) {
         Context context = new Context();
+        this.locale = Optional.ofNullable(currentLocale).orElse(context.getCurrentLocale());
+        context.setCurrentLocale(this.locale);
         try {
-            ePersonId = ePerson != null ? ePerson.getID() : null;
-            Process process = processService.create(context, ePerson, scriptName, parameters, specialGroups);
-            processId = process.getID();
+            this.ePersonId = Objects.nonNull(ePerson) ? ePerson.getID() : null;
+            Process process = processService.create(context, ePerson, scriptName, parameters,
+                new HashSet<>(specialGroups));
+            this.processId = process.getID();
             this.scriptName = process.getName();
 
             context.complete();
@@ -314,19 +320,24 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
     @Override
     public List<UUID> getSpecialGroups() {
         Context context = new Context();
-        List<UUID> specialGroups = new ArrayList<>();
+        List<UUID> specialGroups = new ArrayList<UUID>();
         try {
             Process process = processService.find(context, processId);
             for (Group group : process.getGroups()) {
+                context.setSpecialGroup(group.getID());
                 specialGroups.add(group.getID());
             }
         } catch (SQLException e) {
-            log.error("RestDSpaceRunnableHandler with process: " + processId + " could not find the process", e);
+            log.error("RestDSpaceRunnableHandler with process: " + processId + " could not find the proccess", e);
         } finally {
             if (context.isValid()) {
                 context.abort();
             }
         }
         return specialGroups;
+    }
+
+    public Locale getLocale() {
+        return this.locale;
     }
 }

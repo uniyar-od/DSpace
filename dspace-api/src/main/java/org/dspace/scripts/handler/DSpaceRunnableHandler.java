@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -124,4 +125,6 @@ public interface DSpaceRunnableHandler {
      * @return List containing UUIDs of Special Groups of the associated Process.
      */
     public List<UUID> getSpecialGroups();
+
+    public Locale getLocale();
 }

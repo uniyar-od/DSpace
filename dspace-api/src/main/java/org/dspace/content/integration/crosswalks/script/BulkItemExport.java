@@ -120,6 +120,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         context = new Context();
         assignCurrentUserInContext();
         assignSpecialGroupsInContext();
+        assignHandlerLocaleInContext();
 
         if (exportFormat == null) {
             throw new IllegalArgumentException("The export format must be provided");
@@ -142,6 +143,17 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             context.abort();
         }
 
+    }
+
+    private void assignHandlerLocaleInContext() {
+        if (
+                this.handler != null &&
+                this.context != null &&
+                this.handler.getLocale() != null &&
+                !this.handler.getLocale().equals(this.context.getCurrentLocale())
+        ) {
+            this.context.setCurrentLocale(this.handler.getLocale());
+        }
     }
 
     @Override

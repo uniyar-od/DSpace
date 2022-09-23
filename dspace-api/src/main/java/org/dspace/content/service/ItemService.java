@@ -21,6 +21,7 @@ import org.dspace.content.Bitstream;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
+import org.dspace.content.DSpaceObject;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
@@ -41,7 +42,7 @@ import org.dspace.eperson.Group;
 public interface ItemService
         extends DSpaceObjectService<Item>, DSpaceObjectLegacySupportService<Item> {
 
-    public Thumbnail getThumbnail(Context context, Item item, boolean requireOriginal) throws SQLException;
+    public Thumbnail getThumbnail(Context context, Item item) throws SQLException;
 
     /**
      * Create a new item, with a new internal ID. Authorization is done
@@ -814,6 +815,25 @@ public interface ItemService
                                            String lang, boolean enableVirtualMetadata);
 
     /**
+<<<<<<< HEAD
+=======
+     * Returns the item's entity type, if any.
+     *
+     * @param  item    the item
+     * @return         the entity type as string, if any
+     */
+    public String getEntityType(Item item);
+
+    /**
+     * Set the entity type of the given item with the provided value.
+     *
+     * @param item       the item to update
+     * @param entityType the entity type to set
+     */
+    public void setEntityType(Context context, Item item, String entityType);
+
+    /**
+>>>>>>> 4science-bitbucket/dspace-cris-7
      * Find all the items in the archive or not with a given authority key value in LIKE format.
      * 
      * @param context         DSpace context object
@@ -854,5 +874,20 @@ public interface ItemService
      */
     public EntityType getEntityType(Context context, Item item) throws SQLException;
 
+    /**
+     * Add the default policies, which have not been already added to the given
+     * DSpace object
+     *
+     * @param  context                   The relevant DSpace Context.
+     * @param  dso                       The DSpace Object to add policies to
+     * @param  defaultCollectionPolicies list of policies
+     * @throws SQLException              An exception that provides information on a
+     *                                   database access error or other errors.
+     * @throws AuthorizeException        Exception indicating the current user of
+     *                                   the context does not have permission to
+     *                                   perform a particular action.
+     */
+    void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso, List<ResourcePolicy> defaultCollectionPolicies)
+        throws SQLException, AuthorizeException;
 
 }
