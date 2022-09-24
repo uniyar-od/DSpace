@@ -10,10 +10,8 @@
     "type": "Service"
   },
   "object": {
-    "id": "http://localhost:4000/item/f8c3fc0e-906f-41fa-85a4-f045084b422d",
-    "ietf:cite-as": "http://localhost:4000/handle/123456789/3",
-    "sorg:name": "An Interesting Publication",
-    "type": "https://www.w3.org/ns/activitystreams#Relationship",
+    "id": "urn:uuid:424d9807-78de-4d9a-8d5f-cc1b46889d00",
+    "type": "Relationship",
     "subject": "http://localhost:4000/handle/123456789/3",
     "relationship": "http://purl.org/vocab/frbr/core#supplement",
     "object": "https://doi.org/10.5072/FK2/NUB975"

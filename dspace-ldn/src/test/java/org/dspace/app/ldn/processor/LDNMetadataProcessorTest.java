@@ -198,7 +198,7 @@ public class LDNMetadataProcessorTest {
 
         verify(handleService, times(resolveUrlToHandle)).resolveUrlToHandle(
             any(Context.class),
-             anyString()
+            anyString()
         );
 
         verify(handleService, times(resolveToObject)).resolveToObject(

@@ -71,7 +71,6 @@ public class LDNInboxControllerIT extends AbstractControllerIntegrationTest {
 
         Object object = notification.getObject();
 
-        object.setIetfCiteAs(url);
         object.setObject(url);
 
         String content = LDNTestUtility.toJson(notification);
@@ -96,7 +95,6 @@ public class LDNInboxControllerIT extends AbstractControllerIntegrationTest {
 
         Object object = notification.getObject();
 
-        object.setIetfCiteAs(url);
         object.setObject(url);
 
         String content = LDNTestUtility.toJson(notification);
