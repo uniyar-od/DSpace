@@ -102,11 +102,9 @@ public class AnnounceRelationshipService implements BusinessService {
             actor.addType("Service");
 
             Object object = new Object();
-            object.setTitle(item.getName());
-            object.addType("https://www.w3.org/ns/activitystreams#Relationship");
-            object.setRelationship("http://purl.org/vocab/frbr/core#supplementOf");
-
-            String id = format("%s/%s", dspaceUIUrl, item.getID());
+            object.setId(format("urn:uuid:%s", UUID.randomUUID()));
+            object.addType("Relationship");
+            object.setRelationship("http://purl.org/vocab/frbr/core#supplement");
 
             List<MetadataValue> metadata = item.getMetadata();
             for (MetadataValue metadatum : metadata) {
@@ -122,8 +120,6 @@ public class AnnounceRelationshipService implements BusinessService {
                     field.getQualifier().equals("uri")) {
                     String itemIdentifierUri = metadatum.getValue();
                     log.info("Item Identifier URI {}", itemIdentifierUri);
-                    object.setId(id);
-                    object.setIetfCiteAs(itemIdentifierUri);
                     object.setSubject(itemIdentifierUri);
                 }
             }
