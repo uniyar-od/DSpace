@@ -758,7 +758,8 @@ public class ItemExportServiceImpl implements ItemExportService {
             throw new Exception(
                 "A dspace.cfg entry for 'org.dspace.app.itemexport.work.dir' does not exist.");
         }
-        return exportDir;
+        // clean work dir path from duplicate separators
+        return StringUtils.replace(exportDir, File.separator + File.separator, File.separator);
     }
 
     @Override
@@ -1020,8 +1021,11 @@ public class ItemExportServiceImpl implements ItemExportService {
                     return;
                 }
                 String strAbsPath = cpFile.getPath();
-                String strZipEntryName = strAbsPath.substring(strSource
-                                                                  .length(), strAbsPath.length());
+                int startIndex = strSource.length();
+                if (!StringUtils.endsWith(strSource, File.separator)) {
+                    startIndex++;
+                }
+                String strZipEntryName = strAbsPath.substring(startIndex, strAbsPath.length());
 
                 // byte[] b = new byte[ (int)(cpFile.length()) ];
 
