@@ -61,6 +61,7 @@ import org.dspace.discovery.IndexingService;
 import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SolrSearchCore;
 import org.dspace.discovery.indexobject.IndexableItem;
+import org.dspace.services.ConfigurationService;
 import org.dspace.versioning.Version;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matcher;
@@ -101,6 +102,9 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
     @Autowired
     private RelationshipService relationshipService;
 
+    @Autowired
+    private ConfigurationService configurationService;
+
     protected Community community;
 
     @Override
@@ -113,6 +117,8 @@ public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
         community = CommunityBuilder.createCommunity(context)
             .withName("community")
             .build();
+
+        configurationService.setProperty("item.enable-virtual-metadata", true);
 
         context.restoreAuthSystemState();
     }
