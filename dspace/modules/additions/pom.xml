@@ -176,6 +176,11 @@
 					<version>${annoiiif.addon.modules}</version>
 					<type>jar</type>
 				</dependency>
+				<dependency>
+					<groupId>org.jodconverter</groupId>
+					<artifactId>jodconverter-local</artifactId>
+					<version>4.4.4</version>
+				</dependency>
 			</dependencies>
 		</profile>
 		
