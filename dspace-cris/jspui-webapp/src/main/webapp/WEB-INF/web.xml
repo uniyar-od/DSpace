@@ -378,6 +378,16 @@
 	</servlet>
 
 	<servlet>
+    	<servlet-name>loginstats</servlet-name>
+    	<servlet-class>org.dspace.app.webui.servlet.LoginStatisticsServlet</servlet-class>
+  	</servlet>
+
+	<servlet>
+    	<servlet-name>searchstats</servlet-name>
+    	<servlet-class>org.dspace.app.webui.servlet.SearchStatisticsServlet</servlet-class>
+  	</servlet>
+
+	<servlet>
 		<servlet-name>metadataexport</servlet-name>
 		<servlet-class>org.dspace.app.webui.servlet.MetadataExportServlet</servlet-class>
 	</servlet>
@@ -941,6 +951,16 @@
 		<url-pattern>/statistics</url-pattern>
 	</servlet-mapping>
 
+	<servlet-mapping>
+		<servlet-name>loginstats</servlet-name>
+		<url-pattern>/loginstats</url-pattern>
+	</servlet-mapping>	
+
+	<servlet-mapping>
+		<servlet-name>searchstats</servlet-name>
+		<url-pattern>/searchstats</url-pattern>
+	</servlet-mapping>	
+	
 	<servlet-mapping>
 		<servlet-name>submit</servlet-name>
 		<url-pattern>/submit</url-pattern>
