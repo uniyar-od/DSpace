@@ -12,6 +12,7 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 import static org.dspace.content.authority.Choices.CF_ACCEPTED;
 import static org.dspace.core.Constants.READ;
+import static org.dspace.core.Constants.WRITE;
 import static org.dspace.eperson.Group.ANONYMOUS;
 
 import java.io.IOException;
@@ -287,6 +288,10 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
 
         authorizeService.addPolicy(context, item, READ, ePerson);
 
+        if (isAdditionOfWritePolicyOnProfileEnabled()) {
+            authorizeService.addPolicy(context, item, WRITE, ePerson);
+        }
+
         return reloadItem(context, item);
     }
 
@@ -331,6 +336,10 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
 
     private boolean isHardDeleteEnabled() {
         return configurationService.getBooleanProperty("researcher-profile.hard-delete.enabled");
+    }
+
+    private boolean isAdditionOfWritePolicyOnProfileEnabled() {
+        return configurationService.getBooleanProperty("researcher-profile.add-write-policy");
     }
 
     private boolean isNewProfileNotVisibleByDefault() {

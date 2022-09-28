@@ -17,9 +17,11 @@ import static org.dspace.app.rest.matcher.HalMatcher.matchLinks;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadata;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataDoesNotExist;
 import static org.dspace.app.rest.matcher.MetadataMatcher.matchMetadataNotEmpty;
+import static org.dspace.app.rest.matcher.ResourcePolicyMatcher.matchResourcePolicyProperties;
 import static org.dspace.profile.OrcidEntitySyncPreference.ALL;
 import static org.dspace.profile.OrcidEntitySyncPreference.MINE;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasItem;
@@ -40,6 +42,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -68,6 +71,7 @@ import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.service.ItemService;
+import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
@@ -338,6 +342,17 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.type", is("eperson")))
             .andExpect(jsonPath("$.name", is(name)));
+
+        String itemId = getItemIdByProfileId(authToken, id);
+        Item profileItem = itemService.find(context, UUIDUtils.fromString(itemId));
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/authz/resourcepolicies/search/resource")
+                .param("uuid", itemId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded.resourcepolicies", contains(
+                matchResourcePolicyProperties(null, user, profileItem, null, Constants.READ, null))))
+            .andExpect(jsonPath("$.page.totalElements", is(1)));
     }
 
     /**
@@ -450,6 +465,37 @@ public class ResearcherProfileRestRepositoryIT extends AbstractControllerIntegra
             .param("eperson", unknownId)
             .contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    public void testCreateAndReturnWithWritePolicy() throws Exception {
+
+        configurationService.setProperty("researcher-profile.add-write-policy", true);
+
+        String id = user.getID().toString();
+
+        String authToken = getAuthToken(user.getEmail(), password);
+
+        getClient(authToken).perform(post("/api/eperson/profiles/")
+            .contentType(MediaType.APPLICATION_JSON_VALUE))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.id", is(id.toString())))
+            .andExpect(jsonPath("$.visible", is(false)))
+            .andExpect(jsonPath("$.type", is("profile")))
+            .andExpect(jsonPath("$", matchLinks("http://localhost/api/eperson/profiles/" + id, "item", "eperson")));
+
+        String itemId = getItemIdByProfileId(authToken, id);
+        Item profileItem = itemService.find(context, UUIDUtils.fromString(itemId));
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/authz/resourcepolicies/search/resource")
+                .param("uuid", itemId))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(contentType))
+            .andExpect(jsonPath("$._embedded.resourcepolicies", containsInAnyOrder(
+                matchResourcePolicyProperties(null, user, profileItem, null, Constants.READ, null),
+                matchResourcePolicyProperties(null, user, profileItem, null, Constants.WRITE, null))))
+            .andExpect(jsonPath("$.page.totalElements", is(2)));
     }
 
     /**
