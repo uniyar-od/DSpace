@@ -7,6 +7,8 @@
  */
 package org.dspace.content.authority;
 
+import static org.dspace.content.authority.DSpaceControlledVocabulary.ID_SPLITTER;
+
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.Arrays;
@@ -118,6 +120,10 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         ItemControlledVocabulary controlledVocabulary =
             itemAuthorityServiceFactory.getInstance(authorityName);
 
+        // FIXME: we must be sure that parentId is a pure uuid
+        if (StringUtils.startsWith(parentId, authorityName + ID_SPLITTER)) {
+            parentId = parentId.replace(authorityName + ID_SPLITTER, "");
+        }
         DiscoverQuery discoverQuery = new DiscoverQuery();
 
         discoverQuery.setStart(start);
@@ -155,6 +161,10 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin implements 
         ItemControlledVocabulary controlledVocabulary =
             itemAuthorityServiceFactory.getInstance(authorityName);
 
+        // FIXME: hack to prevent vocabularyId name composed with authority name
+        if (StringUtils.startsWith(vocabularyId, authorityName + ID_SPLITTER)) {
+            vocabularyId = vocabularyId.replace(authorityName + ID_SPLITTER, "");
+        }
         try {
             Item self = itemService.find(ContextUtil.obtainCurrentRequestContext(),
                                            UUID.fromString(vocabularyId));
