@@ -69,6 +69,7 @@ import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -79,6 +80,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * DSpace needs to index both the latest version of an item, and all previous versions, into Solr.
  * Some discovery configurations should show all versions, while others should only consider the latest versions.
  */
+@Ignore
 public class DiscoveryVersioningIT extends AbstractControllerIntegrationTest {
 
     @Autowired
