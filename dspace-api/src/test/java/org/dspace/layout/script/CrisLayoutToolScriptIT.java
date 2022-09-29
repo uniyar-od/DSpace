@@ -200,7 +200,7 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getWarningMessages(), empty());
 
         List<String> errorMessages = handler.getErrorMessages();
-        assertThat(errorMessages, hasSize(32));
+        assertThat(errorMessages, hasSize(33));
         assertThat(errorMessages, containsInAnyOrder(
             "The tab contains an unknown entity type 'Publication' at row 3",
             "The LEADING value specified on the row 2 of sheet tab is not valid: u. Allowed values: [yes, y, no, n]",
@@ -718,7 +718,20 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
                 + "Rendering named identifier requires a sub type",
             "The sheet metadatagroups contains an invalid RENDERING type at row 6: "
                 + "Rendering named identifier don't supports the configured sub type",
-            "IllegalArgumentException: The given workbook is not valid. Import canceled"));
+            "IllegalArgumentException: The given workbook is not valid. Import canceled",
+            "The box2hierarchicalvocabulary sheet is missing",
+            "The sheet box2metadata contains an invalid RENDERING type at row 15: " +
+                "Rendering named more don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 16: " +
+                "Rendering named less don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 17: " +
+                "Rendering named browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 18: " +
+                "Rendering named search don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 19: " +
+                "Rendering named tag-browse don't supports the configured sub type",
+            "The sheet box2metadata contains an invalid RENDERING type at row 20: " +
+                "Rendering named tag-search don't supports the configured sub type"));
 
     }
 
