@@ -2144,7 +2144,10 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
                                            .withName("Sub Community")
                                            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
 
         context.restoreAuthSystemState();
 
@@ -2213,7 +2216,9 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
                                 matchMetadata("dc.rights",
                                     "Custom Copyright Text"),
                                 matchMetadata("dc.title",
-                                    "Title Text")
+                                    "Title Text"),
+                                matchMetadata("dspace.entity.type",
+                                    "Publication")
                             )))));
 
         getClient(token).perform(post("/api/core/items?owningCollection=" +
@@ -2228,6 +2233,40 @@ public class ItemRestRepositoryIT extends AbstractControllerIntegrationTest {
             ItemBuilder.deleteItem(idRef);
             ItemBuilder.deleteItem(idRefNoEmbeds.get());
         }
+    }
+
+    @Test
+    public void testCreateItemWithNotConsistentEntityType() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        ObjectMapper mapper = new ObjectMapper();
+        ItemRest itemRest = new ItemRest();
+        itemRest.setName("Title Text");
+        itemRest.setInArchive(true);
+        itemRest.setDiscoverable(true);
+        itemRest.setWithdrawn(false);
+
+        itemRest.setMetadata(new MetadataRest()
+            .put("dc.title", new MetadataValueRest("Title Text"))
+            .put("dspace.entity.type", new MetadataValueRest("Patent")));
+
+        String token = getAuthToken(admin.getEmail(), password);
+
+        getClient(token).perform(post("/api/core/items?owningCollection=" + collection.getID().toString())
+            .content(mapper.writeValueAsBytes(itemRest)).contentType(contentType))
+            .andExpect(status().isUnprocessableEntity());
     }
 
     @Test
