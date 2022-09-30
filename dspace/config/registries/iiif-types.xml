@@ -88,4 +88,11 @@
         <scope_note>Metadata field used to store the rotation necessary to apply to the image to have a proper visualization</scope_note>
     </dc-type>
     
+    <dc-type>
+    	<schema>bitstream</schema>
+        <element>iiif</element>
+        <qualifier>converted-pdf</qualifier>
+        <scope_note>Metadata field used to store the ID of the pdf converted version of a bitstream</scope_note>
+    </dc-type>
+    
 </dspace-dc-types>
