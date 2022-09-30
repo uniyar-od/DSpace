@@ -257,7 +257,7 @@ public class WordHighlightSolrSearch implements SearchAnnotationService {
     /**
      * Returns position of canvas. Uses the "pages" id attribute.
      * This method assumes that the solr response includes a "page" id attribute that is
-     * delimited with a "." and that the integer corresponds to the
+     * delimited with a "." or "_" and that the integer corresponds to the
      * canvas identifier in the manifest. For METS/ALTO documents, the page
      * order can be derived from the METS file when loading the solr index.
      * @param element the pages element
@@ -266,7 +266,13 @@ public class WordHighlightSolrSearch implements SearchAnnotationService {
     private String getCanvasId(JsonElement element) {
         JsonArray pages = element.getAsJsonArray();
         JsonObject page = pages.get(0).getAsJsonObject();
-        String[] identArr = page.get("id").getAsString().split("\\.");
+        String id = page.get("id").getAsString();
+        String[] identArr = null;
+        if (id.contains(".")) {
+            identArr = page.get("id").getAsString().split("\\.");
+        } else {
+            identArr = page.get("id").getAsString().split("_");
+        }
         // the canvas id.
         return "c" + identArr[1];
     }

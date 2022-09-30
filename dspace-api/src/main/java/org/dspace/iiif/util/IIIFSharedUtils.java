@@ -9,6 +9,7 @@ package org.dspace.iiif.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,13 @@ public class IIIFSharedUtils {
 
     private IIIFSharedUtils() {}
 
+    /**
+     * This method verify if the IIIF feature is enabled on the item.
+     * Based on the {@link #METADATA_IIIF_ENABLED} metadata.
+     *
+     * @param item the DSpace item
+     * @return true if the item supports IIIF
+     */
     public static boolean isIIIFItem(Item item) {
         return item.getMetadata().stream().filter(m -> m.getMetadataField().toString('.')
                                                         .contentEquals(METADATA_IIIF_ENABLED))
@@ -59,11 +67,27 @@ public class IIIFSharedUtils {
                        m.getValue().equalsIgnoreCase("yes"));
     }
 
+    /**
+     * This method verify if the item is searchable.
+     * Based on the {@link #METADATA_IIIF_SEARCH_ENABLED} metadata.
+     *
+     * @param item the DSpace item
+     * @return true if the iiif search is enabled
+     */
     public static boolean isIIIFSearchable(Item item) {
         return item.getMetadata().stream().filter(m -> m.getMetadataField().toString('.')
                                                         .contentEquals(METADATA_IIIF_SEARCHABLE))
                    .anyMatch(m -> m.getValue().equalsIgnoreCase("true") ||
                        m.getValue().equalsIgnoreCase("yes"));
+    }
+
+    /**
+     * This method verify if the IIIF feature is enabled on the item and the item is searchable.
+     * @param item the DSpace item
+     * @return true if the item supports IIIF and the iiif search is enabled
+     */
+    public static boolean isIIIFAndSearchableItem(Item item) {
+        return isIIIFItem(item) && isIIIFSearchable(item);
     }
 
     /**
@@ -116,20 +140,6 @@ public class IIIFSharedUtils {
     }
 
     /**
-     * Checks to see if the item is searchable. Based on the
-     * {@link #METADATA_IIIF_SEARCH_ENABLED} metadata.
-     *
-     * @param item DSpace item
-     * @return true if the iiif search is enabled
-     */
-    public static boolean isSearchable(Item item) {
-        return item.getMetadata().stream()
-                .filter(m -> m.getMetadataField().toString('.').contentEquals("iiif.search.enabled"))
-                .anyMatch(m -> m.getValue().equalsIgnoreCase("true")  ||
-                        m.getValue().equalsIgnoreCase("yes"));
-    }
-
-    /**
      * Returns url for retrieving info.json metadata from the image server.
      * @param bitstream
      * @return
@@ -137,5 +147,15 @@ public class IIIFSharedUtils {
     public static String getInfoJsonPath(Bitstream bitstream) {
         String iiifImageServer = configurationService.getProperty(IMAGE_SERVER_PATH);
         return iiifImageServer + bitstream.getID() + "/info.json";
+    }
+
+    /**
+     * Creates the manifest id from the provided uuid.
+     * @param uuid the item id
+     * @return the manifest identifier (url)
+     */
+    public static String getManifestId(UUID uuid) {
+        return configurationService.getProperty("dspace.server.url") + "/iiif/"
+                + uuid + "/manifest";
     }
 }
