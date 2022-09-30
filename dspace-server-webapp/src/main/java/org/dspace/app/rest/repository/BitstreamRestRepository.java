@@ -230,7 +230,7 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
             .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata))
             .collect(Collectors.toList());
 
-        return converter.toRestPage(bitstreams, pageable, bitstreams.size(), utils.obtainProjection());
+        return converter.toRestPage(bitstreams, pageable, utils.obtainProjection());
     }
 
     private Bitstream getFirstMatchedBitstream(Item item, Integer sequence, String filename) {
