@@ -91,7 +91,7 @@
     <dc-type>
     	<schema>bitstream</schema>
         <element>iiif</element>
-        <qualifier>converted-pdf</qualifier>
+        <qualifier>convertedpdf</qualifier>
         <scope_note>Metadata field used to store the ID of the pdf converted version of a bitstream</scope_note>
     </dc-type>
     
