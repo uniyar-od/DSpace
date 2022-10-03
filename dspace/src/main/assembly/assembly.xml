@@ -70,10 +70,6 @@
          <directory>solr</directory>
          <outputDirectory>solr</outputDirectory>
       </fileSet>
-      <fileSet>
-         <directory>extras</directory>
-         <outputDirectory>extras</outputDirectory>
-      </fileSet>
    </fileSets>
 
    <!--
