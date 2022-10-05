@@ -100,8 +100,10 @@ SELECT
 	owner_metadata_value.authority::uuid,
 	token_metadata_value.dspace_object_id,
 	token_metadata_value.text_value
-FROM metadatavalue token_metadata_value, metadatavalue owner_metadata_value
+FROM metadatavalue token_metadata_value, metadatavalue owner_metadata_value, item item
 WHERE owner_metadata_value.dspace_object_id = token_metadata_value.dspace_object_id
+AND item.uuid = owner_metadata_value.dspace_object_id
+AND item.in_archive = true
 AND owner_metadata_value.metadata_field_id = (
 	SELECT mf.metadata_field_id FROM metadatafieldregistry mf 
 	WHERE mf.element = 'object' AND mf.qualifier = 'owner'
