@@ -52,7 +52,8 @@ public class VocabularyMatcher {
         );
     }
 
-    public static Matcher<? super Object> matchVocabularyEntry(String id, String display, String value, String type) {
+    public static Matcher<? super Object> matchVocabularyEntryWithAuthority(String id, String display, String value,
+                                                                            String type) {
         return allOf(
                 hasJsonPath("$.id", is(id)),
                 hasJsonPath("$.display", is(display)),
