@@ -703,7 +703,6 @@ public class CrisLayoutToolScriptIT extends AbstractIntegrationTestWithDatabase 
         assertThat(handler.getInfoMessages(), empty());
         assertThat(handler.getWarningMessages(), empty());
         assertThat(handler.getErrorMessages(), containsInAnyOrder(
-            "The box2hierarchicalvocabulary sheet is missing",
             "The sheet box2metadata contains an invalid RENDERING type at row 1: "
                 + "Rendering named thumbnail is not supported by field type 'METADATA'",
             "The sheet box2metadata contains an unknown RENDERING type invalid at row 3",

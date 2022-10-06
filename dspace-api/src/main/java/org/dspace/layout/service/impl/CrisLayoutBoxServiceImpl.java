@@ -27,7 +27,6 @@ import org.dspace.content.EntityType;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataFieldName;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
