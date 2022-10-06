@@ -78,9 +78,9 @@
 	<dc-type>
 		<schema>coar</schema>
 		<element>notify</element>
-		<qualifier>release</qualifier>
+		<qualifier>relationship</qualifier>
 		<scope_note>
-			Used to record a release. - Item goes in the linked state.
+			Used to record a relationship. - Item goes in the linked state.
 		</scope_note>
 	</dc-type>
 

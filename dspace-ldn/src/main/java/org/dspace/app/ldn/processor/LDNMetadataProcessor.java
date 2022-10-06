@@ -16,7 +16,6 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -75,8 +74,6 @@ public class LDNMetadataProcessor implements LDNProcessor {
     @Autowired
     private ConfigurationService configurationService;
 
-    private LDNContextRepeater repeater = new LDNContextRepeater();
-
     private List<LDNAction> actions = new ArrayList<>();
 
     private List<LDNMetadataChange> changes = new ArrayList<>();
@@ -109,21 +106,15 @@ public class LDNMetadataProcessor implements LDNProcessor {
     }
 
     /**
-     * Process notification by repeating over context, processing each context
-     * notification, and running actions post processing.
+     * Process and run post actions for notification.
      *
      * @param notification received notification
      * @throws Exception something went wrong processing the notification
      */
     @Override
     public void process(Notification notification) throws Exception {
-        Iterator<Notification> iterator = repeater.iterator(notification);
-
-        while (iterator.hasNext()) {
-            Notification contextNotification = iterator.next();
-            Item item = doProcess(contextNotification);
-            runActions(contextNotification, item);
-        }
+        Item item = doProcess(notification);
+        runActions(notification, item);
     }
 
     /**
@@ -193,20 +184,6 @@ public class LDNMetadataProcessor implements LDNProcessor {
     }
 
     /**
-     * @return LDNContextRepeater
-     */
-    public LDNContextRepeater getRepeater() {
-        return repeater;
-    }
-
-    /**
-     * @param repeater
-     */
-    public void setRepeater(LDNContextRepeater repeater) {
-        this.repeater = repeater;
-    }
-
-    /**
      * @return List<LDNAction>
      */
     public List<LDNAction> getActions() {
@@ -235,11 +212,11 @@ public class LDNMetadataProcessor implements LDNProcessor {
     }
 
     /**
-     * Lookup associated item to the notification context. If UUID in URL, lookup bu
+     * Lookup associated item to the notification object. If UUID in URL, lookup bu
      * UUID, else lookup by handle.
      *
      * @param context      current context
-     * @param notification current context notification
+     * @param notification current notification
      *
      * @return Item associated item
      *
@@ -248,7 +225,7 @@ public class LDNMetadataProcessor implements LDNProcessor {
     private Item lookupItem(Context context, Notification notification) throws SQLException {
         Item item = null;
 
-        String url = this.resolveContext(notification);
+        String url = this.resolveItemUrl(notification);
 
         log.info("Looking up item {}", url);
 
@@ -289,36 +266,39 @@ public class LDNMetadataProcessor implements LDNProcessor {
     }
 
     /**
-     * Attempts to resolve context id externally if not already a DSpace URL.
-     * Context id must resolve with an appropriate DSpace URL in Location header.
+     * Attempts to resolve context or object externally if not already a DSpace URL.
+     * Context/object must resolve with an appropriate DSpace URL in Location header.
      *
-     * @param notification current context notification
+     * @param notification current notification
      * @return external resolved DSpace URL
      */
-    private String resolveContext(Notification notification) {
-        String url = notification.getContext().getId();
-        if (isExternalContextId(url)) {
+    private String resolveItemUrl(Notification notification) {
+        String url = Objects.nonNull(notification.getContext())
+            && StringUtils.isNotEmpty(notification.getContext().getId())
+            ? notification.getContext().getId()
+            : notification.getObject().getObject();
+        if (isExternalUri(url)) {
             try {
                 URI uri = new URI(url);
-                if (isAllowedExternalContextId(url)) {
-                    log.info("Attempting to resolve external context id {}", url);
+                if (isAllowedExternalUri(url)) {
+                    log.info("Attempting to resolve external URI {}", url);
                     HttpHeaders headers = this.restTemplate.headForHeaders(uri);
                     if (headers.containsKey(LOCATION_HEADER_KEY)) {
                         url = headers.getFirst(LOCATION_HEADER_KEY);
                     } else {
-                        log.error("External context id {} HEAD response did not contain Location header", url);
+                        log.error("External URI {} HEAD response did not contain Location header", url);
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                format("Invalid context id %s", url));
+                                format("Invalid URI %s", url));
                     }
                 } else {
-                    String message = format("Context id %s not allowed for external dereference", url);
+                    String message = format("URI %s not allowed for external dereference", url);
                     log.error(message);
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, message);
                 }
             } catch (NullPointerException | URISyntaxException | RestClientException e) {
-                log.error(format("Failed to resolve context id %s", url), e);
+                log.error(format("Failed to resolve URI %s", url), e);
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        format("Failed to resolve context id %s: %s", url, e.getMessage()));
+                        format("Failed to resolve URI %s: %s", url, e.getMessage()));
             }
         }
 
@@ -326,40 +306,40 @@ public class LDNMetadataProcessor implements LDNProcessor {
     }
 
     /**
-     * Determine if the context id is an external context id by checking if it does
+     * Determine if the object URI is an external object URI by checking if it does
      * not start with the DSpace UI URL.
      * 
-     * @param url context id
-     * @return whether context id is external
+     * @param url object URI
+     * @return whether object URI is external
      */
-    private boolean isExternalContextId(String url) {
+    private boolean isExternalUri(String url) {
         return !url.startsWith(this.dspaceUIUrl);
     }
 
     /**
-     * Determine if external context id is allowed by checking if starts with one of
+     * Determine if external object URI is allowed by checking if starts with one of
      * the allowed external resolver urls.
      * 
-     * @param url external context id
-     * @return whether external context id is allowed
+     * @param url external object URI
+     * @return whether external object URI is allowed
      */
-    private boolean isAllowedExternalContextId(String url) {
-        boolean allowExternalContextId = false;
+    private boolean isAllowedExternalUri(String url) {
+        boolean allowExternalObjectUri = false;
         for (String allowedExternalResolverUrl : this.allowedExternalResolverUrls) {
             if (url.startsWith(allowedExternalResolverUrl)) {
-                allowExternalContextId = true;
+                allowExternalObjectUri = true;
                 break;
             }
         }
 
-        return allowExternalContextId;
+        return allowExternalObjectUri;
     }
 
     /**
      * Prepare velocity template context with notification, timestamp and some
      * static utilities.
      *
-     * @param notification current context notification
+     * @param notification current notification
      * @return VelocityContext prepared velocity context
      */
     private VelocityContext prepareTemplateContext(Notification notification) {

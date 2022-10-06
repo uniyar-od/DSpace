@@ -15,7 +15,9 @@ import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.ldn.model.Notification;
@@ -85,10 +87,15 @@ public class LDNEmailAction implements LDNAction {
 
             String date = new SimpleDateFormat(DATE_PATTERN).format(Calendar.getInstance().getTime());
 
+            String itemUrl = Objects.nonNull(notification.getContext())
+                && StringUtils.isNotEmpty(notification.getContext().getId())
+                ? notification.getContext().getId()
+                : notification.getObject().getObject();
+
             email.addArgument(notification.getActor().getName());
             email.addArgument(item.getName());
             email.addArgument(notification.getActor().getId());
-            email.addArgument(notification.getContext().getId());
+            email.addArgument(itemUrl);
             email.addArgument(item.getSubmitter().getFullName());
             email.addArgument(date);
             email.addArgument(notification);

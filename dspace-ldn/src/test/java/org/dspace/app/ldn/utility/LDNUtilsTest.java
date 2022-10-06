@@ -11,7 +11,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.lenient;
 
 import java.util.UUID;
 
@@ -42,8 +42,8 @@ public class LDNUtilsTest {
 
     @Before
     public void setUp() {
-        when(dspaceServicesFactory.getConfigurationService()).thenReturn(configurationService);
-        when(configurationService.getProperty(eq("ldn.metadata.delimiter"))).thenReturn("||");
+        lenient().when(dspaceServicesFactory.getConfigurationService()).thenReturn(configurationService);
+        lenient().when(configurationService.getProperty(eq("ldn.metadata.delimiter"))).thenReturn("||");
 
         dspaceServiceFactoryMock = Mockito.mockStatic(DSpaceServicesFactory.class);
 
@@ -76,12 +76,6 @@ public class LDNUtilsTest {
     @Test
     public void testRemovedProtocol() {
         assertEquals("localhost:8080", LDNUtils.removedProtocol("https://localhost:8080"));
-    }
-
-    @Test
-    public void testProcessContextResolverId() {
-        String doi = LDNUtils.processContextResolverId("https://doi.org/10.5072/FK2/NUB975");
-        assertEquals("doi:10.5072/FK2/NUB975", doi);
     }
 
 }

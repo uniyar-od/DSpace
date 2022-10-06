@@ -17,6 +17,15 @@ public class Object extends Citation {
     @JsonProperty("sorg:name")
     private String title;
 
+    @JsonProperty("subject")
+    private String subject;
+
+    @JsonProperty("relationship")
+    private String relationship;
+
+    @JsonProperty("object")
+    private String object;
+
     /**
      * 
      */
@@ -36,6 +45,48 @@ public class Object extends Citation {
      */
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    /**
+     * @return String
+     */
+    public String getSubject() {
+        return subject;
+    }
+
+    /**
+     * @param subject
+     */
+    public void setSubject(String subject) {
+        this.subject = subject;
+    }
+
+    /**
+     * @return String
+     */
+    public String getRelationship() {
+        return relationship;
+    }
+
+    /**
+     * @param relationship
+     */
+    public void setRelationship(String relationship) {
+        this.relationship = relationship;
+    }
+
+    /**
+     * @return String
+     */
+    public String getObject() {
+        return object;
+    }
+
+    /**
+     * @param object
+     */
+    public void setObject(String object) {
+        this.object = object;
     }
 
 }

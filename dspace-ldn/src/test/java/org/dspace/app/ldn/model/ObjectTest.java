@@ -22,6 +22,17 @@ public class ObjectTest {
 
         object.setTitle("Test");
         assertEquals("Test", object.getTitle());
+
+        String itemId = "https://research-organisation.org/dspace/item/35759679-5df3-4633-b7e5-4cf24b4d0614";
+
+        object.setSubject(itemId);
+        assertEquals(itemId, object.getSubject());
+
+        object.setRelationship("http://purl.org/vocab/frbr/core#supplementOf");
+        assertEquals("http://purl.org/vocab/frbr/core#supplementOf", object.getRelationship());
+
+        object.setObject("https://research-organisation.org/repository/201203/421");
+        assertEquals("https://research-organisation.org/repository/201203/421", object.getObject());
     }
 
 }

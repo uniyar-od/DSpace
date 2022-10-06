@@ -17,8 +17,8 @@ import org.junit.Test;
 public class NotificationTest {
 
     @Test
-    public void testNotificationFromDataverse() throws IllegalArgumentException, IOException {
-        Notification notification = MockNotificationUtility.read("src/test/resources/mocks/fromDataverse.json");
+    public void testInboundNotification() throws IllegalArgumentException, IOException {
+        Notification notification = MockNotificationUtility.read("src/test/resources/mocks/inbound.json");
         String[] context = notification.getC();
         assertEquals(2, context.length);
         assertEquals("https://purl.org/coar/notify", context[0]);
@@ -26,8 +26,8 @@ public class NotificationTest {
     }
 
     @Test
-    public void testNotificationToDataverse() throws IllegalArgumentException, IOException {
-        Notification notification = MockNotificationUtility.read("src/test/resources/mocks/toDataverse.json");
+    public void testOutboundNotification() throws IllegalArgumentException, IOException {
+        Notification notification = MockNotificationUtility.read("src/test/resources/mocks/outbound.json");
         String[] context = notification.getC();
         assertEquals(2, context.length);
         assertEquals("https://purl.org/coar/notify", context[0]);

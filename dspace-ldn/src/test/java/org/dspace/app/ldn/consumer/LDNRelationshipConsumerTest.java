@@ -8,7 +8,7 @@
 package org.dspace.app.ldn.consumer;
 
 import static org.dspace.app.ldn.LDNMetadataFields.ELEMENT;
-import static org.dspace.app.ldn.LDNMetadataFields.RELEASE;
+import static org.dspace.app.ldn.LDNMetadataFields.RELATIONSHIP;
 import static org.dspace.app.ldn.LDNMetadataFields.SCHEMA;
 import static org.dspace.content.Item.ANY;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,10 +44,10 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
 /**
- * LDN release consumer tests.
+ * LDN relationship consumer tests.
  */
 @RunWith(Parameterized.class)
-public class LDNReleaseConsumerTest {
+public class LDNRelationshipConsumerTest {
 
     private MockedStatic<ContentServiceFactory> contentServiceFactoryMock;
     private MockedStatic<LDNBusinessDelegateFactory> ldnBusinessDelegateFactoryMock;
@@ -74,7 +74,7 @@ public class LDNReleaseConsumerTest {
     private Item item;
 
     @InjectMocks
-    private LDNReleaseConsumer ldnReleaseConsumer;
+    private LDNRelationshipConsumer ldnRelationshipConsumer;
 
     @Parameter(0)
     public int subjectType;
@@ -89,7 +89,7 @@ public class LDNReleaseConsumerTest {
     public boolean itemIsArchived;
 
     @Parameter(4)
-    public List<MetadataValue> releaseMetadata;
+    public List<MetadataValue> relationshipMetadata;
 
     @Parameter(5)
     public List<MetadataValue> researchMetadata;
@@ -131,18 +131,18 @@ public class LDNReleaseConsumerTest {
 
         when(event.getSubject(any(Context.class))).thenReturn(item);
 
-        when(itemService.getMetadata(any(Item.class), eq(SCHEMA), eq(ELEMENT), eq(RELEASE), eq(ANY)))
-            .thenReturn(releaseMetadata);
+        when(itemService.getMetadata(any(Item.class), eq(SCHEMA), eq(ELEMENT), eq(RELATIONSHIP), eq(ANY)))
+            .thenReturn(relationshipMetadata);
 
         when(itemService.getMetadata(any(Item.class), eq("dc"), eq("data"), eq("uri"), eq(ANY)))
             .thenReturn(researchMetadata);
 
-        ldnReleaseConsumer.consume(ctx, event);
+        ldnRelationshipConsumer.consume(ctx, event);
 
-        ldnReleaseConsumer.end(ctx);
+        ldnRelationshipConsumer.end(ctx);
 
         verify(ldnBusinessDelegate, times(handledRequests))
-            .handleRequest("Announce:ReleaseAction", ctx, item);
+            .handleRequest("Announce:RelationshipAction", ctx, item);
     }
 
     @Parameterized.Parameters
@@ -151,7 +151,7 @@ public class LDNReleaseConsumerTest {
         MetadataValue coarNotifyAnnounceMetadatum = mock(MetadataValue.class);
         MetadataValue dataUriMetadatum = mock(MetadataValue.class);
 
-        when(coarNotifyAnnounceMetadatum.getValue()).thenReturn("2022-04-04T20:36:30Z||https://doi.org/10.5072/FK2/NUB975||dataverse.org/dataset.xhtml?persistentId=doi:10.5072/FK2/NUB975");
+        when(coarNotifyAnnounceMetadatum.getValue()).thenReturn("2022-04-04T20:36:30Z||https://doi.org/10.5072/FK2/NUB975||repository.org/dataset.xhtml?persistentId=doi:10.5072/FK2/NUB975");
         when(coarNotifyAnnounceMetadatum.getID()).thenReturn(1);
 
         when(dataUriMetadatum.getValue()).thenReturn("https://doi.org/10.5072/FK2/NUB975");

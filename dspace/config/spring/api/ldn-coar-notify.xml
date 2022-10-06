@@ -21,7 +21,7 @@
 
     <bean class="org.dspace.app.ldn.service.BusinessLookUp" />
 
-    <bean class="org.dspace.app.ldn.service.AnnounceReleaseService" />
+    <bean class="org.dspace.app.ldn.service.AnnounceRelationshipService" />
 
     <bean class="org.dspace.app.ldn.service.OfferReviewService" />
 
@@ -68,10 +68,10 @@
                     <key>
                         <set>
                             <value>Announce</value>
-                            <value>coar-notify:ReleaseAction</value>
+                            <value>coar-notify:RelationshipAction</value>
                         </set>
                     </key>
-                    <ref bean="announceReleaseAction" />
+                    <ref bean="announceRelationshipAction" />
                 </entry>
             </map>
         </property>
@@ -104,7 +104,7 @@
         <property name="actions">
             <list value-type="org.dspace.app.ldn.action.LDNAction">
                 <bean class="org.dspace.app.ldn.action.LDNEmailAction">
-                    <property name="actionSendFilter" value="colin_lukens@harvard.edu" />
+                    <property name="actionSendFilter" value="manager@dspace.org" />
                     <property name="actionSendEmailTextFile" value="coar_notify_reviewed" />
                 </bean>
             </list>
@@ -138,7 +138,7 @@
         <property name="actions">
             <list value-type="org.dspace.app.ldn.action.LDNAction">
                 <bean class="org.dspace.app.ldn.action.LDNEmailAction">
-                    <property name="actionSendFilter" value="colin_lukens@harvard.edu" />
+                    <property name="actionSendFilter" value="manager@dspace.org" />
                     <property name="actionSendEmailTextFile" value="coar_notify_endorsed" />
                 </bean>
             </list>
@@ -185,7 +185,7 @@
         <property name="actions">
             <list value-type="org.dspace.app.ldn.action.LDNAction">
                 <bean class="org.dspace.app.ldn.action.LDNEmailAction">
-                    <property name="actionSendFilter" value="colin_lukens@harvard.edu" />
+                    <property name="actionSendFilter" value="manager@dspace.org" />
                     <property name="actionSendEmailTextFile" value="coar_notify_accepted" />
                 </bean>
             </list>
@@ -220,45 +220,39 @@
         <property name="actions">
             <list value-type="org.dspace.app.ldn.action.LDNAction">
                 <bean class="org.dspace.app.ldn.action.LDNEmailAction">
-                    <property name="actionSendFilter" value="colin_lukens@harvard.edu" />
+                    <property name="actionSendFilter" value="manager@dspace.org" />
                     <property name="actionSendEmailTextFile" value="coar_notify_rejected" />
                 </bean>
             </list>
         </property>
     </bean>
 
-    <bean name="announceReleaseAction" class="org.dspace.app.ldn.processor.LDNMetadataProcessor">
-        <property name="repeater">
-            <bean class="org.dspace.app.ldn.processor.LDNContextRepeater">
-                <property name="repeatOver" value="IsSupplementTo" />
-            </bean>
-        </property>
+    <bean name="announceRelationshipAction" class="org.dspace.app.ldn.processor.LDNMetadataProcessor">
         <property name="changes">
             <list value-type="org.dspace.app.ldn.processor.LDNMetadataChange">
                 <bean class="org.dspace.app.ldn.processor.LDNMetadataRemove">
                     <property name="qualifiers">
                         <list value-type="java.lang.String">
-                            <value>release</value>
+                            <value>relationship</value>
                         </list>
                     </property>
                     <property name="valueTemplates">
                         <list value-type="java.lang.String">
-                            <value>$notification.object.ietfCiteAs</value>
-                            <value>$LDNUtils.removedProtocol($notification.object.id)</value>
+                            <value>$LDNUtils.removedProtocol($notification.object.subject)</value>
                         </list>
                     </property>
                 </bean>
                 <bean class="org.dspace.app.ldn.processor.LDNMetadataAdd">
-                    <property name="qualifier" value="release" />
-                    <property name="valueTemplate" value="$timestamp${ldn.metadata.delimiter}$notification.object.ietfCiteAs${ldn.metadata.delimiter}$LDNUtils.removedProtocol($notification.object.id)" />
+                    <property name="qualifier" value="relationship" />
+                    <property name="valueTemplate" value="$timestamp${ldn.metadata.delimiter}$LDNUtils.removedProtocol($notification.object.subject)" />
                 </bean>
             </list>
         </property>
         <property name="actions">
             <list value-type="org.dspace.app.ldn.action.LDNAction">
                 <bean class="org.dspace.app.ldn.action.LDNEmailAction">
-                    <property name="actionSendFilter" value="colin_lukens@harvard.edu" />
-                    <property name="actionSendEmailTextFile" value="coar_notify_released" />
+                    <property name="actionSendFilter" value="manager@dspace.org" />
+                    <property name="actionSendEmailTextFile" value="coar_notify_relationship" />
                 </bean>
             </list>
         </property>

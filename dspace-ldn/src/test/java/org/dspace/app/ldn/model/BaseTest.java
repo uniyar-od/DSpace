@@ -39,7 +39,7 @@ public class BaseTest {
         // test type setter and getter and synthetic add
         Set<String> type = new HashSet<>();
         type.add("Announce");
-        type.add("coar-notify:ReleaseAction");
+        type.add("coar-notify:RelationshipAction");
 
         base.setType(type);
 
@@ -53,7 +53,7 @@ public class BaseTest {
 
         assertTrue(types.contains("Test"));
         assertTrue(types.contains("Announce"));
-        assertTrue(types.contains("coar-notify:ReleaseAction"));
+        assertTrue(types.contains("coar-notify:RelationshipAction"));
 
         // test base uniqueness
         Base anotherBase = new Base();

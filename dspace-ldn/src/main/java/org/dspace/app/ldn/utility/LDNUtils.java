@@ -87,19 +87,6 @@ public class LDNUtils {
         return url.replaceFirst(SIMPLE_PROTOCOL_REGEX, EMPTY);
     }
 
-    /**
-     * Custom context resolver processing. Currently converting DOI URL to DOI id.
-     *
-     * @param value context ietf:cite-as
-     * @return String ietf:cite-as identifier
-     */
-    public static String processContextResolverId(String value) {
-        String resolverId = value;
-        resolverId = resolverId.replace("https://doi.org/", "doi:");
-
-        return resolverId;
-    }
-
     public static List<MetadataValue> getMetadataValuesLdnInitialize(Item item) {
         List<MetadataValue> metadataValues = item.getMetadata();
         return metadataValues.stream().filter(metadataValue -> {

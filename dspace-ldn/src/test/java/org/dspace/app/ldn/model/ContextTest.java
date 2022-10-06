@@ -8,6 +8,13 @@
 package org.dspace.app.ldn.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -17,33 +24,34 @@ import org.junit.Test;
 public class ContextTest {
 
     @Test
-    public void testFromDataverseContext() {
-        Context fromDataverse = new Context();
+    public void testContext() {
 
-        fromDataverse.setIetfCiteAs("Test");
-        assertEquals("Test", fromDataverse.getIetfCiteAs());
+        Map<Set<String>, String> lookup = new HashMap<>();
 
-        Context dataset = new Context();
-        Context anotherDataset = new Context();
+        Set<String> key = new HashSet<>();
+        key.add("Announce");
+        key.add("coar-notify:RelationshipAction");
 
-        // fromDataverse.getIsSupplementTo().add(dataset);
-        // fromDataverse.getIsSupplementTo().add(anotherDataset);
+        lookup.put(key, "Success");
 
-    }
+        Context context = new Context();
 
-    @Test
-    public void testToDataverseContext() {
-        Context toDataverse = new Context();
+        context.setId("urn:uuid:a301c520-f790-4f3d-87b1-a18b2b617683");
+        context.setUrl(new Url());
+        context.setType(new HashSet<>());
+        context.setIetfCiteAs("Test");
 
-        toDataverse.setIetfCiteAs("Test");
-        assertEquals("Test", toDataverse.getIetfCiteAs());
+        assertFalse(lookup.containsKey(context.getType()));
 
-        Context item = new Context();
-        Context anotherItem = new Context();
+        assertEquals("urn:uuid:a301c520-f790-4f3d-87b1-a18b2b617683", context.getId());
+        assertEquals("Test", context.getIetfCiteAs());
+        assertEquals(0, context.getType().size());
 
-        // toDataverse.getIsSupplementedBy().add(item);
-        // toDataverse.getIsSupplementedBy().add(anotherItem);
+        context.addType("Announce");
+        context.addType("coar-notify:RelationshipAction");
 
+        assertEquals(2, context.getType().size());
+        assertTrue(lookup.containsKey(context.getType()));
     }
 
 }

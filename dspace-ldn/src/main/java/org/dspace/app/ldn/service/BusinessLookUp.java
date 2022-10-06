@@ -7,7 +7,6 @@
  */
 package org.dspace.app.ldn.service;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Stefano Maffei (steph-ieffam @ 4Science)
  *
  */
-
 public class BusinessLookUp {
 
     private Map<String, BusinessService> services = new HashMap<>();
@@ -31,9 +29,8 @@ public class BusinessLookUp {
      * @param businessServices
      */
     @Autowired
-    public BusinessLookUp(BusinessService[] businessServices) {
-        Collection<BusinessService> interfaces = List.of(businessServices);
-        interfaces.forEach(service -> services.put(service.getServiceName().toUpperCase(), service));
+    public BusinessLookUp(List<BusinessService> businessServices) {
+        businessServices.forEach(service -> services.put(service.getServiceName().toUpperCase(), service));
     }
 
     /**

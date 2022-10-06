@@ -24,7 +24,7 @@ public final class LDNMetadataFields {
     public static final String REFUSED = "refused";
     public static final String REVIEW = "review";
     public static final String ENDORSMENT = "endorsement";
-    public static final String RELEASE = "release";
+    public static final String RELATIONSHIP = "relationship";
 
     /**
      * 
