@@ -31,12 +31,12 @@ public class CrisLayoutToolRenderSearchValidatorImpl extends CrisLayoutToolRende
             return true;
         }
 
-        return !configuration.getSearchFilters()
-                             .stream()
-                             .anyMatch(d -> d.getIndexFieldName().equals(subType[2]));
+        return configuration.getSearchFilters()
+                            .stream()
+                            .noneMatch(d -> subType[2].startsWith(d.getIndexFieldName()));
     }
 
     private boolean isSubTypeFormatted(String[] subType) {
-        return subType.length > 2 && subType.length <= 3;
+        return subType.length == 3;
     }
 }

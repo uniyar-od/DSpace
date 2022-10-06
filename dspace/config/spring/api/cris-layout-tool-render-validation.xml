@@ -20,15 +20,6 @@
         <property name="name" value="crisref"/>
         <property name="fieldType" value="METADATA||METADATAGROUP"/>
         <property name="subTypeValidationRule" value="ALLOWED"/>
-        <property name="subTypes" ref="crisrefSubTypes" />
-    </bean>
-
-    <bean id="crisrefSubTypes" class="org.dspace.layout.script.supplier.SimpleListSupplier">
-        <constructor-arg>
-        <list>
-            <value>email</value>
-        </list>
-        </constructor-arg>
     </bean>
 
     <bean id="dateRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
@@ -65,7 +56,7 @@
     <bean id="inlineRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
         <property name="name" value="inline"/>
         <property name="fieldType" value="METADATAGROUP"/>
-        <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
+        <property name="subTypeValidationRule" value="ALLOWED"/>
     </bean>
 
     <bean id="linkRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
@@ -145,19 +136,6 @@
         <property name="name" value="html"/>
         <property name="fieldType" value="METADATA"/>
         <property name="subTypeValidationRule" value="NOT_ALLOWED"/>
-    </bean>
-
-    <bean id="moreRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderNumberSubTypeValidatorImpl">
-        <property name="name" value="more"/>
-        <property name="fieldType" value="METADATA"/>
-        <property name="subTypeValidationRule" value="ALLOWED"/>
-    </bean>
-
-    <bean id="lessRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderNumberSubTypeValidatorImpl">
-        <property name="name" value="less"/>
-        <property name="fieldType" value="METADATA"/>
-        <property name="followedBy" value="less"/>
-        <property name="subTypeValidationRule" value="ALLOWED"/>
     </bean>
 
     <bean id="browseRenderValidator" class="org.dspace.layout.script.service.impl.CrisLayoutToolRenderValidatorImpl">
