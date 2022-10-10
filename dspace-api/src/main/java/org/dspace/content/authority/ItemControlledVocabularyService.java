@@ -354,7 +354,10 @@ public class ItemControlledVocabularyService extends SelfNamedPlugin
 
     @Override
     public boolean storeAuthorityInMetadata() {
-        return false;
+        return DSpaceServicesFactory.getInstance().getConfigurationService()
+                .getBooleanProperty("item.controlled.vocabularies."
+                        + this.getPluginInstanceName()
+                        + ".store-authority-in-metadata", true);
     }
 
     @Override
