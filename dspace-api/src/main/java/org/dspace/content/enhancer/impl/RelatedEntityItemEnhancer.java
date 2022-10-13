@@ -51,7 +51,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     @Override
     public boolean canEnhance(Context context, Item item) {
-        return sourceEntityType == null || sourceEntityType.equals(itemService.getEntityType(item));
+        return sourceEntityType == null || sourceEntityType.equals(itemService.getEntityTypeLabel(item));
     }
 
     @Override
