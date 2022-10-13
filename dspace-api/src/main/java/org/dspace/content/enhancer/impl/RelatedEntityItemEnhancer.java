@@ -15,8 +15,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.enhancer.AbstractItemEnhancer;
@@ -58,6 +60,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
     public void enhance(Context context, Item item) {
         try {
             cleanObsoleteVirtualFields(context, item);
+            updateVirtualFieldsPlaces(context, item);
             performEnhancement(context, item);
         } catch (SQLException e) {
             LOGGER.error("An error occurs enhancing item with id {}: {}", item.getID(), e.getMessage(), e);
@@ -72,6 +75,38 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
             itemService.removeMetadataValues(context, item, metadataValuesToDelete);
         }
 
+    }
+
+    private void updateVirtualFieldsPlaces(Context context, Item item) {
+        List<MetadataValue> virtualSourceFields = getMetadataValues(item, getVirtualSourceMetadataField());
+        for (MetadataValue virtualSourceField : virtualSourceFields) {
+            metadataWithPlaceToUpdate(item, virtualSourceField)
+                .ifPresent(updatePlaces(item, virtualSourceField));
+        }
+    }
+
+    private Optional<MetadataValue> metadataWithPlaceToUpdate(Item item, MetadataValue virtualSourceField) {
+        return findEnhanceableValue(virtualSourceField, item)
+            .filter(hasToUpdatePlace(virtualSourceField))
+            .stream().findFirst();
+    }
+
+    private Predicate<MetadataValue> hasToUpdatePlace(MetadataValue virtualSourceField) {
+        return metadataValue -> metadataValue.getPlace() != virtualSourceField.getPlace();
+    }
+
+    private Consumer<MetadataValue> updatePlaces(Item item, MetadataValue virtualSourceField) {
+        return mv -> {
+            virtualSourceField.setPlace(mv.getPlace());
+            getRelatedVirtualField(item, mv)
+                .ifPresent(relatedMv -> relatedMv.setPlace(mv.getPlace()));
+        };
+    }
+
+    private Optional<MetadataValue> findEnhanceableValue(MetadataValue virtualSourceField, Item item) {
+        return getEnhanceableMetadataValue(item).stream()
+            .filter(metadataValue -> hasAuthorityEqualsTo(metadataValue, virtualSourceField.getValue()))
+            .findFirst();
     }
 
     private List<MetadataValue> getObsoleteVirtualFields(Item item) {
@@ -103,7 +138,7 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     private void performEnhancement(Context context, Item item) throws SQLException {
 
-        if (noEnhanceableMetadata(item)) {
+        if (noEnhanceableMetadata(context, item)) {
             return;
         }
         for (MetadataValue metadataValue : getEnhanceableMetadataValue(item)) {
@@ -134,10 +169,21 @@ public class RelatedEntityItemEnhancer extends AbstractItemEnhancer {
 
     }
 
-    private boolean noEnhanceableMetadata(Item item) {
+    private boolean noEnhanceableMetadata(Context context, Item item) {
+
         return getEnhanceableMetadataValue(item)
             .stream()
-            .noneMatch(mv -> StringUtils.isNotBlank(mv.getAuthority()));
+            .noneMatch(metadataValue -> validAuthority(context, metadataValue));
+    }
+
+    private boolean validAuthority(Context context, MetadataValue metadataValue) {
+
+        // FIXME: we could find a more efficient way, here we are doing twice the same action
+        //  to understand if the enhanced item has at least an item whose references should be put in virtual fields.
+        Item relatedItem = findRelatedEntityItem(context, metadataValue);
+        return Objects.nonNull(relatedItem) &&
+                                   CollectionUtils.isNotEmpty(
+                                       getMetadataValues(relatedItem, relatedItemMetadataField));
     }
 
     private List<MetadataValue> getEnhanceableMetadataValue(Item item) {
