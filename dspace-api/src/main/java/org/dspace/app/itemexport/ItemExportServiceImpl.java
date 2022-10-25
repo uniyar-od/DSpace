@@ -101,7 +101,7 @@ public class ItemExportServiceImpl implements ItemExportService {
     /**
      * log4j logger
      */
-    private final Logger log = org.apache.logging.log4j.LogManager.getLogger(ItemExportServiceImpl.class);
+    private final Logger log = org.apache.logging.log4j.LogManager.getLogger();
 
     private DSpaceRunnableHandler handler;
 

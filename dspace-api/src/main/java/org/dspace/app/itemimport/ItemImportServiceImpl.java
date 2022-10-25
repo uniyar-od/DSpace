@@ -422,12 +422,11 @@ public class ItemImportServiceImpl implements ItemImportService, InitializingBea
             rightItem = item;
         }
 
-        // create the relationship
-        int leftPlace = relationshipService.findNextLeftPlaceByLeftItem(c, leftItem);
-        int rightPlace = relationshipService.findNextRightPlaceByRightItem(c, rightItem);
+        // Create the relationship, appending to the end
         Relationship persistedRelationship = relationshipService.create(
-            c, leftItem, rightItem, foundRelationshipType, leftPlace, rightPlace);
-        // relationshipService.update(c, persistedRelationship);
+            c, leftItem, rightItem, foundRelationshipType, -1, -1
+        );
+        relationshipService.update(c, persistedRelationship);
 
         logInfo("\tAdded relationship (type: " + relationshipType + ") from " +
             leftItem.getHandle() + " to " + rightItem.getHandle());

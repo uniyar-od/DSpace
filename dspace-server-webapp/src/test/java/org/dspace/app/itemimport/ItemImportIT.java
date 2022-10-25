@@ -160,7 +160,8 @@ public class ItemImportIT extends AbstractEntityIntegrationTest {
      * @throws Exception
      */
     private void checkMetadata() throws Exception {
-        Item item = itemService.findByMetadataField(context, "dc", "title", null, publicationTitle).next();
+        Item item = itemService.findArchivedByMetadataField(
+                context, "dc", "title", null, publicationTitle).next();
         getClient().perform(get("/api/core/items/" + item.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.metadata", allOf(
@@ -174,7 +175,8 @@ public class ItemImportIT extends AbstractEntityIntegrationTest {
      * @throws Exception
      */
     private void checkMetadataWithAnotherSchema() throws Exception {
-        Item item = itemService.findByMetadataField(context, "dc", "title", null, publicationTitle).next();
+        Item item = itemService.findArchivedByMetadataField(
+                context, "dc", "title", null, publicationTitle).next();
         getClient().perform(get("/api/core/items/" + item.getID()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.metadata", allOf(
@@ -186,7 +188,8 @@ public class ItemImportIT extends AbstractEntityIntegrationTest {
      * @throws Exception
      */
     private void checkBitstream() throws Exception {
-        Bitstream bitstream = itemService.findByMetadataField(context, "dc", "title", null, publicationTitle).next()
+        Bitstream bitstream = itemService.findArchivedByMetadataField(
+                context, "dc", "title", null, publicationTitle).next()
                 .getBundles("ORIGINAL").get(0).getBitstreams().get(0);
         getClient().perform(get("/api/core/bitstreams/" + bitstream.getID()))
                 .andExpect(status().isOk())
@@ -199,8 +202,10 @@ public class ItemImportIT extends AbstractEntityIntegrationTest {
      * @throws Exception
      */
     private void checkRelationship() throws Exception {
-        Item item = itemService.findByMetadataField(context, "dc", "title", null, publicationTitle).next();
-        Item author = itemService.findByMetadataField(context, "dc", "title", null, personTitle).next();
+        Item item = itemService.findArchivedByMetadataField(
+                context, "dc", "title", null, publicationTitle).next();
+        Item author = itemService.findArchivedByMetadataField(
+                context, "dc", "title", null, personTitle).next();
         List<Relationship> relationships = relationshipService.findByItem(context, item);
         assertEquals(1, relationships.size());
         getClient().perform(get("/api/core/relationships/" + relationships.get(0).getID()).param("projection", "full"))
