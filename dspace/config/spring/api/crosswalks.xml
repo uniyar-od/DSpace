@@ -601,5 +601,9 @@
 	<!-- Item export format SERVICE -->
 	<bean class="org.dspace.content.integration.crosswalks.service.ItemExportFormatServiceImpl"/>
 	<bean class="org.dspace.discovery.configuration.DiscoveryConfigurationUtilsService"/>
+    
+    <bean class="org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory" />
+    <bean class="org.dspace.content.integration.crosswalks.csl.CSLNestedGenerator" />
+    <bean class="org.dspace.content.integration.crosswalks.csl.CSLWebServiceGenerator" />
 
 </beans>
