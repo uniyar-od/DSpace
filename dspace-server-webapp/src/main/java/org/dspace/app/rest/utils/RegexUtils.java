@@ -46,4 +46,6 @@ public class RegexUtils {
     public static final String REGEX_REQUESTMAPPING_IDENTIFIER_AS_HEX32
             = "/{id:[0-9a-fA-F]{32}}";
 
+    public static final String REGEX_INPUT_VALIDATOR = "(\\/?)(.+)\\1([gimsuy]*)";
+
 }

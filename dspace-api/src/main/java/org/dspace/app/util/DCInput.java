@@ -7,11 +7,14 @@
  */
 package org.dspace.app.util;
 
+import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static org.apache.commons.lang3.StringUtils.equalsAnyIgnoreCase;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
@@ -28,6 +31,14 @@ import org.slf4j.LoggerFactory;
  * @author Brian S. Hughes, based on work by Jenny Toves, OCLC
  */
 public class DCInput {
+
+    // checks input having the format /{pattern}/{flags}
+    // allowed flags are: g,i,m,s,u,y
+    public static final String REGEX_INPUT_VALIDATOR = "(/?)(.+)\\1([gimsuy]*)";
+    // flags usable inside regex definition using format (?i|m|s|u|y)
+    public static final String REGEX_FLAGS = "(?%s)";
+    public static final Pattern PATTERN_REGEX_INPUT_VALIDATOR =
+        Pattern.compile(REGEX_INPUT_VALIDATOR, CASE_INSENSITIVE);
 
     private static final Logger log = LoggerFactory.getLogger(DCInput.class);
 
@@ -193,7 +204,7 @@ public class DCInput {
         repeatable = "true".equalsIgnoreCase(repStr)
             || "yes".equalsIgnoreCase(repStr);
         String nameVariantsString = fieldMap.get("name-variants");
-        nameVariants = (StringUtils.isNotBlank(nameVariantsString)) ?
+        nameVariants = StringUtils.isNotBlank(nameVariantsString) ?
                 nameVariantsString.equalsIgnoreCase("true") : false;
         label = fieldMap.get("label");
         inputType = fieldMap.get("input-type");
@@ -205,11 +216,11 @@ public class DCInput {
         }
         hint = fieldMap.get("hint");
         warning = fieldMap.get("required");
-        required = (warning != null && warning.length() > 0);
+        required = warning != null && warning.length() > 0;
         visibility = fieldMap.get("visibility");
         readOnly = fieldMap.get("readonly");
         vocabulary = fieldMap.get("vocabulary");
-        regex = fieldMap.get("regex");
+        regex = extractRegex(fieldMap);
         String closedVocabularyStr = fieldMap.get("closedVocabulary");
         closedVocabulary = "true".equalsIgnoreCase(closedVocabularyStr)
             || "yes".equalsIgnoreCase(closedVocabularyStr);
@@ -240,6 +251,21 @@ public class DCInput {
 
     }
 
+    public String extractRegex(Map<String, String> fieldMap) {
+        String regex = fieldMap.get("regex");
+        Pattern generatedPattern = null;
+        if (regex != null) {
+            try {
+                generatedPattern = generatePattern(regex);
+            } catch (PatternSyntaxException e) {
+                log.warn("The regex field of input {} with value {} is invalid!", this.label, regex);
+            }
+        }
+        return Optional.ofNullable(generatedPattern)
+                .map(pattern -> regex)
+                .orElse(null);
+    }
+
     /**
      * Is this DCInput for display in the given scope? The scope should be
      * either "workflow" or "submit", as per the input forms definition. If the
@@ -250,7 +276,7 @@ public class DCInput {
      * @return whether the input should be displayed or not
      */
     public boolean isVisible(String scope) {
-        return (visibility == null || visibility.equals(scope));
+        return visibility == null || visibility.equals(scope);
     }
 
     /**
@@ -585,7 +611,7 @@ public class DCInput {
         if (StringUtils.isNotBlank(value)) {
             try {
                 if (StringUtils.isNotBlank(regex)) {
-                    Pattern pattern = Pattern.compile(regex);
+                    Pattern pattern = generatePattern(regex);
                     if (!pattern.matcher(value).matches()) {
                         return false;
                     }
@@ -597,6 +623,24 @@ public class DCInput {
         }
 
         return true;
+    }
+
+    private Pattern generatePattern(String regex) {
+        Matcher inputMatcher = PATTERN_REGEX_INPUT_VALIDATOR.matcher(regex);
+        Pattern pattern = null;
+        if (inputMatcher.matches()) {
+            String regexPattern = inputMatcher.group(2);
+            String regexFlags =
+                Optional.ofNullable(inputMatcher.group(3))
+                .filter(StringUtils::isNotBlank)
+                .map(flags -> String.format(REGEX_FLAGS, flags))
+                .orElse("")
+                .replaceAll("g", "");
+            pattern = Pattern.compile(regexFlags + regexPattern);
+        } else {
+            pattern = Pattern.compile(regex);
+        }
+        return pattern;
     }
 
     /**
