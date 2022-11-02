@@ -7,14 +7,12 @@
  */
 package org.dspace.app.util;
 
-import static java.util.regex.Pattern.CASE_INSENSITIVE;
 import static org.apache.commons.lang3.StringUtils.equalsAnyIgnoreCase;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 import javax.annotation.Nullable;
@@ -31,14 +29,6 @@ import org.slf4j.LoggerFactory;
  * @author Brian S. Hughes, based on work by Jenny Toves, OCLC
  */
 public class DCInput {
-
-    // checks input having the format /{pattern}/{flags}
-    // allowed flags are: g,i,m,s,u,y
-    public static final String REGEX_INPUT_VALIDATOR = "(/?)(.+)\\1([gimsuy]*)";
-    // flags usable inside regex definition using format (?i|m|s|u|y)
-    public static final String REGEX_FLAGS = "(?%s)";
-    public static final Pattern PATTERN_REGEX_INPUT_VALIDATOR =
-        Pattern.compile(REGEX_INPUT_VALIDATOR, CASE_INSENSITIVE);
 
     private static final Logger log = LoggerFactory.getLogger(DCInput.class);
 
@@ -256,7 +246,7 @@ public class DCInput {
         Pattern generatedPattern = null;
         if (regex != null) {
             try {
-                generatedPattern = generatePattern(regex);
+                generatedPattern = RegexPatternUtils.computePattern(regex);
             } catch (PatternSyntaxException e) {
                 log.warn("The regex field of input {} with value {} is invalid!", this.label, regex);
             }
@@ -611,7 +601,7 @@ public class DCInput {
         if (StringUtils.isNotBlank(value)) {
             try {
                 if (StringUtils.isNotBlank(regex)) {
-                    Pattern pattern = generatePattern(regex);
+                    Pattern pattern = RegexPatternUtils.computePattern(regex);
                     if (!pattern.matcher(value).matches()) {
                         return false;
                     }
@@ -623,24 +613,6 @@ public class DCInput {
         }
 
         return true;
-    }
-
-    private Pattern generatePattern(String regex) {
-        Matcher inputMatcher = PATTERN_REGEX_INPUT_VALIDATOR.matcher(regex);
-        Pattern pattern = null;
-        if (inputMatcher.matches()) {
-            String regexPattern = inputMatcher.group(2);
-            String regexFlags =
-                Optional.ofNullable(inputMatcher.group(3))
-                .filter(StringUtils::isNotBlank)
-                .map(flags -> String.format(REGEX_FLAGS, flags))
-                .orElse("")
-                .replaceAll("g", "");
-            pattern = Pattern.compile(regexFlags + regexPattern);
-        } else {
-            pattern = Pattern.compile(regex);
-        }
-        return pattern;
     }
 
     /**
