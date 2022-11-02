@@ -265,7 +265,7 @@ public class StatisticsDatasetDisplay {
         // of bitstream in bundle other than ORIGINAL
         filterQuery.append(" AND -(bundleName:[* TO *] AND -bundleName:ORIGINAL)");
 
-        // statistics view reports MUST not include view performed by bots (isBot = true in the SOLR Statistics document)
+        // statistics view reports MUST not include view performed by bots (isBot=true in the SOLR Statistics document)
         boolean isBot = configurationService.getBooleanProperty("solr-statistics.query.filter.isBot", true);
         if (isBot) {
             filterQuery.append(" AND -isBot:true");
