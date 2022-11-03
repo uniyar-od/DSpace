@@ -14,6 +14,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.DSpaceObject;
@@ -21,6 +22,9 @@ import org.dspace.content.Item;
 import org.dspace.content.Metadatum;
 import org.dspace.core.ConfigurationManager;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverQuery;
+import org.dspace.discovery.DiscoverResult;
+import org.dspace.discovery.SearchService;
 import org.dspace.event.Consumer;
 import org.dspace.event.Event;
 import org.dspace.handle.HandleManager;
@@ -40,6 +44,9 @@ public class ItemAuthorityConsumer implements Consumer
     private Map<String, String> reciprocalMetadata = new ConcurrentHashMap<String, String>();
     
     private transient Set<String> processedHandles = new HashSet<String>();
+    
+    private SearchService searchService  = new DSpace().getServiceManager().getServiceByName(
+            "org.dspace.discovery.SearchService", SearchService.class);
     
 	public ItemAuthorityConsumer() {
 		for (Object confObj : ConfigurationManager.getProperties().keySet()) {
@@ -105,8 +112,45 @@ public class ItemAuthorityConsumer implements Consumer
 				}
 			}
 		}
+		if(ArrayUtils.isEmpty(meta)) {
+			needCommit |= clearReciprocalIfMissing(ctx, item, m) ;
+		}
 		return needCommit;
 	}
+
+	private boolean clearReciprocalIfMissing(Context context, Item item, String m) {
+		boolean needCommit=false;
+		DiscoverQuery discoverQuery = new DiscoverQuery();
+		discoverQuery.setDSpaceObjectFilter(org.dspace.core.Constants.ITEM);
+		discoverQuery.setQuery("*:*");
+
+		discoverQuery.addFilterQueries(reciprocalMetadata.get(m) + "_authority:" + item.getHandle());
+
+		DiscoverResult resultSearch;
+		try {
+			resultSearch = searchService.search(context, discoverQuery, false);
+
+			for (DSpaceObject reciprocalItem : resultSearch.getDspaceObjects()) {
+				Metadatum[] metadatum = reciprocalItem.getMetadataByMetadataString(reciprocalMetadata.get(m));
+				if (metadatum != null) {
+					// Check if reciprocal item has reference to the current item
+					// If so delete metadata
+					for (Metadatum md : metadatum) {
+						if (md.authority != null && md.authority.equals(item.getHandle())) {
+							reciprocalItem.clearMetadata(md.schema, md.element, md.qualifier, md.language);
+							needCommit = true;
+						}
+					}
+
+				}
+			}
+			context.getDBConnection().commit();
+		} catch (Exception e) {
+			log.error(e.getMessage(), e);
+		}
+		return needCommit;
+	}
+
 
     private boolean assureReciprocalLink(Item target, String mdString, String name, String handle) {
     	Metadatum[] meta = target.getMetadataByMetadataString(mdString);

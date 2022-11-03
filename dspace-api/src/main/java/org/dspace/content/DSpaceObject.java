@@ -1202,6 +1202,13 @@ public abstract class DSpaceObject implements IGlobalSearchResult
         modifiedMetadata = true;
     }
 
+    public void clearMetadata(Metadatum metadata)
+    {
+    	List<Metadatum> dspObjMetadata = getMetadata();
+    	dspObjMetadata.remove(metadata);
+    	setMetadata(dspObjMetadata);
+    }
+
     class MetadataCache
     {
         List<Metadatum> metadata = null;
