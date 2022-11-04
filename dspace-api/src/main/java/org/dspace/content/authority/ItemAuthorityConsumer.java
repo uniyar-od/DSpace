@@ -40,7 +40,10 @@ import org.dspace.utils.DSpace;
 public class ItemAuthorityConsumer implements Consumer
 {
     private static final Logger log = Logger.getLogger(ItemAuthorityConsumer.class);
-    
+
+	private static final boolean CLEAR_RECIPROCAL_IF_MISSING = ConfigurationManager
+			.getBooleanProperty("authority.clear.reciprocal.metadata.on.delete", true);
+
     private Map<String, String> reciprocalMetadata = new ConcurrentHashMap<String, String>();
     
     private transient Set<String> processedHandles = new HashSet<String>();
@@ -112,7 +115,7 @@ public class ItemAuthorityConsumer implements Consumer
 				}
 			}
 		}
-		if(ArrayUtils.isEmpty(meta)) {
+		if(CLEAR_RECIPROCAL_IF_MISSING && ArrayUtils.isEmpty(meta)) {
 			needCommit |= clearReciprocalIfMissing(ctx, item, m) ;
 		}
 		return needCommit;
@@ -137,7 +140,8 @@ public class ItemAuthorityConsumer implements Consumer
 					// If so delete metadata
 					for (Metadatum md : metadatum) {
 						if (md.authority != null && md.authority.equals(item.getHandle())) {
-							reciprocalItem.clearMetadata(md.schema, md.element, md.qualifier, md.language);
+							reciprocalItem.clearMetadata(md);
+							reciprocalItem.updateMetadata();
 							needCommit = true;
 						}
 					}
