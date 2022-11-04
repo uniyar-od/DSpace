@@ -183,13 +183,14 @@ public class S3BitStoreService extends ABitStoreService
 
     private boolean checkIfCacheIsEnabled(Context context, TableRow tableRow) {
     	boolean isCacheEnabled = ConfigurationManager.getBooleanProperty("assetstore.s3.local.cache.enable", false);
+    	boolean isMimeTypeEnabledForCache = false;
 		try {
 			if (enableCacheForFormats) {
 				BitstreamFormat format = Bitstream.find(context, tableRow.getIntColumn("bitstream_id")).getFormat();
 				if(mimetypeEnableCache!=null) {
 					for(String mimetype : mimetypeEnableCache) {
 						if(format.getMIMEType().startsWith(mimetype)) {
-							isCacheEnabled &= true;
+							isMimeTypeEnabledForCache = true;
 							break;
 						}
 					}
@@ -198,8 +199,10 @@ public class S3BitStoreService extends ABitStoreService
 		} catch (Exception e) {
 			log.error("An error occured while retrieving bitstream format", e);
 		}
-		log.info("Cache is: " + isCacheEnabled);
-		return isCacheEnabled;
+		boolean cacheStatus = (isCacheEnabled && !enableCacheForFormats
+				|| (isCacheEnabled && enableCacheForFormats && isMimeTypeEnabledForCache));
+		log.info("Cache is: " + cacheStatus);
+		return cacheStatus;
 	}
 
 	/**
