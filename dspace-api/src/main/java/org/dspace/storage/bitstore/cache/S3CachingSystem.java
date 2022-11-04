@@ -10,6 +10,7 @@ package org.dspace.storage.bitstore.cache;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
@@ -33,12 +34,20 @@ public class S3CachingSystem {
 
 	private String bucketName;
 
-	private Map<String, File> cachedFiles = Collections.synchronizedMap(new HashMap<String, File>());
+	private static String tmpDir = ConfigurationManager.getProperty("assetstore.s3.local.cache.dir");
+	
 	private Map<String, S3DownloadManager> downloadingFiles = Collections
 			.synchronizedMap(new HashMap<String, S3DownloadManager>());
 
 	/** log4j log */
 	private static Logger log = Logger.getLogger(S3CachingSystem.class);
+	
+	static {
+		if (StringUtils.isBlank(tmpDir)) {
+			tmpDir = "/tmp";
+		}
+		tmpDir = tmpDir.endsWith("/") ? tmpDir : tmpDir + "/";
+	}
 
 	public S3CachingSystem(TransferManager transferManager, String bucketName) {
 		super();
@@ -80,43 +89,44 @@ public class S3CachingSystem {
 
 	private InputStream retrieveInputStream(String key)
 			throws IOException, AmazonServiceException, AmazonClientException, InterruptedException {
-		if (isFileIsAvailableInCache(key)) {
-			return new FileInputStream(cachedFiles.get(key));
+		if (isFileIsAvailableInCache(key) && !downloadingFiles.containsKey(key)) {
+			return new FileInputStream(new File(getS3CacheFileIdentifier(key)));
 		} else {
-			return downloadFile(key);
+			return downloadOrWaitFile(key);
 		}
 	}
 
-	private InputStream downloadFile(String key)
+	private InputStream downloadOrWaitFile(String key)
 			throws IOException, AmazonServiceException, AmazonClientException, InterruptedException {
 		S3DownloadManager s3DownloadManager;
 		Download download;
 		// need to add the file to the cache and handle the download process
 		// perform another check to see if another (just ended) execution of this
 		// synchronized block has managed to retrieve the file
-		if (isFileIsAvailableInCache(key)) {
-			return new FileInputStream(cachedFiles.get(key));
-		} else {
-			// to be sure when the file is deleted we're
-			// no longer referencing it
-			cachedFiles.remove(key);
+		if (downloadingFiles.containsKey(key)) {
+			synchronized (downloadingFiles.get(key)) {
+				try {
+					downloadingFiles.get(key).wait();
+				} catch (Exception e) {
+					log.error(e);
+				}
+				return new FileInputStream(new File(getS3CacheFileIdentifier(key)));
+			}
 		}
+
 		// if the file is not available in cache
 		// then check if is downloading and wait for its completion
 		s3DownloadManager = downloadingFiles.get(key);
 		if (s3DownloadManager != null) {
 			download = s3DownloadManager.getDownload();
 			download.waitForCompletion();
-			downloadingFiles.remove(key);
+			synchronized (downloadingFiles.get(key)) {
+				downloadingFiles.get(key).notifyAll();
+				downloadingFiles.remove(key);
+			}
 			return new FileInputStream(s3DownloadManager.getTempFile());
 		}
-		File tempFile;
-		String tmpDir = ConfigurationManager.getProperty("assetstore.s3.local.cache.dir");
-		if (StringUtils.isNotBlank(tmpDir)) {
-			tempFile = File.createTempFile("s3-disk-copy", "temp", new File(tmpDir));
-		} else {
-			tempFile = File.createTempFile("s3-disk-copy", "temp");
-		}
+		File tempFile = new File(getS3CacheFileIdentifier(key));
 
 		s3DownloadManager = new S3DownloadManager(transferManager, bucketName, key, tempFile);
 		// start download and save the downloading file reference
@@ -125,14 +135,23 @@ public class S3CachingSystem {
 		// wait for the download to complete and add the file in cached files
 		// also remove the file from the downloading list
 		download.waitForCompletion();
-		cachedFiles.put(key, tempFile);
-		downloadingFiles.remove(key);
+		
+		synchronized (downloadingFiles.get(key)) {
+			downloadingFiles.get(key).notifyAll();
+			downloadingFiles.remove(key);
+		}
 
 		return new FileInputStream(tempFile);
 
 	}
+	
+	public String getS3CacheFileIdentifier(String key) {
+		return tmpDir + "s3-disk-copy" + key;
+	}
 
 	private boolean isFileIsAvailableInCache(String key) {
-		return cachedFiles.containsKey(key) && cachedFiles.get(key).exists();
+		return new File(getS3CacheFileIdentifier(key)).exists();
 	}
+
+
 }
