@@ -7,6 +7,27 @@
  */
 package org.dspace.storage.bitstore;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
+import org.apache.log4j.Logger;
+import org.dspace.content.Bitstream;
+import org.dspace.content.BitstreamFormat;
+import org.dspace.core.ConfigurationManager;
+import org.dspace.core.Context;
+import org.dspace.core.Utils;
+import org.dspace.storage.bitstore.cache.S3CachingSystem;
+import org.dspace.storage.rdbms.TableRow;
+import org.springframework.beans.factory.annotation.Required;
+
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -16,31 +37,12 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.amazonaws.services.s3.transfer.model.UploadResult;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpStatus;
-import org.apache.log4j.Logger;
-import org.dspace.core.ConfigurationManager;
-import org.dspace.core.Utils;
-import org.dspace.storage.bitstore.cache.S3CachingSystem;
-import org.dspace.storage.rdbms.TableRow;
-import org.springframework.beans.factory.annotation.Required;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
 
 /**
  * Asset store using Amazon's Simple Storage Service (S3).
@@ -60,6 +62,10 @@ public class S3BitStoreService extends ABitStoreService
 
     public static final String TEMP_PREFIX = "s3-virtual-path";
     public static final String TEMP_SUFFIX = "temp";
+
+	private List<String> mimetypeEnableCache;
+
+	private boolean enableCacheForFormats;
 
     private String awsAccessKey;
     private String awsSecretKey;
@@ -159,21 +165,44 @@ public class S3BitStoreService extends ABitStoreService
      * Retrieve the bits for the asset with ID. If the asset does not
      * exist, returns null.
      * 
-     * @param bitstream
+     * @param context
+     *            The DSpace context
+     * @param tableRow
      *            The ID of the asset to retrieve
      * @exception java.io.IOException
      *                If a problem occurs while retrieving the bits
      *
      * @return The stream of bits, or null
      */
-    public InputStream get(TableRow bitstream) throws IOException
-    {
-        String key = getFullKey(bitstream.getStringColumn("internal_id"));
-        boolean isCacheEnabled = ConfigurationManager.getBooleanProperty("assetstore.s3.local.cache.enable",false);
-        return s3CachingSystem.getInputStreamForBitstream(key, isCacheEnabled);
-    }
+	@Override
+	public InputStream get(Context context, TableRow tableRow) throws IOException {
+		String key = getFullKey(tableRow.getStringColumn("internal_id"));
+		boolean isCacheEnabled = checkIfCacheIsEnabled(context, tableRow);
+		return s3CachingSystem.getInputStreamForBitstream(key, isCacheEnabled);
+	}
 
-    /**
+    private boolean checkIfCacheIsEnabled(Context context, TableRow tableRow) {
+    	boolean isCacheEnabled = ConfigurationManager.getBooleanProperty("assetstore.s3.local.cache.enable", false);
+		try {
+			if (enableCacheForFormats) {
+				BitstreamFormat format = Bitstream.find(context, tableRow.getIntColumn("bitstream_id")).getFormat();
+				if(mimetypeEnableCache!=null) {
+					for(String mimetype : mimetypeEnableCache) {
+						if(format.getMIMEType().startsWith(mimetype)) {
+							isCacheEnabled &= true;
+							break;
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			log.error("An error occured while retrieving bitstream format", e);
+		}
+		log.info("Cache is: " + isCacheEnabled);
+		return isCacheEnabled;
+	}
+
+	/**
      * Store a stream of bits.
      *
      * <p>
@@ -347,7 +376,23 @@ public class S3BitStoreService extends ABitStoreService
         this.subfolder = subfolder;
     }
 
-    /**
+    public List<String> getMimetypeEnableCache() {
+		return mimetypeEnableCache;
+	}
+
+	public void setMimetypeEnableCache(List<String> mimetypeEnableCache) {
+		this.mimetypeEnableCache = mimetypeEnableCache;
+	}
+
+	public boolean isEnableCacheForFormats() {
+		return enableCacheForFormats;
+	}
+
+	public void setEnableCacheForFormats(boolean enableCacheForFormats) {
+		this.enableCacheForFormats = enableCacheForFormats;
+	}
+
+	/**
      * Contains a command-line testing tool. Expects arguments:
      *  -a accessKey -s secretKey -f assetFileName
      *
@@ -452,11 +497,11 @@ public class S3BitStoreService extends ABitStoreService
     }
 
     @Override
-    public String path(TableRow bitstream) throws IOException {
+    public String path(Context context, TableRow bitstream) throws IOException {
         final File tempFile = File.createTempFile(TEMP_PREFIX, TEMP_SUFFIX);
         tempFile.deleteOnExit();
         try (FileOutputStream out = new FileOutputStream(tempFile)) {
-            IOUtils.copy(get(bitstream), out);
+            IOUtils.copy(get(context, bitstream), out);
         }
         return tempFile.getAbsolutePath();
     }

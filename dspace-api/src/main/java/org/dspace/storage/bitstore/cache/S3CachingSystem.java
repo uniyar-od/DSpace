@@ -146,7 +146,7 @@ public class S3CachingSystem {
 	}
 	
 	public String getS3CacheFileIdentifier(String key) {
-		return tmpDir + "s3-disk-copy" + key;
+		return tmpDir + "s3-disk-copy" + key.replace("/", "_");
 	}
 
 	private boolean isFileIsAvailableInCache(String key) {

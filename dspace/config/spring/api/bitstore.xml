@@ -34,6 +34,10 @@
         <!-- Subfolder to organize assets within the bucket, in case this bucket is shared  -->
         <!-- Optional, default is root level of bucket -->
         <property name="subfolder" value="${assetstore.s3.subfolder}"/>
+        
+        <!-- S3 cache configuration -->
+        <property name="enableCacheForFormats" value="${assetstore.s3.local.cache.filter.formats}" />
+        <property name="mimetypeEnableCache" value="${assetstore.s3.local.macroformats.filter}" />
     </bean>
 
     <!-- <bean name="localStore2 ... -->

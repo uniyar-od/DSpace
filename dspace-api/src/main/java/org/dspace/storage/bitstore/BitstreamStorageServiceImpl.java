@@ -246,7 +246,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     {
         TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
         int storeNumber = bitstream.getIntColumn("store_number");
-        return stores.get(storeNumber).path(bitstream);
+        return stores.get(storeNumber).path(context, bitstream);
     }
 
     public String virtualPath(Context context, int id)
@@ -285,7 +285,7 @@ public class BitstreamStorageServiceImpl implements BitstreamStorageService, Ini
     {
         TableRow bitstream = DatabaseManager.find(context, "bitstream", id);
         int storeNumber = bitstream.getIntColumn("store_number");
-        return stores.get(storeNumber).get(bitstream);
+        return stores.get(storeNumber).get(context, bitstream);
     }
 
     /**

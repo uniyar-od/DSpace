@@ -7,6 +7,7 @@
  */
 package org.dspace.storage.bitstore;
 
+import org.dspace.core.Context;
 import org.dspace.storage.rdbms.TableRow;
 
 import java.io.IOException;
@@ -37,6 +38,7 @@ public interface BitStoreService
     /**
      * Retrieve the bits for bitstream
      * 
+     * @param Context context
      * @param bitstream row
      *
      * @exception java.io.IOException
@@ -45,7 +47,7 @@ public interface BitStoreService
      *
      * @return The stream of bits
      */
-    public InputStream get(TableRow bitstream) throws IOException;
+    public InputStream get(Context context, TableRow bitstream) throws IOException;
 
     /**
      * Store a stream of bits.
@@ -95,12 +97,14 @@ public interface BitStoreService
     /**
      * Retrieve the fullpath for bitstream.
      *
+     * @param context
+     *            The DSpace context
      * @param bitstream
      *            The bitstream row
      * @exception java.io.IOException
      *            If a problem occurs while retrieving the path
      */
-    public String path(TableRow bitstream) throws IOException;
+    public String path(Context context, TableRow bitstream) throws IOException;
 
     /**
      * Retrieve the virtual path for bitstream.

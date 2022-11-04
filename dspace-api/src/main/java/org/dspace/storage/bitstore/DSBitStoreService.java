@@ -8,6 +8,7 @@
 package org.dspace.storage.bitstore;
 
 import org.apache.log4j.Logger;
+import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.storage.rdbms.TableRow;
 
@@ -61,6 +62,7 @@ public class DSBitStoreService extends ABitStoreService
      * Retrieve the bits for the asset with ID. If the asset does not
      * exist, returns null.
      * 
+     * @param context context
      * @param bitstream row
      *            The ID of the asset to retrieve
      * @exception java.io.IOException
@@ -68,7 +70,7 @@ public class DSBitStoreService extends ABitStoreService
      *
      * @return The stream of bits, or null
      */
-    public InputStream get(TableRow bitstream) throws IOException
+    public InputStream get(Context context, TableRow bitstream) throws IOException
     {
         try {
             return new FileInputStream(getFile(bitstream));
@@ -292,13 +294,13 @@ public class DSBitStoreService extends ABitStoreService
     }
 
     @Override
-    public String path(TableRow bitstream) throws IOException {
+    public String path(Context context, TableRow bitstream) throws IOException {
         return getFile(bitstream).getAbsolutePath();
     }
 
     @Override
     public String virtualPath(TableRow bitstream) throws IOException {
-        return path(bitstream);
+        return path(null, bitstream);
     }
 
 }
