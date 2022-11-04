@@ -2057,13 +2057,13 @@ public class ItemImport
             // without creating any actual files on disk
             log.debug("Inspecting entry name: " + entry.getName() + " for path traversal security");
             File potentialExtract = new File(zipDir + entry.getName());
-            String canonicalPath = potentialExtract.getCanonicalPath();
-            log.debug("Canonical path to potential File is " + canonicalPath);
-            if(!canonicalPath.startsWith(zipDir)) {
+            String absolutePath = potentialExtract.getAbsolutePath();
+            log.debug("Absolute path to potential File is " + absolutePath);
+            if(!absolutePath.startsWith(zipDir)) {
                 log.error("Rejecting zip file: " + zipfile.getName() + " as it contains an entry that would be extracted " +
-                        "outside the temporary unzip directory: " + canonicalPath);
-                throw new IOException("Error extracting " + zipfile + ": Canonical path of zip entry: " +
-                        entry.getName() + " (" + canonicalPath + ") does not start with permissible temp " +
+                        "outside the temporary unzip directory: " + absolutePath);
+                throw new IOException("Error extracting " + zipfile + ": Absolute path of zip entry: " +
+                        entry.getName() + " (" + absolutePath + ") does not start with permissible temp " +
                         "unzip directory (" + destinationDir + ")");
             }
             if (entry.isDirectory())

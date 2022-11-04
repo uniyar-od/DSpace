@@ -59,7 +59,8 @@ public class EditItemUtil {
 			builder.append("<a class=\"btn btn-info\" target=\"_blank\" href=\""+contextPath+"/retrieve/"+bitstreams[j].getID()+"\">"+I18nUtil.getMessage("jsp.tools.general.view")+"</a>&nbsp;");
 			builder.append("<a class=\"btn btn-warning\" target=\"_blank\" href=\""+contextPath+"/tools/edit-dso?resource_type=0&resource_id="+bitstreams[j].getID()+"\">"+I18nUtil.getMessage("jsp.tools.general.edit")+"</a>");
 			builder.append("</td>");
-			if (bundles[index].getName().equals("ORIGINAL")){ 
+			boolean isOriginal = StringUtils.equals(bundles[index].getName(), "ORIGINAL");
+			if (isOriginal){ 
 				builder.append("<td headers=\"t11\" class=\""+row+"RowEvenCol\" >");
 				builder.append("<span class=\"form-control\">");
 				builder.append("<input type=\"radio\" name=\""+ bundles[index].getID() +"_primary_bitstream_id\" value=\""+bitstreams[j].getID()+"\"");
@@ -87,7 +88,7 @@ public class EditItemUtil {
 				builder.append("<input class=\"form-control\" type=\"text\" name=\"bitstream_user_format_description_"+key+"\" value=\""+ (bitstreams[j].getUserFormatDescription() == null ? "" : Utils.addEntities(bitstreams[j].getUserFormatDescription())) +"\"/>");
 				builder.append("</td>");
 	
-			if (bundles[index].getName().equals("ORIGINAL") && breOrderBitstreams)
+			if (isOriginal && breOrderBitstreams)
 			{
 				 //This strings are only used in case the user has javascript disabled
 				String upButtonValue = null;
