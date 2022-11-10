@@ -30,7 +30,13 @@ import org.dspace.services.factory.DSpaceServicesFactory;
 public class IIIFSharedUtils {
 
     // metadata used to enable the iiif features on the item
-    public static final String METADATA_IIIF_ENABLED = "dspace.iiif.enabled";
+    public static final String[] METADATA_IIIF_ENABLED_ARRAY = {"dspace", "iiif", "enabled"};
+    public static final String METADATA_IIIF_ENABLED = METADATA_IIIF_ENABLED_ARRAY[0] + "." +
+            METADATA_IIIF_ENABLED_ARRAY[1] + "." + METADATA_IIIF_ENABLED_ARRAY[2];
+    // metadata used to specify which bitstreams are visible on the item
+    public static final String[] METADATA_IIIF_SHOW_ARRAY = {"bitstream", "show", ""};
+    public static final String METADATA_IIIF_SHOW = METADATA_IIIF_SHOW_ARRAY[0] + "." +
+            METADATA_IIIF_SHOW_ARRAY[1];
     // metadata used to enable the ocr search on the item
     public static final String[] METADATA_IIIF_SEARCHABLE_ARRAY = {"iiif", "search", "enabled"};
     public static final String METADATA_IIIF_SEARCHABLE = METADATA_IIIF_SEARCHABLE_ARRAY[0] + "."
@@ -46,6 +52,20 @@ public class IIIFSharedUtils {
     public static final String METADATA_IIIF_LABEL_ELEMENT = "label";
     public static final String METADATA_IIIF_HEIGHT_QUALIFIER = "height";
     public static final String METADATA_IIIF_WIDTH_QUALIFIER = "width";
+    public static final String[] METADATA_IIIF_HEIGHT_ARRAY = {METADATA_IIIF_SCHEMA,
+        METADATA_IIIF_IMAGE_ELEMENT, METADATA_IIIF_HEIGHT_QUALIFIER};
+    public static final String METADATA_IIIF_HEIGHT = METADATA_IIIF_HEIGHT_ARRAY[0] + "."
+            + METADATA_IIIF_HEIGHT_ARRAY[1] + "." + METADATA_IIIF_HEIGHT_ARRAY[2];
+    public static final String[] METADATA_IIIF_WIDTH_ARRAY = {METADATA_IIIF_SCHEMA,
+        METADATA_IIIF_IMAGE_ELEMENT, METADATA_IIIF_WIDTH_QUALIFIER};
+    public static final String METADATA_IIIF_WIDTH = METADATA_IIIF_WIDTH_ARRAY[0] + "."
+            + METADATA_IIIF_WIDTH_ARRAY[1] + "." + METADATA_IIIF_WIDTH_ARRAY[2];
+
+    public static final String[] METADATA_VIEWER_PROVIDER_ARRAY = {"bitstream", "viewer", "provider"};
+    public static final String METADATA_VIEWER_PROVIDER = METADATA_VIEWER_PROVIDER_ARRAY[0] + "." +
+            METADATA_VIEWER_PROVIDER_ARRAY[1] + "." + METADATA_VIEWER_PROVIDER_ARRAY[2];
+    public static final String PROVIDER_IIIF = "iiif";
+    public static final String PROVIDER_NO_DOWNLOAD = "nodownload";
 
     protected static final ConfigurationService configurationService
         = DSpaceServicesFactory.getInstance().getConfigurationService();
