@@ -210,11 +210,10 @@ public class OrcidStandaloneAuthenticationMethod implements StandaloneMethod
                 OrcidPreferencesUtils.setTokens(rp, token);
             }
 
-            if (orcidPopulated)
-            {
-                rp.setSourceRef("orcid");
-                rp.setSourceID(orcid);
-            }
+			if (orcidPopulated && StringUtils.isBlank(rp.getSourceRef()) && StringUtils.isBlank(rp.getSourceID())) {
+				rp.setSourceRef("orcid");
+				rp.setSourceID(orcid);
+			}
             if (rp.getEpersonID() == null)
             {
                 rp.setEpersonID(currentUser.getID());
