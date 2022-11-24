@@ -326,9 +326,9 @@ assetstore.s3.awsRegionName =
 #GeoIP dbfile configuration for usage statistics
 usage-statistics.dbfile=/var/lib/GeoIP/GeoLite2-City.mmdb
 
-##############################
-# IIIF and ORCID Integration #
-##############################
+############################
+# IIIF and OCR Integration #
+############################
 
 ## IIIF configuration
 iiif.enabled = false
