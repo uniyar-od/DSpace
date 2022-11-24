@@ -10,6 +10,7 @@ package org.dspace.content.dao;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
@@ -54,6 +55,4 @@ public interface BitstreamDAO extends DSpaceObjectLegacySupportDAO<Bitstream> {
     public List<Bitstream> getNotReferencedBitstreams(Context context) throws SQLException;
 
     public Iterator<Bitstream> findShowableByItem(Context context, UUID itemId) throws SQLException;
-
-    public List<Bitstream> getNotReferencedBitstreams(Context context) throws SQLException;
 }
