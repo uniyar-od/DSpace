@@ -260,4 +260,11 @@
         <scope_note></scope_note>
     </dc-type>
 
+    <dc-type>
+        <schema>cris</schema>
+        <element>entity</element>
+        <qualifier>style</qualifier>
+        <scope_note></scope_note>
+    </dc-type>
+
 </dspace-dc-types>
