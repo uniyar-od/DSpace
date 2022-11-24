@@ -1,0 +1,18 @@
+<dspace-dc-types>
+
+    <dspace-header>
+        <title>DSpace Bitstream</title>
+    </dspace-header>
+
+    <dc-schema>
+        <name>bitstream</name>
+        <namespace>http://dspace.org/bitstream</namespace>
+    </dc-schema>
+
+    <dc-type>
+        <schema>bitstream</schema>
+        <element>hide</element>
+        <scope_note>Metadata field used to set a bitstream hidden</scope_note>
+    </dc-type>
+
+</dspace-dc-types>
