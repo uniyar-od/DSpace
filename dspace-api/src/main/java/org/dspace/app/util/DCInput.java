@@ -611,7 +611,9 @@ public class DCInput {
         if (StringUtils.isNotBlank(value)) {
             try {
                 if (this.pattern != null) {
-                    return value.matches(this.pattern.toString());
+                    if (!this.pattern.matcher(value).matches()) {
+                        return false;
+                    }
                 }
             } catch (PatternSyntaxException ex) {
                 log.error("Regex validation failed!", ex.getMessage());
