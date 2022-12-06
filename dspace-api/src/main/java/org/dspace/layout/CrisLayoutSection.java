@@ -7,7 +7,10 @@
  */
 package org.dspace.layout;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * A class that model a CRIS Layout section.
@@ -23,6 +26,11 @@ public class CrisLayoutSection {
      * A list where each element represent a row of section components.
      */
     private final List<List<CrisLayoutSectionComponent>> sectionComponents;
+
+    /**
+     * A list of nested sections.
+     */
+    private final List<CrisLayoutSection> nestedSections = new ArrayList<>();
 
     /**
      * @param id
@@ -48,6 +56,18 @@ public class CrisLayoutSection {
 
     public List<List<CrisLayoutSectionComponent>> getSectionComponents() {
         return sectionComponents;
+    }
+
+    public void setNestedSections(List<CrisLayoutSection> nestedSections) {
+        if (CollectionUtils.isNotEmpty(this.sectionComponents)) {
+            throw new IllegalArgumentException(
+                "cris layout section with id " + this.id + " accepts only sectionComponents or nestedSections");
+        }
+        this.nestedSections.addAll(nestedSections);
+    }
+
+    public List<CrisLayoutSection> getNestedSections() {
+        return nestedSections;
     }
 
 }
