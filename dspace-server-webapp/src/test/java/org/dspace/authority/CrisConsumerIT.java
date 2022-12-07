@@ -315,6 +315,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withAuthor("Mario Rossi")
                 .withAuthorAffilitation("4Science")
                 .withFulltext("text.txt", "/local/path/text.txt", firstFullText)
+                .grantLicense()
                 .build();
 
         submitItemViaRest(authToken, firstWsitem.getID());
@@ -328,6 +329,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withAuthor("Mario Rossi")
                 .withAuthorAffilitation("My Org")
                 .withFulltext("text-2.txt", "/local/path/text-2.txt", secondFullText)
+                .grantLicense()
                 .build();
 
         submitItemViaRest(authToken, secondWsitem.getID());
@@ -398,6 +400,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withIssueDate("2017-10-17")
                 .withProject("Same Name")
                 .withFulltext("text.txt", "/local/path/text.txt", firstFullText)
+                .grantLicense()
                 .build();
 
         submitItemViaRest(authToken, firstWsitem.getID());
@@ -409,6 +412,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withIssueDate("2017-10-18")
                 .withAuthor("Same Name")
                 .withFulltext("text-2.txt", "/local/path/text-2.txt", secondFullText)
+                .grantLicense()
                 .build();
 
         submitItemViaRest(authToken, secondWsitem.getID());
@@ -512,6 +516,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withIssueDate("2017-10-17")
                 .withProject("My project")
                 .withFulltext("text.txt", "/local/path/text.txt", firstFullText)
+                .grantLicense()
                 .build();
 
         submitItemViaRest(authToken, firstWsitem.getID());
@@ -523,6 +528,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
                 .withIssueDate("2017-10-18")
                 .withProject("My project")
                 .withFulltext("text-2.txt", "/local/path/text-2.txt", secondFullText)
+                .grantLicense()
                 .build();
 
         submitItemViaRest(authToken, secondWsitem.getID());
@@ -821,6 +827,87 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         submitItemViaRest(authToken, wsitem.getID());
 
         // verify the dc.contributor.author and dc.contributor.editor authority value
+        ItemRest item = getItemViaRestByID(authToken, wsitem.getItem().getID());
+
+        MetadataValueRest author = findSingleMetadata(item, "dc.contributor.author");
+        String authorAuthority = author.getAuthority();
+        assertThat("The author should have the authority null", authorAuthority, nullValue());
+        assertThat("The author should have an UNSET confidence", author.getConfidence(), equalTo(CF_UNSET));
+
+        MetadataValueRest editor = findSingleMetadata(item, "dc.contributor.editor");
+        String editorAuthority = editor.getAuthority();
+        assertThat("The editor should have the authority null", editorAuthority, nullValue());
+        assertThat("The editor should have an UNSET confidence", editor.getConfidence(), equalTo(CF_UNSET));
+    }
+
+    @Test
+    public void testItemSubmissionWithSkipEmptyAuthorityMetadata() throws Exception {
+
+        InputStream pdf = simpleArticle.getInputStream();
+
+        WorkspaceItem wsitem = WorkspaceItemBuilder.createWorkspaceItem(context, publicationCollection)
+            .withTitle("Submission Item")
+            .withIssueDate("2017-10-17")
+            .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf)
+            .withAuthor("Mario Rossi")
+            .withAuthorAffilitation("4Science")
+            .withEditor("Mario Rossi")
+            .grantLicense()
+            .build();
+
+        context.turnOffAuthorisationSystem();
+        createCollection("Collection of persons", "Person", subCommunity);
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(submitter.getEmail(), password);
+
+        configurationService.setProperty("cris-consumer.skip-empty-authority.metadata",
+            new String[] { "dc.contributor.editor", "dc.relation.project" });
+        configurationService.setProperty("cris-consumer.skip-empty-authority", false);
+
+        submitItemViaRest(authToken, wsitem.getID());
+
+        ItemRest item = getItemViaRestByID(authToken, wsitem.getItem().getID());
+
+        MetadataValueRest author = findSingleMetadata(item, "dc.contributor.author");
+        String authorAuthority = author.getAuthority();
+        assertThat("The author should have the authority set", authorAuthority, notNullValue());
+        assertThat("The author should have an uuid authority", UUIDUtils.fromString(authorAuthority), notNullValue());
+        assertThat("The author should have an ACCEPTED confidence", author.getConfidence(), equalTo(CF_ACCEPTED));
+
+        MetadataValueRest editor = findSingleMetadata(item, "dc.contributor.editor");
+        String editorAuthority = editor.getAuthority();
+        assertThat("The editor should have the authority null", editorAuthority, nullValue());
+        assertThat("The editor should have an UNSET confidence", editor.getConfidence(), equalTo(CF_UNSET));
+
+    }
+
+    @Test
+    public void testItemSubmissionWithSkipEmptyAuthorityAndSkipEmptyAuthorityMetadata() throws Exception {
+
+        InputStream pdf = simpleArticle.getInputStream();
+
+        WorkspaceItem wsitem = WorkspaceItemBuilder.createWorkspaceItem(context, publicationCollection)
+            .withTitle("Submission Item")
+            .withIssueDate("2017-10-17")
+            .withFulltext("simple-article.pdf", "/local/path/simple-article.pdf", pdf)
+            .withAuthor("Mario Rossi")
+            .withAuthorAffilitation("4Science")
+            .withEditor("Mario Rossi")
+            .grantLicense()
+            .build();
+
+        context.turnOffAuthorisationSystem();
+        createCollection("Collection of persons", "Person", subCommunity);
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(submitter.getEmail(), password);
+
+        configurationService.setProperty("cris-consumer.skip-empty-authority.metadata",
+            new String[] { "dc.contributor.editor", "dc.relation.project" });
+        configurationService.setProperty("cris-consumer.skip-empty-authority", true);
+        submitItemViaRest(authToken, wsitem.getID());
+
         ItemRest item = getItemViaRestByID(authToken, wsitem.getItem().getID());
 
         MetadataValueRest author = findSingleMetadata(item, "dc.contributor.author");
