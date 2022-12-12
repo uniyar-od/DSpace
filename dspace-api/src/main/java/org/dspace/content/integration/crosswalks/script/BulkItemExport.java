@@ -7,14 +7,15 @@
  */
 package org.dspace.content.integration.crosswalks.script;
 
-import static org.apache.commons.lang3.StringUtils.substringAfterLast;
-import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
+import static org.dspace.discovery.configuration.DiscoverySortFunctionConfiguration.SORT_FUNCTION;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -36,21 +37,26 @@ import org.dspace.content.service.CollectionService;
 import org.dspace.content.service.CommunityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.discovery.DiscoverFilterQuery;
 import org.dspace.discovery.DiscoverQuery;
 import org.dspace.discovery.DiscoverResultItemIterator;
 import org.dspace.discovery.IndexableObject;
+import org.dspace.discovery.SearchService;
 import org.dspace.discovery.SearchServiceException;
 import org.dspace.discovery.SearchUtils;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoveryRelatedItemConfiguration;
+import org.dspace.discovery.configuration.DiscoverySearchFilter;
+import org.dspace.discovery.configuration.DiscoverySortConfiguration;
+import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
+import org.dspace.discovery.configuration.DiscoverySortFunctionConfiguration;
+import org.dspace.discovery.configuration.MultiLanguageDiscoverSearchFilterFacet;
 import org.dspace.discovery.indexobject.IndexableCollection;
 import org.dspace.discovery.indexobject.IndexableCommunity;
 import org.dspace.discovery.indexobject.IndexableItem;
 import org.dspace.discovery.indexobject.IndexableWorkflowItem;
 import org.dspace.discovery.indexobject.IndexableWorkspaceItem;
-import org.dspace.discovery.utils.DiscoverQueryBuilder;
-import org.dspace.discovery.utils.parameter.QueryBuilderSearchFilter;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.factory.EPersonServiceFactory;
@@ -115,6 +121,10 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     private String selectedItems;
 
     private Context context;
+
+    private Integer limit;
+
+    private Integer offset;
 
     @Override
     public void setup() throws ParseException {
