@@ -115,10 +115,6 @@ public class DiscoverResultIterator<T extends ReloadableEntity, PK extends Seria
         return currentSlotIterator.next();
     }
 
-    public long getTotalSearchResults() {
-        return this.currentDiscoverResult.getTotalSearchResults();
-    }
-
     private void uncacheEntitites() {
         List<IndexableObject> indexableObjects = currentDiscoverResult.getIndexableObjects();
         for (IndexableObject indexableObj : indexableObjects) {
