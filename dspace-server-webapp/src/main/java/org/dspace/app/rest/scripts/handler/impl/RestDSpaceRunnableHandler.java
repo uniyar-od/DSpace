@@ -57,6 +57,7 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
     private BitstreamService bitstreamService = ContentServiceFactory.getInstance().getBitstreamService();
     private ProcessService processService = ScriptServiceFactory.getInstance().getProcessService();
     private EPersonService ePersonService = EPersonServiceFactory.getInstance().getEPersonService();
+    private GroupService groupService = EPersonServiceFactory.getInstance().getGroupService();
 
     private Integer processId;
     private String scriptName;
@@ -355,6 +356,7 @@ public class RestDSpaceRunnableHandler implements DSpaceRunnableHandler {
         return specialGroups;
     }
 
+    @Override
     public Locale getLocale() {
         return this.locale;
     }
