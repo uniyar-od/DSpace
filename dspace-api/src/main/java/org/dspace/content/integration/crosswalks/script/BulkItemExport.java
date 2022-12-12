@@ -17,10 +17,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.StringUtils;
+import org.dspace.authorize.factory.AuthorizeServiceFactory;
+import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Item;
 import org.dspace.content.crosswalk.StreamDisseminationCrosswalk;
 import org.dspace.content.factory.ContentServiceFactory;
@@ -49,6 +53,8 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.kernel.ServiceManager;
 import org.dspace.scripts.DSpaceRunnable;
+import org.dspace.services.ConfigurationService;
+import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.utils.DSpace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +84,11 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
     private DiscoveryConfigurationService discoveryConfigurationService;
 
-    private DiscoverQueryBuilder queryBuilder;
+    private ConfigurationService configurationService;
+
+    private AuthorizeService authorizeService;
+
+    private SearchService searchService;
 
 
     private String query;
@@ -86,6 +96,8 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     private String scope;
 
     private String configuration;
+
+    private Map<String, String> filters;
 
     private String searchFilters;
 
@@ -104,7 +116,9 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         this.communityService = ContentServiceFactory.getInstance().getCommunityService();
         this.itemService = ContentServiceFactory.getInstance().getItemService();
         this.discoveryConfigurationService = new DSpace().getSingletonService(DiscoveryConfigurationService.class);
-        this.queryBuilder = SearchUtils.getQueryBuilder();
+        this.searchService = SearchUtils.getSearchService();
+        this.configurationService = DSpaceServicesFactory.getInstance().getConfigurationService();
+        this.authorizeService = AuthorizeServiceFactory.getInstance().getAuthorizeService();
 
         this.query = commandLine.getOptionValue('q');
         this.scope = commandLine.getOptionValue('s');
@@ -126,13 +140,20 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             throw new IllegalArgumentException("The export format must be provided");
         }
 
+        filters = parseSearchFilters();
+
         StreamDisseminationCrosswalk streamDisseminationCrosswalk = getCrosswalkByType(exportFormat);
         if (streamDisseminationCrosswalk == null) {
             throw new IllegalArgumentException("No dissemination configured for format " + exportFormat);
         }
 
+        int maxResults = maxResults();
+
         try {
-            DiscoverResultItemIterator itemsIterator = searchItemsToExport();
+            if (maxResults > 0) {
+                handler.logInfo("Export will be limited to " + maxResults + " items.");
+            }
+            DiscoverResultItemIterator itemsIterator = searchItemsToExport(maxResults);
             handler.logInfo("Found " + itemsIterator.getTotalSearchResults() + " items to export");
 
             performExport(itemsIterator, streamDisseminationCrosswalk);
@@ -172,7 +193,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         handler.logInfo("Items exported successfully into file named " + name);
     }
 
-    private DiscoverResultItemIterator searchItemsToExport() throws SearchServiceException, SQLException {
+    private DiscoverResultItemIterator searchItemsToExport(int maxResults) throws SearchServiceException, SQLException {
         IndexableObject<?, ?> scopeObject = resolveScope();
         DiscoveryConfiguration discoveryConfiguration = discoveryConfigurationService
             .getDiscoveryConfigurationByNameOrDso(configuration, scopeObject);
@@ -182,12 +203,14 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
 
         DiscoverQuery discoverQuery = buildDiscoveryQuery(discoveryConfiguration, scopeObject);
 
+
         if (isRelatedItem) {
-            return new DiscoverResultItemIterator(context, discoverQuery);
+            return new DiscoverResultItemIterator(context, discoverQuery, maxResults);
         } else {
-            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery);
+            return new DiscoverResultItemIterator(context, scopeObject, discoverQuery, maxResults);
         }
     }
+
 
     private IndexableObject<?, ?> resolveScope() {
         IndexableObject<?, ?> scopeObj = null;
@@ -219,9 +242,76 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
     }
 
     private DiscoverQuery buildDiscoveryQuery(DiscoveryConfiguration discoveryConfiguration,
-        IndexableObject<?, ?> scope) throws SQLException, SearchServiceException {
+        IndexableObject<?, ?> scope) throws SQLException {
 
-        List<String> dsoTypes = List.of(IndexableItem.TYPE, IndexableWorkspaceItem.TYPE, IndexableWorkflowItem.TYPE);
+        DiscoverQuery discoverQuery = buildBaseQuery(discoveryConfiguration, scope);
+        discoverQuery.addDSpaceObjectFilter(IndexableItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkspaceItem.TYPE);
+        discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
+        discoverQuery.setQuery(query);
+        discoverQuery.setMaxResults(QUERY_PAGINATION_SIZE);
+        discoverQuery.addFilterQueries(getFilterQueries(discoveryConfiguration));
+        if (entityType != null) {
+            discoverQuery.addFilterQueries("search.entitytype:" + entityType);
+        }
+        configureSorting(discoverQuery, discoveryConfiguration, scope);
+
+        return discoverQuery;
+    }
+
+    private DiscoverQuery buildBaseQuery(DiscoveryConfiguration discoveryConfiguration, IndexableObject<?, ?> scope) {
+        DiscoverQuery discoverQuery = new DiscoverQuery();
+
+        if (discoveryConfiguration == null) {
+            return discoverQuery;
+        }
+
+        discoverQuery.setDiscoveryConfigurationName(discoveryConfiguration.getId());
+
+        List<String> filterQueries = discoveryConfiguration.getDefaultFilterQueries();
+
+        for (String filterQuery : filterQueries) {
+            if (discoveryConfiguration instanceof DiscoveryRelatedItemConfiguration) {
+                discoverQuery.addFilterQueries(MessageFormat.format(filterQuery, scope.getID()));
+            } else {
+                discoverQuery.addFilterQueries(filterQuery);
+            }
+        }
+
+        return discoverQuery;
+    }
+
+    private String[] getFilterQueries(DiscoveryConfiguration discoveryConfiguration) throws SQLException {
+
+        List<String> filterQueries = new ArrayList<>();
+
+        for (String filterName : filters.keySet()) {
+            DiscoverySearchFilter searchFilter = discoveryConfiguration.getSearchFilter(filterName);
+            if (searchFilter == null) {
+                throw new IllegalArgumentException(filterName + " is not a valid search filter");
+            }
+
+            String value = filters.get(filterName);
+            String filterValue = StringUtils.substringBeforeLast(value, FILTER_OPERATOR_SEPARATOR);
+            String filterOperator = StringUtils.substringAfterLast(value, FILTER_OPERATOR_SEPARATOR);
+
+            String name = searchFilter.getIndexFieldName();
+            if (searchFilter instanceof MultiLanguageDiscoverSearchFilterFacet) {
+                name = context.getCurrentLocale().getLanguage() + "_" + name;
+            }
+
+            DiscoverFilterQuery filterQuery = searchService.toFilterQuery(context, name, filterOperator, filterValue,
+                    discoveryConfiguration);
+            if (filterQuery != null) {
+                filterQueries.add(filterQuery.getFilterQuery());
+            }
+        }
+
+        return filterQueries.toArray(new String[filterQueries.size()]);
+    }
+
+    private void configureSorting(DiscoverQuery discoverQuery, DiscoveryConfiguration discoveryConfiguration,
+        IndexableObject<?, ?> scopeObject) {
 
         String sortBy = null;
         String sortOrder = null;
@@ -231,42 +321,59 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
             sortOrder = sortSections.length > 1 ? sortSections[1] : null;
         }
 
-        List<QueryBuilderSearchFilter> filters = parseSearchFilters();
+        DiscoverySortConfiguration searchSortConfiguration = discoveryConfiguration.getSearchSortConfiguration();
 
-        DiscoverQuery discoverQuery = queryBuilder.buildQuery(context, scope, discoveryConfiguration, query, filters,
-            dsoTypes, QUERY_PAGINATION_SIZE, 0L, sortBy, sortOrder);
-
-        if (entityType != null) {
-            discoverQuery.addFilterQueries("search.entitytype:" + entityType);
+        if (sortBy == null) {
+            sortBy = searchSortConfiguration.getDefaultSortField();
+        }
+        if (sortOrder == null) {
+            sortOrder = searchSortConfiguration.getDefaultSortDirection();
         }
 
-        return discoverQuery;
+        DiscoverySortFieldConfiguration fieldConfig = searchSortConfiguration.getSortFieldConfiguration(sortBy);
+
+        if (fieldConfig == null) {
+            throw new IllegalArgumentException(sortBy + " is not a valid sort field");
+        }
+
+        String sortField = calculateSortField(fieldConfig, scopeObject);
+
+        if ("asc".equalsIgnoreCase(sortOrder)) {
+            discoverQuery.setSortField(sortField, DiscoverQuery.SORT_ORDER.asc);
+        } else if ("desc".equalsIgnoreCase(sortOrder)) {
+            discoverQuery.setSortField(sortField, DiscoverQuery.SORT_ORDER.desc);
+        } else {
+            throw new IllegalArgumentException(sortOrder + " is not a valid sort order");
+        }
+
     }
 
-    private List<QueryBuilderSearchFilter> parseSearchFilters() {
+    private String calculateSortField(DiscoverySortFieldConfiguration sortFieldConfig,
+        IndexableObject<?, ?> scopeObject) {
 
-        List<QueryBuilderSearchFilter> queryBuilderSearchFilters = new ArrayList<>();
-
-        if (searchFilters == null) {
-            return queryBuilderSearchFilters;
+        if (SORT_FUNCTION.equals(sortFieldConfig.getType()) && scopeObject != null) {
+            return ((DiscoverySortFunctionConfiguration) sortFieldConfig).getFunction(scopeObject.getID());
         }
 
+        return searchService.toSortFieldIndex(sortFieldConfig.getMetadataField(), sortFieldConfig.getType());
+    }
+
+    private Map<String, String> parseSearchFilters() {
+        if (searchFilters == null) {
+            return new HashMap<String, String>();
+        }
+
+        Map<String, String> filterMap = new HashMap<String, String>();
         String[] filters = searchFilters.split("&");
         for (String filter : filters) {
             String[] filterSections = filter.split("=");
             if (filterSections.length != 2) {
                 throw new IllegalArgumentException("Invalid filter: " + filter);
             }
-
-            String name = filterSections[0];
-            String filterValue = substringBeforeLast(filterSections[1], FILTER_OPERATOR_SEPARATOR);
-            String operator = substringAfterLast(filterSections[1], FILTER_OPERATOR_SEPARATOR);
-
-            queryBuilderSearchFilters.add(new QueryBuilderSearchFilter(name, operator, filterValue));
-
+            filterMap.put(filterSections[0], filterSections[1]);
         }
 
-        return queryBuilderSearchFilters;
+        return filterMap;
 
     }
 
@@ -296,4 +403,15 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         return new DSpace().getSingletonService(StreamDisseminationCrosswalkMapper.class).getByType(type);
     }
 
+    private int maxResults() throws SQLException {
+
+        StringBuilder property = new StringBuilder("bulk-export.limit.");
+        if (authorizeService.isAdmin(context)) {
+            property.append("admin");
+        } else {
+            property.append(Optional.ofNullable(context.getCurrentUser()).map(ignored -> "loggedIn")
+                                .orElse("notLoggedIn"));
+        }
+        return configurationService.getIntProperty(property.toString(), -1);
+    }
 }
