@@ -86,7 +86,7 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
         }
     }
 
-    private static void addReadToCollectionAdmin(SolrInputDocument document, WorkspaceItem workspaceItem) {
+    private void addReadToCollectionAdmin(SolrInputDocument document, WorkspaceItem workspaceItem) {
         Optional.ofNullable(workspaceItem.getCollection().getAdministrators())
                 .ifPresent(group -> document.addField("read", "g" + group.getID().toString()));
     }
@@ -114,16 +114,9 @@ public class SharedWorkspaceSolrIndexPlugin implements SolrServiceIndexPlugin, S
                                      .map(mds -> itemService.getMetadataByMetadataString(item, mds))
                                      .flatMap(Collection::stream)
                                      .collect(Collectors.toList());
-
-//        List<MetadataValue> coworkers = new LinkedList<>();
-//        coworkers.addAll(
-//            itemService.getMetadataByMetadataString(item, "dc", "contributor", "author", null));
-//        coworkers.addAll(
-//            itemService.getMetadata(item, "dc", "contributor", "editor", null));
-//        return coworkers;
     }
 
-    private static void addRead(SolrInputDocument document, Optional<EPerson> subm) {
+    private void addRead(SolrInputDocument document, Optional<EPerson> subm) {
         subm.ifPresent(submitter -> document.addField("read", "e" + submitter.getID().toString()));
     }
 
