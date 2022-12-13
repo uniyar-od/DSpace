@@ -9,6 +9,8 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.dspace.builder.ItemBuilder.createItem;
+import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
@@ -1255,6 +1257,7 @@ public class ScriptRestRepositoryIT extends AbstractControllerIntegrationTest {
     }
 
 
+    @Override
     @After
     public void destroy() throws Exception {
         CollectionUtils.emptyIfNull(processService.findAll(context)).stream().forEach(process -> {
