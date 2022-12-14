@@ -103,6 +103,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.util.UUIDUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -2810,6 +2811,83 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$",
                     Matchers.is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssuedAndSubject(witem,
                             "New Title", "2017-10-17", "ExtraEntry"))))
+        ;
+    }
+
+    @Test
+    public void patchByCoauthorTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Publications")
+                                           .withEntityType("Publication").build();
+
+        Collection researcherProfiles = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Researcher Profiles")
+                                           .withEntityType("Person").build();
+
+        EPerson coAuthorOwner = EPersonBuilder.createEPerson(context)
+                                         .withEmail("eperson1@mail.com")
+                                         .withPassword("qwerty01")
+                                         .build();
+        Item coAuthor = ItemBuilder.createItem(context, researcherProfiles)
+                                .withTitle("John Smith")
+                                .withFullName("John Fitzgerald Smith")
+                                .withDspaceObjectOwner(coAuthorOwner)
+                                .build();
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, publications)
+                                                  .withTitle("Workspace Item 1")
+                                                  .withIssueDate("2017-10-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .withAuthor(coAuthor.getName(), UUIDUtils.toString(coAuthor.getID()))
+                                                  .grantLicense()
+                                                  .build();
+
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+
+        context.restoreAuthSystemState();
+
+        // a simple patch to update an existent metadata
+        List<Operation> updateTitle = new ArrayList<Operation>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "New Title");
+        updateTitle.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+
+        String patchBody = getPatchContent(updateTitle);
+
+
+        String authToken = getAuthToken(coAuthorOwner.getEmail(), "qwerty01");
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                                         .content(patchBody)
+                                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.errors").doesNotExist())
+                            .andExpect(jsonPath("$",
+                                                // check the new title and untouched values
+                                                Matchers.is(WorkspaceItemMatcher
+                                                                .matchItemWithTitleAndDateIssuedAndSubject(
+                                                                    witem,
+                                                                    "New Title", "2017-10-17",
+                                                                    "ExtraEntry"))));
+
+        // verify that the patch changes have been persisted
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.errors").doesNotExist())
+                            .andExpect(jsonPath("$",
+                                                Matchers.is(
+                                                    WorkspaceItemMatcher
+                                                        .matchItemWithTitleAndDateIssuedAndSubject(
+                                                            witem,
+                                                            "New Title", "2017-10-17",
+                                                            "ExtraEntry"))))
         ;
     }
 
@@ -8413,7 +8491,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
-    public void affterAddingAccessConditionBitstreamMustBeDownloadableTest() throws Exception {
+    public void afterAddingAccessConditionBitstreamMustBeDownloadableTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         EPerson submitter = EPersonBuilder.createEPerson(context)
