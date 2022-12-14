@@ -2845,7 +2845,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                                   .withIssueDate("2017-10-17")
                                                   .withSubject("ExtraEntry")
                                                   .withAuthor(coAuthor.getName(), UUIDUtils.toString(coAuthor.getID()))
-                                                  .grantLicense()
+//                                                  .grantLicense()
                                                   .build();
 
         //disable file upload mandatory
@@ -2857,7 +2857,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         List<Operation> updateTitle = new ArrayList<Operation>();
         Map<String, String> value = new HashMap<String, String>();
         value.put("value", "New Title");
-        updateTitle.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
+        updateTitle.add(new ReplaceOperation("/sections/publication/dc.title/0", value));
 
         String patchBody = getPatchContent(updateTitle);
 
@@ -2868,27 +2868,23 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                                          .content(patchBody)
                                          .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
                             .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
-                            .andExpect(jsonPath("$",
-                                                // check the new title and untouched values
-                                                Matchers.is(WorkspaceItemMatcher
-                                                                .matchItemWithTitleAndDateIssuedAndSubject(
-                                                                    witem,
-                                                                    "New Title", "2017-10-17",
-                                                                    "ExtraEntry"))));
+                            .andExpect(jsonPath("$.sections.publication['dc.title'][0].value",
+                                                is("New Title")))
+                            .andExpect(jsonPath("$.sections.publication['dc.date.issued'][0].value",
+                                                is("2017-10-17")))
+                            .andExpect(jsonPath("$.sections.publication_indexing['dc.subject'][0].value",
+                                                is("ExtraEntry")));
+
 
         // verify that the patch changes have been persisted
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
                             .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
-                            .andExpect(jsonPath("$",
-                                                Matchers.is(
-                                                    WorkspaceItemMatcher
-                                                        .matchItemWithTitleAndDateIssuedAndSubject(
-                                                            witem,
-                                                            "New Title", "2017-10-17",
-                                                            "ExtraEntry"))))
-        ;
+                            .andExpect(jsonPath("$.sections.publication['dc.title'][0].value",
+                                                is("New Title")))
+                            .andExpect(jsonPath("$.sections.publication['dc.date.issued'][0].value",
+                                                is("2017-10-17")))
+                            .andExpect(jsonPath("$.sections.publication_indexing['dc.subject'][0].value",
+                                                is("ExtraEntry")));
     }
 
     @Test
