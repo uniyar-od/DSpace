@@ -170,7 +170,7 @@ public class BulkItemExport extends DSpaceRunnable<BulkItemExportScriptConfigura
         filters = parseSearchFilters();
 
         StreamDisseminationCrosswalk streamDisseminationCrosswalk = getCrosswalkByType(exportFormat);
-        if (Objects.isNull(streamDisseminationCrosswalk)) {
+        if (streamDisseminationCrosswalk == null) {
             throw new IllegalArgumentException("No dissemination configured for format " + exportFormat);
         }
 
