@@ -186,14 +186,6 @@ public class AccountServiceImpl implements AccountService {
         registrationDataService.deleteByToken(context, token);
     }
 
-    @Override
-    public boolean verifyPasswordStructure(String password) {
-        if (StringUtils.length(password) < 6) {
-            return false;
-        }
-        return true;
-    }
-
     /**
      * THIS IS AN INTERNAL METHOD. THE SEND PARAMETER ALLOWS IT TO BE USED FOR
      * TESTING PURPOSES.

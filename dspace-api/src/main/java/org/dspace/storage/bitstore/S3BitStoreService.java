@@ -15,6 +15,8 @@ import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
+import java.util.function.Supplier;
+import javax.validation.constraints.NotNull;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
@@ -29,12 +31,20 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.amazonaws.services.s3.transfer.Download;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import com.amazonaws.services.s3.transfer.Upload;
 import com.amazonaws.services.s3.transfer.model.UploadResult;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpStatus;
@@ -46,6 +56,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.storage.bitstore.factory.StorageServiceFactory;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
+import org.dspace.util.FunctionalUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -54,9 +65,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  * NB: you must have obtained an account with Amazon to use this store
  *
  * @author Richard Rodgers, Peter Dietz
+ * @author Vincenzo Mecca (vins01-4science - vincenzo.mecca at 4science.com)
+ *
  */
 
-public class S3BitStoreService implements BitStoreService {
+public class S3BitStoreService extends BaseBitStoreService {
+    protected static final String DEFAULT_BUCKET_PREFIX = "dspace-asset-";
     /**
      * log4j log
      */
@@ -69,8 +83,21 @@ public class S3BitStoreService implements BitStoreService {
      * Checksum algorithm
      */
     private static final String CSA = "MD5";
+
+    // These settings control the way an identifier is hashed into
+    // directory and file names
+    //
+    // With digitsPerLevel 2 and directoryLevels 3, an identifier
+    // like 12345678901234567890 turns into the relative name
+    // /12/34/56/12345678901234567890.
+    //
+    // You should not change these settings if you have data in the
+    // asset store, as the BitstreamStorageManager will be unable
+    // to find your existing data.
     protected static final int digitsPerLevel = 2;
     protected static final int directoryLevels = 3;
+
+    private boolean enabled = false;
 
     private String awsAccessKey;
     private String awsSecretKey;
@@ -92,10 +119,49 @@ public class S3BitStoreService implements BitStoreService {
      */
     private AmazonS3 s3Service = null;
 
+    /**
+     * S3 transfer manager
+     * this is reused between put calls to use less resources for multiple uploads
+     */
+    private TransferManager tm = null;
+
     private static final ConfigurationService configurationService
             = DSpaceServicesFactory.getInstance().getConfigurationService();
 
+    /**
+     * Utility method for generate AmazonS3 builder
+     *
+     * @param regions wanted regions in client
+     * @param awsCredentials credentials of the client
+     * @return builder with the specified parameters
+     */
+    protected static Supplier<AmazonS3> amazonClientBuilderBy(
+            @NotNull Regions regions,
+            @NotNull AWSCredentials awsCredentials
+    ) {
+        return () -> AmazonS3ClientBuilder.standard()
+                .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
+                .withRegion(regions)
+                .build();
+    }
+
     public S3BitStoreService() {}
+
+    /**
+     * This constructor is used for test purpose.
+     * In this way is possible to use a mocked instance of AmazonS3
+     *
+     * @param s3Service mocked AmazonS3 service
+     */
+    protected S3BitStoreService(AmazonS3 s3Service, TransferManager tm) {
+        this.s3Service = s3Service;
+        this.tm = tm;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
 
     /**
      * Initialize the asset store
@@ -106,50 +172,70 @@ public class S3BitStoreService implements BitStoreService {
      */
     @Override
     public void init() throws IOException {
-        if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
-            log.warn("Use local defined S3 credentials");
-            // region
-            Regions regions = Regions.DEFAULT_REGION;
-            if (StringUtils.isNotBlank(awsRegionName)) {
-                try {
-                    regions = Regions.fromName(awsRegionName);
-                } catch (IllegalArgumentException e) {
-                    log.warn("Invalid aws_region: " + awsRegionName);
-                }
-            }
-            // init client
-            AWSCredentials awsCredentials = new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey());
-            s3Service = AmazonS3ClientBuilder.standard()
-                    .withCredentials(new AWSStaticCredentialsProvider(awsCredentials))
-                    .withRegion(regions)
-                    .build();
-            log.warn("S3 Region set to: " + regions.getName());
-        } else {
-            log.info("Using a IAM role or aws environment credentials");
-            s3Service = AmazonS3ClientBuilder.defaultClient();
-        }
 
-        // bucket name
-        if (StringUtils.isEmpty(bucketName)) {
-            // get hostname of DSpace UI to use to name bucket
-            String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
-            bucketName = "dspace-asset-" + hostname;
-            log.warn("S3 BucketName is not configured, setting default: " + bucketName);
+        if (this.isInitialized()) {
+            return;
         }
 
         try {
-            if (!s3Service.doesBucketExist(bucketName)) {
-                s3Service.createBucket(bucketName);
-                log.info("Creating new S3 Bucket: " + bucketName);
+            if (StringUtils.isNotBlank(getAwsAccessKey()) && StringUtils.isNotBlank(getAwsSecretKey())) {
+                log.warn("Use local defined S3 credentials");
+                // region
+                Regions regions = Regions.DEFAULT_REGION;
+                if (StringUtils.isNotBlank(awsRegionName)) {
+                    try {
+                        regions = Regions.fromName(awsRegionName);
+                    } catch (IllegalArgumentException e) {
+                        log.warn("Invalid aws_region: " + awsRegionName);
+                    }
+                }
+                // init client
+                s3Service = FunctionalUtils.getDefaultOrBuild(
+                        this.s3Service,
+                        amazonClientBuilderBy(
+                                regions,
+                                new BasicAWSCredentials(getAwsAccessKey(), getAwsSecretKey())
+                                )
+                        );
+                log.warn("S3 Region set to: " + regions.getName());
+            } else {
+                log.info("Using a IAM role or aws environment credentials");
+                s3Service = FunctionalUtils.getDefaultOrBuild(
+                        this.s3Service,
+                        AmazonS3ClientBuilder::defaultClient
+                        );
             }
-        } catch (AmazonClientException e) {
-            log.error(e);
-            throw new IOException(e);
+
+            // bucket name
+            if (StringUtils.isEmpty(bucketName)) {
+                // get hostname of DSpace UI to use to name bucket
+                String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
+                bucketName = DEFAULT_BUCKET_PREFIX + hostname;
+                log.warn("S3 BucketName is not configured, setting default: " + bucketName);
+            }
+
+            try {
+                if (!s3Service.doesBucketExist(bucketName)) {
+                    s3Service.createBucket(bucketName);
+                    log.info("Creating new S3 Bucket: " + bucketName);
+                }
+            } catch (AmazonClientException e) {
+                throw new IOException(e);
+            }
+            this.initialized = true;
+            log.info("AWS S3 Assetstore ready to go! bucket:" + bucketName);
+        } catch (Exception e) {
+            this.initialized = false;
+            log.error("Can't initialize this store!", e);
         }
 
         log.info("AWS S3 Assetstore ready to go! bucket:" + bucketName);
-    }
 
+        tm = FunctionalUtils.getDefaultOrBuild(tm, () -> TransferManagerBuilder.standard()
+                                                               .withAlwaysCalculateMultipartMd5(true)
+                                                               .withS3Client(s3Service)
+                                                               .build());
+    }
 
     /**
      * Return an identifier unique to this asset store instance
@@ -245,8 +331,8 @@ public class S3BitStoreService implements BitStoreService {
             // Should never happen
             log.warn("Caught NoSuchAlgorithmException", nsae);
         } finally {
-            if (scratchFile.exists()) {
-                scratchFile.delete();
+            if (!scratchFile.delete()) {
+                scratchFile.deleteOnExit();
             }
         }
     }
@@ -269,19 +355,8 @@ public class S3BitStoreService implements BitStoreService {
         String key = getFullKey(bitstream.getInternalId());
         try {
             ObjectMetadata objectMetadata = s3Service.getObjectMetadata(bucketName, key);
-
             if (objectMetadata != null) {
-                if (attrs.containsKey("size_bytes")) {
-                    attrs.put("size_bytes", objectMetadata.getContentLength());
-                }
-                if (attrs.containsKey("checksum")) {
-                    attrs.put("checksum", objectMetadata.getETag());
-                    attrs.put("checksum_algorithm", CSA);
-                }
-                if (attrs.containsKey("modified")) {
-                    attrs.put("modified", String.valueOf(objectMetadata.getLastModified().getTime()));
-                }
-                return attrs;
+                return this.about(objectMetadata, attrs);
             }
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == HttpStatus.SC_NOT_FOUND) {
@@ -292,6 +367,34 @@ public class S3BitStoreService implements BitStoreService {
             throw new IOException(e);
         }
         return null;
+    }
+
+    /**
+     * Populates map values by checking key existence
+     * <br>
+     * Adds technical metadata about an asset in the asset store, like:
+     * <ul>
+     *  <li>size_bytes</li>
+     *  <li>checksum</li>
+     *  <li>checksum_algorithm</li>
+     *  <li>modified</li>
+     * </ul>
+     *
+     * @param objectMetadata containing technical data
+     * @param attrs map with keys populated
+     * @return Map of enriched attrs with values
+     */
+    public Map about(ObjectMetadata objectMetadata, Map attrs) {
+        if (objectMetadata != null) {
+            this.putValueIfExistsKey(attrs, SIZE_BYTES, objectMetadata.getContentLength());
+
+            // put CHECKSUM_ALGORITHM if exists CHECKSUM
+            this.putValueIfExistsKey(attrs, CHECKSUM, objectMetadata.getETag());
+            this.putEntryIfExistsKey(attrs, CHECKSUM, Map.entry(CHECKSUM_ALGORITHM, CSA));
+
+            this.putValueIfExistsKey(attrs, MODIFIED, String.valueOf(objectMetadata.getLastModified().getTime()));
+        }
+        return attrs;
     }
 
     /**
@@ -321,7 +424,7 @@ public class S3BitStoreService implements BitStoreService {
         StringBuilder bufFilename = new StringBuilder();
         if (StringUtils.isNotEmpty(subfolder)) {
             bufFilename.append(subfolder);
-            bufFilename.append(File.separator);
+            appendSeparator(bufFilename);
         }
 
         if (this.useRelativePath) {
@@ -338,27 +441,26 @@ public class S3BitStoreService implements BitStoreService {
         return bufFilename.toString();
     }
 
+    /**
+     * there are 2 cases:
+     * - conventional bitstream, conventional storage
+     * - registered bitstream, conventional storage
+     *  conventional bitstream: dspace ingested, dspace random name/path
+     *  registered bitstream: registered to dspace, any name/path
+     *
+     * @param sInternalId
+     * @return Computed Relative path
+     */
     private String getRelativePath(String sInternalId) {
         BitstreamStorageService bitstreamStorageService = StorageServiceFactory.getInstance()
                 .getBitstreamStorageService();
-        // there are 2 cases:
-        // -conventional bitstream, conventional storage
-        // -registered bitstream, conventional storage
-        // conventional bitstream - dspace ingested, dspace random name/path
-        // registered bitstream - registered to dspace, any name/path
+
         String sIntermediatePath = StringUtils.EMPTY;
         if (bitstreamStorageService.isRegisteredBitstream(sInternalId)) {
             sInternalId = sInternalId.substring(2);
         } else {
-            // Sanity Check: If the internal ID contains a
-            // pathname separator, it's probably an attempt to
-            // make a path traversal attack, so ignore the path
-            // prefix.  The internal-ID is supposed to be just a
-            // filename, so this will not affect normal operation.
-            if (sInternalId.contains(File.separator)) {
-                sInternalId = sInternalId.substring(sInternalId.lastIndexOf(File.separator) + 1);
-            }
-            sIntermediatePath = intermediatePath(sInternalId);
+            sInternalId = sanitizeIdentifier(sInternalId);
+            sIntermediatePath = getIntermediatePath(sInternalId);
         }
 
         return sIntermediatePath + sInternalId;
@@ -375,6 +477,10 @@ public class S3BitStoreService implements BitStoreService {
         }
         buf.append(File.separator);
         return buf.toString();
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     public String getAwsAccessKey() {
@@ -436,27 +542,37 @@ public class S3BitStoreService implements BitStoreService {
      * @throws Exception generic exception
      */
     public static void main(String[] args) throws Exception {
-        //TODO use proper CLI, or refactor to be a unit test. Can't mock this without keys though.
+        //TODO Perhaps refactor to be a unit test. Can't mock this without keys though.
 
         // parse command line
-        String assetFile = null;
-        String accessKey = null;
-        String secretKey = null;
+        Options options = new Options();
+        Option option;
 
-        for (int i = 0; i < args.length; i += 2) {
-            if (args[i].startsWith("-a")) {
-                accessKey = args[i + 1];
-            } else if (args[i].startsWith("-s")) {
-                secretKey = args[i + 1];
-            } else if (args[i].startsWith("-f")) {
-                assetFile = args[i + 1];
-            }
-        }
+        option = Option.builder("a").desc("access key").hasArg().required().build();
+        options.addOption(option);
 
-        if (accessKey == null || secretKey == null || assetFile == null) {
-            System.out.println("Missing arguments - exiting");
+        option = Option.builder("s").desc("secret key").hasArg().required().build();
+        options.addOption(option);
+
+        option = Option.builder("f").desc("asset file name").hasArg().required().build();
+        options.addOption(option);
+
+        DefaultParser parser = new DefaultParser();
+
+        CommandLine command;
+        try {
+            command = parser.parse(options, args);
+        } catch (ParseException e) {
+            System.err.println(e.getMessage());
+            new HelpFormatter().printHelp(
+                    S3BitStoreService.class.getSimpleName() + "options", options);
             return;
         }
+
+        String accessKey = command.getOptionValue("a");
+        String secretKey = command.getOptionValue("s");
+        String assetFile = command.getOptionValue("f");
+
         S3BitStoreService store = new S3BitStoreService();
 
         AWSCredentials awsCredentials = new BasicAWSCredentials(accessKey, secretKey);
@@ -470,9 +586,9 @@ public class S3BitStoreService implements BitStoreService {
         // get hostname of DSpace UI to use to name bucket
         String hostname = Utils.getHostName(configurationService.getProperty("dspace.ui.url"));
         //Bucketname should be lowercase
-        store.bucketName = "dspace-asset-" + hostname + ".s3test";
+        store.bucketName = DEFAULT_BUCKET_PREFIX + hostname + ".s3test";
         store.s3Service.createBucket(store.bucketName);
-/* Broken in DSpace 6 TODO Refactor
+        /* Broken in DSpace 6 TODO Refactor
         // time everything, todo, swtich to caliper
         long start = System.currentTimeMillis();
         // Case 1: store a file
