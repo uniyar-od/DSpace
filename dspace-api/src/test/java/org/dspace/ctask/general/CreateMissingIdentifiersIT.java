@@ -21,6 +21,7 @@ import org.dspace.curate.Curator;
 import org.dspace.identifier.VersionedHandleIdentifierProviderWithCanonicalHandles;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -28,6 +29,7 @@ import org.junit.Test;
  *
  * @author mwood
  */
+@Ignore
 public class CreateMissingIdentifiersIT
         extends AbstractIntegrationTestWithDatabase {
     private static final String P_TASK_DEF
