@@ -1349,21 +1349,25 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         UsageReportPointDsoTotalVisitsRest expectedPoint1 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint1.addValue("views", 1);
         expectedPoint1.setType("item");
+        expectedPoint1.setLabel("My item");
         expectedPoint1.setId(item.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint2 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint2.addValue("views", 2);
         expectedPoint2.setType("item");
+        expectedPoint2.setLabel("My item 2");
         expectedPoint2.setId(item2.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint3 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint3.addValue("views", 1);
         expectedPoint3.setType("item");
+        expectedPoint3.setLabel("My item 3");
         expectedPoint3.setId(item3.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint4 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint4.addValue("views", 1);
         expectedPoint4.setType("item");
+        expectedPoint4.setLabel("My item 4");
         expectedPoint4.setId(item4.getID().toString());
 
         List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2, expectedPoint3, expectedPoint4);
@@ -1479,16 +1483,19 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         UsageReportPointDsoTotalVisitsRest expectedPoint1 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint1.addValue("views", 3);
         expectedPoint1.setType("item");
+        expectedPoint1.setLabel("Item 1");
         expectedPoint1.setId(item1.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint2 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint2.addValue("views", 3);
         expectedPoint2.setType("item");
+        expectedPoint2.setLabel("Item 2");
         expectedPoint2.setId(item2.getID().toString());
 
         UsageReportPointDsoTotalVisitsRest expectedPoint3 = new UsageReportPointDsoTotalVisitsRest();
         expectedPoint3.addValue("views", 2);
         expectedPoint3.setType("item");
+        expectedPoint3.setLabel("Item 3");
         expectedPoint3.setId(item3.getID().toString());
 
         List<UsageReportPointRest> points = List.of(expectedPoint1, expectedPoint2, expectedPoint3);
@@ -2212,7 +2219,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         UsageReportPointDsoTotalVisitsRest totalVisitRelationProjects = new UsageReportPointDsoTotalVisitsRest();
         totalVisitRelationProjects.addValue("views", 0);
         totalVisitRelationProjects.setType("item");
-        totalVisitRelation.setLabel("Views");
+        totalVisitRelationProjects.setLabel("Views");
         totalVisitRelationProjects.setId(person.getID().toString());
 
         //create expected report points for city visits

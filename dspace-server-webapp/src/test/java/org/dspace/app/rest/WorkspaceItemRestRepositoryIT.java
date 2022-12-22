@@ -1058,10 +1058,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         Collection col1 = CollectionBuilder.createCollection(context, child1)
                 .withName("Collection 1")
                 .withSubmitterGroup(eperson)
+                .withEntityType("Publication")
                 .build();
         Collection col2 = CollectionBuilder.createCollection(context, child1)
                 .withName("Collection 2")
                 .withSubmitterGroup(eperson)
+                .withEntityType("Publication")
                 .build();
 
         InputStream bibtex = getClass().getResourceAsStream("bibtex-test-article.bib");
@@ -1079,10 +1081,10 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                     // create should return 200, 201 (created) is better for single resource
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.title'][0].value",
+                                    ".sections.publication['dc.title'][0].value",
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.type'][0].value",
+                                    ".sections.publication['dc.type'][0].value",
                             is("article")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
@@ -1112,10 +1114,10 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             .param("owningCollection", col2.getID().toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.title'][0].value",
+                                    ".sections.publication['dc.title'][0].value",
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.type'][0].value",
+                                    ".sections.publication['dc.type'][0].value",
                             is("article")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
@@ -1155,10 +1157,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         Collection col1 = CollectionBuilder.createCollection(context, child1)
                 .withName("Collection 1")
                 .withSubmitterGroup(eperson)
+                .withEntityType("Publication")
                 .build();
         Collection col2 = CollectionBuilder.createCollection(context, child1)
                 .withName("Collection 2")
                 .withSubmitterGroup(eperson)
+                .withEntityType("Publication")
                 .build();
 
         InputStream bibtex = getClass().getResourceAsStream("bibtex-test-diacritics.bib");
@@ -1176,7 +1180,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                     // create should return 200, 201 (created) is better for single resource
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.workspaceitems[0].sections." +
-                                    "traditionalpageone['dc.title'][0].value",
+                                    "publication['dc.title'][0].value",
                             is("The German umlauts: ÄÖüß")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
@@ -1206,7 +1210,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             .param("owningCollection", col2.getID().toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.workspaceitems[0].sections." +
-                                    "traditionalpageone['dc.title'][0].value",
+                                    "publication['dc.title'][0].value",
                             is("The German umlauts: ÄÖüß")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
@@ -1251,10 +1255,12 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         Collection col1 = CollectionBuilder.createCollection(context, child1)
                 .withName("Collection 1")
                 .withSubmitterGroup(eperson)
+            .withEntityType("Publication")
                 .build();
         Collection col2 = CollectionBuilder.createCollection(context, child1)
                 .withName("Collection 2")
                 .withSubmitterGroup(eperson)
+            .withEntityType("Publication")
                 .build();
 
         InputStream bibtex = getClass().getResourceAsStream("bibtex-test-multiple-authors.bib");
@@ -1273,16 +1279,16 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                     // create should return 200, 201 (created) is better for single resource
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.title'][0].value",
+                                    ".sections.publication['dc.title'][0].value",
                             is("My Article")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.contributor.author'][0].value",
+                                    ".sections.publication['dc.contributor.author'][0].value",
                             is("A. Nauthor")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.contributor.author'][1].value",
+                                    ".sections.publication['dc.contributor.author'][1].value",
                             is("A. Nother")))
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.contributor.author'][2].value",
+                                    ".sections.publication['dc.contributor.author'][2].value",
                             is("A. Third")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
@@ -1312,7 +1318,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                             .param("owningCollection", col2.getID().toString()))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$._embedded.workspaceitems[0]" +
-                                    ".sections.traditionalpageone['dc.title'][0].value",
+                                    ".sections.publication['dc.title'][0].value",
                             is("My Article")))
                     .andExpect(
                             jsonPath("$._embedded.workspaceitems[0]._embedded.collection.id",
