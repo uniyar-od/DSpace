@@ -8,6 +8,7 @@
 package org.dspace.layout;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,6 +42,10 @@ public class CrisLayoutSection {
         this.id = id;
         this.visible = visible;
         this.sectionComponents = sectionComponents;
+    }
+
+    public CrisLayoutSection(String id, boolean visible) {
+        this(id, visible, Collections.emptyList());
     }
 
     public String getId() {
