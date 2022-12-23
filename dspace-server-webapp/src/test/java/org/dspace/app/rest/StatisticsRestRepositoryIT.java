@@ -177,11 +177,13 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         //first publication for person item
         publicationVisited1 = ItemBuilder.createItem(context, collectionVisited)
                                          .withEntityType("Publication")
+                                         .withTitle("publicationVisited1")
                                          .withAuthor(person.getName(), person.getID().toString())
                                          .build();
         //second publication for person item
         publicationVisited2 = ItemBuilder.createItem(context, collectionVisited)
                                          .withEntityType("Publication")
+                                         .withTitle("publicationVisited2")
                                          .withAuthor(person.getName(), person.getID().toString())
                                          .build();
         //bitstream for first publication of person
@@ -2030,20 +2032,14 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
                 .content(mapper.writeValueAsBytes(viewEventRest))
                 .contentType(contentType))
                 .andExpect(status().isCreated());
+        getExpectedDsoViews(communityVisited, 1);
+        UsageReportPointDsoTotalVisitsRest expectedPointTotalVisits = getExpectedDsoViews(communityVisited, 1);
 
-        UsageReportPointDsoTotalVisitsRest expectedPointTotalVisits = new UsageReportPointDsoTotalVisitsRest();
-        expectedPointTotalVisits.addValue("views", 1);
-        expectedPointTotalVisits.setType("community");
-        expectedPointTotalVisits.setId(communityVisited.getID().toString());
+        UsageReportPointCityRest expectedPointCity = getExpectedCityViews("New York", 1);
 
-        UsageReportPointCityRest expectedPointCity = new UsageReportPointCityRest();
-        expectedPointCity.addValue("views", 1);
-        expectedPointCity.setId("New York");
+        UsageReportPointCountryRest expectedPointCountry = getExpectedCountryViews(Locale.US.getCountry(),
+                Locale.US.getDisplayCountry(context.getCurrentLocale()), 1);
 
-        UsageReportPointCountryRest expectedPointCountry = new UsageReportPointCountryRest();
-        expectedPointCountry.addValue("views", 1);
-        expectedPointCountry.setIdAndLabel(Locale.US.getCountry(),
-                Locale.US.getDisplayCountry(context.getCurrentLocale()));
         //add one day to the moment when we visit the community
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
         Calendar cal = Calendar.getInstance();
@@ -2371,42 +2367,31 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         totalVisitRelation.setType("item");
         totalVisitRelation.setLabel("Views");
         totalVisitRelation.setId(orgUnit.getID().toString());
+
         //create expected report points for city visits with relation
-        UsageReportPointCityRest expectedPointCityWithRelation = new UsageReportPointCityRest();
-        expectedPointCityWithRelation.addValue("views", 3);
-        expectedPointCityWithRelation.setId("New York");
+        UsageReportPointCityRest expectedPointCityWithRelation = getExpectedCityViews("New York", 3);
+
         //create expected report points for country visits with relation
-        UsageReportPointCountryRest expectedPointCountryWithRelation = new UsageReportPointCountryRest();
-        expectedPointCountryWithRelation.addValue("views", 3);
-        expectedPointCountryWithRelation.setIdAndLabel(Locale.US.getCountry(),
-                Locale.US.getDisplayCountry(context.getCurrentLocale()));
+        UsageReportPointCountryRest expectedPointCountryWithRelation = getExpectedCountryViews(Locale.US.getCountry(),
+                Locale.US.getDisplayCountry(context.getCurrentLocale()), 3);
+
         //top items expected report points
         List<UsageReportPointRest> points = new ArrayList<>();
         //first publication
-        UsageReportPointDsoTotalVisitsRest expectedPoint1 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPoint1.addValue("views", 2);
-        expectedPoint1.setType("item");
-        expectedPoint1.setId(publicationVisited2.getID().toString());
+        UsageReportPointDsoTotalVisitsRest expectedPoint1 = getExpectedDsoViews(publicationVisited2, 2);
         points.add(expectedPoint1);
         //second publication
-        UsageReportPointDsoTotalVisitsRest expectedPoint2 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPoint2.addValue("views", 1);
-        expectedPoint2.setType("item");
-        expectedPoint2.setId(publicationVisited1.getID().toString());
+        UsageReportPointDsoTotalVisitsRest expectedPoint2 = getExpectedDsoViews(publicationVisited1, 1);
         points.add(expectedPoint2);
 
         //total downloads expected points
         List<UsageReportPointRest> totalDownloadsPoints = new ArrayList<>();
-        UsageReportPointDsoTotalVisitsRest expectedPointTotalVisitsBit1 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPointTotalVisitsBit1.addValue("views", 1);
-        expectedPointTotalVisitsBit1.setLabel("bitstream2");
-        expectedPointTotalVisitsBit1.setId(bitstreampublication_first.getID().toString());
-        expectedPointTotalVisitsBit1.setType("bitstream");
-        UsageReportPointDsoTotalVisitsRest expectedPointTotalVisitsBit2 = new UsageReportPointDsoTotalVisitsRest();
-        expectedPointTotalVisitsBit2.addValue("views", 1);
-        expectedPointTotalVisitsBit2.setLabel("bitstream1");
-        expectedPointTotalVisitsBit2.setId(bitstreampublication_second.getID().toString());
-        expectedPointTotalVisitsBit2.setType("bitstream");
+        UsageReportPointDsoTotalVisitsRest expectedPointTotalVisitsBit1 = getExpectedDsoViews(
+                bitstreampublication_first, 1);
+
+        UsageReportPointDsoTotalVisitsRest expectedPointTotalVisitsBit2 = getExpectedDsoViews(
+                bitstreampublication_second, 1);
+
         totalDownloadsPoints.add(expectedPointTotalVisitsBit1);
         totalDownloadsPoints.add(expectedPointTotalVisitsBit2);
 
@@ -2416,10 +2401,12 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         UsageReportPointDsoTotalVisitsRest views = new UsageReportPointDsoTotalVisitsRest();
         views.addValue("views", 3);
         views.setType("item");
+        views.setLabel("Item visits");
         //downloads
         UsageReportPointDsoTotalVisitsRest downloads = new UsageReportPointDsoTotalVisitsRest();
         downloads.addValue("views", 2);
         downloads.setType("bitstream");
+        downloads.setLabel("File visits");
         totalDownloadsAndViewsPoints.add(views);
         totalDownloadsAndViewsPoints.add(downloads);
 
@@ -2475,8 +2462,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         UsageReportPointCountryRest point = new UsageReportPointCountryRest();
 
         point.addValue("views", views);
-        point.setId(id);
-        point.setLabel(label);
+        point.setIdAndLabel(id, label);
 
         return point;
     }
