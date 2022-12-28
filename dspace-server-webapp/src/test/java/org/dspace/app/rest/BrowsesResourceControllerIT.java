@@ -1279,7 +1279,8 @@ public class BrowsesResourceControllerIT extends AbstractControllerIntegrationTe
         parentCommunity = CommunityBuilder.createCommunity(context)
                 .withName("Parent Community")
                 .build();
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
+        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
+            .withEntityType("Publication").withName("Collection 1").build();
 
         //2. 2 public items that are readable by Anonymous
         Item item1 = ItemBuilder.createItem(context, col1)
