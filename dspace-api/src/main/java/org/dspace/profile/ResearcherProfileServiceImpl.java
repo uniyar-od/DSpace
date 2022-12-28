@@ -21,6 +21,7 @@ import java.sql.SQLException;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
@@ -235,7 +236,7 @@ public class ResearcherProfileServiceImpl implements ResearcherProfileService {
 
         try {
 
-            if (CollectionUtils.isEmpty(sharedWorkspaceAuthorMetadataFields)) {
+            if (CollectionUtils.isEmpty(sharedWorkspaceAuthorMetadataFields) || Objects.isNull(ePerson)) {
                 return false;
             }
 
