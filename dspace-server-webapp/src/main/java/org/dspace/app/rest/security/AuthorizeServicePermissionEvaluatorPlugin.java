@@ -50,6 +50,7 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
     @Autowired
     private ContentServiceFactory contentServiceFactory;
 
+
     @Override
     public boolean hasDSpacePermission(Authentication authentication, Serializable targetId, String targetType,
                                        DSpaceRestPermission permission) {
@@ -96,11 +97,12 @@ public class AuthorizeServicePermissionEvaluatorPlugin extends RestObjectPermiss
                                    !item.isArchived() && !item.isWithdrawn()) {
                             return false;
                         }
+
                     }
 
-                    if (dSpaceObject instanceof Bitstream && Objects.isNull(context.getCurrentUser())
-                            && authorizeService.authorizeActionBoolean(context, (Bitstream) dSpaceObject,
-                                    restPermission.getDspaceApiActionId())) {
+                    if (dSpaceObject instanceof Bitstream && Objects.isNull(ePerson)
+                        && authorizeService.authorizeActionBoolean(context, dSpaceObject,
+                                restPermission.getDspaceApiActionId())) {
                         return true;
                     }
 
