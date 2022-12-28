@@ -15,7 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.CollectionUtils;
