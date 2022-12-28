@@ -1010,7 +1010,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             // if we found a stale object then skip execution of the remaining code
             boolean zombieFound = false;
             // use zombieDocs to collect stale found objects
-            List<String> zombieDocs = new ArrayList<String>();
+            List<String> zombieDocs = new ArrayList<>();
             QueryResponse solrQueryResponse = solrSearchCore.getSolr().query(solrQuery,
                           solrSearchCore.REQUEST_METHOD);
             if (solrQueryResponse != null) {
@@ -1250,7 +1250,7 @@ public class SolrServiceImpl implements SearchService, IndexingService {
             // If any stale entries are found in the current page of results,
             // we remove those stale entries and rerun the same query again.
             // Otherwise, the query is valid and the results are returned.
-            if (zombieDocs.size() != 0) {
+            if (!zombieDocs.isEmpty()) {
                 log.info("Cleaning " + zombieDocs.size() + " stale objects from Discovery Index");
                 solrSearchCore.getSolr().deleteById(zombieDocs);
                 solrSearchCore.getSolr().commit();
