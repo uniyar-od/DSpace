@@ -141,7 +141,7 @@ public class SubmissionService {
         try {
             if (StringUtils.isNotBlank(collectionUUID)) {
                 collection = collectionService.find(context, UUID.fromString(collectionUUID));
-            } else if (StringUtils.isNotBlank(entityType))  {
+            } else {
                 final String type = entityType;
                 collection = collectionService.findAuthorizedOptimized(context,Constants.ADD).stream()
                     .filter(coll -> StringUtils.isBlank(type) ? true : type.equalsIgnoreCase(coll.getEntityType()))
