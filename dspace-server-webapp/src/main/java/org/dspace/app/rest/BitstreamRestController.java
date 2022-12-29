@@ -132,9 +132,9 @@ public class BitstreamRestController {
         try {
             // if we got here we have already verified that the user is allowed to access
             // the bit, see the preAuthorize annotation
-            context.turnOffAuthorisationSystem();
             long filesize = bit.getSizeBytes();
             Boolean citationEnabledForBitstream = citationDocumentService.isCitationEnabledForBitstream(bit, context);
+            context.turnOffAuthorisationSystem();
 
             HttpHeadersInitializer httpHeadersInitializer = new HttpHeadersInitializer()
                 .withBufferSize(BUFFER_SIZE)
