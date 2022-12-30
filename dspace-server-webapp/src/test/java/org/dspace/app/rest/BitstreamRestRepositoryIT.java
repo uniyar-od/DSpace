@@ -47,14 +47,17 @@ import org.dspace.builder.BitstreamBuilder;
 import org.dspace.builder.BundleBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
+import org.dspace.builder.EPersonBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.ResourcePolicyBuilder;
+import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
 import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.Item;
+import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.BitstreamFormatService;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.ItemService;
@@ -62,6 +65,7 @@ import org.dspace.core.Constants;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
+import org.dspace.util.UUIDUtils;
 import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
@@ -265,6 +269,64 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$", HalMatcher.matchNoEmbeds()))
         ;
 
+    }
+
+    @Test
+    public void findOneBitstreamTest_WorkspaceItemCoauthorCanAccessOriginalBundle() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection publications = CollectionBuilder.createCollection(context, child1)
+                                           .withEntityType("Publication")
+                                           .withName("Publications").build();
+
+        Collection researchers = CollectionBuilder.createCollection(context, child1)
+                                           .withEntityType("Person")
+                                           .withName("Researchers").build();
+
+        EPerson coauthor = EPersonBuilder.createEPerson(context)
+            .withPassword(password)
+            .withEmail("coauthor@example.com").build();
+
+        Item publicationCoauthor = ItemBuilder.createItem(context, researchers)
+                                              .withDspaceObjectOwner(coauthor)
+                                              .withTitle("Coauthor")
+                                              .build();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, publications)
+                                                          .withAuthor(publicationCoauthor.getName(),
+                                                                      UUIDUtils.toString(publicationCoauthor.getID()))
+                                                          .build();
+
+        Bitstream bitstream = null;
+        try (InputStream is = IOUtils.toInputStream("this is the bitstream", CharEncoding.UTF_8)) {
+            bitstream = BitstreamBuilder.
+                createBitstream(context, workspaceItem.getItem(), is)
+                .withName("Bitstream1")
+                .withDescription("Description1")
+                .withMimeType("text/plain")
+                .build();
+        }
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/core/bitstreams/" + bitstream.getID()))
+                   .andExpect(status().isUnauthorized());
+
+        getClient(getAuthToken(coauthor.getEmail(), password))
+            .perform(get("/api/core/bitstreams/" + bitstream.getID()))
+            .andExpect(status().isOk());
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/core/bitstreams/" + bitstream.getID()))
+            .andExpect(status().isOk());
     }
 
     @Test

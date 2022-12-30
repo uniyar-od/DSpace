@@ -103,6 +103,7 @@ import org.dspace.eperson.factory.EPersonServiceFactory;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
+import org.dspace.util.UUIDUtils;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -3119,6 +3120,79 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
+    public void patchByCoauthorTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Publications")
+                                           .withEntityType("Publication").build();
+
+        Collection researcherProfiles = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Researcher Profiles")
+                                           .withEntityType("Person").build();
+
+        EPerson coAuthorOwner = EPersonBuilder.createEPerson(context)
+                                         .withEmail("eperson1@mail.com")
+                                         .withPassword("qwerty01")
+                                         .build();
+        Item coAuthor = ItemBuilder.createItem(context, researcherProfiles)
+                                .withTitle("John Smith")
+                                .withFullName("John Fitzgerald Smith")
+                                .withDspaceObjectOwner(coAuthorOwner)
+                                .build();
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, publications)
+                                                  .withTitle("Workspace Item 1")
+                                                  .withIssueDate("2017-10-17")
+                                                  .withSubject("ExtraEntry")
+                                                  .withAuthor(coAuthor.getName(), UUIDUtils.toString(coAuthor.getID()))
+//                                                  .grantLicense()
+                                                  .build();
+
+        //disable file upload mandatory
+        configurationService.setProperty("webui.submit.upload.required", false);
+
+        context.restoreAuthSystemState();
+
+        // a simple patch to update an existent metadata
+        List<Operation> updateTitle = new ArrayList<Operation>();
+        Map<String, String> value = new HashMap<String, String>();
+        value.put("value", "New Title");
+        updateTitle.add(new ReplaceOperation("/sections/publication/dc.title/0", value));
+
+        String patchBody = getPatchContent(updateTitle);
+
+
+        String authToken = getAuthToken(coAuthorOwner.getEmail(), "qwerty01");
+
+        getClient(authToken).perform(patch("/api/submission/workspaceitems/" + witem.getID())
+                                         .content(patchBody)
+                                         .contentType(MediaType.APPLICATION_JSON_PATCH_JSON))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.sections.publication['dc.title'][0].value",
+                                                is("New Title")))
+                            .andExpect(jsonPath("$.sections.publication['dc.date.issued'][0].value",
+                                                is("2017-10-17")))
+                            .andExpect(jsonPath("$.sections.publication_indexing['dc.subject'][0].value",
+                                                is("ExtraEntry")));
+
+
+        // verify that the patch changes have been persisted
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+                            .andExpect(status().isOk())
+                            .andExpect(jsonPath("$.sections.publication['dc.title'][0].value",
+                                                is("New Title")))
+                            .andExpect(jsonPath("$.sections.publication['dc.date.issued'][0].value",
+                                                is("2017-10-17")))
+                            .andExpect(jsonPath("$.sections.publication_indexing['dc.subject'][0].value",
+                                                is("ExtraEntry")));
+    }
+
+    @Test
     public void patchUpdateMetadataForbiddenTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -4755,6 +4829,69 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
                 .withTitle("Test WorkspaceItem")
+                .withIssueDate("2017-10-17")
+                .build();
+
+        InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
+        final MockMultipartFile pdfFile = new MockMultipartFile("file", "/local/path/simple-article.pdf",
+                "application/pdf", pdf);
+
+        context.restoreAuthSystemState();
+
+        // upload the file in our workspaceitem
+        getClient(authToken).perform(multipart("/api/submission/workspaceitems/" + witem.getID())
+                .file(pdfFile))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.title'][0].value",
+                            is("simple-article.pdf")))
+                    .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.source'][0].value",
+                            is("/local/path/simple-article.pdf")))
+        ;
+
+        // check the file metadata
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.title'][0].value",
+                    is("simple-article.pdf")))
+            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.source'][0].value",
+                    is("/local/path/simple-article.pdf")))
+        ;
+    }
+    @Test
+    /**
+     * Test the upload of files in the upload over section by coauthor
+     *
+     * @throws Exception
+     */
+    public void coauthorUploadTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+
+        EPerson coauthorEPerson = EPersonBuilder.createEPerson(context).withEmail("coauthor@mailinator.com")
+                                      .withPassword(password).build();
+
+        Collection researchers = CollectionBuilder.createCollection(context, child1)
+                                                  .withEntityType("Person")
+                                                  .withName("Researchers").build();
+
+        Item coauthor = ItemBuilder.createItem(context, researchers)
+                                   .withDspaceObjectOwner(coauthorEPerson)
+                                   .withTitle("Coauthor").build();
+
+        String authToken = getAuthToken(coauthorEPerson.getEmail(), password);
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Test WorkspaceItem")
+                .withAuthor(coauthor.getName(), UUIDUtils.toString(coauthor.getID()))
                 .withIssueDate("2017-10-17")
                 .build();
 
@@ -8718,7 +8855,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     }
 
     @Test
-    public void affterAddingAccessConditionBitstreamMustBeDownloadableTest() throws Exception {
+    public void afterAddingAccessConditionBitstreamMustBeDownloadableTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         EPerson submitter = EPersonBuilder.createEPerson(context)
@@ -9493,6 +9630,74 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         date2 = new SimpleDateFormat(dateFormat).parse(retrievalTime2.get());
         assertTrue(date.equals(date2));
+    }
+
+    @Test
+    public void testAuthorFindOneAndDeposit() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withEmail("user@test.com")
+            .withPassword(password)
+            .build();
+
+        EPerson anotherUser = EPersonBuilder.createEPerson(context)
+            .withCanLogin(true)
+            .withEmail("anotheruser@test.com")
+            .withPassword(password)
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withWorkflowGroup(1, eperson)
+            .build();
+
+        Collection personCollection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 2")
+            .withEntityType("Person")
+            .build();
+
+        Item userProfile = ItemBuilder.createItem(context, personCollection)
+            .withTitle("User")
+            .withDspaceObjectOwner(user)
+            .build();
+
+        Item anotherUserProfile = ItemBuilder.createItem(context, personCollection)
+            .withTitle("User")
+            .withDspaceObjectOwner(anotherUser)
+            .build();
+
+        WorkspaceItem workspaceItem = WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+            .withTitle("Workspace Item")
+            .withIssueDate("2017-10-17")
+            .withAuthor("Author")
+            .withEditor("Editor", userProfile.getID().toString())
+            .grantLicense()
+            .withFulltext("test.pdf", "source", InputStream.nullInputStream())
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(anotherUser.getEmail(), password))
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isForbidden());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(get("/api/submission/workspaceitems/" + workspaceItem.getID()))
+            .andExpect(status().isOk());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
+                .content("/api/submission/workspaceitems/" + workspaceItem.getID())
+                .contentType(textUriContentType))
+            .andExpect(status().isCreated());
+
     }
 
 }
