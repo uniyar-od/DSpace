@@ -4857,6 +4857,69 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                     is("/local/path/simple-article.pdf")))
         ;
     }
+    @Test
+    /**
+     * Test the upload of files in the upload over section by coauthor
+     *
+     * @throws Exception
+     */
+    public void coauthorUploadTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community with sub-community and two collections.
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
+                                           .withName("Sub Community")
+                                           .build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1).withName("Collection 1").build();
+
+        EPerson coauthorEPerson = EPersonBuilder.createEPerson(context).withEmail("coauthor@mailinator.com")
+                                      .withPassword(password).build();
+
+        Collection researchers = CollectionBuilder.createCollection(context, child1)
+                                                  .withEntityType("Person")
+                                                  .withName("Researchers").build();
+
+        Item coauthor = ItemBuilder.createItem(context, researchers)
+                                   .withDspaceObjectOwner(coauthorEPerson)
+                                   .withTitle("Coauthor").build();
+
+        String authToken = getAuthToken(coauthorEPerson.getEmail(), password);
+
+        WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                .withTitle("Test WorkspaceItem")
+                .withAuthor(coauthor.getName(), UUIDUtils.toString(coauthor.getID()))
+                .withIssueDate("2017-10-17")
+                .build();
+
+        InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
+        final MockMultipartFile pdfFile = new MockMultipartFile("file", "/local/path/simple-article.pdf",
+                "application/pdf", pdf);
+
+        context.restoreAuthSystemState();
+
+        // upload the file in our workspaceitem
+        getClient(authToken).perform(multipart("/api/submission/workspaceitems/" + witem.getID())
+                .file(pdfFile))
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.title'][0].value",
+                            is("simple-article.pdf")))
+                    .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.source'][0].value",
+                            is("/local/path/simple-article.pdf")))
+        ;
+
+        // check the file metadata
+        getClient(authToken).perform(get("/api/submission/workspaceitems/" + witem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.title'][0].value",
+                    is("simple-article.pdf")))
+            .andExpect(jsonPath("$.sections.upload.files[0].metadata['dc.source'][0].value",
+                    is("/local/path/simple-article.pdf")))
+        ;
+    }
 
     @Test
     public void uploadUnAuthenticatedTest() throws Exception {
