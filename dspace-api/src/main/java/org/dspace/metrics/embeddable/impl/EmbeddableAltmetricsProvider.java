@@ -31,15 +31,38 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
 
     private String details;
 
-    private Boolean noScore;
+    private Integer minScore;
 
     private Boolean hideNoMentions;
 
-    private String linkTarget;
+    private String listDetails;
 
     protected String listBadgeType;
 
     protected String listPopOver;
+
+    private boolean detailViewEnabled;
+
+    private boolean listViewEnabled;
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        log.error("The enabled property is not used by " + this.getClass().getName()
+                + " please rely on the detail and list view enabled properties instead");
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.detailViewEnabled || this.listViewEnabled;
+    }
+
+    public void setDetailViewEnabled(boolean detailViewEnabled) {
+        this.detailViewEnabled = detailViewEnabled;
+    }
+
+    public void setListViewEnabled(boolean listViewEnabled) {
+        this.listViewEnabled = listViewEnabled;
+    }
 
     @Override
     public String innerHtml(Context context, Item item) {
@@ -47,16 +70,24 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
         String pmidAtt = this.calculateAttribute(item, pmidField, pmidDataAttr);
 
         JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("data-badge-enabled", this.detailViewEnabled);
+        jsonObject.addProperty("list-data-badge-enabled", this.listViewEnabled);
 
         jsonObject.addProperty("popover", this.popover);
         jsonObject.addProperty("badgeType", this.badgeType);
+        jsonObject.addProperty("data-badge-details", this.details);
         jsonObject.addProperty("doiAttr", doiAttr);
         jsonObject.addProperty("pmidAttr", pmidAtt);
+        jsonObject.addProperty("data-hide-less-than", this.minScore);
+        jsonObject.addProperty("data-hide-no-mentions", this.hideNoMentions);
 
         jsonObject.addProperty("list-popover", this.listPopOver);
         jsonObject.addProperty("list-badgeType", this.listBadgeType);
+        jsonObject.addProperty("list-data-badge-details", this.listDetails);
         jsonObject.addProperty("list-doiAttr", doiAttr);
         jsonObject.addProperty("list-pmidAttr", pmidAtt);
+        jsonObject.addProperty("list-data-hide-less-than", this.minScore);
+        jsonObject.addProperty("list-data-hide-no-mentions", this.hideNoMentions);
 
         return jsonObject.toString();
     }
@@ -89,16 +120,16 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
         this.details = details;
     }
 
-    public void setNoScore(Boolean noScore) {
-        this.noScore = noScore;
+    public void setListDetails(String listDetails) {
+        this.listDetails = listDetails;
+    }
+
+    public void setMinScore(Integer minScore) {
+        this.minScore = minScore;
     }
 
     public void setHideNoMentions(Boolean hideNoMentions) {
         this.hideNoMentions = hideNoMentions;
-    }
-
-    public void setLinkTarget(String linkTarget) {
-        this.linkTarget = linkTarget;
     }
 
     public void setDoiField(String doiField) {

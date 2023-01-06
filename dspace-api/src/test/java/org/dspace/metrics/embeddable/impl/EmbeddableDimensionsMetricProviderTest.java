@@ -42,22 +42,22 @@ public class EmbeddableDimensionsMetricProviderTest {
         when(provider.innerHtml(any(), any())).thenCallRealMethod();
         when(provider.getValueFromMetadataField(eq(item), eq("dc.identifier.doi"))).thenReturn("doi-test");
         when(provider.getValueFromMetadataField(eq(item), eq("dc.identifier.pmid"))).thenReturn("pmid-test");
-
+        provider.setDetailViewEnabled(true);
+        provider.setListViewEnabled(false);
         provider.dataStyle = "small_circle";
         provider.dataLegend = "hover-right";
         provider.listDataStyle = "list-small_circle";
         provider.listDataLegend = "list-hover-right";
         provider.doiField = "dc.identifier.doi";
         provider.pmidField = "dc.identifier.pmid";
-        provider.badgeInstalled = true;
     }
 
     @Test
     public void innerHtml() {
         String innerHtml = provider.innerHtml(context, item);
-
-        assertEquals("{\"data-legend\":\"hover-right\",\"data-style\":\"small_circle\"," +
-                         "\"data-dimensions-badge-installed\":true,\"data-doi\":\"doi-test\"," +
+        assertEquals("{\"data-badge-enabled\":true,\"list-data-badge-enabled\":false," +
+                         "\"data-legend\":\"hover-right\",\"data-style\":\"small_circle\"," +
+                         "\"data-doi\":\"doi-test\"," +
                          "\"data-pmid\":\"pmid-test\",\"list-data-legend\":\"list-hover-right\"," +
                          "\"list-data-style\":\"list-small_circle\",\"list-data-dimensions-badge-installed\":false," +
                          "\"list-data-doi\":\"doi-test\",\"list-data-pmid\":\"pmid-test\"}", innerHtml);

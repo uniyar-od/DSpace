@@ -24,8 +24,6 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
 
     protected String dataStyle;
 
-    protected boolean badgeInstalled;
-
     protected String doiField;
 
     protected String pmidField;
@@ -36,24 +34,51 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
 
     protected boolean listBadgeInstalled;
 
+    protected boolean hideZeroCitations;
+
+    private boolean detailViewEnabled;
+
+    private boolean listViewEnabled;
+
+    @Override
+    public void setEnabled(boolean enabled) {
+        log.error("The enabled property is not used by " + this.getClass().getName()
+                + " please rely on the detail and list view enabled properties instead");
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.detailViewEnabled || this.listViewEnabled;
+    }
+
+    public void setDetailViewEnabled(boolean detailViewEnabled) {
+        this.detailViewEnabled = detailViewEnabled;
+    }
+
+    public void setListViewEnabled(boolean listViewEnabled) {
+        this.listViewEnabled = listViewEnabled;
+    }
+
     @Override
     public String innerHtml(Context context, Item item) {
         String doiValue = getValueFromMetadataField(item, doiField);
         String pmidValue = getValueFromMetadataField(item, pmidField);
 
         JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("data-badge-enabled", this.detailViewEnabled);
+        jsonObject.addProperty("list-data-badge-enabled", this.listViewEnabled);
 
         jsonObject.addProperty("data-legend", this.dataLegend);
         jsonObject.addProperty("data-style", this.dataStyle);
-        jsonObject.addProperty("data-dimensions-badge-installed", this.badgeInstalled);
         jsonObject.addProperty("data-doi", doiValue);
         jsonObject.addProperty("data-pmid", pmidValue);
+        jsonObject.addProperty("data-hide-zero-citations", this.hideZeroCitations);
 
         jsonObject.addProperty("list-data-legend", this.listDataLegend);
         jsonObject.addProperty("list-data-style", this.listDataStyle);
-        jsonObject.addProperty("list-data-dimensions-badge-installed", this.listBadgeInstalled);
         jsonObject.addProperty("list-data-doi", doiValue);
         jsonObject.addProperty("list-data-pmid", pmidValue);
+        jsonObject.addProperty("list-data-hide-zero-citations", this.hideZeroCitations);
 
         return jsonObject.toString();
     }
@@ -91,10 +116,6 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
         this.pmidField = pmidField;
     }
 
-    public void setBadgeInstalled(boolean badgeInstalled) {
-        this.badgeInstalled = badgeInstalled;
-    }
-
     public void setListDataLegend(String listDataLegend) {
         this.listDataLegend = listDataLegend;
     }
@@ -107,4 +128,7 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
         this.listBadgeInstalled = listBadgeInstalled;
     }
 
+    public void setHideZeroCitations(boolean hideZeroCitations) {
+        this.hideZeroCitations = hideZeroCitations;
+    }
 }
