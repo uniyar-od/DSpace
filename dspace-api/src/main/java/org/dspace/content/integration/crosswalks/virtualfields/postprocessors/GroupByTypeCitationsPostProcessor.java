@@ -9,62 +9,78 @@ package org.dspace.content.integration.crosswalks.virtualfields.postprocessors;
 
 import static org.apache.commons.lang3.StringUtils.capitalize;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.UUID;
 
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.Item;
 import org.dspace.content.integration.crosswalks.csl.CSLResult;
+import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.util.SimpleMapConverter;
+import org.springframework.beans.factory.annotation.Autowired;
 
+/**
+ * Implementation of {@link VirtualFieldCitationsPostProcessor} that sort and
+ * group the citations by item's type.
+ *
+ * @author Luca Giamminonni (luca.giamminonni at 4science.it)
+ *
+ */
 public class GroupByTypeCitationsPostProcessor implements VirtualFieldCitationsPostProcessor {
 
-    private final Pattern typePattern;
+    @Autowired
+    private ItemService itemService;
 
-    private final boolean removeTypePattern;
+    private boolean typeHeaderAdditionEnabled = true;
 
-    private final String defaultType;
+    private List<String> fixedTypesOrder;
 
-    public GroupByTypeCitationsPostProcessor(String typeRegex) {
-        this(typeRegex, true, "Other");
-    }
+    private SimpleMapConverter typeConverter;
 
-    public GroupByTypeCitationsPostProcessor(String typeRegex, boolean removeTypePattern, String defaultType) {
-        this.typePattern = Pattern.compile(typeRegex);
-        this.removeTypePattern = removeTypePattern;
-        this.defaultType = defaultType;
-    }
+    private String defaultType = "Other";
 
     @Override
     public CSLResult process(Context context, Item item, CSLResult cslResult) {
 
-        if (!cslResult.getFormat().equals("fo")) {
-            throw new IllegalArgumentException("Only CSLResult related to fo format is supported");
+        if (typeHeaderAdditionEnabled && !cslResult.getFormat().equals("fo")) {
+            throw new IllegalArgumentException("Only CSLResult related to fo format is supports type header addition");
         }
 
         String[] citationEntries = cslResult.getCitationEntries();
+        UUID[] itemIds = cslResult.getItemIds();
+
         String[] newCitationEntries = new String[citationEntries.length];
+        UUID[] newItemsIds = new UUID[itemIds.length];
+
+        Item[] sortedItems = sortItemsByType(context, itemIds);
 
         String lastType = null;
 
-        for (int i = 0; i < citationEntries.length; i++) {
+        for (int i = 0; i < sortedItems.length; i++) {
 
-            String citationEntry = citationEntries[i];
+            Item sortedItem = sortedItems[i];
 
-            String type = getTypeOrDefault(citationEntry);
+            int originalItemIndex = ArrayUtils.indexOf(itemIds, sortedItem.getID());
+            String citationEntry = citationEntries[originalItemIndex];
 
-            if (removeTypePattern) {
-                citationEntry = citationEntry.replaceFirst(typePattern.pattern(), "");
-            }
-
-            if (!type.equalsIgnoreCase(lastType)) {
+            String type = getItemTypeOrDefault(sortedItem);
+            if (typeHeaderAdditionEnabled && !type.equalsIgnoreCase(lastType)) {
                 citationEntry = addTypeHeaderToCitationEntry(citationEntry, type);
             }
 
             lastType = type;
             newCitationEntries[i] = citationEntry;
+            newItemsIds[i] = sortedItem.getID();
+
         }
 
-        return new CSLResult(cslResult.getFormat(), cslResult.getItemIds(), newCitationEntries);
+        return new CSLResult(cslResult.getFormat(), newItemsIds, newCitationEntries);
     }
 
     private String addTypeHeaderToCitationEntry(String citationEntry, String type) {
@@ -77,9 +93,119 @@ public class GroupByTypeCitationsPostProcessor implements VirtualFieldCitationsP
         return "group-by-type";
     }
 
-    private String getTypeOrDefault(String citationEntry) {
-        Matcher matcher = typePattern.matcher(citationEntry);
-        return matcher.find() ? matcher.group(1) : defaultType;
+    private Item[] sortItemsByType(Context context, UUID[] itemIds) {
+        return Arrays.stream(itemIds)
+            .map(itemId -> findItemById(context, itemId))
+            .sorted(this::compareItemsByType)
+            .toArray(Item[]::new);
+    }
+
+    private int compareItemsByType(Item firstItem, Item secondItem) {
+
+        String firstItemType = getItemType(firstItem);
+        String secondItemType = getItemType(secondItem);
+
+        if (anyOfTypesHasFixedOrder(firstItemType, secondItemType)) {
+            return compareItemTypesWithFixedValues(firstItemType, secondItemType);
+        }
+
+        return ObjectUtils.compare(firstItemType, secondItemType, true);
+    }
+
+    private int compareItemTypesWithFixedValues(String firstItemType, String secondItemType) {
+
+        int firstItemTypeIndex = firstItemType != null ? fixedTypesOrder.indexOf(firstItemType) : -1;
+        int secondItemTypeIndex = secondItemType != null ? fixedTypesOrder.indexOf(secondItemType) : -1;
+
+        // if the first type is not present in the fixed values and the second type is
+        // present then the second type must be placed before the first one
+        if (firstItemTypeIndex == -1 && secondItemTypeIndex != -1) {
+            return 1;
+        }
+
+        // if the second type is not present in the fixed values and the first type is
+        // present then the first type must be placed before the second one
+        if (firstItemTypeIndex != -1 && secondItemTypeIndex == -1) {
+            return -1;
+        }
+
+        // if both the types are present in the fixed values then sorting depends on
+        // their position in the fixed types list
+        return ObjectUtils.compare(firstItemTypeIndex, secondItemTypeIndex);
+
+    }
+
+    private boolean anyOfTypesHasFixedOrder(String firstItemType, String secondItemType) {
+        return typeHasFixedOrder(firstItemType) || typeHasFixedOrder(secondItemType);
+    }
+
+    private boolean typeHasFixedOrder(String type) {
+        if (StringUtils.isBlank(type) || CollectionUtils.isEmpty(fixedTypesOrder)) {
+            return false;
+        }
+        return fixedTypesOrder.contains(type);
+    }
+
+    private Item findItemById(Context context, UUID id) {
+        try {
+            Item item = itemService.find(context, id);
+            if (item == null) {
+                throw new IllegalArgumentException("No item found by id " + id);
+            }
+            return item;
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private String getItemType(Item item) {
+        String type = itemService.getMetadataFirstValue(item, "dc", "type", null, Item.ANY);
+        return typeConverter != null ? typeConverter.getValue(type) : type;
+    }
+
+    private String getItemTypeOrDefault(Item item) {
+        String type = getItemType(item);
+        return StringUtils.isNotBlank(type) ? type : defaultType;
+    }
+
+    public ItemService getItemService() {
+        return itemService;
+    }
+
+    public void setItemService(ItemService itemService) {
+        this.itemService = itemService;
+    }
+
+    public String getDefaultType() {
+        return defaultType;
+    }
+
+    public void setDefaultType(String defaultType) {
+        this.defaultType = defaultType;
+    }
+
+    public List<String> getFixedTypesOrder() {
+        return fixedTypesOrder;
+    }
+
+    public void setFixedTypesOrder(List<String> fixedTypesOrder) {
+        this.fixedTypesOrder = fixedTypesOrder;
+    }
+
+    public SimpleMapConverter getTypeConverter() {
+        return typeConverter;
+    }
+
+    public void setTypeConverter(SimpleMapConverter typeConverter) {
+        this.typeConverter = typeConverter;
+    }
+
+    public boolean isTypeHeaderAdditionEnabled() {
+        return typeHeaderAdditionEnabled;
+    }
+
+    public void setTypeHeaderAdditionEnabled(boolean addTypeHeader) {
+        this.typeHeaderAdditionEnabled = addTypeHeader;
     }
 
 }

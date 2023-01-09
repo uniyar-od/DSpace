@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.dspace.services.ConfigurationService;
 import org.springframework.util.Assert;
@@ -41,6 +42,10 @@ public class SimpleMapConverter {
      * Parse the configured property file.
      */
     public void init() {
+
+        if (MapUtils.isNotEmpty(mapping)) {
+            return;
+        }
 
         Assert.notNull(converterNameFile, "No properties file name provided");
         Assert.notNull(configurationService, "No configuration service provided");
@@ -71,6 +76,10 @@ public class SimpleMapConverter {
      */
     public String getValue(String key) {
 
+        if (key == null) {
+            return null;
+        }
+
         String value = mapping.getOrDefault(key, defaultValue);
 
         if (StringUtils.isBlank(value)) {
@@ -91,6 +100,14 @@ public class SimpleMapConverter {
 
         return mapping;
 
+    }
+
+    public Map<String, String> getMapping() {
+        return mapping;
+    }
+
+    public void setMapping(Map<String, String> mapping) {
+        this.mapping = mapping;
     }
 
     public void setDefaultValue(String defaultValue) {
