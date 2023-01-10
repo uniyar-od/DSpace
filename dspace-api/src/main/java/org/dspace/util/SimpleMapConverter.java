@@ -76,10 +76,6 @@ public class SimpleMapConverter {
      */
     public String getValue(String key) {
 
-        if (key == null) {
-            return null;
-        }
-
         String value = mapping.getOrDefault(key, defaultValue);
 
         if (StringUtils.isBlank(value)) {
@@ -107,7 +103,7 @@ public class SimpleMapConverter {
     }
 
     public void setMapping(Map<String, String> mapping) {
-        this.mapping = mapping;
+        this.mapping = new HashMap<>(mapping);
     }
 
     public void setDefaultValue(String defaultValue) {
