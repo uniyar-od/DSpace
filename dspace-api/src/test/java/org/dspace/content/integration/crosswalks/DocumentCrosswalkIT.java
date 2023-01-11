@@ -641,7 +641,7 @@ public class DocumentCrosswalkIT extends AbstractIntegrationTestWithDatabase {
         ItemBuilder.createItem(context, collection)
             .withTitle("Publication 1")
             .withType("article")
-            .withIssueDate("2023-01-01")
+            .withIssueDate("2023")
             .withAuthor("Test User", personItem.getID().toString())
             .withAuthor("Walter White")
             .withHandle("123456789/111111")
