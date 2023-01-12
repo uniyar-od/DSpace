@@ -149,7 +149,8 @@ public class AuthorityImportDataProvider extends AbstractExternalDataProvider {
                     metadataValueDTO.getQualifier() == null) {
                 title = metadataValueDTO.getValue();
             }
-            if (!ItemMetadataImportFiller.isPlaceholderMetadataValue(metadataValueDTO.getValue())) {
+            if (StringUtils.isNotBlank(metadataValueDTO.getValue())
+                && !ItemMetadataImportFiller.isPlaceholderMetadataValue(metadataValueDTO.getValue())) {
                 externalDataObject.addMetadata(metadataValueDTO);
             }
         }
