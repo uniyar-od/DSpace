@@ -12,8 +12,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authority.filler.MetadataConfiguration.MappingDetails;
@@ -22,6 +25,7 @@ import org.dspace.content.MetadataValue;
 import org.dspace.content.dto.MetadataValueDTO;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.CrisConstants;
 
 /**
  * Implementation of {@link AuthorityImportFiller} that fill the given item
@@ -35,8 +39,14 @@ import org.dspace.core.Context;
 public class ItemMetadataImportFiller implements AuthorityImportFiller {
 
     private final static String MISSING_METADATA_FOR_POSITION_MSG = "Missing metadata {} for position {} in item {}";
-
     private static Logger log = LogManager.getLogger(ItemMetadataImportFiller.class);
+
+    public static final boolean isPlaceholderMetadataValue(String metadataValue) {
+        return StringUtils.equals(metadataValue, CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE);
+    }
+    private static final boolean isNotPlaceholder(MetadataValue metadataValue) {
+        return !isPlaceholderMetadataValue(metadataValue.getValue());
+    }
 
     private boolean allowsUpdateByDefault = false;
 
@@ -69,17 +79,19 @@ public class ItemMetadataImportFiller implements AuthorityImportFiller {
                   metadata);
 
         MetadataConfiguration metadataConfiguration = configurations.get(metadata.getMetadataField().toString('.'));
-        addAllMetadata(context, itemToFill, metadataConfiguration, metadataDTOList);
+        this.addAllMetadata(context, itemToFill, metadataConfiguration, metadataDTOList);
 
     }
 
+    @Override
     public List<MetadataValueDTO> getMetadataListByRelatedItemAndMetadata(Context context, Item relatedItem,
             MetadataValue metadata) {
 
         List<MetadataValueDTO> listToReturn = new ArrayList<MetadataValueDTO>();
 
-        listToReturn.add(createMetadataValueDTO("dc", "title", null, metadata.getLanguage(), metadata.getValue(),
-                null, -1));
+        listToReturn.add(
+            this.createMetadataValueDTO("dc", "title", null, metadata.getLanguage(), metadata.getValue(), null, -1)
+        );
 
         MetadataConfiguration metadataConfiguration = configurations.get(metadata.getMetadataField().toString('.'));
         if (metadataConfiguration == null) {
@@ -91,12 +103,15 @@ public class ItemMetadataImportFiller implements AuthorityImportFiller {
 
             MappingDetails mappingDetails = configurationMapping.get(additionalMetadataField);
 
-            List<MetadataValue> metadataValuesToAdd = findMetadata(relatedItem, additionalMetadataField);
+            List<MetadataValue> metadataValuesToAdd =
+                this.findMetadata(relatedItem, additionalMetadataField);
             if (mappingDetails.isUseAll()) {
-                listToReturn.addAll(getAllMetadata(mappingDetails, metadataValuesToAdd, metadata));
+                listToReturn.addAll(
+                    this.getAllMetadata(mappingDetails, metadataValuesToAdd)
+                );
             } else {
-                MetadataValueDTO singleMetadata = getSingleMetadataByPlace(mappingDetails, metadataValuesToAdd,
-                        metadata);
+                MetadataValueDTO singleMetadata =
+                    this.getSingleMetadataByPlace(mappingDetails, metadataValuesToAdd, metadata);
                 if (singleMetadata != null) {
                     listToReturn.add(singleMetadata);
                 }
@@ -107,8 +122,10 @@ public class ItemMetadataImportFiller implements AuthorityImportFiller {
         return listToReturn;
     }
 
-    private void addAllMetadata(Context context, Item relatedItem, MetadataConfiguration metadataConfiguration,
-            List<MetadataValueDTO> metadataValuesToAdd) throws SQLException {
+    private void addAllMetadata(
+        Context context, Item relatedItem, MetadataConfiguration metadataConfiguration,
+        List<MetadataValueDTO> metadataValuesToAdd
+    ) throws SQLException {
 
         Map<String, MappingDetails> configurationMapping = new HashMap<String, MetadataConfiguration.MappingDetails>();
 
@@ -117,65 +134,96 @@ public class ItemMetadataImportFiller implements AuthorityImportFiller {
         }
         String metadataFieldPrevious = null;
         for (MetadataValueDTO metadataValueToAdd : metadataValuesToAdd) {
-            String metadataField = metadataValueToAdd.getSchema() + "." + metadataValueToAdd.getElement() +
-                    ((metadataValueToAdd.getQualifier() != null) ? "." + metadataValueToAdd.getQualifier() : "");
+            String metadataField =
+                metadataValueToAdd.getSchema() + "." + metadataValueToAdd.getElement() +
+                    (metadataValueToAdd.getQualifier() != null ? "." + metadataValueToAdd.getQualifier() : "");
             if (metadataFieldPrevious == null || !metadataFieldPrevious.equals(metadataField)) {
                 metadataFieldPrevious = metadataField;
                 MappingDetails mappingDetails = configurationMapping.get(metadataField);
 
                 if (mappingDetails != null && !mappingDetails.isAppendMode()) {
-                    itemService.clearMetadata(context, relatedItem, mappingDetails.getTargetMetadataSchema(),
-                            mappingDetails.getTargetMetadataElement(), mappingDetails.getTargetMetadataQualifier(),
-                            Item.ANY);
+                    itemService.clearMetadata(
+                        context, relatedItem, mappingDetails.getTargetMetadataSchema(),
+                        mappingDetails.getTargetMetadataElement(), mappingDetails.getTargetMetadataQualifier(),
+                        Item.ANY
+                    );
                 }
             }
 
-            itemService.addMetadata(context, relatedItem, metadataValueToAdd.getSchema(),
-                    metadataValueToAdd.getElement(), metadataValueToAdd.getQualifier(),
-                    metadataValueToAdd.getLanguage(), metadataValueToAdd.getValue(),
-                    metadataValueToAdd.getAuthority(), metadataValueToAdd.getConfidence());
+            itemService.addMetadata(
+                context, relatedItem, metadataValueToAdd.getSchema(),
+                metadataValueToAdd.getElement(), metadataValueToAdd.getQualifier(),
+                metadataValueToAdd.getLanguage(), metadataValueToAdd.getValue(),
+                metadataValueToAdd.getAuthority(), metadataValueToAdd.getConfidence()
+            );
         }
 
     }
 
-    private List<MetadataValueDTO> getAllMetadata(MappingDetails mappingDetails,
-            List<MetadataValue> metadataValuesToAdd, MetadataValue archivedItemMetadata) {
-
-        List<MetadataValueDTO> listToReturn = new ArrayList<MetadataValueDTO>();
-
-        for (MetadataValue metadataValueToAdd : metadataValuesToAdd) {
-            String valueToAdd = metadataValueToAdd.getValue();
-
-            listToReturn.add(createMetadataValueDTO(mappingDetails.getTargetMetadataSchema(),
-                    mappingDetails.getTargetMetadataElement(), mappingDetails.getTargetMetadataQualifier(), null,
-                    valueToAdd, null, -1));
-        }
-
-        return listToReturn;
+    private List<MetadataValueDTO> getAllMetadata(
+        MappingDetails mappingDetails,
+        List<MetadataValue> metadataValuesToAdd
+    ) {
+        return metadataValuesToAdd
+            .stream()
+            .filter(ItemMetadataImportFiller::isNotPlaceholder)
+            .map(
+                metadataValue -> createMetadataValueDTO(
+                    mappingDetails.getTargetMetadataSchema(),
+                    mappingDetails.getTargetMetadataElement(),
+                    mappingDetails.getTargetMetadataQualifier(),
+                    null, metadataValue.getValue(), null, -1
+                )
+            )
+            .collect(Collectors.toList());
     }
 
-    private MetadataValueDTO getSingleMetadataByPlace(MappingDetails mappingDetails,
-            List<MetadataValue> metadataValuesToAdd, MetadataValue sourceMetadata) {
+    private MetadataValueDTO getSingleMetadataByPlace(
+        MappingDetails mappingDetails,
+        List<MetadataValue> metadataValuesToAdd, MetadataValue sourceMetadata
+    ) {
 
         Item sourceItem = (Item) sourceMetadata.getDSpaceObject();
 
         int place = sourceMetadata.getPlace();
-        if (metadataValuesToAdd.size() < (place + 1)) {
+        if (metadataValuesToAdd.size() < place + 1) {
             log.error(MISSING_METADATA_FOR_POSITION_MSG, mappingDetails.getTargetMetadata(), place, sourceItem.getID());
             return null;
         }
 
-        MetadataValue metadataValueToAdd = metadataValuesToAdd.get(place);
-        String valueToAdd = metadataValueToAdd.getValue();
+        MetadataValue metadataValueToAdd = getValidMetadata(metadataValuesToAdd, place);
+        if (metadataValueToAdd != null) {
+            String valueToAdd = metadataValueToAdd.getValue();
 
-        return createMetadataValueDTO(mappingDetails.getTargetMetadataSchema(),
+            return createMetadataValueDTO(
+                mappingDetails.getTargetMetadataSchema(),
                 mappingDetails.getTargetMetadataElement(), mappingDetails.getTargetMetadataQualifier(),
-                null, valueToAdd, null, -1);
-
+                null, valueToAdd, null, -1
+            );
+        }
+        return null;
     }
 
-    protected MetadataValueDTO createMetadataValueDTO(String schema, String element, String qualifier,
-            String lang, String value, String authority, int confidence) {
+    protected MetadataValue getValidMetadata(List<MetadataValue> metadataValuesToAdd, int place) {
+        return Optional.ofNullable(metadataValuesToAdd.get(place))
+            .filter(ItemMetadataImportFiller::isNotPlaceholder)
+            .orElse(
+                Optional.ofNullable(
+                    metadataValuesToAdd
+                        .stream()
+                        .filter(ItemMetadataImportFiller::isNotPlaceholder)
+                        .collect(Collectors.toList())
+                    )
+                .filter(list -> list.size() > place)
+                .map(list -> list.get(place))
+                .orElse(null)
+            );
+    }
+
+    protected MetadataValueDTO createMetadataValueDTO(
+        String schema, String element, String qualifier,
+        String lang, String value, String authority, int confidence
+    ) {
 
         MetadataValueDTO metadataValueDTO = new MetadataValueDTO();
         metadataValueDTO.setSchema(schema);
@@ -189,7 +237,7 @@ public class ItemMetadataImportFiller implements AuthorityImportFiller {
         return metadataValueDTO;
     }
 
-    private List<MetadataValue> findMetadata(Item item, String metadataField) {
+    public List<MetadataValue> findMetadata(Item item, String metadataField) {
         return itemService.getMetadataByMetadataString(item, metadataField);
     }
 
