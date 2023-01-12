@@ -37,8 +37,7 @@ import org.dspace.util.UUIDUtils;
  */
 public class AuthorityImportDataProvider extends AbstractExternalDataProvider {
 
-    private AuthorityImportFillerService authorityImportFillerService =
-        AuthorityServiceFactory.getInstance()
+    private AuthorityImportFillerService authorityImportFillerService = AuthorityServiceFactory.getInstance()
             .getAuthorityImportFillerService();
 
     private ItemService itemService = ContentServiceFactory.getInstance().getItemService();

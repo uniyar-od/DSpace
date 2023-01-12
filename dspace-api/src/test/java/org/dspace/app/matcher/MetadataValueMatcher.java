@@ -94,4 +94,3 @@ public class MetadataValueMatcher extends TypeSafeMatcher<MetadataValue> {
     }
 
 }
-
