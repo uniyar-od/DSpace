@@ -11,8 +11,8 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -104,16 +104,18 @@ public class FirstSelectedCitationsPostProcessor implements VirtualFieldCitation
      * the citation, keeping the order established by the selection.
      */
     private List<Integer> getIndexesOfSelectedItems(List<UUID> selectedItems, UUID[] itemIds) {
-        List<Integer> indexes = new ArrayList<Integer>();
-        for (UUID selectedItemId : selectedItems) {
-            for (int i = 0; i < itemIds.length; i++) {
-                if (itemIds[i].equals(selectedItemId)) {
-                    indexes.add(i);
-                    break;
-                }
+        return selectedItems.stream()
+            .flatMap(seletedItemId -> getItemIdIndex(seletedItemId, itemIds).stream())
+            .collect(Collectors.toList());
+    }
+
+    private Optional<Integer> getItemIdIndex(UUID itemId, UUID[] itemIds) {
+        for (int i = 0; i < itemIds.length; i++) {
+            if (itemIds[i].equals(itemId)) {
+                return Optional.of(i);
             }
         }
-        return indexes;
+        return Optional.empty();
     }
 
     private List<UUID> getSelectedItems(Context context, Item item) {

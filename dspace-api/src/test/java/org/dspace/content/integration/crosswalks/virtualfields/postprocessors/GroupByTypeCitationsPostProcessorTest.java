@@ -294,6 +294,36 @@ public class GroupByTypeCitationsPostProcessorTest {
 
     }
 
+    @Test
+    public void testWithEmptyCitationArray() throws SQLException {
+
+        UUID[] itemIds = new UUID[0];
+        String[] citations = new String[0];
+
+        CSLResult result = processor.process(context, item, new CSLResult("fo", itemIds, citations));
+        assertThat(result, notNullValue());
+
+        assertThat(result.getFormat(), is("fo"));
+        assertThat(result.getItemIds(), emptyArray());
+        assertThat(result.getCitationEntries(), emptyArray());
+
+    }
+
+    @Test
+    public void testWithNullCitationArray() throws SQLException {
+
+        UUID[] itemIds = null;
+        String[] citations = null;
+
+        CSLResult result = processor.process(context, item, new CSLResult("fo", itemIds, citations));
+        assertThat(result, notNullValue());
+
+        assertThat(result.getFormat(), is("fo"));
+        assertThat(result.getItemIds(), emptyArray());
+        assertThat(result.getCitationEntries(), emptyArray());
+
+    }
+
     private Item createItemMockWithType(UUID uuid, String type) throws SQLException {
         Item mock = mock(Item.class);
         when(mock.getID()).thenReturn(uuid);

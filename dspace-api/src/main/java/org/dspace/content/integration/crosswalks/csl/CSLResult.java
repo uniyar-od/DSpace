@@ -38,13 +38,16 @@ public class CSLResult {
     }
 
     public CSLResult(String format, UUID[] itemIds, String[] citationEntries, String citation) {
+
         this.format = format;
-        this.itemIds = itemIds;
+        this.itemIds = itemIds != null ? itemIds : new UUID[0];
         this.citationEntries = trimCitations(citationEntries);
-        this.citation = citation != null ? citation : String.join("\n", citationEntries);
-        if (itemIds.length != citationEntries.length) {
+        this.citation = citation != null ? citation : String.join("\n", this.citationEntries);
+
+        if (this.itemIds.length != this.citationEntries.length) {
             throw new IllegalArgumentException("The itemIds array and the citations array must have the same length");
         }
+
     }
 
     public static CSLResult fromBibliography(String format, Bibliography bibliogr) {
@@ -76,9 +79,6 @@ public class CSLResult {
             .toArray(String[]::new);
     }
 
-    /**
-     * @return the format
-     */
     public String getFormat() {
         return format;
     }
