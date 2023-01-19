@@ -382,7 +382,7 @@ public class OAIHarvester {
         if (crisSourceId.isEmpty()) {
             return null;
         }
-        Item item = itemSearchService.search(context, crisSourceId.get());
+        Item item = itemSearchService.search(context, crisSourceId.get(), null);
         return item != null && collection.equals(item.getOwningCollection()) ? item : null;
     }
 
