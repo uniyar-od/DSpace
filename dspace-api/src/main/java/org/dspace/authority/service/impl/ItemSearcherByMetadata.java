@@ -244,8 +244,10 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
             .collect(Collectors.joining(" OR "));
     }
 
-    public Object getMetadata() {
-        return metadata;
+    @Override
+    public void clearCache() {
+        valuesToItemIds.get().clear();
+        referenceResolutionAttempts.get().clear();
     }
 
 }

@@ -10,6 +10,7 @@ package org.dspace.app.rest;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.dspace.app.rest.test.AbstractControllerIntegrationTest;
 import org.dspace.authority.service.AuthorityValueService;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class ItemSearcherIT extends AbstractControllerIntegrationTest {
     private static final String ORCID_ID_1 = "0000-0001-8387-8895";
     private static final String ORCID_ID_2 = "0000-0001-0000-0000";
+    private static final String ORCID_ID_3 = "0000-0002-0000-0000";
     @Autowired
     private WorkspaceItemService workspaceItemService;
     @Autowired
@@ -136,7 +138,7 @@ public class ItemSearcherIT extends AbstractControllerIntegrationTest {
 
             checkReferenceResolved(context, person, publication);
             checkReferenceResolved(context, person, publication2);
-            checkReferenceNotResolved(context, person, publication3);
+            checkReferenceNotResolved(context, ORCID_ID_2, publication3);
         } finally {
             context.restoreAuthSystemState();
         }
@@ -166,6 +168,32 @@ public class ItemSearcherIT extends AbstractControllerIntegrationTest {
         }
     }
 
+    @Test
+    public void testMultiplePublicationMultiplePerson() throws Exception {
+        context.turnOffAuthorisationSystem();
+        context.setDispatcher("cris-default");
+        try {
+            Community community = CommunityBuilder.createCommunity(context).withName("community test").build();
+            Collection collection = CollectionBuilder.createCollection(context, community).withName("community test")
+                .build();
+            Item publication = createPublicationAndInstall(community, collection, ORCID_ID_1, ORCID_ID_2, ORCID_ID_3);
+            Item person = createPersonAndInstall(community, collection, ORCID_ID_1);
+            Item publication2 = createPublicationAndInstall(community, collection, ORCID_ID_1, ORCID_ID_2);
+            Item person2 = createPersonAndInstall(community, collection, ORCID_ID_2);
+            // Commit context to save data on SOLR
+            context.commit();
+
+            checkReferenceResolved(context, person, publication);
+            checkReferenceResolved(context, person2, publication);
+            checkReferenceNotResolved(context, ORCID_ID_3, publication);
+
+            checkReferenceResolved(context, person, publication2);
+            checkReferenceResolved(context, person2, publication2);
+        } finally {
+            context.restoreAuthSystemState();
+        }
+    }
+
     private Item createPersonAndInstall(Community community, Collection collection, String orcid)
         throws SQLException, IOException, AuthorizeException {
         // Person item
@@ -179,13 +207,15 @@ public class ItemSearcherIT extends AbstractControllerIntegrationTest {
         return person;
     }
 
-    private Item createPublicationAndInstall(Community community, Collection collection, String orcid)
+    private Item createPublicationAndInstall(Community community, Collection collection, String... orcids)
         throws SQLException, IOException, AuthorizeException {
         // Publication item
         WorkspaceItem publicationWspItem = workspaceItemService.create(context, collection, true);
         Item publication = publicationWspItem.getItem();
-        itemService.addMetadata(context, publication, "dc", "contributor", "author", Item.ANY, "Stefano Maffei",
-            AuthorityValueService.REFERENCE + "ORCID::" + orcid, -1);
+        for (String orcid : orcids) {
+            itemService.addMetadata(context, publication, "dc", "contributor", "author", Item.ANY, "P-orcid-" + orcid,
+                AuthorityValueService.REFERENCE + "ORCID::" + orcid, -1);
+        }
         itemService.setEntityType(context, publication, "Publication");
         // Installing publication
         installItemService.installItem(context, publicationWspItem, null);
@@ -196,17 +226,22 @@ public class ItemSearcherIT extends AbstractControllerIntegrationTest {
     private void checkReferenceResolved(Context context, Item person, Item publication) throws SQLException, Exception {
         List<MetadataValue> authorsList = itemService.getMetadataByMetadataString(publication,
             "dc.contributor.author");
-        String authority = authorsList.get(0).getAuthority();
-        Assert.assertTrue(authorsList.size() == 1);
-        Assert.assertTrue(authority.equals(person.getID().toString()));
+        authorsList = authorsList.stream()
+            .filter(authorMetadata -> authorMetadata.getValue().equals("P-orcid-" + person.getID().toString()))
+            .collect(Collectors.toList());
+        authorsList.stream().map(MetadataValue::getAuthority)
+            .forEach(authority -> Assert.assertTrue(authority.equals(person.getID().toString())));
     }
 
-    private void checkReferenceNotResolved(Context context, Item person, Item publication)
+    private void checkReferenceNotResolved(Context context, String personOrcid, Item publication)
         throws SQLException, Exception {
         List<MetadataValue> authorsList = itemService.getMetadataByMetadataString(publication,
             "dc.contributor.author");
-        String authority = authorsList.get(0).getAuthority();
-        Assert.assertTrue(authorsList.size() == 1);
-        Assert.assertTrue(authority.startsWith(AuthorityValueService.REFERENCE + "ORCID::"));
+        authorsList = authorsList.stream()
+            .filter(authorMetadata -> authorMetadata.getValue().equals("P-orcid-" + personOrcid))
+            .collect(Collectors.toList());
+        authorsList.stream().map(MetadataValue::getAuthority)
+            .forEach(authority -> Assert.assertTrue(authority.startsWith(AuthorityValueService.REFERENCE + "ORCID::")));
+        ;
     }
 }
