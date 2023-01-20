@@ -22,6 +22,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.dspace.authority.service.AuthorityValueService;
 import org.dspace.authority.service.ItemReferenceResolver;
 import org.dspace.authority.service.ItemSearcher;
@@ -78,6 +80,8 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
 
     private final String authorityPrefix;
 
+    private static Logger log = LogManager.getLogger(ItemSearcherByMetadata.class);
+
     public ItemSearcherByMetadata(String metadata, String authorityPrefix) {
         this.metadata = metadata;
         this.authorityPrefix = authorityPrefix;
@@ -91,7 +95,14 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
             }
             if (valuesToItemIds.get().containsKey(searchParam)) {
                 Item foundInCache = itemService.find(context, valuesToItemIds.get().get(searchParam));
-                return foundInCache != null ? foundInCache : performSearchByMetadata(context, searchParam);
+                if (foundInCache != null) {
+                    return foundInCache;
+                } else {
+                    UUID removedUUID = valuesToItemIds.get().remove(searchParam);
+                    log.info("No item with uuid: " + removedUUID + " was found");
+                    log.info("Removing uuid: " + removedUUID + " from cache");
+                    return performSearchByMetadata(context, searchParam);
+                }
             } else {
                 return performSearchByMetadata(context, searchParam);
             }
