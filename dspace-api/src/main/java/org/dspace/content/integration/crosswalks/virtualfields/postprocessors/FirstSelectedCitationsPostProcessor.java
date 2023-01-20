@@ -11,6 +11,7 @@ import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.containsAny;
 
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -127,6 +128,7 @@ public class FirstSelectedCitationsPostProcessor implements VirtualFieldCitation
 
         try {
             return relationshipService.findByItemAndRelationshipType(context, item, relationshipType).stream()
+                .sorted(Comparator.comparing(Relationship::getRightPlace))
                 .map(Relationship::getLeftItem)
                 .map(Item::getID)
                 .collect(Collectors.toList());
