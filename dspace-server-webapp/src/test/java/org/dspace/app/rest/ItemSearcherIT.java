@@ -26,7 +26,8 @@ import org.dspace.content.service.InstallItemService;
 import org.dspace.content.service.ItemService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Context;
-import org.junit.Assert;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -230,7 +231,7 @@ public class ItemSearcherIT extends AbstractControllerIntegrationTest {
             .filter(authorMetadata -> authorMetadata.getValue().equals("P-orcid-" + person.getID().toString()))
             .collect(Collectors.toList());
         authorsList.stream().map(MetadataValue::getAuthority)
-            .forEach(authority -> Assert.assertTrue(authority.equals(person.getID().toString())));
+            .forEach(authority -> MatcherAssert.assertThat(authority, Matchers.equalTo(person.getID().toString())));
     }
 
     private void checkReferenceNotResolved(Context context, String personOrcid, Item publication)
@@ -241,7 +242,8 @@ public class ItemSearcherIT extends AbstractControllerIntegrationTest {
             .filter(authorMetadata -> authorMetadata.getValue().equals("P-orcid-" + personOrcid))
             .collect(Collectors.toList());
         authorsList.stream().map(MetadataValue::getAuthority)
-            .forEach(authority -> Assert.assertTrue(authority.startsWith(AuthorityValueService.REFERENCE + "ORCID::")));
+            .forEach(authority -> MatcherAssert.assertThat(authority,
+                Matchers.startsWith(AuthorityValueService.REFERENCE + "ORCID::")));
         ;
     }
 }
