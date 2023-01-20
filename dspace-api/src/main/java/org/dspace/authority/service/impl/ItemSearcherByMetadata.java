@@ -90,7 +90,8 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
                 referenceResolutionAttempts.get().get(searchParam).add(source.getID());
             }
             if (valuesToItemIds.get().containsKey(searchParam)) {
-                return itemService.find(context, valuesToItemIds.get().get(searchParam));
+                Item foundInCache = itemService.find(context, valuesToItemIds.get().get(searchParam));
+                return foundInCache != null ? foundInCache : performSearchByMetadata(context, searchParam);
             } else {
                 return performSearchByMetadata(context, searchParam);
             }
