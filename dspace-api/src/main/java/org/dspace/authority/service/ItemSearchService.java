@@ -23,6 +23,17 @@ public interface ItemSearchService {
      *
      * @param context the DSpace context
      * @param searchParam the searchParam
+     * @return the found item
+     */
+    public default Item search(Context context, String searchParam) {
+        return search(context, searchParam, null);
+    }
+
+    /**
+     * Search an item with the given searchParam.
+     *
+     * @param context the DSpace context
+     * @param searchParam the searchParam
      * @param source the source item
      * @return the found item
      */

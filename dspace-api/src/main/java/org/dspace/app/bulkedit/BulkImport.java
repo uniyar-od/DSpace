@@ -850,7 +850,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
     }
 
     private Item findItem(EntityRow entityRow) throws Exception {
-        return entityRow.getId() != null ? itemSearchService.search(context, entityRow.getId(), null) : null;
+        return entityRow.getId() != null ? itemSearchService.search(context, entityRow.getId()) : null;
     }
 
     private List<String> validateItem(WorkspaceItem workspaceItem) {

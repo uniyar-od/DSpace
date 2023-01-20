@@ -369,7 +369,7 @@ public class ItemImportMainOA {
                 } else {
 
                     String searchParam = sourceref + AuthorityValueService.SPLIT + record_id;
-                    Item item = itemSearchService.search(subcontext, searchParam, null);
+                    Item item = itemSearchService.search(subcontext, searchParam);
                     if (item != null) {
                         itemId = item.getID();
                     }
