@@ -155,7 +155,7 @@ public class CrisConsumer implements Consumer {
 
             String crisSourceId = generateCrisSourceId(metadata);
 
-            Item relatedItem = itemSearchService.search(context, crisSourceId, entityType);
+            Item relatedItem = itemSearchService.search(context, crisSourceId, entityType, item);
             boolean relatedItemAlreadyPresent = relatedItem != null;
 
             if (!relatedItemAlreadyPresent && isNotBlank(authority) && isReferenceAuthority(authority)) {
