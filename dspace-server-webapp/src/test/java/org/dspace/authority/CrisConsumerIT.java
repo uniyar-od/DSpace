@@ -136,6 +136,7 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
     }
 
     private void configurationSetUp() {
+        configurationService.setProperty("cris-consumer.skip-empty-authority", false);
         configurationService.setProperty("cris.import.submission.enabled.entity", true);
         configurationService.setProperty("cris.import.submission.strategy.uuid.dc_relation_project", false);
         configurationService.setProperty("cris.import.submission.strategy.uuid.dc_contributor_author", false);
