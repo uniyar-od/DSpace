@@ -123,20 +123,39 @@ public abstract class ImpRecordDAO
                     + o.getImp_qualifier() + " , " + o.getImp_value() + " , "
                     + o.getMetadata_order() + ")");
             if(o.getImp_qualifier()!=null && !o.getImp_qualifier().isEmpty()) {
+            	if(o.getImp_authority()!= null) {
                 DatabaseManager.updateQuery(context,
                         "INSERT INTO imp_metadatavalue(imp_metadatavalue_id, imp_id, imp_schema, imp_element, imp_qualifier, imp_value, imp_authority, imp_confidence, imp_share, metadata_order, text_lang)"
-                                + " VALUES (?, ?, ?, ?, ?, ?, null, null, null, ?, ?)",
+                                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, null, ?, ?)",
                         o.getPkey(), impRecord.getImp_id(), o.getImp_schema(),
-                        o.getImp_element(), o.getImp_qualifier(), o.getImp_value(),                    
+                        o.getImp_element(), o.getImp_qualifier(), o.getImp_value(),o.getImp_authority(),o.getImp_confidence(),                  
                         o.getMetadata_order(), "en");
+            	}else {
+                    DatabaseManager.updateQuery(context,
+                            "INSERT INTO imp_metadatavalue(imp_metadatavalue_id, imp_id, imp_schema, imp_element, imp_qualifier, imp_value, imp_authority, imp_confidence, imp_share, metadata_order, text_lang)"
+                                    + " VALUES (?, ?, ?, ?, ?, ?, null, null, null, ?, ?)",
+                            o.getPkey(), impRecord.getImp_id(), o.getImp_schema(),
+                            o.getImp_element(), o.getImp_qualifier(), o.getImp_value(),                  
+                            o.getMetadata_order(), "en");
+            		
+            	}
             }
             else {
+            	if(o.getImp_authority()!= null) {
                 DatabaseManager.updateQuery(context,
                     "INSERT INTO imp_metadatavalue(imp_metadatavalue_id, imp_id, imp_schema, imp_element, imp_qualifier, imp_value, imp_authority, imp_confidence, imp_share, metadata_order, text_lang)"
-                            + " VALUES (?, ?, ?, ?, null, ?, null, null, null, ?, ?)",
-                    o.getPkey(), impRecord.getImp_id(), o.getImp_schema(),
+                            + " VALUES (?, ?, ?, ?, null, ?, ?, ?, null, ?, ?)",
+                    o.getPkey(), impRecord.getImp_id(), o.getImp_schema(),o.getImp_authority(),o.getImp_confidence(),
                     o.getImp_element(), o.getImp_value(),                    
                     o.getMetadata_order(), "en");
+            	}else {
+            		DatabaseManager.updateQuery(context,
+                            "INSERT INTO imp_metadatavalue(imp_metadatavalue_id, imp_id, imp_schema, imp_element, imp_qualifier, imp_value, imp_authority, imp_confidence, imp_share, metadata_order, text_lang)"
+                                    + " VALUES (?, ?, ?, ?, null, ?, null, null, null, ?, ?)",
+                            o.getPkey(), impRecord.getImp_id(), o.getImp_schema(),
+                            o.getImp_element(), o.getImp_value(),                    
+                            o.getMetadata_order(), "en");
+            	}
             }
         }
 
