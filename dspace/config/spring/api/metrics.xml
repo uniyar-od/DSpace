@@ -76,9 +76,7 @@
         <property name="detailViewEnabled" value="${altmetric.data-badge-enabled:#{true}}" />
         <property name="listViewEnabled" value="${altmetric.list-data-badge-enabled:#{true}}" />
         <property name="doiField" value="${altmetric.doiField}" />
-        <property name="doiDataAttr" value="${altmetric.doiDataAttr}" />
         <property name="pmidField" value="${altmetric.pmidField}" />
-        <property name="pmidDataAttr" value="${altmetric.pmidDataAttr}" />
         <property name="badgeType" value="${altmetric.badgeType:#{'donut'}}" />
         <property name="popover" value="${altmetric.popover}" />
         <property name="details" value="${altmetric.details:#{null}}" />

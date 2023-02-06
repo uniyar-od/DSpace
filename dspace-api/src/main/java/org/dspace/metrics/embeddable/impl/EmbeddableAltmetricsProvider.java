@@ -7,27 +7,23 @@
  */
 package org.dspace.metrics.embeddable.impl;
 
-import java.util.List;
-import java.util.Optional;
+import static java.util.Optional.ofNullable;
+import static org.dspace.content.Item.ANY;
 
 import com.google.gson.JsonObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.core.Context;
 
 public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvider {
 
-    protected String doiField;
+    private String doiField;
 
-    protected String doiDataAttr;
+    private String pmidField;
 
-    protected String pmidField;
+    private String badgeType;
 
-    protected String pmidDataAttr;
-
-    protected String badgeType;
-
-    protected String popover;
+    private String popover;
 
     private String details;
 
@@ -37,9 +33,9 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
 
     private String listDetails;
 
-    protected String listBadgeType;
+    private String listBadgeType;
 
-    protected String listPopOver;
+    private String listPopOver;
 
     private boolean detailViewEnabled;
 
@@ -66,8 +62,9 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
 
     @Override
     public String innerHtml(Context context, Item item) {
-        String doiAttr = this.calculateAttribute(item, doiField, doiDataAttr);
-        String pmidAtt = this.calculateAttribute(item, pmidField, pmidDataAttr);
+
+        String doiAttr = this.getMetadataFirstValue(item, doiField);
+        String pmidAtt = this.getMetadataFirstValue(item, pmidField);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("data-badge-enabled", this.detailViewEnabled);
@@ -92,15 +89,11 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
         return jsonObject.toString();
     }
 
-    protected String calculateAttribute(Item item, String field, String attr) {
-        if (field != null && attr != null) {
-            List<MetadataValue> values = this.getItemService().getMetadataByMetadataString(item, field);
-            if (!values.isEmpty()) {
-                return Optional.ofNullable(values.get(0))
-                        .map(MetadataValue::getValue).orElse("");
-            }
-        }
-        return "";
+    private String getMetadataFirstValue(Item item, String metadataField) {
+        return ofNullable(metadataField)
+            .map(MetadataFieldName::new)
+            .flatMap(field -> ofNullable(getItemService().getMetadataFirstValue(item, field, ANY)))
+            .orElse("");
     }
 
     @Override
@@ -136,16 +129,8 @@ public class EmbeddableAltmetricsProvider extends AbstractEmbeddableMetricProvid
         this.doiField = doiField;
     }
 
-    public void setDoiDataAttr(String doiDataAttr) {
-        this.doiDataAttr = doiDataAttr;
-    }
-
     public void setPmidField(String pmidField) {
         this.pmidField = pmidField;
-    }
-
-    public void setPmidDataAttr(String pmidDataAttr) {
-        this.pmidDataAttr = pmidDataAttr;
     }
 
     public void setListBadgeType(String listBadgeType) {

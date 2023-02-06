@@ -7,12 +7,12 @@
  */
 package org.dspace.metrics.embeddable.impl;
 
-import java.util.List;
-import java.util.Optional;
+import static java.util.Optional.ofNullable;
+import static org.dspace.content.Item.ANY;
 
 import com.google.gson.JsonObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
+import org.dspace.content.MetadataFieldName;
 import org.dspace.core.Context;
 
 /*
@@ -20,21 +20,19 @@ import org.dspace.core.Context;
 */
 public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetricProvider {
 
-    protected String dataLegend;
+    private String dataLegend;
 
-    protected String dataStyle;
+    private String dataStyle;
 
-    protected String doiField;
+    private String doiField;
 
-    protected String pmidField;
+    private String pmidField;
 
-    protected String listDataLegend;
+    private String listDataLegend;
 
-    protected String listDataStyle;
+    private String listDataStyle;
 
-    protected boolean listBadgeInstalled;
-
-    protected boolean hideZeroCitations;
+    private boolean hideZeroCitations;
 
     private boolean detailViewEnabled;
 
@@ -51,18 +49,10 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
         return this.detailViewEnabled || this.listViewEnabled;
     }
 
-    public void setDetailViewEnabled(boolean detailViewEnabled) {
-        this.detailViewEnabled = detailViewEnabled;
-    }
-
-    public void setListViewEnabled(boolean listViewEnabled) {
-        this.listViewEnabled = listViewEnabled;
-    }
-
     @Override
     public String innerHtml(Context context, Item item) {
-        String doiValue = getValueFromMetadataField(item, doiField);
-        String pmidValue = getValueFromMetadataField(item, pmidField);
+        String doiValue = getMetadataFirstValue(item, doiField);
+        String pmidValue = getMetadataFirstValue(item, pmidField);
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("data-badge-enabled", this.detailViewEnabled);
@@ -88,16 +78,55 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
         return "dimensions";
     }
 
-    protected String getValueFromMetadataField(Item item, String field) {
-        if (field != null) {
-            List<MetadataValue> values = this.getItemService().getMetadataByMetadataString(item, field);
-            if (!values.isEmpty()) {
-                return Optional.ofNullable(values.get(0))
-                    .map(MetadataValue::getValue).orElse("");
-            }
-        }
+    private String getMetadataFirstValue(Item item, String metadataField) {
+        return ofNullable(metadataField)
+            .map(MetadataFieldName::new)
+            .flatMap(field -> ofNullable(getItemService().getMetadataFirstValue(item, field, ANY)))
+            .orElse("");
+    }
 
-        return "";
+    public boolean isDetailViewEnabled() {
+        return detailViewEnabled;
+    }
+
+    public void setDetailViewEnabled(boolean detailViewEnabled) {
+        this.detailViewEnabled = detailViewEnabled;
+    }
+
+    public boolean isListViewEnabled() {
+        return listViewEnabled;
+    }
+
+    public void setListViewEnabled(boolean listViewEnabled) {
+        this.listViewEnabled = listViewEnabled;
+    }
+
+    public String getDataLegend() {
+        return dataLegend;
+    }
+
+    public String getDataStyle() {
+        return dataStyle;
+    }
+
+    public String getDoiField() {
+        return doiField;
+    }
+
+    public String getPmidField() {
+        return pmidField;
+    }
+
+    public String getListDataLegend() {
+        return listDataLegend;
+    }
+
+    public String getListDataStyle() {
+        return listDataStyle;
+    }
+
+    public boolean isHideZeroCitations() {
+        return hideZeroCitations;
     }
 
     public void setDataLegend(String dataLegend) {
@@ -122,10 +151,6 @@ public class EmbeddableDimensionsMetricProvider extends AbstractEmbeddableMetric
 
     public void setListDataStyle(String listDataStyle) {
         this.listDataStyle = listDataStyle;
-    }
-
-    public void setListBadgeInstalled(boolean listBadgeInstalled) {
-        this.listBadgeInstalled = listBadgeInstalled;
     }
 
     public void setHideZeroCitations(boolean hideZeroCitations) {
