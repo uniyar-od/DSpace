@@ -230,12 +230,12 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                                         String displayVal = myInput
                                                 .getDisplayString(null,
                                                         stored_value);
-                                        String prefixedDisplayVal = language
-                                                + "_" + displayVal;
                                         if (StringUtils.isBlank(displayVal))
                                         {
                                             displayVal = stored_value;
                                         }
+                                        String prefixedDisplayVal = language
+                                                + "_" + displayVal;
                                         String unqualifiedField = myInput
                                                 .getSchema() + "."
                                                 + myInput.getElement() + "."
@@ -322,6 +322,10 @@ public class CrisValuePairsIndexPlugin implements CrisServiceIndexPlugin,
                 document.addField(searchFilter.getIndexFieldName() + "_ac",
                         prefixedDisplayVal.toLowerCase() + separator
                                 + displayVal);
+                
+                //store also localized flat value for keywords to match query by displayvalue from the facet link (the stored value is saved by the default implementation of CrisSearchService#indexproperty)
+                document.addField(searchFilter.getIndexFieldName() + "_keyword",
+                        displayVal);
             }
         }
     }
