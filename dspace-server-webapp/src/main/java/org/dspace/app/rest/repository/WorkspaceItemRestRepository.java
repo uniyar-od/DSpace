@@ -268,7 +268,7 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
                 try {
                     submissionService.evaluatePatchToInprogressSubmission(context, request, source, wsi, section, op);
                 } catch (ExtractMetadataStepException e) {
-                    log.error(e.getMessage(), e);
+                    log.warn(e.getMessage(), e);
                 }
             } else {
                 throw new DSpaceBadRequestException(
@@ -462,5 +462,9 @@ public class WorkspaceItemRestRepository extends DSpaceRestRepository<WorkspaceI
                 }
             }
         }
+    }
+
+    public void setSubmissionService(SubmissionService submissionService) {
+        this.submissionService = submissionService;
     }
 }
