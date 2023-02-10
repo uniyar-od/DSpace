@@ -1,0 +1,33 @@
+<fop version="1.0">
+
+  <strict-configuration>true</strict-configuration>
+  
+  <base>./</base>
+
+  <font-base>./</font-base>
+  
+  <renderers>
+  
+    <renderer mime="application/pdf">
+        <fonts>
+           <font kerning="yes" embed-url="NotoSansArabic.ttf" sub-font="Noto Sans Arabic">
+                <font-triplet name="Noto Sans Arabic" style="normal" weight="normal" />
+            </font>
+           <font kerning="yes" embed-url="NotoSans-Regular.ttf" sub-font="Noto Sans">
+                <font-triplet name="Noto Sans" style="normal" weight="normal" />
+            </font>
+           <font kerning="yes" embed-url="NotoSans-Bold.ttf" sub-font="Noto Sans">
+                <font-triplet name="Noto Sans" style="normal" weight="bold" />
+            </font>
+           <font kerning="yes" embed-url="NotoSans-BoldItalic.ttf" sub-font="Noto Sans">
+                <font-triplet name="Noto Sans" style="italic" weight="bold" />
+            </font>
+           <font kerning="yes" embed-url="NotoSans-Italic.ttf" sub-font="Noto Sans">
+                <font-triplet name="Noto Sans" style="italic" weight="normal" />
+            </font>
+        </fonts>
+    </renderer>
+    
+  </renderers>
+  
+</fop>
