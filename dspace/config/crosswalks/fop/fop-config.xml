@@ -10,9 +10,6 @@
   
     <renderer mime="application/pdf">
         <fonts>
-           <font kerning="yes" embed-url="NotoSansArabic.ttf" sub-font="Noto Sans Arabic">
-                <font-triplet name="Noto Sans Arabic" style="normal" weight="normal" />
-            </font>
            <font kerning="yes" embed-url="NotoSans-Regular.ttf" sub-font="Noto Sans">
                 <font-triplet name="Noto Sans" style="normal" weight="normal" />
             </font>
@@ -24,6 +21,12 @@
             </font>
            <font kerning="yes" embed-url="NotoSans-Italic.ttf" sub-font="Noto Sans">
                 <font-triplet name="Noto Sans" style="italic" weight="normal" />
+            </font>
+           <font kerning="yes" embed-url="NotoNaskhArabic.ttf" sub-font="Noto Naskh Arabic">
+                <font-triplet name="Noto Naskh Arabic" style="italic" weight="normal" />
+            </font>
+           <font kerning="yes" embed-url="NotoNaskhArabic.ttf" sub-font="Noto Naskh Arabic">
+                <font-triplet name="Noto Naskh Arabic" style="normal" weight="normal" />
             </font>
         </fonts>
     </renderer>
