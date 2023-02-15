@@ -12,9 +12,13 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Spliterators;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +34,7 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
+import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
@@ -502,17 +507,103 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         return bitstreamStorageService.getLastModified(bitstream);
     }
 
+    private Iterator<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName)
+            throws SQLException {
+        return bitstreamDAO.findShowableByItem(context, itemId, bundleName);
+    }
+
     @Override
-    public Iterator<Bitstream> findShowableByItem(
-        Context context, UUID itemId, Optional<String> bundleName
-    ) throws SQLException {
-        return bitstreamDAO.findShowableByItem(
-            context,
-            itemId,
-            bundleName
-                .filter(StringUtils::isNotBlank)
-                .orElse(null)
-        );
+    public Stream<Bitstream> getItemBitstreamsStream(Context context, Item item) throws SQLException {
+        return StreamSupport
+                .stream(Spliterators.spliteratorUnknownSize(getItemBitstreams(context, item), 0), false);
+    }
+
+    @Override
+    public List<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName,
+            Map<String, String> filterMetadata) throws SQLException {
+        Stream<Bitstream> bitstreams = StreamSupport
+                .stream(Spliterators.spliteratorUnknownSize(
+                        findShowableByItem(context, itemId, bundleName), 0), false);
+        return applyFilters(bitstreams, filterMetadata);
+    }
+
+    @Override
+    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, String bundleName,
+            Map<String, String> filterMetadata) {
+        return bitstreams.filter(bitstream -> isContainedInBundleNamed(bitstream, bundleName))
+                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata)).collect(Collectors.toList());
+    }
+
+    private boolean isContainedInBundleNamed(Bitstream bitstream, String name) {
+        try {
+            return bitstream.getBundles().stream()
+                .anyMatch(bundle -> StringUtils.equals(bundle.getName(), name) || StringUtils.isEmpty(name));
+        } catch (SQLException e) {
+            throw new SQLRuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, Map<String, String> filterMetadata) {
+        return bitstreams
+                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata)).collect(Collectors.toList());
+    }
+
+    private boolean hasAllMetadataValues(Bitstream bitstream, Map<String, String> filterMetadata) {
+        return filterMetadata.keySet().stream()
+            .allMatch(metadataField -> hasMetadataValue(bitstream, metadataField, filterMetadata.get(metadataField)));
+    }
+
+    private boolean hasMetadataValue(Bitstream bitstream, String metadataField, String value) {
+        if (StringUtils.isEmpty(metadataField) || StringUtils.isEmpty(value)) {
+            return true;
+        }
+        List<MetadataValue> metadata = bitstream.getMetadata().stream()
+                .filter(metadataValue -> metadataValue.getMetadataField().toString('.').equals(metadataField))
+                .collect(Collectors.toList());
+        if (isNegativeMatch(value) && metadata.size() == 0) {
+            return true;
+        }
+        return metadata.stream().anyMatch(metadataValue -> matchesMetadataValue(metadataValue, value));
+    }
+
+    private boolean isNegativeMatch(String value) {
+        return StringUtils.startsWith(value, "!");
+    }
+
+    private boolean isRegexMatch(String value) {
+        String tmpValue = value;
+        if (isNegativeMatch(value)) {
+            tmpValue = value.substring(1);
+        }
+        return StringUtils.startsWith(tmpValue, "(") && StringUtils.endsWith(tmpValue, ")");
+    }
+
+    private String getMatchValue(String value) {
+        String tmpValue = value;
+        if (isNegativeMatch(value)) {
+            tmpValue = value.substring(1);
+        }
+        if (isRegexMatch(tmpValue)) {
+            return tmpValue.substring(1, tmpValue.length() - 1);
+        }
+        return tmpValue;
+    }
+
+
+    private boolean matchesMetadataValue(MetadataValue metadataValue, String value) {
+        boolean isNegative = isNegativeMatch(value);
+        boolean matchResult = false;
+        if (isRegexMatch(value)) {
+            matchResult = metadataValue.getValue().matches(getMatchValue(value));
+        } else {
+            matchResult = StringUtils.equals(metadataValue.getValue(), getMatchValue(value));
+        }
+        if (isNegative) {
+            return !matchResult;
+        } else {
+            return matchResult;
+        }
     }
 
 }

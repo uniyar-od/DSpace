@@ -12,8 +12,9 @@ import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import org.dspace.authorize.AuthorizeException;
@@ -237,7 +238,14 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     @Nullable
     Long getLastModified(Bitstream bitstream) throws IOException;
 
-    public Iterator<Bitstream> findShowableByItem(Context context, UUID itemId, Optional<String> bundleName)
-        throws SQLException;
+    public List<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName,
+            Map<String, String> filterMetadata) throws SQLException;
+
+    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, String bundleName,
+            Map<String, String> filterMetadata);
+
+    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, Map<String, String> filterMetadata);
+
+    public Stream<Bitstream> getItemBitstreamsStream(Context context, Item item) throws SQLException;
 
 }

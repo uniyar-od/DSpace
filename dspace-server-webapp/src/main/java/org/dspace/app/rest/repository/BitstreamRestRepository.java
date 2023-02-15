@@ -13,16 +13,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Spliterators;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,7 +39,6 @@ import org.dspace.content.Collection;
 import org.dspace.content.Community;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataValue;
 import org.dspace.content.service.BitstreamService;
 import org.dspace.content.service.BundleService;
 import org.dspace.content.service.CollectionService;
@@ -224,8 +219,7 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
             .orElseThrow(() -> new UnprocessableEntityException("No item found with the given UUID"));
 
         final Map<String, String> filterMetadata = composeFilterMetadata(filterMetadataFields, filterMetadataValues);
-        final List<Bitstream> bitstreams =
-            applyFilters(findBitstreamsBy(item), Optional.of(bundleName), filterMetadata);
+        final List<Bitstream> bitstreams = bs.applyFilters(findBitstreamsBy(item), bundleName, filterMetadata);
 
         return converter.toRestPage(bitstreams, pageable, utils.obtainProjection());
     }
@@ -260,19 +254,8 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
             final Map<String, String> filterMetadata =
                 composeFilterMetadata(filterMetadataFields, filterMetadataValues);
             return converter.toRestPage(
-                this.applyFilters(
-                    this.getItemBitstreams(
-                        this.bs.findShowableByItem(
-                            obtainContext(),
-                            item.getID(),
-                            Optional.ofNullable(bundleName)
-                        )
-                    ),
-                    Optional.empty(),
-                    filterMetadata
-                ),
-                pageable,
-                utils.obtainProjection()
+                    this.bs.findShowableByItem(obtainContext(), item.getID(), bundleName, filterMetadata), pageable,
+                    utils.obtainProjection()
             );
         } catch (SQLException e) {
             throw new RuntimeException(e);
@@ -342,16 +325,6 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
         return converter.toRest(targetBundle, utils.obtainProjection());
     }
 
-    private List<Bitstream> applyFilters(
-        Stream<Bitstream> bitstreams, Optional<String> bundleName, Map<String, String> filterMetadata
-    ) {
-        return bundleName
-            .map(bundle -> bitstreams.filter(bitstream -> isContainedInBundleNamed(bitstream, bundle)))
-            .orElse(bitstreams)
-            .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata))
-            .collect(Collectors.toList());
-    }
-
     private Optional<Item> findItemById(UUID uuid) {
         try {
             return Optional.ofNullable(itemService.find(obtainContext(), uuid));
@@ -383,49 +356,10 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
 
     private Stream<Bitstream> findBitstreamsBy(Item item) {
         try {
-            return this.getItemBitstreams(bs.getItemBitstreams(obtainContext(), item));
+            return bs.getItemBitstreamsStream(obtainContext(), item);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private Stream<Bitstream> getItemBitstreams(Iterator<Bitstream> bitstreamIterator) {
-        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(bitstreamIterator, 0), false);
-    }
-
-    private boolean isContainedInBundleNamed(Bitstream bitstream, String name) {
-        try {
-            return bitstream.getBundles().stream()
-                .anyMatch(bundle -> bundle.getName().equals(name));
-        } catch (SQLException e) {
-            throw new SQLRuntimeException(e);
-        }
-    }
-
-    private boolean hasAllMetadataValues(Bitstream bitstream, Map<String, String> filterMetadata) {
-        return filterMetadata.keySet().stream()
-            .allMatch(metadataField -> hasMetadataValue(bitstream, metadataField, filterMetadata.get(metadataField)));
-    }
-
-    private boolean hasMetadataValue(Bitstream bitstream, String metadataField, String value) {
-        return bitstream.getMetadata().stream()
-            .filter(metadataValue -> metadataValue.getMetadataField().toString('.').equals(metadataField))
-            .anyMatch(metadataValue -> matchesMetadataValue(metadataValue, value));
-    }
-
-    private boolean matchesMetadataValue(MetadataValue metadataValue, String value) {
-
-        if (StringUtils.isNotBlank(metadataValue.getValue())) {
-            if (value.startsWith("(") && value.endsWith(")")) {
-                value = value.substring(1, value.length() - 1);
-                return metadataValue.getValue().matches(value);
-            } else {
-                return metadataValue.getValue().equals(value);
-            }
-        } else {
-            return false;
-        }
-
     }
 
 }
