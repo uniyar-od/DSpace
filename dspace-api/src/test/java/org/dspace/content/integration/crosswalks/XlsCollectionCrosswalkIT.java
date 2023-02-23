@@ -79,6 +79,8 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
     private Community community;
 
     private static final String BITSTREAM_URL_FORMAT = "%s/api/core/bitstreams/%s/content";
+    private static final String ADDITIONAL_METADATA_FIELD_DATE = "date";
+    private static final String ADDITIONAL_METADATA_FIELD_CONTRIBUTER = "contributor";
 
     @Before
     public void setup() throws SQLException, AuthorizeException {
@@ -665,6 +667,10 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
                                      null, null, List.of("test.txt"));
         bitstreamService.addMetadata(context, firstBitstream, "dc", "description",
                                      null, null, List.of("test description 1"));
+        bitstreamService.addMetadata(context, firstBitstream, "dc", ADDITIONAL_METADATA_FIELD_DATE,
+                null, null, List.of("2023-02-23"));
+        bitstreamService.addMetadata(context, firstBitstream, "dc", ADDITIONAL_METADATA_FIELD_CONTRIBUTER,
+                null, null, List.of("Unknown author"));
 
         // Create second bundle and bitstream
         Bundle secondBundle = bundleService.create(context, secondItem, "TEST-BUNDLE2");
@@ -690,13 +696,13 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
 
         String[] bitstreamSheetHeaders = Stream.concat(
                 XlsCollectionCrosswalk.BITSTREAM_BASE_HEADERS.stream(),
-                Stream.of("dc.description", "dc.title")
+                Stream.of( "dc.title", "dc.description")
             )
             .toArray(String[]::new);
-        String[] firstRow = { firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test description 1",
-                "test.txt" };
-        String[] secondRow = { secondItemId, getBitstreamLocationUrl(secondBitstream), "TEST-BUNDLE2",
-                "test description 2", "test2.txt" };
+        String[] firstRow = { firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test.txt",
+                "test description 1" };
+        String[] secondRow = { secondItemId, getBitstreamLocationUrl(secondBitstream), "TEST-BUNDLE2", "test2.txt",
+                "test description 2" };
 
         asserThatSheetHas(workbook.getSheetAt(4), "bitstream-metadata", 3,
                           bitstreamSheetHeaders, List.of(firstRow, secondRow));
@@ -732,6 +738,10 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
                                      null, null, List.of("test.txt"));
         bitstreamService.addMetadata(context, firstBitstream, "dc", "description",
                                      null, null, List.of("test description 1"));
+        bitstreamService.addMetadata(context, firstBitstream, "dc", ADDITIONAL_METADATA_FIELD_DATE,
+                null, null, List.of("2023-02-23"));
+        bitstreamService.addMetadata(context, firstBitstream, "dc", ADDITIONAL_METADATA_FIELD_CONTRIBUTER,
+                null, null, List.of("Unknown author"));
 
         context.restoreAuthSystemState();
 
@@ -745,11 +755,11 @@ public class XlsCollectionCrosswalkIT extends AbstractIntegrationTestWithDatabas
 
         String[] bitstreamSheetHeaders = Stream.concat(
                 XlsCollectionCrosswalk.BITSTREAM_BASE_HEADERS.stream(),
-                Stream.of("dc.description", "dc.title")
+                Stream.of("dc.title", "dc.description")
             )
             .toArray(String[]::new);
-        String[] firstRow = { firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test description 1",
-                "test.txt" };
+        String[] firstRow = { firstItemId, getBitstreamLocationUrl(firstBitstream), "TEST-BUNDLE", "test.txt",
+                "test description 1"};
 
         List<String[]> rowList = new ArrayList<>();
         rowList.add(firstRow);

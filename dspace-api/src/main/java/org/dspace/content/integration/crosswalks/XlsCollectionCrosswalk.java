@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.PostConstruct;
@@ -219,6 +218,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             .stream()
             .forEach(bitstreamSheet::appendHeader);
 
+        List<String> metadataFields = getMetadaFields(collection);
+        for (String metadataField : metadataFields) {
+            bitstreamSheet.appendHeaderIfNotPresent(metadataField);
+        }
+
         return bitstreamSheet;
     }
 
@@ -259,24 +263,19 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private void writeBitstreamRow(XlsCollectionSheet bitstreamSheet, Item item, Bitstream bitstream) {
         bitstreamSheet.appendRow();
         writeBitstreamBaseValues(bitstreamSheet, item, bitstream);
-        writeBitstreamMetadataValues(bitstreamSheet, getMetadataFromBitStream(bitstream));
+        writeBitstreamMetadataValues(bitstreamSheet, bitstream);
     }
 
-    private void writeBitstreamMetadataValues(XlsCollectionSheet bitstreamSheet, Map<String, String> metadataMap) {
-        metadataMap
-            .entrySet()
-            .stream()
-            .forEach(metadataEntry ->
-                    writeBitstreamMetadataItem(bitstreamSheet, metadataEntry)
-            );
-    }
+    private void writeBitstreamMetadataValues(XlsCollectionSheet bitstreamSheet, Bitstream bitstream) {
+        List<String> headers = bitstreamSheet.getHeaders();
 
-    private void writeBitstreamMetadataItem(XlsCollectionSheet bitstreamSheet, Entry<String, String> metadataEntry) {
-        bitstreamSheet.appendHeaderIfNotPresent(metadataEntry.getKey());
-        bitstreamSheet.setValueOnLastRow(
-                metadataEntry.getKey(),
-                metadataEntry.getValue()
-        );
+        for (String header : headers) {
+            if (!BITSTREAM_BASE_HEADERS.contains(header)) {
+
+                bitstreamService.getMetadataByMetadataString(bitstream, header)
+                        .forEach(value -> writeMetadataValue(bitstreamSheet, header, value));
+            }
+        }
     }
 
     private void writeBitstreamBaseValues(XlsCollectionSheet bitstreamSheet, Item item, Bitstream bitstream) {
@@ -336,7 +335,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
                 continue;
             }
 
-            getMetadataValues(item, header).forEach(value -> writeMetadataValue(item, mainSheet, header, value));
+            getMetadataValues(item, header).forEach(value -> writeMetadataValue(mainSheet, header, value));
         }
 
     }
@@ -380,13 +379,13 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
                 continue;
             }
 
-            writeMetadataValue(item, nestedMetadataSheet, header, metadata.get(groupIndex));
+            writeMetadataValue(nestedMetadataSheet, header, metadata.get(groupIndex));
 
         }
 
     }
 
-    private void writeMetadataValue(Item item, XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
+    private void writeMetadataValue(XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
 
         String language = metadataValue.getLanguage();
         if (StringUtils.isBlank(language)) {
@@ -497,24 +496,17 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
         }
     }
 
-    private Map<String, String> getMetadataFromBitStream(Bitstream bitstream) {
-        return bitstream
-            .getMetadata()
-            .stream()
-            .filter(mv -> StringUtils.isNotBlank(mv.getValue()))
-            .collect(Collectors.toMap(this::getMetadataName, MetadataValue::getValue, (s1, s2) -> s1));
-    }
-
-    private String getMetadataName(MetadataValue m) {
-        if (StringUtils.isBlank(m.getQualifier())) {
-            return String.format("%s.%s", m.getSchema(), m.getElement());
-        }
-
-        return String.format("%s.%s.%s", m.getSchema(), m.getQualifier(), m.getElement()
-        );
-    }
-
     public void setReader(DCInputsReader reader) {
         this.reader = reader;
+    }
+
+    private List<String> getMetadaFields(Collection collection) {
+        List<String> metadataFields;
+        try {
+            metadataFields = reader.getUploadMetadataFieldsFromCollection(collection);
+        } catch (DCInputsReaderException e) {
+            throw new RuntimeException(e);
+        }
+        return metadataFields;
     }
 }
