@@ -368,9 +368,9 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
         assertThat(crisSecurityService.hasAccess(context, item, fourthUser, accessMode), is(true));
     }
 
-    private AccessItemMode buildAccessItemMode(CrisSecurity security) {
+    private AccessItemMode buildAccessItemMode(CrisSecurity... securities) {
         AccessItemMode mode = mock(AccessItemMode.class);
-        when(mode.getSecurity()).thenReturn(security);
+        when(mode.getSecurities()).thenReturn(List.of(securities));
         return mode;
     }
 
