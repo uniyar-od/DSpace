@@ -10,11 +10,11 @@ package org.dspace.content.edit.service.impl;
 import static java.util.stream.Collectors.groupingBy;
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
 import org.dspace.content.edit.EditItemMode;
 import org.dspace.content.edit.service.EditItemModeValidator;
 
@@ -27,22 +27,35 @@ import org.dspace.content.edit.service.EditItemModeValidator;
 public class EditItemModeValidatorImpl implements EditItemModeValidator {
 
     @Override
-    public void validate(Map<String, List<EditItemMode>> editItemModesMap) throws IllegalStateException {
+    public void validate(Map<String, List<EditItemMode>> editItemModesConfiguration) throws IllegalStateException {
 
-        String errorMessage = "";
-        for (String entityType : editItemModesMap.keySet()) {
-            List<EditItemMode> editModes = editItemModesMap.get(entityType);
-            List<String> duplicatedEditModes = getDuplicatedEditModes(editModes);
-            if (isNotEmpty(duplicatedEditModes)) {
-                errorMessage = errorMessage + " entity type " + entityType +
-                    " has the following duplicated edit modes " + duplicatedEditModes;
+        List<String> validationErrorMessages = getValidationErrorMessages(editItemModesConfiguration);
+
+        if (isNotEmpty(validationErrorMessages)) {
+            throw new IllegalStateException("Invalid Edit item mode configuration: " + validationErrorMessages);
+        }
+
+    }
+
+    private List<String> getValidationErrorMessages(Map<String, List<EditItemMode>> editItemModesConfiguration) {
+        List<String> errorMessages = new ArrayList<String>();
+        errorMessages.addAll(getDuplicatedEditModeMessages(editItemModesConfiguration));
+        return errorMessages;
+    }
+
+    private List<String> getDuplicatedEditModeMessages(Map<String, List<EditItemMode>> editItemModesConfiguration) {
+        List<String> messages = new ArrayList<String>();
+
+        for (String configurationKey : editItemModesConfiguration.keySet()) {
+            List<EditItemMode> editModes = editItemModesConfiguration.get(configurationKey);
+            List<String> duplicatedModes = getDuplicatedEditModes(editModes);
+            if (isNotEmpty(duplicatedModes)) {
+                messages.add("Configuration with key '" + configurationKey +
+                    "' has the following duplicated edit modes: " + duplicatedModes);
             }
         }
 
-        if (StringUtils.isNotBlank(errorMessage)) {
-            throw new IllegalStateException("Invalid Edit item mode configuration: " + errorMessage);
-        }
-
+        return messages;
     }
 
     private List<String> getDuplicatedEditModes(List<EditItemMode> editModes) {

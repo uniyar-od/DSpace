@@ -63,8 +63,6 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             switch (crisSecurity) {
                 case ADMIN:
                     return authorizeService.isAdmin(context, user);
-                case ADMIN_OWNER:
-                    return authorizeService.isAdmin(context, user) || isOwner(user, item);
                 case CUSTOM:
                     return hasAccessByCustomPolicy(context, item, user, accessMode);
                 case GROUP:

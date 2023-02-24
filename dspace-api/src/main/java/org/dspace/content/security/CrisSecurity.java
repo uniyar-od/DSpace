@@ -19,7 +19,6 @@ public enum CrisSecurity {
     NONE,
     ADMIN,
     OWNER,
-    ADMIN_OWNER,
     CUSTOM,
     ITEM_ADMIN,
     SUBMITTER,

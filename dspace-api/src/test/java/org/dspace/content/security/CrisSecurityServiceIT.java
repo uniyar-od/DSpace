@@ -121,7 +121,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    public void testHasAccessWithAdminOwnerConfig() throws SQLException {
+    public void testHasAccessWithAdminOrOwnerConfig() throws SQLException {
 
         context.turnOffAuthorisationSystem();
 
@@ -132,7 +132,7 @@ public class CrisSecurityServiceIT extends AbstractIntegrationTestWithDatabase {
 
         context.restoreAuthSystemState();
 
-        AccessItemMode accessMode = buildAccessItemMode(CrisSecurity.ADMIN_OWNER);
+        AccessItemMode accessMode = buildAccessItemMode(CrisSecurity.ADMIN, CrisSecurity.OWNER);
 
         assertThat(crisSecurityService.hasAccess(context, item, eperson, accessMode), is(false));
         assertThat(crisSecurityService.hasAccess(context, item, admin, accessMode), is(true));
