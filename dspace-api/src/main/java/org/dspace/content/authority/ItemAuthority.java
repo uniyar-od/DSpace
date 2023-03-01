@@ -8,9 +8,6 @@
 
 package org.dspace.content.authority;
 
-import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
-import static org.dspace.discovery.SolrServiceBestMatchIndexingPlugin.BEST_MATCH_INDEX;
-
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -35,7 +32,10 @@ import org.dspace.content.authority.service.ItemAuthorityService;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
+import org.dspace.core.NameAwarePlugin;
 import org.dspace.discovery.SearchService;
+import org.dspace.discovery.SolrServiceBestMatchIndexingPlugin;
+import org.dspace.discovery.SolrServiceStrictBestMatchIndexingPlugin;
 import org.dspace.external.factory.ExternalServiceFactory;
 import org.dspace.external.provider.ExternalDataProvider;
 import org.dspace.external.service.ExternalDataService;
@@ -83,8 +83,18 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     // punt!  this is a poor implementation..
     @Override
     public Choices getBestMatch(String text, String locale) {
-        boolean onlyExactMatches = isPersonItemAuthority();
+        boolean onlyExactMatches = isPersonItemAuthority() && isBestMatchAuthorityConfigured();
         return getMatches(text, 0, 2, locale, onlyExactMatches);
+    }
+
+    public boolean isBestMatchAuthorityConfigured() {
+        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".bestMatchOnly",
+            false);
+    }
+
+    public boolean isBestMatchStrictSearch() {
+        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".isStrict",
+            false);
     }
 
     /**
@@ -112,7 +122,11 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         String query = "";
 
         if (onlyExactMatches) {
-            query = BEST_MATCH_INDEX + ":" + escapeQueryChars(text);
+            if (isBestMatchStrictSearch()) {
+                query = SolrServiceStrictBestMatchIndexingPlugin.generateSearchQuery(text);
+            } else {
+                query = SolrServiceBestMatchIndexingPlugin.generateSearchQuery(text);
+            }
         } else {
             ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
             query = itemAuthorityService.getSolrQuery(text);

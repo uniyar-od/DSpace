@@ -14,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
+import org.dspace.authority.service.FormNameLookup;
 import org.dspace.content.Collection;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
@@ -110,6 +112,13 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     // translate tail of configuration key (supposed to be schema.element.qual)
     // into field key
     protected String config2fkey(String field) {
+        StringBuilder stringBuilder = new StringBuilder();
+        boolean isAnOverride = field.contains(".override.");
+        if (isAnOverride) {
+            String[] split = field.split(".override.");
+            stringBuilder.append(split[0]).append("_");
+            field = split[1];
+        }
         // field is expected to be "schema.element.qualifier"
         int dot = field.indexOf('.');
         if (dot < 0) {
@@ -123,7 +132,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
             qualifier = element.substring(dot + 1);
             element = element.substring(0, dot);
         }
-        return makeFieldKey(schema, element, qualifier);
+        return stringBuilder.append(makeFieldKey(schema, element, qualifier)).toString();
     }
 
     @Override
@@ -218,13 +227,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
         init();
         String fieldKey = makeFieldKey(schema, element, qualifier);
         // check if there is an authority configured for the metadata valid for all the collections
-        if (controller.containsKey(fieldKey)) {
-            for (Entry<String, List<String>> authority2md : authorities.entrySet()) {
-                if (authority2md.getValue().contains(fieldKey)) {
-                    return authority2md.getKey();
-                }
-            }
-        } else if (collection != null && controllerFormDefinitions.containsKey(fieldKey)) {
+        if (collection != null && controllerFormDefinitions.containsKey(fieldKey)) {
             // there is an authority configured for the metadata valid for some collections,
             // check if it is the requested collection
             Map<Integer, Map<String, ChoiceAuthority>> controllerFormDefTypes = controllerFormDefinitions.get(fieldKey);
@@ -239,6 +242,12 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                     if (mdByDefinition != null && mdByDefinition.contains(fieldKey)) {
                         return authority2defs2md.getKey();
                     }
+                }
+            }
+        } else if (controller.containsKey(fieldKey)) {
+            for (Entry<String, List<String>> authority2md : authorities.entrySet()) {
+                if (authority2md.getValue().contains(fieldKey)) {
+                    return authority2md.getKey();
                 }
             }
         }
@@ -499,7 +508,11 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     @Override
     public ChoiceAuthority getAuthorityByFieldKeyCollection(String fieldKey, int dsoType, Collection collection) {
         init();
-        ChoiceAuthority ma = controller.get(fieldKey);
+        String formName = formNameDefinition(fieldKey, collection);
+        ChoiceAuthority ma = controller.get(formName + "_" + fieldKey);
+        if (ma == null) {
+            ma = controller.get(fieldKey);
+        }
         if (ma == null && collection != null) {
             String submissionName = authorityServiceUtils.getSubmissionOrFormName(itemSubmissionConfigReader,
                     dsoType, collection);
@@ -518,6 +531,37 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
         }
         return ma;
     }
+
+    private String formNameDefinition(String fieldKey, Collection collection) {
+
+        if (Objects.isNull(collection)) {
+            return "";
+        }
+
+        try {
+
+            SubmissionConfigReader configReader = new SubmissionConfigReader();
+            SubmissionConfig submissionName = configReader.getSubmissionConfigByCollection(collection);
+            List<String> formsContainingField =
+                FormNameLookup.getInstance().formContainingField(submissionName.getSubmissionName(), fieldKey);
+
+            if (formsContainingField.size() > 1) {
+                throw new IllegalStateException(
+                    String.format("%s defined multiple times in %s collection submission form", fieldKey,
+                        collection.getID()));
+            }
+            return formsContainingField.isEmpty() ? "" : formsContainingField.get(0);
+
+        } catch (SubmissionConfigReaderException e) {
+            // the system is in an illegal state as the submission definition is not valid
+            throw new IllegalStateException("Error reading the item submission configuration: " + e.getMessage(),
+                e);
+        } catch (IllegalStateException e) {
+            log.warn("Unable to load form name definition for collection " + collection.getID());
+            return "";
+        }
+    }
+
 
     /**
      * Wrapper that calls getChoicesByParent method of the plugin.
