@@ -195,6 +195,11 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     }
 
     @Override
+    public boolean isChoicesConfigured(String fieldKey, int dsoType, String formName) {
+        return getAuthorityByFieldKeyAndFormName(fieldKey, formName) != null;
+    }
+
+    @Override
     public String getPresentation(String fieldKey) {
         return getPresentationMap().get(fieldKey);
     }
@@ -249,6 +254,23 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
                 if (authority2md.getValue().contains(fieldKey)) {
                     return authority2md.getKey();
                 }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getChoiceAuthorityName(String schema, String element, String qualifier, String formName) {
+        String fieldKey = makeFieldKey(schema, element, qualifier);
+        String keyOverriddenAuthority = formName + "_" + fieldKey;
+        for (Entry<String, List<String>> authority2md : authorities.entrySet()) {
+            if (authority2md.getValue().contains(keyOverriddenAuthority)) {
+                return authority2md.getKey();
+            }
+        }
+        for (Entry<String, List<String>> authority2md : authorities.entrySet()) {
+            if (authority2md.getValue().contains(fieldKey)) {
+                return authority2md.getKey();
             }
         }
         return null;
@@ -507,7 +529,11 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
 
     public ChoiceAuthority getAuthorityByFieldAndCollection(String fieldKey, Collection collection) {
         init();
-        String formName = formNameDefinition(fieldKey, collection);
+        String formName = getCollectionFormName(fieldKey, collection);
+        return getAuthorityByFieldKeyAndFormName(fieldKey, formName);
+    }
+
+    private ChoiceAuthority getAuthorityByFieldKeyAndFormName(String fieldKey, String formName) {
         ChoiceAuthority ma = controller.get(formName + "_" + fieldKey);
         if (ma == null) {
             ma = controller.get(fieldKey);
@@ -538,7 +564,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
         return ma;
     }
 
-    private String formNameDefinition(String fieldKey, Collection collection) {
+    private String getCollectionFormName(String fieldKey, Collection collection) {
 
         if (Objects.isNull(collection)) {
             return "";
