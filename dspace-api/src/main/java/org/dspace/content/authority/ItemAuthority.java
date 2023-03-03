@@ -143,7 +143,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             if (isBestMatchStrictSearch()) {
                 query = SolrServiceStrictBestMatchIndexingPlugin.generateSearchQuery(text);
             } else {
-                query = SolrServiceBestMatchIndexingPlugin.generateSearchQuery(text);
+                boolean isSkipPunctuation = isSkipPunctuation();
+                query = SolrServiceBestMatchIndexingPlugin.generateSearchQuery(text, isSkipPunctuation);
             }
         } else {
             ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
@@ -184,6 +185,12 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             log.error(e.getMessage(), e);
             return new Choices(Choices.CF_UNSET);
         }
+    }
+
+    private boolean isSkipPunctuation() {
+        return configurationService
+            .getBooleanProperty("cris.ItemAuthority." + authorityName + ".skipPunctuationInQuery",
+                true);
     }
 
     private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results, String searchTitle) {

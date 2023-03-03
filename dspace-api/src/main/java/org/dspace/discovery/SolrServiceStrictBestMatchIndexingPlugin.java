@@ -41,8 +41,6 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
 
     private static final String NORMALIZE_WHITESPACES = "solr-service.strict-best-match.exclude.normalize-whitespaces";
 
-    private final static String PUNCT_CHARS_REGEX = "\\p{Punct}";
-
     private final static String NUMERIC_CHARS_REGEX = "[0-9]+";
 
     @Override
