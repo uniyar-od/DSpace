@@ -1895,6 +1895,14 @@ if (cris_type==0) {
 if (cris_type==7) {
   new_type='7';
 }
+
+if (cris_type==4) {
+  new_type='4';
+}
+
+if (cris_type==3) {
+  new_type='3';
+}
 </jsScript_script>
       </jsScript>
     </jsScripts>
