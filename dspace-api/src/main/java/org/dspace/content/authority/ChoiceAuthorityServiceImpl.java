@@ -511,14 +511,20 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
         return ma;
     }
 
-    @Override
-    public ChoiceAuthority getAuthorityByFieldKeyCollection(String fieldKey, int dsoType, Collection collection) {
+    public ChoiceAuthority getAuthorityByFieldAndCollection(String fieldKey, Collection collection) {
         init();
         String formName = formNameDefinition(fieldKey, collection);
         ChoiceAuthority ma = controller.get(formName + "_" + fieldKey);
         if (ma == null) {
             ma = controller.get(fieldKey);
         }
+        return ma;
+    }
+
+    @Override
+    public ChoiceAuthority getAuthorityByFieldKeyCollection(String fieldKey, int dsoType, Collection collection) {
+        init();
+        ChoiceAuthority ma = getAuthorityByFieldAndCollection(fieldKey, collection);
         if (ma == null && collection != null) {
             String submissionName = authorityServiceUtils.getSubmissionOrFormName(itemSubmissionConfigReader,
                     dsoType, collection);

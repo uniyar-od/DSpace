@@ -84,7 +84,25 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     @Override
     public Choices getBestMatch(String text, String locale) {
         boolean onlyExactMatches = isPersonItemAuthority() && isBestMatchAuthorityConfigured();
-        return getMatches(text, 0, 2, locale, onlyExactMatches);
+        Choices choices = getMatches(text, 0, 2, locale, onlyExactMatches);
+        return choices;
+    }
+
+    private int getCustomConfidenceValue() {
+        int defaultExactMatchConfidence = configurationService
+            .getIntProperty("cris.ItemAuthority.defaultExactMatchConfidence");
+        return configurationService
+            .getIntProperty("cris.ItemAuthority." + authorityName + ".exactMatchConfidence",
+                defaultExactMatchConfidence);
+    }
+
+    private boolean isForceInternalTitle() {
+        boolean defaultBehaviour = configurationService
+            .getBooleanProperty("cris.ItemAuthority.forceInternalName",
+                true);
+        return configurationService
+            .getBooleanProperty("cris.ItemAuthority." + authorityName + ".forceInternalName",
+                defaultBehaviour);
     }
 
     public boolean isBestMatchAuthorityConfigured() {
@@ -93,7 +111,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     }
 
     public boolean isBestMatchStrictSearch() {
-        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".isStrict",
+        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".isStrictMatch",
             false);
     }
 
@@ -148,12 +166,18 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults());
+            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), text);
             Choice[] results = new Choice[choiceList.size()];
             results = choiceList.toArray(results);
             long numFound = queryResponse.getResults().getNumFound();
 
-            return new Choices(results, start, (int) numFound, Choices.CF_AMBIGUOUS,
+            int confidenceValue = Choices.CF_AMBIGUOUS;
+            if (onlyExactMatches && numFound == 1) {
+                confidenceValue = getCustomConfidenceValue();
+            } else if (numFound == 0) {
+                confidenceValue = Choices.CF_UNSET;
+            }
+            return new Choices(results, start, (int) numFound, confidenceValue,
                                numFound > (start + limit), 0);
 
         } catch (Exception e) {
@@ -162,13 +186,18 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         }
     }
 
-    private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results) {
+    private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results, String searchTitle) {
         return results
         .stream()
         .map(doc ->  {
-            Object fieldValue = doc.getFieldValue("dc.title");
-            String title = fieldValue instanceof String ? (String) fieldValue :
-                ((ArrayList<String>) fieldValue).get(0);
+            String title;
+            if (isForceInternalTitle()) {
+                Object fieldValue = doc.getFieldValue("dc.title");
+                title = fieldValue instanceof String ? (String) fieldValue
+                    : ((ArrayList<String>) fieldValue).get(0);
+            } else {
+                title = searchTitle;
+            }
             Map<String, String> extras = ItemAuthorityUtils.buildExtra(getPluginInstanceName(), doc);
             return new Choice((String) doc.getFieldValue("search.resourceid"),
                 title,
@@ -264,7 +293,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults());
+            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), key);
             if (choiceList.isEmpty()) {
                 log.warn("No documents found for key=" + key);
                 return new HashMap<String, String>();

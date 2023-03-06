@@ -31,6 +31,8 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
 
     private static ConfigurationService configurationService = new DSpace().getConfigurationService();
 
+    public static final String BEST_MATCH_INDEX = "bestmatchstrict_s";
+
     private static final String EXCLUDE_PUNCTUATION_CONFIG = "solr-service.strict-best-match.exclude.punctuation";
 
     private static final String EXCLUDE_LETTER_CASE_CONFIG = "solr-service.strict-best-match.exclude.letter-case";
@@ -105,5 +107,9 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
 
     public static String generateSearchQuery(String text) {
         return BEST_MATCH_INDEX + ":\"" + escapeQueryChars(cleanNameWithStrictPolicies(text)) + "\"";
+    }
+
+    protected void addIndexValue(SolrInputDocument document, String value) {
+        document.addField(BEST_MATCH_INDEX, value);
     }
 }
