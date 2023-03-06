@@ -14,6 +14,7 @@ import static org.dspace.util.PersonNameUtil.getAllNameVariants;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.common.SolrInputDocument;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataFieldName;
@@ -36,6 +37,8 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
     protected static final String FIRSTNAME_FIELD = "person.givenName";
 
     protected static final String LASTNAME_FIELD = "person.familyName";
+
+    protected final static String PUNCT_CHARS_REGEX = "\\p{Punct}";
 
     protected static final List<String> FULLNAME_FIELDS = List.of("dc.title", "crisrp.name", "crisrp.name.variant",
         "crisrp.name.translated");
@@ -99,7 +102,8 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
         return "Person".equals(itemService.getEntityType(item));
     }
 
-    public static String generateSearchQuery(String text) {
+    public static String generateSearchQuery(String text, boolean isSkipPunctuation) {
+        text = StringUtils.normalizeSpace(text.replaceAll(PUNCT_CHARS_REGEX, " "));
         return BEST_MATCH_INDEX + ":" + escapeQueryChars(text) ;
     }
 }
