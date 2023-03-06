@@ -149,7 +149,8 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
                         StringUtils.equalsIgnoreCase(dcinput.getInputType(), "inline-group")) {
                     inputField.setRows(submissionFormRestRepository.findOne(context, formName + "-" + Utils
                         .standardize(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(), "-")));
-                } else if (authorityUtils.isChoice(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(), formName)) {
+                } else if (authorityUtils.isChoice(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(),
+                    formName)) {
                     inputRest.setType(getPresentation(dcinput.getSchema(), dcinput.getElement(),
                                                       dcinput.getQualifier(), inputType));
                     selMd.setControlledVocabulary(getAuthorityName(dcinput.getSchema(), dcinput.getElement(),
@@ -170,7 +171,8 @@ public class SubmissionFormConverter implements DSpaceConverter<DCInputSet, Subm
                     selMd.setLabel((String) pairs.get(idx));
                     selMd.setMetadata(org.dspace.core.Utils
                             .standardize(dcinput.getSchema(), dcinput.getElement(), pairs.get(idx + 1), "."));
-                    if (authorityUtils.isChoice(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(), formName)) {
+                    if (authorityUtils.isChoice(dcinput.getSchema(), dcinput.getElement(), dcinput.getQualifier(),
+                        formName)) {
                         selMd.setControlledVocabulary(getAuthorityName(dcinput.getSchema(), dcinput.getElement(),
                                 pairs.get(idx + 1), dcinput.getPairsType(), dcinput.getVocabulary(), formName));
                         selMd.setClosed(isClosed(dcinput.getSchema(), dcinput.getElement(),

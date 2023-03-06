@@ -585,7 +585,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
             .withEntityType("Person")
             .build();
-        
+
         String token = getAuthToken(eperson.getEmail(), password);
         // AuthorAuthority Test
         Item person1 = ItemBuilder.createItem(context, col1)
@@ -613,7 +613,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
         String person4Id = person4.getID().toString();
-        
+
         getClient(token).perform(get("/api/submission/vocabularies/PersonAuthority/entries")
             .param("filter", "Cortese Claudio")
             .param("exact", "true"))
@@ -747,7 +747,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         Collection col1 = CollectionBuilder.createCollection(context, parentCommunity)
             .withEntityType("Person")
             .build();
-        
+
         String token = getAuthToken(eperson.getEmail(), password);
         // AuthorAuthority Test
         Item person1 = ItemBuilder.createItem(context, col1)
@@ -775,7 +775,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
         context.restoreAuthSystemState();
         String person4Id = person4.getID().toString();
-        
+
         getClient(token).perform(get("/api/submission/vocabularies/AuthorCoarseMatchAuthority/entries")
             .param("filter", "Cortese Claudio")
             .param("exact", "true"))
