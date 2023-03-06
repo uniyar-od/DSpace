@@ -107,6 +107,10 @@ public class ExternalDataServiceImpl implements ExternalDataService {
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, true);
         Item item = workspaceItem.getItem();
         for (MetadataValueDTO metadataValueDTO : externalDataObject.getMetadata()) {
+            if (metadataValueDTO.getValue() == null) {
+                // skip invalid metadata
+                continue;
+            }
             itemService.addMetadata(context, item, metadataValueDTO.getSchema(), metadataValueDTO.getElement(),
                                     metadataValueDTO.getQualifier(), metadataValueDTO.getLanguage(),
                                     metadataValueDTO.getValue());
