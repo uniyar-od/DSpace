@@ -534,6 +534,7 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
     }
 
     private ChoiceAuthority getAuthorityByFieldKeyAndFormName(String fieldKey, String formName) {
+        init();
         ChoiceAuthority ma = controller.get(formName + "_" + fieldKey);
         if (ma == null) {
             ma = controller.get(fieldKey);
