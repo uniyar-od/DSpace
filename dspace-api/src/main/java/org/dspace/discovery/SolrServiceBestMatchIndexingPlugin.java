@@ -7,6 +7,7 @@
  */
 package org.dspace.discovery;
 
+import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
 import static org.dspace.content.Item.ANY;
 import static org.dspace.util.PersonNameUtil.getAllNameVariants;
 
@@ -32,11 +33,12 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
 
     public static final String BEST_MATCH_INDEX = "bestmatch_s";
 
-    private static final String FIRSTNAME_FIELD = "person.givenName";
+    protected static final String FIRSTNAME_FIELD = "person.givenName";
 
-    private static final String LASTNAME_FIELD = "person.familyName";
+    protected static final String LASTNAME_FIELD = "person.familyName";
 
-    private static final List<String> FULLNAME_FIELDS = List.of("dc.title", "crisrp.name", "crisrp.name.variant");
+    protected static final List<String> FULLNAME_FIELDS = List.of("dc.title", "crisrp.name", "crisrp.name.variant",
+        "crisrp.name.translated");
 
     @Autowired
     private ItemService itemService;
@@ -59,7 +61,7 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
 
     }
 
-    private void addIndexValueForPersonItem(Item item, SolrInputDocument document) {
+    protected void addIndexValueForPersonItem(Item item, SolrInputDocument document) {
 
         String firstName = getMetadataValue(item, FIRSTNAME_FIELD);
         String lastName = getMetadataValue(item, LASTNAME_FIELD);
@@ -73,11 +75,11 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
         addIndexValue(document, itemService.getMetadataFirstValue(item, "dc", "title", null, ANY));
     }
 
-    private void addIndexValue(SolrInputDocument document, String value) {
+    protected void addIndexValue(SolrInputDocument document, String value) {
         document.addField(BEST_MATCH_INDEX, value);
     }
 
-    private List<String> getMetadataValues(Item item, List<String> metadataFields) {
+    protected List<String> getMetadataValues(Item item, List<String> metadataFields) {
         return metadataFields.stream()
             .flatMap(metadataField -> getMetadataValues(item, metadataField).stream())
             .collect(Collectors.toList());
@@ -89,7 +91,7 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
             .collect(Collectors.toList());
     }
 
-    private String getMetadataValue(Item item, String metadataField) {
+    protected String getMetadataValue(Item item, String metadataField) {
         return itemService.getMetadataFirstValue(item, new MetadataFieldName(metadataField), ANY);
     }
 
@@ -97,4 +99,7 @@ public class SolrServiceBestMatchIndexingPlugin implements SolrServiceIndexPlugi
         return "Person".equals(itemService.getEntityType(item));
     }
 
+    public static String generateSearchQuery(String text) {
+        return BEST_MATCH_INDEX + ":" + escapeQueryChars(text) ;
+    }
 }
