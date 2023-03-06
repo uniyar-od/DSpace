@@ -1686,7 +1686,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withEntityType("Publication")
             .withName("Collection 1")
-            .withSubmissionDefinition("traditional-with-custom-url")
+            .withSubmissionDefinition("modeC")
             .build();
 
         Item item = ItemBuilder.createItem(context, collection)

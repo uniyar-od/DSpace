@@ -91,7 +91,7 @@
                         </bean>
                     </list>
                 </entry>
-                <entry key="publication.traditional-with-custom-url">
+                <entry key="publication.modeC">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">
                             <property name="name" value="MODE-A" />
