@@ -1674,6 +1674,36 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
 
     }
 
+    @Test
+    public void testEditWithHiddenSections() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Item")
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/core/edititems/" + item.getID() + ":MODE-TEST-HIDDEN"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.test-outside-workflow-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-outside-submission-hidden").doesNotExist())
+            .andExpect(jsonPath("$.sections.test-never-hidden").exists())
+            .andExpect(jsonPath("$.sections.test-always-hidden").doesNotExist());
+
+    }
+
     private Bitstream getBitstream(Item item, String name) throws SQLException {
         return bitstreamService.getBitstreamByName(item, "ORIGINAL", name);
     }

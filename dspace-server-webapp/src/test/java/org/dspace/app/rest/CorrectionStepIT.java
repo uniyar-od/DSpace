@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,21 +41,17 @@ import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.RelationshipTypeBuilder;
-import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Collection;
 import org.dspace.content.EntityType;
 import org.dspace.content.Item;
-import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.Relationship;
 import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.service.EntityTypeService;
-import org.dspace.content.service.ItemService;
 import org.dspace.content.service.RelationshipService;
 import org.dspace.content.service.RelationshipTypeService;
 import org.dspace.content.service.WorkspaceItemService;
 import org.dspace.core.Constants;
-import org.dspace.eperson.EPerson;
 import org.dspace.services.ConfigurationService;
 import org.dspace.xmlworkflow.storedcomponents.PoolTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
@@ -68,7 +65,6 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.data.rest.webmvc.RestMediaTypes;
 
 /**
  * Integration tests for {@link CorrectionStep}.
@@ -83,9 +79,6 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
     @Autowired
     private EntityTypeService entityTypeService;
-
-    @Autowired
-    private ItemService itemService;
 
     @Autowired
     private PoolTaskService poolTaskService;
@@ -191,14 +184,12 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             }
         }
 
-        if (workspaceItemIdRef.get() != null) {
-            WorkspaceItemBuilder.deleteWorkspaceItem(workspaceItemIdRef.get());
-        }
         poolTaskService.findAll(context).forEach(this::deletePoolTask);
-        super.destroy();
+        xmlWorkflowItemService.findAll(context).forEach(this::deleteWorkflowItem);
 
         super.destroy();
     }
+
     @Test
     public void checkCorrection() throws Exception {
 
@@ -212,8 +203,6 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
-
-        Integer workspaceItemId = workspaceItemIdRef.get();
 
         List<Relationship> relationshipList = relationshipService.findByItem(context, itemToBeCorrected);
         assert (relationshipList.size() > 0);
@@ -241,8 +230,9 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             .contentType("application/json-patch+json"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.errors").doesNotExist());
+
         //add an asbtract description
-        Map addValue = new HashMap();
+        Map<String, String> addValue = new HashMap<String, String>();
         addValue.put("value","Description Test");
         addGrant = new ArrayList<Operation>();
         addGrant.add(new AddOperation("/sections/traditionalpagetwo/dc.description.abstract",  List.of(addValue)));
@@ -252,8 +242,23 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             .contentType("application/json-patch+json"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.errors").doesNotExist());
-        //check if the correction is present
+
         getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + newWorkspaceItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.sections.correction.metadata").doesNotExist());
+
+        AtomicReference<Integer> workflowItemIdRef = new AtomicReference<Integer>();
+
+        getClient(tokenSubmitter).perform(post("/api/workflow/workflowitems")
+            .content("/api/submission/workspaceitems/" + newWorkspaceItem.getID())
+            .contentType(textUriContentType))
+            .andExpect(status().isCreated())
+            .andDo(result -> workflowItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        //check if the correction is present
+        getClient(tokenAdmin).perform(get("/api/workflow/workflowitems/" + workflowItemIdRef.get()))
             //The status has to be 200 OK
             .andExpect(status().isOk())
             //The array of browse index should have a size equals to 4
@@ -279,14 +284,23 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .andExpect(status().isCreated())
                 .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
-        Integer workspaceItemId = workspaceItemIdRef.get();
         List<Relationship> relationshipList = relationshipService.findByItem(context, itemToBeCorrected);
         assert (relationshipList.size() > 0);
         Item correctedItem = relationshipList.get(0).getLeftItem();
         WorkspaceItem newWorkspaceItem = workspaceItemService.findByItem(context, correctedItem);
 
+        AtomicReference<Integer> workflowItemIdRef = new AtomicReference<Integer>();
+
+        getClient(tokenSubmitter).perform(post("/api/workflow/workflowitems")
+            .content("/api/submission/workspaceitems/" + newWorkspaceItem.getID())
+            .contentType(textUriContentType))
+            .andExpect(status().isCreated())
+            .andDo(result -> workflowItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
+
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
         //check if the correction section is empty on relation item
-        getClient(tokenSubmitter).perform(get("/api/submission/workspaceitems/" + newWorkspaceItem.getID()))
+        getClient(tokenAdmin).perform(get("/api/workflow/workflowitems/" + workflowItemIdRef.get()))
             //The status has to be 200 OK
             .andExpect(status().isOk())
             //The array of browse index should have a size greater or equals to 1
@@ -295,72 +309,10 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
     }
 
-    private static Matcher matchMetadataCorrection(String value) {
+    private static Matcher<?> matchMetadataCorrection(String value) {
         return Matchers.anyOf(
-                // Check workspaceitem properties
                 hasJsonPath("$.newValues[0]", is(value)),
                 hasJsonPath("$.oldValues[0]", is(value)));
-    }
-
-    private void claimTaskAndCheckResponse(String authToken, Integer poolTaskId) throws SQLException, Exception {
-        getClient(authToken).perform(post("/api/workflow/claimedtasks")
-                .contentType(RestMediaTypes.TEXT_URI_LIST)
-                .content("/api/workflow/pooltasks/" + poolTaskId))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$", Matchers.allOf(hasJsonPath("$.type", is("claimedtask")))));
-    }
-
-    private XmlWorkflowItem setSubmission(EPerson user, String title, String date)
-            throws Exception {
-
-        context.setCurrentUser(user);
-
-        AtomicReference<Integer> idRef = new AtomicReference<Integer>();
-        String tokenSubmitter = getAuthToken(user.getEmail(), password);
-        // create empty workSpaceItem
-        getClient(tokenSubmitter).perform(post("/api/submission/workspaceitems")
-                .param("owningCollection", collection.getID().toString())
-                .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
-            .andExpect(status().isCreated())
-            .andDo((result -> idRef
-                    .set(read(result.getResponse().getContentAsString(), "$.id"))));
-
-        WorkspaceItem witem = workspaceItemService.find(context, idRef.get());
-        Item item = witem.getItem();
-
-        // add metadata
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                                "title", null, null, title);
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                                "date", "issued", null, date);
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                                "subject", null, null, "ExtraEntry");
-        itemService.addMetadata(context, item, MetadataSchemaEnum.DC.getName(),
-                                "type", null, null, "text");
-        // accept license
-        List<Operation> addGrant = new ArrayList<Operation>();
-        addGrant.add(new AddOperation("/sections/license/granted", true));
-        String patchBody = getPatchContent(addGrant);
-        getClient(tokenSubmitter).perform(patch("/api/submission/workspaceitems/" + witem.getID())
-                .content(patchBody)
-                .contentType("application/json-patch+json"))
-                            .andExpect(status().isOk())
-                            .andExpect(jsonPath("$.errors").doesNotExist())
-                            .andExpect(jsonPath("$.sections.license.granted",
-                                    is(true)))
-                            .andExpect(jsonPath("$.sections.license.acceptanceDate").isNotEmpty())
-                            .andExpect(jsonPath("$.sections.license.url").isNotEmpty());
-
-        //deposit workSpaceItem, so it become workFlowItem
-        getClient(tokenSubmitter).perform(post(BASE_REST_SERVER_URL + "/api/workflow/workflowitems")
-                 .content("/api/submission/workspaceitems/" + witem.getID())
-                 .contentType(textUriContentType))
-                 .andExpect(status().isCreated())
-                 .andDo((result -> idRef
-                         .set(read(result.getResponse().getContentAsString(), "$.id"))));
-
-        XmlWorkflowItem xmlWorkFlowItem = xmlWorkflowItemService.find(context, idRef.get());
-        return xmlWorkFlowItem;
     }
 
     private void deletePoolTask(PoolTask poolTask) {
@@ -371,5 +323,12 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
         }
     }
 
+    private void deleteWorkflowItem(XmlWorkflowItem workflowItem) {
+        try {
+            xmlWorkflowItemService.delete(context, workflowItem);
+        } catch (SQLException | AuthorizeException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

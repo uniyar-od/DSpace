@@ -89,6 +89,15 @@
                             </property>
                             <property name="submissionDefinition" value="traditional-with-custom-url" />
                         </bean>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="MODE-TEST-HIDDEN" />
+                            <property name="security">
+                              <value type="org.dspace.content.security.CrisSecurity">
+                                ADMIN
+                              </value>
+                            </property>
+                            <property name="submissionDefinition" value="test-hidden" />
+                        </bean>
                     </list>
                 </entry>
             </map>
