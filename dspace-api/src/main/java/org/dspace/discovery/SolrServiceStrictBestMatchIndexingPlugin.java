@@ -8,7 +8,6 @@
 package org.dspace.discovery;
 
 import static java.util.stream.Collectors.toSet;
-import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -35,6 +34,8 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
 
     private static final String EXCLUDE_PUNCTUATION_CONFIG = "solr-service.strict-best-match.exclude.punctuation";
 
+    private static final String EXCLUDE_DASH_CONFIG = "solr-service.strict-best-match.exclude.dash";
+
     private static final String EXCLUDE_LETTER_CASE_CONFIG = "solr-service.strict-best-match.exclude.letter-case";
 
     private static final String EXCLUDE_NUMBERS_CONFIG = "solr-service.strict-best-match.exclude.numbers";
@@ -42,6 +43,8 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
     private static final String NORMALIZE_WHITESPACES = "solr-service.strict-best-match.exclude.normalize-whitespaces";
 
     private final static String NUMERIC_CHARS_REGEX = "[0-9]+";
+
+    private final static String DASH_PATTERN = "‐";
 
     @Override
     protected void addIndexValueForPersonItem(Item item, SolrInputDocument document) {
@@ -82,6 +85,10 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
             name = name.replaceAll(PUNCT_CHARS_REGEX, " ");
         }
 
+        if (configurationService.getBooleanProperty(EXCLUDE_DASH_CONFIG, true)) {
+            name = name.replace(DASH_PATTERN, " ");
+        }
+
         if (configurationService.getBooleanProperty(EXCLUDE_NUMBERS_CONFIG, true)) {
             name = name.replaceAll(NUMERIC_CHARS_REGEX, "");
         }
@@ -101,10 +108,6 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
         }
         baseNameSet.addAll(fullnames);
         return baseNameSet;
-    }
-
-    public static String generateSearchQuery(String text) {
-        return BEST_MATCH_INDEX + ":\"" + escapeQueryChars(cleanNameWithStrictPolicies(text)) + "\"";
     }
 
     protected void addIndexValue(SolrInputDocument document, String value) {

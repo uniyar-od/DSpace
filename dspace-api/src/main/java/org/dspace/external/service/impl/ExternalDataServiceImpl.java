@@ -111,9 +111,16 @@ public class ExternalDataServiceImpl implements ExternalDataService {
                 // skip invalid metadata
                 continue;
             }
-            itemService.addMetadata(context, item, metadataValueDTO.getSchema(), metadataValueDTO.getElement(),
-                                    metadataValueDTO.getQualifier(), metadataValueDTO.getLanguage(),
-                                    metadataValueDTO.getValue());
+            if (metadataValueDTO.getAuthority() == null) {
+                itemService.addMetadata(context, item, metadataValueDTO.getSchema(), metadataValueDTO.getElement(),
+                    metadataValueDTO.getQualifier(), metadataValueDTO.getLanguage(),
+                    metadataValueDTO.getValue());
+            } else {
+                itemService.addMetadata(context, item, metadataValueDTO.getSchema(), metadataValueDTO.getElement(),
+                    metadataValueDTO.getQualifier(), metadataValueDTO.getLanguage(),
+                    metadataValueDTO.getValue(), metadataValueDTO.getAuthority(),
+                    metadataValueDTO.getConfidence());
+            }
         }
 
         log.info(LogHelper.getHeader(context, "create_item_from_externalDataObject", "Created item" +
