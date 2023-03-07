@@ -7,7 +7,6 @@
  */
 package org.dspace.content.authority;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,16 +20,14 @@ import org.dspace.content.MetadataSchemaEnum;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.ItemService;
-import org.dspace.core.Constants;
-import org.dspace.event.Event;
+import org.dspace.core.Context;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWithDatabase {
-    private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
-    private Item testItem;
+    private final ItemService itemService = ContentServiceFactory.getInstance().getItemService();
 
     @Override
     @Before
@@ -44,152 +41,118 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
     }
 
     @Test
-    public void testShouldConsumeIfItemMentionsProduct() throws Exception {
-        initItem("publication");
-
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "product", null, testItem.getName(), testItem.getID().toString(), Choices.CF_ACCEPTED);
-
-        Event testEvent = new Event(Event.MODIFY_METADATA, Constants.ITEM, this.testItem.getID(), "test");
-
-        context.addEvent(testEvent);
-        context.commit();
+    public void testShouldCreatePublicationMetadataForProductItem() {
+        String productTitle = "productTitle";
+        Item productItem = initItem("product", productTitle).build();
+        Item publicationItem = initItem("publication", "publicationTitle")
+                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation",
+                        "product", null, productTitle, productItem.getID().toString(), Choices.CF_ACCEPTED, null)
+                .build();
 
         List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
-                (Item) testEvent.getSubject(context), "dc.relation.publication");
-
-        Assert.assertFalse(metadataValues.isEmpty());
-
-        Assert.assertNotNull(metadataValues.get(0));
-        Assert.assertEquals(testEvent.getSubjectID().toString(), metadataValues.get(0).getAuthority());
-        Assert.assertTrue(metadataValues.get(0).getValue().equalsIgnoreCase(testEvent.getSubject(context).getName()));
-    }
-
-    @Test
-    public void testShouldConsumeIfItemMentionsPublication() throws Exception {
-        initItem("product");
-
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "publication", null, testItem.getName(), testItem.getID().toString(), Choices.CF_ACCEPTED);
-
-        Event testEvent = new Event(Event.MODIFY_METADATA, Constants.ITEM, this.testItem.getID(), "test");
-
-        context.addEvent(testEvent);
-        context.commit();
-
-        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
-                (Item) testEvent.getSubject(context), "dc.relation.product");
-
-        Assert.assertFalse(metadataValues.isEmpty());
-
-        Assert.assertNotNull(metadataValues.get(0));
-        Assert.assertEquals(testEvent.getSubjectID().toString(), metadataValues.get(0).getAuthority());
-        Assert.assertTrue(metadataValues.get(0).getValue().equalsIgnoreCase(testEvent.getSubject(context).getName()));
-    }
-
-    @Test
-    public void testShouldConsumeIfReciprocalMetadataAlreadyExists() throws Exception {
-        initItem("publication");
-
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "product", null, testItem.getName(), testItem.getID().toString(), Choices.CF_ACCEPTED);
-
-
-        Event testEvent = new Event(Constants.ADD, Constants.ITEM, this.testItem.getID(), "test");
-
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "publication", null, testItem.getName(), testItem.getID().toString(), Choices.CF_ACCEPTED);
-
-        context.addEvent(testEvent);
-        context.commit();
-
-        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
-                (Item) testEvent.getSubject(context), "dc.relation.publication");
-
-        Assert.assertFalse(metadataValues.isEmpty());
+                productItem, "dc.relation.publication");
 
         Assert.assertEquals(1, metadataValues.size());
-        Assert.assertEquals("dc_relation_publication", metadataValues.get(0).getMetadataField().toString());
-        Assert.assertEquals(0, metadataValues.get(0).getPlace());
-        Assert.assertEquals(testEvent.getSubject(context).getName(), metadataValues.get(0).getValue());
-        Assert.assertEquals(testEvent.getSubjectID().toString(), metadataValues.get(0).getAuthority());
-
+        Assert.assertNotNull(metadataValues.get(0));
+        Assert.assertEquals(publicationItem.getID().toString(), metadataValues.get(0).getAuthority());
+        Assert.assertEquals(publicationItem.getName(), metadataValues.get(0).getValue());
     }
 
     @Test
-    public void testShouldConsumeWithoutExceptionIfMetadataAuthorityDoesntExist()
-            throws SQLException {
-        initItem("publication");
+    public void testShouldCreateProductMetadataForPublicationItem() {
+        String publicationTitle = "publicationTitle";
+        Item publicationItem = initItem("publication", publicationTitle).build();
+        Item productItem = initItem("product", "productTitle")
+                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation", "publication",
+                        null, publicationTitle, publicationItem.getID().toString(), Choices.CF_ACCEPTED, null)
+                .build();
 
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "product", null, testItem.getName());
+        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
+                publicationItem, "dc.relation.product");
 
-        Event testEvent = new Event(Event.MODIFY, Constants.ITEM, testItem.getID(), "test");
-
-        context.addEvent(testEvent);
-        context.commit();
+        Assert.assertEquals(1, metadataValues.size());
+        Assert.assertNotNull(metadataValues.get(0));
+        Assert.assertEquals(productItem.getID().toString(), metadataValues.get(0).getAuthority());
+        Assert.assertEquals(productItem.getName(), metadataValues.get(0).getValue());
     }
 
     @Test
-    public void testShouldNotCreateItemIfItemIsNotAssociatedWithAnyMetadata() throws Exception {
-        initItem(null);
+    public void testItemMentioningNotExistingAuthorityIsCreated() throws Exception {
+        UUID notExistingItemId = UUID.fromString("803762b5-6f73-4870-b941-adf3c5626f04");
+        Item publicationItem = initItem("publication", "publicationTitle").build();
+        Item productItem = initItem("product", "productTitle")
+                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation", "product",
+                        null, "notExistingPublicationTitle", notExistingItemId.toString(), Choices.CF_ACCEPTED, null)
+                .build();
 
-        Event testEvent = new Event(Event.MODIFY, Constants.ITEM, testItem.getID(), "test");
+        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
+                publicationItem, "dc.relation.product");
+        Assert.assertEquals(0, metadataValues.size());
 
-        context.addEvent(testEvent);
-        context.commit();
-
-        Assert.assertNotNull(itemService.find(context, testItem.getID()));
-        Assert.assertEquals(testItem, itemService.find(context, testItem.getID()));
+        Item foundProductItem = itemService.findByIdOrLegacyId(new Context(), productItem.getID().toString());
+        Assert.assertEquals(productItem.getID(), foundProductItem.getID());
     }
 
     @Test
-    public void testShouldNotCreateReciprocalMetadataWithNonexistentAuthorityId() throws Exception {
-        initItem("publication");
+    public void testItemMentioningInvalidAuthorityIsCreated() throws Exception {
+        Item publicationItem = initItem("publication", "publicationTitle").build();
+        Item productItem = initItem("product", "productTitle")
+                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation", "product",
+                        null, "notExistingPublicationTitle", "invalidAuthorityUUID", Choices.CF_ACCEPTED, null)
+                .build();
 
-        UUID nonexistentItemId = UUID.fromString("803762b5-6f73-4870-b941-adf3c5626f04");
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "product", null, testItem.getName(), nonexistentItemId.toString(), Choices.CF_ACCEPTED);
+        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
+                publicationItem, "dc.relation.product");
+        Assert.assertEquals(0, metadataValues.size());
 
-        Event testEvent = new Event(Event.MODIFY, Constants.ITEM, testItem.getID(), "test");
-
-        context.addEvent(testEvent);
-        context.commit();
-
-        Assert.assertTrue(itemService.getMetadata(testItem, "dc.relation.publication",
-                testItem.getID().toString()).isEmpty()
-        );
+        Item foundProductItem = itemService.findByIdOrLegacyId(new Context(), productItem.getID().toString());
+        Assert.assertEquals(productItem.getID(), foundProductItem.getID());
     }
 
     @Test
-    public void testShouldNotCreateReciprocalMetadataWithInvalidAuthorityId() throws SQLException {
-        initItem("publication");
+    public void testItemWithoutAuthorityIsCreated() throws Exception {
+        String publicationTitle = "publicationTitle";
+        Item publicatoinItem = initItem("publication", publicationTitle).build();
+        Item productItem = initItem("product", "productTitle")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "relation", "publication", publicationTitle)
+                .build();
 
-        String invalidAuthorityId = "12345asd12345";
-        itemService.addMetadata(context, testItem, MetadataSchemaEnum.DC.getName(), "relation",
-                "product", null, testItem.getName(), invalidAuthorityId, Choices.CF_ACCEPTED);
+        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
+                publicatoinItem, "dc.relation.product");
+        Assert.assertEquals(0, metadataValues.size());
 
-        Event testEvent = new Event(Event.MODIFY, Constants.ITEM, testItem.getID(), "test");
-
-        context.addEvent(testEvent);
-        context.commit();
-
-        Assert.assertTrue(itemService.getMetadata(testItem, "dc.relation.publication",
-                testItem.getID().toString()).isEmpty()
-        );
+        Item foundProductItem = itemService.findByIdOrLegacyId(new Context(), productItem.getID().toString());
+        Assert.assertEquals(productItem.getID(), foundProductItem.getID());
     }
 
-    private void initItem(String colName) {
+    @Test
+    public void testItemWithoutPublicationMetadataIsCreated() throws Exception {
+        Item publicationItem = initItem("publication", "publicationTitle").build();
+        Item productItem = initItem("product", "productTitle").build();
+
+        List<MetadataValue> publicationItemMetadataValues = itemService.getMetadataByMetadataString(
+                publicationItem, "dc.relation.product");
+        Assert.assertEquals(0, publicationItemMetadataValues.size());
+
+        List<MetadataValue> productItemMetadataValues = itemService.getMetadataByMetadataString(
+                productItem, "dc.relation.publication");
+        Assert.assertEquals(0, productItemMetadataValues.size());
+
+        Item foundProductItem = itemService.findByIdOrLegacyId(new Context(), productItem.getID().toString());
+        Assert.assertEquals(productItem.getID(), foundProductItem.getID());
+    }
+
+    private ItemBuilder initItem(String itemType, String itemTitle) {
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
-                .withEntityType(colName)
+                .withEntityType(itemType)
                 .withName("test_collection").build();
 
-        this.testItem = ItemBuilder.createItem(context, collection)
+        return ItemBuilder.createItem(context, collection)
                 .withPersonIdentifierFirstName("test_first_name")
                 .withPersonIdentifierLastName("test_second_name")
                 .withScopusAuthorIdentifier("test_author_identifier")
-                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "test_item")
-                .build();
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, itemTitle)
+                .withType(itemType);
     }
 
 }

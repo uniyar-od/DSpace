@@ -222,6 +222,18 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, schema, element, qualifier, value);
     }
 
+    public ItemBuilder withSecuredMetadataValue(final String schema,
+                                                final String element,
+                                                final String qualifier,
+                                                final String language,
+                                                final String value,
+                                                final String authority,
+                                                final int confidence,
+                                                final Integer securityLevel) {
+        return addSecuredMetadataValue(item, schema, element, qualifier, language, value, authority,
+                confidence, securityLevel);
+    }
+
     public ItemBuilder withCrisPolicyEPerson(String value, String authority) {
         return addMetadataValue(item, CRIS.getName(), "policy", "eperson", null, value, authority, CF_ACCEPTED);
     }
