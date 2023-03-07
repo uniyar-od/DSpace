@@ -34,8 +34,6 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.NameAwarePlugin;
 import org.dspace.discovery.SearchService;
-import org.dspace.discovery.SolrServiceBestMatchIndexingPlugin;
-import org.dspace.discovery.SolrServiceStrictBestMatchIndexingPlugin;
 import org.dspace.external.factory.ExternalServiceFactory;
 import org.dspace.external.provider.ExternalDataProvider;
 import org.dspace.external.service.ExternalDataService;
@@ -56,6 +54,7 @@ import org.dspace.utils.DSpace;
 public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     private static Logger log = LogManager.getLogger(ItemAuthority.class);
     final static String CHOICES_EXTERNALSOURCE_PREFIX = "choises.externalsource.";
+    private static final int DEFAULT_EXACT_MATCH_CONFIDENCE = 400;
 
     /** the name assigned to the specific instance by the PluginService, @see {@link NameAwarePlugin} **/
     private String authorityName;
@@ -83,14 +82,14 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     // punt!  this is a poor implementation..
     @Override
     public Choices getBestMatch(String text, String locale) {
-        boolean onlyExactMatches = isPersonItemAuthority() && isBestMatchAuthorityConfigured();
+        boolean onlyExactMatches = isBestMatchAuthorityConfigured();
         Choices choices = getMatches(text, 0, 2, locale, onlyExactMatches);
         return choices;
     }
 
     private int getCustomConfidenceValue() {
         int defaultExactMatchConfidence = configurationService
-            .getIntProperty("cris.ItemAuthority.defaultExactMatchConfidence");
+            .getIntProperty("cris.ItemAuthority.defaultExactMatchConfidence", DEFAULT_EXACT_MATCH_CONFIDENCE);
         return configurationService
             .getIntProperty("cris.ItemAuthority." + authorityName + ".exactMatchConfidence",
                 defaultExactMatchConfidence);
@@ -136,18 +135,18 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         }
 
         String entityType = getLinkedEntityType();
+        ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
 
         String query = "";
 
         if (onlyExactMatches) {
             if (isBestMatchStrictSearch()) {
-                query = SolrServiceStrictBestMatchIndexingPlugin.generateSearchQuery(text);
+                query = itemAuthorityService.generateSearchQueryStrictBestMatch(text);
             } else {
                 boolean isSkipPunctuation = isSkipPunctuation();
-                query = SolrServiceBestMatchIndexingPlugin.generateSearchQuery(text, isSkipPunctuation);
+                query = itemAuthorityService.generateSearchQueryCoarseBestMatch(text, isSkipPunctuation);
             }
         } else {
-            ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
             query = itemAuthorityService.getSolrQuery(text);
         }
 
@@ -167,7 +166,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), text);
+            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), text,
+                onlyExactMatches);
             Choice[] results = new Choice[choiceList.size()];
             results = choiceList.toArray(results);
             long numFound = queryResponse.getResults().getNumFound();
@@ -193,12 +193,13 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
                 true);
     }
 
-    private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results, String searchTitle) {
+    private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results, String searchTitle,
+        boolean onlyExactMatches) {
         return results
         .stream()
         .map(doc ->  {
             String title;
-            if (isForceInternalTitle()) {
+            if (onlyExactMatches && isForceInternalTitle() || !onlyExactMatches) {
                 Object fieldValue = doc.getFieldValue("dc.title");
                 title = fieldValue instanceof String ? (String) fieldValue
                     : ((ArrayList<String>) fieldValue).get(0);
@@ -300,7 +301,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
         try {
             QueryResponse queryResponse = solr.query(solrQuery);
-            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), key);
+            List<Choice> choiceList = getChoiceListFromQueryResults(queryResponse.getResults(), key, false);
             if (choiceList.isEmpty()) {
                 log.warn("No documents found for key=" + key);
                 return new HashMap<String, String>();
@@ -317,10 +318,6 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
 
     protected int calculateConfidence(Choice[] choices) {
         return ArrayUtils.isNotEmpty(choices) ? Choices.CF_AMBIGUOUS : Choices.CF_UNSET;
-    }
-
-    private boolean isPersonItemAuthority() {
-        return "Person".equals(getLinkedEntityType());
     }
 
     private boolean hasValidExternalSource(String sourceIdentifier) {

@@ -29,7 +29,6 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionConfig;
 import org.dspace.app.util.SubmissionConfigReader;
 import org.dspace.app.util.SubmissionConfigReaderException;
-import org.dspace.authority.service.FormNameLookup;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
@@ -577,28 +576,10 @@ public final class ChoiceAuthorityServiceImpl implements ChoiceAuthorityService 
             return "";
         }
 
-        try {
+        String submissionName = authorityServiceUtils.getSubmissionOrFormName(itemSubmissionConfigReader,
+            Constants.ITEM, collection);
+        return submissionName;
 
-            SubmissionConfigReader configReader = new SubmissionConfigReader();
-            SubmissionConfig submissionName = configReader.getSubmissionConfigByCollection(collection);
-            List<String> formsContainingField =
-                FormNameLookup.getInstance().formContainingField(submissionName.getSubmissionName(), fieldKey);
-
-            if (formsContainingField.size() > 1) {
-                throw new IllegalStateException(
-                    String.format("%s defined multiple times in %s collection submission form", fieldKey,
-                        collection.getID()));
-            }
-            return formsContainingField.isEmpty() ? "" : formsContainingField.get(0);
-
-        } catch (SubmissionConfigReaderException e) {
-            // the system is in an illegal state as the submission definition is not valid
-            throw new IllegalStateException("Error reading the item submission configuration: " + e.getMessage(),
-                e);
-        } catch (IllegalStateException e) {
-            log.warn("Unable to load form name definition for collection " + collection.getID());
-            return "";
-        }
     }
 
 
