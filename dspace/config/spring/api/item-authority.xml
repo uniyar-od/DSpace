@@ -14,7 +14,7 @@
 		<property name="itemAthorityEntityTypeMap">
 			<map>
 			    <!-- Specify here any services to use with the relative entity type -->
-				<entry key="person" value-ref="personItemAuthorityService" />
+				<entry key="Person" value-ref="personItemAuthorityService" />
 				<entry key="default" value-ref="itemAuthorityService" />
 			</map>
 		</property>
