@@ -630,7 +630,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
 
         getClient(token).perform(get("/api/submission/vocabularies/PersonAuthority/entries")
             .param("filter", "Claudio Andrea Paolo Cortese"))
-            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(0)));
+            .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", Matchers.is(1)));
 
     }
 
