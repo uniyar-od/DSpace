@@ -2739,4 +2739,32 @@ public class WorkflowItemRestRepositoryIT extends AbstractControllerIntegrationT
 
     }
 
+    @Test
+    public void testValidationWithHiddenSteps() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withSubmissionDefinition("test-hidden")
+            .withWorkflowGroup(1, eperson)
+            .build();
+
+        WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/workflow/workflowitems/" + workflowItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.errors", hasSize(1)))
+            .andExpect(jsonPath("$.errors[0].message", is("error.validation.required")))
+            .andExpect(jsonPath("$.errors[0].paths", contains("/sections/test-outside-workflow-hidden/dc.title")));
+    }
+
 }
