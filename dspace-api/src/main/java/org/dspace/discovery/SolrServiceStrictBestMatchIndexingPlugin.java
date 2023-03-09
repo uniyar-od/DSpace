@@ -55,18 +55,18 @@ public class SolrServiceStrictBestMatchIndexingPlugin extends SolrServiceBestMat
 
         Set<String> bestMatchIndexValues = new HashSet<String>();
 
-        bestMatchIndexValues.addAll(getPossibleBastMatchValues(firstName, lastName, fullnames));
+        bestMatchIndexValues.addAll(getPossibleBestMatchValues(firstName, lastName, fullnames));
 
         bestMatchIndexValues.forEach(variant -> addIndexValue(document, variant));
     }
 
-    public Set<String> getPossibleBastMatchValues(String firstName, String lastName,
+    public Set<String> getPossibleBestMatchValues(String firstName, String lastName,
         Collection<String> fullnames) {
         Set<String> nameSet = generateBaseNameSet(firstName, lastName, fullnames);
-        return getPossibleBastMatchValues(nameSet);
+        return getPossibleBestMatchValues(nameSet);
     }
 
-    public Set<String> getPossibleBastMatchValues(Collection<String> fullnames) {
+    public Set<String> getPossibleBestMatchValues(Collection<String> fullnames) {
 
         Set<String> nameSet = new HashSet<String>();
         // add all possible matches to the solr index

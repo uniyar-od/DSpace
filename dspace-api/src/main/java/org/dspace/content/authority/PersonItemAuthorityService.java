@@ -11,9 +11,8 @@ package org.dspace.content.authority;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.content.DCPersonName;
-import org.dspace.content.authority.service.ItemAuthorityService;
 
-public class PersonItemAuthorityService implements ItemAuthorityService {
+public class PersonItemAuthorityService extends ItemAuthorityServiceImpl {
 
     @Override
     public String getSolrQuery(String searchTerm) {

@@ -8,8 +8,15 @@
 
 package org.dspace.content.authority;
 
+import static org.apache.solr.client.solrj.util.ClientUtils.escapeQueryChars;
+import static org.dspace.discovery.SolrServiceBestMatchIndexingPlugin.PUNCT_CHARS_REGEX;
+import static org.dspace.discovery.SolrServiceStrictBestMatchIndexingPlugin.cleanNameWithStrictPolicies;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.content.authority.service.ItemAuthorityService;
+import org.dspace.discovery.SolrServiceBestMatchIndexingPlugin;
+import org.dspace.discovery.SolrServiceStrictBestMatchIndexingPlugin;
 
 public class ItemAuthorityServiceImpl implements ItemAuthorityService {
 
@@ -27,6 +34,19 @@ public class ItemAuthorityServiceImpl implements ItemAuthorityService {
                         + "(itemauthoritylookupexactmatch:\"" + subLuceneQuery + "\")^10 ";
 
         return solrQuery;
+    }
+
+    @Override
+    public String generateSearchQueryCoarseBestMatch(String searchTerm,
+        boolean isSkipPunctuation) {
+        searchTerm = StringUtils.normalizeSpace(searchTerm.replaceAll(PUNCT_CHARS_REGEX, " "));
+        return SolrServiceBestMatchIndexingPlugin.BEST_MATCH_INDEX + ":" + escapeQueryChars(searchTerm);
+    }
+
+    @Override
+    public String generateSearchQueryStrictBestMatch(String searchTerm) {
+        return SolrServiceStrictBestMatchIndexingPlugin.BEST_MATCH_INDEX + ":"
+            + escapeQueryChars(cleanNameWithStrictPolicies(searchTerm));
     }
 
 }
