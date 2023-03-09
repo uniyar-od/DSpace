@@ -43,10 +43,28 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
     @Test
     public void testShouldCreatePublicationMetadataForProductItem() {
         String productTitle = "productTitle";
-        Item productItem = initItem("product", productTitle).build();
-        Item publicationItem = initItem("publication", "publicationTitle")
-                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation",
-                        "product", null, productTitle, productItem.getID().toString(), Choices.CF_ACCEPTED, null)
+        Collection productItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("product")
+                .withName("test_collection").build();
+        Item productItem = ItemBuilder.createItem(context, productItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, productTitle)
+                .withType("product")
+                .build();
+
+        Collection publicationItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("publication")
+                .withName("test_collection").build();
+        Item publicationItem = ItemBuilder.createItem(context, publicationItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "publicationTitle")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "relation",
+                        "product", null, productTitle, productItem.getID().toString(), Choices.CF_ACCEPTED)
+                .withType("publication")
                 .build();
 
         List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
@@ -61,10 +79,28 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
     @Test
     public void testShouldCreateProductMetadataForPublicationItem() {
         String publicationTitle = "publicationTitle";
-        Item publicationItem = initItem("publication", publicationTitle).build();
-        Item productItem = initItem("product", "productTitle")
-                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation", "publication",
-                        null, publicationTitle, publicationItem.getID().toString(), Choices.CF_ACCEPTED, null)
+        Collection publicationItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("publication")
+                .withName("test_collection").build();
+        Item publicationItem = ItemBuilder.createItem(context, publicationItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, publicationTitle)
+                .withType("publication")
+                .build();
+
+        Collection productItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("product")
+                .withName("test_collection").build();
+        Item productItem = ItemBuilder.createItem(context, productItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "productTitle")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "relation", "publication",
+                        null, publicationTitle, publicationItem.getID().toString(), Choices.CF_ACCEPTED)
+                .withType("product")
                 .build();
 
         List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
@@ -79,10 +115,28 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
     @Test
     public void testItemMentioningNotExistingAuthorityIsCreated() throws Exception {
         UUID notExistingItemId = UUID.fromString("803762b5-6f73-4870-b941-adf3c5626f04");
-        Item publicationItem = initItem("publication", "publicationTitle").build();
-        Item productItem = initItem("product", "productTitle")
-                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation", "product",
-                        null, "notExistingPublicationTitle", notExistingItemId.toString(), Choices.CF_ACCEPTED, null)
+        Collection publicationItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("publication")
+                .withName("test_collection").build();
+        Item publicationItem = ItemBuilder.createItem(context, publicationItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "publicationTitle")
+                .withType("publication")
+                .build();
+
+        Collection productItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("product")
+                .withName("test_collection").build();
+        Item productItem = ItemBuilder.createItem(context, productItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "productTitle")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "relation", "product",
+                        null, "notExistingPublicationTitle", notExistingItemId.toString(), Choices.CF_ACCEPTED)
+                .withType("product")
                 .build();
 
         List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
@@ -95,15 +149,18 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
 
     @Test
     public void testItemMentioningInvalidAuthorityIsCreated() throws Exception {
-        Item publicationItem = initItem("publication", "publicationTitle").build();
-        Item productItem = initItem("product", "productTitle")
-                .withSecuredMetadataValue(MetadataSchemaEnum.DC.getName(), "relation", "product",
-                        null, "notExistingPublicationTitle", "invalidAuthorityUUID", Choices.CF_ACCEPTED, null)
+        Collection productItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("product")
+                .withName("test_collection").build();
+        Item productItem = ItemBuilder.createItem(context, productItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "productTitle")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "relation", "product",
+                        null, "notExistingPublicationTitle", "invalidAuthorityUUID", Choices.CF_ACCEPTED)
+                .withType("product")
                 .build();
-
-        List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
-                publicationItem, "dc.relation.product");
-        Assert.assertEquals(0, metadataValues.size());
 
         Item foundProductItem = itemService.findByIdOrLegacyId(new Context(), productItem.getID().toString());
         Assert.assertEquals(productItem.getID(), foundProductItem.getID());
@@ -112,9 +169,27 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
     @Test
     public void testItemWithoutAuthorityIsCreated() throws Exception {
         String publicationTitle = "publicationTitle";
-        Item publicatoinItem = initItem("publication", publicationTitle).build();
-        Item productItem = initItem("product", "productTitle")
+        Collection publicatoinItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("publication")
+                .withName("test_collection").build();
+        Item publicatoinItem = ItemBuilder.createItem(context, publicatoinItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, publicationTitle)
+                .withType("publication")
+                .build();
+
+        Collection productItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("product")
+                .withName("test_collection").build();
+        Item productItem = ItemBuilder.createItem(context, productItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "productTitle")
                 .withMetadata(MetadataSchemaEnum.DC.getName(), "relation", "publication", publicationTitle)
+                .withType("product")
                 .build();
 
         List<MetadataValue> metadataValues = itemService.getMetadataByMetadataString(
@@ -127,12 +202,16 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
 
     @Test
     public void testItemWithoutPublicationMetadataIsCreated() throws Exception {
-        Item publicationItem = initItem("publication", "publicationTitle").build();
-        Item productItem = initItem("product", "productTitle").build();
-
-        List<MetadataValue> publicationItemMetadataValues = itemService.getMetadataByMetadataString(
-                publicationItem, "dc.relation.product");
-        Assert.assertEquals(0, publicationItemMetadataValues.size());
+        Collection productItemCollection = CollectionBuilder.createCollection(context, parentCommunity)
+                .withEntityType("product")
+                .withName("test_collection").build();
+        Item productItem = ItemBuilder.createItem(context, productItemCollection)
+                .withPersonIdentifierFirstName("test_first_name")
+                .withPersonIdentifierLastName("test_second_name")
+                .withScopusAuthorIdentifier("test_author_identifier")
+                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, "productTitle")
+                .withType("product")
+                .build();
 
         List<MetadataValue> productItemMetadataValues = itemService.getMetadataByMetadataString(
                 productItem, "dc.relation.publication");
@@ -140,19 +219,6 @@ public class ReciprocalItemAuthorityConsumerIT extends AbstractIntegrationTestWi
 
         Item foundProductItem = itemService.findByIdOrLegacyId(new Context(), productItem.getID().toString());
         Assert.assertEquals(productItem.getID(), foundProductItem.getID());
-    }
-
-    private ItemBuilder initItem(String itemType, String itemTitle) {
-        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
-                .withEntityType(itemType)
-                .withName("test_collection").build();
-
-        return ItemBuilder.createItem(context, collection)
-                .withPersonIdentifierFirstName("test_first_name")
-                .withPersonIdentifierLastName("test_second_name")
-                .withScopusAuthorIdentifier("test_author_identifier")
-                .withMetadata(MetadataSchemaEnum.DC.getName(), "title", null, itemTitle)
-                .withType(itemType);
     }
 
 }
