@@ -21,6 +21,7 @@ import org.dspace.app.util.SubmissionConfigReaderException;
 import org.dspace.content.Item;
 import org.dspace.content.edit.EditItemMode;
 import org.dspace.content.edit.service.EditItemModeService;
+import org.dspace.content.edit.service.EditItemModeValidator;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -38,8 +39,12 @@ public class EditItemModeServiceImpl implements EditItemModeService {
 
     @Autowired
     private ItemService itemService;
+
     @Autowired
     private CrisSecurityService crisSecurityService;
+
+    @Autowired
+    private EditItemModeValidator editItemModeValidator;
 
     private SubmissionConfigReader submissionConfigReader;
 
@@ -47,6 +52,7 @@ public class EditItemModeServiceImpl implements EditItemModeService {
 
     @PostConstruct
     private void setup() throws SubmissionConfigReaderException {
+        editItemModeValidator.validate(editModesMap);
         submissionConfigReader = new SubmissionConfigReader();
     }
 
