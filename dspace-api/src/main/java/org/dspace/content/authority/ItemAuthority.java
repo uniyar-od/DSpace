@@ -177,6 +177,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
                 confidenceValue = getCustomConfidenceValue();
             } else if (numFound == 0) {
                 confidenceValue = Choices.CF_UNSET;
+            } else if (numFound == 1) {
+                confidenceValue = Choices.CF_UNCERTAIN;
             }
             return new Choices(results, start, (int) numFound, confidenceValue,
                                numFound > (start + limit), 0);
