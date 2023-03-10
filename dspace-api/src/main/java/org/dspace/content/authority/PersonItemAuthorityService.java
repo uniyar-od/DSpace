@@ -26,8 +26,8 @@ public class PersonItemAuthorityService extends ItemAuthorityServiceImpl {
             String luceneQuery = lastName + "*";
             luceneQuery = luceneQuery.replaceAll("\\\\ ", " ");
 
-            solrQuery = "{!lucene q.op=AND df=itemauthoritylookup}(" + luceneQuery + ") OR (\""
-                + luceneQuery.substring(0, luceneQuery.length() - 1) + "\")";
+            solrQuery = "{!lucene q.op=AND df=itemauthoritylookup}(" + luceneQuery + ")^100 OR (\""
+                + luceneQuery.substring(0, luceneQuery.length() - 1) + "\")^10";
         } else {
             String luceneQuerySurExact = lastName + " " + firstName + "*";
 
@@ -35,10 +35,10 @@ public class PersonItemAuthorityService extends ItemAuthorityServiceImpl {
             String luceneQuerySurJolly = lastName + "* " + firstName + "*";
 
             solrQuery = "{!lucene q.op=AND df=itemauthoritylookup}("
-                + luceneQuerySurExact + ") OR (\""
-                + luceneQuerySurExact.substring(0, luceneQuerySurExact.length() - 1) + "\") OR ("
-                + luceneQuerySurJolly + ") OR ("
-                + luceneQuerySurJolly.substring(0, luceneQuerySurJolly.length() - 1) + ")";
+                + luceneQuerySurExact + ")^90 OR (\""
+                + luceneQuerySurExact.substring(0, luceneQuerySurExact.length() - 1) + "\")^100 OR ("
+                + luceneQuerySurJolly + ")^40 OR ("
+                + luceneQuerySurJolly.substring(0, luceneQuerySurJolly.length() - 1) + ")^50";
         }
 
         return solrQuery;
