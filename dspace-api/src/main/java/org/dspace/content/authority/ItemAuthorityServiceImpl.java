@@ -38,7 +38,7 @@ public class ItemAuthorityServiceImpl implements ItemAuthorityService {
      */
     @Override
     public String getSolrQueryExactMatch(String searchTerm) {
-        return generateSearchQueryCoarseBestMatch(searchTerm, true);
+        return getSolrQuery(searchTerm);
     }
 
     @Override
