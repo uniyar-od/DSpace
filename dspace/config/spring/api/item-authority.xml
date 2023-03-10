@@ -11,10 +11,13 @@
 	<bean id="itemAuthorityServiceFactory"
 		  class="org.dspace.content.authority.factory.ItemAuthorityServiceFactory">
 
-		<property name="itemAthorityEntityTypeMap">
+		<property name="authorityServiceImplMap">
 			<map>
-			    <!-- Specify here any services to use with the relative entity type -->
-				<entry key="Person" value-ref="personItemAuthorityService" />
+			    <!-- Specify here any services to use with the relative authority name -->
+				<entry key="AuthorAuthority" value-ref="personItemAuthorityService" />
+				<entry key="EditorAuthority" value-ref="personItemAuthorityService" />
+				<entry key="AuthorCoarseMatchAuthority" value-ref="personItemAuthorityCoarseMatchService" />
+				<entry key="AuthorStrictMatchAuthority" value-ref="personItemAuthorityStrictMatchService" />
 				<entry key="default" value-ref="itemAuthorityService" />
 			</map>
 		</property>
@@ -22,6 +25,8 @@
 	</bean>
 
 	<bean name="personItemAuthorityService" class="org.dspace.content.authority.PersonItemAuthorityService" />
+	<bean name="personItemAuthorityCoarseMatchService" class="org.dspace.content.authority.PersonItemAuthorityCoarseMatchService" />
+	<bean name="personItemAuthorityStrictMatchService" class="org.dspace.content.authority.PersonItemAuthorityStrictMatchService" />
 	<bean name="itemAuthorityService" class="org.dspace.content.authority.ItemAuthorityServiceImpl" />
 
 

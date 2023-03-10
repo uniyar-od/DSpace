@@ -82,17 +82,7 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     // punt!  this is a poor implementation..
     @Override
     public Choices getBestMatch(String text, String locale) {
-        boolean onlyExactMatches = isBestMatchAuthorityConfigured();
-        Choices choices = getMatches(text, 0, 2, locale, onlyExactMatches);
-        return choices;
-    }
-
-    private int getCustomConfidenceValue() {
-        int defaultExactMatchConfidence = configurationService
-            .getIntProperty("cris.ItemAuthority.defaultExactMatchConfidence", DEFAULT_EXACT_MATCH_CONFIDENCE);
-        return configurationService
-            .getIntProperty("cris.ItemAuthority." + authorityName + ".exactMatchConfidence",
-                defaultExactMatchConfidence);
+        return getMatches(text, 0, 2, locale, true);
     }
 
     private boolean isForceInternalTitle() {
@@ -102,16 +92,6 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         return configurationService
             .getBooleanProperty("cris.ItemAuthority." + authorityName + ".forceInternalName",
                 defaultBehaviour);
-    }
-
-    public boolean isBestMatchAuthorityConfigured() {
-        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".bestMatchOnly",
-            false);
-    }
-
-    public boolean isBestMatchStrictSearch() {
-        return configurationService.getBooleanProperty("cris.ItemAuthority." + authorityName + ".isStrictMatch",
-            false);
     }
 
     /**
@@ -135,17 +115,12 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
         }
 
         String entityType = getLinkedEntityType();
-        ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(entityType);
+        ItemAuthorityService itemAuthorityService = itemAuthorityServiceFactory.getInstance(authorityName);
 
         String query = "";
 
         if (onlyExactMatches) {
-            if (isBestMatchStrictSearch()) {
-                query = itemAuthorityService.generateSearchQueryStrictBestMatch(text);
-            } else {
-                boolean isSkipPunctuation = isSkipPunctuation();
-                query = itemAuthorityService.generateSearchQueryCoarseBestMatch(text, isSkipPunctuation);
-            }
+            query = itemAuthorityService.getSolrQueryExactMatch(text);
         } else {
             query = itemAuthorityService.getSolrQuery(text);
         }
@@ -172,14 +147,8 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             results = choiceList.toArray(results);
             long numFound = queryResponse.getResults().getNumFound();
 
-            int confidenceValue = Choices.CF_AMBIGUOUS;
-            if (onlyExactMatches && numFound == 1) {
-                confidenceValue = getCustomConfidenceValue();
-            } else if (numFound == 0) {
-                confidenceValue = Choices.CF_UNSET;
-            } else if (numFound == 1) {
-                confidenceValue = Choices.CF_UNCERTAIN;
-            }
+            int confidenceValue = itemAuthorityService.getConfidenceForChoices(results);
+
             return new Choices(results, start, (int) numFound, confidenceValue,
                                numFound > (start + limit), 0);
 
@@ -187,12 +156,6 @@ public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
             log.error(e.getMessage(), e);
             return new Choices(Choices.CF_UNSET);
         }
-    }
-
-    private boolean isSkipPunctuation() {
-        return configurationService
-            .getBooleanProperty("cris.ItemAuthority." + authorityName + ".skipPunctuationInQuery",
-                true);
     }
 
     private List<Choice> getChoiceListFromQueryResults(SolrDocumentList results, String searchTitle,
