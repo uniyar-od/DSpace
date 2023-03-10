@@ -100,6 +100,8 @@ public class FileUploadRequest extends HttpServletRequestWrapper
                 }
                 else
                 {
+                    String realDir = ConfigurationManager.getProperty("upload.temp.dir.real");
+                    
                     if (parameters.containsKey("resumableIdentifier")) 
                     {
                         String filename = getFilename(parameters.get("resumableFilename"));
@@ -109,9 +111,10 @@ public class FileUploadRequest extends HttpServletRequestWrapper
                             String chunkPath = chunkDirPath + File.separator + "part" + parameters.get("resumableChunkNumber");
 
                             File fileDir = new File(chunkDirPath);
-
+                            String canonPath = fileDir.getCanonicalPath();
+                            
                             // Test fileDir to see if canonical path is within the original tempDir
-                            if(!fileDir.getAbsolutePath().startsWith(tempDir)) {
+                            if(!canonPath.startsWith(realDir) && !canonPath.startsWith(tempDir)) {
                                 log.error("Error processing resumable upload chunk: temporary chunk file would be created outside " +
                                         "permissible temp dir ("+ tempDir +") for file: " + filename);
                                 throw new IOException("Error processing resumable chunk directory " + chunkDirPath +
@@ -135,8 +138,10 @@ public class FileUploadRequest extends HttpServletRequestWrapper
                         if (filename != null && !"".equals(filename))
                         {
                             File fileDir = new File(tempDir + File.separator+ filename);
+                            String canonPath = fileDir.getCanonicalPath();
+                            
                             // Test fileDir to see if canonical path is within the original tempDir
-                            if(!fileDir.getAbsolutePath().startsWith(tempDir)) {
+                            if(!canonPath.startsWith(realDir) && !canonPath.startsWith(tempDir)) {
                                 log.error("Error processing resumable upload chunk: temporary chunk file would be created outside " +
                                         "permissible temp dir ("+ tempDir +") for file: " + filename);
                                 throw new IOException("Error processing resumable chunk directory " + fileDir +

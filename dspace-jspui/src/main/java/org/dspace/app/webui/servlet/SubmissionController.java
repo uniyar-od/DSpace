@@ -1706,6 +1706,8 @@ public class SubmissionController extends DSpaceServlet
             baseDir = System.getProperty("java.io.tmpdir");
         }
 
+        String realDir = ConfigurationManager.getProperty("upload.temp.dir.real");
+        
         String resumableIdentifier = request.getParameter("resumableIdentifier");
         String resumableChunkNumber = request.getParameter("resumableChunkNumber");
         long resumableCurrentChunkSize = 
@@ -1714,9 +1716,10 @@ public class SubmissionController extends DSpaceServlet
         tempDir = baseDir + File.separator + resumableIdentifier;
 
         File fileDir = new File(tempDir);
-
+        String canonPath = fileDir.getCanonicalPath();
+        
         // Test fileDir to see if canonical path is within the original baseDir
-        if(!fileDir.getAbsolutePath().startsWith(baseDir)) {
+        if(!canonPath.startsWith(realDir) && !canonPath.startsWith(baseDir)) {
             log.error("Error processing resumable upload chunk: temporary chunk file would be created outside " +
                     "permissible temp dir ("+ baseDir +") for submitter: " + context.getCurrentUser().getEmail());
             throw new IOException("Error processing resumableIdentifier: " + resumableIdentifier +
@@ -1732,9 +1735,10 @@ public class SubmissionController extends DSpaceServlet
         String chunkPath = tempDir + File.separator + "part" + resumableChunkNumber;
 
         File chunkFile = new File(chunkPath);
-
+        canonPath = chunkFile.getCanonicalPath();
+        
         // Test chunkFile to see if canonical path is within the original baseDir
-        if(!chunkFile.getAbsolutePath().startsWith(baseDir)) {
+        if(!canonPath.startsWith(realDir) && !canonPath.startsWith(baseDir)) {
             log.error("Error processing resumable upload chunk: temporary chunk file would be created outside " +
                     "permissible temp dir ("+ baseDir +") for submitter: " + context.getCurrentUser().getEmail());
             throw new IOException("Error processing resumableIdentifier: " + resumableIdentifier +
