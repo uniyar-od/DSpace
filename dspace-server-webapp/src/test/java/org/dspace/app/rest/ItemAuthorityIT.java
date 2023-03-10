@@ -644,10 +644,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         configurationService.setProperty("choices.plugin.dc.contributor.author", "AuthorStrictMatchAuthority");
         configurationService.setProperty("choices.presentation.dc.contributor.author", "suggest");
         configurationService.setProperty("cris.ItemAuthority.AuthorStrictMatchAuthority.forceInternalName", true);
-        configurationService.setProperty("cris.ItemAuthority.AuthorStrictMatchAuthority.bestMatchOnly", true);
-        configurationService.setProperty("cris.ItemAuthority.AuthorStrictMatchAuthority.isStrictMatch", true);
         configurationService.setProperty("cris.ItemAuthority.AuthorStrictMatchAuthority.entityType", "Person");
-        configurationService.setProperty("cris.ItemAuthority.AuthorStrictMatchAuthority.exactMatchConfidence", 600);
         configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
         configurationService.setProperty("cris.ItemAuthority.PersonAuthority.entityType", "Person");
 
@@ -732,10 +729,7 @@ public class ItemAuthorityIT extends AbstractControllerIntegrationTest {
         configurationService.setProperty("choices.plugin.dc.contributor.author", "AuthorCoarseMatchAuthority");
         configurationService.setProperty("choices.presentation.dc.contributor.author", "suggest");
         configurationService.setProperty("cris.ItemAuthority.AuthorCoarseMatchAuthority.forceInternalName", true);
-        configurationService.setProperty("cris.ItemAuthority.AuthorCoarseMatchAuthority.bestMatchOnly", true);
-        configurationService.setProperty("cris.ItemAuthority.AuthorCoarseMatchAuthority.isStrictMatch", false);
         configurationService.setProperty("cris.ItemAuthority.AuthorCoarseMatchAuthority.entityType", "Person");
-        configurationService.setProperty("cris.ItemAuthority.AuthorCoarseMatchAuthority.exactMatchConfidence", 400);
         configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
         configurationService.setProperty("cris.ItemAuthority.PersonAuthority.entityType", "Person");
 

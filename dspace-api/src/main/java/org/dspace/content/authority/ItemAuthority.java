@@ -54,7 +54,6 @@ import org.dspace.utils.DSpace;
 public class ItemAuthority implements ChoiceAuthority, LinkableEntityAuthority {
     private static Logger log = LogManager.getLogger(ItemAuthority.class);
     final static String CHOICES_EXTERNALSOURCE_PREFIX = "choises.externalsource.";
-    private static final int DEFAULT_EXACT_MATCH_CONFIDENCE = 400;
 
     /** the name assigned to the specific instance by the PluginService, @see {@link NameAwarePlugin} **/
     private String authorityName;
