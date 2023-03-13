@@ -5,14 +5,19 @@
  *
  * http://www.dspace.org/license/
  */
-
 package org.dspace.content.authority;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.solr.client.solrj.util.ClientUtils;
 import org.dspace.content.DCPersonName;
 
-public class PersonItemAuthorityService extends ItemAuthorityServiceImpl {
+/**
+ * 
+ * @author Stefano Maffei 4Science.com
+ *
+ */
+
+public class PersonAuthoritySolrFilterImpl extends ItemAuthorityCustomSolrFilterImpl {
 
     @Override
     public String getSolrQuery(String searchTerm) {
