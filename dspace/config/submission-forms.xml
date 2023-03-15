@@ -844,6 +844,31 @@
         </field>
       </row>
     </form>
+    <form name="artefact">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Наименование</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <required>Наименование артефакта обязательно.</required>
+          <hint>Введи наименование артефакта.</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <label>Описание</label>
+          <input-type>textarea</input-type>
+          <repeatable>false</repeatable>
+          <required />
+          <hint>Введи описание артефакта.</hint>
+        </field>
+      </row>
+    </form>
     <form name="product">
       <row>
         <field>

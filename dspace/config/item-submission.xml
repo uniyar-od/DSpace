@@ -71,6 +71,11 @@
       <processing-class>org.dspace.app.rest.submit.step.LicenseStep</processing-class>
       <type>license</type>
     </step-definition>
+    <step-definition id="artefact" mandatory="true">
+      <heading>submit.progressbar.describe.product</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
     <step-definition id="product" mandatory="true">
       <heading>submit.progressbar.describe.product</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
@@ -205,6 +210,10 @@
     </step-definition>
   </step-definitions>
   <submission-definitions>
+    <submission-process name="artefact">
+       <step id="collection" />
+       <step id="artefact" />
+    </submission-process>
     <submission-process name="product">
       <step id="collection" />
       <step id="product" />
