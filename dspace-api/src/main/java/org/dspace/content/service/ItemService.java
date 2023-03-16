@@ -890,4 +890,6 @@ public interface ItemService
     void addDefaultPoliciesNotInPlace(Context context, DSpaceObject dso, List<ResourcePolicy> defaultCollectionPolicies)
         throws SQLException, AuthorizeException;
 
+    public Iterator<Item> findAuthorityControlledFields(Context context, Item item, List<String> authorities);
+
 }

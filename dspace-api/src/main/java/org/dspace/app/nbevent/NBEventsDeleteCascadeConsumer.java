@@ -8,7 +8,10 @@
 
 package org.dspace.app.nbevent;
 
+import java.util.Objects;
+
 import org.dspace.app.nbevent.service.NBEventService;
+import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
@@ -26,7 +29,6 @@ public class NBEventsDeleteCascadeConsumer implements Consumer {
     private NBEventService nbEventService;
 
     @Override
-    @SuppressWarnings("unchecked")
     public void initialize() throws Exception {
         nbEventService = new DSpace().getSingletonService(NBEventService.class);
     }
