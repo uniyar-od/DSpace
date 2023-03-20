@@ -7,6 +7,9 @@
  */
 package org.dspace.content;
 
+import static org.dspace.authority.service.AuthorityValueService.BUSINESS_MODE;
+import static org.dspace.authority.service.AuthorityValueService.CLEAN_ALL_MODE;
+import static org.dspace.authority.service.AuthorityValueService.PREFIX_MODE;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
 import static org.dspace.authority.service.AuthorityValueService.SPLIT;
 import static org.dspace.content.authority.Choices.CF_UNSET;
@@ -970,31 +973,21 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     private void removeAuthorityReferences(Context context, Item item) throws SQLException {
-        Iterator<Item> itemsToFixAuthority = this.findAuthorityControlledFields(context, item,
-                                                      Arrays.asList(item.getID().toString()));
-
-        List<String> controlledFields = getControlledFields(item);
-        BusinessIdentifierDTO businesIdentifier = getBusinesIdentifier(context, item);
-        boolean businesIdentifierExist = Objects.nonNull(businesIdentifier);
-
         String uuidOfDeletedItem = item.getID().toString();
+        List<String> controlledFields = getControlledFields(item);
+        Iterator<Item> itemsToFixAuthority =
+                       this.findAuthorityControlledFields(context, item, Arrays.asList(uuidOfDeletedItem));
+
         while (itemsToFixAuthority.hasNext()) {
-            Item itemToProxcess = itemsToFixAuthority.next();
+            Item itemToProcess = itemsToFixAuthority.next();
             for (String controlledField : controlledFields) {
-                List<MetadataValue> metadataValues = getMetadataByMetadataString(itemToProxcess, controlledField);
+                List<MetadataValue> metadataValues = getMetadataByMetadataString(itemToProcess, controlledField);
                 if (CollectionUtils.isNotEmpty(metadataValues)) {
                     for (MetadataValue metadataValue : metadataValues) {
                         if (StringUtils.equals(metadataValue.getAuthority(), uuidOfDeletedItem)) {
-                            if (metadataFieldRequiredBusinessMode(controlledField)) {
-                                if (businesIdentifierExist) {
-                                    metadataValue.setAuthority(REFERENCE + businesIdentifier.getPrefix() +
-                                                               SPLIT + businesIdentifier.getValue());
-                                } else {
-                                    metadataValue.setAuthority(null);
-                                }
-                                metadataValue.setConfidence(CF_UNSET);
-                            } else {
-                                removeMetadataValues(context, itemToProxcess, Arrays.asList(metadataValue));
+                            String cleanUpMode = getCleanUpMode(controlledField);
+                            if (StringUtils.isNotBlank(cleanUpMode)) {
+                                applyMode(context, item, itemToProcess, metadataValue, cleanUpMode);
                             }
                         }
                     }
@@ -1003,8 +996,34 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
     }
 
-    private boolean metadataFieldRequiredBusinessMode(String controlledField) {
-        return configurationService.getBooleanProperty(controlledField, false);
+    private void applyMode(Context context, Item item, Item itemToProcess, MetadataValue metadataValue, String mode)
+            throws SQLException {
+        switch (mode) {
+            case BUSINESS_MODE:
+                applyBusinessMode(context, item, metadataValue);
+                break;
+            case CLEAN_ALL_MODE:
+                removeMetadataValues(context, itemToProcess, Arrays.asList(metadataValue));
+                break;
+            default:
+                log.error("The configured mode:" + mode + " for metadata:" + metadataValue.getMetadataField().toString()
+                                                 + " is not supported");
+        }
+    }
+
+    private void applyBusinessMode(Context context, Item item, MetadataValue metadataValue) {
+        BusinessIdentifierDTO businesIdentifier = getBusinesIdentifier(context, item);
+        if (Objects.nonNull(businesIdentifier)) {
+            metadataValue.setAuthority(REFERENCE + businesIdentifier.getPrefix() +
+                                       SPLIT + businesIdentifier.getValue());
+        } else {
+            metadataValue.setAuthority(null);
+        }
+        metadataValue.setConfidence(CF_UNSET);
+    }
+
+    private String getCleanUpMode(String controlledField) {
+        return configurationService.getProperty(PREFIX_MODE + controlledField);
     }
 
     private List<String> getControlledFields(Item item) {
