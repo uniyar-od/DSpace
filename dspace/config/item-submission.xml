@@ -211,8 +211,10 @@
   </step-definitions>
   <submission-definitions>
     <submission-process name="artefact">
-       <step id="collection" />
-       <step id="artefact" />
+      <step id="collection" />
+      <step id="artefact" />
+      <step id="upload" />
+      <step id="license" />
     </submission-process>
     <submission-process name="product">
       <step id="collection" />
