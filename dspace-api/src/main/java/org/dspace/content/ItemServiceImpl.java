@@ -966,7 +966,9 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         item.setOwningCollection(null);
 
         // remore authority references
-        removeAuthorityReferences(context, item);
+        if (configurationService.getBooleanProperty("clean_mode-enabled", false)) {
+            removeAuthorityReferences(context, item);
+        }
 
         // Finally remove item row
         itemDAO.delete(context, item);
@@ -975,20 +977,21 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     private void removeAuthorityReferences(Context context, Item item) throws SQLException {
         String uuidOfDeletedItem = item.getID().toString();
         List<String> controlledFields = getControlledFields(item);
+
         Iterator<Item> itemsToFixAuthority =
                        this.findAuthorityControlledFields(context, item, Arrays.asList(uuidOfDeletedItem));
 
         while (itemsToFixAuthority.hasNext()) {
             Item itemToProcess = itemsToFixAuthority.next();
+
             for (String controlledField : controlledFields) {
+                String cleanUpMode = getCleanUpMode(controlledField);
                 List<MetadataValue> metadataValues = getMetadataByMetadataString(itemToProcess, controlledField);
+
                 if (CollectionUtils.isNotEmpty(metadataValues)) {
                     for (MetadataValue metadataValue : metadataValues) {
                         if (StringUtils.equals(metadataValue.getAuthority(), uuidOfDeletedItem)) {
-                            String cleanUpMode = getCleanUpMode(controlledField);
-                            if (StringUtils.isNotBlank(cleanUpMode)) {
-                                applyMode(context, item, itemToProcess, metadataValue, cleanUpMode);
-                            }
+                            applyMode(context, item, itemToProcess, metadataValue, cleanUpMode);
                         }
                     }
                 }
@@ -1023,7 +1026,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     private String getCleanUpMode(String controlledField) {
-        return configurationService.getProperty(PREFIX_MODE + controlledField);
+        String mode = configurationService.getProperty(PREFIX_MODE + controlledField);
+        if (StringUtils.isBlank(mode)) {
+            mode = configurationService.getProperty(PREFIX_MODE + "default");
+        }
+        return mode;
     }
 
     private List<String> getControlledFields(Item item) {

@@ -89,6 +89,10 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
+        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
+        if (!isEnabled) {
+            configurationService.setProperty(PREFIX_MODE + "enabled", true);
+        }
         String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
 
         try {
@@ -139,6 +143,9 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
                  )));
         } finally {
             // restore origin mode
+            if (!isEnabled) {
+                configurationService.setProperty(PREFIX_MODE + "enabled", false);
+            }
             configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
         }
     }
@@ -193,6 +200,10 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
+        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
+        if (!isEnabled) {
+            configurationService.setProperty(PREFIX_MODE + "enabled", true);
+        }
         String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
 
         try {
@@ -242,6 +253,9 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
                  )));
         } finally {
             // restore origin mode
+            if (!isEnabled) {
+                configurationService.setProperty(PREFIX_MODE + "enabled", false);
+            }
             configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
         }
     }
@@ -298,6 +312,10 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
+        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
+        if (!isEnabled) {
+            configurationService.setProperty(PREFIX_MODE + "enabled", true);
+        }
         String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
 
         try {
@@ -347,12 +365,15 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].confidence").doesNotExist());
         } finally {
             // restore origin mode
+            if (!isEnabled) {
+                configurationService.setProperty(PREFIX_MODE + "enabled", false);
+            }
             configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
         }
     }
 
     @Test
-    public void checkWithoutAnyWhileDeletionPersonItemTest() throws Exception {
+    public void checkWithoutAnyModeWhileDeletionPersonItemTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
         parentCommunity = CommunityBuilder.createCommunity(context)
@@ -403,11 +424,17 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
+        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
+        if (!isEnabled) {
+            configurationService.setProperty(PREFIX_MODE + "enabled", true);
+        }
+        String originDefaultMode = configurationService.getProperty(PREFIX_MODE + "default");
         String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
 
         try {
             // dc.contributor.author metadata with out any mode
             configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", "");
+            configurationService.setProperty(PREFIX_MODE + "default", BUSINESS_MODE);
 
             String tokenAdmin = getAuthToken(admin.getEmail(), password);
             getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
@@ -443,6 +470,116 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
                 .andExpect(jsonPath("$", Matchers.allOf(
                  // check Boychuk, Mykhaylo
                  hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                          is("will be referenced::ORCID::0001-002-0003-0001")),
+                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
+                 // check Giamminonni, Luca
+                 hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+                 hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+                 hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+                 )));
+        } finally {
+            // restore origin mode
+            if (!isEnabled) {
+                configurationService.setProperty(PREFIX_MODE + "enabled", false);
+            }
+            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
+            configurationService.setProperty(PREFIX_MODE + "default", originDefaultMode);
+        }
+    }
+
+    @Test
+    public void turnOffCleanupModeTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
+                                                   .withName("Collection of Publications")
+                                                   .build();
+
+        Collection persons = CollectionBuilder.createCollection(context, parentCommunity)
+                                              .withName("Collection of Persons")
+                                              .build();
+
+        Collection orgUnits = CollectionBuilder.createCollection(context, parentCommunity)
+                                               .withName("Collection of OrgUnits")
+                                               .build();
+
+        Item orgUnitItem = ItemBuilder.createItem(context, orgUnits)
+                                      .withTitle("4Science")
+                                      .withEntityType("OrgUnit")
+                                      .build();
+
+        Item personItem = ItemBuilder.createItem(context, persons)
+                                     .withTitle("Boychuk, Mykhaylo")
+                                     .withOrcidIdentifier("0001-002-0003-0001")
+                                     .withScopusAuthorIdentifier("12345678001")
+                                     .withAffiliation("4Science", orgUnitItem.getID().toString())
+                                     .withEntityType("Person")
+                                     .build();
+
+        Item personItem2 = ItemBuilder.createItem(context, persons)
+                                      .withTitle("Giamminonni, Luca")
+                                      .withOrcidIdentifier("0000-0002-8310-6788")
+                                      .withScopusAuthorIdentifier("12345678002")
+                                      .withAffiliation("4Science", orgUnitItem.getID().toString())
+                                      .withEntityType("Person")
+                                      .build();
+
+        Item publicationItem = ItemBuilder.createItem(context, publications)
+                                          .withTitle("New functionalities of the DSpace7")
+                                          .withAuthor("Boychuk, Mykhaylo", personItem.getID().toString())
+                                          .withAuthor("Giamminonni, Luca", personItem2.getID().toString())
+                                          .withIssueDate("2023-02-14")
+                                          .withSubject("ExtraEntry")
+                                          .withEntityType("Publication")
+                                          .build();
+
+        context.restoreAuthSystemState();
+
+        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
+        if (isEnabled) {
+            configurationService.setProperty(PREFIX_MODE + "enabled", false);
+        }
+
+        try {
+            // configure BUSINESS_MODE for dc.contributor.author metadata
+            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", BUSINESS_MODE);
+
+            String tokenAdmin = getAuthToken(admin.getEmail(), password);
+            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                  hasJsonPath("$.name", is(personItem.getName())),
+                  hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
+                  hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
+                  hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
+                  )));
+
+            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+                 .andExpect(status().isOk())
+                 .andExpect(jsonPath("$", Matchers.allOf(
+                  // check Boychuk, Mykhaylo
+                  hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+                  hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+                  hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+                  // Giamminonni, Luca
+                  hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+                  hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+                  hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+                  )));
+
+            getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
+                                 .andExpect(status().isNoContent());
+
+            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.allOf(
+                 // check Boychuk, Mykhaylo
+                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
                  hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
                  hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
                  // check Giamminonni, Luca
@@ -452,7 +589,9 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
                  )));
         } finally {
             // restore origin mode
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
+            if (isEnabled) {
+                configurationService.setProperty(PREFIX_MODE + "enabled", true);
+            }
         }
     }
 
