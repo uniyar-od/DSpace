@@ -8,10 +8,7 @@
 
 package org.dspace.app.nbevent;
 
-import java.util.Objects;
-
 import org.dspace.app.nbevent.service.NBEventService;
-import org.dspace.content.Item;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.event.Consumer;
