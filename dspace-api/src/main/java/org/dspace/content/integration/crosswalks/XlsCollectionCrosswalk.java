@@ -11,7 +11,6 @@ import static org.apache.commons.collections4.IteratorUtils.chainedIterator;
 import static org.apache.commons.collections4.IteratorUtils.singletonListIterator;
 import static org.dspace.app.bulkedit.BulkImport.ACCESS_CONDITION_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.ADDITIONAL_ACCESS_CONDITION_HEADER;
-import static org.dspace.app.bulkedit.BulkImport.AUTHORITY_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.BITSTREAMS_SHEET_NAME;
 import static org.dspace.app.bulkedit.BulkImport.BITSTREAM_POSITION_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.BUNDLE_HEADER;
@@ -19,6 +18,7 @@ import static org.dspace.app.bulkedit.BulkImport.FILE_PATH_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.ID_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_PREFIX;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_SUFFIX;
+import static org.dspace.app.bulkedit.BulkImport.METADATA_ATTRIBUTES_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.METADATA_SEPARATOR;
 import static org.dspace.app.bulkedit.BulkImport.PARENT_ID_HEADER;
 
@@ -426,16 +426,18 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private void writeMetadataValue(XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
 
+        String value = formatMetadataValue(metadataValue);
         String language = metadataValue.getLanguage();
+
         if (StringUtils.isBlank(language)) {
-            sheet.appendValueOnLastRow(header, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
+            sheet.appendValueOnLastRow(header, value, METADATA_SEPARATOR);
             return;
         }
 
         if (isLanguageSupported(sheet.getCollection(), language, header, sheet.isNestedMetadata())) {
             String headerWithLanguage = header + LANGUAGE_SEPARATOR_PREFIX + language + LANGUAGE_SEPARATOR_SUFFIX;
             sheet.appendHeaderIfNotPresent(headerWithLanguage);
-            sheet.appendValueOnLastRow(headerWithLanguage, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
+            sheet.appendValueOnLastRow(headerWithLanguage, value, METADATA_SEPARATOR);
         }
 
     }
@@ -452,7 +454,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
             return value;
         }
 
-        return value + AUTHORITY_SEPARATOR + authority + AUTHORITY_SEPARATOR + confidence;
+        return value + METADATA_ATTRIBUTES_SEPARATOR + authority + METADATA_ATTRIBUTES_SEPARATOR + confidence;
     }
 
     private boolean isBitstreamMetadataFieldHeader(String header) {
