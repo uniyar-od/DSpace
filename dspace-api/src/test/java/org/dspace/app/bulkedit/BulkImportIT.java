@@ -2143,6 +2143,29 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void testWorkbookWithInvalidOptionalColumnPosition() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("invalid-optional-column-position.xlsx");
+        String[] args = new String[] { "bulk-import", "-c", publications.getID().toString(), "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat(handler.getErrorMessages(),
+            contains("BulkImportException: The optional column DISCOVERABLE present in sheet Main "
+                + "must be placed before the metadata fields"));
+    }
+
     private WorkspaceItem findWorkspaceItem(Item item) throws SQLException {
         return workspaceItemService.findByItem(context, item);
     }

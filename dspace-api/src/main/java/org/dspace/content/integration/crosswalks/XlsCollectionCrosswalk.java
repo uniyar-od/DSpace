@@ -14,6 +14,7 @@ import static org.dspace.app.bulkedit.BulkImport.ADDITIONAL_ACCESS_CONDITION_HEA
 import static org.dspace.app.bulkedit.BulkImport.BITSTREAMS_SHEET_NAME;
 import static org.dspace.app.bulkedit.BulkImport.BITSTREAM_POSITION_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.BUNDLE_HEADER;
+import static org.dspace.app.bulkedit.BulkImport.DISCOVERABLE_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.FILE_PATH_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.ID_HEADER;
 import static org.dspace.app.bulkedit.BulkImport.LANGUAGE_SEPARATOR_PREFIX;
@@ -206,6 +207,7 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private XlsCollectionSheet writeMainSheetHeader(Context context, Collection collection, Workbook workbook) {
         XlsCollectionSheet mainSheet = new XlsCollectionSheet(workbook, "items", false, collection);
         mainSheet.appendHeader(ID_HEADER);
+        mainSheet.appendHeader(DISCOVERABLE_HEADER);
         List<String> metadataFields = getSubmissionFormMetadata(collection);
         for (String metadataField : metadataFields) {
             mainSheet.appendHeaderIfNotPresent(metadataField);
@@ -374,6 +376,11 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
                 continue;
             }
 
+            if (header.equals(DISCOVERABLE_HEADER)) {
+                mainSheet.setValueOnLastRow(header, item.isDiscoverable() ? "Y" : "N");
+                continue;
+            }
+
             getMetadataValues(item, header).forEach(value -> writeMetadataValue(mainSheet, header, value));
         }
 
@@ -426,18 +433,16 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
 
     private void writeMetadataValue(XlsCollectionSheet sheet, String header, MetadataValue metadataValue) {
 
-        String value = formatMetadataValue(metadataValue);
         String language = metadataValue.getLanguage();
-
         if (StringUtils.isBlank(language)) {
-            sheet.appendValueOnLastRow(header, value, METADATA_SEPARATOR);
+            sheet.appendValueOnLastRow(header, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
             return;
         }
 
         if (isLanguageSupported(sheet.getCollection(), language, header, sheet.isNestedMetadata())) {
             String headerWithLanguage = header + LANGUAGE_SEPARATOR_PREFIX + language + LANGUAGE_SEPARATOR_SUFFIX;
             sheet.appendHeaderIfNotPresent(headerWithLanguage);
-            sheet.appendValueOnLastRow(headerWithLanguage, value, METADATA_SEPARATOR);
+            sheet.appendValueOnLastRow(headerWithLanguage, formatMetadataValue(metadataValue), METADATA_SEPARATOR);
         }
 
     }
@@ -445,16 +450,22 @@ public class XlsCollectionCrosswalk implements ItemExportCrosswalk {
     private String formatMetadataValue(MetadataValue metadata) {
 
         String value = metadata.getValue();
-        value = CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE.equals(value) ? "" : value;
 
         String authority = metadata.getAuthority();
         int confidence = metadata.getConfidence();
+        Integer securityLevel = metadata.getSecurityLevel();
 
-        if (StringUtils.isBlank(authority)) {
-            return value;
+        String formattedValue = CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE.equals(value) ? "" : value;
+
+        if (StringUtils.isNotBlank(authority)) {
+            formattedValue += METADATA_ATTRIBUTES_SEPARATOR + authority + METADATA_ATTRIBUTES_SEPARATOR + confidence;
         }
 
-        return value + METADATA_ATTRIBUTES_SEPARATOR + authority + METADATA_ATTRIBUTES_SEPARATOR + confidence;
+        if (securityLevel != null) {
+            formattedValue += METADATA_ATTRIBUTES_SEPARATOR + BulkImport.SECURITY_LEVEL_PREFIX + securityLevel;
+        }
+
+        return formattedValue;
     }
 
     private boolean isBitstreamMetadataFieldHeader(String header) {

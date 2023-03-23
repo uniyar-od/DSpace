@@ -402,7 +402,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         for (String optionalMainHeader : optionalMainHeaders) {
             int indexOfOptionalHeader = headers.indexOf(optionalMainHeader);
-            if (indexOfOptionalHeader > maxMainHeadersCount) {
+            if (indexOfOptionalHeader >= maxMainHeadersCount) {
                 throw new BulkImportException("The optional column " + optionalMainHeader
                     + " present in sheet " + sheet.getSheetName() + " must be placed before the metadata fields");
             }
