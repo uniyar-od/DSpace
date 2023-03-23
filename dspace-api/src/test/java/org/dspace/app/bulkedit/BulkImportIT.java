@@ -2071,6 +2071,78 @@ public class BulkImportIT extends AbstractIntegrationTestWithDatabase {
 
     }
 
+    @Test
+    public void testWorkbookWithDiscoverableColumn() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        Collection publications = createCollection(context, community)
+            .withSubmissionDefinition("publication")
+            .withAdminGroup(eperson)
+            .build();
+
+        Item firstPublication = ItemBuilder.createItem(context, publications)
+            .withTitle("First Publication")
+            .withDoiIdentifier("123456")
+            .makeUnDiscoverable()
+            .build();
+
+        Item secondPublication = ItemBuilder.createItem(context, publications)
+            .withTitle("Second Publication")
+            .withDoiIdentifier("987654")
+            .build();
+
+        Item thirdPublication = ItemBuilder.createItem(context, publications)
+            .withTitle("Third Publication")
+            .withDoiIdentifier("111222")
+            .makeUnDiscoverable()
+            .build();
+
+        context.commit();
+        context.restoreAuthSystemState();
+
+        String fileLocation = getXlsFilePath("publications_with_discoverable_column.xlsx");
+        String[] args = new String[] { "bulk-import", "-c", publications.getID().toString(), "-f", fileLocation };
+        TestDSpaceRunnableHandler handler = new TestDSpaceRunnableHandler();
+
+        handleScript(args, ScriptLauncher.getConfig(kernelImpl), handler, kernelImpl, eperson);
+        assertThat("Expected no errors", handler.getErrorMessages(), empty());
+
+        List<String> warningMessages = handler.getWarningMessages();
+        assertThat(warningMessages, hasSize(3));
+        assertThat(warningMessages.get(0), containsString("Row 5 - Invalid item left in workspace"));
+        assertThat(warningMessages.get(1), containsString("Row 6 - Invalid item left in workspace"));
+        assertThat(warningMessages.get(2), containsString("Row 7 - Invalid item left in workspace"));
+
+        List<String> infoMessages = handler.getInfoMessages();
+        assertThat(infoMessages, hasSize(6));
+        assertThat(infoMessages.get(0), containsString("Start reading all the metadata group rows"));
+        assertThat(infoMessages.get(1), containsString("Found 0 metadata groups to process"));
+        assertThat(infoMessages.get(2), containsString("Found 6 items to process"));
+        assertThat(infoMessages.get(3), containsString("Row 2 - Item updated successfully"));
+        assertThat(infoMessages.get(4), containsString("Row 3 - Item updated successfully"));
+        assertThat(infoMessages.get(5), containsString("Row 4 - Item updated successfully"));
+
+        firstPublication = context.reloadEntity(firstPublication);
+        assertThat(firstPublication.isDiscoverable(), is(true));
+
+        secondPublication = context.reloadEntity(secondPublication);
+        assertThat(secondPublication.isDiscoverable(), is(false));
+
+        thirdPublication = context.reloadEntity(thirdPublication);
+        assertThat(thirdPublication.isDiscoverable(), is(false));
+
+        Item fourthPublication = getItemFromMessage(warningMessages.get(0));
+        assertThat(fourthPublication.isDiscoverable(), is(true));
+
+        Item fifthPublication = getItemFromMessage(warningMessages.get(1));
+        assertThat(fifthPublication.isDiscoverable(), is(false));
+
+        Item sixthPublication = getItemFromMessage(warningMessages.get(2));
+        assertThat(sixthPublication.isDiscoverable(), is(true));
+
+    }
+
     private WorkspaceItem findWorkspaceItem(Item item) throws SQLException {
         return workspaceItemService.findByItem(context, item);
     }
