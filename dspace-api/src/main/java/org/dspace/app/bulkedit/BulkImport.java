@@ -14,7 +14,9 @@ import static org.apache.commons.lang3.StringUtils.isAllBlank;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.split;
+import static org.apache.commons.lang3.StringUtils.startsWith;
 import static org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseMessage;
+import static org.apache.commons.lang3.math.NumberUtils.isCreatable;
 import static org.dspace.authorize.ResourcePolicy.TYPE_CUSTOM;
 import static org.dspace.authorize.ResourcePolicy.TYPE_INHERITED;
 import static org.dspace.core.CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE;
@@ -45,7 +47,6 @@ import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.poi.EncryptedDocumentException;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -139,6 +140,8 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
     public static final String LANGUAGE_SEPARATOR_SUFFIX = "]";
 
     public static final String ID_SEPARATOR = "::";
+
+    public static final String SECURITY_LEVEL_PREFIX = "sl-";
 
     public static final String ROW_ID = "ROW-ID";
 
@@ -628,11 +631,11 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
      * The allowed metadata value syntax are:
      * <ul>
      * <li>value</li>
-     * <li>value$$security-level</li>
-     * <li>value$$security-level$$authority</li>
-     * <li>value$$security-level$$authority$$confidence</li>
      * <li>value$$authority</li>
+     * <li>value$$security-level</li>
+     * <li>value$$authority$$security-level</li>
      * <li>value$$authority$$confidence</li>
+     * <li>value$$authority$$confidence$$security-level</li>
      * </ul>
      */
     private boolean isMetadataValueValid(Row row, String value) {
@@ -648,23 +651,22 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
             return false;
         }
 
-        if (attributes.length == 4 && isConfidenceNotValid(attributes[3])) {
-            handleValidationErrorOnRow(row,
-                "Invalid metadata value " + value + ": invalid confidence value " + attributes[3]);
-            return false;
-        }
-
-        if (attributes.length == 4 && isSecurityLevelNotValid(attributes[1])) {
-            handleValidationErrorOnRow(row,
-                "Invalid metadata value " + value + ": invalid security level " + attributes[2]);
-            return false;
-        }
-
-        if (attributes.length == 3 && isAuthority(attributes[1]) && isConfidenceNotValid(attributes[2])) {
+        if (attributes.length == 4 && isConfidenceNotValid(attributes[2])) {
             handleValidationErrorOnRow(row,
                 "Invalid metadata value " + value + ": invalid confidence value " + attributes[2]);
             return false;
+        }
 
+        if (attributes.length == 4 && isSecurityLevelNotValid(attributes[3])) {
+            handleValidationErrorOnRow(row,
+                "Invalid metadata value " + value + ": invalid security level " + attributes[3]);
+            return false;
+        }
+
+        if (attributes.length == 3 && isSecurityLevelNotValid(attributes[2]) && isConfidenceNotValid(attributes[2])) {
+            handleValidationErrorOnRow(row,
+                "Invalid metadata value " + value + ": invalid security level or confidence value " + attributes[2]);
+            return false;
         }
 
         return true;
@@ -898,6 +900,7 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
 
         switch (entityRow.getAction()) {
             case ADD:
+            case NOT_SPECIFIED:
                 startWorkflow(entityRow, workspaceItem);
                 break;
             case ADD_ARCHIVE:
@@ -1391,31 +1394,35 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         Integer securityLevel = null;
 
         if (valueAttributes.length > 3) {
-            authority = valueAttributes[2];
-            confidence = Integer.valueOf(valueAttributes[3]);
-        }
-
-        if (valueAttributes.length == 3 && isAuthority(valueAttributes[1])) {
             authority = valueAttributes[1];
             confidence = Integer.valueOf(valueAttributes[2]);
+            securityLevel = parseSecurityLevel(valueAttributes[3]);
         }
 
-        if (valueAttributes.length == 3 && !isAuthority(valueAttributes[1])) {
-            securityLevel = Integer.valueOf(valueAttributes[1]);
-            authority = valueAttributes[2];
-            confidence = 600;
+        if (valueAttributes.length == 3) {
+            authority = valueAttributes[1];
+            if (isSecurityLevelNotValid(valueAttributes[2])) {
+                confidence = Integer.valueOf(valueAttributes[2]);
+            } else {
+                securityLevel = parseSecurityLevel(valueAttributes[2]);
+                confidence = 600;
+            }
         }
 
-        if (valueAttributes.length == 2 && isAuthority(valueAttributes[1])) {
-            if (isAuthority(valueAttributes[1])) {
+        if (valueAttributes.length == 2) {
+            if (isSecurityLevelNotValid(valueAttributes[1])) {
                 authority = valueAttributes[1];
                 confidence = 600;
             } else {
-                securityLevel = Integer.valueOf(valueAttributes[1]);
+                securityLevel = parseSecurityLevel(valueAttributes[1]);
             }
         }
 
         return new MetadataValueVO(value, authority, confidence, securityLevel);
+    }
+
+    private Integer parseSecurityLevel(String securityLevel) {
+        return Integer.valueOf(removeSecurityLevelPrefix(securityLevel));
     }
 
     private boolean isMetadataGroupsSheet(Sheet sheet) {
@@ -1549,16 +1556,17 @@ public class BulkImport extends DSpaceRunnable<BulkImportScriptConfiguration<Bul
         return uploadAccessConditions;
     }
 
-    private boolean isAuthority(String value) {
-        return isSecurityLevelNotValid(value);
-    }
-
     private boolean isConfidenceNotValid(String confidence) {
-        return !NumberUtils.isCreatable(confidence);
+        return !isCreatable(confidence);
     }
 
     private boolean isSecurityLevelNotValid(String securityLevel) {
-        return !NumberUtils.isCreatable(securityLevel);
+        return !startsWith(securityLevel, SECURITY_LEVEL_PREFIX)
+            || !isCreatable(removeSecurityLevelPrefix(securityLevel));
+    }
+
+    private String removeSecurityLevelPrefix(String str) {
+        return StringUtils.removeStart(str, SECURITY_LEVEL_PREFIX);
     }
 
     private void handleException(EntityRow entityRow, BulkImportException bie) {
