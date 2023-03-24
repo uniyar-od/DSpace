@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -1343,7 +1342,7 @@ prevent the generation of resource policy entry values with null dspace_object a
      * @throws AuthorizeException if authorization error Exception indicating the
      *                            current user of the context does not have
      *                            permission
-     * 
+     *
      */
     @Override
     public Iterator<Item> findArchivedByMetadataField(Context context,
