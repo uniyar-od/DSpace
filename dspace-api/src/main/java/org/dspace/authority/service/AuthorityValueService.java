@@ -27,9 +27,9 @@ public interface AuthorityValueService {
     public static final String REFERENCE = "will be referenced" + SPLIT;
 
     // Cleanup authority metadata modes
-    public static final String PREFIX_MODE = "clean_mode-";
-    public static final String BUSINESS_MODE = "business";
-    public static final String CLEAN_ALL_MODE = "clean_all";
+    public static final String AUTHORITY_CLEANUP_PROPERTY_PREFIX = "item-deletion.authority-cleanup.mode.";
+    public static final String AUTHORITY_CLEANUP_BUSINESS_MODE = "business-identifier";
+    public static final String AUTHORITY_CLEANUP_CLEAN_ALL_MODE = "clean_all";
 
     public AuthorityValue generate(Context context, String authorityKey, String content, String field);
 

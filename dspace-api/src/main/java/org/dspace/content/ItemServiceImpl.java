@@ -7,9 +7,9 @@
  */
 package org.dspace.content;
 
-import static org.dspace.authority.service.AuthorityValueService.BUSINESS_MODE;
-import static org.dspace.authority.service.AuthorityValueService.CLEAN_ALL_MODE;
-import static org.dspace.authority.service.AuthorityValueService.PREFIX_MODE;
+import static org.dspace.authority.service.AuthorityValueService.AUTHORITY_CLEANUP_BUSINESS_MODE;
+import static org.dspace.authority.service.AuthorityValueService.AUTHORITY_CLEANUP_CLEAN_ALL_MODE;
+import static org.dspace.authority.service.AuthorityValueService.AUTHORITY_CLEANUP_PROPERTY_PREFIX;
 import static org.dspace.authority.service.AuthorityValueService.REFERENCE;
 import static org.dspace.authority.service.AuthorityValueService.SPLIT;
 import static org.dspace.content.authority.Choices.CF_UNSET;
@@ -44,7 +44,6 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.authorize.ResourcePolicy;
 import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.authorize.service.ResourcePolicyService;
-import org.dspace.content.authority.BusinessIdentifierDTO;
 import org.dspace.content.dao.ItemDAO;
 import org.dspace.content.factory.ContentServiceFactory;
 import org.dspace.content.service.BitstreamFormatService;
@@ -966,7 +965,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         item.setOwningCollection(null);
 
         // remore authority references
-        if (configurationService.getBooleanProperty("clean_mode-enabled", false)) {
+        if (configurationService.getBooleanProperty("item-deletion.authority-cleanup.enabled", false)) {
             removeAuthorityReferences(context, item);
         }
 
@@ -974,24 +973,26 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         itemDAO.delete(context, item);
     }
 
-    private void removeAuthorityReferences(Context context, Item item) throws SQLException {
-        String uuidOfDeletedItem = item.getID().toString();
-        List<String> controlledFields = getControlledFields(item);
+    private void removeAuthorityReferences(Context context, Item deletedItem) throws SQLException {
+        String uuidOfDeletedItem = deletedItem.getID().toString();
+        List<String> controlledFields = getAuthorityControlledFieldsByItemEntityType(deletedItem);
 
         Iterator<Item> itemsToFixAuthority =
-                       this.findAuthorityControlledFields(context, item, Arrays.asList(uuidOfDeletedItem));
+               this.findRelatedItemsByAuthorityControlledFields(context, deletedItem, Arrays.asList(uuidOfDeletedItem));
 
         while (itemsToFixAuthority.hasNext()) {
             Item itemToProcess = itemsToFixAuthority.next();
 
             for (String controlledField : controlledFields) {
-                String cleanUpMode = getCleanUpMode(controlledField);
-                List<MetadataValue> metadataValues = getMetadataByMetadataString(itemToProcess, controlledField);
+                List<MetadataValue> metadataValuesWithAuthorityToUpdate =
+                                    getMetadataByMetadataString(itemToProcess, controlledField);
 
-                if (CollectionUtils.isNotEmpty(metadataValues)) {
-                    for (MetadataValue metadataValue : metadataValues) {
+                if (CollectionUtils.isNotEmpty(metadataValuesWithAuthorityToUpdate)) {
+                    String cleanUpMode = getCleanUpMode(controlledField);
+
+                    for (MetadataValue metadataValue : metadataValuesWithAuthorityToUpdate) {
                         if (StringUtils.equals(metadataValue.getAuthority(), uuidOfDeletedItem)) {
-                            applyMode(context, item, itemToProcess, metadataValue, cleanUpMode);
+                            applyCleanUpMode(context, deletedItem, itemToProcess, metadataValue, cleanUpMode);
                         }
                     }
                 }
@@ -999,41 +1000,41 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         }
     }
 
-    private void applyMode(Context context, Item item, Item itemToProcess, MetadataValue metadataValue, String mode)
-            throws SQLException {
-        switch (mode) {
-            case BUSINESS_MODE:
-                applyBusinessMode(context, item, metadataValue);
+    private void applyCleanUpMode(Context context, Item deletedItem, Item itemToProcess,
+            MetadataValue metadataValueWithAuthorityToUpdate, String cleanUpMode) throws SQLException {
+
+        switch (cleanUpMode) {
+            case AUTHORITY_CLEANUP_BUSINESS_MODE:
+                replaceAuthorityWithItemBusinessIdentifier(deletedItem, metadataValueWithAuthorityToUpdate);
                 break;
-            case CLEAN_ALL_MODE:
-                removeMetadataValues(context, itemToProcess, Arrays.asList(metadataValue));
+            case AUTHORITY_CLEANUP_CLEAN_ALL_MODE:
+                removeMetadataValues(context, itemToProcess, Arrays.asList(metadataValueWithAuthorityToUpdate));
                 break;
             default:
-                log.error("The configured mode:" + mode + " for metadata:" + metadataValue.getMetadataField().toString()
-                                                 + " is not supported");
+                log.error("The configured mode:" + cleanUpMode + " for metadata:"
+                          + metadataValueWithAuthorityToUpdate.getMetadataField().toString() + " is not supported");
         }
     }
 
-    private void applyBusinessMode(Context context, Item item, MetadataValue metadataValue) {
-        BusinessIdentifierDTO businesIdentifier = getBusinesIdentifier(context, item);
-        if (Objects.nonNull(businesIdentifier)) {
-            metadataValue.setAuthority(REFERENCE + businesIdentifier.getPrefix() +
-                                       SPLIT + businesIdentifier.getValue());
+    private void replaceAuthorityWithItemBusinessIdentifier(Item deletedItem, MetadataValue mvWithAuthorityToUpdate) {
+        Optional<String> businesIdentifier = getBusinesIdentifier(deletedItem);
+        if (businesIdentifier.isPresent()) {
+            mvWithAuthorityToUpdate.setAuthority(REFERENCE + businesIdentifier.get());
         } else {
-            metadataValue.setAuthority(null);
+            mvWithAuthorityToUpdate.setAuthority(null);
         }
-        metadataValue.setConfidence(CF_UNSET);
+        mvWithAuthorityToUpdate.setConfidence(CF_UNSET);
     }
 
-    private String getCleanUpMode(String controlledField) {
-        String mode = configurationService.getProperty(PREFIX_MODE + controlledField);
+    private String getCleanUpMode(String metadataField) {
+        String mode = configurationService.getProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + metadataField);
         if (StringUtils.isBlank(mode)) {
-            mode = configurationService.getProperty(PREFIX_MODE + "default");
+            mode = configurationService.getProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "default");
         }
         return mode;
     }
 
-    private List<String> getControlledFields(Item item) {
+    private List<String> getAuthorityControlledFieldsByItemEntityType(Item item) {
         String entityType = this.getEntityType(item);
         return choiceAuthorityService.getAuthorityControlledFieldsByEntityType(entityType)
                                      .stream()
@@ -1041,14 +1042,14 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
                                      .collect(Collectors.toList());
     }
 
-    private BusinessIdentifierDTO getBusinesIdentifier(Context context, Item item) {
+    private Optional<String> getBusinesIdentifier(Item item) {
         for (ItemSearcherByMetadata itemSearcherByMetadata : itemSearcherByMetadata) {
             String businessIdentifier = getMetadata(item, itemSearcherByMetadata.getMetadata());
             if (StringUtils.isNotBlank(businessIdentifier)) {
-                return new BusinessIdentifierDTO(itemSearcherByMetadata.getAuthorityPrefix(), businessIdentifier);
+                return Optional.of(itemSearcherByMetadata.getAuthorityPrefix() + SPLIT + businessIdentifier);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     @Override
@@ -2004,7 +2005,7 @@ prevent the generation of resource policy entry values with null dspace_object a
     }
 
     @Override
-    public Iterator<Item> findAuthorityControlledFields(Context context, Item item, List<String> authorities) {
+    public Iterator<Item> findRelatedItemsByAuthorityControlledFields(Context c, Item item, List<String> authorities) {
         String entityType = this.getEntityType(item);
         String query = choiceAuthorityService.getAuthorityControlledFieldsByEntityType(entityType).stream()
                                              .map(field -> getFieldFilter(field, authorities))
@@ -2020,7 +2021,7 @@ prevent the generation of resource policy entry values with null dspace_object a
         discoverQuery.addDSpaceObjectFilter(IndexableWorkflowItem.TYPE);
         discoverQuery.addFilterQueries(query);
 
-        return new DiscoverResultItemIterator(context, discoverQuery, false);
+        return new DiscoverResultItemIterator(c, discoverQuery, false);
     }
 
     private String getFieldFilter(String field, List<String> authorities) {

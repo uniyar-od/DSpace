@@ -8,9 +8,9 @@
 package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static org.dspace.authority.service.AuthorityValueService.BUSINESS_MODE;
-import static org.dspace.authority.service.AuthorityValueService.CLEAN_ALL_MODE;
-import static org.dspace.authority.service.AuthorityValueService.PREFIX_MODE;
+import static org.dspace.authority.service.AuthorityValueService.AUTHORITY_CLEANUP_BUSINESS_MODE;
+import static org.dspace.authority.service.AuthorityValueService.AUTHORITY_CLEANUP_CLEAN_ALL_MODE;
+import static org.dspace.authority.service.AuthorityValueService.AUTHORITY_CLEANUP_PROPERTY_PREFIX;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -89,65 +89,53 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
-        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
-        if (!isEnabled) {
-            configurationService.setProperty(PREFIX_MODE + "enabled", true);
-        }
-        String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
+        configurationService.setProperty("item-deletion.authority-cleanup.enabled", true);
+        // configure BUSINESS_MODE for dc.contributor.author metadata
+        configurationService.setProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "dc.contributor.author",
+                                         AUTHORITY_CLEANUP_BUSINESS_MODE);
 
-        try {
-            // configure BUSINESS_MODE for dc.contributor.author metadata
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", BUSINESS_MODE);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              hasJsonPath("$.name", is(personItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
+              )));
 
-            String tokenAdmin = getAuthToken(admin.getEmail(), password);
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  hasJsonPath("$.name", is(personItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              // check Boychuk, Mykhaylo
+              hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+              // Giamminonni, Luca
+              hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+              )));
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  // check Boychuk, Mykhaylo
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
-                  // Giamminonni, Luca
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNoContent());
 
-            getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNoContent());
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNotFound());
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNotFound());
-
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                 // check Boychuk, Mykhaylo
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
-                          is("will be referenced::ORCID::0001-002-0003-0001")),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
-                 // check Giamminonni, Luca
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                 )));
-        } finally {
-            // restore origin mode
-            if (!isEnabled) {
-                configurationService.setProperty(PREFIX_MODE + "enabled", false);
-            }
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
-        }
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.allOf(
+             // check Boychuk, Mykhaylo
+             hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                      is("will be referenced::ORCID::0001-002-0003-0001")),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
+             // check Giamminonni, Luca
+             hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+             )));
     }
 
     @Test
@@ -200,64 +188,52 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
-        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
-        if (!isEnabled) {
-            configurationService.setProperty(PREFIX_MODE + "enabled", true);
-        }
-        String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
+        configurationService.setProperty("item-deletion.authority-cleanup.enabled", true);
+        // configure BUSINESS_MODE for dc.contributor.author metadata
+        configurationService.setProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "dc.contributor.author",
+                                         AUTHORITY_CLEANUP_BUSINESS_MODE);
 
-        try {
-            // configure BUSINESS_MODE for dc.contributor.author metadata
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", BUSINESS_MODE);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              hasJsonPath("$.name", is(personItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
+              )));
 
-            String tokenAdmin = getAuthToken(admin.getEmail(), password);
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  hasJsonPath("$.name", is(personItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              // check Boychuk, Mykhaylo
+              hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+              // Giamminonni, Luca
+              hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+              )));
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  // check Boychuk, Mykhaylo
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
-                  // Giamminonni, Luca
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNoContent());
 
-            getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNoContent());
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNotFound());
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNotFound());
-
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                 // check Boychuk, Mykhaylo
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority", nullValue()),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
-                 // check Giamminonni, Luca
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                 )));
-        } finally {
-            // restore origin mode
-            if (!isEnabled) {
-                configurationService.setProperty(PREFIX_MODE + "enabled", false);
-            }
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
-        }
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.allOf(
+             // check Boychuk, Mykhaylo
+             hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].authority", nullValue()),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
+             // check Giamminonni, Luca
+             hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+             )));
     }
 
     @Test
@@ -312,64 +288,52 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
-        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
-        if (!isEnabled) {
-            configurationService.setProperty(PREFIX_MODE + "enabled", true);
-        }
-        String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
+        configurationService.setProperty("item-deletion.authority-cleanup.enabled", true);
+        // configure CLEAN_ALL_MODE for dc.contributor.author metadata
+        configurationService.setProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "dc.contributor.author",
+                                         AUTHORITY_CLEANUP_CLEAN_ALL_MODE);
 
-        try {
-            // configure CLEAN_ALL_MODE for dc.contributor.author metadata
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", CLEAN_ALL_MODE);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              hasJsonPath("$.name", is(personItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
+              )));
 
-            String tokenAdmin = getAuthToken(admin.getEmail(), password);
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  hasJsonPath("$.name", is(personItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.allOf(
+             // check Boychuk, Mykhaylo
+             hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+             // check Giamminonni, Luca
+             hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+             )));
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                 // check Boychuk, Mykhaylo
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
-                 // check Giamminonni, Luca
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                 )));
+        getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNoContent());
 
-            getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNoContent());
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNotFound());
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNotFound());
-
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                 // Giamminonni, Luca shift to the 1 position
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem2.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem2.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600))
-                 )))
-                 // and Boychuk, Mykhaylo was deleted
-                .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].value").doesNotExist())
-                .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].authority").doesNotExist())
-                .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].confidence").doesNotExist());
-        } finally {
-            // restore origin mode
-            if (!isEnabled) {
-                configurationService.setProperty(PREFIX_MODE + "enabled", false);
-            }
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
-        }
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.allOf(
+             // Giamminonni, Luca shift to the 1 position
+             hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem2.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem2.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600))
+             )))
+             // and Boychuk, Mykhaylo was deleted
+            .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].value").doesNotExist())
+            .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].authority").doesNotExist())
+            .andExpect(jsonPath("$.metadata['dc.contributor.author'][1].confidence").doesNotExist());
     }
 
     @Test
@@ -424,68 +388,54 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
-        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
-        if (!isEnabled) {
-            configurationService.setProperty(PREFIX_MODE + "enabled", true);
-        }
-        String originDefaultMode = configurationService.getProperty(PREFIX_MODE + "default");
-        String originMode = configurationService.getProperty(PREFIX_MODE + "dc.contributor.author");
+        configurationService.setProperty("item-deletion.authority-cleanup.enabled", true);
+        // dc.contributor.author metadata with out any mode
+        configurationService.setProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "dc.contributor.author", "");
+        configurationService.setProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "default",
+                                         AUTHORITY_CLEANUP_BUSINESS_MODE);
 
-        try {
-            // dc.contributor.author metadata with out any mode
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", "");
-            configurationService.setProperty(PREFIX_MODE + "default", BUSINESS_MODE);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              hasJsonPath("$.name", is(personItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
+              )));
 
-            String tokenAdmin = getAuthToken(admin.getEmail(), password);
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  hasJsonPath("$.name", is(personItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              // check Boychuk, Mykhaylo
+              hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+              // Giamminonni, Luca
+              hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+              )));
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  // check Boychuk, Mykhaylo
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
-                  // Giamminonni, Luca
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNoContent());
 
-            getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNoContent());
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNotFound());
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNotFound());
-
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                 // check Boychuk, Mykhaylo
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
-                          is("will be referenced::ORCID::0001-002-0003-0001")),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
-                 // check Giamminonni, Luca
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                 )));
-        } finally {
-            // restore origin mode
-            if (!isEnabled) {
-                configurationService.setProperty(PREFIX_MODE + "enabled", false);
-            }
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", originMode);
-            configurationService.setProperty(PREFIX_MODE + "default", originDefaultMode);
-        }
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.allOf(
+             // check Boychuk, Mykhaylo
+             hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].authority",
+                      is("will be referenced::ORCID::0001-002-0003-0001")),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(-1)),
+             // check Giamminonni, Luca
+             hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+             )));
     }
 
     @Test
@@ -540,59 +490,49 @@ public class CleanUpAuthorityRelationMetadataIT extends AbstractControllerIntegr
 
         context.restoreAuthSystemState();
 
-        boolean isEnabled = configurationService.getBooleanProperty(PREFIX_MODE + "enabled");
-        if (isEnabled) {
-            configurationService.setProperty(PREFIX_MODE + "enabled", false);
-        }
+        configurationService.setProperty("item-deletion.authority-cleanup.enabled", false);
+        // configure BUSINESS_MODE for dc.contributor.author metadata
+        configurationService.setProperty(AUTHORITY_CLEANUP_PROPERTY_PREFIX + "dc.contributor.author",
+                                         AUTHORITY_CLEANUP_BUSINESS_MODE);
 
-        try {
-            // configure BUSINESS_MODE for dc.contributor.author metadata
-            configurationService.setProperty(PREFIX_MODE + "dc.contributor.author", BUSINESS_MODE);
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+        getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              hasJsonPath("$.name", is(personItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
+              hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
+              )));
 
-            String tokenAdmin = getAuthToken(admin.getEmail(), password);
-            getClient(tokenAdmin).perform(get("/api/core/items/" + personItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  hasJsonPath("$.name", is(personItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].value", is(orgUnitItem.getName())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].authority", is(orgUnitItem.getID().toString())),
-                  hasJsonPath("$.metadata['person.affiliation.name'][0].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+             .andExpect(status().isOk())
+             .andExpect(jsonPath("$", Matchers.allOf(
+              // check Boychuk, Mykhaylo
+              hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+              // Giamminonni, Luca
+              hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+              hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+              )));
 
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                 .andExpect(status().isOk())
-                 .andExpect(jsonPath("$", Matchers.allOf(
-                  // check Boychuk, Mykhaylo
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
-                  // Giamminonni, Luca
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                  hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                  )));
+        getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
+                             .andExpect(status().isNoContent());
 
-            getClient(tokenAdmin).perform(delete("/api/core/items/" + personItem.getID()))
-                                 .andExpect(status().isNoContent());
-
-            getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.allOf(
-                 // check Boychuk, Mykhaylo
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
-                 // check Giamminonni, Luca
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
-                 hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
-                 )));
-        } finally {
-            // restore origin mode
-            if (isEnabled) {
-                configurationService.setProperty(PREFIX_MODE + "enabled", true);
-            }
-        }
+        getClient(tokenAdmin).perform(get("/api/core/items/" + publicationItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.allOf(
+             // check Boychuk, Mykhaylo
+             hasJsonPath("$.metadata['dc.contributor.author'][0].value", is(personItem.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].authority", is(personItem.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][0].confidence", is(600)),
+             // check Giamminonni, Luca
+             hasJsonPath("$.metadata['dc.contributor.author'][1].value", is(personItem2.getName())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].authority", is(personItem2.getID().toString())),
+             hasJsonPath("$.metadata['dc.contributor.author'][1].confidence", is(600))
+             )));
     }
 
 }
