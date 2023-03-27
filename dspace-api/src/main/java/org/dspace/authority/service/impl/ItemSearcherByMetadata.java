@@ -159,7 +159,8 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
             .map(value -> AuthorityValueService.REFERENCE + authorityPrefix + "::" + value)
             .collect(Collectors.toList());
 
-        Iterator<Item> itemsIterator = itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
+        Iterator<Item> itemsIterator =
+                      itemService.findRelatedItemsByAuthorityControlledFields(context, item, authorities);
 
         Iterator<Item> cachedItemsIterator = getItemsFromResolutionAttemptsCache(context, metadataValues);
 
