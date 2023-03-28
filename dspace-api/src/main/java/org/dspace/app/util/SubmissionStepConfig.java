@@ -201,6 +201,19 @@ public class SubmissionStepConfig implements Serializable {
 
     }
 
+    public boolean isReadOnlyForInProgressSubmission(InProgressSubmission<?> obj) {
+
+        String scopeToCheck = getScope(obj);
+
+        if (scope == null || scopeToCheck == null) {
+            return false;
+        }
+
+        String visibility = scope.equalsIgnoreCase(scopeToCheck) ? getVisibility() : getVisibilityOutside();
+        return "read-only".equalsIgnoreCase(visibility);
+
+    }
+
     private String getScope(InProgressSubmission<?> obj) {
         if (HibernateProxyHelper.getClassWithoutInitializingProxy(obj).equals(WorkspaceItem.class)) {
             return "submission";

@@ -73,7 +73,7 @@ public class ValidationServiceImpl implements ValidationService {
 
         for (SubmissionStepConfig stepConfig : submissionConfig) {
 
-            if (stepConfig.isHiddenForInProgressSubmission(obj)) {
+            if (isStepHiddenOrReadOnly(stepConfig, obj)) {
                 continue;
             }
 
@@ -95,6 +95,10 @@ public class ValidationServiceImpl implements ValidationService {
             .flatMap(validator -> validator.validate(context, obj, submissionConfig).stream())
             .collect(Collectors.toList());
 
+    }
+
+    private boolean isStepHiddenOrReadOnly(SubmissionStepConfig stepConfig, InProgressSubmission<?> obj) {
+        return stepConfig.isHiddenForInProgressSubmission(obj) || stepConfig.isReadOnlyForInProgressSubmission(obj);
     }
 
 
