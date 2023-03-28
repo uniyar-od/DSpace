@@ -1325,7 +1325,6 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
             bitstream = BitstreamBuilder.
                     createBitstream(context, publicItem1, is)
                     .withName("Bitstream")
-                    .withMimeType("text/plain")
                     .build();
         }
 
