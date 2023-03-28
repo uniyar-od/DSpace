@@ -695,6 +695,65 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
+    public void testFindOneWithModeWithManySecurities() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        EPerson author = EPersonBuilder.createEPerson(context)
+            .withEmail("author@example.com")
+            .withPassword(password)
+            .build();
+
+        EPerson user = EPersonBuilder.createEPerson(context)
+            .withEmail("user@example.com")
+            .withPassword(password)
+            .build();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withEntityType("Publication")
+            .withName("Collection 1")
+            .build();
+
+        Item person = ItemBuilder.createItem(context, collection)
+            .withTitle("Author")
+            .withDspaceObjectOwner(author)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Title item")
+            .withIssueDate("2015-06-25")
+            .withAuthor("Author", person.getID().toString())
+            .withDspaceObjectOwner(eperson)
+            .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/core/edititems/" + item.getID() + ":MODE-WITH-MANY-SECURITIES"))
+            .andExpect(status().isUnauthorized());
+
+        getClient(getAuthToken(user.getEmail(), password))
+            .perform(get("/api/core/edititems/" + item.getID() + ":MODE-WITH-MANY-SECURITIES"))
+            .andExpect(status().isForbidden());
+
+        getClient(getAuthToken(author.getEmail(), password))
+            .perform(get("/api/core/edititems/" + item.getID() + ":MODE-WITH-MANY-SECURITIES"))
+            .andExpect(status().isOk());
+
+        getClient(getAuthToken(eperson.getEmail(), password))
+            .perform(get("/api/core/edititems/" + item.getID() + ":MODE-WITH-MANY-SECURITIES"))
+            .andExpect(status().isOk());
+
+        getClient(getAuthToken(admin.getEmail(), password))
+            .perform(get("/api/core/edititems/" + item.getID() + ":MODE-WITH-MANY-SECURITIES"))
+            .andExpect(status().isOk());
+
+    }
+
+    @Test
     public void findOneOwnerOnlyTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -1676,7 +1735,7 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
     }
 
     @Test
-    public void testEditWithHiddenSections() throws Exception {
+    public void testEditItemModeConfigurationWithEntityTypeAndSubmission() throws Exception {
 
         context.turnOffAuthorisationSystem();
 
@@ -1685,16 +1744,48 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
             .build();
 
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
-            .withName("Collection 1")
             .withEntityType("Publication")
+            .withName("Collection 1")
+            .withSubmissionDefinition("modeC")
             .build();
 
         Item item = ItemBuilder.createItem(context, collection)
-            .withTitle("Item")
+            .withTitle("Title item A")
+            .withIssueDate("2015-06-25")
+            .withAuthor("Smith, Maria")
+            .withDspaceObjectOwner(admin)
             .build();
+
+        EditItem editItem = new EditItem(context, item);
 
         context.restoreAuthSystemState();
 
+        String tokenAdmin = getAuthToken(admin.getEmail(), password);
+
+        getClient(tokenAdmin).perform(get("/api/core/edititems/search/findModesById")
+            .param("uuid", editItem.getID()))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$._embedded").exists())
+            .andExpect(jsonPath("$.page.totalElements", is(2)))
+            .andExpect(jsonPath("$._embedded.edititemmodes[0].id", is("MODE-A")))
+            .andExpect(jsonPath("$._embedded.edititemmodes[1].id", is("MODE-B")));
+
+    }
+
+    @Test
+    public void testEditWithHiddenSections() throws Exception {
+        context.turnOffAuthorisationSystem();
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withName("Collection 1")
+            .withEntityType("Publication")
+            .build();
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Item")
+            .build();
+        context.restoreAuthSystemState();
         getClient(getAuthToken(admin.getEmail(), password))
             .perform(get("/api/core/edititems/" + item.getID() + ":MODE-TEST-HIDDEN"))
             .andExpect(status().isOk())
@@ -1702,28 +1793,21 @@ public class EditItemRestRepositoryIT extends AbstractControllerIntegrationTest 
             .andExpect(jsonPath("$.sections.test-outside-submission-hidden").doesNotExist())
             .andExpect(jsonPath("$.sections.test-never-hidden").exists())
             .andExpect(jsonPath("$.sections.test-always-hidden").doesNotExist());
-
     }
 
     @Test
     public void testValidationWithHiddenSteps() throws Exception {
-
         context.turnOffAuthorisationSystem();
-
         parentCommunity = CommunityBuilder.createCommunity(context)
             .withName("Parent Community")
             .build();
-
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
             .withName("Collection 1")
             .withEntityType("Publication")
             .build();
-
         Item item = ItemBuilder.createItem(context, collection)
             .build();
-
         context.restoreAuthSystemState();
-
         getClient(getAuthToken(admin.getEmail(), password))
             .perform(get("/api/core/edititems/" + item.getID() + ":MODE-TEST-HIDDEN"))
             .andExpect(status().isOk())
