@@ -973,7 +973,7 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
         itemDAO.delete(context, item);
     }
 
-    private void removeAuthorityReferences(Context context, Item deletedItem) throws SQLException {
+    private void removeAuthorityReferences(Context context, Item deletedItem) throws SQLException, AuthorizeException {
         String uuidOfDeletedItem = deletedItem.getID().toString();
         List<String> controlledFields = getAuthorityControlledFieldsByItemEntityType(deletedItem);
 
@@ -984,20 +984,28 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
             Item itemToProcess = itemsToFixAuthority.next();
 
             for (String controlledField : controlledFields) {
-                List<MetadataValue> metadataValuesWithAuthorityToUpdate =
-                                    getMetadataByMetadataString(itemToProcess, controlledField);
+                List<MetadataValue> metadataValuesWithAuthorityToUpdate = getMetadataWithAuthority(itemToProcess,
+                                                                                    controlledField, uuidOfDeletedItem);
 
-                if (CollectionUtils.isNotEmpty(metadataValuesWithAuthorityToUpdate)) {
-                    String cleanUpMode = getCleanUpMode(controlledField);
+                if (CollectionUtils.isEmpty(metadataValuesWithAuthorityToUpdate)) {
+                    continue;
+                }
 
-                    for (MetadataValue metadataValue : metadataValuesWithAuthorityToUpdate) {
-                        if (StringUtils.equals(metadataValue.getAuthority(), uuidOfDeletedItem)) {
-                            applyCleanUpMode(context, deletedItem, itemToProcess, metadataValue, cleanUpMode);
-                        }
-                    }
+                String cleanUpMode = getCleanUpMode(controlledField);
+
+                for (MetadataValue metadataValue : metadataValuesWithAuthorityToUpdate) {
+                    applyCleanUpMode(context, deletedItem, itemToProcess, metadataValue, cleanUpMode);
                 }
             }
+            update(context, itemToProcess);
+            context.uncacheEntity(itemToProcess);
         }
+    }
+
+    private List<MetadataValue> getMetadataWithAuthority(Item item, String metadataField, String authority) {
+        return getMetadataByMetadataString(item, metadataField).stream()
+                      .filter(metadataValue -> StringUtils.equals(metadataValue.getAuthority(), authority))
+                      .collect(Collectors.toList());
     }
 
     private void applyCleanUpMode(Context context, Item deletedItem, Item itemToProcess,
@@ -1017,12 +1025,11 @@ public class ItemServiceImpl extends DSpaceObjectServiceImpl<Item> implements It
     }
 
     private void replaceAuthorityWithItemBusinessIdentifier(Item deletedItem, MetadataValue mvWithAuthorityToUpdate) {
-        Optional<String> businesIdentifier = getBusinesIdentifier(deletedItem);
-        if (businesIdentifier.isPresent()) {
-            mvWithAuthorityToUpdate.setAuthority(REFERENCE + businesIdentifier.get());
-        } else {
-            mvWithAuthorityToUpdate.setAuthority(null);
-        }
+        String authority = getBusinesIdentifier(deletedItem)
+                                     .map(businessId -> REFERENCE + businessId)
+                                     .orElse(null);
+
+        mvWithAuthorityToUpdate.setAuthority(authority);
         mvWithAuthorityToUpdate.setConfidence(CF_UNSET);
     }
 
