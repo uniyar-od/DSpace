@@ -233,7 +233,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         //add an asbtract description
         Map<String, String> addValue = new HashMap<String, String>();
-        addValue.put("value","Description Test");
+        addValue.put("value", "New Description");
         addGrant = new ArrayList<Operation>();
         addGrant.add(new AddOperation("/sections/traditionalpagetwo/dc.description.abstract",  List.of(addValue)));
         patchBody = getPatchContent(addGrant);
@@ -266,7 +266,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             .andExpect(jsonPath("$.sections.correction.empty", is(false)))
             .andExpect(jsonPath("$.sections.correction.metadata",
                 containsInAnyOrder(matchMetadataCorrection("New Title"),
-                        matchMetadataCorrection("Description Test"),
+                        matchMetadataCorrection("New Description"),
                         matchMetadataCorrection("ExtraEntry"))));
 
     }
