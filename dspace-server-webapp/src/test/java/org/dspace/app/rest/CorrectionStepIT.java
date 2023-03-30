@@ -9,9 +9,9 @@ package org.dspace.app.rest;
 
 import static com.jayway.jsonpath.JsonPath.read;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
-import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -268,15 +268,9 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
             //The array of browse index should have a size equals to 4
             .andExpect(jsonPath("$.sections.correction.metadata", hasSize(equalTo(3))))
             .andExpect(jsonPath("$.sections.correction.empty", is(false)))
-            .andExpect(
-                jsonPath("$.sections.correction.metadata",
-                    containsInAnyOrder(
-                        matchMetadataCorrection(newTitle),
-                        matchMetadataCorrection(newDescription),
-                        matchMetadataCorrection(extraEntry)
-                    )
-                )
-            );
+            .andExpect(jsonPath("$.sections.correction.metadata",hasItem(matchMetadataCorrection(newTitle))))
+            .andExpect(jsonPath("$.sections.correction.metadata",hasItem(matchMetadataCorrection(newDescription))))
+            .andExpect(jsonPath("$.sections.correction.metadata",hasItem(matchMetadataCorrection(extraEntry))));
 
     }
 
