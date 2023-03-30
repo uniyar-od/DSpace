@@ -69,7 +69,7 @@ import org.springframework.core.io.Resource;
 /**
  * Integration tests for {@link CorrectionStep}.
  *
- * @author Giuseppe Digilio (luca.giamminonni at 4science.it)
+ * @author Giuseppe Digilio (giuseppe.digilio at 4science.it)
  *
  */
 public class CorrectionStepIT extends AbstractControllerIntegrationTest {
@@ -131,7 +131,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         date = "2020-02-20";
         subject = "ExtraEntry";
-        title = "Title " + (new Date().getTime());
+        title = "Title " + new Date().getTime();
         type = "text";
 
         itemToBeCorrected = ItemBuilder.createItem(context, collection)
@@ -153,6 +153,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
         context.restoreAuthSystemState();
     }
 
+    @Override
     @After
     public void destroy() throws Exception {
         //Clean up the database for the next test
@@ -205,13 +206,14 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
         List<Relationship> relationshipList = relationshipService.findByItem(context, itemToBeCorrected);
-        assert (relationshipList.size() > 0);
+        assert relationshipList.size() > 0;
         Item correctedItem  = relationshipList.get(0).getLeftItem();
         WorkspaceItem newWorkspaceItem = workspaceItemService.findByItem(context,correctedItem);
 
         //make a change on the title
         Map<String, String> value = new HashMap<String, String>();
-        value.put("value", "New Title");
+        final String newTitle = "New Title";
+        value.put("value", newTitle);
         List<Operation> addGrant = new ArrayList<Operation>();
         addGrant.add(new ReplaceOperation("/sections/traditionalpageone/dc.title/0", value));
         String patchBody = getPatchContent(addGrant);
@@ -233,7 +235,8 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
         //add an asbtract description
         Map<String, String> addValue = new HashMap<String, String>();
-        addValue.put("value", "New Description");
+        final String newDescription = "New Description";
+        addValue.put("value", newDescription);
         addGrant = new ArrayList<Operation>();
         addGrant.add(new AddOperation("/sections/traditionalpagetwo/dc.description.abstract",  List.of(addValue)));
         patchBody = getPatchContent(addGrant);
@@ -258,16 +261,22 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
 
         //check if the correction is present
+        final String extraEntry = "ExtraEntry";
         getClient(tokenAdmin).perform(get("/api/workflow/workflowitems/" + workflowItemIdRef.get()))
             //The status has to be 200 OK
             .andExpect(status().isOk())
             //The array of browse index should have a size equals to 4
             .andExpect(jsonPath("$.sections.correction.metadata", hasSize(equalTo(3))))
             .andExpect(jsonPath("$.sections.correction.empty", is(false)))
-            .andExpect(jsonPath("$.sections.correction.metadata",
-                containsInAnyOrder(matchMetadataCorrection("New Title"),
-                        matchMetadataCorrection("New Description"),
-                        matchMetadataCorrection("ExtraEntry"))));
+            .andExpect(
+                jsonPath("$.sections.correction.metadata",
+                    containsInAnyOrder(
+                        matchMetadataCorrection(newTitle),
+                        matchMetadataCorrection(newDescription),
+                        matchMetadataCorrection(extraEntry)
+                    )
+                )
+            );
 
     }
 
@@ -285,7 +294,7 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
                 .andDo(result -> workspaceItemIdRef.set(read(result.getResponse().getContentAsString(), "$.id")));
 
         List<Relationship> relationshipList = relationshipService.findByItem(context, itemToBeCorrected);
-        assert (relationshipList.size() > 0);
+        assert relationshipList.size() > 0;
         Item correctedItem = relationshipList.get(0).getLeftItem();
         WorkspaceItem newWorkspaceItem = workspaceItemService.findByItem(context, correctedItem);
 
@@ -311,8 +320,8 @@ public class CorrectionStepIT extends AbstractControllerIntegrationTest {
 
     private static Matcher<?> matchMetadataCorrection(String value) {
         return Matchers.anyOf(
-                hasJsonPath("$.newValues[0]", is(value)),
-                hasJsonPath("$.oldValues[0]", is(value)));
+                hasJsonPath("$.newValues[0]", equalTo(value)),
+                hasJsonPath("$.oldValues[0]", equalTo(value)));
     }
 
     private void deletePoolTask(PoolTask poolTask) {
