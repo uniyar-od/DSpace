@@ -14,6 +14,7 @@
 				<entry key-ref="CrisConsumer-SOURCE_INTERNAL">
 					<bean class="org.dspace.authority.filler.ItemMetadataImportFiller" parent="fullItemMetadataConfiguration" />
 				</entry>
+                <entry key="ORCID" value-ref="orcidImportFiller" />
 			</map>
 		</property>
 	</bean>
@@ -98,6 +99,8 @@
 			</map>
 		</property>
 	</bean>
+	
+	<bean class="org.dspace.authority.filler.OrcidImportFiller" id="orcidImportFiller" />
 
 	<bean class="org.dspace.authority.service.ItemSearcherMapper" name="org.dspace.authority.service.ItemSearcherMapper">
 		<constructor-arg index="0">
