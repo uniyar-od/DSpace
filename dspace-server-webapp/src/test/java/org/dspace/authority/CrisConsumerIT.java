@@ -944,9 +944,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
         OrcidRestConnector orcidConnector = orcidV3AuthorDataProvider.getOrcidRestConnector();
 
         orcidV3AuthorDataProvider.setOrcidRestConnector(mockOrcidConnector);
-        
+
         String orcid = "0000-0002-9029-1854";
-        
+
         when(mockOrcidConnector.get(eq(orcid + "/person"), any()))
             .thenAnswer(i -> orcidPersonRecord.getInputStream());
 
