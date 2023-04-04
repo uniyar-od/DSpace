@@ -2751,6 +2751,11 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
             .withMimeType("text/plain")
             .build();
 
+        Bitstream bitstream4 = BitstreamBuilder.createBitstream(context, license, InputStream.nullInputStream())
+            .withName("this is a test 3")
+            .withMimeType("text/plain")
+            .build();
+
         getClient().perform(get("/api/core/bitstreams/search/byItemId")
             .param("uuid", publicItem1.getID().toString())
             .param("name", license.getName())
@@ -2774,6 +2779,18 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
             .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
                 BitstreamMatcher.matchBitstreamEntry(bitstream2),
                 BitstreamMatcher.matchBitstreamEntry(bitstream3))));
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+            .param("uuid", publicItem1.getID().toString())
+            .param("name", license.getName())
+            .param("filterMetadata", "dc.type")
+            .param("filterMetadataValue", "!Personal Picture")
+            .param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page.totalElements", is(2)))
+            .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
+                BitstreamMatcher.matchBitstreamEntry(bitstream1),
+                BitstreamMatcher.matchBitstreamEntry(bitstream4))));
 
         getClient().perform(get("/api/core/bitstreams/search/byItemId")
             .param("uuid", publicItem1.getID().toString())
