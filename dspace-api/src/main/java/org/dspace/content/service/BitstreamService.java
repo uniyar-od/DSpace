@@ -14,7 +14,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import org.dspace.authorize.AuthorizeException;
@@ -238,14 +237,10 @@ public interface BitstreamService extends DSpaceObjectService<Bitstream>, DSpace
     @Nullable
     Long getLastModified(Bitstream bitstream) throws IOException;
 
-    public List<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName,
-            Map<String, String> filterMetadata) throws SQLException;
+    List<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName,
+        Map<String, String> filterMetadata) throws SQLException;
 
-    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, String bundleName,
-            Map<String, String> filterMetadata);
-
-    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, Map<String, String> filterMetadata);
-
-    public Stream<Bitstream> getItemBitstreamsStream(Context context, Item item) throws SQLException;
+    List<Bitstream> findByItemAndBundleAndMetadata(Context context, Item item, String bundleName,
+        Map<String, String> filterMetadata);
 
 }

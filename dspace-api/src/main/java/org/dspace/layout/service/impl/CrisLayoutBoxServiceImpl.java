@@ -9,7 +9,6 @@ package org.dspace.layout.service.impl;
 
 import java.sql.SQLException;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -190,8 +189,9 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
 
             if (field.isMetadataField() && isMetadataFieldPresent(item, field.getMetadataField())) {
                 return true;
-            } else if (field.isBitstreamField()
-                    && isBitstreamPresent(context, item, (CrisLayoutFieldBitstream) field)) {
+            }
+
+            if (field.isBitstreamField() && isBitstreamPresent(context, item, (CrisLayoutFieldBitstream) field)) {
                 return true;
             }
 
@@ -206,8 +206,7 @@ public class CrisLayoutBoxServiceImpl implements CrisLayoutBoxService {
     }
 
     private boolean isBitstreamPresent(Context context, Item item, CrisLayoutFieldBitstream field) {
-        Map<String, String> filters = new HashMap<String, String>();
-        filters.put(field.getMetadataField().toString('.'), field.getMetadataValue());
+        Map<String, String> filters = Map.of(field.getMetadataField().toString('.'), field.getMetadataValue());
         try {
             return bitstreamService.findShowableByItem(context, item.getID(), field.getBundle(), filters).size() > 0;
         } catch (SQLException e) {

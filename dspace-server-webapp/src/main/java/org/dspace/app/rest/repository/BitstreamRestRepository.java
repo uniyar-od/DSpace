@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import javax.servlet.http.HttpServletRequest;
 
@@ -215,11 +214,13 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
                                             @Parameter(value = "filterMetadata") String[] filterMetadataFields,
                                             @Parameter(value = "filterMetadataValue") String[] filterMetadataValues,
                                             Pageable pageable) {
-        final Item item = findItemById(uuid)
+        Item item = findItemById(uuid)
             .orElseThrow(() -> new UnprocessableEntityException("No item found with the given UUID"));
 
-        final Map<String, String> filterMetadata = composeFilterMetadata(filterMetadataFields, filterMetadataValues);
-        final List<Bitstream> bitstreams = bs.applyFilters(findBitstreamsBy(item), bundleName, filterMetadata);
+        Context context = obtainContext();
+
+        Map<String, String> filterMetadata = composeFilterMetadata(filterMetadataFields, filterMetadataValues);
+        List<Bitstream> bitstreams = bs.findByItemAndBundleAndMetadata(context, item, bundleName, filterMetadata);
 
         return converter.toRestPage(bitstreams, pageable, utils.obtainProjection());
     }
@@ -352,14 +353,6 @@ public class BitstreamRestRepository extends DSpaceObjectRestRepository<Bitstrea
 
     private boolean filterMetadataDoNotHaveSameCardinality(String[] fields, String[] values) {
         return nullToEmpty(fields).length != nullToEmpty(values).length;
-    }
-
-    private Stream<Bitstream> findBitstreamsBy(Item item) {
-        try {
-            return bs.getItemBitstreamsStream(obtainContext(), item);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
 }

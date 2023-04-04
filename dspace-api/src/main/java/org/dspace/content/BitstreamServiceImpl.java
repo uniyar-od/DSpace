@@ -35,7 +35,6 @@ import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.LogHelper;
 import org.dspace.core.exception.SQLRuntimeException;
-import org.dspace.eperson.service.EPersonService;
 import org.dspace.event.Event;
 import org.dspace.services.ConfigurationService;
 import org.dspace.storage.bitstore.service.BitstreamStorageService;
@@ -74,9 +73,6 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
 
     @Autowired
     private ConfigurationService configurationService;
-
-    @Autowired
-    private EPersonService ePersonService;
 
     protected BitstreamServiceImpl() {
         super();
@@ -507,46 +503,46 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         return bitstreamStorageService.getLastModified(bitstream);
     }
 
-    private Iterator<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName)
-            throws SQLException {
-        return bitstreamDAO.findShowableByItem(context, itemId, bundleName);
-    }
-
-    @Override
-    public Stream<Bitstream> getItemBitstreamsStream(Context context, Item item) throws SQLException {
-        return StreamSupport
-                .stream(Spliterators.spliteratorUnknownSize(getItemBitstreams(context, item), 0), false);
-    }
-
     @Override
     public List<Bitstream> findShowableByItem(Context context, UUID itemId, String bundleName,
             Map<String, String> filterMetadata) throws SQLException {
-        Stream<Bitstream> bitstreams = StreamSupport
-                .stream(Spliterators.spliteratorUnknownSize(
-                        findShowableByItem(context, itemId, bundleName), 0), false);
-        return applyFilters(bitstreams, filterMetadata);
+
+        return streamOf(bitstreamDAO.findShowableByItem(context, itemId, bundleName))
+            .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata))
+            .collect(Collectors.toList());
+
     }
 
     @Override
-    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, String bundleName,
-            Map<String, String> filterMetadata) {
-        return bitstreams.filter(bitstream -> isContainedInBundleNamed(bitstream, bundleName))
-                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata)).collect(Collectors.toList());
+    public List<Bitstream> findByItemAndBundleAndMetadata(Context context, Item item, String bundleName,
+        Map<String, String> filterMetadata) {
+
+        try {
+
+            return streamOf(getItemBitstreams(context, item))
+                .filter(bitstream -> isContainedInBundleNamed(bitstream, bundleName))
+                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata))
+                .collect(Collectors.toList());
+
+        } catch (SQLException ex) {
+            throw new SQLRuntimeException(ex);
+        }
+
     }
 
     private boolean isContainedInBundleNamed(Bitstream bitstream, String name) {
+
+        if (StringUtils.isEmpty(name)) {
+            return true;
+        }
+
         try {
             return bitstream.getBundles().stream()
-                .anyMatch(bundle -> StringUtils.equals(bundle.getName(), name) || StringUtils.isEmpty(name));
+                .anyMatch(bundle -> name.equals(bundle.getName()));
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);
         }
-    }
 
-    @Override
-    public List<Bitstream> applyFilters(Stream<Bitstream> bitstreams, Map<String, String> filterMetadata) {
-        return bitstreams
-                .filter(bitstream -> hasAllMetadataValues(bitstream, filterMetadata)).collect(Collectors.toList());
     }
 
     private boolean hasAllMetadataValues(Bitstream bitstream, Map<String, String> filterMetadata) {
@@ -604,6 +600,10 @@ public class BitstreamServiceImpl extends DSpaceObjectServiceImpl<Bitstream> imp
         } else {
             return matchResult;
         }
+    }
+
+    private Stream<Bitstream> streamOf(Iterator<Bitstream> iterator) {
+        return StreamSupport.stream(Spliterators.spliteratorUnknownSize(iterator, 0), false);
     }
 
 }
