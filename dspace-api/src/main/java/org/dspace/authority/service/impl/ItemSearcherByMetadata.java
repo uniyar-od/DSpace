@@ -167,7 +167,7 @@ public class ItemSearcherByMetadata implements ItemSearcher, ItemReferenceResolv
         Iterator<Item> itemsWithReferenceIterator = chainedIterator(itemsIterator, cachedItemsIterator);
 
         while (itemsWithReferenceIterator.hasNext()) {
-            Item itemWithReference = itemsIterator.next();
+            Item itemWithReference = itemsWithReferenceIterator.next();
             updateReferences(context, itemWithReference, item, authorities);
         }
 
