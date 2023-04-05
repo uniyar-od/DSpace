@@ -263,7 +263,10 @@ public class StatisticsDatasetDisplay {
 
         // statistics view reports must not include download (view of a bitstream)
         // of bitstream in bundle other than ORIGINAL
-        filterQuery.append(" AND -(bundleName:[* TO *] AND -bundleName:ORIGINAL)");
+        if (type == Constants.BITSTREAM) {
+            filterQuery.append(
+                      " AND -bundleName:LICENSE AND -bundleName:THUMBNAIL AND -bundleName:SWORD AND -bundleName:TEXT");
+        }
 
         // statistics view reports MUST not include view performed by bots (isBot=true in the SOLR Statistics document)
         boolean isBot = configurationService.getBooleanProperty("solr-statistics.query.filter.isBot", true);
