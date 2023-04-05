@@ -217,9 +217,26 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
                                     final String value) {
         return addMetadataValue(item, schema, element, qualifier, value);
     }
-    public ItemBuilder withSecuredMetadata(final String schema, final String element, final String qualifier,
-                                    final String value, Integer securityLevel) {
-        return addMetadataValue(item, schema, element, qualifier, value);
+
+    public ItemBuilder withMetadata(final String schema,
+                                    final String element,
+                                    final String qualifier,
+                                    final String language,
+                                    final String value,
+                                    final String authority,
+                                    final int confidence) {
+        return addMetadataValue(item, schema, element, qualifier, language, value, authority, confidence);
+    }
+
+    public ItemBuilder withSecuredMetadata(String schema, String element, String qualifier,
+        String value, Integer securityLevel) {
+        return addSecuredMetadataValue(item, schema, element, qualifier, value, securityLevel);
+    }
+
+    public ItemBuilder withSecuredMetadata(String schema, String element, String qualifier, String language,
+        String value, String authority, int confidence, Integer securityLevel) {
+        return addSecuredMetadataValue(item, schema, element, qualifier, language, value,
+            authority, confidence, securityLevel);
     }
 
     public ItemBuilder withCrisPolicyEPerson(String value, String authority) {
@@ -748,6 +765,10 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
         return addMetadataValue(item, "cris", "customurl", "old", url);
     }
 
+    public ItemBuilder withScopusPublicationLastImport(String date) {
+        return addMetadataValue(item, "cris", "lastimport", "scopus-publication", date);
+    }
+
     public ItemBuilder withHandle(String handle) {
         this.handle = handle;
         return this;
@@ -865,7 +886,7 @@ public class ItemBuilder extends AbstractDSpaceObjectBuilder<Item> {
     @Override
     public Item build() {
         try {
-            installItemService.installItem(context, workspaceItem, handle);
+            installItemService.installItem(context, workspaceItem, this.handle);
             itemService.update(context, item);
             //Check if we need to make this item private. This has to be done after item install.
             if (readerGroup != null) {
