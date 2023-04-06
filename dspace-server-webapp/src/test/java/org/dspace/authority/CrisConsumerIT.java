@@ -1012,6 +1012,58 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
     }
 
+    @Test
+    public void testSherpaImportFiller() throws Exception {
+
+        String issn = "2731-0582";
+
+        context.turnOffAuthorisationSystem();
+
+        Collection journals = createCollection("Collection of journals", "Journal", subCommunity);
+
+        Item publication = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Test Publication")
+            .withRelationJournal("Nature Synthesis", "will be generated::ISSN::" + issn)
+            .build();
+
+        context.commit();
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(submitter.getEmail(), password);
+        ItemRest item = getItemViaRestByID(authToken, publication.getID());
+
+        MetadataValueRest journalMetadata = findSingleMetadata(item, "dc.relation.journal");
+
+        UUID journalId = UUIDUtils.fromString(journalMetadata.getAuthority());
+        assertThat(journalId, notNullValue());
+
+        Item journal = itemService.find(context, journalId);
+        assertThat(journal, notNullValue());
+        assertThat(journal.getOwningCollection(), is(journals));
+        assertThat(journal.getMetadata(), hasItems(
+            with("dc.title", "Nature Synthesis"),
+            with("dc.identifier.issn", issn, null, 400),
+            with("cris.sourceId", "ISSN::" + issn)));
+
+        context.turnOffAuthorisationSystem();
+
+        publicationCollection = context.reloadEntity(publicationCollection);
+
+        Item anotherPublication = ItemBuilder.createItem(context, publicationCollection)
+            .withTitle("Test Publication 2")
+            .withRelationJournal("Nature Synthesis", "will be generated::ISSN::" + issn)
+            .build();
+
+        context.commit();
+
+        context.restoreAuthSystemState();
+
+        item = getItemViaRestByID(authToken, anotherPublication.getID());
+        journalMetadata = findSingleMetadata(item, "dc.relation.journal");
+        assertThat(UUIDUtils.fromString(journalMetadata.getAuthority()), is(journal.getID()));
+
+    }
 
     private ItemRest getItemViaRestByID(String authToken, UUID id) throws Exception {
         MvcResult result = getClient(authToken)
