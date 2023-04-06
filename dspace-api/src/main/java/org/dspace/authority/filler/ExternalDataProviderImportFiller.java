@@ -27,25 +27,31 @@ import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
 import org.dspace.core.exception.SQLRuntimeException;
 import org.dspace.external.model.ExternalDataObject;
-import org.dspace.external.provider.impl.OrcidV3AuthorDataProvider;
+import org.dspace.external.provider.ExternalDataProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Implementation of {@link AuthorityImportFiller} which enriches the item with
- * the data present on ORCID.
+ * the data retrieved with the configured
  *
  * @author Luca Giamminonni (luca.giamminonni at 4Science)
  *
  */
-public class OrcidImportFiller implements AuthorityImportFiller {
+public class ExternalDataProviderImportFiller implements AuthorityImportFiller {
 
-    private static final Logger LOGGER = LogManager.getLogger(OrcidImportFiller.class);
-
-    @Autowired
-    private OrcidV3AuthorDataProvider orcidV3AuthorDataProvider;
+    private static final Logger LOGGER = LogManager.getLogger(ExternalDataProviderImportFiller.class);
 
     @Autowired
     private ItemService itemService;
+
+    private ExternalDataProvider externalDataProvider;
+
+    private String authorityIdentifier;
+
+    public ExternalDataProviderImportFiller(ExternalDataProvider externalDataProvider, String authorityIdentifier) {
+        this.externalDataProvider = externalDataProvider;
+        this.authorityIdentifier = authorityIdentifier;
+    }
 
     @Override
     public boolean allowsUpdate(Context context, MetadataValue sourceMetadata, Item itemToFill) {
@@ -63,12 +69,12 @@ public class OrcidImportFiller implements AuthorityImportFiller {
 
         try {
 
-            getOrcidFromMetadataValue(sourceMetadata)
-                .flatMap(orcid -> orcidV3AuthorDataProvider.getExternalDataObject(orcid))
-                .ifPresent(externalData -> enrichItemWithOrcidExternalData(context, item, externalData));
+            getExternalIdentifierFromMetadataValue(sourceMetadata)
+                .flatMap(orcid -> externalDataProvider.getExternalDataObject(orcid))
+                .ifPresent(externalData -> enrichItemWithExternalData(context, item, externalData));
 
         } catch (Exception ex) {
-            LOGGER.error("An error occurs trying to enrich item with ORCID data", ex);
+            LOGGER.error("An error occurs trying to enrich item with external data", ex);
         }
 
         if (isTitleNotSet(item)) {
@@ -77,25 +83,25 @@ public class OrcidImportFiller implements AuthorityImportFiller {
 
     }
 
-    private Optional<String> getOrcidFromMetadataValue(MetadataValue metadataValue) {
+    private Optional<String> getExternalIdentifierFromMetadataValue(MetadataValue metadataValue) {
         return Optional.ofNullable(metadataValue.getAuthority())
-            .filter(this::isOrcidWillBeGeneratedAuthority)
-            .map(authority -> removeOrcidWillBeGeneratedPrefix(authority));
+            .filter(this::isWillBeGeneratedAuthority)
+            .map(authority -> removeWillBeGeneratedPrefix(authority));
     }
 
-    private boolean isOrcidWillBeGeneratedAuthority(String authority) {
-        return startsWith(authority, getOrcidWillBeGeneratedAuthority());
+    private boolean isWillBeGeneratedAuthority(String authority) {
+        return startsWith(authority, getWillBeGeneratedAuthority());
     }
 
-    private String removeOrcidWillBeGeneratedPrefix(String authority) {
-        return removeStart(authority, getOrcidWillBeGeneratedAuthority());
+    private String removeWillBeGeneratedPrefix(String authority) {
+        return removeStart(authority, getWillBeGeneratedAuthority());
     }
 
-    private String getOrcidWillBeGeneratedAuthority() {
-        return AuthorityValueService.GENERATE + "ORCID" + AuthorityValueService.SPLIT;
+    private String getWillBeGeneratedAuthority() {
+        return AuthorityValueService.GENERATE + authorityIdentifier + AuthorityValueService.SPLIT;
     }
 
-    private void enrichItemWithOrcidExternalData(Context context, Item item, ExternalDataObject externalData) {
+    private void enrichItemWithExternalData(Context context, Item item, ExternalDataObject externalData) {
 
         externalData.getMetadata().stream()
             .filter(metadataValue -> notAlreadyPresent(item, metadataValue))
@@ -128,12 +134,16 @@ public class OrcidImportFiller implements AuthorityImportFiller {
         }
     }
 
-    public OrcidV3AuthorDataProvider getOrcidV3AuthorDataProvider() {
-        return orcidV3AuthorDataProvider;
+    public ExternalDataProvider getExternalDataProvider() {
+        return externalDataProvider;
     }
 
-    public void setOrcidV3AuthorDataProvider(OrcidV3AuthorDataProvider orcidV3AuthorDataProvider) {
-        this.orcidV3AuthorDataProvider = orcidV3AuthorDataProvider;
+    public void setExternalDataProvider(ExternalDataProvider externalDataProvider) {
+        this.externalDataProvider = externalDataProvider;
+    }
+
+    public String getAuthorityIdentifier() {
+        return authorityIdentifier;
     }
 
 }
