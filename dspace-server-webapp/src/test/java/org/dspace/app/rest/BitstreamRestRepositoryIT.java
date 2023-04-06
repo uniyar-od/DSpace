@@ -29,11 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.InputStream;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.Spliterators;
 import java.util.UUID;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
@@ -71,7 +67,6 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.service.GroupService;
 import org.dspace.util.UUIDUtils;
-import org.hamcrest.MatcherAssert;
 import org.hamcrest.Matchers;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -2756,6 +2751,11 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
             .withMimeType("text/plain")
             .build();
 
+        Bitstream bitstream4 = BitstreamBuilder.createBitstream(context, license, InputStream.nullInputStream())
+            .withName("this is a test 3")
+            .withMimeType("text/plain")
+            .build();
+
         getClient().perform(get("/api/core/bitstreams/search/byItemId")
             .param("uuid", publicItem1.getID().toString())
             .param("name", license.getName())
@@ -2779,6 +2779,18 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
             .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
                 BitstreamMatcher.matchBitstreamEntry(bitstream2),
                 BitstreamMatcher.matchBitstreamEntry(bitstream3))));
+
+        getClient().perform(get("/api/core/bitstreams/search/byItemId")
+            .param("uuid", publicItem1.getID().toString())
+            .param("name", license.getName())
+            .param("filterMetadata", "dc.type")
+            .param("filterMetadataValue", "!Personal Picture")
+            .param("projection", "full"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.page.totalElements", is(2)))
+            .andExpect(jsonPath("$._embedded.bitstreams", containsInAnyOrder(
+                BitstreamMatcher.matchBitstreamEntry(bitstream1),
+                BitstreamMatcher.matchBitstreamEntry(bitstream4))));
 
         getClient().perform(get("/api/core/bitstreams/search/byItemId")
             .param("uuid", publicItem1.getID().toString())
@@ -2908,93 +2920,6 @@ public class BitstreamRestRepositoryIT extends AbstractControllerIntegrationTest
                         hasItem(BitstreamMatcher.matchProperties(bitstream2)),
                         hasItem(BitstreamMatcher.matchProperties(bitstream4))
                         )
-                    )
-                )
-            );
-    }
-
-    @Test
-    public void findShowableByItemWithoutBundleName() throws Exception {
-
-        //Turn off the authorization system, otherwise we can't make the objects
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity =
-            CommunityBuilder.createCommunity(context)
-            .withName("Parent Community")
-            .build();
-        Collection col1 = CollectionBuilder.createCollection(context, parentCommunity).withName("Collection 1").build();
-
-        Item publicItem1 =
-            ItemBuilder.createItem(context, col1)
-            .withTitle("Public item 1")
-            .withIssueDate("2017-10-17")
-            .withAuthor("Smith, Donald")
-            .build();
-
-        Item publicItem2 =
-            ItemBuilder.createItem(context, col1)
-            .withTitle("Public item 1")
-            .withIssueDate("2017-10-17")
-            .withAuthor("Smith, Donald")
-            .build();
-
-        Bitstream bitstream =
-            BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test", UTF_8))
-            .withName("first")
-            .withFormat("test format")
-            .build();
-
-        Bitstream bitstream2 =
-            BitstreamBuilder.createBitstream(context, publicItem1, toInputStream("test2", UTF_8))
-            .withName("second")
-            .withFormat("test format 2")
-            .build();
-
-        final String customBundle = "Bundle Test";
-        Bundle bundle = BundleBuilder.createBundle(context, publicItem1).withName(customBundle).build();
-
-        Bitstream bitstream3 =
-            BitstreamBuilder.createBitstream(context, bundle, toInputStream("test3", UTF_8))
-            .withName("third")
-            .withFormat("test format 3")
-            .build();
-
-        Bitstream bitstream4 =
-            BitstreamBuilder.createBitstream(context, publicItem2, toInputStream("test4", UTF_8))
-            .withName("fourth")
-            .withFormat("test format 4")
-            .isHidden()
-            .build();
-
-        context.commit();
-        context.restoreAuthSystemState();
-
-        List<UUID> bitstreamsID = StreamSupport.stream(
-            Spliterators.spliteratorUnknownSize(
-                this.bitstreamService
-                .findShowableByItem(context, publicItem1.getID(), Optional.empty()),
-                0
-                ),
-            false
-            )
-            .map(Bitstream::getID)
-            .collect(Collectors.toList());
-
-        MatcherAssert.assertThat(
-            bitstreamsID,
-            containsInAnyOrder(
-                bitstream.getID(),
-                bitstream2.getID(),
-                bitstream3.getID()
-                )
-            );
-
-        MatcherAssert.assertThat(
-            bitstreamsID,
-            not(
-                contains(
-                    bitstream4.getID()
                     )
                 )
             );
