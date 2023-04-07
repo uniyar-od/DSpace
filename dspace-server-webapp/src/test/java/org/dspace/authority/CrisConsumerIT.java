@@ -884,8 +884,9 @@ public class CrisConsumerIT extends AbstractControllerIntegrationTest {
 
         MetadataValueRest editor = findSingleMetadata(item, "dc.contributor.editor");
         String editorAuthority = editor.getAuthority();
-        assertThat("The editor should have the authority null", editorAuthority, nullValue());
-        assertThat("The editor should have an UNSET confidence", editor.getConfidence(), equalTo(CF_UNSET));
+        assertThat("The editor should have the authority set", editorAuthority, notNullValue());
+        assertThat("The editor should have an uuid authority", UUIDUtils.fromString(editorAuthority), notNullValue());
+        assertThat("The editor should have an ACCEPTED confidence", editor.getConfidence(), equalTo(CF_ACCEPTED));
     }
 
     @Test
