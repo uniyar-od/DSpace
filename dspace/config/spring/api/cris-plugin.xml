@@ -122,6 +122,7 @@
 				<entry key="ISNI" value-ref="itemSearcherByISNI"/>
 				<entry key="DOI" value-ref="itemSearcherByDOI"/>
 				<entry key="URL" value-ref="itemSearcherByURL"/>
+                <entry key="ISSN" value-ref="itemSearcherByISSN"/>
 				<entry key="LEGACY-ID" value-ref="itemSearcherByLegacyId"/>
 				<entry key="SCOPUS-AUTHOR-ID" value-ref="itemSearcherByScopusAuthorId"/>
 			</map>
@@ -155,6 +156,11 @@
 		<constructor-arg value="person.identifier.isni"></constructor-arg>
 		<constructor-arg value="ISNI"></constructor-arg>
 	</bean>
+    
+    <bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByISSN">
+        <constructor-arg value="dc.identifier.issn"></constructor-arg>
+        <constructor-arg value="ISSN"></constructor-arg>
+    </bean>
 	
 	<bean class="org.dspace.authority.service.impl.ItemSearcherByMetadata" name="itemSearcherByLegacyId">
 		<constructor-arg value="cris.legacyId"></constructor-arg>
