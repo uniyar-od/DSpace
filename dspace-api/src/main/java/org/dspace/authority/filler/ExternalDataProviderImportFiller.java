@@ -134,16 +134,4 @@ public class ExternalDataProviderImportFiller implements AuthorityImportFiller {
         }
     }
 
-    public ExternalDataProvider getExternalDataProvider() {
-        return externalDataProvider;
-    }
-
-    public void setExternalDataProvider(ExternalDataProvider externalDataProvider) {
-        this.externalDataProvider = externalDataProvider;
-    }
-
-    public String getAuthorityIdentifier() {
-        return authorityIdentifier;
-    }
-
 }
