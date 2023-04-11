@@ -7,6 +7,7 @@
  */
 package org.dspace.statistics;
 
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.dspace.discovery.DiscoverResult.FacetPivotResult.fromPivotFields;
 
 import java.io.File;
@@ -966,7 +967,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
         boolean showTotal, List<String> facetQueries, int facetMinCount) throws SolrServerException, IOException {
 
         QueryResponse queryResponse = query(query, filterQuery, null,
-            0, max, null, null, null, facetQueries, null, false, facetMinCount, true, pivotField, null);
+            0, max, null, null, null, 1, facetQueries, null, false, facetMinCount, true, pivotField, null);
 
         if (queryResponse == null) {
             return new FacetPivotResult[0];
@@ -988,10 +989,11 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             String dateEnd,
             boolean showTotal,
             int facetMinCount,
-            int max
+            int increment
     ) throws SolrServerException, IOException  {
 
-        QueryResponse queryResponse = query(query, filterQuery, facetField, 0, max, dateType, dateStart, dateEnd, null,
+        QueryResponse queryResponse = query(query, filterQuery, facetField, 0, -1, dateType, dateStart, dateEnd,
+            increment, null,
                 null, false, facetMinCount, false, null, fieldList);
 
         ObjectCount[] found = Optional.ofNullable(queryResponse)
@@ -1110,7 +1112,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
         String dateStart, String dateEnd, List<String> facetQueries, String sort, boolean ascending, int facetMinCount)
         throws SolrServerException, IOException {
-        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
+        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, 1, facetQueries, sort,
             ascending, facetMinCount, false, null, null);
     }
 
@@ -1118,15 +1120,15 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public QueryResponse query(String query, String filterQuery, String facetField, int rows, int max, String dateType,
         String dateStart, String dateEnd, List<String> facetQueries, String sort, boolean ascending, int facetMinCount,
         boolean defaultFilterQueries) throws SolrServerException, IOException {
-        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, facetQueries, sort,
+        return query(query, filterQuery, facetField, rows, max, dateType, dateStart, dateEnd, 1, facetQueries, sort,
             ascending, facetMinCount, defaultFilterQueries, null, null);
     }
 
     @Override
     public QueryResponse query(String query, String filterQuery, String facetField, int rows,
-        int max, String dateType, String dateStart, String dateEnd, List<String> facetQueries, String sort,
-        boolean ascending, int facetMinCount, boolean defaultFilterQueries, String pivotField, String fieldList)
-        throws SolrServerException, IOException {
+        int max, String dateType, String dateStart, String dateEnd, int increment, List<String> facetQueries,
+        String sort, boolean ascending, int facetMinCount, boolean defaultFilterQueries, String pivotField,
+        String fieldList) throws SolrServerException, IOException {
 
         if (solr == null) {
             return null;
@@ -1139,17 +1141,16 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         // Set the date facet if present
         if (dateType != null) {
+
+            String start = isNotBlank(dateStart) ? dateStart + dateType : "";
+            String end = isNotBlank(dateEnd) ? dateEnd + dateType : "";
+
             solrQuery.setParam("facet.range", "time")
-                .
-                // EXAMPLE: NOW/MONTH+1MONTH
-                    setParam("f.time.facet.range.end",
-                             "NOW/" + dateType + dateEnd + dateType).setParam(
-                "f.time.facet.range.gap", "+1" + dateType)
-                .
-                // EXAMPLE: NOW/MONTH-" + nbMonths + "MONTHS
-                    setParam("f.time.facet.range.start",
-                             "NOW/" + dateType + dateStart + dateType + "S")
+                .setParam("f.time.facet.range.start", "NOW/" + dateType + start) // EXAMPLE: NOW/MONTH-2MONTHS
+                .setParam("f.time.facet.range.end", "NOW/" + dateType + end) // EXAMPLE: NOW/MONTH+1MONTH
+                .setParam("f.time.facet.range.gap", "+" + increment + dateType)
                 .setFacet(true);
+
         }
         if (facetQueries != null) {
             for (int i = 0; i < facetQueries.size(); i++) {
