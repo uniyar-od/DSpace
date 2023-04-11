@@ -837,13 +837,25 @@
         <dependency>
 		    <groupId>org.apache.xmlgraphics</groupId>
 		    <artifactId>fop</artifactId>
-		    <version>2.5</version>
+		    <version>2.8</version>
 		    <exclusions>
 		        <exclusion>
 		        	<groupId>javax.servlet</groupId>
 	      			<artifactId>servlet-api</artifactId>
 		        </exclusion>
             </exclusions>
+		</dependency>
+
+        <dependency>
+            <groupId>org.apache.xmlgraphics</groupId>
+            <artifactId>xmlgraphics-commons</artifactId>
+            <version>2.8</version>
+        </dependency>
+
+		<dependency>
+		    <groupId>org.apache.xmlgraphics</groupId>
+		    <artifactId>fop-pdf-images</artifactId>
+		    <version>2.8</version>
 		</dependency>
 
         <dependency>
