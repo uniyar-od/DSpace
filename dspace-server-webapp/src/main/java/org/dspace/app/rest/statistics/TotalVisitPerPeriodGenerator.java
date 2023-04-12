@@ -38,6 +38,7 @@ import org.dspace.statistics.SolrLoggerServiceImpl;
 import org.dspace.statistics.content.StatisticsDatasetDisplay;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.dspace.util.MultiFormatDateParser;
+import org.dspace.util.SolrUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -121,7 +122,7 @@ public class TotalVisitPerPeriodGenerator extends AbstractUsageReportGenerator {
         validateStartAndEndDates(startDate, endDate);
 
         if (isBlank(startDate) || isAfterToday(startDate)) {
-            return buildEmptyDataReport(context);
+            return buildEmptyDataReport(context, endDate);
         }
 
         String rangeStart = calculateRangeStart(startDate);
@@ -137,7 +138,7 @@ public class TotalVisitPerPeriodGenerator extends AbstractUsageReportGenerator {
         List<UsageReportPointDateRest> usageReportPoints = convertToReportPoints(dateFacetResult, startDateProvided);
 
         if (CollectionUtils.isEmpty(usageReportPoints)) {
-            return buildEmptyDataReport(context);
+            return buildEmptyDataReport(context, endDate);
         }
 
         UsageReportRest usageReportRest = new UsageReportRest();
@@ -236,9 +237,18 @@ public class TotalVisitPerPeriodGenerator extends AbstractUsageReportGenerator {
         return point;
     }
 
-    private UsageReportRest buildEmptyDataReport(Context context) {
-        return new UsageReportRest();
+    private UsageReportRest buildEmptyDataReport(Context context, String endDate) {
+        UsageReportRest usageReportRest = new UsageReportRest();
 
+        String format = SolrUtils.getDateformatFrom(periodType.toUpperCase());
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format, context.getCurrentLocale());
+
+        UsageReportPointDateRest point = new UsageReportPointDateRest();
+        point.addValue(POINT_VIEWS_KEY, 0);
+        point.setId(simpleDateFormat.format(MultiFormatDateParser.parse(endDate)));
+        usageReportRest.addPoint(point);
+
+        return usageReportRest;
     }
 
     public void setDefaultStartDate(String date) {

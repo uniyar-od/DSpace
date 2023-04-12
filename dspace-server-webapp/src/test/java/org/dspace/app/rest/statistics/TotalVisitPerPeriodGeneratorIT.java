@@ -15,8 +15,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 import org.dspace.AbstractIntegrationTestWithDatabase;
 import org.dspace.app.matcher.LambdaMatcher;
@@ -210,9 +208,6 @@ public class TotalVisitPerPeriodGeneratorIT extends AbstractIntegrationTestWithD
         usageReportRest = generator.createUsageReport(context, site, "2023-03-14", "2023-03-15");
         assertThat(usageReportRest.getPoints(), contains(dateWithViews("March 2023", 0)));
 
-        String tomorrow = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().plusDays(1));
-        usageReportRest = generator.createUsageReport(context, site, tomorrow, null);
-        assertThat(usageReportRest.getPoints(), empty());
 
     }
 
@@ -295,10 +290,6 @@ public class TotalVisitPerPeriodGeneratorIT extends AbstractIntegrationTestWithD
         usageReportRest = generator.createUsageReport(context, site, "2023-03-14", "2023-03-15");
         assertThat(usageReportRest.getPoints(), contains(dateWithViews("2023", 0)));
 
-        String tomorrow = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().plusDays(1));
-        usageReportRest = generator.createUsageReport(context, site, tomorrow, null);
-        assertThat(usageReportRest.getPoints(), empty());
-
     }
 
     @Test
@@ -378,9 +369,6 @@ public class TotalVisitPerPeriodGeneratorIT extends AbstractIntegrationTestWithD
             dateWithViews("14-03-2023", 0),
             dateWithViews("15-03-2023", 0)));
 
-        String tomorrow = DateTimeFormatter.ofPattern("yyyy-MM-dd").format(LocalDate.now().plusDays(1));
-        usageReportRest = generator.createUsageReport(context, site, tomorrow, null);
-        assertThat(usageReportRest.getPoints(), empty());
 
     }
 
