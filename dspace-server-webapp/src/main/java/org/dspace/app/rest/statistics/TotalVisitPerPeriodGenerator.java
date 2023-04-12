@@ -17,7 +17,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -238,17 +237,7 @@ public class TotalVisitPerPeriodGenerator extends AbstractUsageReportGenerator {
     }
 
     private UsageReportRest buildEmptyDataReport(Context context) {
-
-        UsageReportRest usageReportRest = new UsageReportRest();
-
-        Calendar calendar = Calendar.getInstance(context.getCurrentLocale());
-        UsageReportPointDateRest monthPoint = new UsageReportPointDateRest();
-        monthPoint.addValue(POINT_VIEWS_KEY, 0);
-        String month = calendar.getDisplayName(Calendar.MONTH, Calendar.LONG, context.getCurrentLocale());
-        monthPoint.setId(month + " " + calendar.get(Calendar.YEAR));
-        usageReportRest.addPoint(monthPoint);
-
-        return usageReportRest;
+        return new UsageReportRest();
 
     }
 

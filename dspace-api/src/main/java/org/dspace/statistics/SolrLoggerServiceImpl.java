@@ -201,8 +201,14 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     }
 
     @Override
+    public void postView(DSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser) {
+        postView(dspaceObject, request, currentUser, new Date());
+    }
+
+    @Override
     public void postView(DSpaceObject dspaceObject, HttpServletRequest request,
-                         EPerson currentUser) {
+                         EPerson currentUser, Date time) {
+
         if (solr == null || locationService == null) {
             return;
         }
@@ -210,7 +216,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
 
         try {
-            SolrInputDocument doc1 = getCommonSolrDoc(dspaceObject, request, currentUser);
+            SolrInputDocument doc1 = getCommonSolrDoc(dspaceObject, request, currentUser, time);
             if (doc1 == null) {
                 return;
             }
@@ -289,7 +295,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
 
         try {
 
-            SolrInputDocument document = getCommonSolrDoc(dspaceObject, request, currentUser);
+            SolrInputDocument document = getCommonSolrDoc(dspaceObject, request, currentUser, new Date());
 
             if (document == null) {
                 return;
@@ -325,7 +331,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
      * @throws SQLException in case of a database exception
      */
     protected SolrInputDocument getCommonSolrDoc(DSpaceObject dspaceObject, HttpServletRequest request,
-                                                 EPerson currentUser) throws SQLException {
+                                                 EPerson currentUser, Date time) throws SQLException {
         boolean isSpiderBot = request != null && SpiderDetector.isSpider(request);
         if (isSpiderBot &&
             !configurationService.getBooleanProperty("usage-statistics.logBots", true)) {
@@ -408,7 +414,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
             storeParents(doc1, dspaceObject);
         }
         // Save the current time
-        doc1.addField("time", DateFormatUtils.format(new Date(), DATE_FORMAT_8601));
+        doc1.addField("time", DateFormatUtils.format(time, DATE_FORMAT_8601));
         if (currentUser != null) {
             doc1.addField("epersonid", currentUser.getID().toString());
         }
@@ -507,7 +513,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public void postSearch(DSpaceObject resultObject, HttpServletRequest request, EPerson currentUser,
                            List<String> queries, int rpp, String sortBy, String order, int page, DSpaceObject scope) {
         try {
-            SolrInputDocument solrDoc = getCommonSolrDoc(resultObject, request, currentUser);
+            SolrInputDocument solrDoc = getCommonSolrDoc(resultObject, request, currentUser, new Date());
             if (solrDoc == null) {
                 return;
             }
@@ -557,7 +563,7 @@ public class SolrLoggerServiceImpl implements SolrLoggerService, InitializingBea
     public void postWorkflow(UsageWorkflowEvent usageWorkflowEvent) throws SQLException {
         initSolrYearCores();
         try {
-            SolrInputDocument solrDoc = getCommonSolrDoc(usageWorkflowEvent.getObject(), null, null);
+            SolrInputDocument solrDoc = getCommonSolrDoc(usageWorkflowEvent.getObject(), null, null, new Date());
 
             //Log the current collection & the scope !
             solrDoc.addField("owningColl", usageWorkflowEvent.getScope().getID().toString());

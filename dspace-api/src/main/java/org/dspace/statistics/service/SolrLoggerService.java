@@ -10,6 +10,7 @@ package org.dspace.statistics.service;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
@@ -56,6 +57,8 @@ public interface SolrLoggerService {
      */
     public void postView(DSpaceObject dspaceObject, HttpServletRequest request,
                          EPerson currentUser);
+
+    public void postView(DSpaceObject dspaceObject, HttpServletRequest request, EPerson currentUser, Date time);
 
     public void postView(DSpaceObject dspaceObject,
                          String ip, String userAgent, String xforwardedfor, EPerson currentUser);
