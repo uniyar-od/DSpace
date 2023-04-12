@@ -48,6 +48,8 @@ public class MetadataValidator implements SubmissionStepValidator {
 
     private static final String ERROR_VALIDATION_REGEX = "error.validation.regex";
 
+    private static final String ERROR_VALIDATION_NOT_REPEATABLE = "error.validation.notRepeatable";
+
     private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataValidator.class);
 
     private DCInputsReader inputReader;
@@ -164,9 +166,15 @@ public class MetadataValidator implements SubmissionStepValidator {
         }
     }
 
-    private void validateMetadataValues(Collection collection, List<MetadataValue> mdv, DCInput input,
+    private void validateMetadataValues(Collection collection, List<MetadataValue> metadataValues, DCInput input,
         SubmissionStepConfig config, boolean isAuthorityControlled, String fieldKey, List<ValidationError> errors) {
-        for (MetadataValue md : mdv) {
+        // if the filed is not repeatable, it should have only one value
+        if (!input.isRepeatable() && metadataValues.size() > 1) {
+            addError(errors, ERROR_VALIDATION_NOT_REPEATABLE,
+                    "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" + input.getFieldName());
+        }
+
+        for (MetadataValue md : metadataValues) {
             if (! (input.validate(md.getValue()))) {
                 addError(errors, ERROR_VALIDATION_REGEX,
                     "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
