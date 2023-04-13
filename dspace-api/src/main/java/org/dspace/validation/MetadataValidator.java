@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.app.util.DCInput;
 import org.dspace.app.util.DCInputSet;
@@ -50,7 +51,7 @@ public class MetadataValidator implements SubmissionStepValidator {
 
     private static final String ERROR_VALIDATION_NOT_REPEATABLE = "error.validation.notRepeatable";
 
-    private static final Logger log = org.apache.logging.log4j.LogManager.getLogger(MetadataValidator.class);
+    private static final Logger log = LogManager.getLogger(MetadataValidator.class);
 
     private DCInputsReader inputReader;
 
@@ -170,8 +171,10 @@ public class MetadataValidator implements SubmissionStepValidator {
         SubmissionStepConfig config, boolean isAuthorityControlled, String fieldKey, List<ValidationError> errors) {
         // if the filed is not repeatable, it should have only one value
         if (!input.isRepeatable() && metadataValues.size() > 1) {
-            addError(errors, ERROR_VALIDATION_NOT_REPEATABLE,
-                    "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" + input.getFieldName());
+            for (int i = 0; i < metadataValues.size(); i++) {
+                addError(errors, ERROR_VALIDATION_NOT_REPEATABLE,
+                        "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" + input.getFieldName() + "/" + i);
+            }
         }
 
         for (MetadataValue md : metadataValues) {
