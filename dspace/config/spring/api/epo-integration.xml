@@ -77,7 +77,7 @@
 
     <bean id="epoPublicationNumberContrib" class="org.dspace.importer.external.metadatamapping.contributor.EpoIdMetadataContributor">
         <property name="field" ref="epo.dc.identifier.patentno"/>
-        <property name="query" value="//ns:publication-reference"/>
+        <property name="query" value=".//ns:publication-reference"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
         <bean id="epo.dc.identifier.patentno" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
