@@ -147,6 +147,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         //define first record
         List<MetadatumDTO> metadatums  = new ArrayList<MetadatumDTO>();
         MetadatumDTO identifierOther = createMetadatumDTO("dc", "identifier", "other", "epodoc:ES2902749T");
+        MetadatumDTO patentno = createMetadatumDTO("dc", "identifier", "patentno", "ES2902749T");
         MetadatumDTO identifier = createMetadatumDTO("dc", "identifier", "applicationnumber", "18705153");
         MetadatumDTO date = createMetadatumDTO("dc", "date", "issued", "2022-03-29");
         MetadatumDTO dateSubmitted = createMetadatumDTO("dcterms", "dateSubmitted", null, "2018-02-19");
@@ -159,6 +160,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
                                               "G01N  33/   574            A I                    ");
 
         metadatums.add(identifierOther);
+        metadatums.add(patentno);
         metadatums.add(identifier);
         metadatums.add(date);
         metadatums.add(dateSubmitted);
@@ -174,6 +176,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         //define second record
         List<MetadatumDTO> metadatums2  = new ArrayList<MetadatumDTO>();
         MetadatumDTO identifierOther2 = createMetadatumDTO("dc", "identifier", "other", "epodoc:TW202202864");
+        MetadatumDTO patentno2 = createMetadatumDTO("dc", "identifier", "patentno", "TW202202864");
         MetadatumDTO identifier2 = createMetadatumDTO("dc", "identifier", "applicationnumber", "109122801");
         MetadatumDTO date2 = createMetadatumDTO("dc", "date", "issued", "2022-01-16");
         MetadatumDTO dateSubmitted2 = createMetadatumDTO("dcterms", "dateSubmitted", null, "2020-07-06");
@@ -190,6 +193,7 @@ public class EpoImportMetadataSourceServiceIT extends AbstractLiveImportIntegrat
         MetadatumDTO subject3 = createMetadatumDTO("dc", "subject", null,
                 "G01R  31/  3193            A I                    ");
         metadatums2.add(identifierOther2);
+        metadatums2.add(patentno2);
         metadatums2.add(identifier2);
         metadatums2.add(date2);
         metadatums2.add(dateSubmitted2);
