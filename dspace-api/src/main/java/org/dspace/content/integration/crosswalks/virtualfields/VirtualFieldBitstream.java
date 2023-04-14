@@ -19,14 +19,20 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.tika.Tika;
 import org.dspace.content.Bitstream;
 import org.dspace.content.BitstreamFormat;
@@ -68,70 +74,172 @@ public class VirtualFieldBitstream implements VirtualField {
 
     private final Map<String, String> bitstreamTypeMap;
 
+    private final Map<String, Set<String>> bitstreamMIMETypeMap;
+
     public VirtualFieldBitstream(ItemService itemService, BitstreamStorageService bitstreamStorageService,
-        BitstreamService bitstreamService, ConfigurationService configurationService,
-        Map<String, String> bitstreamTypeMap) {
+                                 BitstreamService bitstreamService, ConfigurationService configurationService,
+                                 Map<String, String> bitstreamTypeMap, Map<String, Set<String>> bitstreamMIMETypeMap) {
         this.itemService = itemService;
         this.bitstreamStorageService = bitstreamStorageService;
         this.bitstreamService = bitstreamService;
         this.configurationService = configurationService;
         this.bitstreamTypeMap = bitstreamTypeMap;
+        this.bitstreamMIMETypeMap = bitstreamMIMETypeMap;
     }
 
     @Override
     public String[] getMetadata(Context context, Item item, String fieldName) {
         String[] virtualFieldName = fieldName.split("\\.");
-        if (virtualFieldName.length != 4) {
+        int fieldNameLength = virtualFieldName.length;
+
+        if (fieldNameLength < 3 || fieldNameLength > 6
+            || (fieldNameLength == 6 && !NumberUtils.isCreatable(virtualFieldName[5]))) {
             LOGGER.warn("Invalid bitstream virtual field: " + fieldName);
             return new String[] {};
         }
 
+        String bundleName = virtualFieldName[2].toUpperCase();
+
         try {
 
-            String bundleName = virtualFieldName[2].toUpperCase();
-            String bitstreamType = virtualFieldName[3];
-            if (bitstreamTypeMap.containsKey(bitstreamType)) {
-                bitstreamType = bitstreamTypeMap.get(bitstreamType);
-            }
+            List<Bitstream> bitstreams = findBitstreams(item, bundleName);
 
-            Bitstream bitstream = findBitstream(item, bundleName, bitstreamType);
-            if (bitstream == null) {
+            if (CollectionUtils.isEmpty(bitstreams)) {
                 return new String[] {};
             }
 
-            return writeTemporaryFile(context, bitstream);
+            if (fieldNameLength == 3) {
+                return getMetadata(context, item, bitstreams);
+            } else if (fieldNameLength == 4) {
+                if (!isFindAllTypes(virtualFieldName)) {
+                    bitstreams = filterBitstreamsByType(bitstreams, virtualFieldName[3]);
+                }
+                return getMetadata(context, item, bitstreams);
+            } else if (fieldNameLength == 5) {
+                if (!isFindAllTypes(virtualFieldName)) {
+                    bitstreams = filterBitstreamsByTypeAndMIMEType(context,bitstreams,
+                        virtualFieldName[3], virtualFieldName[4]);
+                } else {
+                    bitstreams = filterBitstreamsByMIMEType(context, bitstreams, virtualFieldName[4]);
+                }
+                return getMetadata(context, item, bitstreams);
+            } else if (fieldNameLength == 6) {
+                bitstreams = limitBitstreams(context, bitstreams,
+                    virtualFieldName,Integer.parseInt(virtualFieldName[5]));
+
+                return getMetadata(context, item, bitstreams);
+            }
 
         } catch (Exception e) {
             LOGGER.error("Error retrieving bitstream of item {} from virtual field {}", item.getID(), fieldName, e);
             return new String[] {};
         }
+
+        return new String[] {};
     }
 
-    private Bitstream findBitstream(Item item, String bundleName, String type) throws Exception {
+    private List<Bitstream> findBitstreams(Item item, String bundleName) throws Exception {
+
         List<Bundle> bundles = itemService.getBundles(item, bundleName);
+
         if (CollectionUtils.isEmpty(bundles)) {
-            return null;
+            return new ArrayList<>();
         }
 
-        Bitstream bitstream = findBitstream(bundles, bs -> hasTypeEqualsTo(bs, type)).orElse(null);
-        if (bitstream == null || shouldNotUseImagePreview()) {
-            return bitstream;
+        return bundles.stream()
+                      .flatMap(bundle ->
+                          bundle.getBitstreams().stream())
+                      .collect(Collectors.toList());
+    }
+
+    private List<Bitstream> limitBitstreams(Context context, List<Bitstream> bitstreams,
+                                            String[] virtualFieldName, int limit) {
+
+        if (!isFindAllTypes(virtualFieldName) && !isFindAllMIMETypes(virtualFieldName)) {
+            bitstreams = filterBitstreamsByTypeAndMIMEType(context,bitstreams,
+                virtualFieldName[3], virtualFieldName[4]);
+        } else if (isFindAllTypes(virtualFieldName) && !isFindAllMIMETypes(virtualFieldName)) {
+            bitstreams = filterBitstreamsByMIMEType(context, bitstreams, virtualFieldName[4]);
+        } else if (!isFindAllTypes(virtualFieldName) && isFindAllMIMETypes(virtualFieldName)) {
+            bitstreams = filterBitstreamsByType(bitstreams, virtualFieldName[3]);
         }
 
-        return findPreview(item, bitstream).orElse(bitstream);
+        return bitstreams.stream()
+                         .limit(limit)
+                         .collect(Collectors.toList());
+    }
+
+    private String[] getMetadata( Context context, Item item, List<Bitstream> bitstreams) throws Exception {
+        List<String> metadata = new ArrayList<>();
+
+        if (shouldUsePreview()) {
+            bitstreams = findPreviews(item, bitstreams);
+        }
+
+        for (Bitstream bitstream : bitstreams) {
+            metadata.addAll(Arrays.asList(writeTemporaryFile(context, bitstream)));
+        }
+
+        return metadata.toArray(new String[metadata.size()]);
+    }
+
+    private List<Bitstream> findPreviews(Item item, List<Bitstream> bitstreams) throws SQLException {
+        List<Bundle> bundles = itemService.getBundles(item, PREVIEW_BUNDLE);
+        if (CollectionUtils.isEmpty(bundles)) {
+            return bitstreams;
+        }
+
+        return bitstreams.stream()
+                         .map(bitstream ->
+                             findBitstream(
+                                 bundles,
+                                 bs -> startsWith(bs.getName(), bitstream.getName())
+                             ).orElse(bitstream)
+                         ).collect(Collectors.toList());
+    }
+
+    private List<Bitstream> filterBitstreamsByType(List<Bitstream> bitstreams, String bitstreamType) {
+        return findBitstreams(bitstreams, bs -> hasTypeEqualsTo(bs, getBitstreamType(bitstreamType)));
+    }
+
+    private List<Bitstream> filterBitstreamsByMIMEType(Context context, List<Bitstream> bitstreams, String mimeType) {
+        Set<String> mimeTypes = getMIMETypes(mimeType);
+
+        return findBitstreams(bitstreams,
+            bs -> mimeTypes.contains(getBitstreamMimeType(context, bs)));
+    }
+
+    private List<Bitstream> filterBitstreamsByTypeAndMIMEType(Context context,
+                                                              List<Bitstream> bitstreams,
+                                                              String type, String mimeType) {
+
+        List<Bitstream> filteredBitstreams = filterBitstreamsByType(bitstreams, type);
+        return filterBitstreamsByMIMEType(context, filteredBitstreams, mimeType);
+    }
+
+    private Set<String> getMIMETypes(String mimeType) {
+        Set<String> mimeTypes = new HashSet<>();
+        if (bitstreamMIMETypeMap.containsKey(mimeType)) {
+            mimeTypes.addAll(bitstreamMIMETypeMap.get(mimeType));
+        }
+        return mimeTypes;
+    }
+
+    private String getBitstreamType(String type) {
+        if (bitstreamTypeMap.containsKey(type)) {
+            return bitstreamTypeMap.get(type);
+        }
+        return type;
+    }
+
+    private List<Bitstream> findBitstreams(List<Bitstream> bitstreams, Predicate<Bitstream> predicate) {
+        return bitstreams.stream()
+                         .filter(predicate)
+                         .collect(Collectors.toList());
     }
 
     private boolean hasTypeEqualsTo(Bitstream bitstream, String type) {
         return type.equals(bitstreamService.getMetadataFirstValue(bitstream, "dc", "type", null, Item.ANY));
-    }
-
-    private Optional<Bitstream> findPreview(Item item, Bitstream bitstream) throws SQLException {
-        List<Bundle> bundles = itemService.getBundles(item, PREVIEW_BUNDLE);
-        if (CollectionUtils.isEmpty(bundles)) {
-            return Optional.empty();
-        }
-
-        return findBitstream(bundles, bs -> startsWith(bs.getName(), bitstream.getName()));
     }
 
     private Optional<Bitstream> findBitstream(List<Bundle> bundles, Predicate<Bitstream> predicate) {
@@ -163,13 +271,17 @@ public class VirtualFieldBitstream implements VirtualField {
 
     }
 
-    private String getBitstreamMimeType(Context context, Bitstream bitstream) throws SQLException, IOException {
+    private String getBitstreamMimeType(Context context, Bitstream bitstream) {
 
-        BitstreamFormat format = bitstream.getFormat(context);
-        if (format != null && format.getSupportLevel() != BitstreamFormat.UNKNOWN) {
-            return format.getMIMEType();
-        } else {
-            return new Tika().detect(bitstreamStorageService.retrieve(context, bitstream));
+        try {
+            BitstreamFormat format = bitstream.getFormat(context);
+            if (format != null && format.getSupportLevel() != BitstreamFormat.UNKNOWN) {
+                return format.getMIMEType();
+            } else {
+                return new Tika().detect(bitstreamStorageService.retrieve(context, bitstream));
+            }
+        } catch (SQLException | IOException e) {
+            throw new RuntimeException(e);
         }
 
     }
@@ -185,6 +297,10 @@ public class VirtualFieldBitstream implements VirtualField {
     private InputStream convertToJpeg(InputStream inputStream) throws IOException {
 
         BufferedImage image = ImageIO.read(inputStream);
+
+        if (image == null) {
+            return inputStream;
+        }
 
         BufferedImage convertedImage = new BufferedImage(image.getWidth(), image.getHeight(), TYPE_INT_RGB);
         convertedImage.createGraphics().drawImage(image, 0, 0, Color.WHITE, null);
@@ -206,8 +322,16 @@ public class VirtualFieldBitstream implements VirtualField {
         return tempExportDir;
     }
 
-    private boolean shouldNotUseImagePreview() {
-        return !configurationService.getBooleanProperty("crosswalk.virtualfield.bitstream.use-preview", true);
+    private boolean isFindAllTypes(String[] virtualFieldName) {
+        return virtualFieldName.length > 3 && virtualFieldName[3].equals("*");
+    }
+
+    private boolean isFindAllMIMETypes(String[] virtualFieldName) {
+        return virtualFieldName.length > 4 && virtualFieldName[4].equals("*");
+    }
+
+    private boolean shouldUsePreview() {
+        return configurationService.getBooleanProperty("crosswalk.virtualfield.bitstream.use-preview", true);
     }
 
 }
