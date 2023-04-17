@@ -1529,6 +1529,16 @@ SELECT eperson_id as dso_id, '7' as entity_type, uuid as dso_uuid
 FROM eperson
 where eperson_id is not null
 
+UNION
+
+SELECT collection_id as dso_id, '3' as entity_type, uuid as dso_uuid
+FROM collection
+where collection_id is not null
+
+UNION
+SELECT community_id as dso_id, '4' as entity_type, uuid as dso_uuid
+FROM community
+where community_id is not null
 
 </sql>
     <limit>0</limit>
@@ -1894,6 +1904,14 @@ if (cris_type==0) {
 
 if (cris_type==7) {
   new_type='7';
+}
+
+if (cris_type==4) {
+  new_type='4';
+}
+
+if (cris_type==3) {
+  new_type='3';
 }
 </jsScript_script>
       </jsScript>
