@@ -1340,14 +1340,18 @@
 var file_main_dir = 'do-files';
 if(entity_type_var == 'OrgUnit'){
    file_main_dir = 'ou-files';
-} else if(entity_type_var == 'Project'){
-   file_main_dir = 'pj-files';
+} else if(entity_type_var == 'Funding' || entity_type_var == 'Project' ){
+   file_main_dir = 'rg-files';
 } else if(entity_type_var == 'Person'){
    file_main_dir = 'rp-files';
 }
 
-var file_path = getVariable('file_root','') + '/' + file_main_dir + '/' + filefolder + '/' + filename + '.' + fileextension;
-var file_name = filename + '.' + fileextension;</jsScript_script>
+var file_path = getVariable('file_root','') + '/' + file_main_dir + '/' + filefolder + '/' + filename;
+var file_name = filename;
+if (fileextension != null &amp;&amp; fileextension != '') {
+   file_path = file_path + '.' + fileextension;
+   file_name = file_name + '.' + fileextension;
+}</jsScript_script>
       </jsScript>
     </jsScripts>
     <fields>
