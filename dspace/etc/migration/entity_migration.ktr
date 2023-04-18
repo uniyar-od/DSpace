@@ -673,7 +673,7 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>add cris owner metadata field</from>
+      <from>add dspace object owner metadata field</from>
       <to>select metadata attributes 2</to>
       <enabled>Y</enabled>
     </hop>
@@ -689,7 +689,7 @@
     </hop>
     <hop>
       <from>owner not null</from>
-      <to>add cris owner metadata field</to>
+      <to>add dspace object owner metadata field</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -2925,7 +2925,7 @@ WHERE property_def.id = properties.typo_id
     </GUI>
   </step>
   <step>
-    <name>add cris owner metadata field</name>
+    <name>add dspace object owner metadata field</name>
     <type>Constant</type>
     <description/>
     <distribute>Y</distribute>
@@ -2943,7 +2943,7 @@ WHERE property_def.id = properties.typo_id
         <currency/>
         <decimal/>
         <group/>
-        <nullif>cris</nullif>
+        <nullif>dspace</nullif>
         <length>-1</length>
         <precision>-1</precision>
         <set_empty_string>N</set_empty_string>
@@ -2955,7 +2955,7 @@ WHERE property_def.id = properties.typo_id
         <currency/>
         <decimal/>
         <group/>
-        <nullif>owner</nullif>
+        <nullif>object</nullif>
         <length>-1</length>
         <precision>-1</precision>
         <set_empty_string>N</set_empty_string>
@@ -2979,7 +2979,7 @@ WHERE property_def.id = properties.typo_id
         <currency/>
         <decimal/>
         <group/>
-        <nullif/>
+        <nullif>owner</nullif>
         <length>-1</length>
         <precision>-1</precision>
         <set_empty_string>N</set_empty_string>
@@ -6509,7 +6509,7 @@ WHERE property_def.id = properties.typo_id
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <send_true_to>add cris owner metadata field</send_true_to>
+    <send_true_to>add dspace object owner metadata field</send_true_to>
     <send_false_to/>
     <compare>
       <condition>
