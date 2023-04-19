@@ -170,7 +170,7 @@ public class StatelessAuthenticationFilter extends BasicAuthenticationFilter {
             throw new IllegalArgumentException("The given UUID in the X-On-Behalf-Of header " +
                                                    "was not a proper EPerson UUID");
         }
-        if (!authorizeService.isAdmin(context, onBehalfOfEPerson)) {
+        if (!authorizeService.isAdmin(context, onBehalfOfEPerson) || canImpersonateAdmin()) {
             requestService.setCurrentUserId(epersonUuid);
             context.switchContextUser(onBehalfOfEPerson);
             log.debug("Found 'on-behalf-of' authentication data in request for EPerson {}",
@@ -181,6 +181,10 @@ public class StatelessAuthenticationFilter extends BasicAuthenticationFilter {
             throw new IllegalArgumentException("You're unable to use the login as feature to log " +
                                                    "in as another admin");
         }
+    }
+
+    private boolean canImpersonateAdmin() {
+        return configurationService.getBooleanProperty("webui.user.assumelogin.admin");
     }
 
 }
