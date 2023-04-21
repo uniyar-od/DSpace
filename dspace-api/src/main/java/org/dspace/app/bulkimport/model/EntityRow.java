@@ -8,12 +8,11 @@
 package org.dspace.app.bulkimport.model;
 
 import static java.util.Collections.unmodifiableList;
-import static org.apache.commons.collections4.multimap.UnmodifiableMultiValuedMap.unmodifiableMultiValuedMap;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 
 import java.util.List;
 
-import org.apache.commons.collections4.MultiValuedMap;
+import org.apache.commons.collections4.ListValuedMap;
 import org.dspace.content.vo.MetadataValueVO;
 
 /**
@@ -32,14 +31,19 @@ public final class EntityRow {
 
     private final Boolean discoverable;
 
-    private final MultiValuedMap<String, MetadataValueVO> metadata;
+    private final ListValuedMap<String, MetadataValueVO> metadata;
 
     private final List<MetadataGroup> metadataGroups;
 
     private final List<UploadDetails> uploadDetails;
 
+    public EntityRow(String id, Boolean discoverable, ListValuedMap<String, MetadataValueVO> metadata,
+        List<MetadataGroup> metadataGroups, List<UploadDetails> uploadDetails) {
+        this(id, null, -1, discoverable, metadata, metadataGroups, uploadDetails);
+    }
+
     public EntityRow(String id, String action, int row, Boolean discoverable,
-        MultiValuedMap<String, MetadataValueVO> metadata, List<MetadataGroup> metadataGroups,
+        ListValuedMap<String, MetadataValueVO> metadata, List<MetadataGroup> metadataGroups,
         List<UploadDetails> uploadDetails) {
         super();
         this.id = id;
@@ -51,8 +55,12 @@ public final class EntityRow {
         this.uploadDetails = uploadDetails;
     }
 
-    public MultiValuedMap<String, MetadataValueVO> getMetadata() {
-        return unmodifiableMultiValuedMap(metadata);
+    public ListValuedMap<String, MetadataValueVO> getMetadata() {
+        return metadata;
+    }
+
+    public List<MetadataValueVO> getMetadata(String metadataField) {
+        return metadata.get(metadataField);
     }
 
     public List<MetadataGroup> getMetadataGroups() {
@@ -77,6 +85,13 @@ public final class EntityRow {
 
     public Boolean getDiscoverable() {
         return discoverable;
+    }
+
+    public String getDiscoverableValue() {
+        if (getDiscoverable() == null) {
+            return "";
+        }
+        return getDiscoverable() ? "Y" : "N";
     }
 
 }
