@@ -69,15 +69,16 @@ public class LoginOnBehalfOfFeature implements AuthorizationFeature {
             }
 
             EPerson ePerson = ePersonService.findByEmail(context, ePersonRest.getEmail());
-            if (authorizeService.isAdmin(context, ePerson) && canNotImpersonateAdmin()) {
+            if (canNotImpersonateAdmin(context, ePerson)) {
                 return false;
             }
         }
         return true;
     }
 
-    private boolean canNotImpersonateAdmin() {
-        return !configurationService.getBooleanProperty("webui.user.assumelogin.admin");
+    private boolean canNotImpersonateAdmin(Context context, EPerson ePerson) throws SQLException {
+        return authorizeService.isAdmin(context, ePerson) &&
+            !configurationService.getBooleanProperty("webui.user.assumelogin.admin");
     }
 
     @Override

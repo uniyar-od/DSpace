@@ -202,6 +202,29 @@ public class LoginOnBehalfOfFeatureRestIT extends AbstractControllerIntegrationT
     }
 
     @Test
+    public void loginOnBehalfOfAdminUserAssumeLoginAdminPropertyNotExistTest() throws Exception {
+        context.turnOffAuthorisationSystem();
+        EPerson adminUser = EPersonBuilder.createEPerson(context)
+                                          .withEmail("loginasuseradmin@test.com")
+                                          .build();
+        Group adminGroup = groupService.findByName(context, Group.ADMIN);
+        groupService.addMember(context, adminGroup, adminUser);
+        context.restoreAuthSystemState();
+
+        EPersonRest ePersonRest = ePersonConverter.convert(adminUser, Projection.DEFAULT);
+        String epersonUri = utils.linkToSingleResource(ePersonRest, "self").getHref();
+
+        configurationService.setProperty("org.dspace.app.rest.authorization.AlwaysThrowExceptionFeature.turnoff", true);
+        configurationService.setProperty("webui.user.assumelogin", true);
+
+        String token = getAuthToken(admin.getEmail(), password);
+        getClient(token).perform(get("/api/authz/authorizations/search/object")
+                            .param("uri", epersonUri)
+                            .param("feature", loginOnBehalfOf.getName()))
+                        .andExpect(status().isOk()).andExpect(jsonPath("$.page.totalElements", is(0)));
+    }
+
+    @Test
     public void loginOnBehalfOfAdminUserTest() throws Exception {
         context.turnOffAuthorisationSystem();
         EPerson adminUser = EPersonBuilder.createEPerson(context)
