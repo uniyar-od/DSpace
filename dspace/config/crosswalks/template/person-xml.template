@@ -72,7 +72,7 @@
         <language>@person.knowsLanguage@</language>
     </knows-languages>
     <personal-picture>@virtual.bitstream.original.picture@</personal-picture>
-    <personal-cv>@virtual.bitstream.ORIGINAL.*.pdf@</personal-cv>
+    <personal-cv>@virtual.bitstream.original.cv@</personal-cv>
     <publications>
         @relation.researchoutputs.start@
         <publication>
