@@ -508,6 +508,9 @@
 	<bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldVocabulary" id="virtualFieldVocabulary"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldMetric" id="virtualFieldMetric"/>
     <bean class="org.dspace.content.integration.crosswalks.virtualfields.VirtualFieldCitations" id="virtualFieldCitations"/>
+    
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.FirstSelectedCitationsPostProcessor" />
+    <bean class="org.dspace.content.integration.crosswalks.virtualfields.postprocessors.GroupByTypeCitationsPostProcessor" />
 	
 	<!-- MapConverter configuration -->
 
@@ -520,6 +523,7 @@
 				<entry key="orgUnitTypes" value-ref="mapConverterOrgUnitTypes" />
 				<entry key="accessRight" value-ref="mapConverterAccessRight" />
 				<entry key="coarToPublicationTypes" value-ref="mapConverterCoarToPublicationTypes" />
+				<entry key="pubmedToCoarPublicationTypes" value-ref="mapConverterPubmedToCoarPublicationTypes" />
 				<entry key="cerifToOrgUnitTypes" value-ref="mapConverterCerifToOrgUnitTypes" />
 				<entry key="cerifToFundingTypes" value-ref="mapConverterCerifToFundingTypes" />
 			</map>
@@ -586,6 +590,12 @@
         <property name="defaultValue" value="@@ident@@"/>
     </bean>
 
+	<bean name="mapConverterPubmedToCoarPublicationTypes" class="org.dspace.util.SimpleMapConverter" init-method="init">
+		<property name="converterNameFile" value="mapConverter-pubmedToCoarPublicationTypes.properties" />
+		<property name="configurationService" ref="org.dspace.services.ConfigurationService" />
+		<property name="defaultValue" value=""/>
+	</bean>
+
 	<!-- CONDITION EVALUATORS CONFIGURATION -->
 	
 	<bean class="org.dspace.content.integration.crosswalks.evaluators.ConditionEvaluatorMapper" id="conditionEvaluatorMapper">
@@ -607,5 +617,8 @@
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLGeneratorFactory" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLNestedGenerator" />
     <bean class="org.dspace.content.integration.crosswalks.csl.CSLWebServiceGenerator" />
+    
+    <bean class="org.dspace.content.converter.ItemToItemDTOConverter" />
+    <bean class="org.dspace.app.bulkimport.service.BulkImportWorkbookBuilderImpl" />
 
 </beans>
