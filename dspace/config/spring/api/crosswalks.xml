@@ -302,7 +302,7 @@
 	</bean>
 
     <bean class="org.dspace.content.integration.crosswalks.DocumentCrosswalk" id="pdfCrosswalkPersonCv">
-        <property name="templateFileName" value="crosswalks/template/person-template.xsl"/>
+        <property name="templateFileName" value="crosswalks/template/person-cv-template.xsl"/>
         <property name="fileName" value="person.pdf"/>
         <property name="mimeType" value="application/pdf"/>
         <property name="entityType" value="Person"/>
