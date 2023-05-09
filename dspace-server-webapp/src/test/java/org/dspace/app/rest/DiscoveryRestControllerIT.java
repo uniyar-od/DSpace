@@ -9,34 +9,28 @@ package org.dspace.app.rest;
 
 import static com.google.common.net.UrlEscapers.urlPathSegmentEscaper;
 import static com.jayway.jsonpath.matchers.JsonPathMatchers.hasJsonPath;
+import static org.dspace.app.rest.matcher.FacetValueMatcher.entrySupervisedBy;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.emptyOrNullString;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Optional;
 import java.util.UUID;
 
 import com.jayway.jsonpath.matchers.JsonPathMatchers;
 import org.apache.commons.codec.CharEncoding;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.response.QueryResponse;
-import org.apache.solr.common.SolrDocument;
 import org.dspace.app.rest.matcher.AppliedFilterMatcher;
 import org.dspace.app.rest.matcher.FacetEntryMatcher;
 import org.dspace.app.rest.matcher.FacetValueMatcher;
@@ -53,38 +47,26 @@ import org.dspace.builder.ClaimedTaskBuilder;
 import org.dspace.builder.CollectionBuilder;
 import org.dspace.builder.CommunityBuilder;
 import org.dspace.builder.EPersonBuilder;
-import org.dspace.builder.EntityTypeBuilder;
 import org.dspace.builder.GroupBuilder;
 import org.dspace.builder.ItemBuilder;
 import org.dspace.builder.PoolTaskBuilder;
-import org.dspace.builder.RelationshipBuilder;
-import org.dspace.builder.RelationshipTypeBuilder;
+import org.dspace.builder.SupervisionOrderBuilder;
 import org.dspace.builder.WorkflowItemBuilder;
 import org.dspace.builder.WorkspaceItemBuilder;
 import org.dspace.content.Bitstream;
 import org.dspace.content.Collection;
 import org.dspace.content.Community;
-import org.dspace.content.EntityType;
 import org.dspace.content.Item;
-import org.dspace.content.Relationship;
-import org.dspace.content.RelationshipType;
 import org.dspace.content.WorkspaceItem;
 import org.dspace.content.authority.Choices;
 import org.dspace.content.authority.service.ChoiceAuthorityService;
 import org.dspace.content.authority.service.MetadataAuthorityService;
-import org.dspace.content.service.EntityTypeService;
-import org.dspace.core.CrisConstants;
-import org.dspace.discovery.SearchService;
-import org.dspace.discovery.configuration.DiscoveryConfigurationService;
 import org.dspace.discovery.configuration.DiscoverySortFieldConfiguration;
-import org.dspace.discovery.configuration.GraphDiscoverSearchFilterFacet;
-import org.dspace.discovery.indexobject.ItemIndexFactoryImpl;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
-import org.dspace.util.UUIDUtils;
-import org.dspace.utils.DSpace;
+import org.dspace.supervision.SupervisionOrder;
 import org.dspace.xmlworkflow.storedcomponents.ClaimedTask;
 import org.dspace.xmlworkflow.storedcomponents.XmlWorkflowItem;
 import org.hamcrest.Matchers;
@@ -99,12 +81,6 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
     @Autowired
     MetadataAuthorityService metadataAuthorityService;
-
-    @Autowired
-    private DiscoveryConfigurationService discoveryConfigurationService;
-
-    @Autowired
-    private EntityTypeService entityTypeService;
 
     @Autowired
     ChoiceAuthorityService choiceAuthorityService;
@@ -141,15 +117,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets")))
                 //We have 4 facets in the default configuration, they need to all be present in the embedded section
                 .andExpect(jsonPath("$._embedded.facets", containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)))
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)))
         );
     }
 
@@ -211,10 +183,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //Because we've constructed such a structure so that we have more than 2 (size) authors, there
                 // needs to be a next link
-                .andExpect(jsonPath("$._links.next.href",
-                        Matchers.allOf(
-                                containsString("api/discover/facets/author"),
-                                containsString("page=1"))))
+                .andExpect(jsonPath("$._links.next.href", containsString("api/discover/facets/author?page")))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
                 //Because there are more authors than is represented (because of the size param), hasMore has to
@@ -234,13 +203,8 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
 
     @Test
     public void discoverFacetsAuthorWithAuthorityWithSizeParameter() throws Exception {
-
         configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
         configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
-        configurationService.setProperty("discovery.browse.authority.ignore-preferred.author", true);
-        configurationService.setProperty("discovery.index.authority.ignore-preferred.dc.contributor.author", true);
-        configurationService.setProperty("discovery.browse.authority.ignore-variants.author", true);
-        configurationService.setProperty("discovery.index.authority.ignore-variants.dc.contributor.author", true);
 
         metadataAuthorityService.clearCache();
         choiceAuthorityService.clearCache();
@@ -306,8 +270,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(jsonPath("$.name", is("author")))
                    //Because we've constructed such a structure so that we have more than 2 (size) subjects, there
                    // needs to be a next link
-                   .andExpect(jsonPath("$._links.next.href",
-                       containsString("api/discover/facets/author?configuration=defaultConfiguration&page")))
+                   .andExpect(jsonPath("$._links.next.href", containsString("api/discover/facets/author?page")))
                    //There always needs to be a self link
                    .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
                    //Because there are more subjects than is represented (because of the size param), hasMore has to
@@ -399,6 +362,237 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                         FacetValueMatcher.entryAuthor("Smith, Donald")
                 )))
         ;
+    }
+
+    @Test
+    public void discoverFacetsAuthorTestWithPrefix_Capital_And_Special_Chars() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                           .withName("Collection").build();
+
+        Item publicItem1 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 1")
+                                      .withIssueDate("2017-10-17")
+                                      .withAuthor("Smith, John")
+                                      .withAuthor("Jan, Doe")
+                                      .build();
+
+        Item publicItem2 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 2")
+                                      .withIssueDate("2016-02-13")
+                                      .withAuthor("S’Idan, Mo")
+                                      .withAuthor("Tick&Tock")
+                                      .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 3")
+                                      .withIssueDate("2016-02-13")
+                                      .withAuthor("M Akai")
+                                      .withAuthor("stIjn, SmITH")
+                                      .build();
+
+        Item publicItem4 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 4")
+                                      .withIssueDate("2012-05-13")
+                                      .withSubject("St Augustine")
+                                      .build();
+
+        Item publicItem5 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 5")
+                                      .withIssueDate("2015-11-23")
+                                      .withSubject("Health & Medicine")
+                                      .build();
+
+        Item publicItem6 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 6")
+                                      .withIssueDate("2003-07-11")
+                                      .withSubject("1% economy")
+                                      .build();
+
+        Item publicItem7 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 7")
+                                      .withIssueDate("2008-12-31")
+                                      .withSubject("I.T.")
+                                      .build();
+
+        Item publicItem8 = ItemBuilder.createItem(context, collection)
+                                      .withTitle("Public item 8")
+                                      .withIssueDate("2013-07-21")
+                                      .withSubject("?Unknown")
+                                      .build();
+
+        context.restoreAuthSystemState();
+
+        // The prefix query for author queries should be case-insensitive and correctly handle special characters
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "Smith"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entryFacetWithoutSelfLink("Smith, John"),
+                       FacetValueMatcher.entryFacetWithoutSelfLink("stIjn, SmITH"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "S"))
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher
+                                                              .entryFacetWithoutSelfLink("Smith, John"),
+                                                          FacetValueMatcher
+                                                              .entryFacetWithoutSelfLink("S’Idan, Mo"),
+                                                          // gets returned once for smith, once for stijn
+                                                          FacetValueMatcher
+                                                              .entryFacetWithoutSelfLink("stIjn, SmITH"),
+                                                          FacetValueMatcher
+                                                              .entryFacetWithoutSelfLink("stIjn, SmITH"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "M A"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("M Akai"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "S’I"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("S’Idan, Mo"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "Jan, D"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("Jan, Doe"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "Tick&"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("Tick&Tock"))));
+
+        // Should also be the case for subject queries
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "St A"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher
+                                                              .entryFacetWithoutSelfLink("St Augustine"))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Health & M"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher
+                                                              .entryFacetWithoutSelfLink("Health & Medicine"))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "1% e"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("1% economy"))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "I."))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("I.T."))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "U"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(FacetValueMatcher.entryFacetWithoutSelfLink("?Unknown"))));
+    }
+
+    @Test
+    public void discoverFacetsAuthorTestWithPrefixFirstName() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community").build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                 .withName("Parent Collection").build();
+
+        Item item1 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 1")
+                                .withAuthor("Smith, John")
+                                .build();
+
+        Item item2 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 2")
+                                .withAuthor("Smith, Jane")
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "john"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(
+                                           FacetValueMatcher.entryAuthor("Smith, John"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "jane"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(
+                                           FacetValueMatcher.entryAuthor("Smith, Jane"))));
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "j"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(
+                                           FacetValueMatcher.entryAuthor("Smith, John"),
+                                           FacetValueMatcher.entryAuthor("Smith, Jane"))));
+    }
+
+    @Test
+    public void discoverFacetsAuthorWithAuthorityTestWithPrefixFirstName() throws Exception {
+        configurationService.setProperty("choices.plugin.dc.contributor.author", "SolrAuthorAuthority");
+        configurationService.setProperty("authority.controlled.dc.contributor.author", "true");
+
+        metadataAuthorityService.clearCache();
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community").build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                 .withName("Parent Collection").build();
+
+        Item item1 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 1")
+                                .withAuthor("Smith, John", "test_authority_1", Choices.CF_ACCEPTED)
+                                .build();
+
+        Item item2 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 2")
+                                .withAuthor("Smith, Jane", "test_authority_2", Choices.CF_ACCEPTED)
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/facets/author")
+                                .param("prefix", "j"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values",
+                                       containsInAnyOrder(
+                                           FacetValueMatcher.entryAuthorWithAuthority(
+                                               "Smith, John", "test_authority_1", 1),
+                                           FacetValueMatcher.entryAuthorWithAuthority(
+                                               "Smith, Jane", "test_authority_2", 1))));
+
+        DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
+
+        metadataAuthorityService.clearCache();
     }
 
     @Test
@@ -535,9 +729,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.facetType", is("text")))
                 //There needs to be a next link because there are more authors than the current size is allowed to
                 // show. There are more pages after this one
-                .andExpect(jsonPath("$._links.next.href", Matchers.allOf(
-                        containsString("api/discover/facets/author"),
-                        containsString("page=2"))))
+                .andExpect(jsonPath("$._links.next.href", containsString("api/discover/facets/author?page")))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author")))
                 //The page object has to be like this because that's what we've asked in the parameters
@@ -796,8 +988,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author?scope=testScope")))
                 .andExpect(jsonPath("$._links.next.href",
-                    containsString(
-                        "api/discover/facets/author?scope=testScope&configuration=defaultConfiguration&page=1&size=2")))
+                     containsString("api/discover/facets/author?scope=testScope&page=1&size=2")))
                 //These are the values that need to be present as it's ordered by count and these authors are the
                 // most common ones in the items that we've created
                 .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
@@ -905,9 +1096,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/dateIssued")))
                 //Seeing as we've entered a size of two and there are more dates than just two, we'll need a next
                 // link to go to the next page to see the rest of the dates
-                .andExpect(jsonPath("$._links.next.href", Matchers.allOf(
-                        containsString("api/discover/facets/dateIssued"),
-                        containsString("page=1"))))
+                .andExpect(jsonPath("$._links.next.href", containsString("api/discover/facets/dateIssued?page")))
                 //The page object needs to look like this because we've entered a size of 2 and we didn't specify
                 // a starting page so it defaults to 0
                 .andExpect(jsonPath("$.page",
@@ -1020,9 +1209,6 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //There needs to be a section where these filters as specified as they're the default filters
                    // given in the configuration
                    .andExpect(jsonPath("$.filters", containsInAnyOrder(
-                       SearchFilterMatcher.barDateIssuedYearFilter(),
-                       SearchFilterMatcher.pieItemtypeFilter(),
-                       SearchFilterMatcher.typeFilter(),
                        SearchFilterMatcher.titleFilter(),
                        SearchFilterMatcher.authorFilter(),
                        SearchFilterMatcher.subjectFilter(),
@@ -1035,8 +1221,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                        SearchFilterMatcher.isProjectOfPublicationRelation(),
                        SearchFilterMatcher.isOrgUnitOfPublicationRelation(),
                        SearchFilterMatcher.isPublicationOfJournalIssueRelation(),
-                       SearchFilterMatcher.isJournalOfPublicationRelation(),
-                       SearchFilterMatcher.languageFilter()
+                       SearchFilterMatcher.isJournalOfPublicationRelation()
                    )))
                    //These sortOptions need to be present as it's the default in the configuration
                    .andExpect(jsonPath("$.sortOptions", contains(
@@ -1045,13 +1230,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                        SortOptionMatcher.sortOptionMatcher(
                                          "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
                        SortOptionMatcher.sortOptionMatcher(
-                                         "dc.title", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-                       SortOptionMatcher.sortOptionMatcher(
-                                         "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
-                       SortOptionMatcher.sortOptionMatcher(
                                          "dc.date.issued", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name()),
-                       SortOptionMatcher.sortOptionMatcher(
-                                         "dc.date.accessioned", DiscoverySortFieldConfiguration.SORT_ORDER.asc.name()),
                        SortOptionMatcher.sortOptionMatcher(
                                          "dc.date.accessioned", DiscoverySortFieldConfiguration.SORT_ORDER.desc.name())
                    )));
@@ -1167,12 +1346,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //There needs to be a page object that shows the total pages and total elements as well as the
                 // size and the current page (number)
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 7)
                 )))
                 //These search results have to be shown in the embedded.objects section as these are the items
                 // given in the structure defined above.
                 //Seeing as everything fits onto one page, they have to all be present
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItems(
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        //This has to be like this because collections don't have anything else
+                        SearchResultMatcher.match(),
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items")
@@ -1180,15 +1364,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1230,7 +1410,6 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         parentCommunity = CommunityBuilder.createCommunity(context).build();
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity).build();
         ItemBuilder.createItem(context, collection)
-                .withEntityType("Publication")
                 .withAuthor("DSpace & friends")
                 .build();
 
@@ -1300,15 +1479,21 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The page object has to look like this because we've only made 7 elements (3 items),
-                //the default size is 20 and they all fit onto one page (20 > 7) so totalPages has
-                //to be 1. Number is 0 because page 0 is the default page we view if not specified otherwise
+                //The page object has to look like this because we've only made 7 elements, the default size is 20
+                // and they all fit onto one page (20 > 7) so totalPages has to be 1. Number is 0 because
+                //page 0 is the default page we view if not specified otherwise
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 7)
                 )))
                 //All elements have to be present in the embedded.objects section, these are the ones we made in
                 // the structure defined above
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItems(
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        //Match without any parameters because collections don't have anything special to check in the
+                        // json
+                        SearchResultMatcher.match(),
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items")
@@ -1318,15 +1503,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //We do however exceed the limit for the authors, so this property has to be true for the author
                 // facet
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(true),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1391,13 +1572,18 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(status().isOk())
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
-                //The page object has to look like this because we've only made 7 objects (but only 3 items),
-                //they all fit onto 1 page because the default size is 20 and the default starting page is 0.
+                //The page object has to look like this because we've only made 7 items, they all fit onto 1 page
+                // because the default size is 20 and the default starting page is 0.
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 7)
                 )))
                 //All the elements created in the structure above have to be present in the embedded.objects section
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItems(
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        //Collections are specified like this because they don't have any special properties
+                        SearchResultMatcher.match(),
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items")
@@ -1407,15 +1593,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //We do however exceed the limit for the subject, so this property has to be true for the subject
                 // facet
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(true),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1491,15 +1673,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1585,12 +1763,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 .andExpect(jsonPath("$.type", is("discover")))
                 //The page element has to look like this because it contains all the elements we've just created
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 7)
                 )))
                 //The scope property has to be set to the value we entered in the parameters
                 .andExpect(jsonPath("$.scope", is("test")))
                 //All the elements created in the structure above have to be present in the embedded.objects section
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItems(
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        //Collections are specified like this because they don't have any special properties
+                        SearchResultMatcher.match(),
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items"),
                         SearchResultMatcher.match("core", "item", "items")
@@ -1598,15 +1781,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -1682,22 +1861,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
 
         // With dsoTypes 'community' and 'collection'
         getClient().perform(get("/api/discover/search/objects")
-                .param("configuration", "backend")
                 .param("dsoType", "Community")
                 .param("dsoType", "Collection"))
 
@@ -1722,22 +1896,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
 
         // With dsoTypes 'collection' and 'item'
         getClient().perform(get("/api/discover/search/objects")
-                .param("configuration", "backend")
                 .param("dsoType", "Collection")
                 .param("dsoType", "Item"))
 
@@ -1763,22 +1932,17 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
 
         // With dsoTypes 'community', 'collection' and 'item'
         getClient().perform(get("/api/discover/search/objects")
-                .param("configuration", "backend")
                 .param("dsoType", "Community")
                 .param("dsoType", "Collection")
                 .param("dsoType", "Item"))
@@ -1808,15 +1972,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
@@ -1899,15 +2059,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //We want to get the sort that's been used as well in the response
                 .andExpect(jsonPath("$.sort", is(
@@ -2093,7 +2249,7 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
         //An anonymous user browses this endpoint to find the the objects in the system
         //With a size 2
         getClient().perform(get("/api/discover/search/objects")
-                .param("size", "1")
+                .param("size", "2")
                 .param("page", "1"))
                 //** THEN **
                 //The status has to be 200 OK
@@ -2101,30 +2257,25 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
                 //The page object needs to look like this
-                //Size of 1 because that's what we entered
+                //Size of 2 because that's what we entered
                 //Page number 1 because that's the param we entered
-                //TotalPages 3 because size = 1 and total elements is 3 -> 3 pages
+                //TotalPages 4 because size = 2 and total elements is 7 -> 4 pages
                 //We made 7 elements -> 7 total elements
-                //dspace-cris excludes communities and collections by default,
-                //so we have 3 indexed elements (items)
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(1, 1, 3, 3)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(1, 2, 4, 7)
                 )))
-                //These is the  element that'll be shown (because page = 1, so the second element
-                // in the list) and it will be the only one because the size is 1
+                //These are the  two elements that'll be shown (because page = 1, so the third and fourth element
+                // in the list) and they'll be the only ones because the size is 2
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.match()
                 )))
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(true),
                         FacetEntryMatcher.subjectFacet(true),
                         FacetEntryMatcher.dateIssuedFacet(false),
                         FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.entityTypeFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.entityTypeFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2210,15 +2361,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2281,12 +2428,16 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
                 //The page object needs to look like this
-                //dspace-cris default configuration returns only items
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 1)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 5)
                 )))
                 //These are the items that aren't set to private
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.hasItems(
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        SearchResultMatcher.match("core", "community", "communities"),
+                        //Collections are specified like this because they don't have any special properties
+                        SearchResultMatcher.match(),
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.matchOnItemName("item", "items", "Test")
                 )))
                 //This is a private item, this shouldn't show up in the result
@@ -2300,15 +2451,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2467,15 +2614,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2556,15 +2699,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2740,15 +2879,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore
                 // property because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2888,15 +3023,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore property
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -2968,15 +3099,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //These facets have to show up in the embedded.facets section as well with the given hasMore property
                    // because we don't exceed their default limit for a hasMore true (the default is 10)
                    .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                       FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                       FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                       FacetEntryMatcher.typeFacet(false),
                        FacetEntryMatcher.authorFacet(false),
                        FacetEntryMatcher.entityTypeFacet(false),
                        FacetEntryMatcher.subjectFacet(false),
                        FacetEntryMatcher.dateIssuedFacet(false),
-                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                       FacetEntryMatcher.languageFacet(false)
+                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                                                                                         )))
                    //There always needs to be a self link available
                    .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3046,15 +3173,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore property
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3125,15 +3248,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //These facets have to show up in the embedded.facets section as well with the given hasMore property
                    // because we don't exceed their default limit for a hasMore true (the default is 10)
                    .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                       FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                       FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                       FacetEntryMatcher.typeFacet(false),
                        FacetEntryMatcher.authorFacet(false),
+                       FacetEntryMatcher.entityTypeFacet(false),
                        FacetEntryMatcher.subjectFacet(false),
                        FacetEntryMatcher.dateIssuedFacet(false),
-                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                       FacetEntryMatcher.entityTypeFacet(false),
-                       FacetEntryMatcher.languageFacet(false)
+                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                                                                                         )))
                    //There always needs to be a self link available
                    .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3202,27 +3321,23 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The page object needs to look like this
                 //Size of 2 because that's what we entered
                 //Page number 1 because that's the param we entered
-                //TotalPages 2 because size = 2 and total elements is 3 -> 2 pages
-                //We made 7 elements but only items are included in the dspace-cris default configuration
-                // -> 3 total elements
+                //TotalPages 4 because size = 2 and total elements is 7 -> 4 pages
+                //We made 7 elements -> 7 total elements
                 .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                        PageMatcher.pageEntryWithTotalPagesAndElements(1, 2, 2, 3)
+                        PageMatcher.pageEntryWithTotalPagesAndElements(1, 2, 4, 7)
                 )))
-                //These are the  two elements that'll be shown (because page = 1, so the third element
-                // in the list) and they'll be the only one
+                //These are the  two elements that'll be shown (because page = 1, so the third and fourth element
+                // in the list) and they'll be the only ones because the size is 2
                 .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
+                        SearchResultMatcher.match(),
                         SearchResultMatcher.match()
                 )))
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacetWithMinMax(true, "Doe, Jane", "Testing, Works"),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(true),
                         FacetEntryMatcher.dateIssuedFacetWithMinMax(false, "1990-02-13", "2010-10-17"),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3287,15 +3402,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //The type has to be 'discover'
                 .andExpect(jsonPath("$.type", is("discover")))
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacetWithMinMax(true, "Doe, Jane", "Testing, Works"),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(true),
                         FacetEntryMatcher.dateIssuedFacetWithMinMax(false, "1990-02-13", "2010-10-17"),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/facets")))
@@ -3365,15 +3476,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore property
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3444,15 +3551,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //These facets have to show up in the embedded.facets section as well with the given hasMore property
                    // because we don't exceed their default limit for a hasMore true (the default is 10)
                    .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                       FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                       FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                       FacetEntryMatcher.typeFacet(false),
                        FacetEntryMatcher.authorFacet(false),
                        FacetEntryMatcher.entityTypeFacet(false),
                        FacetEntryMatcher.subjectFacet(false),
                        FacetEntryMatcher.dateIssuedFacet(false),
-                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                       FacetEntryMatcher.languageFacet(false)
+                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                                                                                         )))
                    //There always needs to be a self link available
                    .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3523,15 +3626,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore property
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3603,15 +3702,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //These facets have to show up in the embedded.facets section as well with the given hasMore property
                    // because we don't exceed their default limit for a hasMore true (the default is 10)
                    .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                       FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                       FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                       FacetEntryMatcher.typeFacet(false),
                        FacetEntryMatcher.authorFacet(false),
                        FacetEntryMatcher.entityTypeFacet(false),
                        FacetEntryMatcher.subjectFacet(false),
                        FacetEntryMatcher.dateIssuedFacet(false),
-                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                       FacetEntryMatcher.languageFacet(false)
+                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                                                                                         )))
                    //There always needs to be a self link available
                    .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3681,15 +3776,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                 //These facets have to show up in the embedded.facets section as well with the given hasMore property
                 // because we don't exceed their default limit for a hasMore true (the default is 10)
                 .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                        FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                        FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                        FacetEntryMatcher.typeFacet(false),
                         FacetEntryMatcher.authorFacet(false),
                         FacetEntryMatcher.entityTypeFacet(false),
                         FacetEntryMatcher.subjectFacet(false),
                         FacetEntryMatcher.dateIssuedFacet(false),
-                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                        FacetEntryMatcher.languageFacet(false)
+                        FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                 )))
                 //There always needs to be a self link available
                 .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -3760,15 +3851,11 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    //These facets have to show up in the embedded.facets section as well with the given hasMore property
                    // because we don't exceed their default limit for a hasMore true (the default is 10)
                    .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                       FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                       FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                       FacetEntryMatcher.typeFacet(false),
                        FacetEntryMatcher.authorFacet(false),
+                       FacetEntryMatcher.entityTypeFacet(false),
                        FacetEntryMatcher.subjectFacet(false),
                        FacetEntryMatcher.dateIssuedFacet(false),
-                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                       FacetEntryMatcher.entityTypeFacet(false),
-                       FacetEntryMatcher.languageFacet(false)
+                       FacetEntryMatcher.hasContentInOriginalBundleFacet(false)
                                                                                         )))
                    //There always needs to be a self link available
                    .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -4189,30 +4276,33 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                     //The type has to be 'discover'
                     .andExpect(jsonPath("$.type", is("discover")))
                     //There needs to be a page object that shows the total pages and total elements as well as the
-                    // size and the current page (number) - only items are included in the default dspace-cris conf
+                    // size and the current page (number)
                     .andExpect(jsonPath("$._embedded.searchResult.page", is(
-                            PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 3)
+                            PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 7)
                     )))
                     //These search results have to be shown in the embedded.objects section as these are the items
-                    // given in the structure defined above (dspace-cris only return items by default).
+                    // given in the structure defined above.
                     //Seeing as everything fits onto one page, they have to all be present
                     .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
+                            SearchResultMatcher.match("core", "community", "communities"),
+                            SearchResultMatcher.match("core", "community", "communities"),
                             SearchResultMatcher.match("core", "item", "items"),
                             SearchResultMatcher.match("core", "item", "items"),
-                            SearchResultMatcher.match("core", "item", "items")
+                            SearchResultMatcher.match("core", "item", "items"),
+                            //This has to be like this because collections don't have anything else
+                            // these matchers also need to be the last otherwise they will be potentially consumed for
+                            // other staff
+                            SearchResultMatcher.match(),
+                            SearchResultMatcher.match()
                     )))
                     //These facets have to show up in the embedded.facets section as well with the given hasMore
                     // property because we don't exceed their default limit for a hasMore true (the default is 10)
                     .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
-                            FacetEntryMatcher.anyFacet("graphitemtype", "chart.pie"),
-                            FacetEntryMatcher.anyFacet("graphpubldate", "chart.bar"),
-                            FacetEntryMatcher.typeFacet(false),
                             FacetEntryMatcher.authorFacet(false),
                             FacetEntryMatcher.subjectFacet(false),
                             FacetEntryMatcher.dateIssuedFacet(false),
                             FacetEntryMatcher.hasContentInOriginalBundleFacet(false),
-                            FacetEntryMatcher.entityTypeFacet(false),
-                            FacetEntryMatcher.languageFacet(false)
+                            FacetEntryMatcher.entityTypeFacet(false)
                     )))
                     //There always needs to be a self link
                     .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")))
@@ -5590,274 +5680,6 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
     }
 
     @Test
-    public void graphDiscoverSearchFilterFacetByDateTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community")
-                                          .build();
-
-        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
-            .withName("Sub Community").build();
-
-        Collection col1 = CollectionBuilder.createCollection(context, child1)
-            .withName("Collection 1").build();
-
-        Collection col2 = CollectionBuilder.createCollection(context, child1)
-            .withName("Collection 2").build();
-
-        Item publicItem1 = ItemBuilder.createItem(context, col1)
-            .withTitle("Public item 1")
-            .withIssueDate("2017-10-17")
-            .withAuthor("Boychuk, Michele")
-            .withSubject("ExtraEntry").build();
-
-        Item publicItem2 = ItemBuilder.createItem(context, col2)
-            .withTitle("Public item 2")
-            .withIssueDate("2016-02-13")
-            .withAuthor("Boychuk, Michele")
-            .withAuthor("Bollini, Andrea")
-            .withSubject("ExtraEntry").build();
-
-        Item publicItem3 = ItemBuilder.createItem(context, col2)
-            .withTitle("Public item 3")
-            .withIssueDate("2017-10-17")
-            .withAuthor("Boychuk, Michele")
-            .withSubject("ExtraEntry").build();
-
-        Item publicItem4 = ItemBuilder.createItem(context, col2)
-            .withTitle("Public item 4")
-            .withIssueDate("2020-02-13")
-            .withAuthor("Trus, Volodymyr")
-            .withSubject("AnotherTest")
-            .withSubject("ExtraEntry").build();
-
-        Item publicItem5 = ItemBuilder.createItem(context, col2)
-            .withTitle("Public item 5")
-            .withIssueDate("2019-06-17")
-            .withAuthor("Bruschetti, Luca")
-            .withSubject("ExtraEntry").build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/facets/graphpubldate")
-            .param("size", "3"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("graphpubldate")))
-            .andExpect(jsonPath("$.facetType", is("chart.bar")))
-            .andExpect(jsonPath("$._links.self.href", containsString(
-                "api/discover/facets/graphpubldate")))
-            .andExpect(jsonPath("$.missing", is("0")))
-            .andExpect(jsonPath("$.more", is("3")))
-            .andExpect(jsonPath("$.totalElements", is("4")))
-            .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 3))))
-            .andExpect(jsonPath("$._embedded.values", contains(
-                FacetValueMatcher.entryDateIssuedWithLabelAndCount("2020", 1),
-                FacetValueMatcher.entryDateIssuedWithLabelAndCount("2019", 1),
-                FacetValueMatcher.entryDateIssuedWithLabelAndCount("2018", 0))));
-
-        GraphDiscoverSearchFilterFacet graphpubldateFacet =
-            (GraphDiscoverSearchFilterFacet) discoveryConfigurationService.getDiscoveryConfiguration(null)
-            .getSidebarFacet("graphpubldate");
-
-        try {
-            // change the default configuration to disable the reverse direction
-            graphpubldateFacet.setInverseDirection(false);
-            graphpubldateFacet.setGraphType("bar.left-to-right");
-            getClient().perform(get("/api/discover/facets/graphpubldate")
-                .param("size", "4"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.type", is("discover")))
-                .andExpect(jsonPath("$.name", is("graphpubldate")))
-                .andExpect(jsonPath("$.facetType", is("chart.bar.left-to-right")))
-                .andExpect(jsonPath("$._links.self.href", containsString(
-                    "api/discover/facets/graphpubldate")))
-                .andExpect(jsonPath("$.missing", is("0")))
-                .andExpect(jsonPath("$.more", is("1")))
-                .andExpect(jsonPath("$.totalElements", is("4")))
-                .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 4))))
-                .andExpect(jsonPath("$._embedded.values", contains(
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2016", 1),
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2017", 2),
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2018", 0),
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2019", 1))));
-
-            // also disable the fillDateGap flag
-            graphpubldateFacet.setFillDateGaps(false);
-            graphpubldateFacet.setGraphType("bar.right-to-left");
-            getClient().perform(get("/api/discover/facets/graphpubldate")
-                .param("size", "4"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.type", is("discover")))
-                .andExpect(jsonPath("$.name", is("graphpubldate")))
-                .andExpect(jsonPath("$.facetType", is("chart.bar.right-to-left")))
-                .andExpect(jsonPath("$._links.self.href", containsString(
-                    "api/discover/facets/graphpubldate")))
-                .andExpect(jsonPath("$.missing", is("0")))
-                .andExpect(jsonPath("$.more", is("0")))
-                .andExpect(jsonPath("$.totalElements", is("4")))
-                .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 4))))
-                .andExpect(jsonPath("$._embedded.values", contains(
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2016", 1),
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2017", 2),
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2019", 1),
-                    FacetValueMatcher.entryDateIssuedWithLabelAndCount("2020", 1))));
-        } finally {
-            // restore default configuration
-            graphpubldateFacet.setInverseDirection(true);
-            graphpubldateFacet.setFillDateGaps(true);
-            graphpubldateFacet.setGraphType("bar");
-        }
-    }
-
-    @Test
-    public void graphDiscoverSearchFilterFacetByType() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community").build();
-
-        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
-                                           .withName("Sub Community").build();
-
-        Collection col1 = CollectionBuilder.createCollection(context, child1)
-                                           .withName("Collection 1").build();
-        Collection col2 = CollectionBuilder.createCollection(context, child1)
-                                           .withName("Collection 2").build();
-
-        Item publicItem1 = ItemBuilder.createItem(context, col1)
-                                      .withTitle("Public item 1")
-                                      .withIssueDate("2017-10-17")
-                                      .withAuthor("Boychuk, Michele")
-                                      .withType("book").build();
-
-        Item publicItem2 = ItemBuilder.createItem(context, col2)
-                                      .withTitle("Public item 2")
-                                      .withIssueDate("2016-02-13")
-                                      .withAuthor("Bollini, Andrea")
-                                      .withType("manuscript").build();
-
-        Item publicItem3 = ItemBuilder.createItem(context, col2)
-                                      .withTitle("Public item 3")
-                                      .withIssueDate("2017-10-17")
-                                      .withAuthor("Boychuk, Michele")
-                                      .withSubject("AnotherTest")
-                                      .withType("manuscript").build();
-
-        Item publicItem4 = ItemBuilder.createItem(context, col2)
-                                      .withTitle("Public item 4")
-                                      .withIssueDate("2020-02-13")
-                                      .withAuthor("Trus, Volodymyr")
-                                      .withSubject("AnotherTest")
-                                      .withType("Journal Article")
-                                      .withSubject("ExtraEntry").build();
-
-        Item publicItem5 = ItemBuilder.createItem(context, col2)
-                .withTitle("Public item 5 without type")
-                .withIssueDate("2021-01-07")
-                .withAuthor("Volodymyr, Trus")
-                .withSubject("AnotherTest")
-                .withSubject("ExtraEntry").build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/facets/graphitemtype")
-                   .param("size", "2"))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.type", is("discover")))
-                   .andExpect(jsonPath("$.name", is("graphitemtype")))
-                   .andExpect(jsonPath("$.facetType", is("chart.pie")))
-                   .andExpect(jsonPath("$.missing", is("1")))
-                   .andExpect(jsonPath("$._links.missing.href",
-                           containsString("f.graphitemtype=%5B*%20TO%20*%5D,notequals")))
-                   .andExpect(jsonPath("$.more", is("2")))
-                   .andExpect(jsonPath("$._links.more.href", Matchers.allOf(
-                           containsString("f.graphitemtype=manuscript,notequals"),
-                           containsString("f.graphitemtype=book,notequals")
-                           )))
-                   .andExpect(jsonPath("$.totalElements", is("3")))
-                   .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 2))))
-                   .andExpect(jsonPath("$._embedded.values", contains(
-                              FacetValueMatcher.entryDateIssuedWithLabelAndCount("manuscript", 2),
-                              FacetValueMatcher.entryDateIssuedWithLabelAndCount("book", 1)
-                              )));
-    }
-
-    @Test
-    public void nestedPlaceholderFacetTest() throws Exception {
-        context.turnOffAuthorisationSystem();
-        final DSpace dSpace = new DSpace();
-        SearchService searchService = dSpace.getSingletonService(SearchService.class);
-        ConfigurationService configurationService = dSpace.getConfigurationService();
-        configurationService.setProperty("discovery.index.projection", "oairecerif.author.affiliation");
-
-        parentCommunity = CommunityBuilder.createCommunity(context)
-            .withName("Parent Community").build();
-        Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
-            .withName("Sub Community").build();
-
-        Collection col1 = CollectionBuilder.createCollection(context, child1)
-            .withName("Collection 1")
-            .withEntityType("Publication")
-            .build();
-
-        Item publicItem1 = ItemBuilder.createItem(context, col1)
-            .withTitle("Public item 1")
-            .withIssueDate("2017-10-17")
-            .withAuthor("Boychuk, Michele")
-            .withAuthorAffiliation("4Science")
-            .withAuthor("Another, Author")
-            .withAuthorAffiliationPlaceholder()
-            .withAuthor("Bollini, Andrea")
-            .withAuthorAffiliation("4Science")
-            .withType("book").build();
-
-        Item publicItem2 = ItemBuilder.createItem(context, col1)
-            .withTitle("Public item 2")
-            .withIssueDate("2016-02-13")
-            .withAuthor("Dohonue, Tim")
-            .withAuthorAffiliation("Lyrasis")
-            .withType("manuscript").build();
-
-        Item publicItem3 = ItemBuilder.createItem(context, col1)
-            .withTitle("Public item 3")
-            .withIssueDate("2018-08-13")
-            .withAuthor("Dohonue, Tim")
-            .withAuthorAffiliationPlaceholder()
-            .withType("manuscript").build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/facets/organization")
-            .param("configuration", "researchoutputs")
-            .param("size", "3"))
-            .andExpect(status().isOk())
-            .andExpect(jsonPath("$.type", is("discover")))
-            .andExpect(jsonPath("$.name", is("organization")))
-            .andExpect(jsonPath("$.missing", is("1")))
-            .andExpect(jsonPath("$._links.missing.href",
-                containsString("f.organization=%5B*%20TO%20*%5D,notequals")))
-            .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 3))))
-            .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
-                FacetValueMatcher.entryText("organization", "4Science", 1),
-                FacetValueMatcher.entryText("organization", "Lyrasis", 1))));
-
-        QueryResponse qResp = searchService.getSolrSearchCore().getSolr()
-            .query(new SolrQuery("search.resourceid:" + publicItem1.getID().toString()));
-        final SolrDocument solrDocument = qResp.getResults().get(0);
-        assertThat((ArrayList<String>) solrDocument.getFieldValue("oairecerif.author.affiliation_stored"),
-            Matchers.contains(
-                StringUtils.join(new String[] { "4Science", "null", "null", "null", "null" },
-                    ItemIndexFactoryImpl.STORE_SEPARATOR),
-                StringUtils.join(new String[] {
-                    CrisConstants.PLACEHOLDER_PARENT_METADATA_VALUE, "null", "null", "null", "null" },
-                    ItemIndexFactoryImpl.STORE_SEPARATOR),
-                StringUtils.join(new String[] { "4Science", "null", "null", "null", "null" },
-                    ItemIndexFactoryImpl.STORE_SEPARATOR)));
-    }
-
-    @Test
     public void discoverSearchPoolTaskObjectsTest() throws Exception {
         context.turnOffAuthorisationSystem();
 
@@ -6195,12 +6017,12 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(jsonPath("$.name", is("author")))
                    .andExpect(jsonPath("$.facetType", is("text")))
                    .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
+                   .andExpect(jsonPath("$._links.self.href", containsString("api/discover/facets/author?query=Donald")))
                    .andExpect(jsonPath("$._embedded.values[0].label", is("Smith, Donald")))
                    .andExpect(jsonPath("$._embedded.values[0].count", is(1)))
                    .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
-                        containsString(
-                                "api/discover/search/objects?query=Donald&configuration=defaultConfiguration&f.author="
-                                + urlPathSegmentEscaper().escape("Smith, Donald,equals")
+                        containsString("api/discover/search/objects?query=Donald&f.author=" +
+                                urlPathSegmentEscaper().escape("Smith, Donald,equals")
                         )))
                    .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
 
@@ -6250,793 +6072,737 @@ public class DiscoveryRestControllerIT extends AbstractControllerIntegrationTest
                    .andExpect(jsonPath("$.facetType", is("date")))
                    .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
                    .andExpect(jsonPath("$._links.self.href",
-                        containsString(
-                            "api/discover/facets/dateIssued?dsoType=Item&configuration=defaultConfiguration")))
+                        containsString("api/discover/facets/dateIssued?dsoType=Item")))
                    .andExpect(jsonPath("$._embedded.values[0].label", is("2017 - 2020")))
                    .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
                    .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
-                        containsString(
-                            "api/discover/search/objects?dsoType=Item&configuration=defaultConfiguration"
-                                + "&f.dateIssued=%5B2017%20TO%202020%5D,equals")))
+                        containsString("api/discover/search/objects?dsoType=Item&f.dateIssued=" +
+                                urlPathSegmentEscaper().escape("[2017 TO 2020],equals")
+                        )))
                    .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
 
     }
 
+    @Test
+    public void discoverFacetsSubjectTestWithCapitalAndSpecialChars() throws Exception {
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community").build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                 .withName("Parent Collection").build();
+
+        Item item1 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 1")
+                                .withSubject("Value with: Multiple Words ")
+                                .build();
+
+        Item item2 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 2")
+                                .withSubject("Multiple worded subject ")
+                                .build();
+
+        Item item3 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 3")
+                                .withSubject("Subject with a lot of Word values")
+                                .build();
+
+        Item item4 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 4")
+                                .withSubject("With, Values")
+                                .build();
+
+        Item item5 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 5")
+                                .withSubject("Test:of:the:colon")
+                                .build();
+
+        Item item6 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 6")
+                                .withSubject("Test,of,comma")
+                                .build();
+
+        Item item7 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 7")
+                                .withSubject("N’guyen")
+                                .build();
+
+        Item item8 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 8")
+                                .withSubject("test;Semicolon")
+                                .build();
+
+        Item item9 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 9")
+                                .withSubject("test||of|Pipe")
+                                .build();
+
+        Item item10 = ItemBuilder.createItem(context, collection)
+                                 .withTitle("Item 10")
+                                 .withSubject("Test-Subject")
+                                 .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "with a lot of word"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Subject with a lot of Word values", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "multiple words"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Value with: Multiple Words", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "mUltiPle wor"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Multiple worded subject", 1),
+                       FacetValueMatcher.entrySubject("Value with: Multiple Words", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "with"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("With, Values", 1),
+                       FacetValueMatcher.entrySubject("Subject with a lot of Word values", 1),
+                       FacetValueMatcher.entrySubject("Value with: Multiple Words", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "of"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Subject with a lot of Word values", 1),
+                       FacetValueMatcher.entrySubject("Test,of,comma", 1),
+                       FacetValueMatcher.entrySubject("Test:of:the:colon", 1),
+                       FacetValueMatcher.entrySubject("test||of|Pipe", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "tEsT"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Test,of,comma", 1),
+                       FacetValueMatcher.entrySubject("Test-Subject", 1),
+                       FacetValueMatcher.entrySubject("Test:of:the:colon", 1),
+                       FacetValueMatcher.entrySubject("test;Semicolon", 1),
+                       FacetValueMatcher.entrySubject("test||of|Pipe", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "colon"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Test:of:the:colon", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "coMma"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Test,of,comma", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "guyen"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("N’guyen", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "semiColon"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("test;Semicolon", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "pipe"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("test||of|Pipe", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Subject"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubject("Multiple worded subject", 1),
+                       FacetValueMatcher.entrySubject("Test-Subject", 1),
+                       FacetValueMatcher.entrySubject("Subject with a lot of Word values", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Subject of word"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values").isEmpty())
+                   .andExpect(jsonPath("$.page.number", is(0)));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Value with words"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values").isEmpty())
+                   .andExpect(jsonPath("$.page.number", is(0)));
+    }
+
+    @Test
+    public void discoverFacetsSubjectWithAuthorityTest() throws Exception {
+        configurationService.setProperty("choices.plugin.dc.subject", "SolrSubjectAuthority");
+        configurationService.setProperty("authority.controlled.dc.subject", "true");
+
+        metadataAuthorityService.clearCache();
+
+        context.turnOffAuthorisationSystem();
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community").build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+                                                 .withName("Parent Collection").build();
+
+        Item item1 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 1")
+                                .withSubject("Value with: Multiple Words",
+                                             "test_authority_1", Choices.CF_ACCEPTED)
+                                .build();
+
+        Item item2 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 2")
+                                .withSubject("Multiple worded subject ",
+                                             "test_authority_2", Choices.CF_ACCEPTED)
+                                .build();
+
+        Item item3 = ItemBuilder.createItem(context, collection)
+                                .withTitle("Item 3")
+                                .withSubject("Subject with a lot of Word values",
+                                             "test_authority_3", Choices.CF_ACCEPTED)
+                                .build();
+
+        context.restoreAuthSystemState();
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "with a lot of word"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubjectWithAuthority("Subject with a lot of Word values",
+                                                      "test_authority_3", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "mUltiPle wor"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubjectWithAuthority("Multiple worded subject",
+                                                      "test_authority_2", 1),
+                       FacetValueMatcher.entrySubjectWithAuthority("Value with: Multiple Words",
+                                                      "test_authority_1", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Subject"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       FacetValueMatcher.entrySubjectWithAuthority("Multiple worded subject",
+                                                      "test_authority_2", 1),
+                       FacetValueMatcher.entrySubjectWithAuthority("Subject with a lot of Word values",
+                                                      "test_authority_3", 1))));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Subject of word"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values").isEmpty())
+                   .andExpect(jsonPath("$.page.number", is(0)));
+
+        getClient().perform(get("/api/discover/facets/subject")
+                                .param("prefix", "Value with words"))
+                   .andExpect(status().isOk())
+                   .andExpect(jsonPath("$._embedded.values").isEmpty())
+                   .andExpect(jsonPath("$.page.number", is(0)));
+
+        DSpaceServicesFactory.getInstance().getConfigurationService().reloadConfig();
+
+        metadataAuthorityService.clearCache();
+    }
+
+    @Test
+    public void discoverFacetsSupervisedByTest() throws Exception {
+        //We turn off the authorization system in order to create the structure defined below
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community and one collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection collection =
+            CollectionBuilder.createCollection(context, parentCommunity)
+                             .withName("Collection 1")
+                             .build();
+
+        //2. Two workspace items
+        WorkspaceItem wsItem1 =
+            WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                .withTitle("Workspace Item 1")
+                                .withIssueDate("2010-07-23")
+                                .build();
+
+        WorkspaceItem wsItem2 =
+            WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                .withTitle("Workspace Item 2")
+                                .withIssueDate("2010-11-03")
+                                .build();
+
+        //3. Two groups
+        Group groupA =
+            GroupBuilder.createGroup(context)
+                        .withName("group A")
+                        .addMember(eperson)
+                        .build();
+
+        Group groupB =
+            GroupBuilder.createGroup(context)
+                        .withName("group B")
+                        .addMember(eperson)
+                        .build();
+
+        //4. Four supervision orders
+        SupervisionOrder supervisionOrderOne =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem1.getItem(), groupA).build();
+
+        SupervisionOrder supervisionOrderTwo =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem1.getItem(), groupB).build();
+
+        SupervisionOrder supervisionOrderThree =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem2.getItem(), groupA).build();
+
+        SupervisionOrder supervisionOrderFour =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem2.getItem(), groupB).build();
+
+        context.restoreAuthSystemState();
+
+        //** WHEN **
+        //The Admin user browses this endpoint to find the supervisedBy results by the facet
+        getClient(getAuthToken(admin.getEmail(), password)).perform(get("/api/discover/facets/supervisedBy")
+                       .param("configuration", "supervision"))
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The name has to be 'supervisedBy' as that's the facet that we've called
+                   .andExpect(jsonPath("$.name", is("supervisedBy")))
+                   //The facetType has to be `authority` because that's the default configuration for this facet
+                   .andExpect(jsonPath("$.facetType", equalTo("authority")))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href",
+                       containsString("api/discover/facets/supervisedBy?configuration=supervision")))
+                   //This is how the page object must look like because it's the default with size 20
+                   .andExpect(jsonPath("$.page",
+                       is(PageMatcher.pageEntry(0, 20))))
+                   //The supervisedBy values need to be as specified below
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       entrySupervisedBy(groupA.getName(), groupA.getID().toString(), 2),
+                       entrySupervisedBy(groupB.getName(), groupB.getID().toString(), 2)
+                   )));
+    }
+
+    @Test
+    public void discoverFacetsSupervisedByWithPrefixTest() throws Exception {
+        //We turn off the authorization system in order to create the structure defined below
+        context.turnOffAuthorisationSystem();
+
+        //** GIVEN **
+        //1. A community-collection structure with one parent community and one collection
+        parentCommunity = CommunityBuilder.createCommunity(context)
+                                          .withName("Parent Community")
+                                          .build();
+
+        Collection collection =
+            CollectionBuilder.createCollection(context, parentCommunity)
+                             .withName("Collection 1")
+                             .build();
+
+        //2. Two workspace items
+        WorkspaceItem wsItem1 =
+            WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                .withTitle("Workspace Item 1")
+                                .withIssueDate("2010-07-23")
+                                .build();
+
+        WorkspaceItem wsItem2 =
+            WorkspaceItemBuilder.createWorkspaceItem(context, collection)
+                                .withTitle("Workspace Item 2")
+                                .withIssueDate("2010-11-03")
+                                .build();
+
+        Group groupA =
+            GroupBuilder.createGroup(context)
+                        .withName("group A")
+                        .addMember(eperson)
+                        .build();
+
+        Group groupB =
+            GroupBuilder.createGroup(context)
+                        .withName("group B")
+                        .addMember(eperson)
+                        .build();
+
+        SupervisionOrder supervisionOrderOneA =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem1.getItem(), groupA).build();
+
+        SupervisionOrder supervisionOrderOneB =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem1.getItem(), groupB).build();
+
+        SupervisionOrder supervisionOrderTwoA =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem2.getItem(), groupA).build();
+
+        SupervisionOrder supervisionOrderTwoB =
+            SupervisionOrderBuilder.createSupervisionOrder(context, wsItem2.getItem(), groupB).build();
+
+        context.restoreAuthSystemState();
+
+        //** WHEN **
+        //The Admin user browses this endpoint to find the supervisedBy results by the facet
+        getClient(getAuthToken(admin.getEmail(), password)).perform(get("/api/discover/facets/supervisedBy")
+                       .param("configuration", "supervision")
+                       .param("prefix", "group B"))
+                   //** THEN **
+                   //The status has to be 200 OK
+                   .andExpect(status().isOk())
+                   //The type has to be 'discover'
+                   .andExpect(jsonPath("$.type", is("discover")))
+                   //The name has to be 'supervisedBy' as that's the facet that we've called
+                   .andExpect(jsonPath("$.name", is("supervisedBy")))
+                   //The facetType has to be `authority` because that's the default configuration for this facet
+                   .andExpect(jsonPath("$.facetType", equalTo("authority")))
+                   //There always needs to be a self link available
+                   .andExpect(jsonPath("$._links.self.href",
+                       containsString("api/discover/facets/supervisedBy?prefix=group%2520B&configuration=supervision")))
+                   //This is how the page object must look like because it's the default with size 20
+                   .andExpect(jsonPath("$.page",
+                       is(PageMatcher.pageEntry(0, 20))))
+                   //The supervisedBy values need to be as specified below
+                   .andExpect(jsonPath("$._embedded.values", containsInAnyOrder(
+                       entrySupervisedBy(groupB.getName(), groupB.getID().toString(), 2)
+                   )));
+    }
+
+    @Test
     /**
-     * This test verifies a known bug fund with the DSC-940,
-     * the number of date facets returned by issuing a search with scope should be
-     * the same of a search issued using a filter for that entity scope.
+     * This test is intent to verify that tasks are only visible to the admin users
      *
      * @throws Exception
      */
-    @Test
-    public void discoverFacetsTestSameResultWithOrWithoutScope() throws Exception {
+    public void discoverSearchObjectsSupervisionConfigurationTest() throws Exception {
+
+        //We turn off the authorization system in order to create the structure defined below
         context.turnOffAuthorisationSystem();
 
-        parentCommunity =
-            CommunityBuilder.createCommunity(context)
-                .withName("SharedParentCommunity!!!")
-                .build();
+        //** GIVEN **
+        // 1. Two reviewers and two users and two groups
+        EPerson reviewer1 =
+            EPersonBuilder.createEPerson(context)
+                          .withEmail("reviewer1@example.com")
+                          .withPassword(password)
+                          .build();
 
-        Collection authors =
-            CollectionBuilder.createCollection(context, parentCommunity)
-                .withEntityType("Person")
-                .withName("Authors")
-                .build();
+        EPerson reviewer2 =
+            EPersonBuilder.createEPerson(context)
+                          .withEmail("reviewer2@example.com")
+                          .withPassword(password)
+                          .build();
 
-        Item author =
-            ItemBuilder.createItem(context, authors)
-                .withTitle("Author 1")
-                .withDspaceObjectOwner(admin)
-                .build();
+        EPerson userA =
+            EPersonBuilder.createEPerson(context)
+                          .withCanLogin(true)
+                          .withEmail("userA@test.com")
+                          .withPassword(password)
+                          .build();
 
-        Collection col1 =
-            CollectionBuilder.createCollection(context, parentCommunity)
-                .withName("Collection 1")
-                .build();
+        EPerson userB =
+            EPersonBuilder.createEPerson(context)
+                          .withCanLogin(true)
+                          .withEmail("userB@test.com")
+                          .withPassword(password)
+                          .build();
 
-        Collection col2 =
-            CollectionBuilder.createCollection(context, parentCommunity)
-                .withName("Collection 2")
-                .build();
+        Group groupA =
+            GroupBuilder.createGroup(context)
+                        .withName("group A")
+                        .addMember(userA)
+                        .build();
 
-        Item publicItem1 =
-            ItemBuilder.createItem(context, col1)
-                .withTitle("Public item 1")
-                .withIssueDate("2017-10-17")
-                .withAuthor(author.getName(), author.getID().toString())
-                .withAuthor("Smith, Donald")
-                .withSubject("ExtraEntry")
-                .build();
+        Group groupB =
+            GroupBuilder.createGroup(context)
+                        .withName("group B")
+                        .addMember(userB)
+                        .build();
 
-        Item publicItem2 =
-            ItemBuilder.createItem(context, col2)
-                .withTitle("Public item 2")
-                .withIssueDate("2020-02-13")
-                .withAuthor(author.getName(), author.getID().toString())
-                .withAuthor("Doe, Jane")
-                .withSubject("ExtraEntry")
-                .build();
-
-        Item publicItem3 =
-            ItemBuilder.createItem(context, col2)
-                .withTitle("Public item 2")
-                .withIssueDate("2020-02-13")
-                .withAuthor(author.getName(), author.getID().toString())
-                .withAuthor("Anton, Senek")
-                .withSubject("TestingForMore")
-                .withSubject("ExtraEntry")
-                .build();
-
-        context.restoreAuthSystemState();
-
-        // finds the facets using the relation configuration using
-        // the author as scope
-        getClient()
-            .perform(
-                get("/api/discover/facets/dateIssued")
-                    .param("configuration", "RELATION.Person.researchoutputs")
-                    .param("scope", author.getID().toString())
-            )
-           .andExpect(status().isOk())
-           .andExpect(jsonPath("$.type", is("discover")))
-           .andExpect(jsonPath("$.name", is("dateIssued")))
-           .andExpect(jsonPath("$.facetType", is("date")))
-           .andExpect(jsonPath("$.scope", is(author.getID().toString())))
-           .andExpect(jsonPath("$._links.self.href",
-                containsString(
-                    "api/discover/facets/dateIssued?scope=" +
-                    author.getID().toString() +
-                    "&configuration=RELATION.Person.researchoutputs"
-                )
-            ))
-           .andExpect(jsonPath("$._embedded.values[0].label", is("2017 - 2020")))
-           .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
-           .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
-                containsString(
-                    "api/discover/search/objects?scope=" +
-                    author.getID().toString() +
-                    "&configuration=RELATION.Person.researchoutputs" +
-                    "&f.dateIssued=%5B2017%20TO%202020%5D,equals"
-                )
-            ))
-           .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
-
-        // finds the facets using the default configuration and
-        // a filter that is the same used for the previous scope
-        getClient()
-            .perform(
-                get("/api/discover/facets/dateIssued")
-                    .param("configuration", "defaultConfiguration")
-                    .param("f.author", author.getID().toString() + ",authority")
-            )
-           .andExpect(status().isOk())
-           .andExpect(jsonPath("$.type", is("discover")))
-           .andExpect(jsonPath("$.name", is("dateIssued")))
-           .andExpect(jsonPath("$.facetType", is("date")))
-           .andExpect(jsonPath("$.scope", is(emptyOrNullString())))
-           .andExpect(jsonPath("$._links.self.href",
-                containsString(
-                    "api/discover/facets/dateIssued?configuration=defaultConfiguration" +
-                    "&f.author=" + author.getID().toString() + ",authority"
-                )
-            ))
-           .andExpect(jsonPath("$._embedded.values[0].label", is("2017 - 2020")))
-           .andExpect(jsonPath("$._embedded.values[0].count", is(3)))
-           .andExpect(jsonPath("$._embedded.values[0]._links.search.href",
-                containsString(
-                    "api/discover/search/objects?configuration=defaultConfiguration" +
-                    "&f.author=" + author.getID().toString() + ",authority" +
-                    "&f.dateIssued=%5B2017%20TO%202020%5D,equals"
-                )
-            ))
-           .andExpect(jsonPath("$._embedded.values").value(Matchers.hasSize(1)));
-
-    }
-
-    @Test
-    public void relevanceByRelationPlacesTest() throws Exception {
-
-        configurationService.setProperty("relationship.places.onlyright",
-                                         "null::Person::isResearchoutputsSelectedFor::hasSelectedResearchoutputs");
-        context.turnOffAuthorisationSystem();
+        // 2. A community-collection structure with one parent community with sub-community and two collections.
         parentCommunity = CommunityBuilder.createCommunity(context)
                                           .withName("Parent Community")
                                           .build();
-
-        final Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
-                                                         .withEntityType("Publication")
-                                                         .build();
-        final Collection patents = CollectionBuilder.createCollection(context, parentCommunity)
-                                                    .withEntityType("Patent")
-                                                    .build();
-        final Collection people = CollectionBuilder.createCollection(context, parentCommunity)
-                                                   .withEntityType("Person")
-                                                   .build();
-
-        Item author1 = ItemBuilder.createItem(context, people)
-                                  .withTitle("Doe, John").build();
-        Item author2 = ItemBuilder.createItem(context, people)
-                                  .withTitle("Smith, John").build();
-
-        Item publication1 = ItemBuilder.createItem(context, publications).withTitle("Publication 1")
-                                       .withAuthor(author1.getName(), author1.getID().toString()).build();
-        Item publication2 = ItemBuilder.createItem(context, publications).withTitle("Publication 2")
-                                       .withAuthor(author1.getName(), author1.getID().toString())
-                                       .withAuthor(author2.getName(), author2.getID().toString())
-                                       .build();
-        Item publication3 = ItemBuilder.createItem(context, publications).withTitle("Publication 3")
-                                       .withAuthor(author2.getName(), author2.getID().toString())
-                                       .build();
-        Item patent1 = ItemBuilder.createItem(context, patents).withTitle("Patent 1")
-                                  .withAuthor(author1.getName(), author1.getID().toString())
-                                  .build();
-
-        final EntityType personEntity = Optional.ofNullable(entityTypeService.findByEntityType(context, "Person"))
-            .orElseGet(() -> EntityTypeBuilder.createEntityTypeBuilder(context, "Person").build());
-        final RelationshipType selectedResearchOutput = RelationshipTypeBuilder
-                                                            .createRelationshipTypeBuilder(
-                                                                context,
-                                                                null,
-                                                                personEntity,
-                                                                "isResearchoutputsSelectedFor",
-                                                                "hasSelectedResearchoutputs",
-                                                                0, null,
-                                                                0, null).build();
-
-        final Relationship publication2ToAuthor1 =
-            RelationshipBuilder.createRelationshipBuilder(context, publication2, author1, selectedResearchOutput,
-                                                          -1, -1).build();
-
-        final Relationship publication1ToAuthor1 =
-            RelationshipBuilder.createRelationshipBuilder(context, publication1,
-                                                          author1, selectedResearchOutput, -1, -1)
-                               .build();
-        final Relationship publication3ToAuthor2 =
-            RelationshipBuilder.createRelationshipBuilder(context, publication3, author2, selectedResearchOutput,
-                                                          -1, -1)
-                               .build();
-
-        final Relationship publication2ToAuthor2 =
-            RelationshipBuilder.createRelationshipBuilder(context, publication2, author2, selectedResearchOutput,
-                                                          -1, -1)
-                               .build();
-
-        final Relationship patent1ToAuthor1 =
-            RelationshipBuilder.createRelationshipBuilder(context, patent1, author1, selectedResearchOutput,
-                                                          -1, -1)
-                               .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                          .param("configuration", "RELATION.Person.researchoutputs")
-                                          .param("scope", author1.getID().toString()))
-                             .andExpect(status().isOk())
-                             .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                             .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.contains(
-                                 SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"),
-                                 SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"),
-                                 SearchResultMatcher.matchOnItemName("item", "items", "Patent 1"))))
-                             .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(3)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", author2.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.contains(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 3"),
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        configurationService.setProperty("relationship.places.onlyright", "");
-
-
-    }
-
-    @Test
-    public void hiddenItemsTest() throws Exception {
-
-        context.turnOffAuthorisationSystem();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community")
-                                          .build();
-
-        final Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
-                                                         .withEntityType("Publication")
-                                                         .build();
-        final Collection projects = CollectionBuilder.createCollection(context, parentCommunity)
-                                                    .withEntityType("Project")
-                                                    .build();
-        final Collection people = CollectionBuilder.createCollection(context, parentCommunity)
-                                                   .withEntityType("Person")
-                                                   .build();
-        EPerson owner = EPersonBuilder.createEPerson(context)
-                                      .withEmail("test@test.com")
-                                      .withPassword("password")
-                                      .withCanLogin(true)
-            .withNameInMetadata("John", "Doe").build();
-
-        Item author = ItemBuilder.createItem(context, people)
-                                  .withDspaceObjectOwner(owner.getFullName(), UUIDUtils.toString(owner.getID()))
-                                  .withTitle("Doe, John").build();
-
-        Item publication1 = ItemBuilder.createItem(context, publications).withTitle("Publication 1")
-                                       .withAuthor(author.getName(), author.getID().toString()).build();
-        Item publication2 = ItemBuilder.createItem(context, publications).withTitle("Publication 2")
-                                       .withAuthor(author.getName(), author.getID().toString())
-                                       .build();
-
-
-        Item project2 = ItemBuilder.createItem(context, projects).withTitle("Project 2")
-                                   .withProjectInvestigator(author.getName(), author.getID().toString())
-                                   .build();
-
-        final EntityType personEntity = Optional.ofNullable(entityTypeService.findByEntityType(context, "Person"))
-                                                .orElseGet(() -> EntityTypeBuilder
-                                                                     .createEntityTypeBuilder(
-                                                                         context, "Person").build());
-        final RelationshipType hiddenResearchOutput = RelationshipTypeBuilder
-                                                            .createRelationshipTypeBuilder(
-                                                                context,
-                                                                null,
-                                                                personEntity,
-                                                                "isResearchoutputsHiddenFor",
-                                                                "notDisplayingResearchoutputs",
-                                                                0, null,
-                                                                0, null).build();
-
-        final RelationshipType hiddenProject = RelationshipTypeBuilder
-                                                          .createRelationshipTypeBuilder(
-                                                              context,
-                                                              null,
-                                                              personEntity,
-                                                              "isProjectsHiddenFor",
-                                                              "notDisplayingProjects",
-                                                              0, null,
-                                                              0, null).build();
-
-        RelationshipBuilder.createRelationshipBuilder(context, publication1, author, hiddenResearchOutput)
-                           .build();
-        RelationshipBuilder.createRelationshipBuilder(context, project2, author, hiddenProject)
-                           .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", author.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-
-        final String ownerToken = getAuthToken(owner.getEmail(), "password");
-
-        getClient(ownerToken).perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", author.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"),
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-
-        final String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(get("/api/discover/search/objects")
-                                          .param("configuration", "RELATION.Person.researchoutputs")
-                                          .param("scope", author.getID().toString()))
-                             .andExpect(status().isOk())
-                             .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                             .andExpect(
-                                 jsonPath("$._embedded.searchResult._embedded.objects",
-                                          Matchers.containsInAnyOrder(
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 2"),
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 1"))))
-                             .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-
-    }
-
-    /**
-     * This test checks the scenario when an item is related to many owners and it is hidden by only one, many or all of
-     * them.
-     * @throws Exception
-     */
-    @Test
-    public void sameItemHiddenByDifferentOwners() throws Exception {
-
-        context.turnOffAuthorisationSystem();
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                                          .withName("Parent Community")
-                                          .build();
-
-
-
-        final Collection publications = CollectionBuilder.createCollection(context, parentCommunity)
-                                                         .withEntityType("Publication")
-                                                         .build();
-        final Collection projects = CollectionBuilder.createCollection(context, parentCommunity)
-                                                     .withEntityType("Project")
-                                                     .build();
-        final Collection people = CollectionBuilder.createCollection(context, parentCommunity)
-                                                   .withEntityType("Person")
-                                                   .build();
-
-
-        Item firstPerson = ItemBuilder.createItem(context, people)
-                                 .withTitle("Doe, John").build();
-        Item secondPerson = ItemBuilder.createItem(context, people)
-                                      .withTitle("Smith, Bryan").build();
-
-        Item project = ItemBuilder.createItem(context, projects).withTitle("Project 2")
-                                  .withProjectInvestigator(firstPerson.getName(), firstPerson.getID().toString())
-                                  .build();
-
-         Item publication1 = ItemBuilder.createItem(context, publications).withTitle("Publication 1")
-                                      .withAuthor(firstPerson.getName(), firstPerson.getID().toString())
-                                      .withAuthor(secondPerson.getName(), secondPerson.getID().toString())
-                                      .withRelationProject(project.getName(), project.getID().toString())
-                                      .build();
-
-        Item publication2 = ItemBuilder.createItem(context, publications).withTitle("Publication 2")
-                                             .withAuthor(firstPerson.getName(), firstPerson.getID().toString())
-                                             .withAuthor(secondPerson.getName(), secondPerson.getID().toString())
-                                             .withRelationProject(project.getName(), project.getID().toString())
-                                             .build();
-
-
-
-
-        final EntityType personEntity = Optional.ofNullable(entityTypeService.findByEntityType(context, "Person"))
-                                                .orElseGet(() -> EntityTypeBuilder
-                                                                     .createEntityTypeBuilder(
-                                                                         context, "Person").build());
-
-        final EntityType publicationEntity = Optional.ofNullable(
-            entityTypeService.findByEntityType(context, "Publication"))
-                                                 .orElseGet(() -> EntityTypeBuilder
-                                                                      .createEntityTypeBuilder(
-                                                                          context, "Publication").build());
-
-        final EntityType projectEntity = Optional.ofNullable(entityTypeService.findByEntityType(context, "Project"))
-                                                .orElseGet(() -> EntityTypeBuilder
-                                                                     .createEntityTypeBuilder(
-                                                                         context, "Project").build());
-        final RelationshipType researchOutputHiddenByPerson = RelationshipTypeBuilder
-                                                          .createRelationshipTypeBuilder(
-                                                              context,
-                                                              null,
-                                                              personEntity,
-                                                              "isResearchoutputsHiddenFor",
-                                                              "notDisplayingResearchoutputs",
-                                                              0, null,
-                                                              0, null).build();
-
-        final RelationshipType researchOutputHiddenByProject = RelationshipTypeBuilder
-                                                                .createRelationshipTypeBuilder(
-                                                                    context,
-                                                                    null,
-                                                                    projectEntity,
-                                                                    "isResearchoutputsHiddenFor",
-                                                                    "notDisplayingResearchoutputs",
-                                                                    0, null,
-                                                                    0, null).build();
-
-
-        // first scenario: publication 1 hidden by first person
-        final Relationship publicationOneHiddenByFirstPerson =
-            RelationshipBuilder.createRelationshipBuilder(
-                context, publication1, firstPerson, researchOutputHiddenByPerson)
-                               .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", firstPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", secondPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Project.researchoutputs")
-                                .param("scope", project.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Project.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        // second scenario: publication 2 hidden by second person
-        final String adminToken = getAuthToken(admin.getEmail(), password);
-        getClient(adminToken).perform(delete("/api/core/relationships/" + publicationOneHiddenByFirstPerson.getID()));
-        context.turnOffAuthorisationSystem();
-        final Relationship publicationTwoHiddenBySecondPerson =
-            RelationshipBuilder.createRelationshipBuilder(
-                context, publication2, secondPerson, researchOutputHiddenByPerson)
-                               .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", secondPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", firstPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Project.researchoutputs")
-                                .param("scope", project.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Project.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        // third scenario: publication 1 hidden by project owner
-        getClient(adminToken).perform(delete("/api/core/relationships/" + publicationTwoHiddenBySecondPerson.getID()));
-        context.turnOffAuthorisationSystem();
-        final Relationship publicationOneHiddenByProjectOwner =
-            RelationshipBuilder.createRelationshipBuilder(context, publication1, project, researchOutputHiddenByProject)
-                               .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", firstPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", secondPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Project.researchoutputs")
-                                .param("scope", project.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Project.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        // fifth scenario: publication 1 hidden by both authors and project owner
-        getClient(adminToken).perform(delete("/api/core/relationships/" + publicationOneHiddenByProjectOwner.getID()));
-        context.turnOffAuthorisationSystem();
-
-        RelationshipBuilder.createRelationshipBuilder(context, publication1, firstPerson, researchOutputHiddenByPerson)
-                           .build();
-        RelationshipBuilder.createRelationshipBuilder(context, publication1, secondPerson, researchOutputHiddenByPerson)
-                           .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", firstPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", secondPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Project.researchoutputs")
-                                .param("scope", project.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Project.researchoutputs")))
-                   .andExpect(
-                       jsonPath("$._embedded.searchResult._embedded.objects",
-                                Matchers.containsInAnyOrder(
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 2"),
-                                    SearchResultMatcher
-                                        .matchOnItemName("item", "items", "Publication 1"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        // fifth scenario: publication 1 hidden by both authors and project owner
-        getClient(adminToken).perform(delete("/api/core/relationships/" + publicationOneHiddenByProjectOwner.getID()));
-        context.turnOffAuthorisationSystem();
-
-        RelationshipBuilder.createRelationshipBuilder(context, publication1, project, researchOutputHiddenByProject)
-                           .build();
-
-        context.restoreAuthSystemState();
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", firstPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Person.researchoutputs")
-                                .param("scope", secondPerson.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-        getClient().perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Project.researchoutputs")
-                                .param("scope", project.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Project.researchoutputs")))
-                   .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
-                       SearchResultMatcher.matchOnItemName("item", "items", "Publication 2"))))
-                   .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(1)));
-
-
-        // admin user is able to see hidden items
-
-        getClient(adminToken).perform(get("/api/discover/search/objects")
-                                          .param("configuration", "RELATION.Person.researchoutputs")
-                                          .param("scope", firstPerson.getID().toString()))
-                             .andExpect(status().isOk())
-                             .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                             .andExpect(
-                                 jsonPath("$._embedded.searchResult._embedded.objects",
-                                          Matchers.containsInAnyOrder(
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 2"),
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 1"))))
-                             .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        getClient(adminToken).perform(get("/api/discover/search/objects")
-                                          .param("configuration", "RELATION.Person.researchoutputs")
-                                          .param("scope", secondPerson.getID().toString()))
-                             .andExpect(status().isOk())
-                             .andExpect(jsonPath("$.configuration", is("RELATION.Person.researchoutputs")))
-                             .andExpect(
-                                 jsonPath("$._embedded.searchResult._embedded.objects",
-                                          Matchers.containsInAnyOrder(
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 2"),
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 1"))))
-                             .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-        getClient(adminToken).perform(get("/api/discover/search/objects")
-                                .param("configuration", "RELATION.Project.researchoutputs")
-                                .param("scope", project.getID().toString()))
-                   .andExpect(status().isOk())
-                   .andExpect(jsonPath("$.configuration", is("RELATION.Project.researchoutputs")))
-                             .andExpect(
-                                 jsonPath("$._embedded.searchResult._embedded.objects",
-                                          Matchers.containsInAnyOrder(
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 2"),
-                                              SearchResultMatcher
-                                                  .matchOnItemName("item", "items", "Publication 1"))))
-                             .andExpect(jsonPath("$._embedded.searchResult.page.totalElements", is(2)));
-
-    }
-    @Test
-    public void discoverChartWithDefaultConfigurationAndQueryWithSpaces() throws Exception {
-        context.turnOffAuthorisationSystem();
-
-        parentCommunity = CommunityBuilder.createCommunity(context)
-                .withName("Parent Community").build();
 
         Community child1 = CommunityBuilder.createSubCommunity(context, parentCommunity)
-                .withName("Sub Community").build();
+                                           .withName("Sub Community")
+                                           .build();
 
-        Collection col = CollectionBuilder.createCollection(context, child1)
-                .withName("Collection 2").build();
+        Collection col1 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 1")
+                                           .build();
 
-        Item publicItem2 = ItemBuilder.createItem(context, col)
-                .withTitle("Bollini, Andrea")
-                .withIssueDate("2016-02-13")
-                .withType("manuscript").build();
+        // the second collection has two workflow steps active
+        Collection col2 = CollectionBuilder.createCollection(context, child1)
+                                           .withName("Collection 2")
+                                           .withWorkflowGroup(1, admin, reviewer1)
+                                           .withWorkflowGroup(2, reviewer2)
+                                           .build();
 
-        Item publicItem3 = ItemBuilder.createItem(context, col)
-                .withTitle("Bollini, Andrea")
-                .withIssueDate("2017-10-17")
-                .withAuthor("Boychuk, Michele")
-                .withSubject("AnotherTest")
-                .withType("manuscript").build();
+        // 2. Three public items that are readable by Anonymous with different subjects
+        Item publicItem1 = ItemBuilder.createItem(context, col1)
+                                      .withTitle("Test")
+                                      .withIssueDate("2010-10-17")
+                                      .withAuthor("Smith, Donald")
+                                      .withAuthor("Testing, Works")
+                                      .withSubject("ExtraEntry")
+                                      .build();
 
-        Item publicItem4 = ItemBuilder.createItem(context, col)
-                .withTitle("Bollini, Andrea")
-                .withIssueDate("2020-02-13")
-                .withSubject("AnotherTest")
-                .withType("Journal Article")
-                .build();
+        Item publicItem2 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Test 2")
+                                      .withIssueDate("1990-02-13")
+                                      .withAuthor("Smith, Maria")
+                                      .withAuthor("Doe, Jane")
+                                      .withAuthor("Testing, Works")
+                                      .withSubject("TestingForMore")
+                                      .withSubject("ExtraEntry")
+                                      .build();
+
+        Item publicItem3 = ItemBuilder.createItem(context, col2)
+                                      .withTitle("Public item 2")
+                                      .withIssueDate("2010-02-13")
+                                      .withAuthor("Smith, Maria")
+                                      .withAuthor("Doe, Jane")
+                                      .withAuthor("test,test")
+                                      .withAuthor("test2, test2")
+                                      .withAuthor("Maybe, Maybe")
+                                      .withSubject("AnotherTest")
+                                      .withSubject("TestingForMore")
+                                      .withSubject("ExtraEntry")
+                                      .build();
+
+        //3. three inprogress submission from a normal user (2 ws, 1 wf that will produce also a pooltask)
+        context.setCurrentUser(eperson);
+        WorkspaceItem wsItem1 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                    .withTitle("Workspace Item 1")
+                                                    .withIssueDate("2010-07-23")
+                                                    .build();
+
+        WorkspaceItem wsItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col2)
+                                                    .withTitle("Workspace Item 2")
+                                                    .withIssueDate("2010-11-03")
+                                                    .build();
+
+        XmlWorkflowItem wfItem1 = WorkflowItemBuilder.createWorkflowItem(context, col2)
+                                                     .withTitle("Workflow Item 1")
+                                                     .withIssueDate("2010-11-03")
+                                                     .build();
+
+        // create Four supervision orders for above items
+        SupervisionOrderBuilder.createSupervisionOrder(context, wsItem1.getItem(), groupA).build();
+
+        SupervisionOrderBuilder.createSupervisionOrder(context, wsItem2.getItem(), groupA).build();
+
+        SupervisionOrderBuilder.createSupervisionOrder(context, wfItem1.getItem(), groupA).build();
+        SupervisionOrderBuilder.createSupervisionOrder(context, wfItem1.getItem(), groupB).build();
+
+        // 4. a claimed task from the administrator
+        ClaimedTask cTask = ClaimedTaskBuilder.createClaimedTask(context, col2, admin).withTitle("Claimed Item")
+                                              .withIssueDate("2010-11-03")
+                                              .build();
+
+        // 5. other inprogress submissions made by the administrator
+        context.setCurrentUser(admin);
+        WorkspaceItem wsItem1Admin = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
+                                                         .withIssueDate("2010-07-23")
+                                                         .withTitle("Admin Workspace Item 1").build();
+
+        WorkspaceItem wsItem2Admin = WorkspaceItemBuilder.createWorkspaceItem(context, col2)
+                                                         .withIssueDate("2010-11-03")
+                                                         .withTitle("Admin Workspace Item 2").build();
+
+        XmlWorkflowItem wfItem1Admin = WorkflowItemBuilder.createWorkflowItem(context, col2)
+                                                          .withIssueDate("2010-11-03")
+                                                          .withTitle("Admin Workflow Item 1").build();
+
+        // create Four supervision orders for above items
+        SupervisionOrderBuilder.createSupervisionOrder(context, wsItem1Admin.getItem(), groupA).build();
+
+        SupervisionOrderBuilder.createSupervisionOrder(context, wsItem2Admin.getItem(), groupA).build();
+
+        SupervisionOrderBuilder.createSupervisionOrder(context, wfItem1Admin.getItem(), groupA).build();
+        SupervisionOrderBuilder.createSupervisionOrder(context, wfItem1Admin.getItem(), groupB).build();
+
+        // 6. a pool taks in the second step of the workflow
+        ClaimedTask cTask2 = ClaimedTaskBuilder.createClaimedTask(context, col2, admin).withTitle("Pool Step2 Item")
+                                               .withIssueDate("2010-11-04")
+                                               .build();
+
+        String epersonToken = getAuthToken(eperson.getEmail(), password);
+        String adminToken = getAuthToken(admin.getEmail(), password);
+        String reviewer1Token = getAuthToken(reviewer1.getEmail(), password);
+        String reviewer2Token = getAuthToken(reviewer2.getEmail(), password);
+
+        getClient(adminToken).perform(post("/api/workflow/claimedtasks/" + cTask2.getID())
+                                 .param("submit_approve", "true")
+                                 .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+                             .andExpect(status().isNoContent());
 
         context.restoreAuthSystemState();
-        getClient().perform(get("/api/discover/facets/graphitemtype")
-                        .param("size", "10")
-                        .param("page", "0")
-                        .param("query", "Bollini Andrea"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.type", is("discover")))
-                .andExpect(jsonPath("$.name", is("graphitemtype")))
-                .andExpect(jsonPath("$.facetType", is("chart.pie")))
-                .andExpect(jsonPath("$.facetLimit", is(10)))
-                .andExpect(jsonPath("$.query", is( "Bollini Andrea")))
-            .andExpect(jsonPath("$._links.missing.href",
-                    containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=%5B*%20TO%20*%5D,notequals")))
-            .andExpect(jsonPath("$._links.more.href",
-                    Matchers.allOf(containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=manuscript,notequals"
-                        + "&f.graphitemtype=journal%20article,notequals"))))
-                .andExpect(jsonPath("$.totalElements", is("2")))
-                .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 10))))
-                .andExpect(jsonPath("$._embedded.values", contains(
-                        FacetValueMatcher.entryDateIssuedWithLabelAndCount("manuscript", 2),
-                        FacetValueMatcher.entryDateIssuedWithLabelAndCount("journal article", 1)
-                )));
 
+        // summary of the structure, we have:
+        //  a simple collection
+        //  a second collection with 2 workflow steps that have 1 reviewer each (reviewer1 and reviewer2)
+        //  3 public items
+        //  2 workspace items submitted by a regular submitter
+        //  2 workspace items submitted by the admin
+        //  4 workflow items:
+        //   1 pool task in step 1, submitted by the same regular submitter
+        //   1 pool task in step 1, submitted by the admin
+        //   1 claimed task in the first workflow step from the repository admin
+        //   1 pool task task in step 2, from the repository admin
+        //    (This one is created by creating a claimed task for step 1 and approving it)
 
-        getClient().perform(get("/api/discover/facets/graphitemtype")
-                        .param("size", "10")
-                        .param("page", "0")
-                        .param("query", "Bollini Andrea")
-                        .param("f.graphitemtype", "journal article,equals"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.type", is("discover")))
-                .andExpect(jsonPath("$.configuration", is("defaultConfiguration")))
-                .andExpect(jsonPath("$.name", is("graphitemtype")))
-                .andExpect(jsonPath("$.facetType", is("chart.pie")))
-                .andExpect(jsonPath("$.facetLimit", is(10)))
-                .andExpect(jsonPath("$.query", is( "Bollini Andrea")))
-                .andExpect(jsonPath("$._links.missing.href",
-                    containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=journal%20article,equals"
-                        + "&f.graphitemtype=%5B*%20TO%20*%5D,notequals")))
-                .andExpect(jsonPath("$._links.more.href",
-                    containsString("discover/facets/graphitemtype?query=Bollini%20Andrea"
-                        + "&configuration=defaultConfiguration&f.graphitemtype=journal%20article,equals"
-                        + "&f.graphitemtype=journal%20article,notequals")))
-                .andExpect(jsonPath("$.totalElements", is("1")))
-                .andExpect(jsonPath("$.page", is(PageMatcher.pageEntry(0, 10))))
-                .andExpect(jsonPath("$._embedded.values", contains(
-                        FacetValueMatcher.entryDateIssuedWithLabelAndCount("journal article", 1)
-                )));
+        //** WHEN **
+        // the submitter should not see anything in the workflow configuration
+        getClient(epersonToken)
+            .perform(get("/api/discover/search/objects").param("configuration", "supervision"))
+            //** THEN **
+            //The status has to be 200 OK
+            .andExpect(status().isOk())
+            //The type has to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            //There needs to be a page object that shows the total pages and total elements as well as the
+            // size and the current page (number)
+            .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 0, 0)
+            )))
+            //There always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+        // reviewer1 should not see pool items, as it is not an administrator
+        getClient(reviewer1Token)
+            .perform(get("/api/discover/search/objects").param("configuration", "supervision"))
+            //** THEN **
+            //The status has to be 200 OK
+            .andExpect(status().isOk())
+            //The type has to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            //There needs to be a page object that shows the total pages and total elements as well as the
+            // size and the current page (number)
+            .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 0, 0)
+            )))
+            //There always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href",
+                containsString("/api/discover/search/objects")));
+
+        // admin should see seven pool items and a claimed task
+        // Three pool items from the submitter and Five from the admin
+        getClient(adminToken)
+            .perform(get("/api/discover/search/objects").param("configuration", "supervision"))
+            //** THEN **
+            //The status has to be 200 OK
+            .andExpect(status().isOk())
+            //The type has to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            //There needs to be a page object that shows the total pages and total elements as well as the
+            // size and the current page (number)
+            .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 1, 8)
+            )))
+            // These search results have to be shown in the embedded.objects section:
+            // three workflow items and one claimed task.
+            // For step 1 one submitted by the user and one submitted by the admin and one for step 2.
+            //Seeing as everything fits onto one page, they have to all be present
+            .andExpect(jsonPath("$._embedded.searchResult._embedded.objects", Matchers.containsInAnyOrder(
+                Matchers.allOf(
+                    SearchResultMatcher.match("workflow", "workflowitem", "workflowitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkflowItemMatcher.matchItemWithTitleAndDateIssued(
+                            null, "Workflow Item 1", "2010-11-03")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("workflow", "workflowitem", "workflowitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkflowItemMatcher.matchItemWithTitleAndDateIssued(
+                            null, "Admin Workflow Item 1", "2010-11-03")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("workflow", "workflowitem", "workflowitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkflowItemMatcher.matchItemWithTitleAndDateIssued(
+                            null, "Pool Step2 Item", "2010-11-04")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("workflow", "workflowitem", "workflowitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkflowItemMatcher.matchItemWithTitleAndDateIssued(
+                            null, "Claimed Item", "2010-11-03")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("submission", "workspaceitem", "workspaceitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssued(wsItem1,
+                            "Workspace Item 1", "2010-07-23")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("submission", "workspaceitem", "workspaceitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssued(wsItem2,
+                            "Workspace Item 2", "2010-11-03")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("submission", "workspaceitem", "workspaceitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssued(wsItem1Admin,
+                            "Admin Workspace Item 1", "2010-07-23")))
+                ),
+                Matchers.allOf(
+                    SearchResultMatcher.match("submission", "workspaceitem", "workspaceitems"),
+                    JsonPathMatchers.hasJsonPath("$._embedded.indexableObject",
+                        is(WorkspaceItemMatcher.matchItemWithTitleAndDateIssued(wsItem2Admin,
+                            "Admin Workspace Item 2", "2010-11-03")))
+                )
+            )))
+            //These facets have to show up in the embedded.facets section as well with the given hasMore
+            //property because we don't exceed their default limit for a hasMore true (the default is 10)
+            .andExpect(jsonPath("$._embedded.facets", Matchers.containsInAnyOrder(
+                FacetEntryMatcher.resourceTypeFacet(false),
+                FacetEntryMatcher.typeFacet(false),
+                FacetEntryMatcher.dateIssuedFacet(false),
+                FacetEntryMatcher.submitterFacet(false),
+                FacetEntryMatcher.supervisedByFacet(false)
+            )))
+            //check supervisedBy Facet values
+            .andExpect(jsonPath("$._embedded.facets[4]._embedded.values",
+                contains(
+                    entrySupervisedBy(groupA.getName(), groupA.getID().toString(), 6),
+                    entrySupervisedBy(groupB.getName(), groupB.getID().toString(), 2)
+                )))
+            //There always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
+
+        // reviewer2 should not see pool items, as it is not an administrator
+        getClient(reviewer2Token)
+            .perform(get("/api/discover/search/objects").param("configuration", "supervision"))
+            //** THEN **
+            //The status has to be 200 OK
+            .andExpect(status().isOk())
+            //The type has to be 'discover'
+            .andExpect(jsonPath("$.type", is("discover")))
+            //There needs to be a page object that shows the total pages and total elements as well as the
+            // size and the current page (number)
+            .andExpect(jsonPath("$._embedded.searchResult.page", is(
+                PageMatcher.pageEntryWithTotalPagesAndElements(0, 20, 0, 0)
+            )))
+            //There always needs to be a self link
+            .andExpect(jsonPath("$._links.self.href", containsString("/api/discover/search/objects")));
     }
+
 }

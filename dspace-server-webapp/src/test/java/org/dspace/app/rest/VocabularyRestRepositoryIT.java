@@ -169,8 +169,7 @@ public class VocabularyRestRepositoryIT extends AbstractControllerIntegrationTes
 
     @Test
     public void findOneSRSC_Test() throws Exception {
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get("/api/submission/vocabularies/srsc"))
+        getClient().perform(get("/api/submission/vocabularies/srsc"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", is(
                             VocabularyMatcher.matchProperties("srsc", "srsc", false, true)
@@ -179,8 +178,7 @@ public class VocabularyRestRepositoryIT extends AbstractControllerIntegrationTes
 
     @Test
     public void findOneCommonTypesTest() throws Exception {
-        String token = getAuthToken(admin.getEmail(), password);
-        getClient(token).perform(get("/api/submission/vocabularies/common_types"))
+        getClient().perform(get("/api/submission/vocabularies/common_types"))
                         .andExpect(status().isOk())
                         .andExpect(jsonPath("$", is(
                             VocabularyMatcher.matchProperties("common_types", "common_types", true, false)
@@ -197,9 +195,9 @@ public class VocabularyRestRepositoryIT extends AbstractControllerIntegrationTes
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entries", Matchers.containsInAnyOrder(
                         VocabularyMatcher.matchVocabularyEntry("Research Subject Categories",
-                          "Research Subject Categories", "vocabularyEntry"),
+                          "", "vocabularyEntry"),
                         VocabularyMatcher.matchVocabularyEntry("Family research",
-                          "Research Subject Categories::SOCIAL SCIENCES::Social sciences::Social work::Family research",
+                          "SOCIAL SCIENCES::Social sciences::Social work::Family research",
                           "vocabularyEntry"))))
                 .andExpect(jsonPath("$.page.totalElements", Matchers.is(26)))
                 .andExpect(jsonPath("$.page.totalPages", Matchers.is(13)))
