@@ -64,7 +64,7 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                                         document.addField(SOLR_FIELD_NAME_FOR_DESCRIPTIONS, description);
                                     }
                                 } catch (Exception e) {
-                                    log.error("Error occurred during update index for item {}", item.getID());
+                                    log.warn("Error occurred during update index for item {}", item.getID());
                                 }
                             }
                         }
