@@ -69,7 +69,6 @@ public class EmbeddableAltmetricsProviderTest {
         assertEquals("{"
             + "\"data-badge-enabled\":false,"
             + "\"list-data-badge-enabled\":false,"
-            + "\"list-data-link-target\":\"_blank\","
             + "\"popover\":\"popover\","
             + "\"badgeType\":\"badgeType\","
             + "\"data-badge-details\":null,"
@@ -77,13 +76,15 @@ public class EmbeddableAltmetricsProviderTest {
             + "\"pmidAttr\":\"calculatedPmid\","
             + "\"data-hide-less-than\":100,"
             + "\"data-hide-no-mentions\":null,"
+            + "\"data-link-target\":\"_blank\","
             + "\"list-popover\":\"listPopOver\","
             + "\"list-badgeType\":\"listBadgeType\","
             + "\"list-data-badge-details\":null,"
             + "\"list-doiAttr\":\"calculatedDoi\","
             + "\"list-pmidAttr\":\"calculatedPmid\","
             + "\"list-data-hide-less-than\":100,"
-            + "\"list-data-hide-no-mentions\":null"
+            + "\"list-data-hide-no-mentions\":null,"
+            + "\"list-data-link-target\":\"_blank\""
             + "}", innerHtml);
     }
 
