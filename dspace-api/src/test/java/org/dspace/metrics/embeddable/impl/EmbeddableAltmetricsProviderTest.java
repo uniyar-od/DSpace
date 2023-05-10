@@ -51,6 +51,8 @@ public class EmbeddableAltmetricsProviderTest {
         provider.setListBadgeType("listBadgeType");
         provider.setListPopOver("listPopOver");
         provider.setMinScore(100);
+        provider.setLinkTarget("_blank");
+        provider.setListLinkTarget("_blank");
     }
 
     @Test
@@ -67,6 +69,7 @@ public class EmbeddableAltmetricsProviderTest {
         assertEquals("{"
             + "\"data-badge-enabled\":false,"
             + "\"list-data-badge-enabled\":false,"
+            + "\"list-data-link-target\":\"_blank\","
             + "\"popover\":\"popover\","
             + "\"badgeType\":\"badgeType\","
             + "\"data-badge-details\":null,"
