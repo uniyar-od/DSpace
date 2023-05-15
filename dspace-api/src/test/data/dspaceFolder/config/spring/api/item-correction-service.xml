@@ -14,14 +14,7 @@
 
     <!-- Correction Item Provider, defines behavior for replicating Item, Metadata, Budles and Bitstreams. Autowired at this time. -->
     <bean class="org.dspace.versioning.ItemCorrectionProvider">
-		<property name="ignoredMetadataFieldsOfCreation" >
-			<set>
-				<value>dc.date.accessioned</value>
-				<value>dc.date.available</value>
-				<value>dspace.entity.type</value>
-			</set>
-		</property>
-		<property name="ignoredMetadataFieldsOfMerging" >
+		<property name="ignoredMetadataFields" >
 			<set>
 				<value>dc.date.accessioned</value>
 				<value>dc.date.available</value>

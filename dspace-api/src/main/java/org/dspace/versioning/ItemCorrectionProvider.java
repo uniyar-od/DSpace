@@ -10,9 +10,11 @@ package org.dspace.versioning;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authorize.AuthorizeException;
@@ -55,6 +57,9 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
     public WorkspaceItem createNewItemAndAddItInWorkspace(Context context, Collection collection, Item nativeItem)
             throws AuthorizeException, IOException, SQLException {
 
+        Set<String> ignoredMetadataFieldsOfCreation =
+            Sets.union(getIgnoredMetadataFields(), getIgnoredMetadataFieldsOfCreation());
+
         WorkspaceItem workspaceItem = workspaceItemService.create(context, collection, false);
         Item itemNew = workspaceItem.getItem();
         // copy metadata from native item to corrected item
@@ -75,6 +80,9 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
 
     public XmlWorkflowItem updateNativeItemWithCorrection(Context context, XmlWorkflowItem workflowItem,
             Item correctionItem, Item nativeItem) throws AuthorizeException, IOException, SQLException {
+
+        Set<String> ignoredMetadataFieldsOfMerging =
+            Sets.union(getIgnoredMetadataFields(), getIgnoredMetadataFieldsOfMerging());
 
         // save entity type
         MetadataValue entityType = itemService.getMetadata(nativeItem, "dspace", "entity", "type", Item.ANY).get(0);
@@ -216,6 +224,9 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
     }
 
     public Set<String> getIgnoredMetadataFieldsOfCreation() {
+        if (ignoredMetadataFieldsOfCreation == null) {
+            return new HashSet<>();
+        }
         return ignoredMetadataFieldsOfCreation;
     }
 
@@ -224,6 +235,9 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
     }
 
     public Set<String> getIgnoredMetadataFieldsOfMerging() {
+        if (ignoredMetadataFieldsOfMerging == null) {
+            return new HashSet<>();
+        }
         return ignoredMetadataFieldsOfMerging;
     }
 
