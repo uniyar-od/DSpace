@@ -60,7 +60,7 @@ import org.junit.Test;
 /**
  * @author Luca Giamminonni (luca.giamminonni at 4science.com)
  */
-public class S3BitStoreServiceIntegrationTest extends AbstractIntegrationTestWithDatabase {
+public class S3BitStoreServiceIT extends AbstractIntegrationTestWithDatabase {
 
     private static final String DEFAULT_BUCKET_NAME = "dspace-asset-localhost";
 
