@@ -963,7 +963,7 @@ public class CollectionServiceImpl extends DSpaceObjectServiceImpl<Collection> i
         discoverQuery.setStart(offset);
         discoverQuery.setMaxResults(limit);
         discoverQuery.setSortField(SOLR_SORT_FIELD, SORT_ORDER.asc);
-        DiscoverResult resp = retrieveCollectionsWithSubmit(context, discoverQuery, null, community, q);
+        DiscoverResult resp = retrieveCollectionsWithSubmit(context, discoverQuery, entityType, community, q);
         for (IndexableObject solrCollections : resp.getIndexableObjects()) {
             Collection c = ((IndexableCollection) solrCollections).getIndexedObject();
             collections.add(c);
