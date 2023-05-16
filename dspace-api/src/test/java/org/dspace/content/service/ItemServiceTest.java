@@ -60,7 +60,6 @@ import org.dspace.versioning.factory.VersionServiceFactory;
 import org.dspace.versioning.service.VersioningService;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.orcid.jaxb.model.v3.release.search.expanded.ExpandedSearch;
 
@@ -689,7 +688,6 @@ public class ItemServiceTest extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testFindAndCountItemsWithEditEPerson() throws Exception {
         ResourcePolicy rp = ResourcePolicyBuilder.createResourcePolicy(context)
             .withUser(eperson)
@@ -704,7 +702,6 @@ public class ItemServiceTest extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testFindAndCountItemsWithAdminEPerson() throws Exception {
          ResourcePolicy rp = ResourcePolicyBuilder.createResourcePolicy(context)
             .withUser(eperson)
@@ -719,7 +716,6 @@ public class ItemServiceTest extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testFindAndCountItemsWithEditGroup() throws Exception {
         context.turnOffAuthorisationSystem();
         Group group = GroupBuilder.createGroup(context)
@@ -740,7 +736,6 @@ public class ItemServiceTest extends AbstractIntegrationTestWithDatabase {
     }
 
     @Test
-    @Ignore
     public void testFindAndCountItemsWithAdminGroup() throws Exception {
         context.turnOffAuthorisationSystem();
         Group group = GroupBuilder.createGroup(context)
