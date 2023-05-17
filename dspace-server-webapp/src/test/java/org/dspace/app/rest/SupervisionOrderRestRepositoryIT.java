@@ -714,6 +714,7 @@ public class SupervisionOrderRestRepositoryIT extends AbstractControllerIntegrat
             CollectionBuilder.createCollection(context, parentCommunity)
                              .withName("Publications")
                              .withEntityType("Publication")
+                             .withSubmissionDefinition("traditional")
                              .build();
 
         InputStream pdf = getClass().getResourceAsStream("simple-article.pdf");
@@ -1427,6 +1428,7 @@ public class SupervisionOrderRestRepositoryIT extends AbstractControllerIntegrat
         context.turnOffAuthorisationSystem();
         Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
                                                  .withEntityType("Publication")
+                                                 .withSubmissionDefinition("traditional")
                                                  .withWorkflowGroup("reviewer", admin).build();
 
         WorkflowItem workflowItem = WorkflowItemBuilder.createWorkflowItem(context, collection)

@@ -128,6 +128,17 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
         if (StringUtils.isBlank(registrationRest.getEmail())) {
             throw new UnprocessableEntityException("The email cannot be omitted from the Registration endpoint");
         }
+        if (Objects.nonNull(registrationRest.getGroups()) && registrationRest.getGroups().size() > 0) {
+            try {
+                if (Objects.isNull(context.getCurrentUser())
+                    || (!authorizeService.isAdmin(context)
+                        && !hasPermission(context, registrationRest.getGroups()))) {
+                    throw new AccessDeniedException("Only admin users can invite new users to join groups");
+                }
+            } catch (SQLException e) {
+                log.error(e.getMessage(), e);
+            }
+        }
         String accountType = request.getParameter(TYPE_QUERY_PARAM);
         if (StringUtils.isBlank(accountType) ||
             (!accountType.equalsIgnoreCase(TYPE_FORGOT) && !accountType.equalsIgnoreCase(TYPE_REGISTER))) {

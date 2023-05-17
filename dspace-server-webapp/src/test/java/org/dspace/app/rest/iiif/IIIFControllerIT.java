@@ -139,8 +139,8 @@ public class IIIFControllerIT extends AbstractControllerIntegrationTest {
                 .andExpect(jsonPath("$.metadata[2].value[0]", is("Smith, Donald")))
                 .andExpect(jsonPath("$.metadata[2].value[1]", is("Doe, John")))
                 .andExpect(jsonPath("$.sequences[0].canvases[0].@id",
-                        Matchers.containsString("/iiif/" + publicItem1.getID() + "/canvas/c0")))
-                .andExpect(jsonPath("$.sequences[0].canvases[0].label", is("Page 1")))
+                        Matchers.containsString("/iiif/" + publicItem1.getID() + "/canvas")))
+                .andExpect(jsonPath("$.sequences[0].canvases[0].label", is("1")))
                 .andExpect(jsonPath("$.sequences[0].canvases[0].width", is(64)))
                 .andExpect(jsonPath("$.sequences[0].canvases[0].height", is(64)))
                 .andExpect(jsonPath("$.sequences[0].canvases[0].images[0].resource.service.@id",
