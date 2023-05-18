@@ -67,6 +67,7 @@ public class SubmissionShowIdentifiersRestIT extends AbstractControllerIntegrati
         collection = CollectionBuilder.createCollection(context, parentCommunity)
                                 .withName("Collection")
                                 .withEntityType("Publication")
+                                .withSubmissionDefinition("traditional")
                                 .withSubmitterGroup(submitter).build();
 
         // Manually set configuration to allow registration handles, DOIs at workspace item creation

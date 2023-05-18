@@ -566,7 +566,7 @@ public class VocabularyRestRepositoryIT extends AbstractControllerIntegrationTes
                              .andExpect(status().isOk())
                              .andExpect(jsonPath("$.metadata", Matchers.allOf(
                                    hasJsonPath("$['dc.title'][0].value", is("Test Item A")),
-                                   hasJsonPath("$['dc.type'][0].value", is("Resource Types::text::journal::editorial")),
+                                   hasJsonPath("$['dc.type'][0].value", is("text::journal::editorial")),
                                    hasJsonPath("$['dc.type'][0].authority", is(vocabularyName + ":c_b239")),
                                    hasJsonPath("$['dc.type'][0].confidence", is(600))
                                    )));
@@ -656,7 +656,7 @@ public class VocabularyRestRepositoryIT extends AbstractControllerIntegrationTes
                                      hasJsonPath("$.authority", is(vocabularyName + ":c_b239")),
                                      // the display value without suggestions
                                      hasJsonPath("$.display", is("editorial")),
-                                     hasJsonPath("$.value", is("Resource Types::text::journal::editorial"))
+                                     hasJsonPath("$.value", is("text::journal::editorial"))
                                      )));
 
         configurationService.setProperty("vocabulary.plugin." + vocabularyName + ".hierarchy.suggest", true);
@@ -668,8 +668,8 @@ public class VocabularyRestRepositoryIT extends AbstractControllerIntegrationTes
                 .andExpect(jsonPath("$._embedded.entries[0]", Matchers.allOf(
                         hasJsonPath("$.authority", is(vocabularyName + ":c_b239")),
                         // now the display value with suggestions
-                        hasJsonPath("$.display", is("Resource Types::text::journal::editorial")),
-                        hasJsonPath("$.value", is("Resource Types::text::journal::editorial"))
+                        hasJsonPath("$.display", is("text::journal::editorial")),
+                        hasJsonPath("$.value", is("text::journal::editorial"))
                         )));
     }
 

@@ -9820,6 +9820,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             CollectionBuilder.createCollection(context, parentCommunity)
                              .withName("Publications")
                              .withEntityType("Publication")
+                             .withSubmissionDefinition("traditional")
                              .build();
 
         Group groupA =
