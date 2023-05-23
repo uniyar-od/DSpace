@@ -59,6 +59,7 @@ import org.springframework.beans.factory.annotation.Autowired;
  * Implements a data source for querying EPO
  * 
  * @author Pasquale Cavallo (pasquale.cavallo at 4Science dot it)
+ * @author Mykhaylo Boychuk (mykhaylo.boychuk at 4Science.com)
  */
 public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSourceService<Element>
         implements QuerySource {
@@ -303,7 +304,13 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
         }
 
         public List<ImportRecord> call() throws Exception {
-            if (id.contains(APP_NO_DATE_SEPARATOR)) {
+            int positionToSplit = id.indexOf(":");
+            String docType = EpoDocumentId.EPODOC;
+            String idS = id;
+            if (positionToSplit != -1) {
+                docType = id.substring(0, positionToSplit);
+                idS = id.substring(positionToSplit + 1, id.length());
+            } else if (id.contains(APP_NO_DATE_SEPARATOR)) {
                 // special case the id is the combination of the applicationnumber and date filed
                 String query = "applicationnumber=" + id.split(APP_NO_DATE_SEPARATOR_REGEX)[0];
                 SearchByQueryCallable search = new SearchByQueryCallable(query, bearer, 0, 10);
@@ -316,12 +323,7 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
                 return records;
             }
             // search by Patent Number
-            String[] identifier = id.split(":");
-            String patentIdentifier = identifier.length == 2 ? identifier[1] : id;
-            List<ImportRecord> records = retry(new SearchByQueryCallable(patentIdentifier, bearer, null, null));
-            if (records.size() > 1) {
-                log.warn("More record are returned with Patent Number: " + id);
-            }
+            List<ImportRecord> records = searchDocument(bearer, idS, docType);
             return records;
         }
     }
