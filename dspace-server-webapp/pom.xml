@@ -15,7 +15,7 @@
     <parent>
         <groupId>org.dspace</groupId>
         <artifactId>dspace-parent</artifactId>
-        <version>cris-2022.03.01-SNAPSHOT</version>
+        <version>cris-2023.01.00-SNAPSHOT</version>
         <relativePath>..</relativePath>
     </parent>
 
@@ -275,6 +275,23 @@
                 </dependency>
             </dependencies>
         </profile>
+        
+	   	<profile>
+			<id>addon-analytics</id>
+	         <activation>
+	            <property>
+	               <name>analytics.on</name>
+	            </property>
+	         </activation>
+			<dependencies>
+				<dependency>
+					<groupId>it.4science.dspace</groupId>
+					<artifactId>addon-analytics-api</artifactId>
+					<version>${addon-analytics.version}</version>
+					<type>jar</type>
+				</dependency>
+			</dependencies>
+		</profile>          
     </profiles>
 
 
