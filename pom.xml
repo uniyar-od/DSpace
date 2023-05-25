@@ -64,6 +64,7 @@
         <addon-iiif.version>[CRIS-7.1-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-iiif.version>
         <addon-ocr.version>[CRIS-7.1-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-ocr.version>
         <addon-docviewer.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-docviewer.version>
+        <addon-analytics.version>[CRIS-7.0-SNAPSHOT,CRIS-8.0-SNAPSHOT)</addon-analytics.version>
 
         <!--=== MAVEN SETTINGS ===-->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -918,6 +919,26 @@
             </dependencyManagement>
         </profile>
 
+        <!--
+            Builds Analytics addon for DSpace
+        -->
+        <profile>
+            <id>addon-analytics</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                         <groupId>it.4science.dspace</groupId>
+                         <artifactId>addon-analytics-api</artifactId>
+                         <version>${addon-analytics.version}</version>
+                         <type>jar</type>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+        </profile>
+        
        <!-- REST Jersey (Deprecated REST API from DSpace 6.x or below) -->
        <!-- As this module is deprecated, it only builds if you activate it via -Pdspace-rest -->
        <profile>
