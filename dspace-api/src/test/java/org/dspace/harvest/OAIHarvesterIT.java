@@ -791,7 +791,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(authorPerson.getOwningCollection(), equalTo(personCollection));
 
             values = authorPerson.getMetadata();
-            assertThat(values, hasSize(7));
+            assertThat(values, hasSize(8));
             assertThat(values, hasItems(with("dc.title", "Manghi, Paolo")));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::123")));
             assertThat(values, hasItems(with("dspace.entity.type", "Person")));
@@ -871,7 +871,7 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
 
             Item publication = findItemByOaiID("oai:test-harvest:Publications/3", collection);
             values = publication.getMetadata();
-            assertThat(values, hasSize(17));
+            assertThat(values, hasSize(19));
 
             assertThat(values, hasItems(with("dc.title", "Test Publication")));
             assertThat(values, hasItems(with("dc.type", "Controlled Vocabulary for Resource Type Genres::text")));
@@ -884,6 +884,9 @@ public class OAIHarvesterIT extends AbstractIntegrationTestWithDatabase {
             assertThat(values, hasItems(with("oairecerif.author.affiliation", PLACEHOLDER_PARENT_METADATA_VALUE)));
             assertThat(values, hasItems(with("cris.sourceId", "test-harvest::3")));
             assertThat(values, hasItems(with("dspace.entity.type", "Publication")));
+            assertThat(values, hasItems(with("cris.virtual.author-orcid", "0000-0002-9079-5932")));
+            assertThat(values, hasItems(with("cris.virtualsource.author-orcid",
+                                             UUIDUtils.toString(person.getID()))));
 
             MetadataValue author = itemService.getMetadata(publication, "dc", "contributor", "author", Item.ANY).get(0);
             assertThat(UUIDUtils.fromString(author.getAuthority()), equalTo(person.getID()));
