@@ -81,11 +81,13 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
     public XmlWorkflowItem updateNativeItemWithCorrection(Context context, XmlWorkflowItem workflowItem,
             Item correctionItem, Item nativeItem) throws AuthorizeException, IOException, SQLException {
 
+        Set<String> ignoredMetadataFieldsOfCreation =
+                Sets.union(getIgnoredMetadataFields(), getIgnoredMetadataFieldsOfCreation());
         Set<String> ignoredMetadataFieldsOfMerging =
             Sets.union(getIgnoredMetadataFields(), getIgnoredMetadataFieldsOfMerging());
 
         // clear all metadata that are not ignored inside the nativeItem
-        clearMetadataNotInSet(context, nativeItem, ignoredMetadataFieldsOfMerging);
+        clearMetadataNotInSet(context, nativeItem, ignoredMetadataFieldsOfCreation);
         // copy metadata from corrected item to native item
         copyMetadata(context, nativeItem, correctionItem, ignoredMetadataFieldsOfMerging);
 
