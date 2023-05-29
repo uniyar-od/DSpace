@@ -57,18 +57,20 @@
         <constructor-arg value="crispatent.document.issueDate"/>
     </bean>
     
-    <bean id="epoInlineGroupTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
-        <property name="field" ref="epo.crispatent.document.title"/>
-        <property name="query" value="//ns:invention-title"/>
+    <bean id="epoInlineGroupTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
+        <property name="field" ref="epo.crispatent.document.title"/>        
+        <property name="query" value="//ns:exchange-document"/>
+        <property name="queryToSubNode" value="(//ns:invention-title)[1]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.crispatent.document.title" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
         <constructor-arg value="crispatent.document.title"/>
     </bean>
 
-    <bean id="epoInlineGroupDescriptionContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+    <bean id="epoInlineGroupDescriptionContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.crispatent.document.description"/>
-        <property name="query" value="//ns:abstract"/>
+        <property name="query" value="//ns:exchange-document"/>
+        <property name="queryToSubNode" value="(//ns:abstract)[1]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.crispatent.document.description" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -95,9 +97,10 @@
         <constructor-arg value="dc.subject"/>
     </bean>
     
-    <bean id="epoAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+    <bean id="epoAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.dc.description.abstract"/>
-        <property name="query" value="(//ns:abstract)[last()]"/>
+        <property name="query" value="(//ns:exchange-document)[last()]"/>
+        <property name="queryToSubNode" value=".//ns:abstract"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.dc.description.abstract" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -114,9 +117,10 @@
         <constructor-arg value="dc.identifier.other"/>
     </bean>
 
-    <bean id="epoInventionTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
+    <bean id="epoInventionTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.dc.title"/>
-        <property name="query" value="(//ns:invention-title)[last()]"/>
+        <property name="query" value="(//ns:exchange-document)[last()]"/>
+        <property name="queryToSubNode" value=".//ns:invention-title"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.dc.title" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">

@@ -483,7 +483,7 @@ public class EpoImportMetadataSourceServiceImpl extends AbstractImportMetadataSo
             Document document = saxBuilder.build(new StringReader(recordsSrc));
             Element root = document.getRootElement();
             List<Namespace> namespaces = Arrays.asList(Namespace.getNamespace("ns", "http://www.epo.org/exchange"));
-            XPathExpression<Element> xpath = XPathFactory.instance().compile("//ns:exchange-document",
+            XPathExpression<Element> xpath = XPathFactory.instance().compile("//ns:exchange-documents",
                     Filters.element(), null, namespaces);
 
             List<Element> recordsList = xpath.evaluate(root);
