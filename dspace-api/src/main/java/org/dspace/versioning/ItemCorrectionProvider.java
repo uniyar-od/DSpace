@@ -114,20 +114,28 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
     }
 
     private void clearMetadataNotInSet(Context context, Item nativeItem, Set<String> ignoredMetadata) {
+        Set<MetadataField> metadatasToClear = new HashSet<>();
         Iterator<MetadataValue> metadata = nativeItem.getMetadata().iterator();
         MetadataValue metadataValue = null;
         while (!ignoredMetadata.isEmpty() && metadata.hasNext() && (metadataValue = metadata.next()) != null) {
             if (!isIgnored(ignoredMetadata, metadataValue)) {
+                metadatasToClear.add(metadataValue.getMetadataField());
+            }
+        }
+        if (!metadatasToClear.isEmpty()) {
+            for (MetadataField metadataField : metadatasToClear) {
                 try {
                     this.itemService.clearMetadata(
                         context, nativeItem,
-                        metadataValue.getSchema(),
-                        metadataValue.getElement(),
-                        metadataValue.getQualifier(),
+                        metadataField.getMetadataSchema().getName(),
+                        metadataField.getElement(),
+                        metadataField.getQualifier(),
                         Item.ANY
                     );
                 } catch (SQLException e) {
-                    throw new RuntimeException("Cannot clear not ignored Metadata!", e);
+                    throw new RuntimeException(
+                        "Cannot clear not ignored Metadata: " + metadataField.toString(), e
+                    );
                 }
             }
         }
@@ -137,7 +145,7 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
         throws SQLException {
         List<MetadataValue> metadataList = itemService.getMetadata(nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
         for (MetadataValue metadataValue : metadataList) {
-            if (isIgnored(ignoredMetadataFields, metadataValue)) {
+            if (isRelationshipOrIgnored(ignoredMetadataFields, metadataValue)) {
                 //Skip this metadata field (ignored and/or virtual)
                 continue;
             }
@@ -157,10 +165,13 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
         }
     }
 
+    protected boolean isRelationshipOrIgnored(Set<String> ignoredMetadataFields, MetadataValue metadataValue) {
+        return metadataValue instanceof RelationshipMetadataValue || isIgnored(ignoredMetadataFields, metadataValue);
+    }
+
     protected boolean isIgnored(Set<String> ignoredMetadataFields, MetadataValue metadataValue) {
-        return metadataValue instanceof RelationshipMetadataValue ||
-                isIgnoredWithQualifier(ignoredMetadataFields, metadataValue.getMetadataField()) ||
-                isIgnoredAnyQualifier(ignoredMetadataFields, metadataValue.getMetadataField());
+        return isIgnoredWithQualifier(ignoredMetadataFields, metadataValue.getMetadataField()) ||
+            isIgnoredAnyQualifier(ignoredMetadataFields, metadataValue.getMetadataField());
     }
 
     private boolean isIgnoredAnyQualifier(Set<String> ignoredMetadataFields, MetadataField metadataField) {
