@@ -11,6 +11,7 @@ package org.dspace.versioning;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -24,7 +25,6 @@ import org.dspace.content.Bundle;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataField;
-import org.dspace.content.MetadataSchema;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.RelationshipMetadataValue;
 import org.dspace.content.WorkspaceItem;
@@ -84,15 +84,10 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
         Set<String> ignoredMetadataFieldsOfMerging =
             Sets.union(getIgnoredMetadataFields(), getIgnoredMetadataFieldsOfMerging());
 
-        // save entity type
-        MetadataValue entityType = itemService.getMetadata(nativeItem, "dspace", "entity", "type", Item.ANY).get(0);
-        // clear all metadata entries from native item
-        itemService.clearMetadata(context, nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        // clear all metadata that are not ignored inside the nativeItem
+        clearMetadataNotInSet(context, nativeItem, ignoredMetadataFieldsOfMerging);
         // copy metadata from corrected item to native item
         copyMetadata(context, nativeItem, correctionItem, ignoredMetadataFieldsOfMerging);
-        // restore entity type
-        itemService.addMetadata(context, nativeItem, entityType.getMetadataField(), entityType.getLanguage(),
-                entityType.getValue(), entityType.getAuthority(), entityType.getConfidence());
 
         context.turnOffAuthorisationSystem();
         // copy bundles and bitstreams of native item
@@ -113,40 +108,69 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
 
         context.restoreAuthSystemState();
 
-
-
-
         return workflowItem;
+    }
+
+    private void clearMetadataNotInSet(Context context, Item nativeItem, Set<String> ignoredMetadata) {
+        Iterator<MetadataValue> metadata = nativeItem.getMetadata().iterator();
+        MetadataValue metadataValue = null;
+        while (!ignoredMetadata.isEmpty() && metadata.hasNext() && (metadataValue = metadata.next()) != null) {
+            if (!isIgnored(ignoredMetadata, metadataValue)) {
+                try {
+                    this.itemService.clearMetadata(
+                        context, nativeItem,
+                        metadataValue.getSchema(),
+                        metadataValue.getElement(),
+                        metadataValue.getQualifier(),
+                        Item.ANY
+                    );
+                } catch (SQLException e) {
+                    throw new RuntimeException("Cannot clear not ignored Metadata!", e);
+                }
+            }
+        }
     }
 
     private void copyMetadata(Context context, Item itemNew, Item nativeItem, Set<String> ignoredMetadataFields)
         throws SQLException {
-
-        List<MetadataValue> md = itemService.getMetadata(nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
-        for (MetadataValue aMd : md) {
-            MetadataField metadataField = aMd.getMetadataField();
-            MetadataSchema metadataSchema = metadataField.getMetadataSchema();
-            String unqualifiedMetadataField = metadataSchema.getName() + "." + metadataField.getElement();
-            if (ignoredMetadataFields.contains(metadataField.toString('.')) ||
-                ignoredMetadataFields.contains(unqualifiedMetadataField + "." + Item.ANY) ||
-                aMd instanceof RelationshipMetadataValue) {
+        List<MetadataValue> metadataList = itemService.getMetadata(nativeItem, Item.ANY, Item.ANY, Item.ANY, Item.ANY);
+        for (MetadataValue metadataValue : metadataList) {
+            if (isIgnored(ignoredMetadataFields, metadataValue)) {
                 //Skip this metadata field (ignored and/or virtual)
                 continue;
             }
-
+            MetadataField metadataField = metadataValue.getMetadataField();
             itemService.addMetadata(
                 context,
                 itemNew,
                 metadataField.getMetadataSchema().getName(),
                 metadataField.getElement(),
                 metadataField.getQualifier(),
-                aMd.getLanguage(),
-                aMd.getValue(),
-                aMd.getAuthority(),
-                aMd.getConfidence(),
-                aMd.getPlace()
+                metadataValue.getLanguage(),
+                metadataValue.getValue(),
+                metadataValue.getAuthority(),
+                metadataValue.getConfidence(),
+                metadataValue.getPlace()
             );
         }
+    }
+
+    protected boolean isIgnored(Set<String> ignoredMetadataFields, MetadataValue metadataValue) {
+        return metadataValue instanceof RelationshipMetadataValue ||
+                isIgnoredWithQualifier(ignoredMetadataFields, metadataValue.getMetadataField()) ||
+                isIgnoredAnyQualifier(ignoredMetadataFields, metadataValue.getMetadataField());
+    }
+
+    private boolean isIgnoredAnyQualifier(Set<String> ignoredMetadataFields, MetadataField metadataField) {
+        return ignoredMetadataFields.contains(getUnqualifiedMetadata(metadataField));
+    }
+
+    private String getUnqualifiedMetadata(MetadataField metadataField) {
+        return metadataField.getMetadataSchema().getName() + "." + metadataField.getElement() + "." + Item.ANY;
+    }
+
+    private boolean isIgnoredWithQualifier(Set<String> ignoredMetadataFields, MetadataField metadataField) {
+        return ignoredMetadataFields.contains(metadataField.toString('.'));
     }
 
     protected void updateBundlesAndBitstreams(Context c, Item itemNew, Item nativeItem)
