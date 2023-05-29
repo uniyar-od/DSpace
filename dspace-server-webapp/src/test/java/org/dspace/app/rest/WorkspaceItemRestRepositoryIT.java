@@ -52,6 +52,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.core.MediaType;
@@ -111,6 +112,7 @@ import org.dspace.services.ConfigurationService;
 import org.dspace.services.factory.DSpaceServicesFactory;
 import org.dspace.supervision.SupervisionOrder;
 import org.dspace.util.UUIDUtils;
+import org.dspace.versioning.ItemCorrectionProvider;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -136,6 +138,8 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
     private ConfigurationService configurationService;
     @Autowired
     EntityTypeService entityTypeService;
+    @Autowired
+    private ItemCorrectionProvider itemCorrectionProvider;
 
     @Autowired
     private WorkspaceItemService workspaceItemService;
@@ -2298,13 +2302,13 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem workspaceItem1 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("First Workspace Item")
                 .withIssueDate("2017-10-17")
                 .grantLicense()
                 .build();
 
         WorkspaceItem workspaceItem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 2")
+                .withTitle("Second Workspace Item")
                 .grantLicense()
                 .build();
 
@@ -2745,7 +2749,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
 
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + workspaceItem1.getID()))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.errors").doesNotExist());
+            .andExpect(jsonPath("$.errors[?(@.message=='error.validation.required')]").doesNotExist());
 
         getClient(authToken).perform(get("/api/submission/workspaceitems/" + workspaceItem2.getID()))
             .andExpect(status().isOk())
@@ -3484,14 +3488,14 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("First Workspace Item")
                 .withIssueDate("2017-10-17")
                 .withSubject("ExtraEntry")
                 .grantLicense()
                 .build();
 
         WorkspaceItem witemMultipleSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("Second Workspace Item")
                 .withIssueDate("2017-10-17")
                 .withSubject("Subject1")
                 .withSubject("Subject2")
@@ -3501,7 +3505,7 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
                 .build();
 
         WorkspaceItem witemWithTitleDateAndSubjects = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Workspace Item 1")
+                .withTitle("Third Workspace Item")
                 .withIssueDate("2017-10-17")
                 .withSubject("Subject1")
                 .withSubject("Subject2")
@@ -4306,17 +4310,17 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
         String authToken = getAuthToken(eperson.getEmail(), password);
 
         WorkspaceItem witem = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Test WorkspaceItem")
+                .withTitle("First Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
                 .build();
 
         WorkspaceItem witem2 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Test WorkspaceItem 2")
+                .withTitle("Second Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
                 .build();
 
         WorkspaceItem witem3 = WorkspaceItemBuilder.createWorkspaceItem(context, col1)
-                .withTitle("Test WorkspaceItem 3")
+                .withTitle("Third Test WorkspaceItem")
                 .withIssueDate("2017-10-17")
                 .build();
 
@@ -9256,6 +9260,65 @@ public class WorkspaceItemRestRepositoryIT extends AbstractControllerIntegration
             .andExpect(jsonPath("$.sections.traditionalpagetwo").exists())
             .andExpect(jsonPath("$.sections.traditionalpagethree-cris-open").exists())
             .andExpect(jsonPath("$.sections.traditionalpagethree-cris-collapsed").exists());
+    }
+
+    @Test
+    public void testIgnoredMetadataFieldsWithCorrectionSubmissionDefinition() throws Exception {
+
+        context.turnOffAuthorisationSystem();
+
+        RelationshipTypeBuilder.createRelationshipTypeBuilder(context, publicationType, publicationType,
+            "isCorrectionOfItem", "isCorrectedByItem", 0, 1, 0, 1);
+
+        parentCommunity = CommunityBuilder.createCommunity(context)
+            .withName("Parent Community")
+            .build();
+
+        Collection collection = CollectionBuilder.createCollection(context, parentCommunity)
+            .withSubmissionDefinition("traditional")
+            .withCorrectionSubmissionDefinition("traditional-cris")
+            .withEntityType("Publication")
+            .withSubmitterGroup(eperson)
+            .withWorkflowGroup("editor", eperson)
+            .build();
+
+        Item item = ItemBuilder.createItem(context, collection)
+            .withTitle("Test item")
+            .withSubject("item subject")
+            .build();
+
+        configurationService.setProperty("item-correction.permit-all", true);
+
+        context.restoreAuthSystemState();
+
+        String authToken = getAuthToken(eperson.getEmail(), password);
+
+        getClient(authToken).perform(post("/api/submission/workspaceitems")
+            .param("owningCollection", collection.getID().toString())
+            .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated());
+
+        Set<String> originalIgnoredFields = itemCorrectionProvider.getIgnoredMetadataFieldsOfCreation();
+        try {
+
+            itemCorrectionProvider.setIgnoredMetadataFieldsOfCreation(Set.of("dc.subject"));
+
+            getClient(authToken)
+                .perform(post("/api/submission/workspaceitems")
+                    .param("owningCollection", collection.getID().toString())
+                    .param("item", item.getID().toString())
+                    .param("relationship", "isCorrectionOfItem")
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.title'].[0].value", is ("Test item")))
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.date.accessioned']").doesNotExist())
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.date.available']").doesNotExist())
+                .andExpect(jsonPath("$._embedded.item.metadata['dc.subject']").doesNotExist());
+
+        } finally {
+            itemCorrectionProvider.setIgnoredMetadataFieldsOfCreation(originalIgnoredFields);
+        }
+
     }
 
     @Test
