@@ -179,6 +179,8 @@
 
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolValidatorImpl"/>
     <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolParserImpl"/>
+    <bean class="org.dspace.layout.script.service.impl.CrisLayoutToolConverterImpl"/>
+
 
     <bean id="org.dspace.app.customurl.CustomUrlService" class="org.dspace.app.customurl.service.CustomUrlServiceImpl"/>
 
