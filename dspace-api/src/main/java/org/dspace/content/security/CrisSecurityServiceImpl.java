@@ -11,7 +11,6 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -183,25 +182,20 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
         }
 
         return groups.stream()
-                     .map(group -> findGroupOrSpecialGroups(context, group))
+                     .map(group -> findGroupByNameOrUUID(context, group))
                      .filter(group -> Objects.nonNull(group))
-                     .anyMatch(group -> userGroups.contains(group));
+                     .anyMatch(group -> userGroups.contains(group) || isSpecialGroup(context, group));
     }
 
-    private Group findGroupOrSpecialGroups(Context context, String group) {
-        return Optional.ofNullable(findGroupByNameOrUUID(context, group))
-            .or(() -> Optional.ofNullable(findInSpecialGroups(context, group)))
-            .orElse(null);
+    private boolean isSpecialGroup(Context context, Group group) {
+        return findInSpecialGroups(context, group) != null;
     }
 
-    private Group findInSpecialGroups(Context context, String group) {
+    private Group findInSpecialGroups(Context context, Group group) {
         try {
             return context.getSpecialGroups()
                 .stream()
-                .filter(specialGroup ->
-                    specialGroup.getName().equals(group) ||
-                    specialGroup.getID().toString().equals(group)
-                )
+                .filter(specialGroup -> specialGroup != null && specialGroup.equals(group))
                 .findFirst()
                 .orElse(null);
         } catch (SQLException e) {
