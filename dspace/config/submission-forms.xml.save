@@ -862,30 +862,10 @@
           <dc-element>format</dc-element>
           <dc-qualifier>medium</dc-qualifier>
           <label>Material</label>
-          <input-type value-pairs-name="material_types">dropdown</input-type>
+          <input-type>onebox</input-type>
           <repeatable>true</repeatable>
-          <required />
-          <hint>Select, if applicable, the language of the main content of the item.  If the language does not appear in the list, please select 'Other'.  If the content does not really have a lang</hint>
-        </field>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>format</dc-element>
-          <label>Dimensions</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required>height=;width=;depth=;diameter=</required>
-          <hint>Sizes in mm.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>format</dc-element>
-          <label>Provenance</label>
-          <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
-          <required> </required>
-          <hint>Регион происхождения</hint>
+          <required>Наименование артефакта обязательно.</required>
+          <hint>Введи наименование артефакта.</hint>
         </field>
       </row>
       <row>
@@ -893,7 +873,7 @@
           <dc-schema>dc</dc-schema>
           <dc-element>description</dc-element>
           <dc-qualifier>abstract</dc-qualifier>
-          <label>Аннотация</label>
+          <label>Описание</label>
           <input-type>textarea</input-type>
           <repeatable>false</repeatable>
           <required />
@@ -3137,92 +3117,6 @@
       <pair>
         <displayed-value>Grant</displayed-value>
         <stored-value>Grant</stored-value>
-      </pair>
-    </value-pairs>
-    <value-pairs value-pairs-name="material_types" dc-term="material_types">
-      <pair>
-        <displayed-value>Unspecified</displayed-value>
-        <stored-value />
-      </pair>
-      <pair>
-        <displayed-value>Bronze</displayed-value>
-        <stored-value>Bronze</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Clay</displayed-value>
-        <stored-value>Clay</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Wood</displayed-value>
-        <stored-value>Wood</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Iron</displayed-value>
-        <stored-value>Iron</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Stone</displayed-value>
-        <stored-value>Stone</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Ceramics</displayed-value>
-        <stored-value>Ceramics</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Bone</displayed-value>
-        <stored-value>Bone</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Copper</displayed-value>
-        <stored-value>Copper</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Metal</displayed-value>
-        <stored-value>Metal</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Non-ferrous metal</displayed-value>
-        <stored-value>Non-ferrous metal</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Carnelian</displayed-value>
-        <stored-value>Carnelian</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Silver</displayed-value>
-        <stored-value>Silver</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Lead</displayed-value>
-        <stored-value>Lead</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Copper alloy</displayed-value>
-        <stored-value>Copper alloy</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Lead-tin alloy</displayed-value>
-        <stored-value>Lead-tin alloy</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Steel</displayed-value>
-        <stored-value>Steel</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Glass</displayed-value>
-        <stored-value>Glass</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Gold foil</displayed-value>
-        <stored-value>Gold foil</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Enamel</displayed-value>
-        <stored-value>Enamel</stored-value>
-      </pair>
-      <pair>
-        <displayed-value>Amber</displayed-value>
-        <stored-value>Amber</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="event_types" dc-term="event_types">
