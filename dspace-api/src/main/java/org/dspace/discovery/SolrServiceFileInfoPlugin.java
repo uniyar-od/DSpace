@@ -220,13 +220,17 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
     }
 
     private void indexBitstreamFields(Context context, SolrInputDocument document, Bitstream bitstream) {
-        simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_FILENAMES).accept(bitstream.getName());
+        addAndHandleException(
+            simpleSolrIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_FILENAMES, bitstream.getName()
+        );
 
         Optional.ofNullable(bitstream.getDescription())
             .filter(StringUtils::isNotEmpty)
             .ifPresent(
                 (description) ->
-                    simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_DESCRIPTIONS).accept(description)
+                    addAndHandleException(
+                        simpleSolrIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_DESCRIPTIONS, description
+                    )
             );
 
         try {
@@ -238,30 +242,56 @@ public class SolrServiceFileInfoPlugin implements SolrServiceIndexPlugin {
                 .map(BitstreamFormat::getMIMEType)
                 .filter(StringUtils::isNotBlank)
                 .ifPresent(format ->
-                    defaultSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_MIMETYPE).accept(format)
+                    addAndHandleException(
+                        defaultSolrIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_MIMETYPE, format
+                    )
                 );
 
             formatOptional
                 .map(BitstreamFormat::getShortDescription)
                 .ifPresent(format ->
-                    simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_SHORT_DESCRIPTION).accept(format)
+                    addAndHandleException(
+                        simpleSolrIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_SHORT_DESCRIPTION, format
+                    )
                 );
         } catch (SQLException e) {
             logger.error("Error while retrievig bitstream format", e);
             throw new RuntimeException("Error while retrievig bitstream format", e);
         }
 
-        Optional.of(bitstream.getChecksum())
+        Optional.ofNullable(bitstream.getChecksum())
             .filter(StringUtils::isNotBlank)
             .map(checksum -> bitstream.getChecksumAlgorithm() + ":" + bitstream.getChecksum())
             .ifPresent(checksum ->
-                defaultSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_CHECKSUM).accept(checksum)
+                addAndHandleException(
+                    defaultSolrIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_CHECKSUM, checksum
+                )
             );
 
-        Optional.of(bitstream.getSizeBytes())
+        Optional.ofNullable(bitstream.getSizeBytes())
             .filter(l -> l > 0)
             .map(String::valueOf)
-            .ifPresent(size -> simpleSolrIndexAdder.apply(document, SOLR_FIELD_NAME_FOR_SIZEBYTES).accept(size));
+            .ifPresent(size ->
+                addAndHandleException(
+                    simpleSolrIndexAdder, document, bitstream, SOLR_FIELD_NAME_FOR_SIZEBYTES, size
+                )
+            );
+    }
+
+    protected void addAndHandleException(
+        BiFunction<SolrInputDocument, String, Consumer<String>> solrIndexAdder,
+        SolrInputDocument document, Bitstream bitstream,
+        String field, String value
+    ) {
+        try {
+            solrIndexAdder.apply(document, field).accept(value);
+        } catch (Exception e) {
+            logger.warn(
+                "Error occurred during the update of index field {} for bitstream {}",
+                field,
+                bitstream.getID()
+            );
+        }
     }
 
     private void indexBitstreamsMetadatadas(SolrInputDocument document, Bitstream bitstream) {
