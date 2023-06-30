@@ -42,7 +42,6 @@ import org.dspace.core.Context;
 import org.dspace.core.I18nUtil;
 import org.dspace.handle.service.HandleService;
 import org.dspace.identifier.service.IdentifierService;
-import org.dspace.services.RequestService;
 import org.dspace.utils.DSpace;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -74,8 +73,6 @@ public abstract class DSpaceObjectServiceImpl<T extends DSpaceObject> implements
     protected MetadataAuthorityService metadataAuthorityService;
     @Autowired(required = true)
     protected RelationshipService relationshipService;
-    @Autowired
-    private RequestService requestService;
 
     public DSpaceObjectServiceImpl() {
 
