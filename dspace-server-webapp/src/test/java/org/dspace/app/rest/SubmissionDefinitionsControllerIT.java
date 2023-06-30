@@ -322,7 +322,7 @@ public class SubmissionDefinitionsControllerIT extends AbstractControllerIntegra
                         Matchers.containsString("page=1"), Matchers.containsString("size=1"))))
                 .andExpect(jsonPath("$._links.last.href", Matchers.allOf(
                         Matchers.containsString("/api/config/submissiondefinitions?"),
-                        Matchers.containsString("page=15"), Matchers.containsString("size=1"))))
+                        Matchers.containsString("page=16"), Matchers.containsString("size=1"))))
                 .andExpect(jsonPath("$.page.size", is(1)))
                 .andExpect(jsonPath("$.page.totalElements", is(16)))
                 .andExpect(jsonPath("$.page.totalPages", is(16)))
