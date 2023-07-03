@@ -193,10 +193,19 @@ public class ItemCorrectionProvider extends AbstractVersionProvider {
             List<Bundle> nativeBundles = nativeItem.getBundles(bundleName);
             List<Bundle> correctedBundles = itemNew.getBundles(bundleName);
 
-            if (CollectionUtils.isEmpty(nativeBundles) || CollectionUtils.isEmpty(correctedBundles)) {
+            if (CollectionUtils.isEmpty(nativeBundles) && CollectionUtils.isEmpty(correctedBundles) ||
+                CollectionUtils.isEmpty(correctedBundles)) {
                 continue;
             }
-            updateBundleAndBitstreams(c, nativeBundles.get(0), correctedBundles.get(0));
+
+            Bundle nativeBundle;
+            if (CollectionUtils.isEmpty(nativeBundles)) {
+                nativeBundle = bundleService.create(c, nativeItem, bundleName);
+            } else {
+                nativeBundle = nativeBundles.get(0);
+            }
+
+            updateBundleAndBitstreams(c, nativeBundle, correctedBundles.get(0));
         }
     }
 
