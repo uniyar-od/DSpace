@@ -60,7 +60,7 @@
     <bean id="epoInlineGroupTitleContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.crispatent.document.title"/>        
         <property name="query" value="//ns:exchange-document"/>
-        <property name="queryToSubNode" value="(//ns:invention-title)[1]"/>
+        <property name="queryToSubNode" value="//ns:invention-title[1]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.crispatent.document.title" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -70,7 +70,7 @@
     <bean id="epoInlineGroupDescriptionContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
         <property name="field" ref="epo.crispatent.document.description"/>
         <property name="query" value="//ns:exchange-document"/>
-        <property name="queryToSubNode" value="(//ns:abstract)[1]"/>
+        <property name="queryToSubNode" value="//ns:abstract[1]"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.crispatent.document.description" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
@@ -97,10 +97,9 @@
         <constructor-arg value="dc.subject"/>
     </bean>
     
-    <bean id="epoAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumAndAttributeAndSubNodeContributor">
+    <bean id="epoAbstractContrib" class="org.dspace.importer.external.metadatamapping.contributor.SimpleXpathMetadatumContributor">
         <property name="field" ref="epo.dc.description.abstract"/>
-        <property name="query" value="(//ns:exchange-document)[last()]"/>
-        <property name="queryToSubNode" value=".//ns:abstract"/>
+        <property name="query" value="(//ns:exchange-document)[last()]//ns:abstract"/>
         <property name="prefixToNamespaceMapping" ref="nsEpoPrefixToNamespaceMapping"/>
     </bean>
     <bean id="epo.dc.description.abstract" class="org.dspace.importer.external.metadatamapping.MetadataFieldConfig">
