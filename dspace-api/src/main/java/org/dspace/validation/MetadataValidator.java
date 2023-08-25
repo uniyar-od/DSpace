@@ -61,11 +61,11 @@ public class MetadataValidator implements SubmissionStepValidator {
     private String name;
 
     @Override
-    public List<ValidationError> validate(Context context, InProgressSubmission<?> obj, SubmissionStepConfig stepConfig) {
+    public List<ValidationError> validate(Context context, InProgressSubmission<?> obj, SubmissionStepConfig config) {
 
         List<ValidationError> errors = new ArrayList<>();
 
-        DCInputSet inputConfig = getDCInputSet(stepConfig);
+        DCInputSet inputConfig = getDCInputSet(config);
         String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
         boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(documentTypeField.replace(".","_"),Constants.ITEM,obj.getCollection());
         String documentType = isAuthority ? getDocumentTypeAuthority(obj) : getDocumentTypeValue(obj);
@@ -96,7 +96,7 @@ public class MetadataValidator implements SubmissionStepValidator {
                                 && !allowedFieldNames.contains(input.getFieldName()))) {
                             removeMetadataValues(context, obj.getItem(), mdv);
                         } else {
-                            validateMetadataValues(obj.getCollection(), mdv, input, stepConfig, isAuthorityControlled,
+                            validateMetadataValues(obj.getCollection(), mdv, input, config, isAuthorityControlled,
                                 fieldKey, errors);
                             if (mdv.size() > 0 && input.isVisible(DCInput.SUBMISSION_SCOPE)) {
                                 foundResult = true;
@@ -106,7 +106,7 @@ public class MetadataValidator implements SubmissionStepValidator {
                     if (input.isRequired() && ! foundResult) {
                         // for this required qualdrop no value was found, add to the list of error fields
                         addError(errors, ERROR_VALIDATION_REQUIRED,
-                            "/" + OPERATION_PATH_SECTIONS + "/" + stepConfig.getId() + "/" +
+                            "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                 input.getFieldName());
                     }
 
@@ -132,7 +132,7 @@ public class MetadataValidator implements SubmissionStepValidator {
                                     "name");
                         }
                     }
-                    validateMetadataValues(obj.getCollection(), mdv, input, stepConfig,
+                    validateMetadataValues(obj.getCollection(), mdv, input, config,
                         isAuthorityControlled, fieldKey, errors);
                     if ((input.isRequired() && mdv.size() == 0) && input.isVisible(DCInput.SUBMISSION_SCOPE)
                                                                 && !valuesRemoved) {
@@ -142,7 +142,7 @@ public class MetadataValidator implements SubmissionStepValidator {
                             // since this field is missing add to list of error
                             // fields
                             addError(errors, ERROR_VALIDATION_REQUIRED,
-                                "/" + OPERATION_PATH_SECTIONS + "/" + stepConfig.getId() + "/" +
+                                "/" + OPERATION_PATH_SECTIONS + "/" + config.getId() + "/" +
                                     input.getFieldName());
                         }
                     }
