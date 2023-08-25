@@ -31,6 +31,8 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.service.MetadataAuthorityService;
+import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
@@ -53,7 +55,10 @@ public class DescribeStep extends AbstractProcessingStep {
     private final ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
 
-    public DescribeStep() throws DCInputsReaderException {
+    private MetadataAuthorityService metadataAuthorityService;
+
+    public DescribeStep(MetadataAuthorityService metadataAuthorityService) throws DCInputsReaderException {
+        this.metadataAuthorityService = metadataAuthorityService;
         inputReader = DCInputsReaderFactory.getDCInputsReader();
     }
 
@@ -72,15 +77,13 @@ public class DescribeStep extends AbstractProcessingStep {
 
     private void readField(InProgressSubmission obj, SubmissionStepConfig config, DataDescribe data,
                            DCInputSet inputConfig) throws DCInputsReaderException {
-        String documentTypeValue = "";
-        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(),
-                configurationService.getProperty("submit.type-bind.field", "dc.type"));
-        if (documentType.size() > 0) {
-            documentTypeValue = documentType.get(0).getValue();
-        }
+
+        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
+        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(documentTypeField.replace(".","_"), Constants.ITEM,obj.getCollection());
+        String documentType = isAuthority ? getDocumentTypeAuthority(obj) : getDocumentTypeValue(obj);
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type
-        List<String> allowedFieldNames = inputConfig.populateAllowedFieldNames(documentTypeValue);
+        List<String> allowedFieldNames = inputConfig.populateAllowedFieldNames(documentType);
 
         // Loop input rows and process submitted metadata
         for (DCInput[] row : inputConfig.getFields()) {
@@ -205,6 +208,17 @@ public class DescribeStep extends AbstractProcessingStep {
             }
         }
         return fieldsName;
+    }
+    private String getDocumentTypeValue(InProgressSubmission<?> obj) {
+        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
+        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), documentTypeField);
+        return documentType.size() > 0 ? documentType.get(0).getValue() : "";
+    }
+
+    private String getDocumentTypeAuthority(InProgressSubmission<?> obj) {
+        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
+        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), documentTypeField);
+        return documentType.size() > 0 ? documentType.get(0).getAuthority() : "";
     }
 }
 
