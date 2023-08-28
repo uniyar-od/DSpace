@@ -31,6 +31,7 @@ import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -55,10 +56,11 @@ public class DescribeStep extends AbstractProcessingStep {
     private final ConfigurationService configurationService =
             DSpaceServicesFactory.getInstance().getConfigurationService();
 
-    private MetadataAuthorityService metadataAuthorityService;
+    private final MetadataAuthorityService metadataAuthorityService = ContentAuthorityServiceFactory
+            .getInstance()
+            .getMetadataAuthorityService();
 
-    public DescribeStep(MetadataAuthorityService metadataAuthorityService) throws DCInputsReaderException {
-        this.metadataAuthorityService = metadataAuthorityService;
+    public DescribeStep() throws DCInputsReaderException {
         inputReader = DCInputsReaderFactory.getDCInputsReader();
     }
 
