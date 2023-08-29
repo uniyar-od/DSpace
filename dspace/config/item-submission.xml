@@ -71,11 +71,34 @@
       <processing-class>org.dspace.app.rest.submit.step.LicenseStep</processing-class>
       <type>license</type>
     </step-definition>
-    <step-definition id="artefact" mandatory="true">
-      <heading>submit.progressbar.describe.product</heading>
+  
+    <!-- demarch -->
+    <step-definition id="demarch_artefact_basic_info" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_artefact_basic_info</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="demarch_artefact_refrences" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_artefact_refrences</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_expedition_basic_info" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_expedition_basic_info</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_expedition_indexing" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_expedition_indexing</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_expedition_refrences" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_expedition_refrences</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+
     <step-definition id="product" mandatory="true">
       <heading>submit.progressbar.describe.product</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
@@ -210,12 +233,23 @@
     </step-definition>
   </step-definitions>
   <submission-definitions>
-    <submission-process name="artefact">
+
+    <submission-process name="demarch_artefact">
       <step id="collection" />
-      <step id="artefact" />
+      <step id="demarch_artefact_basic_info" />
+      <step id="demarch_artefact_refrences" />
       <step id="upload" />
       <step id="license" />
     </submission-process>
+    <submission-process name="demarch_expedition">
+      <step id="collection" />
+      <step id="demarch_expedition_basic_info" />
+      <step id="demarch_expedition_indexing" />
+      <step id="demarch_expedition_refrences" />
+      <step id="upload" />
+      <step id="license" />
+    </submission-process>
+
     <submission-process name="product">
       <step id="collection" />
       <step id="product" />
