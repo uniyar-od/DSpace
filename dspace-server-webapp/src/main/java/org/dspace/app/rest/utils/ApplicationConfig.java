@@ -38,7 +38,7 @@ public class ApplicationConfig {
 
     // Allowed IIIF CORS origins ("Access-Control-Allow-Origin" header)
     // Can be overridden in DSpace configuration
-    @Value("${rest.cors.bitstream-allow-origins}")
+    @Value("${rest.cors.bitstream-allowed-origins}")
     private String[] bitstreamCorsAllowedOrigins;
 
     // Whether to allow credentials (cookies) in CORS requests ("Access-Control-Allow-Credentials" header)
