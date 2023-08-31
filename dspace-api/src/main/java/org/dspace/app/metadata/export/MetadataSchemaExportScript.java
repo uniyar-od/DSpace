@@ -10,6 +10,7 @@ package org.dspace.app.metadata.export;
 import java.io.File;
 import java.io.FileInputStream;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 
 import org.apache.commons.cli.ParseException;
 import org.dspace.app.metadata.export.service.MetadataExportServiceFactory;
@@ -33,6 +34,8 @@ import org.dspace.services.factory.DSpaceServicesFactory;
  **/
 public class MetadataSchemaExportScript
     extends DSpaceRunnable<MetadataSchemaExportScriptConfiguration<MetadataSchemaExportScript>> {
+
+    protected static String REGISTRY_FILENAME_TEMPLATE = "{0}-types.xml";
 
     protected MetadataSchemaService metadataSchemaService =
         ContentServiceFactory.getInstance().getMetadataSchemaService();
@@ -103,7 +106,7 @@ public class MetadataSchemaExportScript
                 handler.logInfo("Summarizing export ...");
                 context.turnOffAuthorisationSystem();
                 handler.writeFilestream(
-                    context, metadataSchema.getName(), fis, "application/xml", false
+                    context, getFilename(metadataSchema), fis, "application/xml", false
                 );
                 context.restoreAuthSystemState();
             }
@@ -111,6 +114,10 @@ public class MetadataSchemaExportScript
             handler.logError("Problem occured while exporting the schema!", e);
             throw e;
         }
+    }
+
+    protected String getFilename(MetadataSchema ms) {
+        return MessageFormat.format(REGISTRY_FILENAME_TEMPLATE, ms.getName());
     }
 
     protected File getExportedFile(Context context) throws DspaceExportMetadataSchemaException {
