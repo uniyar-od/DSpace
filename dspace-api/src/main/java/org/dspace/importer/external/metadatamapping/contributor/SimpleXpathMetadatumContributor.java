@@ -9,7 +9,6 @@ package org.dspace.importer.external.metadatamapping.contributor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Resource;
@@ -149,7 +148,7 @@ public class SimpleXpathMetadatumContributor implements MetadataContributor<Elem
      */
     @Override
     public Collection<MetadatumDTO> contributeMetadata(Element t) {
-        List<MetadatumDTO> values = new LinkedList<>();
+        List<MetadatumDTO> values = new ArrayList<>();
 
         List<Namespace> namespaces = new ArrayList<>();
         for (String ns : prefixToNamespaceMapping.keySet()) {
