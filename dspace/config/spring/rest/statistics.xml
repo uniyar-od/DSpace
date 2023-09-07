@@ -2,10 +2,13 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
                   http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
                   http://www.springframework.org/schema/context
-                  http://www.springframework.org/schema/context/spring-context-2.5.xsd">
+                  http://www.springframework.org/schema/context/spring-context-2.5.xsd
+                  http://www.springframework.org/schema/util
+                  http://www.springframework.org/schema/util/spring-util.xsd">
 
     <context:annotation-config/> <!-- allows us to use spring annotations in beans -->
 
@@ -405,16 +408,6 @@
     <bean id="topSiteCategoriesGenerator" class="org.dspace.app.rest.statistics.TopCategoriesGenerator" >
         <property name="viewMode" value="chart.pie"/>
         <property name="maxResults" value="10"/>
-        <property name="categoryQueries">
-            <map>
-                <entry key="article" value="itemtype_keyword: ( 'research article' OR 'journal article' )"/>
-                <entry key="book" value="itemtype_keyword: 'book'"/>
-                <entry key="bookChapter" value="itemtype_keyword: 'book part'"/>
-                <entry key="dataset" value="itemtype_keyword: ( 'dataset' OR 'interview' ) "/>
-                <entry key="thesis" value="itemtype_keyword: ( 'thesis' OR 'bachelor thesis' OR 'doctoral thesis' OR 'master thesis' )"/>
-                <entry key="other" value="OTHER"/>
-            </map>
-        </property>
     </bean>
 
     <bean id="topContinentsGeneratorRelationCollection" class="org.dspace.app.rest.statistics.TopContinentsGenerator">
@@ -449,17 +442,61 @@
         <property name="viewMode" value="chart.pie"/>
         <property name="maxResults" value="10"/>
         <property name="relation" value="RELATION.Collection.items"/>
-        <property name="categoryQueries">
-            <map>
-                <entry key="article" value="itemtype_keyword: ( 'research article' OR 'journal article' )"/>
-                <entry key="book" value="itemtype_keyword: 'book'"/>
-                <entry key="bookChapter" value="itemtype_keyword: 'book part'"/>
-                <entry key="dataset" value="itemtype_keyword: ( 'dataset' OR 'interview' ) "/>
-                <entry key="thesis" value="itemtype_keyword: ( 'thesis' OR 'bachelor thesis' OR 'doctoral thesis' OR 'master thesis' )"/>
-                <entry key="other" value="OTHER"/>
-            </map>
+        <property name="entityCategoryQueries">
+        <map>
+            <entry key="Publication" value-ref="publicationCategoryQueries"/>
+            <entry key="Project" value-ref="projectCategoryQueries"/>
+            <entry key="Funding" value-ref="fundingCategoryQueries"/>
+            <entry key="OrgUnit" value-ref="orgUnitCategoryQueries"/>
+            <entry key="Product" value-ref="productCategoryQueries"/>
+            <entry key="Patent" value-ref="patentCategoryQueries"/>
+            <entry key="Event" value-ref="eventCategoryQueries"/>
+        </map>
         </property>
     </bean>
+
+    <util:map id="publicationCategoryQueries" map-class="java.util.HashMap">
+        <entry key="article" value="itemtype_keyword: ( 'research article' OR 'journal article' )"/>
+        <entry key="book" value="itemtype_keyword: 'book'"/>
+        <entry key="bookChapter" value="itemtype_keyword: 'book part'"/>
+        <entry key="dataset" value="itemtype_keyword: ( 'dataset' OR 'interview' ) "/>
+        <entry key="thesis" value="itemtype_keyword: ( 'thesis' OR 'bachelor thesis' OR 'doctoral thesis' OR 'master thesis' )"/>
+        <entry key="other" value="OTHER"/>
+    </util:map>
+
+    <util:map id="projectCategoryQueries" map-class="java.util.HashMap">
+        <entry key="basic research" value="itemtype_keyword: 'basic research'"/>
+        <entry key="applied research" value="itemtype_keyword: 'applied research'"/>
+    </util:map>
+
+    <util:map id="fundingCategoryQueries" map-class="java.util.HashMap">
+        <entry key="gift" value="itemtype_keyword: 'Gift'"/>
+        <entry key="internalFunding" value="itemtype_keyword: 'Internal Funding'"/>
+        <entry key="contract" value="itemtype_keyword: 'Contract'"/>
+        <entry key="Award" value="itemtype_keyword: 'Award'"/>
+        <entry key="grant" value="itemtype_keyword: 'Grant'"/>
+    </util:map>
+
+    <util:map id="orgUnitCategoryQueries" map-class="java.util.HashMap">
+        <entry key="university" value="itemtype_keyword: 'University'"/>
+        <entry key="company" value="itemtype_keyword: 'Company'"/>
+        <entry key="government" value="itemtype_keyword: 'Government'"/>
+    </util:map>
+
+    <util:map id="productCategoryQueries" map-class="java.util.HashMap">
+        <entry key="map" value="itemtype_keyword: 'map'"/>
+        <entry key="dataset" value="itemtype_keyword: ('clinical trial data' OR 'aggregated data' OR 'compiled data')"/>
+    </util:map>
+
+    <util:map id="patentCategoryQueries" map-class="java.util.HashMap">
+        <entry key="design" value="itemtype_keyword: 'design patent'"/>
+        <entry key="plant" value="itemtype_keyword: 'plant patent'"/>
+    </util:map>
+
+    <util:map id="eventCategoryQueries" map-class="java.util.HashMap">
+        <entry key="conference" value="itemtype_keyword: 'Conference'"/>
+        <entry key="workshop" value="itemtype_keyword: 'Workshop'"/>
+    </util:map>
 
     <bean id="totalVisitPerPeriodRelationCollection" class="org.dspace.app.rest.statistics.TotalVisitPerPeriodGenerator">
         <property name="viewMode" value="chart.line"/>
@@ -501,16 +538,6 @@
         <property name="viewMode" value="chart.pie"/>
         <property name="maxResults" value="10"/>
         <property name="relation" value="RELATION.Community.items"/>
-        <property name="categoryQueries">
-            <map>
-                <entry key="article" value="itemtype_keyword: ( 'research article' OR 'journal article' )"/>
-                <entry key="book" value="itemtype_keyword: 'book'"/>
-                <entry key="bookChapter" value="itemtype_keyword: 'book part'"/>
-                <entry key="dataset" value="itemtype_keyword: ( 'dataset' OR 'interview' ) "/>
-                <entry key="thesis" value="itemtype_keyword: ( 'thesis' OR 'bachelor thesis' OR 'doctoral thesis' OR 'master thesis' )"/>
-                <entry key="other" value="OTHER"/>
-            </map>
-        </property>
     </bean>
 
     <bean id="totalVisitPerPeriodRelationCommunity" class="org.dspace.app.rest.statistics.TotalVisitPerPeriodGenerator">

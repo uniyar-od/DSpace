@@ -10,6 +10,7 @@ package org.dspace.app.rest.statistics;
 import static org.dspace.core.Constants.ITEM;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,9 +22,11 @@ import org.dspace.app.rest.model.UsageReportPointCategoryRest;
 import org.dspace.app.rest.model.UsageReportRest;
 import org.dspace.app.rest.utils.UsageReportUtils;
 import org.dspace.content.DSpaceObject;
+import org.dspace.content.MetadataValue;
 import org.dspace.core.Context;
 import org.dspace.discovery.configuration.DiscoveryConfiguration;
 import org.dspace.discovery.configuration.DiscoveryConfigurationService;
+import org.dspace.services.ConfigurationService;
 import org.dspace.statistics.content.StatisticsDatasetDisplay;
 import org.dspace.statistics.service.SolrLoggerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,12 +44,18 @@ public class TopCategoriesGenerator extends AbstractUsageReportGenerator {
     private SolrLoggerService solrLoggerService;
 
     @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
     private DiscoveryConfigurationService discoveryConfigurationService;
 
     private Map<String, String> categoryQueries;
 
+    private Map<String, Map<String, String>> entityCategoryQueries;
+
     public UsageReportRest createUsageReport(Context context, DSpaceObject dso, String startDate, String endDate) {
 
+        setCategoryQueries(getEntityType(dso));
         Map<String, Integer> categoriesCount = getCategoriesCount(dso, startDate, endDate);
 
         UsageReportRest usageReportRest = new UsageReportRest();
@@ -129,11 +138,44 @@ public class TopCategoriesGenerator extends AbstractUsageReportGenerator {
         return UsageReportUtils.TOP_CATEGORIES_REPORT_ID;
     }
 
-    public Map<String, String> getCategoryQueries() {
-        return categoryQueries;
+    private String getEntityType(DSpaceObject dso) {
+        return dso.getMetadata()
+                  .stream()
+                  .filter(metadataValue ->
+                      "dspace.entity.type".equals(metadataValue.getMetadataField().toString('.')))
+                  .map(MetadataValue::getValue)
+                  .findFirst()
+                  .orElse("");
     }
 
-    public void setCategoryQueries(Map<String, String> categoryQueries) {
-        this.categoryQueries = categoryQueries;
+    private void setCategoryQueries(String entityType) {
+        if (entityCategoryQueries != null &&
+            entityCategoryQueries.containsKey(entityType)) {
+            categoryQueries = entityCategoryQueries.get(entityType);
+        } else {
+            categoryQueries = getDefaultCategoryQueries();
+        }
     }
+
+    private Map<String, String> getDefaultCategoryQueries() {
+        return Arrays.stream(getDefaultEntityTypes())
+                     .collect(Collectors.toMap(
+                         type -> type.toLowerCase(),
+                         type -> "entityType_keyword: '" + type + "'"
+                     ));
+    }
+
+    private String[] getDefaultEntityTypes() {
+        return configurationService.getArrayProperty("cris.entity-type");
+    }
+
+    public Map<String, Map<String, String>> getEntityCategoryQueries() {
+        return entityCategoryQueries;
+    }
+
+    public void setEntityCategoryQueries(
+        Map<String, Map<String,String>> entityCategoryQueries) {
+        this.entityCategoryQueries = entityCategoryQueries;
+    }
+
 }
