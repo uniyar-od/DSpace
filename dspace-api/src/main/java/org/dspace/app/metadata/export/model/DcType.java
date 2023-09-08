@@ -46,10 +46,10 @@ import javax.xml.bind.annotation.XmlType;
 public class DcType {
 
     @XmlElementRefs({
-        @XmlElementRef(name = "schema", type = JAXBElement.class),
-        @XmlElementRef(name = "element", type = JAXBElement.class),
-        @XmlElementRef(name = "qualifier", type = JAXBElement.class),
-        @XmlElementRef(name = "scope_note", type = JAXBElement.class)
+        @XmlElementRef(name = "schema", type = JAXBElement.class, required = false),
+        @XmlElementRef(name = "element", type = JAXBElement.class, required = false),
+        @XmlElementRef(name = "qualifier", type = JAXBElement.class, required = false),
+        @XmlElementRef(name = "scope_note", type = JAXBElement.class, required = false)
     })
     protected List<JAXBElement<String>> schemaOrElementOrQualifier;
 

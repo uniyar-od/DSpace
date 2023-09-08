@@ -116,8 +116,6 @@ public class MetadataSchemaExportScriptIT extends AbstractIntegrationTestWithDat
             assertThat(content, containsString("<dc-type>"));
             assertThat(content, containsString("<schema>test</schema>"));
             assertThat(content, containsString("<element>element</element>"));
-            assertThat(content, containsString("<qualifier xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"/>"));
-            assertThat(content, containsString("<scope_note xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:nil=\"true\"/>"));
             assertThat(content, containsString("</dc-type>"));
         }
     }
