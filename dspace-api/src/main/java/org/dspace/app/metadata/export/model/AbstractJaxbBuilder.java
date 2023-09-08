@@ -47,6 +47,9 @@ public abstract class AbstractJaxbBuilder<T, C> {
     }
 
     protected void addChildElement(C value, Function<C, JAXBElement<C>> mapper) {
+        if (value == null) {
+            return;
+        }
         addChildElement(mapper.apply(value));
     }
 
