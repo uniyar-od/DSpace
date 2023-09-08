@@ -863,8 +863,8 @@
           <label>Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter a main title for this artefact.</required>
-          <hint>Enter the main title of the artifact.</hint>
+          <required>You must enter a main title for this artefact</required>
+          <hint>Enter the main title of the artefact</hint>
         </field>
       </row>
       <row>
