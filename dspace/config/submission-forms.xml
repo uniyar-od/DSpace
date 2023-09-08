@@ -849,22 +849,22 @@
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>identifier</dc-element>
+          <dc-qualifier>other</dc-qualifier>
+          <label>Field inventory number</label>
+          <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
           <dc-element>title</dc-element>
           <label>Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
           <required>You must enter a main title for this artefact.</required>
           <hint>Enter the main title of the artifact.</hint>
-        </field>
-      </row>
-      <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>description</dc-element>
-          <dc-qualifier>abstract</dc-qualifier>
-          <label>Annotation</label>
-          <input-type>textarea</input-type>
-          <repeatable>false</repeatable>
         </field>
       </row>
       <row>
@@ -884,16 +884,17 @@
           <label>Size</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <hint>length: ...; width: ...; height: ...</hint>
+          <hint>length, width, height</hint>
         </field>
       </row>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
-          <dc-element>date</dc-element>
-          <dc-qualifier>created</dc-qualifier>
+          <dc-element>coverage</dc-element>
+          <dc-qualifier>temporal</dc-qualifier>
           <label>Dating</label>
           <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
         </field>
       </row>
       <row>
@@ -901,8 +902,32 @@
           <dc-schema>dc</dc-schema>
           <dc-element>coverage</dc-element>
           <dc-qualifier>spatial</dc-qualifier>
-          <label>Provenance</label>
+          <label>Location of discovery</label>
           <input-type>onebox</input-type>
+          <repeatable>false</repeatable>
+          <hint>square, layer, depth</hint>
+        </field>
+      </row>
+    </form>
+    <form name="demarch_artefact_indexing">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <label>Annotation</label>
+          <input-type>textarea</input-type>
+          <repeatable>true</repeatable>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <label>Subject Keywords</label>
+          <input-type>tag</input-type>
+          <repeatable>true</repeatable>
+          <hint>Enter appropriate subject keywords or phrases</hint>
         </field>
       </row>
     </form>
@@ -917,6 +942,16 @@
           <repeatable>false</repeatable>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>publication</dc-qualifier>
+          <label>Related publication</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+        </field>
+      </row>
     </form>
     <form name="demarch_expedition_basic_info">
       <row>
@@ -926,8 +961,8 @@
           <label>Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter a main title for this expedition.</required>
-          <hint>Enter the main title of the expedition.</hint>
+          <required>You must enter a main title for this expedition</required>
+          <hint>Enter the main title of the expedition</hint>
         </field>
       </row>
       <row>
@@ -948,7 +983,7 @@
           <label>Subject Keywords</label>
           <input-type>tag</input-type>
           <repeatable>true</repeatable>
-          <hint>Enter appropriate subject keywords or phrases.</hint>
+          <hint>Enter appropriate subject keywords or phrases</hint>
         </field>
       </row>
       <row>
@@ -976,7 +1011,7 @@
           <label>Authors</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
-          <hint>Enter the names of the authors of report of expedition.</hint>
+          <hint>Enter the names of the authors of report of expedition</hint>
         </field>
       </row>
       <row>
@@ -3235,84 +3270,84 @@
         <stored-value />
       </pair>
       <pair>
-        <displayed-value>Бронза</displayed-value>
-        <stored-value>Бронза</stored-value>
+        <displayed-value>Bronze</displayed-value>
+        <stored-value>Bronze</stored-value>
       </pair>
       <pair>
-        <displayed-value>Глина</displayed-value>
-        <stored-value>Глина</stored-value>
+        <displayed-value>Clay</displayed-value>
+        <stored-value>Clay</stored-value>
       </pair>
       <pair>
-        <displayed-value>Дерево</displayed-value>
-        <stored-value>Дерево</stored-value>
+        <displayed-value>Tree</displayed-value>
+        <stored-value>Tree</stored-value>
       </pair>
       <pair>
-        <displayed-value>Железо</displayed-value>
-        <stored-value>Железо</stored-value>
+        <displayed-value>Iron</displayed-value>
+        <stored-value>Iron</stored-value>
       </pair>
       <pair>
-        <displayed-value>Камень</displayed-value>
-        <stored-value>Камень</stored-value>
+        <displayed-value>Stone</displayed-value>
+        <stored-value>Stone</stored-value>
       </pair>
       <pair>
-        <displayed-value>Керамика</displayed-value>
-        <stored-value>Керамика</stored-value>
+        <displayed-value>Ceramics</displayed-value>
+        <stored-value>Ceramics</stored-value>
       </pair>
       <pair>
-        <displayed-value>Кость</displayed-value>
-        <stored-value>Кость</stored-value>
+        <displayed-value>Bone</displayed-value>
+        <stored-value>Bone</stored-value>
       </pair>
       <pair>
-        <displayed-value>Медь</displayed-value>
-        <stored-value>Медь</stored-value>
+        <displayed-value>Copper</displayed-value>
+        <stored-value>Copper</stored-value>
       </pair>
       <pair>
-        <displayed-value>Металл</displayed-value>
-        <stored-value>Металл</stored-value>
+        <displayed-value>Metal</displayed-value>
+        <stored-value>Metal</stored-value>
       </pair>
       <pair>
-        <displayed-value>Цветной металл</displayed-value>
-        <stored-value>Цветной металл</stored-value>
+        <displayed-value>Non-ferrous metal</displayed-value>
+        <stored-value>Non-ferrous metal</stored-value>
       </pair>
       <pair>
         <displayed-value>Carnelian</displayed-value>
         <stored-value>Carnelian</stored-value>
       </pair>
       <pair>
-        <displayed-value>Серебро</displayed-value>
-        <stored-value>Серебро</stored-value>
+        <displayed-value>Silver</displayed-value>
+        <stored-value>Silver</stored-value>
       </pair>
       <pair>
-        <displayed-value>Свинец</displayed-value>
-        <stored-value>Свинец</stored-value>
+        <displayed-value>Lead</displayed-value>
+        <stored-value>Lead</stored-value>
       </pair>
       <pair>
-        <displayed-value>Медный сплав</displayed-value>
-        <stored-value>Медный сплав</stored-value>
+        <displayed-value>Copper alloy</displayed-value>
+        <stored-value>Copper alloy</stored-value>
       </pair>
       <pair>
-        <displayed-value>Свинцово-оловянный сплав</displayed-value>
-        <stored-value>Свинцово-оловянный сплав</stored-value>
+        <displayed-value>Lead-tin alloy</displayed-value>
+        <stored-value>Lead-tin alloy</stored-value>
       </pair>
       <pair>
-        <displayed-value>Сталь</displayed-value>
-        <stored-value>Сталь</stored-value>
+        <displayed-value>Steel</displayed-value>
+        <stored-value>Steel</stored-value>
       </pair>
       <pair>
-        <displayed-value>Стекло</displayed-value>
-        <stored-value>Стекло</stored-value>
+        <displayed-value>Glass</displayed-value>
+        <stored-value>Glass</stored-value>
       </pair>
       <pair>
-        <displayed-value>Золотая фольга</displayed-value>
-        <stored-value>Золотая фольга</stored-value>
+        <displayed-value>Gold leaf</displayed-value>
+        <stored-value>Gold leaf</stored-value>
       </pair>
       <pair>
-        <displayed-value>Эмаль</displayed-value>
-        <stored-value>Эмаль</stored-value>
+        <displayed-value>Enamel</displayed-value>
+        <stored-value>Enamel</stored-value>
       </pair>
       <pair>
-        <displayed-value>Янтарь</displayed-value>
-        <stored-value>Янтарь</stored-value>
+        <displayed-value>Amber</displayed-value>
+        <stored-value>Amber</stored-value>
       </pair>
     </value-pairs>
     <value-pairs value-pairs-name="event_types" dc-term="event_types">
