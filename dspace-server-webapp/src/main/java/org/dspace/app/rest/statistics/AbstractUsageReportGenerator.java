@@ -7,6 +7,11 @@
  */
 package org.dspace.app.rest.statistics;
 
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+
 /**
  * This is an abstract class that adds common configurable options for the generator
  *
@@ -16,6 +21,7 @@ public abstract class AbstractUsageReportGenerator implements UsageReportGenerat
     private String viewMode = "table";
     private int maxResults = 100;
     private String relation;
+    private List<String> excludedEntityTypes;
 
     public void setViewMode(String viewMode) {
         this.viewMode = viewMode;
@@ -39,6 +45,27 @@ public abstract class AbstractUsageReportGenerator implements UsageReportGenerat
 
     public void setRelation(String relation) {
         this.relation = relation;
+    }
+
+    public boolean isApplicable(String entityType) {
+
+        if (StringUtils.isEmpty(entityType)) {
+            return true;
+        }
+
+        if (CollectionUtils.isNotEmpty(excludedEntityTypes)) {
+            return !excludedEntityTypes.contains(entityType);
+        }
+
+        return true;
+    }
+
+    public List<String> getExcludedEntityTypes() {
+        return excludedEntityTypes;
+    }
+
+    public void setExcludedEntityTypes(List<String> excludedEntityTypes) {
+        this.excludedEntityTypes = excludedEntityTypes;
     }
 }
 

@@ -27,6 +27,7 @@ import org.dspace.app.rest.statistics.UsageReportGenerator;
 import org.dspace.content.Bitstream;
 import org.dspace.content.DSpaceObject;
 import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.Site;
 import org.dspace.core.Constants;
 import org.dspace.core.Context;
@@ -126,7 +127,8 @@ public class UsageReportUtils {
         for (UsageReportCategoryRest cat : categories) {
             if (category == null || StringUtils.equals(cat.getId(), category)) {
                 for (Entry<String, UsageReportGenerator> entry : cat.getReports().entrySet()) {
-                    if (!reportIds.contains(entry.getKey())) {
+                    if (!reportIds.contains(entry.getKey()) &&
+                        entry.getValue().isApplicable(getEntityType(dso))) {
                         reportIds.add(entry.getKey());
                         reports.add(createUsageReport(context, dso, entry.getKey(), startDate, endDate));
                     }
@@ -134,6 +136,16 @@ public class UsageReportUtils {
             }
         }
         return reports;
+    }
+
+    private String getEntityType(DSpaceObject dso) {
+        return dso.getMetadata()
+                  .stream()
+                  .filter(metadataValue ->
+                      "dspace.entity.type".equals(metadataValue.getMetadataField().toString('.')))
+                  .map(MetadataValue::getValue)
+                  .findFirst()
+                  .orElse("");
     }
 
     private List<String> getReports(Context context, DSpaceObject dso, String category) {

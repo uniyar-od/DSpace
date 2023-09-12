@@ -441,6 +441,11 @@
     <bean id="topCategoriesGeneratorRelationCollection" class="org.dspace.app.rest.statistics.TopCategoriesGenerator" >
         <property name="viewMode" value="chart.pie"/>
         <property name="maxResults" value="10"/>
+        <property name="excludedEntityTypes">
+            <list>
+                <value>Person</value>
+            </list>
+        </property>
         <property name="relation" value="RELATION.Collection.items"/>
         <property name="entityCategoryQueries">
         <map>
