@@ -1972,32 +1972,50 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         expectedPoint1.setType("item");
         points.add(expectedPoint1);
 
-        UsageReportPointCategoryRest articleCategory = new UsageReportPointCategoryRest();
-        articleCategory.addValue("views", 0);
-        articleCategory.setId("article");
 
-        UsageReportPointCategoryRest thesisCategory = new UsageReportPointCategoryRest();
-        thesisCategory.addValue("views", 0);
-        thesisCategory.setId("thesis");
+        UsageReportPointCategoryRest publicationCategory = new UsageReportPointCategoryRest();
+        publicationCategory.addValue("views", 0);
+        publicationCategory.setId("publication");
 
-        UsageReportPointCategoryRest otherCategory = new UsageReportPointCategoryRest();
-        otherCategory.addValue("views", 0);
-        otherCategory.setId("other");
+        UsageReportPointCategoryRest patentCategory = new UsageReportPointCategoryRest();
+        patentCategory.addValue("views", 0);
+        patentCategory.setId("patent");
 
-        UsageReportPointCategoryRest bookCategory = new UsageReportPointCategoryRest();
-        bookCategory.addValue("views", 0);
-        bookCategory.setId("book");
+        UsageReportPointCategoryRest fundingCategory = new UsageReportPointCategoryRest();
+        fundingCategory.addValue("views", 0);
+        fundingCategory.setId("funding");
 
-        UsageReportPointCategoryRest bookChapterCategory = new UsageReportPointCategoryRest();
-        bookChapterCategory.addValue("views", 0);
-        bookChapterCategory.setId("bookChapter");
+        UsageReportPointCategoryRest projectCategory = new UsageReportPointCategoryRest();
+        projectCategory.addValue("views", 0);
+        projectCategory.setId("project");
 
-        UsageReportPointCategoryRest datasetCategory = new UsageReportPointCategoryRest();
-        datasetCategory.addValue("views", 0);
-        datasetCategory.setId("dataset");
+        UsageReportPointCategoryRest productCategory = new UsageReportPointCategoryRest();
+        productCategory.addValue("views", 0);
+        productCategory.setId("product");
 
-        List<UsageReportPointRest> categories = List.of(articleCategory, thesisCategory, otherCategory, bookCategory,
-            bookChapterCategory, datasetCategory);
+        UsageReportPointCategoryRest journalCategory = new UsageReportPointCategoryRest();
+        journalCategory.addValue("views", 0);
+        journalCategory.setId("journal");
+
+        UsageReportPointCategoryRest personCategory = new UsageReportPointCategoryRest();
+        personCategory.addValue("views", 0);
+        personCategory.setId("person");
+
+        UsageReportPointCategoryRest orgUnitCategory = new UsageReportPointCategoryRest();
+        orgUnitCategory.addValue("views", 0);
+        orgUnitCategory.setId("orgunit");
+
+        UsageReportPointCategoryRest equipmentCategory = new UsageReportPointCategoryRest();
+        equipmentCategory.addValue("views", 0);
+        equipmentCategory.setId("equipment");
+
+        UsageReportPointCategoryRest eventCategory = new UsageReportPointCategoryRest();
+        eventCategory.addValue("views", 0);
+        eventCategory.setId("event");
+
+        List<UsageReportPointRest> categories = List.of(publicationCategory, patentCategory, fundingCategory,
+            projectCategory, productCategory, journalCategory, personCategory, orgUnitCategory,
+            equipmentCategory, eventCategory);
 
         UsageReportPointRest pointPerMonth = new UsageReportPointDateRest();
         pointPerMonth.setId("June 2019");
