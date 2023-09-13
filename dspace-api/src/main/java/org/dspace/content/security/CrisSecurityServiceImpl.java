@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.commons.collections.CollectionUtils;
@@ -18,7 +19,6 @@ import org.dspace.authorize.service.AuthorizeService;
 import org.dspace.content.Collection;
 import org.dspace.content.Item;
 import org.dspace.content.MetadataValue;
-import org.dspace.content.logic.Filter;
 import org.dspace.content.security.service.CrisSecurityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Context;
@@ -56,19 +56,17 @@ public class CrisSecurityServiceImpl implements CrisSecurityService {
             .anyMatch(security -> hasAccess(context, item, user, accessMode, security));
     }
 
-    private boolean hasAccess(Context context, Item item, EPerson user, AccessItemMode accessMode,
-        CrisSecurity crisSecurity) {
-
+    private boolean hasAccess(
+        Context context, Item item, EPerson user, AccessItemMode accessMode, CrisSecurity crisSecurity
+    ) {
         try {
+            final boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
 
-            boolean checkSecurity = checkSecurity(context, item, user, accessMode, crisSecurity);
-            Filter additionalFilter = accessMode.getAdditionalFilter();
-
-            return additionalFilter == null ? checkSecurity
-                : checkSecurity && additionalFilter.getResult(context, item);
-
+            return Optional.ofNullable(accessMode.getAdditionalFilter())
+                .map(filter -> checkSecurity && filter.getResult(context, item))
+                .orElse(checkSecurity);
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new SQLRuntimeException(e);
         }
 
     }
