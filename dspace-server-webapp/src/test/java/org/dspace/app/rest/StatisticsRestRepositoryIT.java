@@ -2614,7 +2614,7 @@ public class StatisticsRestRepositoryIT extends AbstractControllerIntegrationTes
         // And request the collections global usage report (show top most popular items)
         getClient(adminToken)
             .perform(get("/api/statistics/usagereports/search/object")
-                .param("category", "collection-itemReports")
+                .param("category", "publicationCollection-itemReports")
                 .param("uri", "http://localhost:8080/server/api/core/collections/" + collectionNotVisited.getID()))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$._embedded.usagereports", not(empty())))

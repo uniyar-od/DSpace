@@ -45,10 +45,4 @@ public interface UsageReportGenerator {
      */
     public String getViewMode();
 
-    /**
-     *
-     * @return true if the report applicable for the provided entity type
-     */
-    public boolean isApplicable(String entityType);
-
 }
