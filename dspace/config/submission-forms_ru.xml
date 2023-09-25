@@ -934,19 +934,92 @@
     <form name="demarch_artefact_refrences">
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>local</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>product</dc-qualifier>
-          <label>Связанные экспедиции</label>
+          <dc-qualifier>demarchReport</dc-qualifier>
+          <label>Связанный отчет</label>
+          <input-type>onebox</input-type>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>local</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>demarchPublication</dc-qualifier>
+          <label>Связанные публикации</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+        </field>
+      </row>
+    </form>
+    <form name="demarch_report_basic_info">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>title</dc-element>
+          <label>Название</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
+          <required>Вам необходимо ввести название отчета</required>
+          <hint>Введите название отчета</hint>
         </field>
       </row>
       <row>
         <field>
           <dc-schema>dc</dc-schema>
+          <dc-element>description</dc-element>
+          <dc-qualifier>abstract</dc-qualifier>
+          <label>Описание</label>
+          <input-type>textarea</input-type>
+        </field>
+      </row>
+    </form>
+    <form name="demarch_report_indexing">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>subject</dc-element>
+          <label>Ключевые слова</label>
+          <input-type>tag</input-type>
+          <repeatable>true</repeatable>
+          <hint>Введите соответствующие ключевые слова или фразы по теме</hint>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>created</dc-qualifier>
+          <label>Год раскопок</label>
+          <input-type>onebox</input-type>
+        </field>
+      </row>
+    </form>
+    <form name="demarch_report_refrences">
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
+          <label>Руководитель раскопок</label>
+          <input-type>onebox</input-type>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>local</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
+          <dc-qualifier>demarchArtefact</dc-qualifier>
+          <label>Связанные артефакты</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>local</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>demarchPublication</dc-qualifier>
           <label>Связанные публикации</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>

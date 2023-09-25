@@ -88,18 +88,18 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="demarch_expedition_basic_info" mandatory="true">
-      <heading>submit.progressbar.describe.demarch_expedition_basic_info</heading>
+    <step-definition id="demarch_report_basic_info" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_report_basic_info</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="demarch_expedition_indexing" mandatory="true">
-      <heading>submit.progressbar.describe.demarch_expedition_indexing</heading>
+    <step-definition id="demarch_report_indexing" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_report_indexing</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
-    <step-definition id="demarch_expedition_refrences" mandatory="true">
-      <heading>submit.progressbar.describe.demarch_expedition_refrences</heading>
+    <step-definition id="demarch_report_refrences" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_report_refrences</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
@@ -245,15 +245,15 @@
       <step id="demarch_artefact_indexing" />
       <step id="demarch_artefact_refrences" />
       <step id="upload" />
-      <step id="license" />
+      <step id="cclicense" />
     </submission-process>
-    <submission-process name="demarch_expedition">
+    <submission-process name="demarch_report">
       <step id="collection" />
-      <step id="demarch_expedition_basic_info" />
-      <step id="demarch_expedition_indexing" />
-      <step id="demarch_expedition_refrences" />
+      <step id="demarch_report_basic_info" />
+      <step id="demarch_report_indexing" />
+      <step id="demarch_report_refrences" />
       <step id="upload" />
-      <step id="license" />
+      <step id="cclicense" />
     </submission-process>
 
     <submission-process name="product">

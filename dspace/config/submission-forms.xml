@@ -934,26 +934,25 @@
     <form name="demarch_artefact_refrences">
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>local</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>product</dc-qualifier>
-          <label>Related expedition</label>
+          <dc-qualifier>demarchReport</dc-qualifier>
+          <label>Related report</label>
           <input-type>onebox</input-type>
-          <repeatable>false</repeatable>
         </field>
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>local</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>publication</dc-qualifier>
+          <dc-qualifier>demarchPublication</dc-qualifier>
           <label>Related publication</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
         </field>
       </row>
     </form>
-    <form name="demarch_expedition_basic_info">
+    <form name="demarch_report_basic_info">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
@@ -961,8 +960,8 @@
           <label>Title</label>
           <input-type>onebox</input-type>
           <repeatable>false</repeatable>
-          <required>You must enter a main title for this expedition</required>
-          <hint>Enter the main title of the expedition</hint>
+          <required>You must enter a main title for this report</required>
+          <hint>Enter the main title of the report</hint>
         </field>
       </row>
       <row>
@@ -975,7 +974,7 @@
         </field>
       </row>
     </form>
-    <form name="demarch_expedition_indexing">
+    <form name="demarch_report_indexing">
       <row>
         <field>
           <dc-schema>dc</dc-schema>
@@ -996,30 +995,32 @@
         </field>
       </row>
     </form>
-    <form name="demarch_expedition_refrences">
+    <form name="demarch_report_refrences">
       <row>
-        <field>
-          <dc-schema>dc</dc-schema>
-          <dc-element>creator</dc-element>
-          <label>Expedition Head</label>
-          <input-type>onebox</input-type>
-        </field>
         <field>
           <dc-schema>dc</dc-schema>
           <dc-element>contributor</dc-element>
           <dc-qualifier>author</dc-qualifier>
-          <label>Authors</label>
+          <label>Expedition Head</label>
           <input-type>onebox</input-type>
-          <repeatable>true</repeatable>
-          <hint>Enter the names of the authors of report of expedition</hint>
         </field>
       </row>
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
+          <dc-schema>local</dc-schema>
           <dc-element>relation</dc-element>
-          <dc-qualifier>product</dc-qualifier>
+          <dc-qualifier>demarchArtefact</dc-qualifier>
           <label>Related artefacts</label>
+          <input-type>onebox</input-type>
+          <repeatable>true</repeatable>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>local</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>demarchPublication</dc-qualifier>
+          <label>Related publications</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
         </field>
