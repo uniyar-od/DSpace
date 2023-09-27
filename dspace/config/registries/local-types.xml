@@ -32,4 +32,22 @@
   </dc-type>
 -->
 
+  <dc-type>
+  <schema>local</schema>
+    <element>relation</element>
+    <qualifier>demarchArtefact</qualifier>
+    <scope_note>Refrences demarchArtefact for related item.</scope_note>
+  </dc-type>
+  <dc-type>
+  <schema>local</schema>
+    <element>relation</element>
+    <qualifier>demarchReport</qualifier>
+    <scope_note>Refrences demarchReport for related item.</scope_note>
+  </dc-type>
+  <dc-type>
+  <schema>local</schema>
+    <element>relation</element>
+    <qualifier>demarchPublication</qualifier>
+    <scope_note>Refrences demarchPublication for related item.</scope_note>
+  </dc-type>
 </dspace-dc-types>

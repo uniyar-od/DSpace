@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE relationships SYSTEM "relationship-types.dtd">
+
+<relationships>
+  <type>
+        <leftType>DemarchArtefact</leftType>
+        <rightType>DemarchArtefact</rightType>
+        <leftwardType>isCorrectionOfItem</leftwardType>
+        <rightwardType>isCorrectedByItem</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+	        <max>1</max>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+	        <max>1</max>
+        </rightCardinality>
+    </type>
+    <type>
+        <leftType>DemarchReport</leftType>
+        <rightType>DemarchReport</rightType>
+        <leftwardType>isCorrectionOfItem</leftwardType>
+        <rightwardType>isCorrectedByItem</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+	        <max>1</max>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+	        <max>1</max>
+        </rightCardinality>
+    </type>
+    <type>
+        <leftType>DemarchPublication</leftType>
+        <rightType>DemarchPublication</rightType>
+        <leftwardType>isCorrectionOfItem</leftwardType>
+        <rightwardType>isCorrectedByItem</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+	        <max>1</max>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+	        <max>1</max>
+        </rightCardinality>
+    </type>
+</relationships>

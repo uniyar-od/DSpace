@@ -71,6 +71,39 @@
       <processing-class>org.dspace.app.rest.submit.step.LicenseStep</processing-class>
       <type>license</type>
     </step-definition>
+  
+    <!-- demarch -->
+    <step-definition id="demarch_artefact_basic_info" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_artefact_basic_info</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_artefact_indexing" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_artefact_indexing</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_artefact_refrences" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_artefact_refrences</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_report_basic_info" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_report_basic_info</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_report_indexing" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_report_indexing</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+    <step-definition id="demarch_report_refrences" mandatory="true">
+      <heading>submit.progressbar.describe.demarch_report_refrences</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+
     <step-definition id="product" mandatory="true">
       <heading>submit.progressbar.describe.product</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
@@ -215,6 +248,24 @@
     </step-definition>
   </step-definitions>
   <submission-definitions>
+
+    <submission-process name="demarch_artefact">
+      <step id="collection" />
+      <step id="demarch_artefact_basic_info" />
+      <step id="demarch_artefact_indexing" />
+      <step id="demarch_artefact_refrences" />
+      <step id="upload" />
+      <step id="cclicense" />
+    </submission-process>
+    <submission-process name="demarch_report">
+      <step id="collection" />
+      <step id="demarch_report_basic_info" />
+      <step id="demarch_report_indexing" />
+      <step id="demarch_report_refrences" />
+      <step id="upload" />
+      <step id="cclicense" />
+    </submission-process>
+
     <submission-process name="product">
       <step id="collection" />
       <step id="product" />
