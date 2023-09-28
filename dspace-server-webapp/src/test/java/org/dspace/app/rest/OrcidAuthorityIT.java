@@ -56,8 +56,8 @@ import org.orcid.jaxb.model.v3.release.search.expanded.ExpandedSearch;
  */
 public class OrcidAuthorityIT extends AbstractControllerIntegrationTest {
 
-    private static final String ORCID_INFO = OrcidAuthority.ORCID_EXTRA;
-    private static final String ORCID_INSTITUTION = OrcidAuthority.INSTITUTION_EXTRA;
+    private static final String ORCID_INFO = OrcidAuthority.DEFAULT_ORCID_KEY;
+    private static final String ORCID_INSTITUTION = OrcidAuthority.DEFAULT_INSTITUTION_KEY;
 
     private static final String READ_PUBLIC_TOKEN = "062d9f30-7e11-47ef-bd95-eaa2f2452565";
 
