@@ -29,11 +29,11 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.app.util.TypeBindUtils;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.factory.ContentAuthorityServiceFactory;
 import org.dspace.content.authority.service.MetadataAuthorityService;
-import org.dspace.core.Constants;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.services.ConfigurationService;
@@ -80,10 +80,7 @@ public class DescribeStep extends AbstractProcessingStep {
     private void readField(InProgressSubmission obj, SubmissionStepConfig config, DataDescribe data,
                            DCInputSet inputConfig) throws DCInputsReaderException {
 
-        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(
-                documentTypeField.replace(".","_"), Constants.ITEM,obj.getCollection());
-        String documentType = isAuthority ? getDocumentTypeAuthority(obj) : getDocumentTypeValue(obj);
+        String documentType = TypeBindUtils.getTypeBindValue(obj);
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type
         List<String> allowedFieldNames = inputConfig.populateAllowedFieldNames(documentType);
@@ -211,17 +208,6 @@ public class DescribeStep extends AbstractProcessingStep {
             }
         }
         return fieldsName;
-    }
-    private String getDocumentTypeValue(InProgressSubmission<?> obj) {
-        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), documentTypeField);
-        return documentType.size() > 0 ? documentType.get(0).getValue() : "";
-    }
-
-    private String getDocumentTypeAuthority(InProgressSubmission<?> obj) {
-        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), documentTypeField);
-        return documentType.size() > 0 ? documentType.get(0).getAuthority() : "";
     }
 }
 

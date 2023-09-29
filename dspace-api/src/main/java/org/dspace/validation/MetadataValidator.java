@@ -22,6 +22,7 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
+import org.dspace.app.util.TypeBindUtils;
 import org.dspace.content.Collection;
 import org.dspace.content.InProgressSubmission;
 import org.dspace.content.Item;
@@ -69,10 +70,7 @@ public class MetadataValidator implements SubmissionStepValidator {
         List<ValidationError> errors = new ArrayList<>();
 
         DCInputSet inputConfig = getDCInputSet(config);
-        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(
-                documentTypeField.replace(".","_"), Constants.ITEM,obj.getCollection());
-        String documentType = isAuthority ? getDocumentTypeAuthority(obj) : getDocumentTypeValue(obj);
+        String documentType = TypeBindUtils.getTypeBindValue(obj);
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type
         List<String> allowedFieldNames = inputConfig.populateAllowedFieldNames(documentType);
@@ -154,18 +152,6 @@ public class MetadataValidator implements SubmissionStepValidator {
             }
         }
         return errors;
-    }
-
-    private String getDocumentTypeValue(InProgressSubmission<?> obj) {
-        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), documentTypeField);
-        return documentType.size() > 0 ? documentType.get(0).getValue() : "";
-    }
-
-    private String getDocumentTypeAuthority(InProgressSubmission<?> obj) {
-        String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        List<MetadataValue> documentType = itemService.getMetadataByMetadataString(obj.getItem(), documentTypeField);
-        return documentType.size() > 0 ? documentType.get(0).getAuthority() : "";
     }
 
     private DCInputSet getDCInputSet(SubmissionStepConfig config) {
