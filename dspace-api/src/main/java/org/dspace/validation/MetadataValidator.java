@@ -22,7 +22,10 @@ import org.dspace.app.util.DCInputSet;
 import org.dspace.app.util.DCInputsReader;
 import org.dspace.app.util.DCInputsReaderException;
 import org.dspace.app.util.SubmissionStepConfig;
-import org.dspace.content.*;
+import org.dspace.content.Collection;
+import org.dspace.content.InProgressSubmission;
+import org.dspace.content.Item;
+import org.dspace.content.MetadataValue;
 import org.dspace.content.authority.service.MetadataAuthorityService;
 import org.dspace.content.service.ItemService;
 import org.dspace.core.Constants;
@@ -67,7 +70,8 @@ public class MetadataValidator implements SubmissionStepValidator {
 
         DCInputSet inputConfig = getDCInputSet(config);
         String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(documentTypeField.replace(".","_"),Constants.ITEM,obj.getCollection());
+        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(
+                documentTypeField.replace(".","_"), Constants.ITEM,obj.getCollection());
         String documentType = isAuthority ? getDocumentTypeAuthority(obj) : getDocumentTypeValue(obj);
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type

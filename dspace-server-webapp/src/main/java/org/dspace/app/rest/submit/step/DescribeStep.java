@@ -81,7 +81,8 @@ public class DescribeStep extends AbstractProcessingStep {
                            DCInputSet inputConfig) throws DCInputsReaderException {
 
         String documentTypeField = configurationService.getProperty("submit.type-bind.field", "dc.type");
-        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(documentTypeField.replace(".","_"), Constants.ITEM,obj.getCollection());
+        boolean isAuthority = metadataAuthorityService.isAuthorityAllowed(
+                documentTypeField.replace(".","_"), Constants.ITEM,obj.getCollection());
         String documentType = isAuthority ? getDocumentTypeAuthority(obj) : getDocumentTypeValue(obj);
 
         // Get list of all field names (including qualdrop names) allowed for this dc.type
