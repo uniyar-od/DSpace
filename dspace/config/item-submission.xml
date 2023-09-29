@@ -88,6 +88,12 @@
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
       <type>submission-form</type>
     </step-definition>
+    <step-definition id="demarch_viewing" mandatory="false">
+      <heading>submit.progressbar.describe.demarch_viewing</heading>
+      <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
+      <type>submission-form</type>
+    </step-definition>
+
     <step-definition id="demarch_report_basic_info" mandatory="true">
       <heading>submit.progressbar.describe.demarch_report_basic_info</heading>
       <processing-class>org.dspace.app.rest.submit.step.DescribeStep</processing-class>
@@ -255,6 +261,7 @@
       <step id="demarch_artefact_indexing" />
       <step id="demarch_artefact_refrences" />
       <step id="upload" />
+      <step id="demarch_viewing" />
       <step id="cclicense" />
     </submission-process>
     <submission-process name="demarch_report">

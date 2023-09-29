@@ -1041,7 +1041,6 @@
     <form name="publication_references">
       <row>
         <field>
-          <dc-schema>dc</dc-schema>
           <dc-element>relation</dc-element>
           <dc-qualifier>funding</dc-qualifier>
           <repeatable>true</repeatable>
@@ -1302,6 +1301,18 @@
           <label>Related publications</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
+        </field>
+      </row>
+    </form>
+    <form name="demarch_viewing">
+      <row>
+        <field>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>iiif</dc-element>
+          <dc-qualifier>enabled</dc-qualifier>
+          <label>Advanced viewer</label>
+          <input-type value-pairs-name="on_off_iiif_types">list</input-type>
+          <repeatable>false</repeatable>
         </field>
       </row>
     </form>
@@ -4630,6 +4641,12 @@
       <pair>
         <displayed-value>Personal Picture</displayed-value>
         <stored-value>personal picture</stored-value>
+      </pair>
+    </value-pairs>
+    <value-pairs value-pairs-name="on_off_iiif_types" dc-term="on_off_iiif_types">
+      <pair>
+        <displayed-value>on</displayed-value>
+        <stored-value>true</stored-value>
       </pair>
     </value-pairs>
   </form-value-pairs>
