@@ -213,7 +213,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
     }
 
     private void checkRequiredProperties(EPersonRest epersonRest) {
-        MetadataRest metadataRest = epersonRest.getMetadata();
+        MetadataRest<MetadataValueRest> metadataRest = epersonRest.getMetadata();
         if (metadataRest != null) {
             List<MetadataValueRest> epersonFirstName = metadataRest.getMap().get("eperson.firstname");
             List<MetadataValueRest> epersonLastName = metadataRest.getMap().get("eperson.lastname");
@@ -393,6 +393,30 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             throw new RuntimeException(e.getMessage());
         }
     }
+
+    public EPersonRest mergeFromRegistrationData(
+        Context context, UUID uuid, String token, List<String> override
+    ) throws AuthorizeException {
+        try {
+
+            if (uuid == null) {
+                throw new DSpaceBadRequestException("The uuid of the person cannot be null");
+            }
+
+            if (token == null) {
+                throw new DSpaceBadRequestException("You must provide a token for the eperson");
+            }
+
+            return converter.toRest(
+                accountService.mergeRegistration(context, uuid, token, override),
+                utils.obtainProjection()
+            );
+        } catch (SQLException e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+    }
+
     @Override
     public void afterPropertiesSet() throws Exception {
         discoverableEndpointsService.register(this, Arrays.asList(

@@ -27,7 +27,10 @@ import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
 import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
+import org.dspace.eperson.RegistrationData;
+import org.dspace.eperson.RegistrationTypeEnum;
 import org.dspace.eperson.service.EPersonService;
+import org.dspace.eperson.service.RegistrationDataService;
 import org.dspace.orcid.OrcidToken;
 import org.dspace.orcid.client.OrcidClient;
 import org.dspace.orcid.client.OrcidConfiguration;
@@ -47,11 +50,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  * ORCID authentication for DSpace.
  *
  * @author Luca Giamminonni (luca.giamminonni at 4science.it)
- *
  */
 public class OrcidAuthenticationBean implements AuthenticationMethod {
 
     public static final String ORCID_AUTH_ATTRIBUTE = "orcid-authentication";
+    public static final String ORCID_REGISTRATION_TOKEN = "orcid-registration-token";
+    public static final String ORCID_DEFAULT_REGISTRATION_URL = "/external-registration?token={0}";
 
     private final static Logger LOGGER = LoggerFactory.getLogger(OrcidAuthenticationBean.class);
 
@@ -77,6 +81,9 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
 
     @Autowired
     private OrcidTokenService orcidTokenService;
+
+    @Autowired
+    private RegistrationDataService registrationDataService;
 
     @Override
     public int authenticate(Context context, String username, String password, String realm, HttpServletRequest request)
@@ -184,7 +191,7 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
             return ePerson.canLogIn() ? logInEPerson(context, token, ePerson) : BAD_ARGS;
         }
 
-        return canSelfRegister() ? registerNewEPerson(context, person, token) : NO_SUCH_USER;
+        return canSelfRegister() ? createRegistrationData(context, request, person, token) : NO_SUCH_USER;
 
     }
 
@@ -212,49 +219,49 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
         }
     }
 
-    private int registerNewEPerson(Context context, Person person, OrcidTokenResponseDTO token) throws SQLException {
+    private int createRegistrationData(
+        Context context, HttpServletRequest request, Person person, OrcidTokenResponseDTO token
+    ) throws SQLException {
 
         try {
             context.turnOffAuthorisationSystem();
 
-            String email = getEmail(person)
-                .orElseThrow(() -> new IllegalStateException("The email is configured private on orcid"));
+            RegistrationData registrationData =
+                this.registrationDataService.create(context, token.getOrcid(), RegistrationTypeEnum.ORCID);
 
-            String orcid = token.getOrcid();
+            registrationData.setEmail(getEmail(person).orElse(null));
+            setOrcidMetadataOnRegistration(context, registrationData, person, token);
 
-            EPerson eperson = ePersonService.create(context);
+            registrationDataService.update(context, registrationData);
 
-            eperson.setNetid(orcid);
-
-            eperson.setEmail(email);
-
-            Optional<String> firstName = getFirstName(person);
-            if (firstName.isPresent()) {
-                eperson.setFirstName(context, firstName.get());
-            }
-
-            Optional<String> lastName = getLastName(person);
-            if (lastName.isPresent()) {
-                eperson.setLastName(context, lastName.get());
-            }
-            eperson.setCanLogIn(true);
-            eperson.setSelfRegistered(true);
-
-            setOrcidMetadataOnEPerson(context, eperson, token);
-
-            ePersonService.update(context, eperson);
-            context.setCurrentUser(eperson);
+            request.setAttribute(ORCID_REGISTRATION_TOKEN, registrationData.getToken());
             context.dispatchEvents();
-
-            return SUCCESS;
 
         } catch (Exception ex) {
             LOGGER.error("An error occurs registering a new EPerson from ORCID", ex);
             context.rollback();
-            return NO_SUCH_USER;
         } finally {
             context.restoreAuthSystemState();
+            return NO_SUCH_USER;
         }
+    }
+
+    private void setOrcidMetadataOnRegistration(
+        Context context, RegistrationData registration, Person person, OrcidTokenResponseDTO token
+    ) throws SQLException, AuthorizeException {
+        String orcid = token.getOrcid();
+        // String[] scopes = token.getScopeAsArray();
+
+        registrationDataService.setRegistrationMetadataValue(
+            context, registration, "eperson", "firstname", null, getFirstName(person).orElse(null)
+        );
+        registrationDataService.setRegistrationMetadataValue(
+            context, registration, "eperson", "lastname", null, getLastName(person).orElse(null)
+        );
+        registrationDataService.setRegistrationMetadataValue(context, registration, "eperson", "orcid", null, orcid);
+        /*for (String scope : scopes) {
+            registrationDataService.addMetadata(context, registration, "eperson", "orcid", "scope", null, scope);
+        }*/
     }
 
     private void setOrcidMetadataOnEPerson(Context context, EPerson person, OrcidTokenResponseDTO token)
@@ -298,14 +305,14 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
 
     private Optional<String> getFirstName(Person person) {
         return Optional.ofNullable(person.getName())
-            .map(name -> name.getGivenNames())
-            .map(givenNames -> givenNames.getContent());
+                       .map(name -> name.getGivenNames())
+                       .map(givenNames -> givenNames.getContent());
     }
 
     private Optional<String> getLastName(Person person) {
         return Optional.ofNullable(person.getName())
-            .map(name -> name.getFamilyName())
-            .map(givenNames -> givenNames.getContent());
+                       .map(name -> name.getFamilyName())
+                       .map(givenNames -> givenNames.getContent());
     }
 
     private boolean canSelfRegister() {
