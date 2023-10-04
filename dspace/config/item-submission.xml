@@ -264,6 +264,14 @@
       <step id="demarch_viewing" />
       <step id="cclicense" />
     </submission-process>
+    <submission-process name="demarch_artefact-edit">
+      <step id="demarch_artefact_basic_info" />
+      <step id="demarch_artefact_indexing" />
+      <step id="demarch_artefact_refrences" />
+      <step id="upload" />
+      <step id="demarch_viewing" />
+      <step id="cclicense" />
+    </submission-process>
     <submission-process name="demarch_report">
       <step id="collection" />
       <step id="demarch_report_basic_info" />
