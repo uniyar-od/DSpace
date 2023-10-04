@@ -59,6 +59,10 @@ public interface RegistrationDataService extends DSpaceCRUDService<RegistrationD
         Context context, RegistrationData registration, String schema, String element, String qualifier, String value
     ) throws SQLException, AuthorizeException;
 
+    void addMetadata(
+        Context context, RegistrationData registration, String schema, String element, String qualifier, String value
+    ) throws SQLException, AuthorizeException;
+
     RegistrationDataMetadata getMetadataByMetadataString(RegistrationData registrationData, String field);
 
     void addMetadata(Context context, RegistrationData rd, MetadataField metadataField, String value)

@@ -250,18 +250,30 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
         Context context, RegistrationData registration, Person person, OrcidTokenResponseDTO token
     ) throws SQLException, AuthorizeException {
         String orcid = token.getOrcid();
-        // String[] scopes = token.getScopeAsArray();
 
-        registrationDataService.setRegistrationMetadataValue(
-            context, registration, "eperson", "firstname", null, getFirstName(person).orElse(null)
-        );
-        registrationDataService.setRegistrationMetadataValue(
-            context, registration, "eperson", "lastname", null, getLastName(person).orElse(null)
-        );
+        getFirstName(person)
+            .ifPresent(firstname -> setRegistrationMetadata(context, registration, "eperson.firstname", firstname));
+        getLastName(person)
+            .ifPresent(lastname -> setRegistrationMetadata(context, registration, "eperson.lastname", lastname));
         registrationDataService.setRegistrationMetadataValue(context, registration, "eperson", "orcid", null, orcid);
-        /*for (String scope : scopes) {
-            registrationDataService.addMetadata(context, registration, "eperson", "orcid", "scope", null, scope);
-        }*/
+
+        for (String scope : token.getScopeAsArray()) {
+            registrationDataService.addMetadata(context, registration, "eperson", "orcid", "scope", scope);
+        }
+    }
+
+    private void setRegistrationMetadata(
+        Context context, RegistrationData registration, String metadataString, String value) {
+        String[] split = metadataString.split("\\.");
+        String qualifier = split.length > 2 ? split[2] : null;
+        try {
+            registrationDataService.setRegistrationMetadataValue(
+                context, registration, split[0], split[1], qualifier, value
+            );
+        } catch (SQLException | AuthorizeException ex) {
+            LOGGER.error("An error occurs setting metadata", ex);
+            throw new RuntimeException(ex);
+        }
     }
 
     private void setOrcidMetadataOnEPerson(Context context, EPerson person, OrcidTokenResponseDTO token)

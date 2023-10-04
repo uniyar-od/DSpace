@@ -21,6 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.content.MetadataField;
 import org.dspace.content.MetadataValue;
+import org.dspace.content.service.MetadataFieldService;
 import org.dspace.core.Context;
 import org.dspace.core.Utils;
 import org.dspace.core.exception.SQLRuntimeException;
@@ -44,6 +45,9 @@ public class RegistrationDataServiceImpl implements RegistrationDataService {
 
     @Autowired()
     protected RegistrationDataMetadataService registrationDataMetadataService;
+
+    @Autowired()
+    protected MetadataFieldService metadataFieldService;
 
     protected RegistrationDataExpirationConfiguration expirationConfiguration =
         RegistrationDataExpirationConfiguration.getInstance();
@@ -159,6 +163,17 @@ public class RegistrationDataServiceImpl implements RegistrationDataService {
     public void addMetadata(
         Context context, RegistrationData registration, MetadataField mf, String value
     ) throws SQLException, AuthorizeException {
+        registration.getMetadata().add(
+            registrationDataMetadataService.create(context, registration, mf, value)
+        );
+        this.update(context, registration);
+    }
+
+    @Override
+    public void addMetadata(
+        Context context, RegistrationData registration, String schema, String element, String qualifier, String value
+    ) throws SQLException, AuthorizeException {
+        MetadataField mf = metadataFieldService.findByElement(context, schema, element, qualifier);
         registration.getMetadata().add(
             registrationDataMetadataService.create(context, registration, mf, value)
         );
