@@ -9,12 +9,14 @@ package org.dspace.app.rest;
 
 import java.util.List;
 import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
 import org.dspace.app.rest.converter.ConverterService;
 import org.dspace.app.rest.model.EPersonRest;
 import org.dspace.app.rest.model.hateoas.EPersonResource;
 import org.dspace.app.rest.repository.EPersonRestRepository;
+import org.dspace.app.rest.utils.ContextUtil;
 import org.dspace.core.Context;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.webmvc.ControllerUtils;
@@ -53,7 +55,7 @@ public class EPersonRegistrationRestController {
      *        -H "Authorization: Bearer ${bearer-token}"
      *  </code>
      * </pre>
-     * @param context dspace context
+     * @param request httpServletRequest incoming
      * @param uuid uuid of the eperson
      * @param token registration token
      * @param override fields to override inside from the registration data to the eperson
@@ -62,11 +64,12 @@ public class EPersonRegistrationRestController {
      */
     @RequestMapping(method = RequestMethod.POST, value = "/{uuid}")
     public ResponseEntity<RepresentationModel<?>> post(
-        Context context,
+        HttpServletRequest request,
         @PathVariable String uuid,
         @RequestParam @NotNull String token,
         @RequestParam(required = false) List<String> override
     ) throws Exception {
+        Context context = ContextUtil.obtainContext(request);
         EPersonRest epersonRest =
             ePersonRestRepository.mergeFromRegistrationData(context, UUID.fromString(uuid), token, override);
         EPersonResource resource = converter.toResource(epersonRest);

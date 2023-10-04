@@ -341,6 +341,9 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private Stream<Consumer<EPerson>> getMergeActions(RegistrationData registrationData, List<String> overrides) {
+        if (overrides == null || overrides.isEmpty()) {
+            return Stream.empty();
+        }
         return overrides.stream().map(f -> mergeField(f, registrationData));
     }
 
@@ -360,7 +363,7 @@ public class AccountServiceImpl implements AccountService {
                     ePersonService.getMetadataByMetadataString(
                         eperson, metadatum.getMetadataField().toString('.')
                     )
-                );
+                ).filter(l -> !l.isEmpty());
             if (epersonMetadata.isEmpty()) {
                 actions.add(p -> addMetadataValue(context, metadatum, p));
             }
