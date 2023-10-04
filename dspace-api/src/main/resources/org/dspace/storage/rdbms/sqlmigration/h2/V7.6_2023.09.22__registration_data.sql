@@ -38,9 +38,9 @@ CREATE TABLE registrationdata_metadata (
 ALTER TABLE registrationdata_metadata
 ADD CONSTRAINT FK_REGISTRATIONDATA_METADATA_ON_METADATA_FIELD
     FOREIGN KEY (metadata_field_id)
-    REFERENCES metadatafieldregistry (metadata_field_id);
+    REFERENCES metadatafieldregistry (metadata_field_id) ON DELETE CASCADE;
 
 ALTER TABLE registrationdata_metadata
 ADD CONSTRAINT FK_REGISTRATIONDATA_METADATA_ON_REGISTRATIONDATA
     FOREIGN KEY (registrationdata_id)
-    REFERENCES registrationdata (registrationdata_id);
+    REFERENCES registrationdata (registrationdata_id) ON DELETE CASCADE;

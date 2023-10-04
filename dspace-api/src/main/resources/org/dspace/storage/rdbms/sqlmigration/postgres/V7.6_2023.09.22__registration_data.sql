@@ -10,19 +10,16 @@
 -- ALTER table registrationdata
 -----------------------------------------------------------------------------------
 
-SET @constraint_name = QUOTE_IDENT(
-              SELECT DISTINCT constraint_name
-              FROM information_schema.constraints
-              WHERE table_schema = 'public'
-              AND table_name = 'registrationdata'
-              AND constraint_type = 'UNIQUE'
-              AND column_list = 'email');
-
-SET @command = 'ALTER TABLE public.registrationdata DROP CONSTRAINT public.' || @constraint_name;
-
-SELECT @command;
-
-EXECUTE IMMEDIATE @command;
+DO $$
+	BEGIN
+	EXECUTE 'ALTER TABLE registrationdata DROP CONSTRAINT ' ||
+		QUOTE_IDENT((
+			SELECT CONSTRAINT_NAME
+			FROM information_schema.key_column_usage
+			WHERE TABLE_SCHEMA = 'public' AND TABLE_NAME = 'registrationdata' AND COLUMN_NAME = 'email'
+	  ));
+	end
+$$;
 
 ALTER TABLE registrationdata
 ADD COLUMN registration_type VARCHAR(255);
@@ -47,9 +44,9 @@ CREATE TABLE registrationdata_metadata (
 ALTER TABLE registrationdata_metadata
 ADD CONSTRAINT FK_REGISTRATIONDATA_METADATA_ON_METADATA_FIELD
     FOREIGN KEY (metadata_field_id)
-    REFERENCES metadatafieldregistry (metadata_field_id);
+    REFERENCES metadatafieldregistry (metadata_field_id) ON DELETE CASCADE;
 
 ALTER TABLE registrationdata_metadata
 ADD CONSTRAINT FK_REGISTRATIONDATA_METADATA_ON_REGISTRATIONDATA
     FOREIGN KEY (registrationdata_id)
-    REFERENCES registrationdata (registrationdata_id);
+    REFERENCES registrationdata (registrationdata_id) ON DELETE CASCADE;
