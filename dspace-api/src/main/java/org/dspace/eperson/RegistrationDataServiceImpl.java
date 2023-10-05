@@ -149,14 +149,26 @@ public class RegistrationDataServiceImpl implements RegistrationDataService {
     public void setRegistrationMetadataValue(
         Context context, RegistrationData registration, String schema, String element, String qualifier, String value
     ) throws SQLException, AuthorizeException {
-        RegistrationDataMetadata metadata =
+
+        List<RegistrationDataMetadata> metadata =
             registration.getMetadata()
                         .stream()
                         .filter(m -> areEquals(m, schema, element, qualifier))
-                        .findAny()
-                        .orElseGet(() -> createMetadata(context, registration, schema, element, qualifier));
-        metadata.setValue(value);
-        registrationDataMetadataService.update(context, metadata);
+                        .collect(Collectors.toList());
+
+        if (metadata.size() > 1) {
+            throw new IllegalStateException("Find more than one registration metadata to update!");
+        }
+
+        RegistrationDataMetadata registrationDataMetadata;
+        if (metadata.isEmpty()) {
+            registrationDataMetadata =
+                createMetadata(context, registration, schema, element, qualifier, value);
+        } else {
+            registrationDataMetadata = metadata.get(0);
+            registrationDataMetadata.setValue(value);
+        }
+        registrationDataMetadataService.update(context, registrationDataMetadata);
     }
 
     @Override
@@ -193,11 +205,14 @@ public class RegistrationDataServiceImpl implements RegistrationDataService {
             && StringUtils.equals(m.getMetadataField().getQualifier(), qualifier);
     }
 
-    private RegistrationDataMetadata createMetadata(Context context, RegistrationData registration,
-                                                    String schema, String element, String qualifier) {
+    private RegistrationDataMetadata createMetadata(
+        Context context, RegistrationData registration,
+        String schema, String element, String qualifier,
+        String value
+    ) {
         try {
             return registrationDataMetadataService.create(
-                context, registration, schema, element, qualifier
+                context, registration, schema, element, qualifier, value
             );
         } catch (SQLException e) {
             throw new SQLRuntimeException(e);

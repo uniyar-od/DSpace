@@ -29,12 +29,14 @@ public class RegistrationDataMetadataServiceImpl implements RegistrationDataMeta
     @Autowired
     private MetadataFieldService metadataFieldService;
 
-
     @Override
     public RegistrationDataMetadata create(Context context, RegistrationData registrationData, String schema,
-                                           String element, String qualifier) throws SQLException {
-        return create(context, registrationData,
-                      metadataFieldService.findByElement(context, schema, element, qualifier));
+                                           String element, String qualifier, String value) throws SQLException {
+        return create(
+            context, registrationData,
+            metadataFieldService.findByElement(context, schema, element, qualifier),
+            value
+        );
     }
 
     @Override

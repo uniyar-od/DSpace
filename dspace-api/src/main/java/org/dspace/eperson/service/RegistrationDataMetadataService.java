@@ -20,9 +20,8 @@ import org.dspace.service.DSpaceCRUDService;
  **/
 public interface RegistrationDataMetadataService extends DSpaceCRUDService<RegistrationDataMetadata> {
 
-    RegistrationDataMetadata create(
-        Context context, RegistrationData registrationData, String schema, String element, String qualifier
-    ) throws SQLException;
+    RegistrationDataMetadata create(Context context, RegistrationData registrationData, String schema,
+                                    String element, String qualifier, String value) throws SQLException;
 
     RegistrationDataMetadata create(
         Context context, RegistrationData registrationData, MetadataField metadataField

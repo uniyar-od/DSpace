@@ -37,7 +37,7 @@ CREATE TABLE registrationdata_metadata (
   registrationdata_metadata_id INTEGER NOT NULL,
   registrationdata_id INTEGER,
   metadata_field_id INTEGER,
-  text_value OID,
+  text_value TEXT,
   CONSTRAINT pk_registrationdata_metadata PRIMARY KEY (registrationdata_metadata_id)
 );
 

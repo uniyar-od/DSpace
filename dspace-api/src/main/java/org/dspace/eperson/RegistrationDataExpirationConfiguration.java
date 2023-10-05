@@ -50,7 +50,7 @@ public class RegistrationDataExpirationConfiguration {
     }
 
     private Duration getDurationOf(RegistrationTypeEnum type) {
-        String format = MessageFormat.format(EXPIRATION_PROP, type.toString());
+        String format = MessageFormat.format(EXPIRATION_PROP, type.toString().toLowerCase());
         ConfigurationService config = DSpaceServicesFactory.getInstance().getConfigurationService();
         String typeValue = config.getProperty(format);
 

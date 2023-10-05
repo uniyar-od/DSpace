@@ -217,7 +217,7 @@ public class OrcidLoginFilterIT extends AbstractControllerIntegrationTest {
 
         assertThat(redirectedUrl, notNullValue());
 
-        final Pattern pattern = Pattern.compile("external-registration\\?token=([a-zA-Z0-9]+)");
+        final Pattern pattern = Pattern.compile("external-login/([a-zA-Z0-9]+)");
         final Matcher matcher = pattern.matcher(redirectedUrl);
         matcher.find();
 

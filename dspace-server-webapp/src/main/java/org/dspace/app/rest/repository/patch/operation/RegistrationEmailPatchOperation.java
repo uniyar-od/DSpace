@@ -9,9 +9,12 @@ package org.dspace.app.rest.repository.patch.operation;
 
 import java.sql.SQLException;
 import java.text.MessageFormat;
+import java.util.Optional;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.dspace.app.rest.exception.DSpaceBadRequestException;
 import org.dspace.app.rest.exception.UnprocessableEntityException;
+import org.dspace.app.rest.model.patch.JsonValueEvaluator;
 import org.dspace.app.rest.model.patch.Operation;
 import org.dspace.authorize.AuthorizeException;
 import org.dspace.core.Context;
@@ -54,7 +57,7 @@ public class RegistrationEmailPatchOperation<R extends RegistrationData> extends
 
         RegistrationDataPatch registrationDataPatch;
         try {
-            String email = (String) operation.getValue();
+            String email = getTextValue(operation);
             registrationDataPatch =
                 new RegistrationDataPatch(
                     object,
@@ -104,6 +107,14 @@ public class RegistrationEmailPatchOperation<R extends RegistrationData> extends
                 e
             );
         }
+    }
+
+    private static String getTextValue(Operation operation) {
+        return Optional.ofNullable((JsonValueEvaluator) operation.getValue())
+                       .map(JsonValueEvaluator::getValueNode)
+                       .map(nodes -> nodes.get(0))
+                       .map(JsonNode::asText)
+                       .orElseThrow(() -> new DSpaceBadRequestException("No value provided for operation"));
     }
 
     private RegistrationTypeEnum registrationTypeFor(

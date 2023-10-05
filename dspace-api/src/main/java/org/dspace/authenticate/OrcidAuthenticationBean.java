@@ -55,7 +55,7 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
 
     public static final String ORCID_AUTH_ATTRIBUTE = "orcid-authentication";
     public static final String ORCID_REGISTRATION_TOKEN = "orcid-registration-token";
-    public static final String ORCID_DEFAULT_REGISTRATION_URL = "/external-registration?token={0}";
+    public static final String ORCID_DEFAULT_REGISTRATION_URL = "/external-login/{0}";
 
     private final static Logger LOGGER = LoggerFactory.getLogger(OrcidAuthenticationBean.class);
 
@@ -235,6 +235,7 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
             registrationDataService.update(context, registrationData);
 
             request.setAttribute(ORCID_REGISTRATION_TOKEN, registrationData.getToken());
+            context.commit();
             context.dispatchEvents();
 
         } catch (Exception ex) {
@@ -318,13 +319,15 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
     private Optional<String> getFirstName(Person person) {
         return Optional.ofNullable(person.getName())
                        .map(name -> name.getGivenNames())
-                       .map(givenNames -> givenNames.getContent());
+                       .map(givenNames -> givenNames.getContent())
+                       .filter(StringUtils::isNotBlank);
     }
 
     private Optional<String> getLastName(Person person) {
         return Optional.ofNullable(person.getName())
                        .map(name -> name.getFamilyName())
-                       .map(givenNames -> givenNames.getContent());
+                       .map(givenNames -> givenNames.getContent())
+                       .filter(StringUtils::isNotBlank);
     }
 
     private boolean canSelfRegister() {
