@@ -5,9 +5,12 @@
  *
  * http://www.dspace.org/license/
  */
-package org.dspace.eperson;
+package org.dspace.app.scheduler.eperson;
+
+import java.sql.SQLException;
 
 import org.dspace.core.Context;
+import org.dspace.eperson.RegistrationData;
 import org.dspace.eperson.service.RegistrationDataService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,15 +40,19 @@ public class RegistrationDataScheduler {
      *
      */
     @Scheduled(cron = "${eperson.registration-data.scheduler.expired-registration-data.cron:-}")
-    protected void deleteExpiredRegistrationData() {
+    protected void deleteExpiredRegistrationData() throws SQLException {
         Context context = new Context();
         context.turnOffAuthorisationSystem();
         try {
+
             registrationDataService.deleteExpiredRegistrations(context);
-        } catch (Exception e) {
-            log.error("Failed to delete expired registrations", e);
-        } finally {
+
             context.restoreAuthSystemState();
+            context.complete();
+        } catch (Exception e) {
+            context.abort();
+            log.error("Failed to delete expired registrations", e);
+            throw e;
         }
     }
 

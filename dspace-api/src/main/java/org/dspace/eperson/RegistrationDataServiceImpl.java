@@ -70,11 +70,16 @@ public class RegistrationDataServiceImpl implements RegistrationDataService {
     @Override
     public RegistrationData create(Context context, String netId, RegistrationTypeEnum type)
         throws SQLException, AuthorizeException {
+        return registrationDataDAO.create(context, newInstance(netId, type, null));
+    }
+
+    private RegistrationData newInstance(String netId, RegistrationTypeEnum type, String email) {
         RegistrationData rd = new RegistrationData(netId);
         rd.setToken(Utils.generateHexKey());
         rd.setRegistrationType(type);
         rd.setExpires(expirationConfiguration.computeExpirationDate(type));
-        return registrationDataDAO.create(context, rd);
+        rd.setEmail(email);
+        return rd;
     }
 
     @Override
@@ -83,10 +88,7 @@ public class RegistrationDataServiceImpl implements RegistrationDataService {
     ) throws SQLException, AuthorizeException {
         RegistrationData old = registrationDataPatch.getOldRegistration();
         RegistrationDataChanges changes = registrationDataPatch.getChanges();
-        RegistrationData rd = new RegistrationData(old.getNetId());
-        rd.setEmail(changes.getEmail());
-        rd.setRegistrationType(changes.getRegistrationType());
-        rd.setToken(Utils.generateHexKey());
+        RegistrationData rd = newInstance(old.getNetId(), changes.getRegistrationType(), changes.getEmail());
 
         for (RegistrationDataMetadata metadata : old.getMetadata()) {
             addMetadata(context, rd, metadata.getMetadataField(), metadata.getValue());
