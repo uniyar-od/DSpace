@@ -70,10 +70,17 @@ public class EPersonRegistrationRestController {
         @RequestParam(required = false) List<String> override
     ) throws Exception {
         Context context = ContextUtil.obtainContext(request);
-        EPersonRest epersonRest =
-            ePersonRestRepository.mergeFromRegistrationData(context, UUID.fromString(uuid), token, override);
-        EPersonResource resource = converter.toResource(epersonRest);
-        return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), resource);
+        try {
+            context.turnOffAuthorisationSystem();
+            EPersonRest epersonRest =
+                ePersonRestRepository.mergeFromRegistrationData(context, UUID.fromString(uuid), token, override);
+            EPersonResource resource = converter.toResource(epersonRest);
+            return ControllerUtils.toResponseEntity(HttpStatus.CREATED, new HttpHeaders(), resource);
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            context.restoreAuthSystemState();
+        }
     }
 
 }

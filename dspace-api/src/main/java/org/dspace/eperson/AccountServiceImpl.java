@@ -253,7 +253,9 @@ public class AccountServiceImpl implements AccountService {
         updateValuesFromRegistration(context, eperson, registrationData, overrides);
         addEPersonToGroups(context, eperson, registrationData.getGroups());
         deleteToken(context, token);
+        ePersonService.update(context, eperson);
 
+        context.commit();
         context.restoreAuthSystemState();
 
         return eperson;
