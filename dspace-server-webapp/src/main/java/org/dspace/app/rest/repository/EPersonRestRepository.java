@@ -223,7 +223,8 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             }
         }
         String password = epersonRest.getPassword();
-        if (StringUtils.isBlank(password)) {
+        String netId = epersonRest.getNetid();
+        if (StringUtils.isAllBlank(password, netId)) {
             throw new DSpaceBadRequestException("A password is required");
         }
     }
