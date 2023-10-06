@@ -44,10 +44,6 @@ public class RegistrationEmailPatchOperation<R extends RegistrationData> extends
      */
     private static final String OPERATION_PATH_EMAIL = "/email";
 
-    private static final String EMAIL_PATTERN =
-        "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)" +
-            "+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?";
-
     @Autowired
     private AccountService accountService;
 
@@ -110,11 +106,21 @@ public class RegistrationEmailPatchOperation<R extends RegistrationData> extends
     }
 
     private static String getTextValue(Operation operation) {
-        return Optional.ofNullable((JsonValueEvaluator) operation.getValue())
-                       .map(JsonValueEvaluator::getValueNode)
-                       .map(nodes -> nodes.get(0))
-                       .map(JsonNode::asText)
-                       .orElseThrow(() -> new DSpaceBadRequestException("No value provided for operation"));
+        Object value = operation.getValue();
+
+        if (value instanceof String) {
+            return ((String) value);
+        }
+
+        if (value instanceof JsonValueEvaluator) {
+            return Optional.of((JsonValueEvaluator) value)
+                           .map(JsonValueEvaluator::getValueNode)
+                           .filter(nodes -> !nodes.isEmpty())
+                           .map(nodes -> nodes.get(0))
+                           .map(JsonNode::asText)
+                           .orElseThrow(() -> new DSpaceBadRequestException("No value provided for operation"));
+        }
+        throw new DSpaceBadRequestException("Invalid patch value for operation!");
     }
 
     private RegistrationTypeEnum registrationTypeFor(
