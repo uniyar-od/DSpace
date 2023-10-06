@@ -328,8 +328,11 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public boolean isTokenValidForCreation(RegistrationData registrationData) {
-        return isValidationToken(registrationData.getRegistrationType())
-            && StringUtils.isNotBlank(registrationData.getNetId());
+        return (
+                isExternalRegistrationToken(registrationData.getRegistrationType()) ||
+                isValidationToken(registrationData.getRegistrationType())
+            ) &&
+            StringUtils.isNotBlank(registrationData.getNetId());
     }
 
     private boolean canCreateUserBy(Context context, RegistrationTypeEnum registrationTypeEnum) {

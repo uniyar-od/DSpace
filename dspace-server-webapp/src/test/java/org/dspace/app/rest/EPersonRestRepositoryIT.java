@@ -3030,11 +3030,11 @@ public class EPersonRestRepositoryIT extends AbstractControllerIntegrationTest {
                                     .param("token", orcidRegistration.getToken())
                                     .content(mapper.writeValueAsBytes(ePersonRest))
                                     .contentType(MediaType.APPLICATION_JSON))
-                       .andExpect(status().isBadRequest());
+                       .andExpect(status().isCreated())
+                       .andDo(result -> idRef
+                           .set(UUID.fromString(read(result.getResponse().getContentAsString(), "$.id"))));
         } finally {
-            context.turnOffAuthorisationSystem();
-            registrationDataService.delete(context, orcidRegistration);
-            context.restoreAuthSystemState();
+            EPersonBuilder.deleteEPerson(idRef.get());
         }
     }
 
