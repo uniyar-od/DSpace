@@ -197,7 +197,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
             throw new DSpaceBadRequestException("The self registered property cannot be set to false using this method"
                                                     + " with a token");
         }
-        checkRequiredProperties(epersonRest);
+        checkRequiredProperties(registrationData, epersonRest);
         // We'll turn off authorisation system because this call isn't admin based as it's token based
         context.turnOffAuthorisationSystem();
         EPerson ePerson = createEPersonFromRestObject(context, epersonRest);
@@ -212,7 +212,7 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
         return converter.toRest(ePerson, utils.obtainProjection());
     }
 
-    private void checkRequiredProperties(EPersonRest epersonRest) {
+    private void checkRequiredProperties(RegistrationData registration, EPersonRest epersonRest) {
         MetadataRest<MetadataValueRest> metadataRest = epersonRest.getMetadata();
         if (metadataRest != null) {
             List<MetadataValueRest> epersonFirstName = metadataRest.getMap().get("eperson.firstname");
@@ -222,13 +222,25 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
                 throw new EPersonNameNotProvidedException();
             }
         }
+
         String password = epersonRest.getPassword();
-        String netId = epersonRest.getNetid();
-        if (StringUtils.isAllBlank(password, netId)) {
+        String netid = epersonRest.getNetid();
+        if (StringUtils.isBlank(password) && StringUtils.isBlank(netid)) {
             throw new DSpaceBadRequestException(
-                "You must provide a password or register using external authentication!"
+                "You must provide a password or register using an external account"
             );
         }
+
+        if (!canRegisterExternalAccount(registration, epersonRest)) {
+            throw new DSpaceBadRequestException(
+                "Cannot register external account with netid: " + netid
+            );
+        }
+    }
+
+    private boolean canRegisterExternalAccount(RegistrationData registration, EPersonRest epersonRest) {
+        return accountService.isValidExternalAuth(registration) &&
+            StringUtils.equals(registration.getNetId(), epersonRest.getNetid());
     }
 
     @Override

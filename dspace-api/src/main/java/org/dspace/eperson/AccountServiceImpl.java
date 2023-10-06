@@ -21,6 +21,7 @@ import java.util.stream.Stream;
 import javax.mail.MessagingException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.dspace.authenticate.service.AuthenticationService;
@@ -333,7 +334,14 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public void confirmRegistration(Context context, RegistrationData registrationData) {
+    public boolean isValidExternalAuth(RegistrationData registrationData) {
+        return isExternalTokenType(registrationData.getRegistrationType())
+            && StringUtils.isNotBlank(registrationData.getNetId());
+    }
+
+    private boolean isExternalTokenType(RegistrationTypeEnum registrationTypeEnum) {
+        return RegistrationTypeEnum.ORCID.equals(registrationTypeEnum) ||
+            RegistrationTypeEnum.VALIDATION.equals(registrationTypeEnum);
     }
 
 

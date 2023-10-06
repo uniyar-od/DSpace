@@ -62,5 +62,6 @@ public interface AccountService {
         Context context, RegistrationDataPatch registrationDataPatch
     ) throws AuthorizeException;
 
-    void confirmRegistration(Context context, RegistrationData registrationData);
+
+    boolean isValidExternalAuth(RegistrationData registrationData);
 }
