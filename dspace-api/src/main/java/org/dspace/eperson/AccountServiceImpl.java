@@ -239,8 +239,8 @@ public class AccountServiceImpl implements AccountService {
             eperson = ePersonService.findByIdOrLegacyId(context, personId.toString());
         }
 
-        if (!isValidationToken(registrationData)) {
-            throw new AuthorizeException("The token provided (" + token + ") has an invalid registration type.");
+        if (!canBeMerged(context, registrationData)) {
+            throw new AuthorizeException("Token type invalid for the current user.");
         }
 
         if (hasLoggedEPerson(context) && !isSameContextEPerson(context, eperson)) {
@@ -305,8 +305,12 @@ public class AccountServiceImpl implements AccountService {
         return eperson.equals(context.getCurrentUser());
     }
 
+    private static boolean canBeMerged(Context context, RegistrationData registrationData) {
+        return context.getCurrentUser() == null && !isValidationToken(registrationData);
+    }
+
     private static boolean isValidationToken(RegistrationData registrationData) {
-        return registrationData.getRegistrationType().equals(RegistrationTypeEnum.VALIDATION);
+        return RegistrationTypeEnum.VALIDATION.equals(registrationData.getRegistrationType());
     }
 
     @Override
@@ -428,7 +432,7 @@ public class AccountServiceImpl implements AccountService {
         return Optional.ofNullable(registrationDataService.findByToken(context, token))
                        .filter(rd ->
                                    isValid(rd) ||
-                                   !RegistrationTypeEnum.VALIDATION.equals(rd.getRegistrationType())
+                                   !isValidationToken(rd)
                        )
                        .orElseThrow(
                            () -> new AuthorizeException(
