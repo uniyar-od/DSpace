@@ -10,16 +10,12 @@ package org.dspace.app.rest;
 import static java.util.Arrays.asList;
 import static org.dspace.app.matcher.MetadataValueMatcher.with;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.emptyString;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.mockito.ArgumentMatchers.matches;
-import static org.mockito.ArgumentMatchers.startsWith;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -56,7 +52,6 @@ import org.dspace.content.Community;
 import org.dspace.content.Item;
 import org.dspace.content.service.ItemService;
 import org.dspace.eperson.EPerson;
-import org.dspace.eperson.RegistrationData;
 import org.dspace.eperson.RegistrationTypeEnum;
 import org.dspace.eperson.service.EPersonService;
 import org.dspace.eperson.service.RegistrationDataService;
@@ -66,7 +61,6 @@ import org.dspace.orcid.exception.OrcidClientException;
 import org.dspace.orcid.model.OrcidTokenResponseDTO;
 import org.dspace.orcid.service.OrcidTokenService;
 import org.dspace.services.ConfigurationService;
-import org.dspace.util.UUIDUtils;
 import org.hamcrest.Matchers;
 import org.junit.After;
 import org.junit.Before;
@@ -158,7 +152,8 @@ public class OrcidLoginFilterIT extends AbstractControllerIntegrationTest {
         configurationService.setProperty("orcid.registration-data.url", "/test-redirect?random-token={0}");
         try {
             when(orcidClientMock.getAccessToken(CODE)).thenReturn(buildOrcidTokenResponse(ORCID, ACCESS_TOKEN));
-            when(orcidClientMock.getPerson(ACCESS_TOKEN, ORCID)).thenReturn(buildPerson("Test", "User", "test@email.it"));
+            when(orcidClientMock.getPerson(ACCESS_TOKEN, ORCID)).thenReturn(
+                buildPerson("Test", "User", "test@email.it"));
 
             MvcResult mvcResult =
                 getClient().perform(get("/api/" + AuthnRest.CATEGORY + "/orcid").param("code", CODE))
