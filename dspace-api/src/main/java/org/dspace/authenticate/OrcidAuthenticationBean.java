@@ -53,6 +53,9 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class OrcidAuthenticationBean implements AuthenticationMethod {
 
+
+    public static final String ORCID_DEFAULT_FIRSTNAME = "Unnamed";
+    public static final String ORCID_DEFAULT_LASTNAME = ORCID_DEFAULT_FIRSTNAME;
     public static final String ORCID_AUTH_ATTRIBUTE = "orcid-authentication";
     public static final String ORCID_REGISTRATION_TOKEN = "orcid-registration-token";
     public static final String ORCID_DEFAULT_REGISTRATION_URL = "/external-login/{0}";
@@ -252,10 +255,8 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
     ) throws SQLException, AuthorizeException {
         String orcid = token.getOrcid();
 
-        getFirstName(person)
-            .ifPresent(firstname -> setRegistrationMetadata(context, registration, "eperson.firstname", firstname));
-        getLastName(person)
-            .ifPresent(lastname -> setRegistrationMetadata(context, registration, "eperson.lastname", lastname));
+        setRegistrationMetadata(context, registration, "eperson.firstname", getFirstName(person));
+        setRegistrationMetadata(context, registration, "eperson.lastname", getLastName(person));
         registrationDataService.setRegistrationMetadataValue(context, registration, "eperson", "orcid", null, orcid);
 
         for (String scope : token.getScopeAsArray()) {
@@ -316,18 +317,20 @@ public class OrcidAuthenticationBean implements AuthenticationMethod {
         return Optional.ofNullable(emails.get(0).getEmail());
     }
 
-    private Optional<String> getFirstName(Person person) {
+    private String getFirstName(Person person) {
         return Optional.ofNullable(person.getName())
                        .map(name -> name.getGivenNames())
                        .map(givenNames -> givenNames.getContent())
-                       .filter(StringUtils::isNotBlank);
+                       .filter(StringUtils::isNotBlank)
+                       .orElse(ORCID_DEFAULT_FIRSTNAME);
     }
 
-    private Optional<String> getLastName(Person person) {
+    private String getLastName(Person person) {
         return Optional.ofNullable(person.getName())
                        .map(name -> name.getFamilyName())
                        .map(givenNames -> givenNames.getContent())
-                       .filter(StringUtils::isNotBlank);
+                       .filter(StringUtils::isNotBlank)
+                        .orElse(ORCID_DEFAULT_LASTNAME);
     }
 
     private boolean canSelfRegister() {
