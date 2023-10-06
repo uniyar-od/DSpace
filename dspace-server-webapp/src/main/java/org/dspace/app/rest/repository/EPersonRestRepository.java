@@ -224,22 +224,22 @@ public class EPersonRestRepository extends DSpaceObjectRestRepository<EPerson, E
         }
 
         String password = epersonRest.getPassword();
-        String netid = epersonRest.getNetid();
-        if (StringUtils.isBlank(password) && StringUtils.isBlank(netid)) {
+        String netId = epersonRest.getNetid();
+        if (StringUtils.isBlank(password) && StringUtils.isBlank(netId)) {
             throw new DSpaceBadRequestException(
                 "You must provide a password or register using an external account"
             );
         }
 
-        if (!canRegisterExternalAccount(registration, epersonRest)) {
+        if (StringUtils.isBlank(password) && !canRegisterExternalAccount(registration, epersonRest)) {
             throw new DSpaceBadRequestException(
-                "Cannot register external account with netid: " + netid
+                "Cannot register external account with netId: " + netId
             );
         }
     }
 
     private boolean canRegisterExternalAccount(RegistrationData registration, EPersonRest epersonRest) {
-        return accountService.isValidExternalAuth(registration) &&
+        return accountService.isTokenValidForCreation(registration) &&
             StringUtils.equals(registration.getNetId(), epersonRest.getNetid());
     }
 

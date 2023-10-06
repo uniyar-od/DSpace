@@ -47,7 +47,6 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
     private AccountService accountService;
     @Autowired
     private RegistrationDataService registrationDataService;
-
     @Autowired
     private MetadataFieldService metadataFieldService;
 
@@ -157,7 +156,7 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
 
         context.turnOffAuthorisationSystem();
         RegistrationData validationRegistration =
-            registrationDataService.create(context, "0000-0000-0000-0000", RegistrationTypeEnum.VALIDATION);
+            registrationDataService.create(context, "0000-0000-0000-0000", RegistrationTypeEnum.VALIDATION_ORCID);
         context.restoreAuthSystemState();
 
         String tokenAdmin = getAuthToken(admin.getEmail(), password);
@@ -179,7 +178,7 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
 
         context.turnOffAuthorisationSystem();
         RegistrationDataChanges changes =
-            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION);
+            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION_ORCID);
         RegistrationData validationRegistration =
             this.accountService.renewRegistrationForEmail(
                 context, new RegistrationDataPatch(orcidRegistration, changes)
@@ -205,7 +204,7 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
 
         context.turnOffAuthorisationSystem();
         RegistrationDataChanges changes =
-            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION);
+            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION_ORCID);
         RegistrationData validationRegistration =
             this.accountService.renewRegistrationForEmail(
                 context, new RegistrationDataPatch(orcidRegistration, changes)
@@ -232,7 +231,7 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
 
         context.turnOffAuthorisationSystem();
         RegistrationDataChanges changes =
-            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION);
+            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION_ORCID);
         RegistrationData validationRegistration =
             this.accountService.renewRegistrationForEmail(
                 context, new RegistrationDataPatch(orcidRegistration, changes)
@@ -270,7 +269,7 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
 
         context.turnOffAuthorisationSystem();
         RegistrationDataChanges changes =
-            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION);
+            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION_ORCID);
         RegistrationData validationRegistration =
             this.accountService.renewRegistrationForEmail(
                 context, new RegistrationDataPatch(orcidRegistration, changes)
@@ -309,7 +308,7 @@ public class EPersonRegistrationRestControllerIT extends AbstractControllerInteg
 
         context.turnOffAuthorisationSystem();
         RegistrationDataChanges changes =
-            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION);
+            new RegistrationDataChanges("vincenzo.mecca@4science.com", RegistrationTypeEnum.VALIDATION_ORCID);
         RegistrationData validationRegistration =
             this.accountService.renewRegistrationForEmail(
                 context, new RegistrationDataPatch(orcidRegistration, changes)

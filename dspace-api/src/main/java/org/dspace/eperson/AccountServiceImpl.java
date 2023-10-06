@@ -240,7 +240,7 @@ public class AccountServiceImpl implements AccountService {
             eperson = ePersonService.findByIdOrLegacyId(context, personId.toString());
         }
 
-        if (!canBeMerged(context, registrationData)) {
+        if (!canCreateUserBy(context, registrationData.getRegistrationType())) {
             throw new AuthorizeException("Token type invalid for the current user.");
         }
 
@@ -306,13 +306,6 @@ public class AccountServiceImpl implements AccountService {
         return eperson.equals(context.getCurrentUser());
     }
 
-    private static boolean canBeMerged(Context context, RegistrationData registrationData) {
-        return context.getCurrentUser() != null || isValidationToken(registrationData);
-    }
-
-    private static boolean isValidationToken(RegistrationData registrationData) {
-        return RegistrationTypeEnum.VALIDATION.equals(registrationData.getRegistrationType());
-    }
 
     @Override
     public RegistrationData renewRegistrationForEmail(
@@ -334,14 +327,28 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public boolean isValidExternalAuth(RegistrationData registrationData) {
-        return isExternalTokenType(registrationData.getRegistrationType())
+    public boolean isTokenValidForCreation(RegistrationData registrationData) {
+        return isValidationToken(registrationData.getRegistrationType())
             && StringUtils.isNotBlank(registrationData.getNetId());
     }
 
-    private boolean isExternalTokenType(RegistrationTypeEnum registrationTypeEnum) {
-        return RegistrationTypeEnum.ORCID.equals(registrationTypeEnum) ||
-            RegistrationTypeEnum.VALIDATION.equals(registrationTypeEnum);
+    private boolean canCreateUserBy(Context context, RegistrationTypeEnum registrationTypeEnum) {
+        return isValidationToken(registrationTypeEnum) ||
+            canCreateUserFromExternalRegistrationToken(context, registrationTypeEnum);
+    }
+
+    private static boolean canCreateUserFromExternalRegistrationToken(
+        Context context, RegistrationTypeEnum registrationTypeEnum
+    ) {
+        return context.getCurrentUser() != null && isExternalRegistrationToken(registrationTypeEnum);
+    }
+
+    private static boolean isExternalRegistrationToken(RegistrationTypeEnum registrationTypeEnum) {
+        return RegistrationTypeEnum.ORCID.equals(registrationTypeEnum);
+    }
+
+    private static boolean isValidationToken(RegistrationTypeEnum registrationTypeEnum) {
+        return RegistrationTypeEnum.VALIDATION_ORCID.equals(registrationTypeEnum);
     }
 
 
@@ -440,7 +447,7 @@ public class AccountServiceImpl implements AccountService {
         return Optional.ofNullable(registrationDataService.findByToken(context, token))
                        .filter(rd ->
                                    isValid(rd) ||
-                                   !isValidationToken(rd)
+                                   !isValidationToken(rd.getRegistrationType())
                        )
                        .orElseThrow(
                            () -> new AuthorizeException(

@@ -128,7 +128,7 @@ public class RegistrationEmailPatchOperation<R extends RegistrationData> extends
     )
         throws SQLException {
         if (accountService.existsAccountWithEmail(context, email)) {
-            return RegistrationTypeEnum.VALIDATION;
+            return RegistrationTypeEnum.VALIDATION_ORCID;
         }
         return object.getRegistrationType();
     }

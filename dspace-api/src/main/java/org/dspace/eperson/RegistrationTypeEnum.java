@@ -15,7 +15,7 @@ package org.dspace.eperson;
 public enum RegistrationTypeEnum {
 
     ORCID("external-login"),
-    VALIDATION("review-account"),
+    VALIDATION_ORCID("review-account"),
     FORGOT("forgot"),
     REGISTER("register"),
     INVITATION("invitation"),

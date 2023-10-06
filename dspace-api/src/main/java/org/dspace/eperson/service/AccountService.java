@@ -63,5 +63,5 @@ public interface AccountService {
     ) throws AuthorizeException;
 
 
-    boolean isValidExternalAuth(RegistrationData registrationData);
+    boolean isTokenValidForCreation(RegistrationData registrationData);
 }

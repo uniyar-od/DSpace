@@ -927,7 +927,7 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
         verify(spy, times(1)).addRecipient(vinsEmail);
         verify(spy).addArgument(
             ArgumentMatchers.contains(
-                RegistrationTypeEnum.VALIDATION.getLink()
+                RegistrationTypeEnum.VALIDATION_ORCID.getLink()
             )
         );
         verify(spy, times(1)).send();
@@ -973,7 +973,7 @@ public class RegistrationRestRepositoryIT extends AbstractControllerIntegrationT
         verify(spy, times(1)).addRecipient(vinsEmail);
         verify(spy).addArgument(
             ArgumentMatchers.contains(
-                RegistrationTypeEnum.VALIDATION.getLink()
+                RegistrationTypeEnum.VALIDATION_ORCID.getLink()
             )
         );
         verify(spy, times(1)).send();

@@ -42,6 +42,7 @@ import org.dspace.eperson.EPerson;
 import org.dspace.eperson.Group;
 import org.dspace.eperson.InvalidReCaptchaException;
 import org.dspace.eperson.RegistrationData;
+import org.dspace.eperson.RegistrationTypeEnum;
 import org.dspace.eperson.service.AccountService;
 import org.dspace.eperson.service.CaptchaService;
 import org.dspace.eperson.service.EPersonService;
@@ -66,8 +67,8 @@ public class RegistrationRestRepository extends DSpaceRestRepository<Registratio
 
     public static final String TOKEN_QUERY_PARAM = "token";
     public static final String TYPE_QUERY_PARAM = "accountRequestType";
-    public static final String TYPE_REGISTER = "register";
-    public static final String TYPE_FORGOT = "forgot";
+    public static final String TYPE_REGISTER = RegistrationTypeEnum.REGISTER.toString().toLowerCase();
+    public static final String TYPE_FORGOT = RegistrationTypeEnum.FORGOT.toString().toLowerCase();
 
     @Autowired
     private EPersonService ePersonService;
