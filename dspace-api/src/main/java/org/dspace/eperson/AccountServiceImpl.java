@@ -306,7 +306,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     private static boolean canBeMerged(Context context, RegistrationData registrationData) {
-        return context.getCurrentUser() == null && !isValidationToken(registrationData);
+        return context.getCurrentUser() != null || isValidationToken(registrationData);
     }
 
     private static boolean isValidationToken(RegistrationData registrationData) {
