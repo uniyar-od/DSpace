@@ -9,10 +9,14 @@
 package org.dspace.ror;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.StringUtils;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ROROrgUnitDTO {
-    private String id;
+
+    @JsonProperty("id")
+    private String url;
 
     private String name;
 
@@ -24,12 +28,21 @@ public class ROROrgUnitDTO {
 
     private String[] types;
 
-    public String getId() {
-        return id;
+    public String getIdentifier() {
+        if (StringUtils.isBlank(url)) {
+            return null;
+        }
+
+        String[] splittedUrl = url.split("/");
+        return splittedUrl[splittedUrl.length - 1];
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
     public String getName() {

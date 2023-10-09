@@ -72,17 +72,15 @@ public class RORApiServiceImpl implements RORApiService {
             .ifPresent(metadataValues::add);
 
         getPersonMetadataField("url")
-            .flatMap(field -> getMetadataValue(orgUnit.getId(), field))
+            .flatMap(field -> getMetadataValue(orgUnit.getUrl(), field))
+            .ifPresent(metadataValues::add);
+
+        getPersonMetadataField("identifier")
+            .flatMap(field -> getMetadataValue(orgUnit.getIdentifier(), field))
             .ifPresent(metadataValues::add);
 
         return metadataValues;
 
-    }
-
-    @Override
-    public String getRORIdMetadataField() {
-        return getPersonMetadataField("sciper")
-            .orElseThrow(() -> new IllegalStateException("No Sciper metadata field configured"));
     }
 
     private List<MetadataValueDTO> getInactiveMetadataField() {

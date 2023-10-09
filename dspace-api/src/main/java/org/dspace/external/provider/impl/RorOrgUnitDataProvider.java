@@ -40,7 +40,9 @@ public class RorOrgUnitDataProvider extends AbstractExternalDataProvider {
 
     private ExternalDataObject convertToExternalDataObject(ROROrgUnitDTO orgUnit) {
         ExternalDataObject object = new ExternalDataObject(sourceIdentifier);
-        object.setId(orgUnit.getId());
+        object.setId(orgUnit.getIdentifier());
+        object.setValue(orgUnit.getName());
+        object.setDisplayValue(orgUnit.getName());
         object.setMetadata(rorApiService.getMetadataValues(orgUnit));
         return object;
     }

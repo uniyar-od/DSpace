@@ -55,7 +55,7 @@ public class RorOrgUnitAuthority extends ItemAuthority {
     private List<Choice> getChoiceFromRORQueryResults(List<ROROrgUnitDTO> orgUnits) {
         return orgUnits
             .stream()
-            .map(orgUnit -> new Choice(composeAuthorityValue(orgUnit.getId()), orgUnit.getName(),
+            .map(orgUnit -> new Choice(composeAuthorityValue(orgUnit.getIdentifier()), orgUnit.getName(),
                                        orgUnit.getName(), buildExtras(orgUnit)))
             .collect(Collectors.toList());
     }

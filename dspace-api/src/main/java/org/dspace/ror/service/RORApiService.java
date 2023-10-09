@@ -23,8 +23,6 @@ public interface RORApiService {
 
     public List<MetadataValueDTO> getMetadataValues(String rorId);
 
-    public String getRORIdMetadataField();
-
     public List<String> getMetadataFields();
 
 }
