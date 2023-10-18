@@ -157,6 +157,12 @@
                                 <property name="icon" value="fas fa-users fa-3x"/>
                                 <property name="link" value="/explore/researcherprofiles"/>
                             </bean>
+                            <bean class="org.dspace.layout.CrisLayoutCountersComponent.CounterSettings">
+                                <property name="discoveryConfigurationName" value="demarchartefact"/>
+                                <property name="label" value="demarchartefact"/>
+                                <property name="icon" value="fas fa-gem fa-3x"/>
+                                <property name="link" value="/explore/researcherprofiles"/>
+                            </bean>
                         </list>
                     </property>
                 </bean>
