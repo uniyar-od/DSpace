@@ -4709,6 +4709,10 @@
         <displayed-value>Personal Picture</displayed-value>
         <stored-value>personal picture</stored-value>
       </pair>
+      <pair>
+        <displayed-value>Video</displayed-value>
+        <stored-value>video</stored-value>
+      </pair>
     </value-pairs>
     <value-pairs value-pairs-name="on_off_iiif_types" dc-term="on_off_iiif_types">
       <pair>
