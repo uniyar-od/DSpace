@@ -1277,6 +1277,18 @@
           <repeatable>true</repeatable>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>project</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Projects</label>
+          <input-type>onebox</input-type>
+          <hint>Enter the name of project, where this artefact was found.</hint>
+          <required />
+        </field>
+      </row>
     </form>
     <form name="demarch_report_basic_info">
       <row>
@@ -1349,6 +1361,18 @@
           <label>Related publications</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>project</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Projects</label>
+          <input-type>onebox</input-type>
+          <hint>Enter the name of project, for which this report was written.</hint>
+          <required />
         </field>
       </row>
     </form>

@@ -277,6 +277,15 @@
       <step id="demarch_report_indexing" />
       <step id="demarch_report_refrences" />
       <step id="upload" />
+      <step id="demarch_viewing" />
+      <step id="cclicense" />
+    </submission-process>
+    <submission-process name="demarch_report-edit">
+      <step id="demarch_report_basic_info" />
+      <step id="demarch_report_indexing" />
+      <step id="demarch_report_refrences" />
+      <step id="upload" />
+      <step id="demarch_viewing" />
       <step id="cclicense" />
     </submission-process>
 

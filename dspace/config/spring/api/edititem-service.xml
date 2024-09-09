@@ -23,6 +23,19 @@
                         </bean>
                     </list>
                 </entry>
+                <entry key="demarchreport">
+                    <list>
+                        <bean class="org.dspace.content.edit.EditItemMode">
+                            <property name="name" value="FULL" />
+                            <property name="security">
+                                <value type="org.dspace.content.security.CrisSecurity">
+                                    ITEM_ADMIN
+                                </value>
+                            </property>
+                            <property name="submissionDefinition" value="demarch_report-edit" />
+                        </bean>
+                    </list>
+                </entry>
                 <entry key="publication">
                     <list>
                         <bean class="org.dspace.content.edit.EditItemMode">

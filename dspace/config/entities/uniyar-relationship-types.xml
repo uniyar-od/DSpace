@@ -44,4 +44,28 @@
 	        <max>1</max>
         </rightCardinality>
     </type>
+    <type>
+        <leftType>DemarchArtefact</leftType>
+        <rightType>Project</rightType>
+        <leftwardType>isProjectOfDemarchArtefact</leftwardType>
+        <rightwardType>isDemarchArtefactOfProject</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+        </rightCardinality>
+    </type>
+    <type>
+        <leftType>DemarchReport</leftType>
+        <rightType>Project</rightType>
+        <leftwardType>isProjectOfDemarchReport</leftwardType>
+        <rightwardType>isDemarchReportOfProject</rightwardType>
+        <leftCardinality>
+            <min>0</min>
+        </leftCardinality>
+        <rightCardinality>
+            <min>0</min>
+        </rightCardinality>
+    </type>
 </relationships>

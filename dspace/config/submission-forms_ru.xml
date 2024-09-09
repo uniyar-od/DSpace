@@ -951,6 +951,18 @@
           <repeatable>true</repeatable>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>project</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Проекты</label>
+          <input-type>onebox</input-type>
+          <hint>Введите название проекта, где данный артефакт был найден.</hint>
+          <required />
+        </field>
+      </row>
     </form>
     <form name="demarch_report_basic_info">
       <row>
@@ -1023,6 +1035,30 @@
           <label>Связанные публикации</label>
           <input-type>onebox</input-type>
           <repeatable>true</repeatable>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>relation</dc-element>
+          <dc-qualifier>project</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Проекты</label>
+          <input-type>onebox</input-type>
+          <hint>Введите название проекта, для которого был составлен данный отчет.</hint>
+          <required />
+        </field>
+      </row>
+    </form>
+    <form name="demarch_viewing">
+      <row>
+        <field>
+          <dc-schema>dspace</dc-schema>
+          <dc-element>iiif</dc-element>
+          <dc-qualifier>enabled</dc-qualifier>
+          <label>Включение просмотра</label>
+          <input-type value-pairs-name="on_off_iiif_types">list</input-type>
+          <repeatable>false</repeatable>
         </field>
       </row>
     </form>
