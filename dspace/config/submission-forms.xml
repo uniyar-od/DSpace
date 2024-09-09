@@ -1234,6 +1234,26 @@
           <hint>square, layer, depth</hint>
         </field>
       </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>date</dc-element>
+          <dc-qualifier>created</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Excavation year</label>
+          <input-type>date</input-type>
+        </field>
+      </row>
+      <row>
+        <field>
+          <dc-schema>dc</dc-schema>
+          <dc-element>contributor</dc-element>
+          <dc-qualifier>author</dc-qualifier>
+          <repeatable>false</repeatable>
+          <label>Excavation leader</label>
+          <input-type>onebox</input-type>
+        </field>
+      </row>
     </form>
     <form name="demarch_artefact_indexing">
       <row>
